@@ -1,0 +1,45 @@
+name: Build-and-Test-MSVC-Windows
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+    - main
+    - dev
+
+jobs:
+  Build:
+    runs-on: windows-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Debug, Release]
+
+    steps:
+    - uses: actions/checkout@v4
+      
+    - name: Append the directory of 'vcvarsall.bat' to PATH environment variable
+      uses: myci-actions/export-env-var-powershell@1
+      with:
+         name: PATH
+         value: $env:PATH;C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build
+
+    - name: Configure CMake
+      run: |
+            cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DBENCH_TYPE=BENCHMARK
+
+    - name: Build the Test
+      run: |
+            cmake --build ./Build --config=${{matrix.build_type}}
+
+    - name: Install the Test
+      run: |
+            cmake --install ./Build --config=${{matrix.build_type}}
+
+    - name: Run the Test
+      working-directory: C:/Program Files (x86)/BenchmarkSuite/Tests/${{matrix.build_type}}/
+      run: |
+            ./BenchmarkExe.exe
+      continue-on-error: true
+  

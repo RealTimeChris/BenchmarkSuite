@@ -1,0 +1,257 @@
+﻿{
+  "version": 3,
+  "configurePresets": [
+    {
+      "installDir": "${sourceDir}/Build",
+      "binaryDir": "${sourceDir}/Build",
+      "condition": {
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows",
+        "type": "equals"
+      },
+      "generator": "Ninja",
+      "hidden": true,
+      "name": "Jsonifier-Windows-Base"
+    },
+    {
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      },
+      "inherits": "Jsonifier-Windows-Base",
+      "name": "Jsonifier-Windows-Release"
+    },
+    {
+      "architecture": {
+        "strategy": "external",
+        "value": "x64"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BENCH_TYPE": "BENCHMARK"
+      },
+      "inherits": "Jsonifier-Windows-Base",
+      "name": "Jsonifier-Windows-Release-Dev"
+    },
+    {
+      "architecture": {
+        "strategy": "external",
+        "value": "x64"
+      },
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" },
+      "inherits": "Jsonifier-Windows-Base",
+      "name": "Jsonifier-Windows-Debug"
+    },
+    {
+      "architecture": {
+        "strategy": "external",
+        "value": "x64"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "BENCH_TYPE": "BENCHMARK"
+      },
+      "inherits": "Jsonifier-Windows-Base",
+      "name": "Jsonifier-Windows-Debug-Dev"
+    },
+    {
+      "architecture": {
+        "strategy": "external",
+        "value": "x64"
+      },
+      "cacheVariables": {
+        "ASAN_ENABLED": "TRUE",
+        "CMAKE_BUILD_TYPE": "Release",
+        "BENCH_TYPE": "BENCHMARK"
+      },
+      "inherits": "Jsonifier-Windows-Base",
+      "name": "Jsonifier-Windows-Release-Asan"
+    },
+    {
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "ASAN_ENABLED": "TRUE",
+        "CMAKE_BUILD_TYPE": "Debug",
+        "BENCH_TYPE": "BENCHMARK"
+      },
+      "inherits": "Jsonifier-Windows-Base",
+      "name": "Jsonifier-Windows-Debug-Asan"
+    },
+    {
+      "installDir": "${sourceDir}/Install/${presetName}",
+      "binaryDir": "${sourceDir}/Install/${presetName}",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "/usr/bin/clang++-20",
+        "CMAKE_C_COMPILER": "/usr/bin/clang-20"
+      },
+      "condition": {
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux",
+        "type": "equals"
+      },
+      "generator": "Unix Makefiles",
+      "hidden": true,
+      "name": "Jsonifier-Linux-Base"
+    },
+    {
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" },
+      "inherits": "Jsonifier-Linux-Base",
+      "name": "Jsonifier-Linux-Release"
+    },
+    {
+      "architecture": {
+        "strategy": "external",
+        "value": "x64"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BENCH_TYPE": "BENCHMARK"
+      },
+      "inherits": "Jsonifier-Linux-Base",
+      "name": "Jsonifier-Linux-Release-Dev"
+    },
+    {
+      "architecture": {
+        "strategy": "external",
+        "value": "x64"
+      },
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" },
+      "inherits": "Jsonifier-Linux-Base",
+      "name": "Jsonifier-Linux-Debug"
+    },
+    {
+      "architecture": {
+        "strategy": "external",
+        "value": "x64"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "BENCH_TYPE": "BENCHMARK"
+      },
+      "inherits": "Jsonifier-Linux-Base",
+      "name": "Jsonifier-Linux-Debug-Dev"
+    },
+    {
+      "architecture": {
+        "strategy": "external",
+        "value": "x64"
+      },
+      "cacheVariables": {
+        "ASAN_ENABLED": true,
+        "CMAKE_BUILD_TYPE": "Release",
+        "BENCH_TYPE": "BENCHMARK"
+      },
+      "inherits": "Jsonifier-Linux-Base",
+      "name": "Jsonifier-Linux-Release-Asan"
+    },
+    {
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "ASAN_ENABLED": true,
+        "CMAKE_BUILD_TYPE": "Debug",
+        "BENCH_TYPE": "BENCHMARK"
+      },
+      "inherits": "Jsonifier-Linux-Base",
+      "name": "Jsonifier-Linux-Debug-Asan"
+    }
+  ],
+  "buildPresets": [
+    {
+      "configurePreset": "Jsonifier-Windows-Release",
+      "configuration": "Release",
+      "inheritConfigureEnvironment": true,
+      "name": "Jsonifier-Windows-Release",
+      "verbose": true
+    },
+    {
+      "configurePreset": "Jsonifier-Windows-Debug",
+      "configuration": "Debug",
+      "inheritConfigureEnvironment": true,
+      "name": "Jsonifier-Windows-Debug",
+      "verbose": true
+    },
+    {
+      "configurePreset": "Jsonifier-Windows-Release-Asan",
+      "inheritConfigureEnvironment": true,
+      "configuration": "Release",
+      "name": "Jsonifier-Windows-Release-Asan",
+      "verbose": true
+    },
+    {
+      "configurePreset": "Jsonifier-Windows-Debug-Asan",
+      "inheritConfigureEnvironment": true,
+      "configuration": "Debug",
+      "name": "Jsonifier-Windows-Debug-Asan",
+      "verbose": true
+    },
+    {
+      "configurePreset": "Jsonifier-Windows-Release-Dev",
+      "inheritConfigureEnvironment": true,
+      "configuration": "Release",
+      "name": "Jsonifier-Windows-Release-Dev",
+      "verbose": true
+    },
+    {
+      "configurePreset": "Jsonifier-Windows-Debug-Dev",
+      "inheritConfigureEnvironment": true,
+      "configuration": "Debug",
+      "name": "Jsonifier-Windows-Debug-Dev",
+      "verbose": true
+    },
+    {
+      "configurePreset": "Jsonifier-Linux-Release",
+      "configuration": "Release",
+      "inheritConfigureEnvironment": true,
+      "name": "Jsonifier-Linux-Release",
+      "verbose": true
+    },
+    {
+      "configurePreset": "Jsonifier-Linux-Debug",
+      "configuration": "Debug",
+      "inheritConfigureEnvironment": true,
+      "name": "Jsonifier-Linux-Debug",
+      "verbose": true
+    },
+    {
+      "configurePreset": "Jsonifier-Linux-Release-Asan",
+      "inheritConfigureEnvironment": true,
+      "configuration": "Release",
+      "name": "Jsonifier-Linux-Release-Asan",
+      "verbose": true
+    },
+    {
+      "configurePreset": "Jsonifier-Linux-Debug-Asan",
+      "inheritConfigureEnvironment": true,
+      "configuration": "Debug",
+      "name": "Jsonifier-Linux-Debug-Asan",
+      "verbose": true
+    },
+    {
+      "configurePreset": "Jsonifier-Linux-Release-Dev",
+      "inheritConfigureEnvironment": true,
+      "configuration": "Release",
+      "name": "Jsonifier-Linux-Release-Dev",
+      "verbose": true
+    },
+    {
+      "configurePreset": "Jsonifier-Linux-Debug-Dev",
+      "inheritConfigureEnvironment": true,
+      "configuration": "Debug",
+      "name": "Jsonifier-Linux-Debug-Dev",
+      "verbose": true
+    }
+  ]
+}
