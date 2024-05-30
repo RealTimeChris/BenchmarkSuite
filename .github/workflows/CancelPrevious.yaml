@@ -1,0 +1,38 @@
+name: Cancel Previous Workflows
+
+on:
+  workflow_dispatch:
+
+jobs:
+  cancel_previous:
+    runs-on: ubuntu-latest
+    steps:
+      - name: List all running workflows
+        id: list_workflows
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const runs = await github.actions.listWorkflowRunsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              status: 'in_progress',
+              per_page: 100
+            });
+            const runIds = runs.data.workflow_runs.map(run => run.id);
+            core.setOutput('workflow_run_ids', JSON.stringify(runIds));
+
+      - name: Cancel previous workflows
+        if: steps.list_workflows.outputs.workflow_run_ids != '[]'
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const workflowRunIds = JSON.parse('${{ steps.list_workflows.outputs.workflow_run_ids }}');
+            for (const id of workflowRunIds) {
+              await github.actions.cancelWorkflowRun({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: id
+              });
+            }
