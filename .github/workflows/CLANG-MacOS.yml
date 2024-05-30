@@ -1,0 +1,48 @@
+name: Build-and-Test-CLANG-MacOS
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+    - main
+    - dev
+
+jobs:
+  Build:
+    runs-on: macos-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Debug, Release]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install the latest clang compiler.
+      run: |
+            brew install llvm
+
+    - name: Configure CMake.
+      run: |
+            cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++ -DBENCH_TYPE=BENCHMARK
+
+    - name: Build the Test
+      run: |
+            cmake --build ./Build --config=${{matrix.build_type}}
+
+    - name: Print assembly file
+      run: |
+            echo "Contents of Assembly.cod:"
+            cat Assembly/Assembly.cod
+
+    - name: Install the Test
+      run: |
+            sudo cmake --install ./Build --config=${{matrix.build_type}}
+
+    - name: Run the Test
+      run: |
+            sudo chmod +x /usr/local/Tests/${{matrix.build_type}}/BenchmarkExe    
+            sudo /usr/local/Tests/${{matrix.build_type}}/BenchmarkExe
+      continue-on-error: true
+      
