@@ -1,0 +1,68 @@
+name: Build-and-Test-CLANG-Ubuntu-UBSan
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+    - main
+    - General-Benchmarking
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Debug, Release]
+
+    steps:
+    - uses: actions/checkout@v4
+  
+    - name: Install the latest Clang compiler.
+      working-directory: ./
+      run:  |
+            sudo apt update && sudo apt upgrade
+            wget https://apt.llvm.org/llvm.sh
+            chmod u+x llvm.sh
+            sudo ./llvm.sh 20
+
+    - name: Update Vcpkg and install other dependencies.
+      run: | 
+            sudo apt-get install nasm
+            cd /usr/local/share/vcpkg
+            ./bootstrap-vcpkg.sh
+            git stash
+            git pull
+            vcpkg update
+
+    - name: Install Jsonifier
+      run: |
+            sudo git clone https://github.com/RealTimeChris/Jsonifier --branch=dev --depth=1
+            cd ./Jsonifier
+            sudo cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
+            sudo cmake --build ./Build --config=Release
+            sudo cmake --install ./Build
+
+    - name: Configure CMake
+      working-directory: ./
+      run: |
+           cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=/usr/bin/clang++-20 -DBENCH_TYPE=STRING_COMPARISON -DVCPKG_DIR=/usr/local/share/vcpkg -DUBSAN=TRUE
+
+    - name: Build the Test
+      working-directory: ./Build
+      run: |
+           cmake --build . --config=${{matrix.build_type}}
+
+    - name: Install the Test
+      working-directory: ./Build
+      run: |
+           sudo cmake --install . --config=${{matrix.build_type}}
+
+    - name: Run the Test
+      working-directory: ./
+      run: |
+           sudo chmod +x /usr/local/Tests/${{matrix.build_type}}/StringComparisonExe
+           sudo /usr/local/Tests/${{matrix.build_type}}/StringComparisonExe
+           dir 
+      continue-on-error: true

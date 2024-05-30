@@ -1,0 +1,64 @@
+name: Build-and-Test-MSVC-Windows
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+    - main
+    - General-Benchmarking
+
+jobs:
+  Build:
+    runs-on: windows-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Debug, Release]
+
+    steps:
+    - uses: actions/checkout@v4
+  
+    - name: Update Vcpkg and install other dependencies.
+      run: | 
+            cd C:/vcpkg
+            ./bootstrap-vcpkg.bat
+            git stash
+            git pull
+            vcpkg update
+
+    - name: Install Jsonifier
+      run: |
+            git clone https://github.com/RealTimeChris/Jsonifier --branch=dev --depth=1
+            cd ./Jsonifier
+            cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
+            cmake --build ./Build --config=Release
+            cmake --install ./Build
+      
+    - name: Append the directory of 'vcvarsall.bat' to PATH environment variable
+      uses: myci-actions/export-env-var-powershell@1
+      with:
+         name: PATH
+         value: $env:PATH;C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build
+
+    - name: Configure CMake
+      working-directory: ./
+      run: |
+           cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DBENCH_TYPE=STRING_COMPARISON -DVCPKG_DIR=C:/vcpkg -DJSONIFIER_LIBRARY="true"
+
+    - name: Build the Test
+      working-directory: ./Build
+      run: |
+           cmake --build . --config=${{matrix.build_type}}
+
+    - name: Install the Test
+      working-directory: ./Build
+      run: |
+           cmake --install . --config=${{matrix.build_type}}
+
+    - name: Run the Test
+      working-directory: C:/Program Files (x86)/BenchmarkSuite/Tests/${{matrix.build_type}}/
+      run: |
+           ./StringComparisonExe.exe
+      continue-on-error: true
+  
