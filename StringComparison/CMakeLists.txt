@@ -17,14 +17,6 @@ set(CMAKE_CXX_STANDARD 20)
 include (FetchContent)
 
 FetchContent_Declare(
-  jsonifier
-  GIT_REPOSITORY https://github.com/realtimechris/jsonifier.git
-  GIT_TAG dev
-  GIT_SHALLOW TRUE
-)
-FetchContent_MakeAvailable(jsonifier)
-
-FetchContent_Declare(
   glaze
   GIT_REPOSITORY https://github.com/stephenberry/glaze.git
   GIT_TAG main
@@ -49,14 +41,13 @@ target_link_options("StringComparisonExe" PUBLIC
 	"$<$<CXX_COMPILER_ID:MSVC>:/PROFILE>"
 )
 
-#find_package(xxHash CONFIG REQUIRED)
 target_link_libraries(
 	"StringComparisonExe"
 	PUBLIC
-	"BenchmarkSuite"
-	"glaze::glaze"
-	"Chrishendo::Chrishendo"
-	"Jsonifier::Jsonifier"
+	BenchmarkSuite
+	glaze::glaze
+	Chrishendo::Chrishendo
+	Jsonifier::Jsonifier
 )
 
 target_compile_options (
@@ -82,7 +73,7 @@ if (WIN32)
 	install(
 		FILES 
 		"$<TARGET_PDB_FILE:StringComparisonExe>"
-		DESTINATION "${CMAKE_INSTALL_PREFIX}/Tests/${CMAKE_BUILD_TYPE}"
+		DESTINATION "Tests/${CMAKE_BUILD_TYPE}"
 		OPTIONAL
 	)
 endif()
@@ -90,13 +81,13 @@ endif()
 install(
 	FILES 
 	"$<TARGET_FILE:StringComparisonExe>"
-	DESTINATION "${CMAKE_INSTALL_PREFIX}/Tests/${CMAKE_BUILD_TYPE}"
+	DESTINATION "Tests/${CMAKE_BUILD_TYPE}"
 	OPTIONAL
 )
 
 install(
 	FILES 
 	"$<TARGET_RUNTIME_DLLS:StringComparisonExe>"
-	DESTINATION "${CMAKE_INSTALL_PREFIX}/Tests/${CMAKE_BUILD_TYPE}"
+	DESTINATION "Tests/${CMAKE_BUILD_TYPE}"
 	OPTIONAL
 )

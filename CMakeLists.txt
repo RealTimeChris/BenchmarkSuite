@@ -11,6 +11,20 @@ file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Include/benchma
 
 add_library("${PROJECT_NAME}" INTERFACE "${HEADERS}")
 
+if (WIN32)
+	set(OS "windows")
+elseif(APPLE AND NOT UNIX)
+	set(OS "osx")
+else()
+	set(OS "linux")
+endif()
+
+if(EXISTS VCPKG_DIR)
+	set(Jsonifier_DIR "${VCPKG_DIR}/installed/x64-${OS}/share/jsonifier")
+else()
+	set(Jsonifier_DIR "C:/Users/Chris/source/repos/Jsonifier/out/share/jsonifier/")
+endif()
+
 add_library("BenchmarkSuite::BenchmarkSuite" ALIAS "${PROJECT_NAME}")
 
 if (MSVC)
@@ -22,24 +36,22 @@ if (MSVC)
 			$<$<CONFIG:Release>:/GL>
 			$<$<CONFIG:MinSizeRel>:/GL>
 			"/Zc:preprocessor"
+			"/bigobj"
 			"/permissive-"
 			"/Zc:lambda"
 		)
 
 		target_link_options(
 			"${PROJECT_NAME}" INTERFACE
-			$<$<CONFIG:Release>:/LTCG /INCREMENTAL:NO>
-			$<$<CONFIG:MinSizeRel>:/LTCG /INCREMENTAL:NO>
+			"$<$<CONFIG:Release>:/LTCG /INCREMENTAL:NO>"
+			"$<$<CONFIG:MinSizeRel>:/LTCG /INCREMENTAL:NO>"
 		)
 	endif()
 endif()
 
-if (WIN32)
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /FA")
-endif()
+include (FetchContent)
 
-if (NOT "${JSONIFIER_LIBRARY}" STREQUAL "true")
-	include (FetchContent)
+if(NOT "${JSONIFIER_LIBRARY}" STREQUAL "TRUE")
 	FetchContent_Declare(
 	  jsonifier
 	  GIT_REPOSITORY https://github.com/realtimechris/jsonifier.git
@@ -47,8 +59,6 @@ if (NOT "${JSONIFIER_LIBRARY}" STREQUAL "true")
 	  GIT_SHALLOW TRUE
 	)
 	FetchContent_MakeAvailable(jsonifier)
-else()
-	find_package(Jsonifier CONFIG REQUIRED)
 endif()
 
 set_target_properties(
@@ -71,8 +81,15 @@ target_include_directories(
 target_compile_definitions(
 	"${PROJECT_NAME}" INTERFACE
 	"$<$<STREQUAL:${ASAN_ENABLED},TRUE>:/fsanitize=address>"
-	"$<$<NOT:$<STREQUAL:${CPU_FREQUENCY_MHZ},\"\">>:${CPU_FREQUENCY_MHZ}>"
 )
+
+if (NOT "${CPU_FREQUENCY_MHZ}" STREQUAL "")
+	message("CPU_FREQUENCY_MHZ VALUE: ${CPU_FREQUENCY_MHZ}")
+	target_compile_definitions(
+		"${PROJECT_NAME}" INTERFACE
+		"CPU_FREQUENCY_MHZ=${CPU_FREQUENCY_MHZ}"
+	)
+endif()
 
 set(CONFIG_FILE_NAME "BenchmarkSuiteConfig.cmake")
 set(EXPORTED_TARGETS_NAME "BenchmarkSuiteTargets")
@@ -126,7 +143,7 @@ if (WIN32 AND "${BUILD_SHARED_LIBS}")
 	install(
 		FILES 
 		"$<TARGET_PDB_FILE:BenchmarkSuite>"
-		DESTINATION "${CMAKE_INSTALL_PREFIX}/bin"
+		DESTINATION "bin"
 		OPTIONAL
 	)
 endif()

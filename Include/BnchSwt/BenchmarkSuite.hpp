@@ -10,6 +10,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <string>
 #include <chrono>
 #include <vector>
 
@@ -40,7 +41,12 @@ namespace bnch_swt {
 
 		void saveFile(const std::string& fileToSave) {
 			std::ofstream theStream(filePath.data(), std::ios::binary | std::ios::out | std::ios::trunc);
-			theStream.write(fileToSave.data(), fileToSave.size());
+			theStream.write(fileToSave.data(), static_cast<int64_t>(fileToSave.size()));
+			if (theStream.is_open()) {
+				std::cout << "File succesfully written to: " << fileToSave << std::endl;
+			} else {
+				std::cerr << "File failed to be written to: " << fileToSave << std::endl;
+			}
 			theStream.close();
 		}
 
@@ -72,7 +78,7 @@ namespace bnch_swt {
 			return length;
 		}
 
-		constexpr operator std::string() const {
+		BNCH_SWT_INLINE operator std::string() const {
 			return { values, length };
 		}
 
@@ -107,8 +113,8 @@ namespace bnch_swt {
 	template<uint32_t number> constexpr string_literal<countDigits(number) + 1> toStringLiteral() {
 		constexpr std::size_t num_digits = countDigits(number);
 		char buffer[num_digits + 1]{};
-		char* ptr		  = buffer + num_digits;
-		*ptr			  = '\0';
+		char* ptr	  = buffer + num_digits;
+		*ptr		  = '\0';
 		uint32_t temp = number;
 		do {
 			*--ptr = '0' + (temp % 10);
@@ -157,13 +163,20 @@ namespace bnch_swt {
 	template<typename value_type, typename... arg_types>
 	concept invocable_not_void = invocable<value_type, arg_types...> && !std::is_void_v<typename return_type_helper<value_type, arg_types...>::type>;
 
+	double getCpuFrequency();
+
 #if defined(BNCH_SWT_MSVC)
 
-	#define rdtsc() __rdtsc()
+	#define rdtsc(x) __rdtsc()
 
 #else
 
-	__inline__ uint64_t rdtsc() {
+	#if defined(BNCH_SWT_MAC)
+		#include <mach/mach_time.h>
+	#endif
+
+	__inline__ uint64_t rdtsc(double cpuFrequency = 0.0f) {
+		( void )cpuFrequency;
 	#ifdef __x86_64__
 		uint32_t a, d;
 		__asm__ volatile("rdtsc" : "=a"(a), "=d"(d));
@@ -173,8 +186,13 @@ namespace bnch_swt {
 		__asm__ volatile("rdtsc" : "=A"(x));
 		return x;
 	#else
-		#define NO_CYCLE_COUNTER
-		return 0;
+		mach_timebase_info_data_t timebase_info;
+		mach_timebase_info(&timebase_info);
+		uint64_t nanoseconds = mach_absolute_time() * timebase_info.numer / timebase_info.denom;
+
+		double seconds	  = static_cast<double>(nanoseconds) / 1e9;
+		double cpu_cycles = seconds * cpuFrequency;
+		return cpu_cycles;
 	#endif
 	}
 #endif
@@ -193,7 +211,7 @@ namespace bnch_swt {
 		do {
 			QueryPerformanceCounter(&qwCurrent);
 		} while (qwCurrent.QuadPart - qwStart.QuadPart < qwWait.QuadPart);
-		return ((__rdtsc() - Start) << 5) / 1000000.0;
+		return static_cast<double>((__rdtsc() - Start) << 5) / 1000000.0;
 	}
 
 #elif defined(BNCH_SWT_LINUX)
@@ -241,7 +259,7 @@ namespace bnch_swt {
 		}
 
 		if (result.empty()) {
-			throw std::runtime_error("Command executed but returned no output.");
+			//throw std::runtime_error("Command executed but returned no output.");
 		}
 
 		return result;
@@ -259,7 +277,7 @@ namespace bnch_swt {
 		}
 
 		if (output.empty()) {
-			std::cerr << "Error: Output from sysctl command is empty." << std::endl;
+			//std::cerr << "Error: Output from sysctl command is empty." << std::endl;
 			return -1.0;
 		}
 
@@ -281,7 +299,7 @@ namespace bnch_swt {
 		}
 	}
 
-#else
+	#else
 
 	double getCpuFrequency() {
 		volatile int32_t counter{};
@@ -295,10 +313,10 @@ namespace bnch_swt {
 		}
 		auto end		 = std::chrono::high_resolution_clock::now();
 		auto newDuration = std::chrono::duration_cast<std::chrono::duration<double, std::nano>>(end - start);
-		return static_cast<double>(counter) * newDuration.count() / 1000000000.0f;
+		return (static_cast<double>(counter) * newDuration.count() / 1000000000.0f) / 1e6;
 	}
 
-#endif
+	#endif
 
 #else
 
@@ -308,15 +326,16 @@ namespace bnch_swt {
 
 #endif
 
+
 #if defined(small)
 	#undef small
 #endif
 
-	template<typename function_type> BNCH_SWT_NEVER_INLINE uint64_t collectCycles(function_type&& function) {
+	template<typename function_type> BNCH_SWT_NEVER_INLINE uint64_t collectCycles(function_type&& function, double cpuFrequency) {
 		volatile uint64_t start{}, end{};
-		start = rdtsc();
+		start = rdtsc(cpuFrequency);
 		function();
-		end = rdtsc();
+		end = rdtsc(cpuFrequency);
 		return end - start;
 	}
 
@@ -325,6 +344,19 @@ namespace bnch_swt {
 		double timeNanoseconds = (cycles * 1e9) / frequencyHz;
 
 		return timeNanoseconds;
+	}
+
+	template<typename function_type> BNCH_SWT_INLINE double collectTime(function_type&& function, double cpuFrequency) {
+#if defined(BNCH_SWT_MAC)
+		auto startTime = std::chrono::high_resolution_clock::now();
+		function();
+		auto endTime	= std::chrono::high_resolution_clock::now();
+		double duration = std::chrono::duration_cast<std::chrono::duration<double, std::nano>>(endTime - startTime).count();
+#else
+		auto duration = collectCycles(function, cpuFrequency);
+		duration	  = cyclesToTime(duration, cpuFrequency);
+#endif
+		return duration;
 	}
 
 #if defined(BNCH_SWT_MSVC)
@@ -364,7 +396,7 @@ namespace bnch_swt {
 	BNCH_SWT_INLINE double calcMean(jsonifier::vector<double>& v, double a, double b) {
 		double mean = 0;
 
-		for (int32_t i = a; i <= b; i++) {
+		for (uint32_t i = static_cast<uint32_t>(a); i <= static_cast<uint32_t>(b); i++) {
 			mean += v[i];
 		}
 
@@ -378,7 +410,7 @@ namespace bnch_swt {
 
 		double stdv = 0;
 
-		for (int32_t i = a; i <= b; i++) {
+		for (uint32_t i = static_cast<uint32_t>(a); i <= static_cast<uint32_t>(b); i++) {
 			double x = v[i] - mean;
 
 			stdv += x * x;
@@ -457,7 +489,7 @@ namespace bnch_swt {
 
 	BNCH_SWT_INLINE void determineStabilityParameters(uint64_t maxIterationCount, double& stabilityThreshold, uint64_t& stabilityWindow) {
 		if (maxIterationCount < 100) {
-			stabilityThreshold = 0.01;
+			stabilityThreshold = 0.05;
 			stabilityWindow	   = 3;
 		} else if (maxIterationCount < 1000) {
 			stabilityThreshold = 0.005;
@@ -481,10 +513,10 @@ namespace bnch_swt {
 		for (uint64_t i = 0; i < minIterationCount; ++i) {
 			lambda();
 		}
-
+		auto cpuFrequency			   = getCpuFrequency();
 		uint64_t currentIterationCount = 0;
 		while (currentIterationCount < maxIterationCount) {
-			auto duration = static_cast<double>(collectCycles(lambda));
+			auto duration = static_cast<double>(collectCycles(lambda, cpuFrequency));
 			durations.emplace_back(duration);
 
 			if (currentIterationCount >= minIterationCount) {
@@ -493,7 +525,7 @@ namespace bnch_swt {
 
 				if (checkDoubleForValidLt(mapeValues.mape, stabilityThreshold)) {
 					if (currentIterationCount >= stabilityWindow) {
-						mape_return_values recentMAPEValues{};
+						mape_return_values recentMapeValues{};
 						bool stable = true;
 						for (uint64_t i = 0; i < stabilityWindow; ++i) {
 							if (currentIterationCount < stabilityWindow) {
@@ -502,16 +534,16 @@ namespace bnch_swt {
 							}
 							jsonifier::vector<double> recentDurations{ durations.end() - stabilityWindow, durations.end() };
 							removeOutliers(recentDurations);
-							recentMAPEValues = medianAbsolutePercentError(recentDurations);
-							if (!checkDoubleForValidLt(recentMAPEValues.mape, stabilityThreshold)) {
+							recentMapeValues = medianAbsolutePercentError(recentDurations);
+							if (!checkDoubleForValidLt(recentMapeValues.mape, stabilityThreshold)) {
 								stable = false;
 								break;
 							} else {
 							}
 						}
 						if (stable) {
-							recentMAPEValues.mape *= 100;
-							return { recentMAPEValues.mape, currentIterationCount, recentMAPEValues.median };
+							recentMapeValues.mape = recentMapeValues.mape * 100;
+							return { recentMapeValues.mape, currentIterationCount, recentMapeValues.median };
 						}
 					}
 				}
@@ -519,7 +551,7 @@ namespace bnch_swt {
 			++currentIterationCount;
 		}
 		auto newMapeValues = medianAbsolutePercentError(durations);
-		newMapeValues.mape *= 100;
+		newMapeValues.mape = newMapeValues.mape * 100;
 		return { newMapeValues.mape, currentIterationCount, newMapeValues.median };
 	}
 
@@ -535,8 +567,8 @@ namespace bnch_swt {
 		uint64_t currentIterationCount = 0;
 
 		while (currentIterationCount < maxIterationCount) {
-			auto duration = collectCycles(lambda);
-			durations.emplace_back(cyclesToTime(duration, cpuFrequency));
+			auto duration = collectTime(lambda, cpuFrequency);
+			durations.emplace_back(duration);
 
 			if (currentIterationCount >= minIterationCount) {
 				removeOutliers(durations);
@@ -544,7 +576,7 @@ namespace bnch_swt {
 
 				if (checkDoubleForValidLt(mapeValues.mape, stabilityThreshold)) {
 					if (currentIterationCount >= stabilityWindow) {
-						mape_return_values recentMAPEValues{}; 
+						mape_return_values recentMapeValues{};
 						bool stable = true;
 						for (uint64_t i = 0; i < stabilityWindow; ++i) {
 							if (currentIterationCount < stabilityWindow) {
@@ -553,17 +585,16 @@ namespace bnch_swt {
 							}
 							jsonifier::vector<double> recentDurations{ durations.end() - stabilityWindow, durations.end() };
 							removeOutliers(recentDurations);
-							recentMAPEValues = medianAbsolutePercentError(recentDurations);
-							if (!checkDoubleForValidLt(recentMAPEValues.mape, stabilityThreshold)) {
+							recentMapeValues = medianAbsolutePercentError(recentDurations);
+							if (!checkDoubleForValidLt(recentMapeValues.mape, stabilityThreshold)) {
 								stable = false;
 								break;
-							} else{
-
+							} else {
 							}
 						}
 						if (stable) {
-							recentMAPEValues.mape *= 100;
-							return { recentMAPEValues.mape, currentIterationCount, recentMAPEValues.median };
+							recentMapeValues.mape = recentMapeValues.mape * 100;
+							return { recentMapeValues.mape, currentIterationCount, recentMapeValues.median };
 						}
 					}
 				}
@@ -571,7 +602,7 @@ namespace bnch_swt {
 			++currentIterationCount;
 		}
 		auto newMapeValues = medianAbsolutePercentError(durations);
-		newMapeValues.mape *= 100;
+		newMapeValues.mape = newMapeValues.mape * 100;
 		return { newMapeValues.mape, currentIterationCount, newMapeValues.median };
 	}
 
@@ -691,16 +722,16 @@ namespace bnch_swt {
 			returnValues.medianAbsolutePercentageError = other.medianAbsolutePercentageError;
 			returnValues.benchmarkColor				   = other.benchmarkColor;
 			returnValues.benchmarkName				   = other.benchmarkName;
-			returnValues.resultValue					   = resultValue + other.resultValue;
+			returnValues.resultValue				   = resultValue + other.resultValue;
 			return returnValues;
 		}
 
-		BNCH_SWT_INLINE benchmark_result_final operator/(const uint64_t& other) const {
+		template<typename value_type> BNCH_SWT_INLINE benchmark_result_final operator/(value_type other) const {
 			benchmark_result_final returnValues{};
 			returnValues.medianAbsolutePercentageError = medianAbsolutePercentageError;
 			returnValues.benchmarkColor				   = benchmarkColor;
 			returnValues.benchmarkName				   = benchmarkName;
-			returnValues.resultValue					   = resultValue / other;
+			returnValues.resultValue				   = resultValue / other;
 			return returnValues;
 		}
 	};
@@ -781,18 +812,17 @@ namespace bnch_swt {
 			benchmark_suite_results newValues{ results };
 			for (auto& value: results.results) {
 				std::cout << "Benchmark Name: " << value.benchmarkName << ", Library Name: " << value.libraryName
-						  << ", MAPE: " << roundToDecimalPlaces(value.medianAbsolutePercentageError, 4) << ", Result Time: " << roundToDecimalPlaces(value.resultValue, 2)
+						  << ", Mape: " << roundToDecimalPlaces(value.medianAbsolutePercentageError, 4) << ", Result Time: " << roundToDecimalPlaces(value.resultValue, 2)
 						  << std::endl;
 			}
 			return;
 		}
 
-		BNCH_SWT_INLINE static std::string writeJsonData(const std::string& filePath) {
+		BNCH_SWT_INLINE static void writeJsonData(const std::string& filePath) {
 			benchmark_suite_results newValues{ results };
 			auto stringToWrite = parser.serializeJson(newValues);
 			file_loader fileLoader{ filePath };
 			fileLoader.saveFile(static_cast<std::string>(stringToWrite));
-			return {};
 		}
 
 		BNCH_SWT_INLINE static std::string urlEncode(const jsonifier::string& value) {
@@ -838,16 +868,11 @@ namespace bnch_swt {
 			return markdownStream.str();
 		}
 
-		BNCH_SWT_INLINE static void writeMarkdownToFile(const std::string& filename) {
+		BNCH_SWT_INLINE static void writeMarkdownToFile(const std::string& filePath) {
 			benchmark_suite_results newValues{ results };
 			std::string markdownContent = generateMarkdown(newValues.results);
-			std::ofstream file(filename);
-			if (file.is_open()) {
-				file << markdownContent;
-				file.close();
-			} else {
-				std::cerr << "Unable to open file for writing: " << filename << std::endl;
-			}
+			file_loader fileLoader{ filePath };
+			fileLoader.saveFile(static_cast<std::string>(markdownContent));
 		}
 
 		BNCH_SWT_INLINE static std::string writeCsvData(const std::string& filePath) {
@@ -872,11 +897,10 @@ namespace bnch_swt {
 			typename... arg_types>
 		static BNCH_SWT_INLINE auto benchmark(function_type&& function, arg_types&&... args) {
 			static constexpr int64_t minIterationCount = maxIterationCount / 10;
-			;
-			static constexpr int64_t warmupCount = minIterationCount;
-			using function_type_final			 = jsonifier_internal::unwrap_t<function_type>;
-			auto functionNew					 = [=] {
-				return function(args...);
+
+			using function_type_final = jsonifier_internal::unwrap_t<function_type>;
+			auto functionNew		  = [=] {
+				 return function(args...);
 			};
 
 			double stabilityThreshold{};
@@ -902,11 +926,10 @@ namespace bnch_swt {
 			typename... arg_types>
 		static BNCH_SWT_INLINE auto benchmark(function_type&& function, arg_types&&... args) {
 			static constexpr int64_t minIterationCount = maxIterationCount / 10;
-			;
-			static constexpr int64_t warmupCount = minIterationCount;
-			using function_type_final			 = jsonifier_internal::unwrap_t<function_type>;
-			auto functionNew					 = [=] {
-				return function(args...);
+
+			using function_type_final = jsonifier_internal::unwrap_t<function_type>;
+			auto functionNew		  = [=] {
+				 return function(args...);
 			};
 
 			double stabilityThreshold{};
@@ -932,10 +955,10 @@ namespace bnch_swt {
 			typename... arg_types>
 		static BNCH_SWT_INLINE auto benchmarkCycles(function_type&& function, arg_types&&... args) {
 			static constexpr int64_t minIterationCount = maxIterationCount / 10;
-			static constexpr int64_t warmupCount	   = minIterationCount;
-			using function_type_final				   = jsonifier_internal::unwrap_t<function_type>;
-			auto functionNew						   = [=] {
-				  return function(args...);
+
+			using function_type_final = jsonifier_internal::unwrap_t<function_type>;
+			auto functionNew		  = [=] {
+				 return function(args...);
 			};
 
 			double stabilityThreshold{};
@@ -961,11 +984,10 @@ namespace bnch_swt {
 			typename... arg_types>
 		static BNCH_SWT_INLINE auto benchmarkCycles(function_type&& function, arg_types&&... args) {
 			static constexpr int64_t minIterationCount = maxIterationCount / 10;
-			;
-			static constexpr int64_t warmupCount = minIterationCount;
-			using function_type_final			 = jsonifier_internal::unwrap_t<function_type>;
-			auto functionNew					 = [=] {
-				return function(args...);
+
+			using function_type_final = jsonifier_internal::unwrap_t<function_type>;
+			auto functionNew		  = [=] {
+				 return function(args...);
 			};
 
 			double stabilityThreshold{};
@@ -994,14 +1016,14 @@ namespace jsonifier {
 
 	template<> struct core<bnch_swt::benchmark_result_final_parse> {
 		using value_type				 = bnch_swt::benchmark_result_final_parse;
-		static constexpr auto parseValue = createValue<&value_type::benchmarkName, &value_type::medianAbsolutePercentageError, &value_type::resultValue, &value_type::benchmarkColor,
-			&value_type::iterationCount, &value_type::libraryName>();
+		static constexpr auto parseValue = createValue<&value_type::benchmarkName, &value_type::medianAbsolutePercentageError, &value_type::resultValue,
+			&value_type::benchmarkColor, &value_type::iterationCount, &value_type::libraryName>();
 	};
 
 	template<> struct core<bnch_swt::benchmark_result_final> {
 		using value_type				 = bnch_swt::benchmark_result_final;
-		static constexpr auto parseValue = createValue<&value_type::benchmarkName, &value_type::medianAbsolutePercentageError, &value_type::resultValue, &value_type::benchmarkColor,
-			&value_type::iterationCount>();
+		static constexpr auto parseValue = createValue<&value_type::benchmarkName, &value_type::medianAbsolutePercentageError, &value_type::resultValue,
+			&value_type::benchmarkColor, &value_type::iterationCount>();
 	};
 
 	template<> struct core<bnch_swt::benchmark_suite_results> {

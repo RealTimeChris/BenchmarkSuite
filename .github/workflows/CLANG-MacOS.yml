@@ -53,9 +53,7 @@ jobs:
 
     - name: Configure CMake.
       run: |
-            cpu_freq_mhz="true"
-            echo "CPU Frequency: ${cpu_freq_mhz} MHz"
-            cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++ -DBENCH_TYPE=STRING_COMPARISON -DVCPKG_DIR=/Users/runner/work/BenchmarkSuite/BenchmarkSuite/vcpkg -DCPU_FREQUENCY_MHZ=${cpu_freq_mhz} -DJSONIFIER_LIBRARY="true"
+            cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++ -DBENCH_TYPE=STRING_COMPARISON -DVCPKG_DIR=/Users/runner/work/BenchmarkSuite/BenchmarkSuite/vcpkg -DCPU_FREQUENCY_MHZ="true" -DJSONIFIER_LIBRARY="true"
 
     - name: Build the Test
       working-directory: ./Build

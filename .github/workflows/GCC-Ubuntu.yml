@@ -50,7 +50,7 @@ jobs:
     - name: Configure CMake
       working-directory: ./
       run: |
-           cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=/usr/bin/g++-12 -DBENCH_TYPE=STRING_COMPARISON -DVCPKG_DIR=/usr/local/share/vcpkg -DJSONIFIER_LIBRARY="true"
+           cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=/usr/bin/g++-12 -DBENCH_TYPE=STRING_COMPARISON -DVCPKG_DIR=/usr/local/share/vcpkg -DJSONIFIER_LIBRARY="true" 
 
     - name: Build the Test
       working-directory: ./Build
