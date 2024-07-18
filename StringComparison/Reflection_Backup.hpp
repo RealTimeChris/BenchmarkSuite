@@ -3,20 +3,20 @@
 
 	Copyright (c) 2023 RealTimeChris
 
-	Permission is hereby granted, free of charge, to any person obtaining a copy of this 
-	software and associated documentation files (the "Software"), to deal in the Software 
-	without restriction, including without limitation the rights to use, copy, modify, merge, 
-	publish, distribute, sublicense, and/or sell copies of the Software, and to permit 
+	Permission is hereby granted, free of charge, to any person obtaining a copy of this
+	software and associated documentation files (the "Software"), to deal in the Software
+	without restriction, including without limitation the rights to use, copy, modify, merge,
+	publish, distribute, sublicense, and/or sell copies of the Software, and to permit
 	persons to whom the Software is furnished to do so, subject to the following conditions:
 
-	The above copyright notice and this permission notice shall be included in all copies or 
+	The above copyright notice and this permission notice shall be included in all copies or
 	substantial portions of the Software.
 
-	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
-	INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-	PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE 
-	FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
-	OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+	INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+	PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+	FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+	OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 	DEALINGS IN THE SOFTWARE.
 */
 /// https://github.com/RealTimeChris/jsonifier
@@ -37,7 +37,7 @@ namespace jsonifier_internal {
 	using string_view = jsonifier::string_view_base<char>;
 
 	template<uint64_t sizeVal> struct string_literal {
-		static constexpr uint64_t length{ sizeVal > 0 ? sizeVal - 1 : 0 };
+		static constexpr auto length{ sizeVal > 0 ? sizeVal - 1 : 0 };
 
 		constexpr string_literal() noexcept = default;
 
@@ -53,16 +53,45 @@ namespace jsonifier_internal {
 			return values;
 		}
 
-		constexpr operator jsonifier::string_view() const {
-			return { values, length };
-		}
-
-		constexpr jsonifier::string_view sv() const {
+		constexpr jsonifier::string_view view() const {
 			return { values, length };
 		}
 
 		char values[sizeVal]{};
 	};
+
+	template<size_t N> constexpr auto stringLiteralFromView(jsonifier::string_view str) {
+		string_literal<N + 1> sl{};
+		std::copy_n(str.data(), str.size(), sl.values);
+		*(sl.values + N) = '\0';
+		return sl;
+	}
+
+	template<typename member_type, typename class_type> struct member_pointer {
+		member_type class_type::*ptr{};
+		constexpr member_pointer(member_type class_type::*p) : ptr(p){};
+	};
+
+	template<typename member_type_new, typename class_type_new> struct data_member {
+		using member_type = member_type_new;
+		using class_type  = class_type_new;
+		member_pointer<member_type, class_type> memberPtr{};
+		jsonifier::string_view name{};
+
+		constexpr jsonifier::string_view view() const {
+			return name;
+		}
+
+		constexpr auto ptr() const {
+			return memberPtr.ptr;
+		}
+
+		constexpr data_member(jsonifier::string_view str, member_type class_type::*ptr) : memberPtr(ptr), name(str){};
+	};
+
+	template<typename member_type, typename class_type> constexpr auto makeDataMemberAuto(jsonifier::string_view str, member_type class_type::*ptr) {
+		return data_member<member_type, class_type>(str, ptr);
+	}
 
 	/**
 	 * @brief External template variable declaration.
@@ -131,7 +160,7 @@ namespace jsonifier_internal {
 		requires(std::is_member_pointer_v<decltype(p)>)
 	constexpr auto getName() {
 #if defined(JSONIFIER_MSVC) && !defined(JSONIFIER_CLANG)
-		using value_type		 = remove_member_pointer<jsonifier_internal::unwrap_t<decltype(p)>>::type;
+		using value_type		 = remove_member_pointer<unwrap_t<decltype(p)>>::type;
 		constexpr auto pNew		 = p;
 		constexpr auto newString = getNameInternal<value_type, &(external<value_type>.*pNew)>();
 #else
@@ -165,7 +194,7 @@ namespace jsonifier_internal {
 	 */
 	template<typename... tuple_types, size_t... indices> constexpr decltype(auto) generateInterleavedTupleInternal(const std::tuple<tuple_types...>& tuple,
 		const std::array<jsonifier::string_view, sizeof...(indices)>& views, std::index_sequence<indices...>) {
-		return std::make_tuple(std::make_tuple(views[indices], std::get<indices>(tuple))...);
+		return std::make_tuple(makeDataMemberAuto(views[indices], std::get<indices>(tuple))...);
 	}
 
 	/**

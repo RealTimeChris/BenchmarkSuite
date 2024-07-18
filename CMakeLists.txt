@@ -39,6 +39,7 @@ if (MSVC)
 			"/bigobj"
 			"/permissive-"
 			"/Zc:lambda"
+			"/W3"
 		)
 
 		target_link_options(

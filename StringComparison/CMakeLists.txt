@@ -34,13 +34,6 @@ FetchContent_MakeAvailable(Chrishendo)
 
 add_executable("StringComparisonExe" "main.cpp")
 
-target_link_options("StringComparisonExe" PUBLIC 
-	"$<$<CXX_COMPILER_ID:MSVC>:/DEBUG>"
-	"$<$<CXX_COMPILER_ID:MSVC>:/OPT:REF>"
-	"$<$<CXX_COMPILER_ID:MSVC>:/OPT:ICF>"
-	"$<$<CXX_COMPILER_ID:MSVC>:/PROFILE>"
-)
-
 target_link_libraries(
 	"StringComparisonExe"
 	PUBLIC
@@ -54,19 +47,11 @@ target_compile_options (
 	"StringComparisonExe" PUBLIC
 	"$<$<CXX_COMPILER_ID:MSVC>:$<$<STREQUAL:${ASAN_ENABLED},TRUE>:/fsanitize=address>>"
 	"$<$<CXX_COMPILER_ID:GNU>:$<$<STREQUAL:${ASAN_ENABLED},TRUE>:-fsanitize=address>>"
-	"$<$<CXX_COMPILER_ID:MSVC>:/Zi>"	
 )
 
 target_compile_definitions(
 	"StringComparisonExe" PUBLIC
 	"$<$<STREQUAL:${ASAN_ENABLED},TRUE>:ASAN>"
-)
-
-target_link_options(
-	"StringComparisonExe" PUBLIC
-	"$<$<CXX_COMPILER_ID:GNU>:$<$<STREQUAL:${ASAN_ENABLED},TRUE>:-fsanitize=address>>"
-	"$<$<CXX_COMPILER_ID:MSVC>:/DEBUG>"
-	"$<$<CXX_COMPILER_ID:MSVC>:/OPT:REF>"
 )
 
 if (WIN32)

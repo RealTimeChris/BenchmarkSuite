@@ -68,12 +68,16 @@
 	#define ASSUME(x) (( void )0)
 #endif
 
-#if defined(BNCH_SWT_GNUCXX) || defined(BNCH_SWT_CLANG) && !defined(BNCH_SWT_ALWAYS_INLINE) && !defined(BNCH_SWT_INLINE)
-	#define BNCH_SWT_ALWAYS_INLINE __inline__ __attribute__((__always_inline__, __unused__))
+#if defined(BNCH_SWT_MSVC)
+	#define BNCH_SWT_NO_INLINE __declspec(noinline)
+	#define BNCH_SWT_INLINE __forceinline
+#elif defined(BNCH_SWT_CLANG)
+	#define BNCH_SWT_NO_INLINE __attribute__((__noinline__))
 	#define BNCH_SWT_INLINE inline __attribute__((always_inline))
-	#define BNCH_SWT_NEVER_INLINE __attribute__((noinline))
-#elif defined(BNCH_SWT_MSVC)
-	#define BNCH_SWT_ALWAYS_INLINE __forceinline
+#elif defined(BNCH_SWT_GNUCXX)
+	#define BNCH_SWT_NO_INLINE __attribute__((noinline))
+	#define BNCH_SWT_INLINE __attribute__((always_inline))
+#else
 	#define BNCH_SWT_INLINE inline
-	#define BNCH_SWT_NEVER_INLINE __declspec(noinline)
+	#define BNCH_SWT_NO_INLINE
 #endif

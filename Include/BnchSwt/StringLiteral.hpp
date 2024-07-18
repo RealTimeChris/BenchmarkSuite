@@ -100,7 +100,7 @@ namespace bnch_swt {
 		return jsonifier::string_view(lit.value.data(), lit.value.size() - 1);
 	}
 
-	template<bnch_swt::string_literal... strings> constexpr auto joinLiterals() {
+	template<bnch_swt::string_literal... strings> constexpr auto combineLiterals() {
 		constexpr size_t newSize = { (strings.size() + ...) };
 		char returnValue[newSize + 1]{};
 		returnValue[newSize] = '\0';
