@@ -218,8 +218,8 @@ namespace jsonifier {
 			std::is_pointer_v<jsonifier_internal::unwrap_t<value_type_01>>;
 
 		template<typename value_type>
-		concept bool_t = std::is_same_v<jsonifier_internal::unwrap_t<value_type>, bool> || std::same_as<jsonifier_internal::unwrap_t<value_type>, std::vector<bool>::reference> ||
-			std::same_as<jsonifier_internal::unwrap_t<value_type>, std::vector<bool>::const_reference>;
+		concept bool_t = std::is_same_v<jsonifier_internal::unwrap_t<value_type>, bool> || std::same_as<jsonifier_internal::unwrap_t<value_type>, jsonifier::vector<bool>::reference> ||
+			std::same_as<jsonifier_internal::unwrap_t<value_type>, jsonifier::vector<bool>::const_reference>;
 
 		template<typename value_type>
 		concept always_null_t = std::is_same_v<jsonifier_internal::unwrap_t<value_type>, std::nullptr_t> ||
@@ -472,13 +472,13 @@ namespace jsonifier_internal {
 		return value1 > static_cast<value_type01>(value2) ? value1 : static_cast<value_type01>(value2);
 	}
 
-	template<jsonifier::concepts::unsigned_type value_type> void printBits(value_type values, const std::string& valuesTitle) {
+	template<jsonifier::concepts::unsigned_type value_type> void printBits(value_type values, jsonifier::string_view valuesTitle) {
 		std::cout << valuesTitle;
 		std::cout << std::bitset<sizeof(value_type) * 8>{ values };
 		std::cout << std::endl;
 	}
 
-	template<jsonifier::concepts::simd_int_type simd_type> const simd_type& printBits(const simd_type& value, const std::string& valuesTitle) noexcept {
+	template<jsonifier::concepts::simd_int_type simd_type> const simd_type& printBits(const simd_type& value, jsonifier::string_view valuesTitle) noexcept {
 		JSONIFIER_ALIGN uint8_t values[sizeof(simd_type)]{};
 		std::stringstream theStream{};
 		store(value, values);
@@ -492,13 +492,13 @@ namespace jsonifier_internal {
 		return value;
 	}
 
-	JSONIFIER_INLINE std::string printBits(bool value) noexcept {
+	JSONIFIER_INLINE jsonifier::string printBits(bool value) noexcept {
 		std::stringstream theStream{};
 		theStream << std::boolalpha << value << std::endl;
 		return theStream.str();
 	}
 
-	template<typename simd_type> JSONIFIER_INLINE std::string printBits(const simd_type& value) noexcept {
+	template<typename simd_type> JSONIFIER_INLINE jsonifier::string printBits(const simd_type& value) noexcept {
 		JSONIFIER_ALIGN uint8_t values[sizeof(simd_type)]{};
 		std::stringstream theStream{};
 		store(value, values);

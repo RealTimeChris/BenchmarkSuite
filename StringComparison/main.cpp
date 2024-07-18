@@ -11,23 +11,23 @@
 //#include "Parse_Impl_Backup.hpp"
 
 struct search_metadata_data {
-	std::string since_id_str{};
-	std::string next_results{};
-	std::string refresh_url{};
-	std::string max_id_str{};
+	jsonifier::string since_id_str{};
+	jsonifier::string next_results{};
+	jsonifier::string refresh_url{};
+	jsonifier::string max_id_str{};
 	double completed_in{};
-	std::string query{};
+	jsonifier::string query{};
 	int64_t since_id{};
 	int64_t count{};
 };
 
 struct hashtag {
-	std::vector<int64_t> indices{};
-	std::string text{};
+	jsonifier::vector<int64_t> indices{};
+	jsonifier::string text{};
 };
 
 struct large_data {
-	std::string resize{};
+	jsonifier::string resize{};
 	hashtag hashTag{};
 	int64_t w{};
 	int64_t h{};
@@ -41,46 +41,46 @@ struct sizes_data {
 };
 
 struct media_data {
-	std::string expanded_url{};
-	std::string display_url{};
-	std::string media_url{};
-	std::string id_str{};
-	std::string type{};
+	jsonifier::string expanded_url{};
+	jsonifier::string display_url{};
+	jsonifier::string media_url{};
+	jsonifier::string id_str{};
+	jsonifier::string type{};
 	sizes_data sizes{};
-	std::string url{};
+	jsonifier::string url{};
 };
 
 struct url_data {
-	std::vector<int64_t> indices{};
-	std::string expanded_url{};
-	std::string display_url{};
-	std::string url{};
+	jsonifier::vector<int64_t> indices{};
+	jsonifier::string expanded_url{};
+	jsonifier::string display_url{};
+	jsonifier::string url{};
 };
 
 struct user_mention {
-	std::vector<int64_t> indices{};
-	std::string screen_name{};
-	std::string id_str{};
-	std::string name{};
+	jsonifier::vector<int64_t> indices{};
+	jsonifier::string screen_name{};
+	jsonifier::string id_str{};
+	jsonifier::string name{};
 	int64_t id{};
 };
 
 struct status_entities {
-	std::optional<std::vector<media_data>> media{};
-	std::vector<user_mention> user_mentions{};
-	std::vector<std::nullptr_t> symbols{};
-	std::vector<hashtag> hashtags{};
-	std::vector<url_data> urls{};
-	std::string name{};
+	std::optional<jsonifier::vector<media_data>> media{};
+	jsonifier::vector<user_mention> user_mentions{};
+	jsonifier::vector<std::nullptr_t> symbols{};
+	jsonifier::vector<hashtag> hashtags{};
+	jsonifier::vector<url_data> urls{};
+	jsonifier::string name{};
 };
 
 struct metadata_data {
-	std::string iso_language_code{};
-	std::string result_type{};
+	jsonifier::string iso_language_code{};
+	jsonifier::string result_type{};
 };
 
 struct description_data {
-	std::vector<url_data> urls{};
+	jsonifier::vector<url_data> urls{};
 };
 
 struct user_entities {
@@ -89,53 +89,53 @@ struct user_entities {
 };
 
 struct twitter_user {
-	std::string profile_background_image_url_https{};
-	std::optional<std::string> profile_banner_url{};
-	std::string profile_sidebar_border_color{};
-	std::string profile_background_image_url{};
-	std::string profile_sidebar_fill_color{};
-	std::optional<std::string> time_zone{};
-	std::string profile_background_color{};
-	std::string profile_image_url_https{};
+	jsonifier::string profile_background_image_url_https{};
+	std::optional<jsonifier::string> profile_banner_url{};
+	jsonifier::string profile_sidebar_border_color{};
+	jsonifier::string profile_background_image_url{};
+	jsonifier::string profile_sidebar_fill_color{};
+	std::optional<jsonifier::string> time_zone{};
+	jsonifier::string profile_background_color{};
+	jsonifier::string profile_image_url_https{};
 	std::optional<int64_t> utc_offset{};
 	bool profile_use_background_image{};
-	std::optional<std::string> url{};
-	std::string profile_text_color{};
-	std::string profile_link_color{};
-	std::string profile_image_url{};
+	std::optional<jsonifier::string> url{};
+	jsonifier::string profile_text_color{};
+	jsonifier::string profile_link_color{};
+	jsonifier::string profile_image_url{};
 	bool profile_background_tile{};
 	bool is_translation_enabled{};
 	bool default_profile_image{};
 	bool contributors_enabled{};
 	bool follow_request_sent{};
 	int64_t favourites_count{};
-	std::string description{};
-	std::string screen_name{};
+	jsonifier::string description{};
+	jsonifier::string screen_name{};
 	int64_t followers_count{};
 	int64_t statuses_count{};
-	std::string created_at{};
+	jsonifier::string created_at{};
 	user_entities entities{};
 	int64_t friends_count{};
 	bool default_profile{};
 	int64_t listed_count{};
-	std::string location{};
+	jsonifier::string location{};
 	bool user_protected{};
 	bool is_translator{};
-	std::string id_str{};
+	jsonifier::string id_str{};
 	bool notifications{};
-	std::string string{};
-	std::string name{};
+	jsonifier::string string{};
+	jsonifier::string name{};
 	bool geo_enabled{};
-	std::string lang{};
+	jsonifier::string lang{};
 	bool following{};
 	bool verified{};
 	int64_t id{};
 };
 
 struct retweeted_status_data {
-	std::optional<std::string> in_reply_to_status_id_str{};
-	std::optional<std::string> in_reply_to_user_id_str{};
-	std::optional<std::string> in_reply_to_screen_name{};
+	std::optional<jsonifier::string> in_reply_to_status_id_str{};
+	std::optional<jsonifier::string> in_reply_to_user_id_str{};
+	std::optional<jsonifier::string> in_reply_to_screen_name{};
 	std::optional<double> in_reply_to_status_id{};
 	std::optional<int64_t> in_reply_to_user_id{};
 	std::optional<bool> possibly_sensitive{};
@@ -146,13 +146,13 @@ struct retweeted_status_data {
 	status_entities entities{};
 	int64_t favorite_count{};
 	metadata_data metadata{};
-	std::string created_at{};
+	jsonifier::string created_at{};
 	int64_t retweet_count{};
-	std::string source{};
-	std::string id_str{};
+	jsonifier::string source{};
+	jsonifier::string id_str{};
 	twitter_user user{};
-	std::string lang{};
-	std::string text{};
+	jsonifier::string lang{};
+	jsonifier::string text{};
 	bool truncated{};
 	bool favorited{};
 	bool retweeted{};
@@ -161,9 +161,9 @@ struct retweeted_status_data {
 
 struct status_data {
 	std::optional<retweeted_status_data> retweeted_status{};
-	std::optional<std::string> in_reply_to_status_id_str{};
-	std::optional<std::string> in_reply_to_user_id_str{};
-	std::optional<std::string> in_reply_to_screen_name{};
+	std::optional<jsonifier::string> in_reply_to_status_id_str{};
+	std::optional<jsonifier::string> in_reply_to_user_id_str{};
+	std::optional<jsonifier::string> in_reply_to_screen_name{};
 	std::optional<double> in_reply_to_status_id{};
 	std::optional<int64_t> in_reply_to_user_id{};
 	std::optional<bool> possibly_sensitive{};
@@ -174,13 +174,13 @@ struct status_data {
 	status_entities entities{};
 	int64_t favorite_count{};
 	metadata_data metadata{};
-	std::string created_at{};
+	jsonifier::string created_at{};
 	int64_t retweet_count{};
-	std::string source{};
-	std::string id_str{};
+	jsonifier::string source{};
+	jsonifier::string id_str{};
 	twitter_user user{};
-	std::string lang{};
-	std::string text{};
+	jsonifier::string lang{};
+	jsonifier::string text{};
 	bool truncated{};
 	bool favorited{};
 	bool retweeted{};
@@ -189,55 +189,55 @@ struct status_data {
 
 struct twitter_message {
 	search_metadata_data search_metadata{};
-	std::vector<status_data> statuses{};
+	jsonifier::vector<status_data> statuses{};
 };
 
 struct twitter_message02 {
 	search_metadata_data s{};
-	std::vector<status_data> d{};
+	jsonifier::vector<status_data> d{};
 };
 
 struct icon_emoji_data {
-	std::optional<std::string> name{};
+	std::optional<jsonifier::string> name{};
 	std::nullptr_t id{ nullptr };
 };
 
 struct permission_overwrite {
-	std::string allow{};
-	std::string deny{};
-	std::string id{};
+	jsonifier::string allow{};
+	jsonifier::string deny{};
+	jsonifier::string id{};
 	int64_t type{};
 };
 
 struct channel_data {
-	std::vector<permission_overwrite> permission_overwrites{};
-	std::optional<std::string> last_message_id{};
+	jsonifier::vector<permission_overwrite> permission_overwrites{};
+	std::optional<jsonifier::string> last_message_id{};
 	int64_t default_thread_rate_limit_per_user{};
-	std::vector<std::nullptr_t> applied_tags{};
-	std::vector<std::nullptr_t> recipients{};
+	jsonifier::vector<std::nullptr_t> applied_tags{};
+	jsonifier::vector<std::nullptr_t> recipients{};
 	int64_t default_auto_archive_duration{};
 	std::nullptr_t rtc_region{ nullptr };
 	std::nullptr_t status{ nullptr };
-	std::string last_pin_timestamp{};
+	jsonifier::string last_pin_timestamp{};
 	std::nullptr_t topic{ nullptr };
 	int64_t rate_limit_per_user{};
 	icon_emoji_data icon_emoji{};
 	int64_t total_message_sent{};
 	int64_t video_quality_mode{};
-	std::string application_id{};
-	std::string permissions{};
+	jsonifier::string application_id{};
+	jsonifier::string permissions{};
 	int64_t message_count{};
-	std::string parent_id{};
+	jsonifier::string parent_id{};
 	int64_t member_count{};
-	std::string owner_id{};
-	std::string guild_id{};
+	jsonifier::string owner_id{};
+	jsonifier::string guild_id{};
 	int64_t user_limit{};
 	int64_t position{};
-	std::string name{};
-	std::string icon{};
+	jsonifier::string name{};
+	jsonifier::string icon{};
 	int64_t version{};
 	int64_t bitrate{};
-	std::string id{};
+	jsonifier::string id{};
 	int64_t flags{};
 	int64_t type{};
 	bool managed{};
@@ -246,19 +246,19 @@ struct channel_data {
 
 struct user_data {
 	std::nullptr_t avatar_decoration_data{ nullptr };
-	std::optional<std::string> display_name{};
-	std::optional<std::string> global_name{};
-	std::optional<std::string> avatar{};
+	std::optional<jsonifier::string> display_name{};
+	std::optional<jsonifier::string> global_name{};
+	std::optional<jsonifier::string> avatar{};
 	std::nullptr_t banner{ nullptr };
 	std::nullptr_t locale{ nullptr };
-	std::string discriminator{};
-	std::string user_name{};
+	jsonifier::string discriminator{};
+	jsonifier::string user_name{};
 	int64_t accent_color{};
 	int64_t premium_type{};
 	int64_t public_flags{};
-	std::string email{};
+	jsonifier::string email{};
 	bool mfa_enabled{};
-	std::string id{};
+	jsonifier::string id{};
 	int64_t flags{};
 	bool verified{};
 };
@@ -266,12 +266,12 @@ struct user_data {
 struct member_data {
 	std::nullptr_t communication_disabled_until{ nullptr };
 	std::nullptr_t premium_since{ nullptr };
-	std::optional<std::string> nick{};
+	std::optional<jsonifier::string> nick{};
 	std::nullptr_t avatar{ nullptr };
-	std::vector<std::string> roles{};
-	std::string permissions{};
-	std::string joined_at{};
-	std::string guild_id{};
+	jsonifier::vector<jsonifier::string> roles{};
+	jsonifier::string permissions{};
+	jsonifier::string joined_at{};
+	jsonifier::string guild_id{};
 	user_data user{};
 	int64_t flags{};
 	bool pending{};
@@ -280,18 +280,18 @@ struct member_data {
 
 struct tags_data {
 	std::nullptr_t premium_subscriber{ nullptr };
-	std::optional<std::string> bot_id{};
+	std::optional<jsonifier::string> bot_id{};
 };
 
 struct role_data {
 	std::nullptr_t unicode_emoji{ nullptr };
 	std::nullptr_t icon{ nullptr };
-	std::string permissions{};
+	jsonifier::string permissions{};
 	int64_t position{};
-	std::string name{};
+	jsonifier::string name{};
 	bool mentionable{};
 	int64_t version{};
-	std::string id{};
+	jsonifier::string id{};
 	tags_data tags{};
 	int64_t color{};
 	int64_t flags{};
@@ -301,56 +301,56 @@ struct role_data {
 
 struct guild_data {
 	std::nullptr_t latest_on_boarding_question_id{ nullptr };
-	std::vector<std::nullptr_t> guild_scheduled_events{};
+	jsonifier::vector<std::nullptr_t> guild_scheduled_events{};
 	std::nullptr_t safety_alerts_channel_id{ nullptr };
 	std::nullptr_t inventory_settings{ nullptr };
-	std::vector<std::nullptr_t> voice_states{};
+	jsonifier::vector<std::nullptr_t> voice_states{};
 	std::nullptr_t discovery_splash{ nullptr };
 	std::nullptr_t vanity_url_code{ nullptr };
 	std::nullptr_t application_id{ nullptr };
 	std::nullptr_t afk_channel_id{ nullptr };
 	int64_t default_message_notifications{};
 	int64_t max_stage_video_channel_users{};
-	std::string public_updates_channel_id{};
+	jsonifier::string public_updates_channel_id{};
 	std::nullptr_t description{ nullptr };
-	std::vector<std::nullptr_t> threads{};
-	std::vector<channel_data> channels{};
+	jsonifier::vector<std::nullptr_t> threads{};
+	jsonifier::vector<channel_data> channels{};
 	int64_t premium_subscription_count{};
 	int64_t approximate_presence_count{};
-	std::vector<std::string> features{};
-	std::vector<std::string> stickers{};
+	jsonifier::vector<jsonifier::string> features{};
+	jsonifier::vector<jsonifier::string> stickers{};
 	bool premium_progress_bar_enabled{};
-	std::vector<member_data> members{};
+	jsonifier::vector<member_data> members{};
 	std::nullptr_t hub_type{ nullptr };
 	int64_t approximate_member_count{};
 	int64_t explicit_content_filter{};
 	int64_t max_video_channel_users{};
 	std::nullptr_t splash{ nullptr };
 	std::nullptr_t banner{ nullptr };
-	std::string system_channel_id{};
-	std::string widget_channel_id{};
-	std::string preferred_locale{};
+	jsonifier::string system_channel_id{};
+	jsonifier::string widget_channel_id{};
+	jsonifier::string preferred_locale{};
 	int64_t system_channel_flags{};
-	std::string rules_channel_id{};
-	std::vector<role_data> roles{};
+	jsonifier::string rules_channel_id{};
+	jsonifier::vector<role_data> roles{};
 	int64_t verification_level{};
-	std::string permissions{};
+	jsonifier::string permissions{};
 	int64_t max_presences{};
-	std::string discovery{};
-	std::string joined_at{};
+	jsonifier::string discovery{};
+	jsonifier::string joined_at{};
 	int64_t member_count{};
 	int64_t premium_tier{};
-	std::string owner_id{};
+	jsonifier::string owner_id{};
 	int64_t max_members{};
 	int64_t afk_timeout{};
 	bool widget_enabled{};
-	std::string region{};
+	jsonifier::string region{};
 	int64_t nsfw_level{};
 	int64_t mfa_level{};
-	std::string name{};
-	std::string icon{};
+	jsonifier::string name{};
+	jsonifier::string icon{};
 	bool unavailable{};
-	std::string id{};
+	jsonifier::string id{};
 	int64_t flags{};
 	bool large{};
 	bool owner{};
@@ -359,7 +359,7 @@ struct guild_data {
 };
 
 struct discord_message {
-	std::string t{};
+	jsonifier::string t{};
 	guild_data d{};
 	int64_t op{};
 	int64_t s{};
@@ -541,23 +541,23 @@ inline uint64_t rawFnv1A(const char* string, size_t length, uint64_t seed) {
 }
 
 struct geometry_data {
-	std::vector<std::vector<std::vector<double>>> coordinates{};
-	std::string type{};
+	jsonifier::vector<jsonifier::vector<jsonifier::vector<double>>> coordinates{};
+	jsonifier::string type{};
 };
 
 struct properties_data {
-	std::string name{};
+	jsonifier::string name{};
 };
 
 struct feature {
 	properties_data properties{};
 	geometry_data geometry{};
-	std::string type{};
+	jsonifier::string type{};
 };
 
 struct canada_message {
-	std::vector<feature> features{};
-	std::string type{};
+	jsonifier::vector<feature> features{};
+	jsonifier::string type{};
 };
 
 template<> struct jsonifier::core<geometry_data> {
@@ -582,14 +582,14 @@ template<> struct jsonifier::core<canada_message> {
 
 int main() {
 	bnch_swt::file_loader fileNew{ "C:/users/chris/source/repos/jsonifier/json/DiscordData-Minified.json" };
-	std::string newString01{};
-	std::string newString02{ "{\"resize\":\"232342\",\"w\":3434,\"h\":35445,\"hashTag\":{\"indices\":[3432,234234,564556,6757,12323],\"text\":\"testing_text1234\"}}" };
+	jsonifier::string newString01{};
+	jsonifier::string newString02{ "{\"resize\":\"232342\",\"w\":3434,\"h\":35445,\"hashTag\":{\"indices\":[3432,234234,564556,6757,12323],\"text\":\"testing_text1234\"}}" };
 	jsonifier::jsonifier_core parser{};
 	uint32_t newString{};
 
 	chrishendo::key_hasher keyHasher{};
 	discord_message  testDataNew{};
-	parser.parseJson<jsonifier::parse_options{ .minified = true }>(testDataNew, fileNew.operator std::string&());
+	parser.parseJson<jsonifier::parse_options{ .minified = true }>(testDataNew, fileNew.operator jsonifier::string_view());
 	for (auto& value: parser.getErrors()) {
 		std::cout << "CURRENT ERROR: " << value.reportError() << std::endl;
 	}
@@ -599,7 +599,7 @@ int main() {
 	/*
 	std::cout << "CURRENT DATA: " << newString02 << std::endl;
 	auto benchmarkStringLengthRt = [&](auto stringLength) {
-		std::string newString02{};
+		jsonifier::string newString02{};
 		for (uint64_t y = 0; y < stringLength; ++y) {
 			newString02.push_back(static_cast<char>(y));
 		}
@@ -613,7 +613,7 @@ int main() {
 	};
 
 	auto benchmarkStringLengthCt = [&](auto stringLength) {
-		std::string newString02{};
+		jsonifier::string newString02{};
 		for (uint64_t y = 0; y < stringLength; ++y) {
 			newString02.push_back(static_cast<char>(y));
 		}

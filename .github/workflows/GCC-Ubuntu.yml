@@ -66,5 +66,5 @@ jobs:
       working-directory: /usr/local/Tests/${{matrix.build_type}}
       run: |
            sudo chmod +x /usr/local/Tests/${{matrix.build_type}}/StringComparisonExe
-           ./StringComparisonExe
+           sudo ./StringComparisonExe
       continue-on-error: true

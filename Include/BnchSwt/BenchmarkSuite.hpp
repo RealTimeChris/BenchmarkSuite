@@ -3,8 +3,10 @@
 
 #pragma once
 
-#include <BnchSwt/Config.hpp>
+#include <BnchSwt/StringLiteral.hpp>
 #include <jsonifier/Index.hpp>
+#include <BnchSwt/Config.hpp>
+#include <unordered_set>
 #include <filesystem>
 #include <algorithm>
 #include <iostream>
@@ -20,9 +22,9 @@ namespace bnch_swt {
 
 	class file_loader {
 	  public:
-		file_loader(const std::string& filePathNew) {
+		file_loader(jsonifier::string_view filePathNew) {
 			filePath = filePathNew;
-			std::string directory{ filePathNew.substr(0, filePathNew.find_last_of("/") + 1) };
+			jsonifier::string directory{ filePathNew.substr(0, filePathNew.findLastOf("/") + 1) };
 			if (!fs::exists(directory.operator std::basic_string_view<char, std::char_traits<char>>())) {
 				std::filesystem::create_directories(directory.operator std::basic_string_view<char, std::char_traits<char>>());
 			}
@@ -39,105 +41,27 @@ namespace bnch_swt {
 			theStream.close();
 		}
 
-		void saveFile(const std::string& fileToSave) {
+		void saveFile(jsonifier::string_view fileToSave) {
 			std::ofstream theStream(filePath.data(), std::ios::binary | std::ios::out | std::ios::trunc);
 			theStream.write(fileToSave.data(), static_cast<int64_t>(fileToSave.size()));
 			if (theStream.is_open()) {
-				std::cout << "File succesfully written to: " << fileToSave << std::endl;
+				std::cout << "File succesfully written to: " << filePath << std::endl;
 			} else {
-				std::cerr << "File failed to be written to: " << fileToSave << std::endl;
+				std::cerr << "File failed to be written to: " << filePath << std::endl;
 			}
 			theStream.close();
 		}
 
-		operator std::string&() {
+		operator jsonifier::string_view() {
 			return fileContents;
 		}
 
 	  protected:
-		std::string fileContents{};
-		std::string filePath{};
+		jsonifier::string fileContents{};
+		jsonifier::string filePath{};
 	};
 
 	inline thread_local jsonifier::jsonifier_core parser{};
-
-	template<uint64_t sizeVal> struct string_literal {
-		static constexpr uint64_t length{ sizeVal > 0 ? sizeVal - 1 : 0 };
-
-		constexpr string_literal() noexcept = default;
-
-		constexpr string_literal(const char (&str)[sizeVal]) {
-			std::copy(str, str + length, values);
-		}
-
-		constexpr const char* data() const {
-			return values;
-		}
-
-		constexpr auto size() const {
-			return length;
-		}
-
-		BNCH_SWT_INLINE operator std::string() const {
-			return { values, length };
-		}
-
-		constexpr operator jsonifier::string_view() const {
-			return { values, length };
-		}
-
-		char values[sizeVal]{};
-	};
-
-	template<size_t N> constexpr auto stringLiteralFromView(jsonifier::string_view str) {
-		string_literal<N + 1> sl{};
-		std::copy_n(str.data(), str.size(), sl.values);
-		*(sl.values + N) = '\0';
-		return sl;
-	}
-
-	BNCH_SWT_INLINE double roundToDecimalPlaces(double value, int32_t decimalPlaces) {
-		double scale = std::pow(10.0, decimalPlaces);
-		return std::round(value * scale) / scale;
-	}
-
-	constexpr std::size_t countDigits(uint32_t number) {
-		std::size_t count = 0;
-		do {
-			++count;
-			number /= 10;
-		} while (number != 0);
-		return count;
-	}
-
-	template<uint32_t number> constexpr string_literal<countDigits(number) + 1> toStringLiteral() {
-		constexpr std::size_t num_digits = countDigits(number);
-		char buffer[num_digits + 1]{};
-		char* ptr	  = buffer + num_digits;
-		*ptr		  = '\0';
-		uint32_t temp = number;
-		do {
-			*--ptr = '0' + (temp % 10);
-			temp /= 10;
-		} while (temp != 0);
-		return string_literal<countDigits(number) + 1>{ buffer };
-	}
-
-	template<auto valueNew> struct make_static {
-		static constexpr auto value{ valueNew };
-	};
-
-	template<uint32_t number> constexpr jsonifier::string_view toStringView() {
-		constexpr auto& lit = jsonifier_internal::make_static<toStringLiteral<number>()>::value;
-		return jsonifier::string_view(lit.value.data(), lit.value.size() - 1);
-	}
-
-	template<bnch_swt::string_literal string01, bnch_swt::string_literal string02> constexpr auto joinLiterals() {
-		char returnValue[string01.size() + string02.size() + 1]{};
-		std::copy(string01.values, string01.values + string01.size(), returnValue);
-		std::copy(string02.values, string02.values + string02.size(), returnValue + string01.size());
-		return bnch_swt::string_literal{ returnValue };
-	}
 
 	static void const volatile* volatile globalForceEscapePointer;
 
@@ -331,12 +255,12 @@ namespace bnch_swt {
 	#undef small
 #endif
 
-	template<typename function_type> BNCH_SWT_NEVER_INLINE uint64_t collectCycles(function_type&& function, double cpuFrequency) {
+	template<typename function_type> BNCH_SWT_NEVER_INLINE double collectCycles(function_type&& function, double cpuFrequency) {
 		volatile uint64_t start{}, end{};
 		start = rdtsc(cpuFrequency);
 		function();
 		end = rdtsc(cpuFrequency);
-		return end - start;
+		return static_cast<double>(end - start);
 	}
 
 	BNCH_SWT_INLINE double cyclesToTime(double cycles, double frequencyMHz) {
@@ -419,6 +343,11 @@ namespace bnch_swt {
 		stdv = sqrt(stdv / (b - a + 1));
 
 		return stdv;
+	}
+
+	BNCH_SWT_INLINE double roundToDecimalPlaces(double value, int32_t decimalPlaces) {
+		double scale = std::pow(10.0, decimalPlaces);
+		return std::round(value * scale) / scale;
 	}
 
 	BNCH_SWT_INLINE bool containsOutlier(jsonifier::vector<double>& v, size_t len) {
@@ -606,36 +535,6 @@ namespace bnch_swt {
 		return { newMapeValues.mape, currentIterationCount, newMapeValues.median };
 	}
 
-	template<uint64_t iterationCount, typename function_type> BNCH_SWT_INLINE benchmark_results benchmark(function_type&& function) {
-		static constexpr int64_t warmupCount	   = iterationCount;
-		static constexpr int64_t minIterationCount = iterationCount / 10;
-		using function_type_final				   = std::decay_t<function_type>;
-		function_type_final functionNew{ std::forward<function_type>(function) };
-
-		jsonifier::vector<function_type_final> warmupLambdas{};
-		for (uint64_t x = 0; x < warmupCount; ++x) {
-			warmupLambdas.emplace_back(functionNew);
-		}
-
-		jsonifier::vector<function_type_final> lambdas{};
-		for (uint64_t x = 0; x < iterationCount; ++x) {
-			lambdas.emplace_back(functionNew);
-		}
-
-		int64_t currentIterationCount = 0;
-		jsonifier::vector<double> durations{};
-
-		while (currentIterationCount < warmupCount) {
-			auto startTime = std::chrono::high_resolution_clock::now();
-			doNotOptimizeAway(std::move(warmupLambdas[currentIterationCount]));
-			auto endTime = std::chrono::high_resolution_clock::now();
-			++currentIterationCount;
-		}
-
-		currentIterationCount = 0;
-		return collectMape<iterationCount, minIterationCount>(functionNew);
-	}
-
 	template<typename return_type> struct benchmark_result {
 		return_type returnValue{};
 		uint64_t resultSize{};
@@ -667,6 +566,8 @@ namespace bnch_swt {
 		}
 	};
 
+	enum class result_type { unset = 0, cycles = 1, time = 2 };
+
 	struct benchmark_result_final {
 		jsonifier::string_view benchmarkColor{};
 		jsonifier::string_view benchmarkName{};
@@ -674,6 +575,7 @@ namespace bnch_swt {
 		jsonifier::string_view libraryName{};
 		uint64_t iterationCount{};
 		double resultValue{};
+		result_type type{};
 
 		BNCH_SWT_INLINE benchmark_result_final() noexcept = default;
 
@@ -723,6 +625,7 @@ namespace bnch_swt {
 			returnValues.benchmarkColor				   = other.benchmarkColor;
 			returnValues.benchmarkName				   = other.benchmarkName;
 			returnValues.resultValue				   = resultValue + other.resultValue;
+			returnValues.type						   = other.type;
 			return returnValues;
 		}
 
@@ -811,21 +714,27 @@ namespace bnch_swt {
 		BNCH_SWT_INLINE static void printResults() {
 			benchmark_suite_results newValues{ results };
 			for (auto& value: results.results) {
+				jsonifier::string resultType{};
+				if (value.type == result_type::cycles) {
+					resultType = "Cycles";
+				} else {
+					resultType = "Time";
+				}
 				std::cout << "Benchmark Name: " << value.benchmarkName << ", Library Name: " << value.libraryName
-						  << ", Mape: " << roundToDecimalPlaces(value.medianAbsolutePercentageError, 4) << ", Result Time: " << roundToDecimalPlaces(value.resultValue, 2)
-						  << std::endl;
+						  << ", Mape: " << roundToDecimalPlaces(value.medianAbsolutePercentageError, 4) << ", Result " + resultType + ": "
+						  << roundToDecimalPlaces(value.resultValue, 2) << std::endl;
 			}
 			return;
 		}
 
-		BNCH_SWT_INLINE static void writeJsonData(const std::string& filePath) {
+		BNCH_SWT_INLINE static void writeJsonData(jsonifier::string_view filePath) {
 			benchmark_suite_results newValues{ results };
 			auto stringToWrite = parser.serializeJson(newValues);
 			file_loader fileLoader{ filePath };
-			fileLoader.saveFile(static_cast<std::string>(stringToWrite));
+			fileLoader.saveFile(static_cast<jsonifier::string>(stringToWrite));
 		}
 
-		BNCH_SWT_INLINE static std::string urlEncode(const jsonifier::string& value) {
+		BNCH_SWT_INLINE static jsonifier::string urlEncode(jsonifier::string_view value) {
 			std::ostringstream escaped;
 			escaped.fill('0');
 			escaped << std::hex;
@@ -843,41 +752,48 @@ namespace bnch_swt {
 			return escaped.str();
 		}
 
-		BNCH_SWT_INLINE static std::string generateMarkdown(const jsonifier::vector<benchmark_result_final_parse>& results) {
+		BNCH_SWT_INLINE static uint64_t collectUniqueLibraryCount() {
+			std::unordered_set<jsonifier::string> uniqueLibraries{};
+			for (auto& value: results.results) {
+				uniqueLibraries.emplace(value.libraryName);
+			}
+			return uniqueLibraries.size();
+		}
+
+		BNCH_SWT_INLINE static jsonifier::string generateMarkdown(jsonifier::string_view repoPath) {
 			std::ostringstream markdownStream{};
 			jsonifier::vector<benchmark_result_final_parse> resultsNew{};
-
+			benchmark_suite_results newValues{ results };
+			uint64_t uniqueLibraryCount{ collectUniqueLibraryCount() };
 			markdownStream << "# Benchmark Results: " + benchmarkSuite.operator jsonifier::string_view() + "\n\n";
-			std::string currentTestName{};
+			jsonifier::string currentTestName{};
 			uint64_t currentIndex{};
-			for (size_t i = 0; i < results.size() / 3; ++i) {
-				const auto& result = results[i];
-				if (currentTestName != result.benchmarkName || i == results.size() - 1) {
-					resultsNew.emplace_back(results[i]);
+			for (size_t i = 0; i < newValues.results.size() / uniqueLibraryCount; ++i) {
+				const auto& result = newValues.results[i];
+				if (currentTestName != result.benchmarkName || i == newValues.results.size() - 1) {
+					resultsNew.emplace_back(newValues.results[i]);
 				}
-				currentTestName = result.benchmarkName;
+				currentTestName = static_cast<jsonifier::string>(result.benchmarkName);
 			}
 			for (auto& value: resultsNew) {
-				std::string encodedBenchmarkName = urlEncode(value.benchmarkName);
+				jsonifier::string encodedBenchmarkName = urlEncode(value.benchmarkName);
 				markdownStream << "### " << currentIndex + 1 << ". " << value.benchmarkName << "\n";
-				markdownStream << "<p align=\"left\"><img src=\"https://github.com/RealTimeChris/BenchmarkSuite/blob/main/Graphs/" << encodedBenchmarkName
-							   << "_results.jpg?raw=true\" width=\"400\"/></p>\n\n";
+				markdownStream << "<p align=\"left\"><img src=\"" << repoPath << encodedBenchmarkName << "_results.jpg?raw=true\" width=\"400\"/></p>\n\n";
 				++currentIndex;
 			}
 
 			return markdownStream.str();
 		}
 
-		BNCH_SWT_INLINE static void writeMarkdownToFile(const std::string& filePath) {
-			benchmark_suite_results newValues{ results };
-			std::string markdownContent = generateMarkdown(newValues.results);
+		BNCH_SWT_INLINE static void writeMarkdownToFile(jsonifier::string_view filePath, jsonifier::string_view repoPath) {
+			jsonifier::string markdownContent = generateMarkdown(repoPath);
 			file_loader fileLoader{ filePath };
-			fileLoader.saveFile(static_cast<std::string>(markdownContent));
+			fileLoader.saveFile(static_cast<jsonifier::string>(markdownContent));
 		}
 
-		BNCH_SWT_INLINE static std::string writeCsvData(const std::string& filePath) {
+		BNCH_SWT_INLINE static jsonifier::string writeCsvData(jsonifier::string_view filePath) {
 			benchmark_suite_results newValues{ results };
-			std::string newString{ "benchmarkName,medianAbsolutePercentageError,resultValue,benchmarkColor" };
+			jsonifier::string newString{ "benchmarkName,medianAbsolutePercentageError,resultValue,benchmarkColor" };
 			for (uint64_t x = 0; x < newValues.results.size(); ++x) {
 				newString += "\n";
 				newString += newValues.results[x].benchmarkName + ",";
@@ -889,7 +805,7 @@ namespace bnch_swt {
 				}
 			}
 			file_loader fileLoader{ filePath };
-			fileLoader.saveFile(static_cast<std::string>(newString));
+			fileLoader.saveFile(static_cast<jsonifier::string>(newString));
 			return {};
 		}
 
@@ -911,7 +827,7 @@ namespace bnch_swt {
 			}
 			benchmark_results results = collectMape<maxIterationCount, minIterationCount>(functionNew, stabilityThreshold, stabilityWindow);
 			benchmark_result_final resultsReal{};
-
+			resultsReal.type						  = result_type::time;
 			resultsReal.medianAbsolutePercentageError = results.medianAbsolutePercentageError;
 			resultsReal.resultValue					  = results.resultValue;
 			resultsReal.benchmarkName				  = benchmarkName.operator jsonifier::string_view();
@@ -940,7 +856,7 @@ namespace bnch_swt {
 			}
 			benchmark_results results = collectMape<maxIterationCount, minIterationCount>(functionNew, stabilityThreshold, stabilityWindow);
 			benchmark_result_final resultsReal{};
-
+			resultsReal.type						  = result_type::time;
 			resultsReal.medianAbsolutePercentageError = results.medianAbsolutePercentageError;
 			resultsReal.resultValue					  = results.resultValue;
 			resultsReal.libraryName					  = libraryName;
@@ -969,7 +885,7 @@ namespace bnch_swt {
 			}
 			benchmark_results results = collectMapeCycles<maxIterationCount, minIterationCount>(functionNew, stabilityThreshold, stabilityWindow);
 			benchmark_result_final resultsReal{};
-
+			resultsReal.type						  = result_type::cycles;
 			resultsReal.medianAbsolutePercentageError = results.medianAbsolutePercentageError;
 			resultsReal.resultValue					  = results.resultValue;
 			resultsReal.benchmarkName				  = benchmarkName.operator jsonifier::string_view();
@@ -998,7 +914,7 @@ namespace bnch_swt {
 			}
 			benchmark_results results = collectMapeCycles<maxIterationCount, minIterationCount>(functionNew, stabilityThreshold, stabilityWindow);
 			benchmark_result_final resultsReal{};
-
+			resultsReal.type						  = result_type::cycles;
 			resultsReal.medianAbsolutePercentageError = results.medianAbsolutePercentageError;
 			resultsReal.resultValue					  = results.resultValue;
 			resultsReal.libraryName					  = libraryName;
