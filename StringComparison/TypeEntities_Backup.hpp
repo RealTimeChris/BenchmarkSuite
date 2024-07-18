@@ -472,13 +472,13 @@ namespace jsonifier_internal {
 		return value1 > static_cast<value_type01>(value2) ? value1 : static_cast<value_type01>(value2);
 	}
 
-	template<jsonifier::concepts::unsigned_type value_type> void printBits(value_type values, jsonifier::string_view valuesTitle) {
+	template<jsonifier::concepts::unsigned_type value_type> void printBits(value_type values, const jsonifier::string& valuesTitle) {
 		std::cout << valuesTitle;
 		std::cout << std::bitset<sizeof(value_type) * 8>{ values };
 		std::cout << std::endl;
 	}
 
-	template<jsonifier::concepts::simd_int_type simd_type> const simd_type& printBits(const simd_type& value, jsonifier::string_view valuesTitle) noexcept {
+	template<jsonifier::concepts::simd_int_type simd_type> const simd_type& printBits(const simd_type& value, const jsonifier::string& valuesTitle) noexcept {
 		JSONIFIER_ALIGN uint8_t values[sizeof(simd_type)]{};
 		std::stringstream theStream{};
 		store(value, values);
