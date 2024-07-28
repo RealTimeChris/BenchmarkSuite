@@ -53,7 +53,7 @@ namespace jsonifier_internal {
 	// https://stackoverflow.com/questions/16337610/how-to-know-if-a-type-is-a-specialization-of-stdvector
 	template<typename, template<typename...> typename> constexpr bool is_specialization_v = false;
 
-	template<template<typename...> class value_type, typename... Args> constexpr bool is_specialization_v<value_type<Args...>, value_type> = true;
+	template<template<typename...> class value_type, typename... arg_types> constexpr bool is_specialization_v<value_type<arg_types...>, value_type> = true;
 
 	template<uint64_t index> using tag = std::integral_constant<uint64_t, index>;
 
@@ -95,22 +95,41 @@ namespace jsonifier_internal {
 		using type = typename get_type_at_index<type_list<rest...>, index - 1>::type;
 	};
 
-	template<typename function_type, typename... arg_types> struct return_type_helper {
-		using type = std::invoke_result_t<unwrap_t<function_type>, arg_types...>;
+	template<template<uint64_t> typename function_wrapper, std::size_t... indices> static constexpr auto generateArrayOfFunctionPtrs(std::index_sequence<indices...>) {
+		using function_type = decltype(&function_wrapper<0>::op);
+		return std::array<function_type, sizeof...(indices)>{ { &function_wrapper<indices>::op... } };
+	}
+
+	template<std::size_t... indices> struct reverse_index_sequence {};
+
+	template<std::size_t N, std::size_t... indices> struct make_reverse_index_sequence_impl {
+		using type = typename make_reverse_index_sequence_impl<N - 1, indices..., N - 1>::type;
 	};
 
-	template<typename value_type, typename... arg_types> using return_type = typename return_type_helper<value_type, arg_types...>::type;
+	template<std::size_t... indices> struct make_reverse_index_sequence_impl<0, indices...> {
+		using type = reverse_index_sequence<indices...>;
+	};
 
-	template<uint64_t currentIndex = 0, typename function_type, typename variant_type> JSONIFIER_INLINE constexpr void visit(function_type&& function, variant_type&& variant) {
+	template<std::size_t N> using make_reverse_index_sequence = typename make_reverse_index_sequence_impl<N>::type;
+
+	template<std::size_t N, const auto& function, typename... arg_types> JSONIFIER_ALWAYS_INLINE constexpr void forEach(arg_types&&... args) {
+		[&]<std::size_t... I>(std::index_sequence<I...>) constexpr {
+			(function(std::integral_constant<std::size_t, I>{}, std::forward<arg_types>(args)...), ...);
+		}(std::make_index_sequence<N>{});
+	}
+
+	template<const auto& function, uint64_t currentIndex = 0, typename variant_type, typename... arg_types>
+	JSONIFIER_ALWAYS_INLINE constexpr void visit(variant_type&& variant, arg_types&&... args) {
 		if constexpr (currentIndex < std::variant_size_v<jsonifier_internal::unwrap_t<variant_type>>) {
 			variant_type&& variantNew = std::forward<variant_type>(variant);
 			if (variantNew.index() == currentIndex) {
-				std::forward<function_type>(function)(std::get<currentIndex>(variantNew));
+				function(std::get<currentIndex>(variantNew), std::forward<arg_types>(args)...);
 				return;
 			}
-			visit<currentIndex + 1>(std::forward<function_type>(function), variantNew);
+			visit<function, currentIndex + 1>(variantNew, std::forward<arg_types>(args)...);
 		}
 	}
+
 }
 
 namespace jsonifier {
@@ -126,13 +145,13 @@ namespace jsonifier {
 	template<typename value_type> struct core {};
 
 	template<typename value_type> struct value {
-		value_type parseValue;
+		value_type parseValue{};
 	};
 
 	template<typename value_type> value(value_type) -> value<value_type>;
 
 	template<typename value_type> struct scalar_value {
-		value_type parseValue;
+		value_type parseValue{};
 	};
 
 	template<typename value_type> scalar_value(value_type) -> scalar_value<value_type>;
@@ -140,13 +159,13 @@ namespace jsonifier {
 	namespace concepts {
 
 		template<typename value_type>
-		concept simd_int_512_type = std::is_same_v<simd_int_512, std::remove_cvref_t<value_type>>;
+		concept simd_int_512_type = std::is_same_v<jsonifier_simd_int_512, std::remove_cvref_t<value_type>>;
 		template<typename value_type>
-		concept simd_int_256_type = std::is_same_v<simd_int_256, std::remove_cvref_t<value_type>>;
+		concept simd_int_256_type = std::is_same_v<jsonifier_simd_int_256, std::remove_cvref_t<value_type>>;
 		template<typename value_type>
-		concept simd_int_128_type = std::is_same_v<simd_int_128, std::remove_cvref_t<value_type>>;
+		concept simd_int_128_type = std::is_same_v<jsonifier_simd_int_128, std::remove_cvref_t<value_type>>;
 		template<typename value_type>
-		concept simd_int_type = std::is_same_v<simd_int_t, std::remove_cvref_t<value_type>>;
+		concept simd_int_type = std::is_same_v<jsonifier_simd_int_t, std::remove_cvref_t<value_type>>;
 
 		template<typename value_type>
 		concept range = requires(jsonifier_internal::unwrap_t<value_type> value) {
@@ -155,26 +174,22 @@ namespace jsonifier {
 			{ value.end() } -> std::same_as<typename jsonifier_internal::unwrap_t<value_type>::const_iterator>;
 		} || requires(jsonifier_internal::unwrap_t<value_type> value) {
 			typename jsonifier_internal::unwrap_t<value_type>::value_type;
-			{ value.begin() } -> std::same_as<typename jsonifier_internal::unwrap_t<value_type>::iterator_type>;
-			{ value.end() } -> std::same_as<typename jsonifier_internal::unwrap_t<value_type>::iterator_type>;
+			{ value.begin() } -> std::same_as<typename jsonifier_internal::unwrap_t<value_type>::iterator>;
+			{ value.end() } -> std::same_as<typename jsonifier_internal::unwrap_t<value_type>::iterator>;
 		};
 
 		template<typename value_type>
 		concept map_subscriptable = requires(jsonifier_internal::unwrap_t<value_type> value) {
-			{
-				value[std::declval<typename jsonifier_internal::unwrap_t<value_type>::key_type>()]
-			} -> std::same_as<const typename jsonifier_internal::unwrap_t<value_type>::mapped_type&>;
+			{ value[typename jsonifier_internal::unwrap_t<value_type>::key_type{}] } -> std::same_as<const typename jsonifier_internal::unwrap_t<value_type>::mapped_type&>;
 		} || requires(jsonifier_internal::unwrap_t<value_type> value) {
-			{ value[std::declval<typename jsonifier_internal::unwrap_t<value_type>::key_type>()] } -> std::same_as<typename jsonifier_internal::unwrap_t<value_type>::mapped_type&>;
+			{ value[typename jsonifier_internal::unwrap_t<value_type>::key_type{}] } -> std::same_as<typename jsonifier_internal::unwrap_t<value_type>::mapped_type&>;
 		};
 
 		template<typename value_type>
 		concept vector_subscriptable = requires(jsonifier_internal::unwrap_t<value_type> value) {
-			{
-				value[std::declval<typename jsonifier_internal::unwrap_t<value_type>::size_type>()]
-			} -> std::same_as<typename jsonifier_internal::unwrap_t<value_type>::const_reference>;
+			{ value[typename jsonifier_internal::unwrap_t<value_type>::size_type{}] } -> std::same_as<typename jsonifier_internal::unwrap_t<value_type>::const_reference>;
 		} || requires(jsonifier_internal::unwrap_t<value_type> value) {
-			{ value[std::declval<typename jsonifier_internal::unwrap_t<value_type>::size_type>()] } -> std::same_as<typename jsonifier_internal::unwrap_t<value_type>::reference>;
+			{ value[typename jsonifier_internal::unwrap_t<value_type>::size_type{}] } -> std::same_as<typename jsonifier_internal::unwrap_t<value_type>::reference>;
 		};
 
 		template<typename value_type>
@@ -186,11 +201,7 @@ namespace jsonifier {
 		concept variant_t = jsonifier_internal::is_specialization_v<jsonifier_internal::unwrap_t<value_type>, std::variant>;
 
 		template<typename value_type>
-		concept is_fwd_iterator = std::forward_iterator<jsonifier_internal::unwrap_t<value_type>>;
-
-		template<typename value_type>
-		concept has_resize =
-			requires(jsonifier_internal::unwrap_t<value_type> value) { value.resize(std::declval<typename jsonifier_internal::unwrap_t<value_type>::size_type>()); };
+		concept has_resize = requires(jsonifier_internal::unwrap_t<value_type> value) { value.resize(typename jsonifier_internal::unwrap_t<value_type>::size_type{}); };
 
 		template<typename value_type>
 		concept has_data = requires(jsonifier_internal::unwrap_t<value_type> value) {
@@ -218,8 +229,8 @@ namespace jsonifier {
 			std::is_pointer_v<jsonifier_internal::unwrap_t<value_type_01>>;
 
 		template<typename value_type>
-		concept bool_t = std::is_same_v<jsonifier_internal::unwrap_t<value_type>, bool> || std::same_as<jsonifier_internal::unwrap_t<value_type>, jsonifier::vector<bool>::reference> ||
-			std::same_as<jsonifier_internal::unwrap_t<value_type>, jsonifier::vector<bool>::const_reference>;
+		concept bool_t = std::is_same_v<jsonifier_internal::unwrap_t<value_type>, bool> || std::same_as<jsonifier_internal::unwrap_t<value_type>, std::vector<bool>::reference> ||
+			std::same_as<jsonifier_internal::unwrap_t<value_type>, std::vector<bool>::const_reference>;
 
 		template<typename value_type>
 		concept always_null_t = std::is_same_v<jsonifier_internal::unwrap_t<value_type>, std::nullptr_t> ||
@@ -237,28 +248,28 @@ namespace jsonifier {
 		concept unsigned_type = std::unsigned_integral<jsonifier_internal::unwrap_t<value_type>> && !bool_t<value_type>;
 
 		template<typename value_type>
-		concept uint8_type = std::is_same_v<uint8_t, jsonifier_internal::unwrap_t<value_type>>;
+		concept uint8_type = sizeof(jsonifier_internal::unwrap_t<value_type>) == 1 && unsigned_type<value_type>;
 
 		template<typename value_type>
-		concept uint16_type = std::is_same_v<uint16_t, jsonifier_internal::unwrap_t<value_type>>;
+		concept uint16_type = sizeof(jsonifier_internal::unwrap_t<value_type>) == 2 && unsigned_type<value_type>;
 
 		template<typename value_type>
-		concept uint32_type = std::is_same_v<uint32_t, jsonifier_internal::unwrap_t<value_type>>;
+		concept uint32_type = sizeof(jsonifier_internal::unwrap_t<value_type>) == 4 && unsigned_type<value_type>;
 
 		template<typename value_type>
-		concept uint64_type = std::is_same_v<uint64_t, jsonifier_internal::unwrap_t<value_type>>;
+		concept uint64_type = sizeof(jsonifier_internal::unwrap_t<value_type>) == 8 && unsigned_type<value_type>;
 
 		template<typename value_type>
-		concept int8_type = std::is_same_v<int8_t, jsonifier_internal::unwrap_t<value_type>>;
+		concept int8_type = sizeof(jsonifier_internal::unwrap_t<value_type>) == 1 && signed_type<value_type>;
 
 		template<typename value_type>
-		concept int16_type = std::is_same_v<int16_t, jsonifier_internal::unwrap_t<value_type>>;
+		concept int16_type = sizeof(jsonifier_internal::unwrap_t<value_type>) == 2 && signed_type<value_type>;
 
 		template<typename value_type>
-		concept int32_type = std::is_same_v<int32_t, jsonifier_internal::unwrap_t<value_type>>;
+		concept int32_type = sizeof(jsonifier_internal::unwrap_t<value_type>) == 4 && signed_type<value_type>;
 
 		template<typename value_type>
-		concept int64_type = std::is_same_v<int64_t, jsonifier_internal::unwrap_t<value_type>>;
+		concept int64_type = sizeof(jsonifier_internal::unwrap_t<value_type>) == 8 && signed_type<value_type>;
 
 		template<typename value_type>
 		concept double_type = std::is_same_v<double, jsonifier_internal::unwrap_t<value_type>>;
@@ -281,8 +292,7 @@ namespace jsonifier {
 		template<typename value_type>
 		concept has_substr = requires(jsonifier_internal::unwrap_t<value_type> value) {
 			{
-				value.substr(std::declval<typename jsonifier_internal::unwrap_t<value_type>::size_type>(),
-					std::declval<typename jsonifier_internal::unwrap_t<value_type>::size_type>())
+				value.substr(typename jsonifier_internal::unwrap_t<value_type>::size_type{}, typename jsonifier_internal::unwrap_t<value_type>::size_type{})
 			} -> std::same_as<jsonifier_internal::unwrap_t<value_type>>;
 		};
 
@@ -304,14 +314,22 @@ namespace jsonifier {
 
 		template<typename value_type>
 		concept has_emplace_back = requires(jsonifier_internal::unwrap_t<value_type> value) {
-			{
-				value.emplace_back(std::declval<typename jsonifier_internal::unwrap_t<value_type>::value_type&&>())
-			} -> std::same_as<typename jsonifier_internal::unwrap_t<value_type>::value_type&>;
+			{ value.emplace_back(typename jsonifier_internal::unwrap_t<value_type>::value_type{}) } -> std::same_as<typename jsonifier_internal::unwrap_t<value_type>::value_type&>;
 		};
 
 		template<typename value_type>
 		concept has_control_byes = requires(jsonifier_internal::unwrap_t<value_type> value) {
 			{ value.controlBytes };
+		};
+
+		template<typename value_type>
+		concept has_reserve = requires(jsonifier_internal::unwrap_t<value_type> value) {
+			{ value.reserve(typename jsonifier_internal::unwrap_t<value_type>::size_type{}) } -> std::same_as<void>;
+		};
+
+		template<typename value_type>
+		concept has_capacity = requires(jsonifier_internal::unwrap_t<value_type> value) {
+			{ value.capacity() } -> std::same_as<typename jsonifier_internal::unwrap_t<value_type>::size_type>;
 		};
 
 		template<typename value_type>
@@ -336,7 +354,7 @@ namespace jsonifier {
 
 		template<typename value_type>
 		concept has_find = requires(jsonifier_internal::unwrap_t<value_type> value) {
-			{ value.find(std::declval<const typename jsonifier_internal::unwrap_t<value_type>::key_type&>()) };
+			{ value.find(typename jsonifier_internal::unwrap_t<value_type>::key_type{}) };
 		};
 
 		template<typename value_type>
@@ -402,15 +420,6 @@ namespace jsonifier {
 			}
 		}();
 
-		struct skip_value {};
-
-		struct skip {
-			skip_value value{};
-		};
-
-		template<typename value_type>
-		concept skip_value_t = std::is_same_v<jsonifier_internal::unwrap_t<value_type>, skip_value>;
-
 		template<typename value_type> constexpr auto coreV = coreWrapperV<decay_keep_volatile_t<value_type>>.parseValue;
 
 		template<typename value_type> using core_t = decay_keep_volatile_t<decltype(coreV<value_type>)>;
@@ -472,19 +481,19 @@ namespace jsonifier_internal {
 		return value1 > static_cast<value_type01>(value2) ? value1 : static_cast<value_type01>(value2);
 	}
 
-	template<jsonifier::concepts::unsigned_type value_type> void printBits(value_type values, const jsonifier::string& valuesTitle) {
+	template<jsonifier::concepts::unsigned_type value_type> void printBits(value_type values, const std::string& valuesTitle) {
 		std::cout << valuesTitle;
 		std::cout << std::bitset<sizeof(value_type) * 8>{ values };
 		std::cout << std::endl;
 	}
 
-	template<jsonifier::concepts::simd_int_type simd_type> const simd_type& printBits(const simd_type& value, const jsonifier::string& valuesTitle) noexcept {
+	template<jsonifier::concepts::simd_int_type simd_type> const simd_type& printBits(const simd_type& value, const std::string& valuesTitle) {
 		JSONIFIER_ALIGN uint8_t values[sizeof(simd_type)]{};
 		std::stringstream theStream{};
 		store(value, values);
 		std::cout << valuesTitle;
-		for (string_parsing_type x = 0; x < sizeof(simd_type); ++x) {
-			for (string_parsing_type y = 0; y < 8; ++y) {
+		for (jsonifier_string_parsing_type x = 0; x < sizeof(simd_type); ++x) {
+			for (jsonifier_string_parsing_type y = 0; y < 8; ++y) {
 				std::cout << std::bitset<1>{ static_cast<uint64_t>(*(values + x)) >> y };
 			}
 		}
@@ -492,13 +501,13 @@ namespace jsonifier_internal {
 		return value;
 	}
 
-	JSONIFIER_INLINE jsonifier::string printBits(bool value) noexcept {
+	JSONIFIER_ALWAYS_INLINE std::string printBits(bool value) {
 		std::stringstream theStream{};
 		theStream << std::boolalpha << value << std::endl;
 		return theStream.str();
 	}
 
-	template<typename simd_type> JSONIFIER_INLINE jsonifier::string printBits(const simd_type& value) noexcept {
+	template<typename simd_type> JSONIFIER_ALWAYS_INLINE std::string printBits(const simd_type& value) {
 		JSONIFIER_ALIGN uint8_t values[sizeof(simd_type)]{};
 		std::stringstream theStream{};
 		store(value, values);
@@ -515,15 +524,15 @@ namespace jsonifier_internal {
 	  public:
 		using hr_clock = std::chrono::high_resolution_clock;
 
-		JSONIFIER_INLINE stop_watch(uint64_t newTime) {
+		JSONIFIER_ALWAYS_INLINE stop_watch(uint64_t newTime) {
 			totalNumberOfTimeUnits.store(value_type{ newTime }, std::memory_order_release);
 		}
 
-		JSONIFIER_INLINE stop_watch(value_type newTime) {
+		JSONIFIER_ALWAYS_INLINE stop_watch(value_type newTime) {
 			totalNumberOfTimeUnits.store(newTime, std::memory_order_release);
 		}
 
-		JSONIFIER_INLINE stop_watch& operator=(stop_watch&& other) {
+		JSONIFIER_ALWAYS_INLINE stop_watch& operator=(stop_watch&& other) {
 			if (this != &other) [[likely]] {
 				totalNumberOfTimeUnits.store(other.totalNumberOfTimeUnits.load(std::memory_order_acquire), std::memory_order_release);
 				startTimeInTimeUnits.store(other.startTimeInTimeUnits.load(std::memory_order_acquire), std::memory_order_release);
@@ -531,11 +540,11 @@ namespace jsonifier_internal {
 			return *this;
 		}
 
-		JSONIFIER_INLINE stop_watch(stop_watch&& other) {
+		JSONIFIER_ALWAYS_INLINE stop_watch(stop_watch&& other) {
 			*this = std::move(other);
 		}
 
-		JSONIFIER_INLINE stop_watch& operator=(const stop_watch& other) {
+		JSONIFIER_ALWAYS_INLINE stop_watch& operator=(const stop_watch& other) {
 			if (this != &other) [[likely]] {
 				totalNumberOfTimeUnits.store(other.totalNumberOfTimeUnits.load(std::memory_order_acquire), std::memory_order_release);
 				startTimeInTimeUnits.store(other.startTimeInTimeUnits.load(std::memory_order_acquire), std::memory_order_release);
@@ -543,11 +552,11 @@ namespace jsonifier_internal {
 			return *this;
 		}
 
-		JSONIFIER_INLINE stop_watch(const stop_watch& other) {
+		JSONIFIER_ALWAYS_INLINE stop_watch(const stop_watch& other) {
 			*this = other;
 		}
 
-		JSONIFIER_INLINE bool hasTimeElapsed() {
+		JSONIFIER_ALWAYS_INLINE bool hasTimeElapsed() {
 			if (std::chrono::duration_cast<value_type>(hr_clock::now().time_since_epoch()) - startTimeInTimeUnits.load(std::memory_order_acquire) >=
 				totalNumberOfTimeUnits.load(std::memory_order_acquire)) [[likely]] {
 				return true;
@@ -556,7 +565,7 @@ namespace jsonifier_internal {
 			}
 		}
 
-		JSONIFIER_INLINE void reset(value_type newTimeValue = value_type{}) {
+		JSONIFIER_ALWAYS_INLINE void reset(value_type newTimeValue = value_type{}) {
 			if (newTimeValue != value_type{}) [[likely]] {
 				totalNumberOfTimeUnits.store(newTimeValue, std::memory_order_release);
 				startTimeInTimeUnits.store(std::chrono::duration_cast<value_type>(hr_clock::now().time_since_epoch()), std::memory_order_release);
@@ -565,11 +574,11 @@ namespace jsonifier_internal {
 			}
 		}
 
-		JSONIFIER_INLINE value_type getTotalWaitTime() const {
+		JSONIFIER_ALWAYS_INLINE value_type getTotalWaitTime() const noexcept {
 			return totalNumberOfTimeUnits.load(std::memory_order_acquire);
 		}
 
-		JSONIFIER_INLINE value_type totalTimeElapsed() {
+		JSONIFIER_ALWAYS_INLINE value_type totalTimeElapsed() {
 			return std::chrono::duration_cast<value_type>(hr_clock::now().time_since_epoch()) - startTimeInTimeUnits.load(std::memory_order_acquire);
 		}
 

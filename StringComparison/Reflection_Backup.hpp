@@ -24,72 +24,78 @@
 #pragma once
 
 #include <jsonifier/TypeEntities.hpp>
+#include <jsonifier/StringLiteral.hpp>
 #include <jsonifier/StringView.hpp>
-
-namespace jsonifier {
-
-	template<typename char_type> class string_view_base;
-
-}
+#include <source_location>
 
 namespace jsonifier_internal {
 
-	using string_view = jsonifier::string_view_base<char>;
+	template<typename value_type> struct trie_base {
+		std::array<trie_base*, 256> children{};
+		bool isEndOfWord = false;
 
-	template<uint64_t sizeVal> struct string_literal {
-		static constexpr auto length{ sizeVal > 0 ? sizeVal - 1 : 0 };
-
-		constexpr string_literal() noexcept = default;
-
-		constexpr string_literal(const char (&str)[sizeVal]) {
-			std::copy(str, str + sizeVal, values);
+		constexpr trie_base() {
+			children.fill(nullptr);
 		}
 
-		constexpr uint64_t size() const {
-			return length;
+		constexpr trie_base* findNode(const jsonifier::string_view& view) const {
+			const trie_base* current = this;
+			for (char ch: view) {
+				size_t index = static_cast<unsigned char>(ch);
+				if (current->children[index] == nullptr) {
+					return nullptr;
+				}
+				current = current->children[index];
+			}
+			return const_cast<trie_base*>(current);
 		}
 
-		constexpr const char* data() const {
-			return values;
+		constexpr void insert(const jsonifier::string_view& word, trie_base* node) {
+			trie_base* current = this;
+			for (char ch: word) {
+				size_t index = static_cast<unsigned char>(ch);
+				if (current->children[index] == nullptr) {
+					current->children[index] = node;
+				}
+				current = current->children[index];
+			}
+			current->isEndOfWord = true;
 		}
-
-		constexpr jsonifier::string_view view() const {
-			return { values, length };
-		}
-
-		char values[sizeVal]{};
 	};
 
-	template<size_t N> constexpr auto stringLiteralFromView(jsonifier::string_view str) {
-		string_literal<N + 1> sl{};
-		std::copy_n(str.data(), str.size(), sl.values);
-		*(sl.values + N) = '\0';
-		return sl;
-	}
+	struct root_struct {
+		std::nullptr_t empty{};
+	};
 
 	template<typename member_type, typename class_type> struct member_pointer {
 		member_type class_type::*ptr{};
-		constexpr member_pointer(member_type class_type::*p) : ptr(p){};
+		constexpr member_pointer() noexcept = default;
+		constexpr member_pointer(member_type class_type::*p) noexcept : ptr(p) {
+		}
 	};
 
-	template<typename member_type_new, typename class_type_new> struct data_member {
+	template<typename member_type_new, typename class_type_new> struct data_member : public trie_base<class_type_new> {
 		using member_type = member_type_new;
 		using class_type  = class_type_new;
 		member_pointer<member_type, class_type> memberPtr{};
+		uint8_t padding[4]{};
 		jsonifier::string_view name{};
 
-		constexpr jsonifier::string_view view() const {
+		constexpr auto& view() const noexcept {
 			return name;
 		}
 
-		constexpr auto ptr() const {
+		constexpr auto& ptr() const noexcept {
 			return memberPtr.ptr;
 		}
+		constexpr data_member() noexcept = default;
 
-		constexpr data_member(jsonifier::string_view str, member_type class_type::*ptr) : memberPtr(ptr), name(str){};
+		constexpr data_member(jsonifier::string_view str, member_type class_type::*ptr) noexcept : memberPtr(ptr), name(str) {
+		}
 	};
 
-	template<typename member_type, typename class_type> constexpr auto makeDataMemberAuto(jsonifier::string_view str, member_type class_type::*ptr) {
+	template<typename member_type, typename class_type>
+	JSONIFIER_ALWAYS_INLINE constexpr auto makeDataMemberAuto(jsonifier::string_view str, member_type class_type::*ptr) noexcept {
 		return data_member<member_type, class_type>(str, ptr);
 	}
 
@@ -117,15 +123,11 @@ namespace jsonifier_internal {
 		using type = value_type;
 	};
 
-	template<typename value_type, typename member_type, typename... Args> struct remove_member_pointer<member_type (value_type::*)(Args...)> {
+	template<typename value_type, typename member_type, typename... arg_types> struct remove_member_pointer<member_type (value_type::*)(arg_types...)> {
 		using type = value_type;
 	};
 
 	template<typename value_type> using remove_member_pointer_t = typename remove_member_pointer<value_type>::type;
-
-	template<auto valueNew> struct make_static {
-		static constexpr auto value{ valueNew };
-	};
 
 #if defined(JSONIFIER_CLANG)
 	constexpr auto pretty_function_tail = "]";
@@ -142,13 +144,13 @@ namespace jsonifier_internal {
 	 * @return The name of the member pointer.
 	 */
 #if defined(JSONIFIER_MSVC) && !defined(JSONIFIER_CLANG)
-	template<typename value_type, auto p> consteval jsonifier::string_view getNameInternal() {
+	template<typename value_type, auto p> JSONIFIER_ALWAYS_INLINE consteval jsonifier::string_view getNameImpl() noexcept {
 		jsonifier::string_view str = std::source_location::current().function_name();
 		str						   = str.substr(str.find("->") + 2);
 		return str.substr(0, str.find(">"));
 	}
 #else
-	template<auto p> consteval jsonifier::string_view getNameInternal() {
+	template<auto p> consteval jsonifier::string_view getNameImpl() noexcept {
 		jsonifier::string_view str = std::source_location::current().function_name();
 		str						   = str.substr(str.find("&") + 1);
 		str						   = str.substr(0, str.find(pretty_function_tail));
@@ -158,13 +160,13 @@ namespace jsonifier_internal {
 
 	template<auto p>
 		requires(std::is_member_pointer_v<decltype(p)>)
-	constexpr auto getName() {
+	JSONIFIER_ALWAYS_INLINE constexpr auto getName() noexcept {
 #if defined(JSONIFIER_MSVC) && !defined(JSONIFIER_CLANG)
 		using value_type		 = remove_member_pointer<unwrap_t<decltype(p)>>::type;
 		constexpr auto pNew		 = p;
-		constexpr auto newString = getNameInternal<value_type, &(external<value_type>.*pNew)>();
+		constexpr auto newString = getNameImpl<value_type, &(external<value_type>.*pNew)>();
 #else
-		constexpr auto newString = getNameInternal<p>();
+		constexpr auto newString = getNameImpl<p>();
 #endif
 		return newString;
 	}
@@ -177,14 +179,14 @@ namespace jsonifier_internal {
 	 * @tparam args Member pointers.
 	 * @return An array of member pointer names.
 	 */
-	template<auto... args> constexpr decltype(auto) getNames() {
+	template<auto... args> JSONIFIER_ALWAYS_INLINE constexpr decltype(auto) getNames() noexcept {
 		return std::array<jsonifier::string_view, sizeof...(args)>{ getName<args>()... };
 	}
 
 	/**
-	 * @brief Internal function to generate an interleaved tuple of member names and values.
+	 * @brief Impl function to generate an interleaved tuple of member names and values.
 	 *
-	 * Internal function to generate an interleaved tuple of member names and values.
+	 * Impl function to generate an interleaved tuple of member names and values.
 	 *
 	 * @tparam tuple_types Types of tuple elements.
 	 * @tparam indices indices of tuple elements.
@@ -192,8 +194,8 @@ namespace jsonifier_internal {
 	 * @param views Array of member names.
 	 * @return Interleaved tuple of member names and values.
 	 */
-	template<typename... tuple_types, size_t... indices> constexpr decltype(auto) generateInterleavedTupleInternal(const std::tuple<tuple_types...>& tuple,
-		const std::array<jsonifier::string_view, sizeof...(indices)>& views, std::index_sequence<indices...>) {
+	template<typename... tuple_types, size_t... indices> JSONIFIER_ALWAYS_INLINE constexpr decltype(auto) generateInterleavedTupleImpl(const std::tuple<tuple_types...>& tuple,
+		const std::array<jsonifier::string_view, sizeof...(indices)>& views, std::index_sequence<indices...>) noexcept {
 		return std::make_tuple(makeDataMemberAuto(views[indices], std::get<indices>(tuple))...);
 	}
 
@@ -207,9 +209,9 @@ namespace jsonifier_internal {
 	 * @param views Array of member names.
 	 * @return Interleaved tuple of member names and values.
 	 */
-	template<typename... tuple_types>
-	constexpr decltype(auto) generateInterleavedTuple(const std::tuple<tuple_types...>& tuple, const std::array<jsonifier::string_view, sizeof...(tuple_types)>& views) {
-		return generateInterleavedTupleInternal(tuple, views, std::index_sequence_for<tuple_types...>{});
+	template<typename... tuple_types> JSONIFIER_ALWAYS_INLINE constexpr decltype(auto) generateInterleavedTuple(const std::tuple<tuple_types...>& tuple,
+		const std::array<jsonifier::string_view, sizeof...(tuple_types)>& views) noexcept {
+		return generateInterleavedTupleImpl(tuple, views, std::index_sequence_for<tuple_types...>{});
 	}
 
 }

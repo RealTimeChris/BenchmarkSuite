@@ -38,7 +38,6 @@
 	#define BNCH_SWT_HAS_BUILTIN(x) 0
 #endif
 
-
 #define BNCH_SWT_GCC_VERSION (__GNUC__ * 100 + __GNUC_MINOR__)
 
 #if defined(macintosh) || defined(Macintosh) || (defined(__APPLE__) && defined(__MACH__))
@@ -70,14 +69,22 @@
 
 #if defined(BNCH_SWT_MSVC)
 	#define BNCH_SWT_NO_INLINE __declspec(noinline)
-	#define BNCH_SWT_INLINE __forceinline
+	#define BNCH_SWT_FLATTEN inline [[msvc::flatten]]
+	#define BNCH_SWT_ALWAYS_INLINE __forceinline
+	#define BNCH_SWT_INLINE inline
 #elif defined(BNCH_SWT_CLANG)
 	#define BNCH_SWT_NO_INLINE __attribute__((__noinline__))
-	#define BNCH_SWT_INLINE inline __attribute__((always_inline))
+	#define BNCH_SWT_FLATTEN inline __attribute__((flatten))
+	#define BNCH_SWT_ALWAYS_INLINE __attribute__((always_inline))
+	#define BNCH_SWT_INLINE inline
 #elif defined(BNCH_SWT_GNUCXX)
 	#define BNCH_SWT_NO_INLINE __attribute__((noinline))
-	#define BNCH_SWT_INLINE __attribute__((always_inline))
-#else
+	#define BNCH_SWT_FLATTEN inline __attribute__((flatten))
+	#define BNCH_SWT_ALWAYS_INLINE __attribute__((always_inline))
 	#define BNCH_SWT_INLINE inline
+#else
+	#define BNCH_SWT_FLATTEN inline
 	#define BNCH_SWT_NO_INLINE
+	#define BNCH_SWT_ALWAYS_INLINE inline
+	#define BNCH_SWT_INLINE inline
 #endif

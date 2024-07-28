@@ -343,9 +343,7 @@ namespace jsonifier_internal {
 					writeCharacters(buffer, index, R"(\\)");
 					break;
 				}
-					[[likely]] default : {
-						writeCharacter(buffer, index, value);
-					}
+				[[likely]] default: { writeCharacter(buffer, index, value); }
 			}
 			writeCharacter<json_structural_type::String>(buffer, index);
 		}
