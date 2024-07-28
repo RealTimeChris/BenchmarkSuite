@@ -36,7 +36,7 @@ namespace jsonifier_internal {
 
 	using string_view = jsonifier::string_view_base<char>;
 
-	template<uint64_t sizeVal> struct string_literal {
+	template<size_t sizeVal> struct string_literal {
 		static constexpr auto length{ sizeVal > 0 ? sizeVal - 1 : 0 };
 
 		constexpr string_literal() noexcept = default;
@@ -45,7 +45,7 @@ namespace jsonifier_internal {
 			std::copy(str, str + sizeVal, values);
 		}
 
-		constexpr uint64_t size() const {
+		constexpr size_t size() const {
 			return length;
 		}
 
@@ -69,7 +69,7 @@ namespace jsonifier_internal {
 
 	template<typename member_type, typename class_type> struct member_pointer {
 		member_type class_type::*ptr{};
-		constexpr member_pointer(member_type class_type::*p) : ptr(p){};
+		constexpr member_pointer(member_type class_type::*p) : ptr(p) {};
 	};
 
 	template<typename member_type_new, typename class_type_new> struct data_member {
@@ -86,7 +86,7 @@ namespace jsonifier_internal {
 			return memberPtr.ptr;
 		}
 
-		constexpr data_member(jsonifier::string_view str, member_type class_type::*ptr) : memberPtr(ptr), name(str){};
+		constexpr data_member(jsonifier::string_view str, member_type class_type::*ptr) : memberPtr(ptr), name(str) {};
 	};
 
 	template<typename member_type, typename class_type> constexpr auto makeDataMemberAuto(jsonifier::string_view str, member_type class_type::*ptr) {

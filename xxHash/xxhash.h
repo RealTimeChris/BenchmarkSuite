@@ -815,22 +815,22 @@ XXH_PUBLIC_API XXH_PUREF XXH32_hash_t XXH32_hashFromCanonical(const XXH32_canoni
 /*!
  * @brief An unsigned 64-bit integer.
  *
- * Not necessarily defined to `uint64_t` but functionally equivalent.
+ * Not necessarily defined to `size_t` but functionally equivalent.
  */
-typedef uint64_t XXH64_hash_t;
+typedef size_t XXH64_hash_t;
 #elif !defined (__VMS) \
   && (defined (__cplusplus) \
   || (defined (__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L) /* C99 */) )
 #  include <stdint.h>
-   typedef uint64_t XXH64_hash_t;
+   typedef size_t XXH64_hash_t;
 #else
 #  include <limits.h>
 #  if defined(__LP64__) && ULONG_MAX == 0xFFFFFFFFFFFFFFFFull
-     /* LP64 ABI says uint64_t is unsigned long */
+     /* LP64 ABI says size_t is unsigned long */
      typedef unsigned long XXH64_hash_t;
 #  else
      /* the following type must have a width of 64-bit */
-     typedef uint64_t XXH64_hash_t;
+     typedef size_t XXH64_hash_t;
 #  endif
 #endif
 
@@ -1641,7 +1641,7 @@ XXH_PUBLIC_API XXH_PUREF XXH128_hash_t XXH128(XXH_NOESCAPE const void* data, siz
  *             argv[2], strlen(argv[2]),
  *             secret, sizeof(secret)
  *        );
- *        printf("%016llx\n", (uint64_t) h);
+ *        printf("%016llx\n", (size_t) h);
  *    }
  * @endcode
  */
@@ -1653,7 +1653,7 @@ XXH_PUBLIC_API XXH_errorcode XXH3_generateSecret(XXH_NOESCAPE void* secretBuffer
  * The generated secret can be used in combination with
  *`*_withSecret()` and `_withSecretandSeed()` variants.
  *
- * Example C++ `jsonifier::string` hash class:
+ * Example C++ `std::string` hash class:
  * @code{.cpp}
  *    #include <string>
  *    #define XXH_STATIC_LINKING_ONLY // expose unstable API
@@ -1663,7 +1663,7 @@ XXH_PUBLIC_API XXH_errorcode XXH3_generateSecret(XXH_NOESCAPE void* secretBuffer
  *        XXH64_hash_t seed;
  *    public:
  *        HashSlow(XXH64_hash_t s) : seed{s} {}
- *        size_t operator()(const jsonifier::string& x) const {
+ *        size_t operator()(const std::string& x) const {
  *            return size_t{XXH3_64bits_withSeed(x.c_str(), x.length(), seed)};
  *        }
  *    };
@@ -1674,7 +1674,7 @@ XXH_PUBLIC_API XXH_errorcode XXH3_generateSecret(XXH_NOESCAPE void* secretBuffer
  *        HashFast(XXH64_hash_t s) {
  *            XXH3_generateSecret_fromSeed(secret, seed);
  *        }
- *        size_t operator()(const jsonifier::string& x) const {
+ *        size_t operator()(const std::string& x) const {
  *            return size_t{
  *                XXH3_64bits_withSecret(x.c_str(), x.length(), secret, sizeof(secret))
  *            };
@@ -3842,7 +3842,7 @@ XXH_vmlal_high_u32(uint64x2_t acc, uint32x4_t lhs, uint32x4_t rhs)
 #  pragma pop_macro("vector")
 #  pragma pop_macro("bool")
 
-typedef __vector uint64_t xxh_u64x2;
+typedef __vector size_t xxh_u64x2;
 typedef __vector unsigned char xxh_u8x16;
 typedef __vector unsigned xxh_u32x4;
 
@@ -5174,11 +5174,11 @@ XXH3_accumulate_512_sve( void* XXH_RESTRICT acc,
                    const void* XXH_RESTRICT input,
                    const void* XXH_RESTRICT secret)
 {
-    uint64_t *xacc = (uint64_t *)acc;
-    const uint64_t *xinput = (const uint64_t *)(const void *)input;
-    const uint64_t *xsecret = (const uint64_t *)(const void *)secret;
+    size_t *xacc = (size_t *)acc;
+    const size_t *xinput = (const size_t *)(const void *)input;
+    const size_t *xsecret = (const size_t *)(const void *)secret;
     svuint64_t kSwap = sveor_n_u64_z(svptrue_b64(), svindex_u64(0, 1), 1);
-    uint64_t element_count = svcntd();
+    size_t element_count = svcntd();
     if (element_count >= 8) {
         svbool_t mask = svptrue_pat_b64(SV_VL8);
         svuint64_t vacc = svld1_u64(mask, xacc);
@@ -5216,11 +5216,11 @@ XXH3_accumulate_sve(xxh_u64* XXH_RESTRICT acc,
                size_t nbStripes)
 {
     if (nbStripes != 0) {
-        uint64_t *xacc = (uint64_t *)acc;
-        const uint64_t *xinput = (const uint64_t *)(const void *)input;
-        const uint64_t *xsecret = (const uint64_t *)(const void *)secret;
+        size_t *xacc = (size_t *)acc;
+        const size_t *xinput = (const size_t *)(const void *)input;
+        const size_t *xsecret = (const size_t *)(const void *)secret;
         svuint64_t kSwap = sveor_n_u64_z(svptrue_b64(), svindex_u64(0, 1), 1);
-        uint64_t element_count = svcntd();
+        size_t element_count = svcntd();
         if (element_count >= 8) {
             svbool_t mask = svptrue_pat_b64(SV_VL8);
             svuint64_t vacc = svld1_u64(mask, xacc + 0);

@@ -33,10 +33,6 @@ namespace jsonifier_internal {
 
 	template<const auto& options, const auto& tuple, size_t index, typename derived_type, typename value_type, typename buffer_type, typename index_type>
 	JSONIFIER_INLINE void invokeSerialize(value_type& value, buffer_type& buffer, index_type& indexVal) {
-		if (indexVal == std::numeric_limits<uint64_t>::max()) {
-			std::cout << "THE KEY: " << std::get<index>(tuple).view() << ", IS AT INDEX: " << index << std::endl;
-			return;
-		}
 		static constexpr auto& ptr = std::get<index>(tuple).ptr();
 		using member_type		   = unwrap_t<decltype(value.*ptr)>;
 		serialize_impl<derived_type, member_type>::template impl<options>(value.*ptr, buffer, indexVal);
@@ -64,27 +60,9 @@ namespace jsonifier_internal {
 	}
 
 	template<const auto& options, typename derived_type, typename value_type, typename buffer_type, typename index_type> constexpr auto generateTupleOfInvokeSerializePtrArrays() {
-		constexpr auto& tuple	 = finalTuple<value_type>;
+		constexpr auto& tuple	 = final_tuple_data<value_type>::staticData;
 		constexpr auto tupleSize = std::tuple_size_v<unwrap_t<decltype(tuple)>>;
 		return generateTupleOfInvokeSerializePtrArraysInternal<options, tuple, derived_type, value_type, buffer_type, index_type>(std::make_index_sequence<tupleSize>{});
-	}
-
-	template<uint64_t currentIndex = 0, typename tuple_type> void introspectSubTuple(const tuple_type& tuple) {
-		static constexpr auto tupleSize = std::tuple_size_v<jsonifier_internal::unwrap_t<tuple_type>>;
-		if constexpr (currentIndex < tupleSize) {
-			std::cout << "CURRENT KEY: " << std::get<currentIndex>(tuple).view() << std::endl;
-			return introspectSubTuple<currentIndex + 1>(tuple);
-		}
-	}
-
-	template<uint64_t currentIndex = 0, typename tuple_type> void introspectTuple(const tuple_type& tuple) {
-		static constexpr auto tupleSize = std::tuple_size_v<jsonifier_internal::unwrap_t<tuple_type>>;
-		std::cout << "CURRENT TYPE: " << typeid(tuple).name() << std::endl;
-		if constexpr (currentIndex < tupleSize) {
-			std::cout << "CURRENT TYPE (REAL): " << typeid(std::get<currentIndex>(tuple).tuple).name() << std::endl;
-			introspectSubTuple(std::get<currentIndex>(tuple).tuple);
-			return introspectTuple<currentIndex + 1>(tuple);
-		}
 	}
 
 	template<typename derived_type, jsonifier::concepts::jsonifier_value_t value_type_new> struct serialize_impl<derived_type, value_type_new> {
@@ -120,40 +98,34 @@ namespace jsonifier_internal {
 						}
 					}
 				}
-				std::cout << "CURRENT KEY (REAL): " << key << std::endl;
-				static constexpr auto subTupleIndex = getCurrentSubTupleIndex<key.size(), uniqueStringLengths<unwrap_t<value_type>>>();
-				std::cout << "CURRENT SUBTUPLE INDEX: " << subTupleIndex << std::endl;
-				static constexpr auto tupleOfInvokeSerializePtrArrays =
-					generateTupleOfInvokeSerializePtrArrays<options, derived_type, unwrap_t<value_type>, buffer_type, index_type>();
-				static constexpr auto& arrayOfInvokeSerializePtrs = std::get<subTupleIndex>(tupleOfInvokeSerializePtrArrays);
-				static constexpr auto& subHashTuple				  = std::get<subTupleIndex>(frozenMap.tuple);
-				auto& subHashTupleNew{ subHashTuple };
-				auto& subHashTupleNewTuple{ subHashTuple.tuple };
-				for (uint64_t x = 0; x < arrayOfInvokeSerializePtrs.size(); ++x) {
-					uint64_t currentIndex{ std::numeric_limits<uint64_t>::max() };
-					arrayOfInvokeSerializePtrs[x](value, buffer, currentIndex);
-				}
-				introspectSubTuple(subHashTuple.tuple);
-				static constexpr auto memberIt = subHashTuple.template find<arrayOfInvokeSerializePtrs>(key.data());
-				if constexpr (memberIt < arrayOfInvokeSerializePtrs.data() + arrayOfInvokeSerializePtrs.size()) {
-					static constexpr auto quotedKey = joinV < chars<"\"">, key, options.optionsReal.prettify ? chars<"\": "> : chars < "\":" >> ;
-					std::cout << "CURRENT INDEX (REAL): " << memberIt - arrayOfInvokeSerializePtrs.data() << std::endl;
-					writeCharacters<quotedKey>(buffer, index);
-					(*memberIt)(value, buffer, index);
-					if constexpr (currentIndex < maxIndex - 1) {
-						if constexpr (options.optionsReal.prettify) {
-							if constexpr (jsonifier::concepts::buffer_like<buffer_type>) {
-								if (auto k = index + options.indent + 256; k > buffer.size()) [[unlikely]] {
-									buffer.resize(max(buffer.size() * 2, k));
+
+				static constexpr auto functionPtrArray = generateTupleOfInvokeSerializePtrArrays<options, derived_type, value_type, buffer_type, index_type>();
+
+				static constexpr auto functionLambda = [](const auto hashSubTupleIndex, auto& value, auto& buffer, auto& index) {
+					static constexpr auto hashSubTuple			   = std::get<hashSubTupleIndex>(hash_tuple<value_type>::tuple);
+					static constexpr auto subTupleFunctionPtrArray = std::get<hashSubTupleIndex>(functionPtrArray);
+					auto memberIt								   = hashSubTuple.template find<subTupleFunctionPtrArray>(key.data());
+					if (memberIt < subTupleFunctionPtrArray.data() + subTupleFunctionPtrArray.size()) {
+						static constexpr auto quotedKey = joinV < chars<"\"">, key, options.optionsReal.prettify ? chars<"\": "> : chars < "\":" >> ;
+						writeCharacters<quotedKey>(buffer, index);
+						(*memberIt)(value, buffer, index);
+						if constexpr (currentIndex < maxIndex - 1) {
+							if constexpr (options.optionsReal.prettify) {
+								if constexpr (jsonifier::concepts::buffer_like<buffer_type>) {
+									if (auto k = index + options.indent + 256; k > buffer.size()) [[unlikely]] {
+										buffer.resize(max(buffer.size() * 2, k));
+									}
 								}
+								writeCharactersUnchecked<",\n">(buffer, index);
+								writeCharactersUnchecked<' '>(options.indent * options.optionsReal.indentSize, buffer, index);
+							} else {
+								writeCharacter<','>(buffer, index);
 							}
-							writeCharactersUnchecked<",\n">(buffer, index);
-							writeCharactersUnchecked<' '>(options.indent * options.optionsReal.indentSize, buffer, index);
-						} else {
-							writeCharacter<','>(buffer, index);
 						}
 					}
-				}
+					return true;
+				};
+				frozenMap.template find<functionLambda>(key.size(), value, buffer, index);
 
 				if constexpr (currentIndex < maxIndex - 1) {
 					serializeObjects<options, frozenMap, currentIndex + 1, maxIndex>(value, buffer, index);
@@ -250,7 +222,7 @@ namespace jsonifier_internal {
 
 		template<const serialize_options_internal& options, size_t maxIndex, size_t currentIndex = 0, bool areWeFirst = true, jsonifier::concepts::array_tuple_t value_type,
 			jsonifier::concepts::buffer_like buffer_type, jsonifier::concepts::uint64_type index_type>
-		static void serializeObjects(value_type&& value, buffer_type&& buffer, index_type&& index) {
+		JSONIFIER_INLINE static void serializeObjects(value_type&& value, buffer_type&& buffer, index_type&& index) {
 			auto& item = std::get<currentIndex>(value);
 
 			if constexpr (currentIndex > 0 && !areWeFirst) {
@@ -375,9 +347,7 @@ namespace jsonifier_internal {
 					writeCharacters(buffer, index, R"(\\)");
 					break;
 				}
-					[[likely]] default : {
-						writeCharacter(buffer, index, value);
-					}
+				[[likely]] default: { writeCharacter(buffer, index, value); }
 			}
 			writeCharacter<json_structural_type::String>(buffer, index);
 		}

@@ -21,9 +21,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install the latest clang compiler.
+    - name: Set up Xcode
       run: |
-            brew install llvm
+          sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+          xcodebuild -version
 
     - name: Install Nasm.
       run: |
@@ -53,12 +54,13 @@ jobs:
 
     - name: Configure CMake.
       run: |
-            cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++ -DBENCH_TYPE=STRING_COMPARISON -DVCPKG_DIR=/Users/runner/work/BenchmarkSuite/BenchmarkSuite/vcpkg -DCPU_FREQUENCY_MHZ="true" -DJSONIFIER_LIBRARY="true"
+            cmake -S . -B ./Build -G Xcode -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++ -DBENCH_TYPE=STRING_COMPARISON \
+            -DVCPKG_DIR=/Users/runner/work/BenchmarkSuite/BenchmarkSuite/vcpkg -DCPU_FREQUENCY_MHZ="true" -DJSONIFIER_LIBRARY="true"
 
-    - name: Build the Test
+    - name: Build with verbose output
       working-directory: ./Build
       run: |
-           cmake --build . --config=${{matrix.build_type}}
+            cmake --build . --config=${{matrix.build_type}} -v
 
     - name: Install the Test
       working-directory: ./Build
