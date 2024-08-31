@@ -24,6 +24,11 @@ namespace fail_tests {
 		Unexpected_String_End		= 16,
 	};
 
+	JSONIFIER_ALWAYS_INLINE std::ostream& operator<<(std::ostream& os, parse_errors error) {
+		os << simd_internal::lzcnt(static_cast<uint64_t>(error));
+		return os;
+	}
+
 	using enum jsonifier_internal::parse_errors;
 
 	struct failTest01 {

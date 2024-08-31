@@ -1,25 +1,48 @@
+/*
+	MIT License
+
+	Copyright (c) 2024 RealTimeChris
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy of this
+	software and associated documentation files (the "Software"), to deal in the Software
+	without restriction, including without limitation the rights to use, copy, modify, merge,
+	publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+	persons to whom the Software is furnished to do so, subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in all copies or
+	substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+	INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+	PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+	FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+	OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+	DEALINGS IN THE SOFTWARE.
+*/
+/// https://github.com/RealTimeChris/jsonifier
+/// Sep 1, 2024
 #include <jsonifier/Index.hpp>
 #include <filesystem>
 #include <fstream>
 
 enum class parse_errors {
-		Success						= 0,
-		Missing_Object_Start		= 1,
-		Imbalanced_Object_Braces	= 2,
-		Missing_Array_Start			= 3,
-		Imbalanced_Array_Brackets	= 4,
-		Missing_String_Start		= 5,
-		Missing_Colon				= 6,
-		Missing_Comma_Or_Object_End = 7,
-		Missing_Comma_Or_Array_End	= 8,
-		Missing_Comma				= 9,
-		Invalid_Number_Value		= 10,
-		Invalid_Null_Value			= 11,
-		Invalid_Bool_Value			= 12,
-		Invalid_String_Characters	= 13,
-		No_Input					= 14,
-		Unfinished_Input			= 15,
-		Unexpected_String_End		= 16,
+	Success						= 1 << 0,
+	Missing_Object_Start		= 1 << 1,
+	Imbalanced_Object_Braces	= 1 << 2,
+	Missing_Array_Start			= 1 << 3,
+	Imbalanced_Array_Brackets	= 1 << 4,
+	Missing_String_Start		= 1 << 5,
+	Missing_Colon				= 1 << 6,
+	Missing_Comma_Or_Object_End = 1 << 7,
+	Missing_Comma_Or_Array_End	= 1 << 8,
+	Missing_Comma				= 1 << 9,
+	Invalid_Number_Value		= 1 << 10,
+	Invalid_Null_Value			= 1 << 11,
+	Invalid_Bool_Value			= 1 << 12,
+	Invalid_String_Characters	= 1 << 13,
+	No_Input					= 1 << 14,
+	Unfinished_Input			= 1 << 15,
+	Unexpected_String_End		= 1 << 16,
 	};
 
 using enum jsonifier_internal::parse_errors;
@@ -433,7 +456,7 @@ class conformance_test {
 
 bool processFilesInFolder(std::unordered_map<std::string, conformance_test>& resultFileContents) noexcept {
 	try {
-		for (const auto& entry: std::filesystem::directory_iterator(JSON_TEST_PATH + std::string{ "/ConformanceTests" })) {
+		for (const auto& entry: std::filesystem::directory_iterator(JSON_TEST_PATH + std::string{ "/Tests/ConformanceTests" })) {
 			if (entry.is_regular_file()) {
 				const std::string fileName = entry.path().filename().string();
 
@@ -464,10 +487,10 @@ template<typename test_type> void runTest(const std::string& testName, std::stri
 	auto result = parser.parseJson<jsonifier::parse_options{ .minified = false }>(test_type{}, dataToParse);
 	if ((parser.getErrors().size() == 0) && doWeFail) {
 		std::cout << "Test: " << testName << " = Failed 01" << std::endl;
-	} else if (static_cast<uint64_t>(test_type::failCode) && static_cast<uint64_t>(parser.getErrors()[0]) && doWeFail) {
+	} else if ((static_cast<uint64_t>(test_type::failCode) & static_cast<uint64_t>(parser.getErrors()[0])) == static_cast<uint64_t>(test_type::failCode) && doWeFail) {
 		std::cout << "Test: " << testName << " = Succeeded, Expected Type: " << test_type::failCode
 				  << ", got: " << static_cast<jsonifier_internal::parse_errors>(parser.getErrors()[0]) << std::endl;
-	} else if (!(static_cast<uint64_t>(test_type::failCode) && static_cast<uint64_t>(parser.getErrors()[0])) && doWeFail) {
+	} else if ((static_cast<uint64_t>(test_type::failCode) & static_cast<uint64_t>(parser.getErrors()[0])) != static_cast<uint64_t>(test_type::failCode) && doWeFail) {
 		std::cout << "Test: " << testName << " = Failed, Expected Type: " << test_type::failCode
 				  << ", instead got: " << static_cast<jsonifier_internal::parse_errors>(parser.getErrors()[0]) << std::endl;
 	}
