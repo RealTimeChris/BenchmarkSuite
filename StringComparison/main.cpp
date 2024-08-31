@@ -7,9 +7,10 @@
 constexpr size_t ALPHABET_SIZE = 128;
 constexpr size_t MAX_DEPTH	   = 256;
 
+
 template<typename value_type> struct trie_node_base {
 	std::array<trie_node_base<value_type>*, 128> children{};
-	bool is_end_of_word{ false };
+	bool isEndOfWord{ false };
 	bool isActive{ false };
 	size_t index{};
 
@@ -40,52 +41,46 @@ template<typename member_type_new, typename value_type> struct data_member : pub
 	JSONIFIER_ALWAYS_INLINE constexpr data_member(jsonifier::string_view str, member_type class_type::*ptr) noexcept : memberPtr(ptr), name(str){};
 };
 
-template<> struct data_member<void, void> : public trie_node_base<void> {
+template<typename value_type> struct data_member<void, value_type> : public trie_node_base<value_type> {
 	jsonifier::string_view name{};
 	uint8_t padding[4]{};
 
 	JSONIFIER_ALWAYS_INLINE constexpr data_member() noexcept = default;
 };
 
+
+template<typename value_type, typename tuple_type> constexpr auto generateTuple(){};
+
 template<typename value_type> struct trie {
-	std::array<trie_node_base<value_type>, 128> nodePlaceHolders{};
-	std::array<trie_node_base<value_type>, 128> nodes{};
+	std::array<data_member<void, value_type>, 128> nodePlaceHolders{};
+	std::array<trie_node_base<value_type>*, 128> nodes{};
 	trie_node_base<value_type>* root{};
 
-	template<typename tuple_type, size_t currentIndex = 0> constexpr auto constructTrieNodeArray(tuple_type& tuple, size_t uniqueIndex = 0) {
-		if constexpr (currentIndex < std::tuple_size_v<tuple_type>) {
-			std::remove_const_t<tuple_type> newTuple{ tuple };
-			nodes[currentIndex] = *static_cast<trie_node_base<value_type>*>(&std::get<currentIndex>(newTuple));
-			return constructTrieNodeArray<tuple_type, currentIndex + 1>(newTuple, uniqueIndex);
-		} else {
-			return nodes;
+	template<size_t N> constexpr trie(const std::array<jsonifier::string_view, N>& strings, size_t uniqueIndex = 0) : nodes{}, root(&nodePlaceHolders[0]) {
+		for (uint64_t x = 0; x < 128; ++x) {
+			nodes[x] = &nodePlaceHolders[x];
 		}
-	}
-
-	template<typename tuple_type, size_t... I> constexpr void insertAll(tuple_type& tuple, std::index_sequence<I...>, size_t uniqueIndex) {
-		(insert(std::get<I>(tuple).view(), I, 0, root), ...);
-	}
-
-	template<typename tuple_type> constexpr trie(tuple_type& tuple, size_t uniqueIndex = 0) {
-		std::remove_const_t<tuple_type> newTuple{ tuple };
-		nodes = constructTrieNodeArray(newTuple, uniqueIndex);
-		root  = &std::get<0>(newTuple);
-		if (root != nullptr) {
-			root->isActive = true;
+		for (auto& node: nodes) {
+			for (auto& child: node->children) {
+				child = nullptr;
+			}
 		}
-		insertAll(tuple, std::make_index_sequence<std::tuple_size_v<tuple_type>>{}, uniqueIndex);
+
+		for (size_t i = 0; i < strings.size(); ++i) {
+			insert(strings[i], i, uniqueIndex, root);
+		}
 	}
 
 	constexpr void insert(jsonifier::string_view str, size_t index, size_t depth, trie_node_base<value_type>* node) {
 		if (depth >= str.size()) {
 			node->index			 = index;
-			node->is_end_of_word = true;
+			node->isEndOfWord = true;
 			return;
 		}
 		size_t charIndex = static_cast<unsigned char>(str[depth]);
 		if (node->children[charIndex] == nullptr) {
 			size_t nextNodeIndex				= findAvailableNode();
-			node->children[charIndex]			= &nodes[nextNodeIndex];
+			node->children[charIndex]			= nodes[nextNodeIndex];
 			node->children[charIndex]->isActive = true;
 		}
 		insert(str, index, depth + 1, node->children[charIndex]);
@@ -94,13 +89,13 @@ template<typename value_type> struct trie {
 	constexpr size_t findAvailableNode() const {
 		for (size_t i = 0; i < nodes.size(); ++i) {
 			bool allChildrenNull = true;
-			for (const auto& child: nodes[i].children) {
+			for (const auto& child: nodes[i]->children) {
 				if (child != nullptr) {
 					allChildrenNull = false;
 					break;
 				}
 			}
-			if (allChildrenNull && !nodes[i].is_end_of_word) {
+			if (allChildrenNull && !nodes[i]->isEndOfWord) {
 				return i;
 			}
 		}
@@ -113,7 +108,7 @@ template<typename value_type> struct trie {
 
 	constexpr std::optional<size_t> search(jsonifier::string_view str, size_t depth, trie_node_base<value_type>* node) const {
 		if (depth >= str.size()) {
-			if (node->is_end_of_word) {
+			if (node->isEndOfWord) {
 				return node->index;
 			} else {
 				return std::nullopt;
@@ -135,17 +130,17 @@ template<typename value_type> class partial_search {
 	constexpr auto searchNext(char c) {
 		size_t charIndex = c;
 		if (currentNode_ == nullptr) {
-			return static_cast<trie_node_base<value_type>*>(nullptr);
+			return static_cast<const trie_node_base<value_type>*>(nullptr);
 		}
 		if (currentNode_->children[charIndex] == nullptr) {
 			currentNode_ = nullptr;
-			return static_cast<trie_node_base<value_type>*>(nullptr);
+			return static_cast<const trie_node_base<value_type>*>(nullptr);
 		}
 		currentNode_ = currentNode_->children[charIndex];
-		if (currentNode_->is_end_of_word || currentNode_->isActive) {
+		if (currentNode_->isEndOfWord || currentNode_->isActive) {
 			return currentNode_;
 		}
-		return static_cast<trie_node_base<value_type>*>(nullptr);
+		return static_cast<const trie_node_base<value_type>*>(nullptr);
 	}
 
 	constexpr void reset() noexcept {
@@ -154,7 +149,7 @@ template<typename value_type> class partial_search {
 
   private:
 	const trie<value_type>& trie_;
-	trie_node_base<value_type>* currentNode_;
+	const trie_node_base<value_type>* currentNode_;
 };
 
 template<typename... value_types> constexpr auto generateStringArrays(value_types&&... values) {
@@ -178,12 +173,12 @@ int main() {
 	static constexpr auto newTuple = std::make_tuple(data_member<int32_t, test_struct>{ "testInt01", &test_struct::testInt01 },
 				 data_member<int32_t, test_struct>{ "testInt02", &test_struct::testInt02 }, data_member<int32_t, test_struct>{ "testInt03", &test_struct::testInt03 });
 	
-	trie<test_struct> trieNew(newTuple, 0);
+	trie<test_struct> trieNew(strings, 0);
 	partial_search partialSearch{ trieNew };
 	const std::string searchTerm = "testInt01";
 	for (uint64_t x = 0; x < searchTerm.size();++x) {
 		auto result = partialSearch.searchNext(searchTerm[x]);
-		if (result && result->is_end_of_word && x == searchTerm.size()-1) {
+		if (result && result->isEndOfWord && x == searchTerm.size()-1) {
 			std::cout << "Match found with index: " << result->index << std::endl;
 		} else {
 			std::cout << "No match found for character '" << searchTerm[x ] << "'\n";
