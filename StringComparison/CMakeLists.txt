@@ -15,7 +15,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(glaze)
 
-add_executable("StringComparisonExe" "main.cpp" "random_generators.h")
+add_executable("StringComparisonExe"  "random_generators.h" "main.cpp")
 
 target_link_libraries(
 	"StringComparisonExe"
@@ -34,6 +34,7 @@ target_compile_options (
 target_compile_definitions(
 	"StringComparisonExe" PUBLIC
 	"$<$<STREQUAL:${ASAN_ENABLED},TRUE>:ASAN>"
+	"JSON_TEST_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}\""
 )
 
 if (WIN32)
