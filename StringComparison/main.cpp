@@ -7,13 +7,15 @@
 constexpr size_t ALPHABET_SIZE = 128;
 constexpr size_t MAX_DEPTH	   = 256;
 
-template<typename value_type, typename iterator> struct trie_node_base {
-	std::array<trie_node_base<value_type, iterator>*, 128> children{};
+template<typename value_type> struct trie_node_base {
+	std::array<trie_node_base<value_type>*, 128> children{};
 	bool is_end_of_word{ false };
 	bool isActive{ false };
 	size_t index{};
 
-	virtual bool processIndex(value_type& value, iterator& iter, iterator& end);
+	virtual bool processIndex(value_type& value, char*& iter, char*& end){
+		return false;
+	};
 
 	constexpr trie_node_base() noexcept : children{} {
 	}
@@ -24,7 +26,7 @@ template<typename member_type, typename class_type> struct member_pointer {
 	JSONIFIER_ALWAYS_INLINE constexpr member_pointer(member_type class_type::*p) noexcept : ptr(p){};
 };
 
-template<typename member_type_new, typename value_type, typename iterator> struct data_member : public trie_node_base<value_type, iterator> {
+template<typename member_type_new, typename value_type> struct data_member : public trie_node_base<value_type> {
 	using member_type = member_type_new;
 	using class_type  = value_type;
 	member_pointer<member_type, class_type> memberPtr{};
@@ -35,6 +37,10 @@ template<typename member_type_new, typename value_type, typename iterator> struc
 		return name;
 	}
 
+	bool processIndex(value_type& value, char*& iter, char*& end) {
+		return true;
+	}
+
 	JSONIFIER_ALWAYS_INLINE constexpr auto& ptr() const noexcept {
 		return memberPtr.ptr;
 	}
@@ -42,29 +48,35 @@ template<typename member_type_new, typename value_type, typename iterator> struc
 	JSONIFIER_ALWAYS_INLINE constexpr data_member(jsonifier::string_view str, member_type class_type::*ptr) noexcept : memberPtr(ptr), name(str){};
 };
 
-template<typename value_type, typename iterator> struct trie {
-	std::array<trie_node_base<value_type, iterator>*, 128> nodes;
-	trie_node_base<value_type, iterator>*root;
+template<typename value_type> struct trie {
+	std::array<trie_node_base<value_type>*, 128> nodes;
+	trie_node_base<value_type>* root;
 
-	template<size_t N> constexpr trie(const std::array<jsonifier::string_view, N>& strings, size_t uniqueIndex = 0) : nodes{}, root(nodes[0]) {
-		for (auto& node: nodes) {
-			for (auto& child: node->children) {
-				child = nullptr;
+	template<typename tuple_type, size_t currentIndex = 0>
+	constexpr auto constructTrieNodeArray(tuple_type& tuple, std::array<trie_node_base<value_type>*, 128>& arrayOfValues, size_t uniqueIndex = 0) {
+		if constexpr (currentIndex < std::tuple_size_v<tuple_type>) {
+			if (currentIndex == 0) {
+				root = static_cast<trie_node_base<value_type>*>(&std::get<currentIndex>(tuple));
 			}
-		}
-
-		for (size_t i = 0; i < strings.size(); ++i) {
-			insert(strings[i], i, uniqueIndex, root);
+			arrayOfValues[currentIndex] = static_cast<trie_node_base<value_type>*>(&std::get<currentIndex>(tuple));
+			insert(std::get<currentIndex>(tuple).view(), currentIndex, uniqueIndex, root);
+			return constructTrieNodeArray<tuple_type, currentIndex + 1>(tuple, arrayOfValues);
+		} else {
+			return arrayOfValues;
 		}
 	}
 
-	constexpr void insert(jsonifier::string_view str, size_t index, size_t depth, trie_node_base<value_type, iterator>* node) {
+	template<typename tuple_type> constexpr trie(tuple_type& tuple, size_t uniqueIndex = 0) : nodes{}, root(nodes[0]) {
+		nodes = constructTrieNodeArray(tuple, nodes, uniqueIndex);
+	}
+
+	constexpr void insert(jsonifier::string_view str, size_t index, size_t depth, trie_node_base<value_type>* node) {
 		if (depth >= str.size()) {
 			node->index			 = index;
 			node->is_end_of_word = true;
 			return;
 		}
-		size_t charIndex = static_cast<unsigned char>(str[depth]);
+		size_t charIndex = static_cast<unsigned char>(str[depth]) + 1;
 		if (node->children[charIndex] == nullptr) {
 			size_t nextNodeIndex				= findAvailableNode();
 			node->children[charIndex]			= nodes[nextNodeIndex];
@@ -93,7 +105,7 @@ template<typename value_type, typename iterator> struct trie {
 		return search(str, 0, root);
 	}
 
-	constexpr std::optional<size_t> search(jsonifier::string_view str, size_t depth, trie_node_base<value_type, iterator>* node) const {
+	constexpr std::optional<size_t> search(jsonifier::string_view str, size_t depth, trie_node_base<value_type>* node) const {
 		if (depth >= str.size()) {
 			if (node->is_end_of_word) {
 				return node->index;
@@ -109,25 +121,25 @@ template<typename value_type, typename iterator> struct trie {
 	}
 };
 
-template<typename value_type, typename iterator> class partial_search {
+template<typename value_type> class partial_search {
   public:
-	constexpr partial_search(const trie<value_type, iterator>& trie) noexcept : trie_(trie), currentNode_(trie.root) {
+	constexpr partial_search(trie<value_type>& trie) noexcept : trie_(trie), currentNode_(trie.root) {
 	}
 
 	constexpr auto searchNext(char c) {
 		size_t charIndex = c;
 		if (currentNode_ == nullptr) {
-			return static_cast<trie_node_base<value_type, iterator>*>(nullptr);
+			return static_cast<trie_node_base<value_type>*>(nullptr);
 		}
 		if (currentNode_->children[charIndex] == nullptr) {
 			currentNode_ = nullptr;
-			return static_cast<trie_node_base<value_type, iterator>*>(nullptr);
+			return static_cast<trie_node_base<value_type>*>(nullptr);
 		}
 		currentNode_ = currentNode_->children[charIndex];
 		if (currentNode_->is_end_of_word || currentNode_->isActive) {
 			return currentNode_;
 		}
-		return static_cast<trie_node_base<value_type, iterator>*>(nullptr);
+		return static_cast<trie_node_base<value_type>*>(nullptr);
 	}
 
 	constexpr void reset() noexcept {
@@ -135,8 +147,8 @@ template<typename value_type, typename iterator> class partial_search {
 	}
 
   private:
-	const trie<value_type, iterator>& trie_;
-	trie_node_base<value_type, iterator>* currentNode_;
+	const trie<value_type>& trie_;
+	trie_node_base<value_type>* currentNode_;
 };
 
 template<typename... value_types> constexpr auto generateStringArrays(value_types&&... values) {
@@ -156,10 +168,12 @@ template<> struct jsonifier::core<test_struct> {
 };
 
 int main() {
-	constexpr auto strings = generateStringArrays("cabbling", "cabular", "cabling", "cabled", "cabl");
-	static constexpr auto newTuple = jsonifier::core<test_struct>::parseValue.val;
-	trie<test_struct, char*> trie(strings, 2);
-	partial_search partialSearch{ trie };
+	constexpr auto strings = generateStringArrays("testInt01", "testInt02", "testInt03");
+	auto newTuple		   = std::make_tuple(data_member<int32_t, test_struct>{ "testInt01", &test_struct::testInt01 },
+				 data_member<int32_t, test_struct>{ "testInt02", &test_struct::testInt02 }, data_member<int32_t, test_struct>{ "testInt03", &test_struct::testInt03 });
+	
+	trie<test_struct> trieNew(newTuple, 0);
+	partial_search partialSearch{ trieNew };
 	const std::string searchTerm = "cabl";
 	for (uint64_t x = 3; x < searchTerm.size();++x) {
 		auto result = partialSearch.searchNext(searchTerm[x]);
