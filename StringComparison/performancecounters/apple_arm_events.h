@@ -179,7 +179,7 @@ typedef u64 kpc_config_t;
 /// @note This method does not requires root privileges.
 /// @details sysctl get(hw.cputype), get(hw.cpusubtype),
 ///                 get(hw.cpufamily), get(machdep.cpu.model)
-static int (*kpc_cpu_string)(char *buf, usize buf_size);
+static int32_t (*kpc_cpu_string)(char *buf, usize buf_size);
 
 /// Get the version of KPC that's being run.
 /// @return See `PMU version constants` above.
@@ -196,7 +196,7 @@ static u32 (*kpc_get_counting)(void);
 /// @param classes See `class mask constants` above, set 0 to shutdown counting.
 /// @return 0 for success.
 /// @details sysctl set(kpc.counting)
-static int (*kpc_set_counting)(u32 classes);
+static int32_t (*kpc_set_counting)(u32 classes);
 
 /// Get running PMC classes for current thread.
 /// @return See `class mask constants` above,
@@ -208,7 +208,7 @@ static u32 (*kpc_get_thread_counting)(void);
 /// @param classes See `class mask constants` above, set 0 to shutdown counting.
 /// @return 0 for success.
 /// @details sysctl set(kpc.thread_counting)
-static int (*kpc_set_thread_counting)(u32 classes);
+static int32_t (*kpc_set_thread_counting)(u32 classes);
 
 /// Get how many config registers there are for a given mask.
 /// For example: Intel may returns 1 for `KPC_CLASS_FIXED_MASK`,
@@ -225,7 +225,7 @@ static u32 (*kpc_get_config_count)(u32 classes);
 ///               kpc_get_config_count(classes) * sizeof(kpc_config_t).
 /// @return 0 for success.
 /// @details sysctl get(kpc.config_count), get(kpc.config)
-static int (*kpc_get_config)(u32 classes, kpc_config_t *config);
+static int32_t (*kpc_get_config)(u32 classes, kpc_config_t *config);
 
 /// Set config registers.
 /// @param classes see `class mask constants` above.
@@ -233,7 +233,7 @@ static int (*kpc_get_config)(u32 classes, kpc_config_t *config);
 ///               kpc_get_config_count(classes) * sizeof(kpc_config_t).
 /// @return 0 for success.
 /// @details sysctl get(kpc.config_count), set(kpc.config)
-static int (*kpc_set_config)(u32 classes, kpc_config_t *config);
+static int32_t (*kpc_set_config)(u32 classes, kpc_config_t *config);
 
 /// Get how many counters there are for a given mask.
 /// For example: Intel may returns 3 for `KPC_CLASS_FIXED_MASK`,
@@ -254,7 +254,7 @@ static u32 (*kpc_get_counter_count)(u32 classes);
 /// @param buf Buffer to receive counter's value.
 /// @return 0 for success.
 /// @details sysctl get(hw.ncpu), get(kpc.counter_count), get(kpc.counters)
-static int (*kpc_get_cpu_counters)(bool all_cpus, u32 classes, int *curcpu,
+static int32_t (*kpc_get_cpu_counters)(bool all_cpus, u32 classes, int32_t *curcpu,
                                    u64 *buf);
 
 /// Get counter accumulations for current thread.
@@ -264,87 +264,87 @@ static int (*kpc_get_cpu_counters)(bool all_cpus, u32 classes, int *curcpu,
 /// @param buf Buffer to receive counter's value.
 /// @return 0 for success.
 /// @details sysctl get(kpc.thread_counters)
-static int (*kpc_get_thread_counters)(u32 tid, u32 buf_count, u64 *buf);
+static int32_t (*kpc_get_thread_counters)(u32 tid, u32 buf_count, u64 *buf);
 
 /// Acquire/release the counters used by the Power Manager.
 /// @param val 1:acquire, 0:release
 /// @return 0 for success.
 /// @details sysctl set(kpc.force_all_ctrs)
-static int (*kpc_force_all_ctrs_set)(int val);
+static int32_t (*kpc_force_all_ctrs_set)(int32_t val);
 
 /// Get the state of all_ctrs.
 /// @return 0 for success.
 /// @details sysctl get(kpc.force_all_ctrs)
-static int (*kpc_force_all_ctrs_get)(int *val_out);
+static int32_t (*kpc_force_all_ctrs_get)(int32_t *val_out);
 
 /// Set number of actions, should be `KPERF_ACTION_MAX`.
 /// @details sysctl set(kperf.action.count)
-static int (*kperf_action_count_set)(u32 count);
+static int32_t (*kperf_action_count_set)(u32 count);
 
 /// Get number of actions.
 /// @details sysctl get(kperf.action.count)
-static int (*kperf_action_count_get)(u32 *count);
+static int32_t (*kperf_action_count_get)(u32 *count);
 
 /// Set what to sample when a trigger fires an action, e.g.
 /// `KPERF_SAMPLER_PMC_CPU`.
 /// @details sysctl set(kperf.action.samplers)
-static int (*kperf_action_samplers_set)(u32 actionid, u32 sample);
+static int32_t (*kperf_action_samplers_set)(u32 actionid, u32 sample);
 
 /// Get what to sample when a trigger fires an action.
 /// @details sysctl get(kperf.action.samplers)
-static int (*kperf_action_samplers_get)(u32 actionid, u32 *sample);
+static int32_t (*kperf_action_samplers_get)(u32 actionid, u32 *sample);
 
 /// Apply a task filter to the action, -1 to disable filter.
 /// @details sysctl set(kperf.action.filter_by_task)
-static int (*kperf_action_filter_set_by_task)(u32 actionid, i32 port);
+static int32_t (*kperf_action_filter_set_by_task)(u32 actionid, i32 port);
 
 /// Apply a pid filter to the action, -1 to disable filter.
 /// @details sysctl set(kperf.action.filter_by_pid)
-static int (*kperf_action_filter_set_by_pid)(u32 actionid, i32 pid);
+static int32_t (*kperf_action_filter_set_by_pid)(u32 actionid, i32 pid);
 
 /// Set number of time triggers, should be `KPERF_TIMER_MAX`.
 /// @details sysctl set(kperf.timer.count)
-static int (*kperf_timer_count_set)(u32 count);
+static int32_t (*kperf_timer_count_set)(u32 count);
 
 /// Get number of time triggers.
 /// @details sysctl get(kperf.timer.count)
-static int (*kperf_timer_count_get)(u32 *count);
+static int32_t (*kperf_timer_count_get)(u32 *count);
 
 /// Set timer number and period.
 /// @details sysctl set(kperf.timer.period)
-static int (*kperf_timer_period_set)(u32 actionid, u64 tick);
+static int32_t (*kperf_timer_period_set)(u32 actionid, u64 tick);
 
 /// Get timer number and period.
 /// @details sysctl get(kperf.timer.period)
-static int (*kperf_timer_period_get)(u32 actionid, u64 *tick);
+static int32_t (*kperf_timer_period_get)(u32 actionid, u64 *tick);
 
 /// Set timer number and actionid.
 /// @details sysctl set(kperf.timer.action)
-static int (*kperf_timer_action_set)(u32 actionid, u32 timerid);
+static int32_t (*kperf_timer_action_set)(u32 actionid, u32 timerid);
 
 /// Get timer number and actionid.
 /// @details sysctl get(kperf.timer.action)
-static int (*kperf_timer_action_get)(u32 actionid, u32 *timerid);
+static int32_t (*kperf_timer_action_get)(u32 actionid, u32 *timerid);
 
 /// Set which timer ID does PET (Profile Every Thread).
 /// @details sysctl set(kperf.timer.pet_timer)
-static int (*kperf_timer_pet_set)(u32 timerid);
+static int32_t (*kperf_timer_pet_set)(u32 timerid);
 
 /// Get which timer ID does PET (Profile Every Thread).
 /// @details sysctl get(kperf.timer.pet_timer)
-static int (*kperf_timer_pet_get)(u32 *timerid);
+static int32_t (*kperf_timer_pet_get)(u32 *timerid);
 
 /// Enable or disable sampling.
 /// @details sysctl set(kperf.sampling)
-static int (*kperf_sample_set)(u32 enabled);
+static int32_t (*kperf_sample_set)(u32 enabled);
 
 /// Get is currently sampling.
 /// @details sysctl get(kperf.sampling)
-static int (*kperf_sample_get)(u32 *enabled);
+static int32_t (*kperf_sample_get)(u32 *enabled);
 
 /// Reset kperf: stop sampling, kdebug, timers and actions.
 /// @return 0 for success.
-static int (*kperf_reset)(void);
+static int32_t (*kperf_reset)(void);
 
 /// Nanoseconds to CPU ticks.
 static u64 (*kperf_ns_to_ticks)(u64 ns);
@@ -464,7 +464,7 @@ static const char *kpep_config_error_names[KPEP_CONFIG_ERROR_MAX] = {
     "check errno"};
 
 /// Error description.
-static const char *kpep_config_error_desc(int code) {
+static const char *kpep_config_error_desc(int32_t code) {
   if (0 <= code && code < KPEP_CONFIG_ERROR_MAX) {
     return kpep_config_error_names[code];
   }
@@ -475,7 +475,7 @@ static const char *kpep_config_error_desc(int code) {
 /// @param db A kpep db, see kpep_db_create()
 /// @param cfg_ptr A pointer to receive the new config.
 /// @return kpep_config_error_code, 0 for success.
-static int (*kpep_config_create)(kpep_db *db, kpep_config **cfg_ptr);
+static int32_t (*kpep_config_create)(kpep_db *db, kpep_config **cfg_ptr);
 
 /// Free the config.
 static void (*kpep_config_free)(kpep_config *cfg);
@@ -488,27 +488,27 @@ static void (*kpep_config_free)(kpep_config *cfg);
 ///            If return value is `CONFLICTING_EVENTS`, this bitmap contains
 ///            the conflicted event indices, e.g. "1 << 2" means index 2.
 /// @return kpep_config_error_code, 0 for success.
-static int (*kpep_config_add_event)(kpep_config *cfg, kpep_event **ev_ptr,
+static int32_t (*kpep_config_add_event)(kpep_config *cfg, kpep_event **ev_ptr,
                                     u32 flag, u32 *err);
 
 /// Remove event at index.
 /// @return kpep_config_error_code, 0 for success.
-static int (*kpep_config_remove_event)(kpep_config *cfg, usize idx);
+static int32_t (*kpep_config_remove_event)(kpep_config *cfg, usize idx);
 
 /// Force all counters.
 /// @return kpep_config_error_code, 0 for success.
-static int (*kpep_config_force_counters)(kpep_config *cfg);
+static int32_t (*kpep_config_force_counters)(kpep_config *cfg);
 
 /// Get events count.
 /// @return kpep_config_error_code, 0 for success.
-static int (*kpep_config_events_count)(kpep_config *cfg, usize *count_ptr);
+static int32_t (*kpep_config_events_count)(kpep_config *cfg, usize *count_ptr);
 
 /// Get all event pointers.
 /// @param buf A buffer to receive event pointers.
 /// @param buf_size The buffer's size in bytes, should not smaller than
 ///                 kpep_config_events_count() * sizeof(void *).
 /// @return kpep_config_error_code, 0 for success.
-static int (*kpep_config_events)(kpep_config *cfg, kpep_event **buf,
+static int32_t (*kpep_config_events)(kpep_config *cfg, kpep_event **buf,
                                  usize buf_size);
 
 /// Get kpc register configs.
@@ -516,80 +516,80 @@ static int (*kpep_config_events)(kpep_config *cfg, kpep_event **buf,
 /// @param buf_size The buffer's size in bytes, should not smaller than
 ///                 kpep_config_kpc_count() * sizeof(kpc_config_t).
 /// @return kpep_config_error_code, 0 for success.
-static int (*kpep_config_kpc)(kpep_config *cfg, kpc_config_t *buf,
+static int32_t (*kpep_config_kpc)(kpep_config *cfg, kpc_config_t *buf,
                               usize buf_size);
 
 /// Get kpc register config count.
 /// @return kpep_config_error_code, 0 for success.
-static int (*kpep_config_kpc_count)(kpep_config *cfg, usize *count_ptr);
+static int32_t (*kpep_config_kpc_count)(kpep_config *cfg, usize *count_ptr);
 
 /// Get kpc classes.
 /// @param classes See `class mask constants` above.
 /// @return kpep_config_error_code, 0 for success.
-static int (*kpep_config_kpc_classes)(kpep_config *cfg, u32 *classes_ptr);
+static int32_t (*kpep_config_kpc_classes)(kpep_config *cfg, u32 *classes_ptr);
 
 /// Get the index mapping from event to counter.
 /// @param buf A buffer to receive indexes.
 /// @param buf_size The buffer's size in bytes, should not smaller than
 ///                 kpep_config_events_count() * sizeof(kpc_config_t).
 /// @return kpep_config_error_code, 0 for success.
-static int (*kpep_config_kpc_map)(kpep_config *cfg, usize *buf, usize buf_size);
+static int32_t (*kpep_config_kpc_map)(kpep_config *cfg, usize *buf, usize buf_size);
 
 /// Open a kpep database file in "/usr/share/kpep/" or "/usr/local/share/kpep/".
 /// @param name File name, for example "haswell", "cpu_100000c_1_92fb37c8".
 ///             Pass NULL for current CPU.
 /// @return kpep_config_error_code, 0 for success.
-static int (*kpep_db_create)(const char *name, kpep_db **db_ptr);
+static int32_t (*kpep_db_create)(const char *name, kpep_db **db_ptr);
 
 /// Free the kpep database.
 static void (*kpep_db_free)(kpep_db *db);
 
 /// Get the database's name.
 /// @return kpep_config_error_code, 0 for success.
-static int (*kpep_db_name)(kpep_db *db, const char **name);
+static int32_t (*kpep_db_name)(kpep_db *db, const char **name);
 
 /// Get the event alias count.
 /// @return kpep_config_error_code, 0 for success.
-static int (*kpep_db_aliases_count)(kpep_db *db, usize *count);
+static int32_t (*kpep_db_aliases_count)(kpep_db *db, usize *count);
 
 /// Get all alias.
 /// @param buf A buffer to receive all alias strings.
 /// @param buf_size The buffer's size in bytes,
 ///        should not smaller than kpep_db_aliases_count() * sizeof(void *).
 /// @return kpep_config_error_code, 0 for success.
-static int (*kpep_db_aliases)(kpep_db *db, const char **buf, usize buf_size);
+static int32_t (*kpep_db_aliases)(kpep_db *db, const char **buf, usize buf_size);
 
 /// Get counters count for given classes.
 /// @param classes 1: Fixed, 2: Configurable.
 /// @return kpep_config_error_code, 0 for success.
-static int (*kpep_db_counters_count)(kpep_db *db, u8 classes, usize *count);
+static int32_t (*kpep_db_counters_count)(kpep_db *db, u8 classes, usize *count);
 
 /// Get all event count.
 /// @return kpep_config_error_code, 0 for success.
-static int (*kpep_db_events_count)(kpep_db *db, usize *count);
+static int32_t (*kpep_db_events_count)(kpep_db *db, usize *count);
 
 /// Get all events.
 /// @param buf A buffer to receive all event pointers.
 /// @param buf_size The buffer's size in bytes,
 ///        should not smaller than kpep_db_events_count() * sizeof(void *).
 /// @return kpep_config_error_code, 0 for success.
-static int (*kpep_db_events)(kpep_db *db, kpep_event **buf, usize buf_size);
+static int32_t (*kpep_db_events)(kpep_db *db, kpep_event **buf, usize buf_size);
 
 /// Get one event by name.
 /// @return kpep_config_error_code, 0 for success.
-static int (*kpep_db_event)(kpep_db *db, const char *name, kpep_event **ev_ptr);
+static int32_t (*kpep_db_event)(kpep_db *db, const char *name, kpep_event **ev_ptr);
 
 /// Get event's name.
 /// @return kpep_config_error_code, 0 for success.
-static int (*kpep_event_name)(kpep_event *ev, const char **name_ptr);
+static int32_t (*kpep_event_name)(kpep_event *ev, const char **name_ptr);
 
 /// Get event's alias.
 /// @return kpep_config_error_code, 0 for success.
-static int (*kpep_event_alias)(kpep_event *ev, const char **alias_ptr);
+static int32_t (*kpep_event_alias)(kpep_event *ev, const char **alias_ptr);
 
 /// Get event's description.
 /// @return kpep_config_error_code, 0 for success.
-static int (*kpep_event_description)(kpep_event *ev, const char **str_ptr);
+static int32_t (*kpep_event_description)(kpep_event *ev, const char **str_ptr);
 
 // -----------------------------------------------------------------------------
 // load kperf/kperfdata dynamic library
@@ -797,24 +797,24 @@ typedef struct {
 #define KDBG_VALCHECK 0x00200000U
 
 typedef struct {
-  unsigned int type;
-  unsigned int value1;
-  unsigned int value2;
-  unsigned int value3;
-  unsigned int value4;
+  unsigned int32_t type;
+  unsigned int32_t value1;
+  unsigned int32_t value2;
+  unsigned int32_t value3;
+  unsigned int32_t value4;
 } kd_regtype;
 
 typedef struct {
   /* number of events that can fit in the buffers */
-  int nkdbufs;
+  int32_t nkdbufs;
   /* set if trace is disabled */
-  int nolog;
+  int32_t nolog;
   /* kd_ctrl_page.flags */
-  unsigned int flags;
+  unsigned int32_t flags;
   /* number of threads in thread map */
-  int nkdthreads;
+  int32_t nkdthreads;
   /* the owning pid */
-  int bufid;
+  int32_t bufid;
 } kbufinfo_t;
 
 #define EVENT_NAME_MAX 8
@@ -887,12 +887,12 @@ struct AppleEvents {
     }
 
     // check permission
-    int force_ctrs = 0;
+    int32_t force_ctrs = 0;
     if (kpc_force_all_ctrs_get(&force_ctrs)) {
       printf("Permission denied, xnu/kpc requires root privileges.\n");
       return (worked = false);
     }
-    int ret;
+    int32_t ret;
     // load pmc db
     kpep_db *db = NULL;
     if ((ret = kpep_db_create(NULL, &db))) {
@@ -989,7 +989,7 @@ struct AppleEvents {
 
   inline performance_counters get_counters() {
     static bool warned = false;
-    int ret;
+    int32_t ret;
     // get counters before
     if ((ret = kpc_get_thread_counters(0, KPC_MAX_COUNTERS, counters_0))) {
       if (!warned) {

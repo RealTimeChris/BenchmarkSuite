@@ -14,9 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        clang: [19]
         build_type: [Debug, Release]
-        std: [20]
 
     steps:
     - uses: actions/checkout@v4
@@ -38,11 +36,6 @@ jobs:
             sudo git stash
             sudo git pull
             sudo ./vcpkg update
-
-    - name: Install xxHash
-      run: |
-            cd ./vcpkg
-            sudo ./vcpkg install xxHash:arm64-osx
 
     - name: Install Jsonifier
       run: |

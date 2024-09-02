@@ -71,20 +71,24 @@
 	#define BNCH_SWT_NO_INLINE __declspec(noinline)
 	#define BNCH_SWT_FLATTEN inline [[msvc::flatten]]
 	#define BNCH_SWT_ALWAYS_INLINE __forceinline
+	#define BNCH_SWT_MAYBE_ALWAYS_INLINE __forceinline
 	#define BNCH_SWT_INLINE inline
 #elif defined(BNCH_SWT_CLANG)
 	#define BNCH_SWT_NO_INLINE __attribute__((__noinline__))
 	#define BNCH_SWT_FLATTEN inline __attribute__((flatten))
 	#define BNCH_SWT_ALWAYS_INLINE __attribute__((always_inline))
+	#define BNCH_SWT_MAYBE_ALWAYS_INLINE __attribute__((always_inline))
 	#define BNCH_SWT_INLINE inline
 #elif defined(BNCH_SWT_GNUCXX)
 	#define BNCH_SWT_NO_INLINE __attribute__((noinline))
 	#define BNCH_SWT_FLATTEN inline __attribute__((flatten))
 	#define BNCH_SWT_ALWAYS_INLINE __attribute__((always_inline))
+	#define BNCH_SWT_MAYBE_ALWAYS_INLINE inline
 	#define BNCH_SWT_INLINE inline
 #else
 	#define BNCH_SWT_FLATTEN inline
 	#define BNCH_SWT_NO_INLINE
 	#define BNCH_SWT_ALWAYS_INLINE inline
+	#define BNCH_SWT_MAYBE_ALWAYS_INLINE inline
 	#define BNCH_SWT_INLINE inline
 #endif

@@ -64,7 +64,7 @@ struct event_count {
 
 struct event_aggregate {
   bool has_events = false;
-  int iterations = 0;
+  int32_t iterations = 0;
   event_count total{};
   event_count best{};
   event_count worst{};
@@ -94,7 +94,7 @@ struct event_collector {
 
 #if defined(__linux__)
   LinuxEvents<PERF_TYPE_HARDWARE> linux_events;
-  event_collector() : linux_events(std::vector<int>{
+  event_collector() : linux_events(std::vector<int32_t>{
     PERF_COUNT_HW_CPU_CYCLES,
     PERF_COUNT_HW_INSTRUCTIONS,
   }) {}

@@ -33,12 +33,12 @@ include (FetchContent)
 
 if(NOT "${JSONIFIER_LIBRARY}" STREQUAL "TRUE")
 	FetchContent_Declare(
-	  jsonifier
-	  GIT_REPOSITORY https://github.com/realtimechris/jsonifier.git
+	  Jsonifier
+	  GIT_REPOSITORY https://github.com/realtimechris/Jsonifier.git
 	  GIT_TAG dev
 	  GIT_SHALLOW TRUE
 	)
-	FetchContent_MakeAvailable(jsonifier)
+	FetchContent_MakeAvailable(Jsonifier)
 endif()
 
 set_target_properties(

@@ -14,15 +14,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        gcc: [12]
         build_type: [Debug, Release]
-        std: [20]
 
     steps:
     - uses: actions/checkout@v4
   
     - name: Install the latest gcc compiler.
       run:  |
+            sudo apt-get update
+            sudo apt-get upgrade
             sudo apt-get install build-essential
             sudo apt-get install g++-12
 
@@ -34,10 +34,6 @@ jobs:
             git stash
             git pull
             vcpkg update
-
-    - name: Install xxHash
-      run: |
-            vcpkg install xxHash:x64-linux
 
     - name: Install Jsonifier
       run: |

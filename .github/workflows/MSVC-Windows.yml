@@ -14,9 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        msvc: [2022]
         build_type: [Debug, Release]
-        std: [20]
 
     steps:
     - uses: actions/checkout@v4
@@ -28,10 +26,6 @@ jobs:
             git stash
             git pull
             vcpkg update
-
-    - name: Install xxHash
-      run: |
-            vcpkg install xxHash:x64-windows
 
     - name: Install Jsonifier
       run: |

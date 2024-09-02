@@ -15,13 +15,15 @@
 #include <chrono>
 #include <random>
 #include <vector>
+#include <map>
+#include <set>
 
 #if defined(BNCH_SWT_MAC)
 	#include <mach/mach_time.h>
 	#include <sys/sysctl.h>
 #endif
 
-template<typename value_type,size_t size> std::ostream& operator<<(std::ostream& os, const std::array<value_type, size>& values) {
+template<typename value_type, size_t size> std::ostream& operator<<(std::ostream& os, const std::array<value_type, size>& values) {
 	os << "[";
 	for (uint64_t x = 0; x < size; ++x) {
 		os << values[x];
@@ -35,45 +37,43 @@ template<typename value_type,size_t size> std::ostream& operator<<(std::ostream&
 
 namespace bnch_swt {
 
-	class file_loader {
+	template<jsonifier_internal::string_literal filePathNew> class file_loader {
 	  public:
-		BNCH_SWT_ALWAYS_INLINE file_loader(jsonifier::string_view filePathNew) {
-			filePath = filePathNew;
-			jsonifier::string directory{ filePathNew.substr(0, filePathNew.findLastOf("/") + 1) };
+		constexpr BNCH_SWT_INLINE file_loader(){};
+
+		BNCH_SWT_INLINE operator std::string() const {
+			return loadFile();
+		}
+
+		BNCH_SWT_INLINE static std::string loadFile() {
+			std::string directory{ filePathNew.view().substr(0, filePathNew.view().findLastOf("/") + 1) };
 			if (!std::filesystem::exists(directory.operator std::basic_string_view<char, std::char_traits<char>>())) {
 				std::filesystem::create_directories(directory.operator std::basic_string_view<char, std::char_traits<char>>());
 			}
 
-			if (!std::filesystem::exists(filePath.operator std::basic_string_view<char, std::char_traits<char>>())) {
-				std::ofstream createFile(filePath.data());
+			if (!std::filesystem::exists(static_cast<std::string>(filePathNew.view()))) {
+				std::ofstream createFile(filePathNew.data());
 				createFile.close();
 			}
-
-			std::ifstream theStream(filePath.data(), std::ios::binary | std::ios::in);
+			std::string fileContents{};
+			std::ifstream theStream(filePathNew.data(), std::ios::binary | std::ios::in);
 			std::stringstream inputStream{};
 			inputStream << theStream.rdbuf();
 			fileContents = inputStream.str();
 			theStream.close();
-		}
-
-		BNCH_SWT_ALWAYS_INLINE void saveFile(jsonifier::string_view fileToSave) {
-			std::ofstream theStream(filePath.data(), std::ios::binary | std::ios::out | std::ios::trunc);
-			theStream.write(fileToSave.data(), static_cast<int64_t>(fileToSave.size()));
-			if (theStream.is_open()) {
-				std::cout << "File succesfully written to: " << filePath << std::endl;
-			} else {
-				std::cerr << "File failed to be written to: " << filePath << std::endl;
-			}
-			theStream.close();
-		}
-
-		BNCH_SWT_ALWAYS_INLINE operator jsonifier::string&() {
 			return fileContents;
 		}
 
-	  protected:
-		jsonifier::string fileContents{};
-		jsonifier::string filePath{};
+		BNCH_SWT_INLINE static void saveFile(std::string fileToSave) {
+			std::ofstream theStream(filePathNew.data(), std::ios::binary | std::ios::out | std::ios::trunc);
+			theStream.write(fileToSave.data(), static_cast<int64_t>(fileToSave.size()));
+			if (theStream.is_open()) {
+				std::cout << "File succesfully written to: " << filePathNew << std::endl;
+			} else {
+				std::cerr << "File failed to be written to: " << filePathNew << std::endl;
+			}
+			theStream.close();
+		}
 	};
 
 	inline thread_local jsonifier::jsonifier_core parser{};
@@ -114,17 +114,17 @@ namespace bnch_swt {
 	#define doNotOptimize(value) asm volatile("" : "+m,r"(value) : : "memory");
 #endif
 
-	template<not_invocable value_type> BNCH_SWT_ALWAYS_INLINE void doNotOptimizeAway(value_type&& value) {
+	template<not_invocable value_type> BNCH_SWT_INLINE void doNotOptimizeAway(value_type&& value) {
 		const auto* valuePtr = &value;
 		doNotOptimize(valuePtr)
 	}
 
-	template<invocable_void function_type, typename... arg_types> BNCH_SWT_ALWAYS_INLINE void doNotOptimizeAway(function_type&& value, arg_types&&... args) {
+	template<invocable_void function_type, typename... arg_types> BNCH_SWT_INLINE void doNotOptimizeAway(function_type&& value, arg_types&&... args) {
 		std::forward<function_type>(value)(std::forward<arg_types>(args)...);
 		doNotOptimize(value);
 	}
 
-	template<invocable_not_void function_type, typename... arg_types> BNCH_SWT_ALWAYS_INLINE void doNotOptimizeAway(function_type&& value, arg_types&&... args) {
+	template<invocable_not_void function_type, typename... arg_types> BNCH_SWT_INLINE void doNotOptimizeAway(function_type&& value, arg_types&&... args) {
 		auto resultVal = std::forward<function_type>(value)(std::forward<arg_types>(args)...);
 		doNotOptimize(resultVal);
 	}
@@ -151,7 +151,7 @@ namespace bnch_swt {
 		mach_timebase_info(&timebase_info);
 		size_t nanoseconds = mach_absolute_time() * timebase_info.numer / timebase_info.denom;
 
-		double seconds = static_cast<double>(nanoseconds) / 1e9;
+		double seconds	  = static_cast<double>(nanoseconds) / 1e9;
 		double cpu_cycles = seconds * getCpuFrequency();
 		return cpu_cycles;
 	#endif
@@ -202,18 +202,18 @@ namespace bnch_swt {
 	}
 
 #elif defined(BNCH_SWT_MAC)
-	
+
 	double getCpuFrequency() {
 		volatile int32_t counter{};
 		for (int32_t i = 0; i < 1000000000; ++i) {
 			++counter;
 		}
-		counter = 0;
+		counter	   = 0;
 		auto start = clock_type::now();
 		for (int32_t i = 0; i < 1000000000; ++i) {
 			++counter;
 		}
-		auto end = clock_type::now();
+		auto end		 = clock_type::now();
 		auto newDuration = std::chrono::duration_cast<std::chrono::duration<double, std::nano>>(end - start);
 		return (static_cast<double>(counter) * newDuration.count() / 1000000000.0f) / 1e6;
 	}
@@ -221,7 +221,7 @@ namespace bnch_swt {
 #else
 
 	double getCpuFrequency() {
-		return 0.0;
+		return 1000.0;
 	}
 
 #endif
@@ -230,7 +230,7 @@ namespace bnch_swt {
 	#undef small
 #endif
 
-	template<typename function_type, typename... arg_types> BNCH_SWT_ALWAYS_INLINE double collectCycles(function_type&& function, arg_types&&... args) {
+	template<typename function_type, typename... arg_types> BNCH_SWT_INLINE double collectCycles(function_type&& function, arg_types&&... args) {
 		volatile size_t start{}, end{};
 		start = rdtsc();
 		std::forward<function_type>(function)(std::forward<arg_types>(args)...);
@@ -238,14 +238,14 @@ namespace bnch_swt {
 		return static_cast<double>(end - start);
 	}
 
-	BNCH_SWT_ALWAYS_INLINE double cyclesToTime(double cycles, double frequencyMHz) {
+	BNCH_SWT_INLINE double cyclesToTime(double cycles, double frequencyMHz) {
 		double frequencyHz	   = frequencyMHz * 1e6;
 		double timeNanoseconds = (cycles * 1e9) / frequencyHz;
 
 		return timeNanoseconds;
 	}
 
-	template<typename function_type> BNCH_SWT_ALWAYS_INLINE double collectTime(function_type&& function, double cpuFrequency) {
+	template<typename function_type> BNCH_SWT_INLINE double collectTime(function_type&& function, double cpuFrequency) {
 #if defined(BNCH_SWT_MAC)
 		auto startTime = clock_type::now();
 		std::forward<function_type>(function)();
@@ -253,12 +253,12 @@ namespace bnch_swt {
 		double duration = std::chrono::duration_cast<std::chrono::duration<double, std::nano>>(endTime - startTime).count();
 #else
 		auto duration = collectCycles(std::forward<function_type>(function));
-		duration = cyclesToTime(duration, cpuFrequency);
+		duration	  = cyclesToTime(duration, cpuFrequency);
 #endif
 		return duration;
 	}
 
-	BNCH_SWT_ALWAYS_INLINE double calcMedian(double* data, size_t length) {
+	BNCH_SWT_INLINE double calcMedian(double* data, size_t length) {
 		std::sort(data, data + length);
 		const size_t midIdx = length / 2;
 		if (length % 2 == 1) {
@@ -267,7 +267,7 @@ namespace bnch_swt {
 		return (data[midIdx - 1] + data[midIdx]) / 2.0f;
 	}
 
-	BNCH_SWT_ALWAYS_INLINE double calcMean(double* v, size_t length) {
+	BNCH_SWT_INLINE double calcMean(double* v, size_t length) {
 		double mean = 0;
 
 		for (uint32_t i = 0; i < length; ++i) {
@@ -279,7 +279,7 @@ namespace bnch_swt {
 		return mean;
 	}
 
-	BNCH_SWT_ALWAYS_INLINE double calcStdv(double* v, size_t length, double mean) {
+	BNCH_SWT_INLINE double calcStdv(double* v, size_t length, double mean) {
 		double stdv = 0;
 
 		for (uint32_t i = 0; i < length; ++i) {
@@ -293,12 +293,12 @@ namespace bnch_swt {
 		return stdv;
 	}
 
-	BNCH_SWT_ALWAYS_INLINE double roundToDecimalPlaces(double value, int32_t decimalPlaces) {
+	BNCH_SWT_INLINE double roundToDecimalPlaces(double value, int32_t decimalPlaces) {
 		const double scale = std::pow(10.0, decimalPlaces);
 		return std::round(value * scale) / scale;
 	}
 
-	BNCH_SWT_ALWAYS_INLINE void removeOutliers(double* temp, double* v, size_t& length) {
+	BNCH_SWT_INLINE void removeOutliers(double* temp, double* v, size_t& length) {
 		if (length == 0) {
 			return;
 		}
@@ -317,7 +317,7 @@ namespace bnch_swt {
 		std::copy(temp, temp + currentIndex, v);
 	}
 
-	BNCH_SWT_ALWAYS_INLINE bool checkForValidLt(double valueToCheck, double valueToCheckAgainst) {
+	BNCH_SWT_INLINE bool checkForValidLt(double valueToCheck, double valueToCheckAgainst) {
 		return std::isfinite(valueToCheck) && valueToCheck < valueToCheckAgainst;
 	}
 
@@ -326,7 +326,7 @@ namespace bnch_swt {
 	enum class result_type { unset = 0, cycles = 1, time = 2 };
 
 	struct bench_options {
-		result_type type{ result_type::time };
+		result_type type{ result_type::cycles };
 		size_t totalIterationCountCap{ 300 };
 		size_t maxDurationCount{ 100 };
 		size_t minDurationCount{ 30 };
@@ -336,9 +336,9 @@ namespace bnch_swt {
 	};
 
 	struct benchmark_result_final {
-		jsonifier::string benchmarkColor{};
-		jsonifier::string benchmarkName{};
-		jsonifier::string libraryName{};
+		std::string benchmarkColor{};
+		std::string benchmarkName{};
+		std::string libraryName{};
 		size_t iterationCount{};
 		bench_state state{};
 		result_type type{};
@@ -346,20 +346,30 @@ namespace bnch_swt {
 		double cv{};
 	};
 
+	BNCH_SWT_ALWAYS_INLINE void evictCache() {
+		const size_t cache_size = 64 * 1024;
+		char* memory			= new char[cache_size];
+
+		for (size_t i = 0; i < cache_size; ++i) {
+			memory[i] = static_cast<char>(i);
+		}
+
+		delete[] memory;
+	}
+
 	template<typename function_type, bench_options optionsNew> struct benchmark_subject {
+		BNCH_SWT_INLINE benchmark_subject& operator=(benchmark_subject&&) noexcept	   = default;
+		BNCH_SWT_INLINE benchmark_subject(benchmark_subject&&) noexcept				   = default;
+		BNCH_SWT_INLINE benchmark_subject& operator=(const benchmark_subject&) noexcept = default;
+		BNCH_SWT_INLINE benchmark_subject(const benchmark_subject&) noexcept			   = default;
 
-		BNCH_SWT_ALWAYS_INLINE benchmark_subject& operator=(benchmark_subject&&) noexcept	   = default;
-		BNCH_SWT_ALWAYS_INLINE benchmark_subject(benchmark_subject&&) noexcept				   = default;
-		BNCH_SWT_ALWAYS_INLINE benchmark_subject& operator=(const benchmark_subject&) noexcept = default;
-		BNCH_SWT_ALWAYS_INLINE benchmark_subject(const benchmark_subject&) noexcept			   = default;
-
-		BNCH_SWT_ALWAYS_INLINE benchmark_subject(const jsonifier::string_view& subjectNameNew, const jsonifier::string_view& subjectColor, function_type&& functionNew)
+		BNCH_SWT_INLINE benchmark_subject(const std::string& subjectNameNew, const std::string& subjectColor, function_type&& functionNew)
 			: benchmarkColor{ subjectColor }, subjectName{ subjectNameNew }, function{ functionNew } {
 			tempDurations.resize(options.totalIterationCountCap);
 			durations.resize(options.totalIterationCountCap);
 		}
 
-		template<typename... arg_types> BNCH_SWT_ALWAYS_INLINE benchmark_result_final executeEpoch(arg_types&&... args) {
+		template<typename... arg_types> BNCH_SWT_INLINE benchmark_result_final executeEpoch(arg_types&&... args) {
 			double cpuFrequency{};
 			if constexpr (optionsNew.type == result_type::time) {
 				cpuFrequency = getCpuFrequency();
@@ -371,10 +381,13 @@ namespace bnch_swt {
 			double currentMean{};
 			double currentStdv{};
 			double currentCv{};
+			evictCache();
 			while (currentDurationCount < options.maxDurationCount) {
 				if constexpr (optionsNew.type == result_type::cycles) {
+					evictCache();
 					collectCycles(function, std::forward<arg_types>(args)...);
 				} else {
+					evictCache();
 					collectTime(function, cpuFrequency, std::forward<arg_types>(args)...);
 				}
 				++currentDurationCount;
@@ -382,8 +395,10 @@ namespace bnch_swt {
 			currentDurationCount = 0;
 			while (currentDurationCount < options.maxDurationCount) {
 				if constexpr (optionsNew.type == result_type::cycles) {
+					evictCache();
 					durations[currentDurationCount] = collectCycles(function, std::forward<arg_types>(args)...);
 				} else {
+					evictCache();
 					durations[currentDurationCount] = collectTime(function, cpuFrequency, std::forward<arg_types>(args)...);
 				}
 				++currentDurationCount;
@@ -431,9 +446,9 @@ namespace bnch_swt {
 	  protected:
 		double targetCv{ 1.0f / static_cast<double>(optionsNew.targetCvDenom) };
 		jsonifier::vector<double> tempDurations{};
-		jsonifier::string_view benchmarkColor{};
+		std::string benchmarkColor{};
 		jsonifier::vector<double> durations{};
-		jsonifier::string_view subjectName{};
+		std::string subjectName{};
 		bench_options options{ optionsNew };
 		size_t totalDurationCount{};
 		size_t currentEpochCount{};
@@ -441,7 +456,7 @@ namespace bnch_swt {
 	};
 
 	struct average_cycle_count {
-		jsonifier::string libraryName{};
+		std::string libraryName{};
 		uint64_t totalCount{};
 		double totalCycles{};
 	};
@@ -456,77 +471,92 @@ namespace bnch_swt {
 	}
 
 	template<jsonifier_internal::string_literal stageNameNew, bench_options options = bench_options{}> struct benchmark_stage {
-		inline static jsonifier::vector<benchmark_result_final> results{};
+		inline static std::unordered_map<std::string, benchmark_result_final> results{};
 
-		BNCH_SWT_ALWAYS_INLINE static void printResults() {
-			std::unordered_map<jsonifier::string, uint64_t> indices{};
+		BNCH_SWT_INLINE static void printResults() {
+			std::map<std::string, std::vector<benchmark_result_final>> groupedResults{};
+			std::set<std::pair<std::string, std::string>> printedResults{};
+			std::map<std::string, uint64_t> indices{};
 			std::vector<average_cycle_count> resultCycles{};
-			if (results.size() > 0) {
-				for (auto& value: results) {
-					jsonifier::string resultType{};
-					if (value.type == result_type::cycles) {
-						resultType = "Cycles";
-					} else {
-						resultType = "Time";
-					}
-					jsonifier::string status{};
-					if (value.state == bench_state::complete_success) {
-						status = "Success: ";
-					} else {
-						status = "Failure: ";
-					}
+			for (const auto& [key, value]: results) {
+				groupedResults[value.benchmarkName].push_back(value);
+			}
+			for (auto& [key, value]: groupedResults) {
+				std::sort(value.data(), value.data() + value.size(), [](auto& lhs, auto rhs) {
+					return lhs.median < rhs.median;
+				});
+			}
+
+			for (const auto& [benchmarkName, benchmarkResults]: groupedResults) {
+				std::cout << "Benchmark Name: " << benchmarkName << std::endl;
+
+				for (const auto& value: benchmarkResults) {
+
+					std::string resultType = (value.type == result_type::cycles) ? "Cycles" : "Time";
+					std::string status	 = (value.state == bench_state::complete_success) ? "Success: " : "Failure: ";
+
 					if (!indices.contains(value.libraryName)) {
 						indices[value.libraryName] = resultCycles.size();
 						resultCycles.emplace_back(average_cycle_count{ value.libraryName, uint64_t{}, double{} });
 					}
 					resultCycles[indices[value.libraryName]].totalCycles += value.median;
 					++resultCycles[indices[value.libraryName]].totalCount;
-					std::cout << status << "Benchmark Name: " << value.benchmarkName << ", Library Name: " << value.libraryName << ", Result " + resultType + ": "
-							  << roundToDecimalPlaces(value.median, 2) << ", Iterations: " << jsonifier::toString(value.iterationCount)
+
+					std::cout << status << "Library Name: " << value.libraryName << ", Result " << resultType << ": " << roundToDecimalPlaces(value.median, 2)
+							  << ", Iterations: " << jsonifier::toString(value.iterationCount)
 							  << ", Coefficient of Variance: " << jsonifier::toString(roundToDecimalPlaces(value.cv, 6)) << std::endl;
+
+					printedResults.insert({ benchmarkName, value.libraryName });
 				}
-				std::sort(resultCycles.begin(), resultCycles.end(), [](const auto lhs, const auto rhs) {
+			}
+
+			if (resultCycles.size() >= 2) {
+				std::sort(resultCycles.begin(), resultCycles.end(), [](const auto& lhs, const auto& rhs) {
 					return lhs.totalCycles > rhs.totalCycles;
 				});
-				double totalPercentage = (resultCycles.begin()->totalCycles - (resultCycles.end() - 1)->totalCycles) / (resultCycles.end() - 1)->totalCycles;
-				totalPercentage *= 100.0f;
-				std::cout << "Library: " << (resultCycles.end() - 1)->libraryName << " is faster by rougly: " << totalPercentage << "%." << std::endl;
+
+				double totalPercentage = (resultCycles.front().totalCycles - resultCycles.back().totalCycles) / resultCycles.back().totalCycles;
+				totalPercentage *= 100.0;
+
+				std::cout << "Library: " << resultCycles.back().libraryName << " is faster by roughly: " << totalPercentage << "%."
+						  << ", for benchmark stage: " << stageNameNew << std::endl;
+			} else {
+				std::cout << "Not enough data to compare library performance." << std::endl;
 			}
-			return;
 		}
 
-		BNCH_SWT_ALWAYS_INLINE static void writeJsonData(jsonifier::string_view filePath) {
+		template<jsonifier_internal::string_literal filePath> BNCH_SWT_INLINE static void writeJsonData() {
 			auto stringToWrite = parser.serializeJson(results);
-			file_loader fileLoader{ filePath };
-			fileLoader.saveFile(static_cast<jsonifier::string>(stringToWrite));
+			file_loader<filePath>::saveFile(static_cast<std::string>(stringToWrite));
 		}
 
-		BNCH_SWT_ALWAYS_INLINE static void writeMarkdownData(jsonifier::string_view filePath, jsonifier::string_view repoPath) {
-			jsonifier::string markdownContent = generateMarkdown(repoPath);
+		template<jsonifier_internal::string_literal filePath> BNCH_SWT_INLINE static void writeMarkdownData(std::string repoPath) {
+			std::string markdownContent = generateMarkdown(repoPath);
 			file_loader fileLoader{ filePath };
-			fileLoader.saveFile(static_cast<jsonifier::string>(markdownContent));
+			file_loader<filePath>::saveFile(static_cast<std::string>(markdownContent));
 		}
 
-		BNCH_SWT_ALWAYS_INLINE static jsonifier::string writeCsvData(jsonifier::string_view filePath) {
-			jsonifier::string newString{ "benchmarkName,median,benchmarkColor" };
-			for (size_t x = 0; x < results.size(); ++x) {
+		template<jsonifier_internal::string_literal filePath> BNCH_SWT_INLINE static std::string writeCsvData() {
+			std::string newString{ "benchmarkName,median,benchmarkColor" };
+			int32_t x{};
+			for (auto [key, value]: results) {
 				newString += "\n";
-				newString += results[x].benchmarkName + ",";
-				newString += jsonifier::toString(results[x].median) + ",";
-				newString += static_cast<jsonifier::string>(results[x].benchmarkColor);
+				newString += value.benchmarkName + ",";
+				newString += jsonifier::toString(value.median) + ",";
+				newString += static_cast<std::string>(value.benchmarkColor);
 				if (x < results.size() - 1) {
 					newString += ",";
 				}
+				++x;
 			}
-			file_loader fileLoader{ filePath };
-			fileLoader.saveFile(static_cast<jsonifier::string>(newString));
+			file_loader<filePath>::saveFile(static_cast<std::string>(newString));
 			return {};
 		}
 
-		template<jsonifier_internal::string_literal benchmarkName, jsonifier_internal::string_literal subjectName, jsonifier_internal::string_literal color, typename function_type, typename... arg_types>
-		BNCH_SWT_ALWAYS_INLINE static benchmark_result_final runBenchmark(function_type&& functionNew, arg_types&&... args) {
-			benchmark_subject<function_type, options> benchmarkSubject{ subjectName.view(), color.view(),
-				std::forward<function_type>(functionNew) };
+		template<jsonifier_internal::string_literal benchmarkName, jsonifier_internal::string_literal subjectName, jsonifier_internal::string_literal color, typename function_type,
+			typename... arg_types>
+		BNCH_SWT_INLINE static benchmark_result_final runBenchmark(function_type&& functionNew, arg_types&&... args) {
+			benchmark_subject<function_type, options> benchmarkSubject{ static_cast<std::string>(subjectName.view()), static_cast<std::string>(color.view()), std::forward<function_type>(functionNew) };
 			auto executionLambda = [=]() mutable {
 				return benchmarkSubject.executeEpoch(std::forward<arg_types>(args)...);
 			};
@@ -534,12 +564,12 @@ namespace bnch_swt {
 			while (currentExecutionCount < options.maxExecutionCount) {
 				++currentExecutionCount;
 				benchmark_result_final resultsNew = executionLambda();
-				resultsNew.benchmarkName		  = benchmarkName;
+				resultsNew.benchmarkName		  = static_cast<std::string>(benchmarkName.view());
 				if (resultsNew.state == bench_state::complete_success) {
-					results.emplace_back(resultsNew);
+					results[static_cast<std::string>(benchmarkName.view() + subjectName.view())] = resultsNew;
 					return resultsNew;
-				}else if (currentExecutionCount == options.maxExecutionCount) {
-					results.emplace_back(resultsNew);
+				} else if (currentExecutionCount == options.maxExecutionCount) {
+					results[static_cast<std::string>(benchmarkName.view() + subjectName.view())] = resultsNew;
 					return resultsNew;
 				}
 			}
@@ -547,7 +577,7 @@ namespace bnch_swt {
 		}
 
 	  protected:
-		BNCH_SWT_ALWAYS_INLINE static jsonifier::string urlEncode(jsonifier::string_view value) {
+		BNCH_SWT_INLINE static std::string urlEncode(std::string value) {
 			std::ostringstream escaped;
 			escaped.fill('0');
 			escaped << std::hex;
@@ -565,21 +595,23 @@ namespace bnch_swt {
 			return escaped.str();
 		}
 
-		BNCH_SWT_ALWAYS_INLINE static size_t collectUniqueLibraryCount() {
-			std::unordered_set<jsonifier::string> uniqueLibraries{};
-			for (auto& value: results) {
+		BNCH_SWT_INLINE static size_t collectUniqueLibraryCount() {
+			std::unordered_set<std::string> uniqueLibraries{};
+			for (auto& [key, value]: results) {
 				uniqueLibraries.emplace(value.libraryName);
 			}
 			return uniqueLibraries.size();
 		}
 
-		BNCH_SWT_ALWAYS_INLINE static jsonifier::string generateMarkdown(jsonifier::string_view repoPath) {
+		BNCH_SWT_INLINE static std::string generateMarkdown(std::string repoPath) {
 			std::ostringstream markdownStream{};
 			jsonifier::vector<benchmark_result_final> resultsNew{};
 			size_t uniqueLibraryCount{ collectUniqueLibraryCount() };
 			markdownStream << "# Benchmark Results: " + stageNameNew.view() + "\n\n";
-			jsonifier::string currentTestName{};
+			std::string currentTestName{};
 			size_t currentIndex{};
+			/*
+			for (auto [key, value]: results) {
 			for (size_t i = 0; i < results.size() / uniqueLibraryCount; ++i) {
 				const auto& result = results[i];
 				if (currentTestName != result.benchmarkName || i == results.size() - 1) {
@@ -588,14 +620,18 @@ namespace bnch_swt {
 				currentTestName = result.benchmarkName;
 			}
 			for (auto& value: resultsNew) {
-				jsonifier::string encodedBenchmarkName = urlEncode(value.benchmarkName);
+				std::string encodedBenchmarkName = urlEncode(value.benchmarkName);
 				markdownStream << "### " << currentIndex + 1 << ". " << value.benchmarkName << "\n";
 				markdownStream << "<p align=\"left\"><img src=\"" << repoPath << encodedBenchmarkName << "_results.jpg?raw=true\" width=\"400\"/></p>\n\n";
 				++currentIndex;
 			}
-
+			*/
 			return markdownStream.str();
 		}
+	};
+
+	template<jsonifier_internal::string_literal filePath> struct data_holder {
+		static constexpr file_loader<filePath> file{};
 	};
 
 }

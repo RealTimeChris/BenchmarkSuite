@@ -14,8 +14,8 @@
 #include <iostream>
 #include <vector>
 
-template <int TYPE = PERF_TYPE_HARDWARE> class LinuxEvents {
-  int fd;
+template <int32_t TYPE = PERF_TYPE_HARDWARE> class LinuxEvents {
+  int32_t fd;
   bool working;
   perf_event_attr attribs{};
   size_t num_events{};
@@ -23,7 +23,7 @@ template <int TYPE = PERF_TYPE_HARDWARE> class LinuxEvents {
   std::vector<uint64_t> ids{};
 
 public:
-  explicit LinuxEvents(std::vector<int> config_vec) : fd(0), working(true) {
+  explicit LinuxEvents(std::vector<int32_t> config_vec) : fd(0), working(true) {
     memset(&attribs, 0, sizeof(attribs));
     attribs.type = TYPE;
     attribs.size = sizeof(attribs);
@@ -33,17 +33,17 @@ public:
 
     attribs.sample_period = 0;
     attribs.read_format = PERF_FORMAT_GROUP | PERF_FORMAT_ID;
-    const int pid = 0;  // the current process
-    const int cpu = -1; // all CPUs
+    const int32_t pid = 0;  // the current process
+    const int32_t cpu = -1; // all CPUs
     const unsigned long flags = 0;
 
-    int group = -1; // no group
+    int32_t group = -1; // no group
     num_events = config_vec.size();
     ids.resize(config_vec.size());
     uint32_t i = 0;
     for (auto config : config_vec) {
       attribs.config = config;
-      int _fd = static_cast<int>(syscall(__NR_perf_event_open, &attribs, pid, cpu, group, flags));
+      int32_t _fd = static_cast<int32_t>(syscall(__NR_perf_event_open, &attribs, pid, cpu, group, flags));
       if (_fd == -1) {
         report_error("perf_event_open");
       }
