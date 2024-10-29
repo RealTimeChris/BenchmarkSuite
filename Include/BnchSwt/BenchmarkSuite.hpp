@@ -376,12 +376,13 @@ namespace bnch_swt {
 			bench_state state{ bench_state::running };
 			benchmark_result_final returnValues{};
 			size_t currentDurationCount{};
+			size_t warmupDurationCount{};
 			double currentMedian{};
 			double currentMean{};
 			double currentStdv{};
 			double currentCv{};
 			evictCache();
-			while (currentDurationCount < options.maxDurationCount) {
+			while (warmupDurationCount < options.maxDurationCount && totalDurationCount + warmupDurationCount < options.totalIterationCountCap) {
 				if constexpr (optionsNew.type == result_type::cycles) {
 					evictCache();
 					collectCycles(function, std::forward<arg_types>(args)...);
@@ -389,10 +390,11 @@ namespace bnch_swt {
 					evictCache();
 					collectTime(function, cpuFrequency, std::forward<arg_types>(args)...);
 				}
-				++currentDurationCount;
+				++warmupDurationCount;
 			}
+			totalDurationCount += warmupDurationCount;
 			currentDurationCount = 0;
-			while (currentDurationCount < options.maxDurationCount) {
+			while (currentDurationCount < options.maxDurationCount && totalDurationCount + currentDurationCount + warmupDurationCount < options.totalIterationCountCap) {
 				if constexpr (optionsNew.type == result_type::cycles) {
 					evictCache();
 					durations[currentDurationCount] = collectCycles(function, std::forward<arg_types>(args)...);
@@ -427,7 +429,7 @@ namespace bnch_swt {
 			if (totalDurationCount + options.maxDurationCount >= options.totalIterationCountCap) {
 				options.maxDurationCount = options.totalIterationCountCap - totalDurationCount;
 			}
-			if (totalDurationCount >= options.totalIterationCountCap && (currentEpochCount >= options.maxEpochCount && state != bench_state::complete_success)) {
+			if (totalDurationCount >= options.totalIterationCountCap || (currentEpochCount >= options.maxEpochCount && state != bench_state::complete_success)) {
 				currentMedian = calcMedian(durations.data(), options.minDurationCount);
 				state		  = bench_state::complete_failure;
 			}
@@ -567,11 +569,11 @@ namespace bnch_swt {
 				return benchmarkSubject.executeEpoch(std::forward<arg_types>(args)...);
 			};
 			size_t currentExecutionCount{};
-			while (currentExecutionCount < options.maxExecutionCount) {
+			while (currentExecutionCount < options.maxExecutionCount ) {
 				++currentExecutionCount;
 				benchmark_result_final resultsNew = executionLambda();
 				resultsNew.benchmarkName		  = static_cast<std::string>(benchmarkName.view());
-				if (resultsNew.state == bench_state::complete_success) {
+				if (resultsNew.state == bench_state::complete_success || resultsNew.state == bench_state::complete_failure) {
 					results[static_cast<std::string>(benchmarkName.view() + subjectName.view())] = resultsNew;
 					return resultsNew;
 				} else if (currentExecutionCount == options.maxExecutionCount) {
