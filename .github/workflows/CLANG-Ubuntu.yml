@@ -5,8 +5,8 @@ on:
   push:
     branches:
     - main
-    - General-Benchmarking
-    - General-Benchmarking
+    - Function-vs-class
+    - Function-vs-class
 
 jobs:
   Build:
