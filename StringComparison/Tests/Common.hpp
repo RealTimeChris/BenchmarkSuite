@@ -91,6 +91,7 @@ struct test_generator {
 	inline static std::random_device randomEngine{};
 	inline static std::mt19937_64 gen{ randomEngine() };
 	static constexpr std::string_view charset{ "!#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~\"\\\r\b\f\t\n" };
+	static constexpr std::string_view escapeCharset{ "\"\\\r\b\f\t\n" };
 
 	template<typename value_type01, typename value_type02> static value_type01 randomizeNumberUniform(value_type01 start, value_type02 end) {
 		std::uniform_real_distribution<value_type01> dis{ start, static_cast<value_type01>(end) };
@@ -103,14 +104,14 @@ struct test_generator {
 	}
 
 	static void insertUnicodeInJSON(std::string& jsonString) {
-		auto newStringView = unicode_emoji::unicodeEmoji[randomizeNumberUniform(0ull, std::size(unicode_emoji::unicodeEmoji) - 1)];
-		jsonString += static_cast<std::string>(newStringView);
+		auto newStringView = escapeCharset[randomizeNumberUniform(0ull, std::size(escapeCharset) - 1)];
+		jsonString += newStringView;
 	}
 
-	template<jsonifier::concepts::string_t value_type> static value_type generateValue() {
-		auto length{ randomizeNumberUniform(32, 64) };
+	template<jsonifier::concepts::string_t value_type> static value_type generateValue(size_t size = 16) {
+		const auto length{ randomizeNumberUniform(size, size) };
 		constexpr size_t charsetSize = charset.size();
-		auto unicodeCount			 = std::max(1, length / 8);
+		const auto unicodeCount		 = std::max(0ull, 0ull);
 		std::vector<size_t> unicodeIndices{};
 		static constexpr auto checkForPresenceOfIndex = [](auto& indices, auto index, auto&& checkForPresenceOfIndexNew) -> void {
 			if (std::find(indices.begin(), indices.end(), index) != indices.end()) {
@@ -142,28 +143,28 @@ struct test_generator {
 		return result;
 	}
 
-	template<jsonifier::concepts::float_type value_type> static value_type generateValue() {
+	template<jsonifier::concepts::float_type value_type> static value_type generateValue(size_t size = 1) {
 		return randomizeNumberUniform(std::numeric_limits<double>::min(), std::numeric_limits<double>::max());
 	};
 
-	template<jsonifier::concepts::bool_t value_type> static value_type generateValue() {
+	template<jsonifier::concepts::bool_t value_type> static value_type generateValue(size_t size = 1) {
 		return static_cast<bool>(randomizeNumberUniform(0, 100) >= 50);
 	};
 
-	template<typename value_type> static std::vector<value_type> generateVector(size_t maxSize) {
-		auto newSize = randomizeNumberUniform(0, maxSize);
-		std ::vector<value_type> returnValues{};
+	template<typename value_type> static std::vector<value_type> generateVector(size_t minSize, size_t maxSize) {
+		auto newSize = randomizeNumberUniform(minSize, maxSize);
+		std::vector<value_type> returnValues{};
 		for (size_t x = 0; x < newSize; ++x) {
 			returnValues.emplace_back(generateValue<value_type>());
 		}
 		return returnValues;
 	};
 
-	template<jsonifier::concepts::uint64_type value_type> static value_type generateValue() {
+	template<jsonifier::concepts::uint64_type value_type> static value_type generateValue(size_t size = 1) {
 		return randomizeNumberUniform(std::numeric_limits<size_t>::min(), std::numeric_limits<size_t>::max());
 	};
 
-	template<jsonifier::concepts::int64_type value_type> static value_type generateValue() {
+	template<jsonifier::concepts::int64_type value_type> static value_type generateValue(size_t size = 1) {
 		return randomizeNumberUniform(std::numeric_limits<int64_t>::min(), std::numeric_limits<int64_t>::max());
 	};
 
