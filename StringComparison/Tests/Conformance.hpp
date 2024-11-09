@@ -28,10 +28,120 @@
 
 namespace conformance_tests {
 
+	struct Empty {};
+
+	struct Special {
+		int integer;
+		double real;
+		double e;
+		double E;
+		double emptyKey;
+		int zero;
+		int one;
+		std::string space;
+		std::string quote;
+		std::string backslash;
+		std::string controls;
+		std::string slash;
+		std::string alpha;
+		std::string ALPHA;
+		std::string digit;
+		std::string number;
+		std::string special;
+		std::string hex;
+		bool aTrue;
+		bool aFalse;
+		int* null;
+		std::vector<int> array;
+		Empty object;
+		std::string address;
+		std::string url;
+		std::string comment;
+		std::string commentKey;
+		std::vector<int> spaced;
+		std::vector<int> compact;
+		std::string jsontext;
+		std::string quotes;
+		std::string key;
+	};
+
+	using Pass01 = std::tuple<std::string, std::map<std::string, std::vector<std::string>>, Empty, std::vector<int>, int, bool, bool, int*, Special, double, double, double, int,
+		double, double, double, double, double, double, std::string>;
+}
+
+namespace jsonifier {
+
+	JSONIFIER_ALWAYS_INLINE conformance_tests::Special collectSpecialFromRawJsonData(raw_json_data& values) {
+		conformance_tests::Special returnValues{};
+		returnValues.integer = values["integer"].get<int32_t>();
+		for (auto& [key, value]: values.get<raw_json_data::object_type>()) {
+			std::cout << "CURRENT KEY: " << key << ", VALUE: " << value.rawJson() << std::endl;
+		}
+		//returnValues.address = values["address"].get<jsonifier::string>();
+		//returnValues.space	 = values[" "].get<std::string>();
+		return returnValues;
+	}
+
+	template<> struct core<conformance_tests::Empty> {
+		using value_type = conformance_tests::Empty;
+		static constexpr auto parseValue = createValue();
+	};
+
+}
+
+namespace jsonifier_internal {
+
+	template<typename value_type>
+	concept special_type = std::is_same_v<std::remove_cvref_t<value_type>, conformance_tests::Special>;
+
+	template<bool minified, jsonifier::parse_options options, special_type value_type, typename parse_context_type>
+	struct parse_impl<minified, options, value_type, parse_context_type> {
+		JSONIFIER_ALWAYS_INLINE static void impl(value_type& value, parse_context_type& context) noexcept {
+			jsonifier::raw_json_data dataNew{};
+			parse<minified, options>::impl(dataNew, context);
+			std::cout << "CURRENT DATA: " << dataNew.rawJson() << std::endl;
+			value = collectSpecialFromRawJsonData(dataNew);
+		}
+	};
+
+}
+
+namespace conformance_tests {
+
+	using S                             = std::string;
+	using VS                            = std::vector<S>;
+	using VVS                           = std::vector<VS>;
+	using VVVS                          = std::vector<VVS>;
+	using VVVVS                         = std::vector<VVVS>;
+	using VVVVVS                        = std::vector<VVVVS>;
+	using VVVVVVS                       = std::vector<VVVVVS>;
+	using VVVVVVVS                      = std::vector<VVVVVVS>;
+	using VVVVVVVVS                     = std::vector<VVVVVVVS>;
+	using VVVVVVVVVS                    = std::vector<VVVVVVVVS>;
+	using VVVVVVVVVVS                   = std::vector<VVVVVVVVVS>;
+	using VVVVVVVVVVVS                  = std::vector<VVVVVVVVVVS>;
+	using VVVVVVVVVVVVS                 = std::vector<VVVVVVVVVVVS>;
+	using VVVVVVVVVVVVVS                = std::vector<VVVVVVVVVVVVS>;
+	using VVVVVVVVVVVVVVS               = std::vector<VVVVVVVVVVVVVS>;
+	using VVVVVVVVVVVVVVVS              = std::vector<VVVVVVVVVVVVVVS>;
+	using VVVVVVVVVVVVVVVVS             = std::vector<VVVVVVVVVVVVVVVS>;
+	using VVVVVVVVVVVVVVVVVS            = std::vector<VVVVVVVVVVVVVVVVS>;
+	using VVVVVVVVVVVVVVVVVVS           = std::vector<VVVVVVVVVVVVVVVVVS>;
+	using VVVVVVVVVVVVVVVVVVVS          = std::vector<VVVVVVVVVVVVVVVVVVS>;	
+
 	template<typename test_type> test_type runTest(const std::string& testName, const std::string& dataToParse, jsonifier::jsonifier_core<>& parser, bool doWeFail = true) noexcept {
 		std::cout << "Running Test: " << testName << std::endl;
 		test_type valueNew{};
 		auto result = parser.parseJson<jsonifier::parse_options{ .knownOrder = true }>(valueNew, dataToParse);
+		std::cout << "Running Test: " << std::get<0>(valueNew) << std::endl;
+		//std::cout << "Running Test: " << std::get<1>(valueNew) << std::endl;
+		//std::cout << "Running Test: " << std::get<2>(valueNew) << std::endl;
+		//std::cout << "Running Test: " << std::get<3>(valueNew) << std::endl;
+		std::cout << "Running Test: " << std::get<4>(valueNew) << std::endl;
+		//std::cout << "Running Test: " << std::get<9>(valueNew) << std::endl;
+		Special dataNew{ std::get<9>(valueNew) };
+		std::cout << "Running Test: " << dataNew.integer << std::endl;
+		
 		if ((parser.getErrors().size() == 0 && result) && !doWeFail) {
 			std::cout << "Test: " << testName << " = Succeeded 01" << std::endl;
 		} else if (!result && doWeFail) {
@@ -53,6 +163,7 @@ namespace conformance_tests {
 		std::unordered_map<std::string, test_base> jsonTests{};
 		processFilesInFolder(jsonTests, "/Tests/ConformanceTests");
 		std::cout << "Conformance Tests: " << std::endl;
+		/*
 		runTest<std::unordered_map<std::string, std::string>>("fail02.json", jsonTests["fail02.json"].fileContents, parser);
 		runTest<std::unordered_map<std::string, std::string>>("fail03.json", jsonTests["fail03.json"].fileContents, parser);
 		runTest<std::vector<std::string>>("fail04.json", jsonTests["fail04.json"].fileContents, parser);
@@ -83,10 +194,10 @@ namespace conformance_tests {
 		runTest<std::vector<double>>("fail30.json", jsonTests["fail30.json"].fileContents, parser);
 		runTest<std::vector<double>>("fail31.json", jsonTests["fail31.json"].fileContents, parser);
 		runTest<std::unordered_map<std::string, bool>>("fail32.json", jsonTests["fail32.json"].fileContents, parser);
-		runTest<std::vector<std::string>>("fail33.json", jsonTests["fail33.json"].fileContents, parser);
-		runTest<jsonifier::raw_json_data>("pass1.json", jsonTests["pass1.json"].fileContents, parser, false);
-		runTest<jsonifier::raw_json_data>("pass2.json", jsonTests["pass2.json"].fileContents, parser, false);
-		runTest<jsonifier::raw_json_data>("pass3.json", jsonTests["pass3.json"].fileContents, parser, false);
+		runTest<std::vector<std::string>>("fail33.json", jsonTests["fail33.json"].fileContents, parser);*/
+		runTest<Pass01>("pass1.json", jsonTests["pass1.json"].fileContents, parser, false);
+		//runTest<VVVVVVVVVVVVVVVVVVVS>("pass2.json", jsonTests["pass2.json"].fileContents, parser, false);
+		//runTest<jsonifier::raw_json_data>("pass3.json", jsonTests["pass3.json"].fileContents, parser, false);
 		return true;
 	}
 

@@ -28,7 +28,7 @@
 
 namespace string_validation_tests {
 
-	std::unordered_map<std::string_view, jsonifier::string> testValues = { { "test1.json", "" }, { "test2.json", "Hello" }, { "test3.json", "Hello\nWorld" },
+	std::unordered_map<std::string_view, std::string> testValues = { { "test1.json", "" }, { "test2.json", "Hello" }, { "test3.json", "Hello\nWorld" },
 		{ "test5.json", "Hello\u0000World" }, { "test6.json", "\"\\/\b\f\n\r\t" }, { "test8.json", "\u0024" }, { "test9.json", "\u00A2" }, { "test10.json", "\u20AC" },
 		{ "test11.json", "\U0001D11E" } };
 
@@ -54,7 +54,7 @@ namespace string_validation_tests {
 	bool stringTests() noexcept {
 		jsonifier::jsonifier_core parser{};
 		std::unordered_map<std::string, test_base> jsonTests{};
-		processFilesInFolder(jsonTests, "/Tests/StringValidation");
+		processFilesInFolder(jsonTests, "StringValidation");
 		std::cout << "String Tests: " << std::endl;
 		runTest("test1.json", jsonTests["test1.json"].fileContents, parser);
 		runTest("test2.json", jsonTests["test2.json"].fileContents, parser);

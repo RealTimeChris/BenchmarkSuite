@@ -41,7 +41,7 @@ class test_base {
 	std::string testName{};
 };
 
-bool processFilesInFolder(std::unordered_map<std::string, test_base>& resultFileContents, const std::string &testType) noexcept {
+bool processFilesInFolder(std::unordered_map<std::string, test_base>& resultFileContents, const std::string& testType) noexcept {
 	try {
 		for (const auto& entry: std::filesystem::directory_iterator(std::string{ JSON_TEST_PATH } + testType)) {
 			if (entry.is_regular_file()) {
@@ -87,43 +87,44 @@ template<typename value_type> struct test {
 	std::vector<value_type> a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z;
 };
 
-struct test_generator {
+template<typename value_type> struct test_generator {
+	std::vector<value_type> a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z;
 	inline static std::random_device randomEngine{};
 	inline static std::mt19937_64 gen{ randomEngine() };
 	static constexpr std::string_view charset{ "!#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~\"\\\r\b\f\t\n" };
-	static constexpr std::string_view escapeCharset{ "\"\\\r\b\f\t\n" };
 
 	template<typename value_type01, typename value_type02> static value_type01 randomizeNumberUniform(value_type01 start, value_type02 end) {
 		std::uniform_real_distribution<value_type01> dis{ start, static_cast<value_type01>(end) };
 		return dis(gen);
 	}
 
-	template<jsonifier::concepts::integer_t value_type01, jsonifier::concepts::integer_t value_type02> static value_type01 randomizeNumberUniform(value_type01 start, value_type02 end) {
+	template<jsonifier::concepts::integer_t value_type01, jsonifier::concepts::integer_t value_type02>
+	static value_type01 randomizeNumberUniform(value_type01 start, value_type02 end) {
 		std::uniform_int_distribution<value_type01> dis{ start, static_cast<value_type01>(end) };
 		return dis(gen);
 	}
 
 	static void insertUnicodeInJSON(std::string& jsonString) {
-		auto newStringView = escapeCharset[randomizeNumberUniform(0ull, std::size(escapeCharset) - 1)];
-		jsonString += newStringView;
+		auto newStringView = unicode_emoji::unicodeEmoji[randomizeNumberUniform(0ull, std::size(unicode_emoji::unicodeEmoji) - 1)];
+		jsonString += static_cast<std::string>(newStringView);
 	}
 
-	template<jsonifier::concepts::string_t value_type> static value_type generateValue(size_t size = 16) {
-		const auto length{ randomizeNumberUniform(size, size) };
+	static std::string generateString() {
+		auto length{ randomizeNumberUniform(32ull, 64ull) };
 		constexpr size_t charsetSize = charset.size();
-		const auto unicodeCount		 = std::max(0ull, 0ull);
+		auto unicodeCount			 = length / 4ull;
 		std::vector<size_t> unicodeIndices{};
-		static constexpr auto checkForPresenceOfIndex = [](auto& indices, auto index, auto&& checkForPresenceOfIndexNew) -> void {
+		static constexpr auto checkForPresenceOfIndex = [](auto& indices, auto index, auto length, auto&& checkForPresenceOfIndexNew) -> void {
 			if (std::find(indices.begin(), indices.end(), index) != indices.end()) {
-				index = randomizeNumberUniform(0ull, charsetSize - 1);
-				checkForPresenceOfIndexNew(indices, index, checkForPresenceOfIndexNew);
+				index = randomizeNumberUniform(0ull, length);
+				checkForPresenceOfIndexNew(indices, index, length, checkForPresenceOfIndexNew);
 			} else {
 				indices.emplace_back(index);
 			}
 		};
 		for (size_t x = 0; x < unicodeCount; ++x) {
-			auto newValue = randomizeNumberUniform(0ull, charsetSize - 1);
-			checkForPresenceOfIndex(unicodeIndices, newValue, checkForPresenceOfIndex);
+			auto newValue = randomizeNumberUniform(0ull, length);
+			checkForPresenceOfIndex(unicodeIndices, newValue, length, checkForPresenceOfIndex);
 		}
 		std::sort(unicodeIndices.begin(), unicodeIndices.end(), std::less<size_t>{});
 
@@ -143,34 +144,84 @@ struct test_generator {
 		return result;
 	}
 
-	template<jsonifier::concepts::float_t value_type> static value_type generateValue(size_t size = 1) {
-		return randomizeNumberUniform(std::numeric_limits<double>::min(), std::numeric_limits<double>::max());
-	};
+	static double generateDouble() {
+		double min = std::numeric_limits<double>::min();
+		double max = std::numeric_limits<double>::max();
+		std::uniform_real_distribution<double> dis(log(min), log(max));
+		double logValue = dis(gen);
+		bool negative{ generateBool() };
+		return negative ? -std::exp(logValue) : std::exp(logValue);
+	}
 
-	template<jsonifier::concepts::bool_t value_type> static value_type generateValue(size_t size = 1) {
+	static bool generateBool() {
 		return static_cast<bool>(randomizeNumberUniform(0, 100) >= 50);
 	};
 
-	template<typename value_type> static std::vector<value_type> generateVector(size_t minSize, size_t maxSize) {
-		auto newSize = randomizeNumberUniform(minSize, maxSize);
-		std::vector<value_type> returnValues{};
-		for (size_t x = 0; x < newSize; ++x) {
-			returnValues.emplace_back(generateValue<value_type>());
-		}
-		return returnValues;
-	};
-
-	template<jsonifier::concepts::uns64_t value_type> static value_type generateValue(size_t size = 1) {
+	static size_t generateUint() {
 		return randomizeNumberUniform(std::numeric_limits<size_t>::min(), std::numeric_limits<size_t>::max());
 	};
 
-	template<jsonifier::concepts::sig64_t value_type> static value_type generateValue(size_t size = 1) {
+	static int64_t generateInt() {
 		return randomizeNumberUniform(std::numeric_limits<int64_t>::min(), std::numeric_limits<int64_t>::max());
 	};
 
 	test_generator() {
 		auto fill = [&](auto& v) {
+			auto arraySize01 = randomizeNumberUniform(15ull, 25ull);
+			v.resize(arraySize01);
+			for (size_t x = 0; x < arraySize01; ++x) {
+				auto arraySize02 = randomizeNumberUniform(15ull, 35ull);
+				auto arraySize03 = randomizeNumberUniform(0ull, arraySize02);
+				for (size_t y = 0; y < arraySize03; ++y) {
+					auto newString = generateString();
+					v[x].testStrings.emplace_back(newString);
+				}
+				arraySize03 = randomizeNumberUniform(0ull, arraySize02);
+				for (size_t y = 0; y < arraySize03; ++y) {
+					v[x].testUints.emplace_back(generateUint());
+				}
+				arraySize03 = randomizeNumberUniform(0ull, arraySize02);
+				for (size_t y = 0; y < arraySize03; ++y) {
+					v[x].testInts.emplace_back(generateInt());
+				}
+				arraySize03 = randomizeNumberUniform(0ull, arraySize02);
+				for (size_t y = 0; y < arraySize03; ++y) {
+					auto newBool = generateBool();
+					v[x].testBools.emplace_back(newBool);
+				}
+				arraySize03 = randomizeNumberUniform(0ull, arraySize02);
+				for (size_t y = 0; y < arraySize03; ++y) {
+					v[x].testDoubles.emplace_back(generateDouble());
+				}
+			}
 		};
+
+		fill(a);
+		fill(b);
+		fill(c);
+		fill(d);
+		fill(e);
+		fill(f);
+		fill(g);
+		fill(h);
+		fill(i);
+		fill(j);
+		fill(k);
+		fill(l);
+		fill(m);
+		fill(n);
+		fill(o);
+		fill(p);
+		fill(q);
+		fill(r);
+		fill(s);
+		fill(t);
+		fill(u);
+		fill(v);
+		fill(w);
+		fill(x);
+		fill(y);
+		fill(z);
 	}
 };
 
@@ -327,7 +378,7 @@ struct results_data {
 		}
 		if (writeResult.byteLength.has_value() && writeResult.jsonSpeed.has_value()) {
 			std::cout << enumToString<result_type::write>() + " Speed (MB/S): " << std::setprecision(6) << writeResult.jsonSpeed.value() << std::endl;
-#if !defined(JSONIFIER_MAC) 
+#if !defined(JSONIFIER_MAC)
 			std::cout << enumToString<result_type::write>() + " Speed (Cycles/MB): " << std::setprecision(6)
 					  << writeResult.getResultValueCyclesMb(writeResult.jsonTime.value(), writeResult.byteLength.value()) << std::endl;
 #endif
@@ -377,8 +428,8 @@ struct results_data {
 #endif
 			finalString += readLength + " | " + readTime + " | " + readIterationCount + " | ";
 		}
-		if (writeResult.jsonTime.has_value() && writeResult.byteLength.has_value()) {			
-#if !defined(JSONIFIER_MAC) 
+		if (writeResult.jsonTime.has_value() && writeResult.byteLength.has_value()) {
+#if !defined(JSONIFIER_MAC)
 			std::stringstream stream00{};
 			stream00 << std::setprecision(6) << writeResult.getResultValueCyclesMb(writeResult.jsonTime.value(), writeResult.byteLength.value());
 			write02 = stream00.str();
@@ -410,4 +461,3 @@ struct test_results {
 	std::string markdownResults{};
 	std::string testName{};
 };
-
