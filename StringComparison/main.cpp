@@ -650,55 +650,72 @@ class int_128 {
 	}
 };
 
-constexpr std::uint64_t log2New(std::uint64_t x) {
-	std::uint64_t result = 0;
-	while (x >>= 1) {
-		++result;
-	}
-	return result;
-}
-
-constexpr std::uint64_t log10New(std::uint64_t x) {
-	std::uint64_t result = 0;
-	while (x >= 10) {
-		x /= 10;
-		++result;
-	}
-	return result;
-}
-
-constexpr std::uint64_t powNew(std::uint64_t base, std::uint64_t exp) {
-	std::uint64_t result = 1;
-	while (exp > 0) {
-		if (exp & 1) {
-			result *= base;
+uint64_t powNew(uint32_t base, uint32_t exponent) {
+	if (base == 2) {
+		return (exponent < 32) ? (1U << exponent) : 4294967296U;// Returns 2^exponent, bounded at 2^32
+	} else if (base == 10) {
+		uint32_t result = 1;
+		for (uint32_t i = 0; i < exponent; ++i) {
+			result *= 10;
 		}
-		base *= base;
-		exp >>= 1;
+		return result;
 	}
-	return result;
+	return 1;// For unsupported base
+}
+
+// Log base 2
+double log2New(uint64_t input) {
+	if (input == 1)
+		return 0;
+	return std::log2(input);
+}
+
+// Log base 10
+double log10New(uint64_t input) {
+	if (input == 1)
+		return 0;
+	return std::log10(input);
+}
+
+// Ceiling function
+double ceilNew(double input) {
+	return std::ceil(input);
 }
 
 namespace cpp23 {
 	std::uint64_t log2(std::uint64_t x) {
 		std::cout << "LOG 2 INPUT: " << x << std::endl;
-		std::cout << "LOG 2 OUTPUT: " << __builtin_log2(x) << std::endl;
-		return __builtin_log2(x);
+		std::cout << "LOG 2 OUTPUT: " << log2New(x) << std::endl;
+		return log2New(x);
 	}
 	auto log10(std::uint64_t x) {
 		std::cout << "LOG 10 INPUT: " << x << std::endl;
-		std::cout << "LOG 10 OUTPUT: " << __builtin_log10(x) << std::endl;
-		std::cout << "BUILTIN CEIL INPUT: " << __builtin_log10(x) << std::endl;
-		std::cout << "BUILTIN CEIL OUTPUT: " << __builtin_ceil(__builtin_log10(x)) << std::endl;
-		return long(__builtin_ceil(__builtin_log10(x)));
+		std::cout << "LOG 10 OUTPUT: " << log10New(x) << std::endl;
+		std::cout << "BUILTIN CEIL INPUT: " << log10New(x) << std::endl;
+		std::cout << "BUILTIN CEIL OUTPUT: " << long(ceilNew(log10New(x))) << std::endl;
+		return uint64_t(ceilNew(log10New(x)));
 	}
 	std::uint64_t pow(std::uint64_t x, std::uint64_t e) {
 		std::cout << "POW INPUT: " << x << std::endl;
-		std::cout << "POW OUTPUT: " << __builtin_pow(x, e) << std::endl;
-		return __builtin_pow(x, e);
+		std::cout << "POW OUTPUT: " << std::uint64_t(powNew(x, e)) << std::endl;
+		return powNew(x, e);
 	}
 }
 
+int int_log2(uint64_t x) {
+	return 63 - simd_internal::lzcnt(x | 1);// log2 approximation for 64-bit
+}
+
+int digit_count(uint64_t x) {
+	static uint64_t table[] = { 9, 99, 999, 9999, 99999, 999999, 9999999, 99999999, 999999999, 9999999999ULL, 99999999999ULL, 999999999999ULL, 9999999999999ULL, 99999999999999ULL,
+		999999999999999ULL, 9999999999999999ULL, 99999999999999999ULL, 999999999999999999ULL, 9999999999999999999ULL };
+
+	int y = (1233 * int_log2(x)) >> 12;// Improved scaling factor for uint64_t
+	y += x > table[y];
+	return y + 1;
+}	
+
+int countDigits(uint64_t x) {
 	static std::array<std::uint64_t, 32> table = []() {
 		std::array<std::uint64_t, 32> table;
 		for (unsigned long i = 1; i < 33; i++) {
@@ -707,160 +724,31 @@ namespace cpp23 {
 		}
 		return table;
 	}();
-/*
-int digit_count(uint32_t x) {
-	static constexpr std::array<std::uint64_t, 32> table = []() {
-		std::array<std::uint64_t, 32> table;
-		for (unsigned long i = 1; i < 33; i++) {
-			const unsigned smallest = pow_custom(2, i - 1);
-			table[i - 1]			= (i < 31 ? (pow_custom(2, 32) - pow_custom(10, log10_custom(smallest))) : 0) + (log10_custom(smallest) << 32);
-		}
-		return table;
-	}();
 
-	// Example of accessing the table for digit count.
-	return table[log2_custom(x)];
+	unsigned int log_val = cpp23::log2(x);
+	return (x + table[log_val]) >> 32;
 }
-*/
 
 int main() {
-
-
-	// Output the table
-	for (int i = 0; i < 32; ++i) {
-		std::cout << table[i] << ", ";
-	} /*
-	std::cout << (int_128{ 1 } << 64) + (0 << 64) << std::endl;
-	std::cout << std::ceil(log10(1)) << std::endl;
-	std::cout << (int_128{ 1 } << 64) - 10 + (int_128{ 1 } << 64) << std::endl;
-	std::cout << std::ceil(log10(2)) << std::endl;
-	std::cout << (int_128{ 1 } << 64) - 10 + (int_128{ 1 } << 64) << std::endl;
-	std::cout << std::ceil(log10(4)) << std::endl;
-	std::cout << (int_128{ 1 } << 64) - 10 + (int_128{ 1 } << 64) << std::endl;
-	std::cout << std::ceil(log10(8)) << std::endl;
-	std::cout << (int_128{ 1 } << 64) - 100 + (2 << 64) << std::endl;
-	std::cout << std::ceil(log10(16)) << std::endl;//2
-	std::cout << (int_128{ 1 } << 64) - 100 + (2 << 64) << std::endl;
-	std::cout << std::ceil(log10(32)) << std::endl;//2
-	std::cout << (int_128{ 1 } << 64) - 100 + (2 << 64) << std::endl;
-	std::cout << std::ceil(log10(64)) << std::endl;//2
-	std::cout << (int_128{ 1 } << 64) - 1000 + (3 << 64) << std::endl;
-	std::cout << std::ceil(log10(128)) << std::endl;//3
-	std::cout << (int_128{ 1 } << 64) - 1000 + (3 << 64) << std::endl;
-	std::cout << std::ceil(log10(256)) << std::endl;//3
-	std::cout << (int_128{ 1 } << 64) - 1000 + (3 << 64) << std::endl;
-	std::cout << std::ceil(log10(512)) << std::endl;//3
-	std::cout << (int_128{ 1 } << 64) - 10000 + (4 << 64) << std::endl;
-	std::cout << std::ceil(log10(1024)) << std::endl;//4
-	std::cout << (int_128{ 1 } << 64) - 10000 + (4 << 64) << std::endl;
-	std::cout << std::ceil(log10(2048)) << std::endl;//4
-	std::cout << (int_128{ 1 } << 64) - 10000 + (4 << 64) << std::endl;
-	std::cout << std::ceil(log10(4096)) << std::endl;//4
-	std::cout << (int_128{ 1 } << 64) - 10000 + (4 << 64) << std::endl;
-	std::cout << std::ceil(log10(8192)) << std::endl;//4
-	std::cout << (int_128{ 1 } << 64) - 100000 + (5 << 64) << std::endl;
-	std::cout << std::ceil(log10(16384)) << std::endl;//5
-	std::cout << (int_128{ 1 } << 64) - 100000 + (5 << 64) << std::endl;
-	std::cout << std::ceil(log10(32768)) << std::endl;//5
-	std::cout << (int_128{ 1 } << 64) - 100000 + (5 << 64) << std::endl;
-	std::cout << std::ceil(log10(65536)) << std::endl;//5
-	std::cout << (int_128{ 1 } << 64) - 1000000 + (6 << 64) << std::endl;
-	std::cout << std::ceil(log10(131072)) << std::endl;//6
-	std::cout << (int_128{ 1 } << 64) - 1000000 + (6 << 64) << std::endl;
-	std::cout << std::ceil(log10(262144)) << std::endl;//6
-	std::cout << (int_128{ 1 } << 64) - 1000000 + (6 << 64) << std::endl;
-	std::cout << std::ceil(log10(524288)) << std::endl;//6
-	std::cout << (int_128{ 1 } << 64) - 10000000 + (7 << 64) << std::endl;
-	std::cout << std::ceil(log10(1048576)) << std::endl;//7
-	std::cout << (int_128{ 1 } << 64) - 10000000 + (7 << 64) << std::endl;
-	std::cout << std::ceil(log10(2097152)) << std::endl;//7
-	std::cout << (int_128{ 1 } << 64) - 10000000 + (7 << 64) << std::endl;
-	std::cout << std::ceil(log10(4194304)) << std::endl;//7
-	std::cout << (int_128{ 1 } << 64) - 10000000 + (7 << 64) << std::endl;
-	std::cout << std::ceil(log10(8388608)) << std::endl;//7
-	std::cout << (int_128{ 1 } << 64) - 100000000 + (8 << 64) << std::endl;
-	std::cout << std::ceil(log10(16777216)) << std::endl;//8
-	std::cout << (int_128{ 1 } << 64) - 100000000 + (8 << 64) << std::endl;
-	std::cout << std::ceil(log10(33554432)) << std::endl;//8
-	std::cout << (int_128{ 1 } << 64) - 100000000 + (8 << 64) << std::endl;
-	std::cout << std::ceil(log10(67108864)) << std::endl;//8
-	std::cout << (int_128{ 1 } << 64) - 1000000000 + (9 << 64) << std::endl;
-	std::cout << std::ceil(log10(134217728)) << std::endl;//9
-	std::cout << (int_128{ 1 } << 64) - 1000000000 + (9 << 64) << std::endl;
-	std::cout << std::ceil(log10(268435456)) << std::endl;//9
-	std::cout << (int_128{ 1 } << 64) - 1000000000 + (9 << 64) << std::endl;
-	// ceil(log10(536870912)) = 9
-	int_128 num(0x00, 1234567890);
-	std::cout << num << std::endl;
-
-	int_128 shifted_right = num >> 64;
-	std::cout << shifted_right << std::endl;
-
-	int_128 shifted_left = num << 64;
-	std::cout << shifted_left << std::endl;
-
-	int_128 num02(1234567890, 0x00);
-	std::cout << num02 << std::endl;
-
-	shifted_right = num02 >> 64;
-	std::cout << shifted_right << std::endl;
-
-	shifted_left = num02 << 64;
-	std::cout << shifted_left << std::endl;
-
-	//int_128 shifted_right = num >> 70;// Shift by more than 64 bits
-	//std::cout << shifted_right << std::endl;	
-	for (auto value: table) {
-		std::cout << value << ", ";
-	}
-	conformance_tests::conformanceTests();
-	for (auto& value: table) {
-		std::cout << value << ", " << std::endl;
-	}
-	uint64_t value{ 1 };
-	std::cout << "LEADING ZEROS: " << fastDigitCount(value) << std::endl;
-	value = 12;
-	std::cout << "LEADING ZEROS: " << fastDigitCount(value) << std::endl;
-	value = 123;
-	std::cout << "LEADING ZEROS: " << fastDigitCount(value) << std::endl;
-	value = 1234;
-	std::cout << "LEADING ZEROS: " << fastDigitCount(value) << std::endl;
-	value = 12345;
-	std::cout << "LEADING ZEROS: " << fastDigitCount(value) << std::endl;
-	value = 123456;
-	std::cout << "LEADING ZEROS: " << fastDigitCount(value) << std::endl;
-	value = 1234567;
-	std::cout << "LEADING ZEROS: " << fastDigitCount(value) << std::endl;
-	std::string newString{};
-	newString.resize(21);
-	serializeFunction(value, newString.data());
-	value = 12;
-	std::cout << "CURRENT DIGITS (REAL): " << newString << std::endl;
-	serializeFunction(value, newString.data());
-	value = 123;
-	std::cout << "CURRENT DIGITS (REAL): " << newString << std::endl;
-	serializeFunction(value, newString.data());
-	value = 1234;
-	std::cout << "CURRENT DIGITS (REAL): " << newString << std::endl;
-	serializeFunction(value, newString.data());
-	value = 12345;
-	std::cout << "CURRENT DIGITS (REAL): " << newString << std::endl;
-	serializeFunction(value, newString.data());
-	value = 123456;
-	std::cout << "CURRENT DIGITS (REAL): " << newString << std::endl;
-	serializeFunction(value, newString.data());
-	value = 1234567;
-	std::cout << "CURRENT DIGITS (REAL): " << newString << std::endl;
-	serializeFunction(value, newString.data());
-	value = 12345678;
-	std::cout << "CURRENT DIGITS (REAL): " << newString << std::endl;
-	std::cout << "CURRENT DIGIT COUNT: " << jsonifier_internal::fastDigitCount(12) << std::endl;
-	std::cout << "CURRENT DIGIT COUNT: " << jsonifier_internal::fastDigitCount(123) << std::endl;
-	std::cout << "CURRENT DIGIT COUNT: " << jsonifier_internal::fastDigitCount(1234) << std::endl;
-	std::cout << "CURRENT DIGIT COUNT: " << jsonifier_internal::fastDigitCount(12345) << std::endl;
-	std::cout << "CURRENT DIGIT COUNT: " << jsonifier_internal::fastDigitCount(123456) << std::endl;
-	std::cout << "CURRENT DIGIT COUNT: " << jsonifier_internal::fastDigitCount(1234567) << std::endl;
-	//runForLengthSerialize<uint32_t, "serialize-uint64_t", "serialize-uint64_t">(1);
-	//runForLengthSerialize<int32_t, "serialize-int64_t", "serialize-int64_t">(2);*/
+	std::cout << "DIGIT COUNT: " << digit_count(1) << std::endl;
+	std::cout << "DIGIT COUNT: " << digit_count(12) << std::endl;
+	std::cout << "DIGIT COUNT: " << digit_count(123) << std::endl;
+	std::cout << "DIGIT COUNT: " << digit_count(1234) << std::endl;
+	std::cout << "DIGIT COUNT: " << digit_count(12345) << std::endl;
+	std::cout << "DIGIT COUNT: " << digit_count(123456) << std::endl;
+	std::cout << "DIGIT COUNT: " << digit_count(1234567) << std::endl;
+	std::cout << "DIGIT COUNT: " << digit_count(12345678) << std::endl;
+	std::cout << "DIGIT COUNT: " << digit_count(123456789) << std::endl;
+	std::cout << "DIGIT COUNT: " << digit_count(1234567890) << std::endl;
+	std::cout << "DIGIT COUNT: " << digit_count(12345678901) << std::endl;
+	std::cout << "DIGIT COUNT: " << digit_count(123456789012) << std::endl;
+	std::cout << "DIGIT COUNT: " << digit_count(1234567890123) << std::endl;
+	std::cout << "DIGIT COUNT: " << digit_count(12345678901234) << std::endl;
+	std::cout << "DIGIT COUNT: " << digit_count(123456789012345) << std::endl;
+	std::cout << "DIGIT COUNT: " << digit_count(1234567890123456) << std::endl;
+	std::cout << "DIGIT COUNT: " << digit_count(12345678901234567) << std::endl;
+	std::cout << "DIGIT COUNT: " << digit_count(123456789012345678) << std::endl;
+	std::cout << "DIGIT COUNT: " << digit_count(1234567890123456789) << std::endl;
+	std::cout << "DIGIT COUNT: " << digit_count(12345678901234567890) << std::endl;
 	return 0;
 }
