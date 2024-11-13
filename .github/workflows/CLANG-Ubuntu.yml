@@ -5,8 +5,8 @@ on:
   push:
     branches:
     - main
-    - Function-vs-class
-    - Function-vs-class
+    - index_processor_test
+    - index_processor_test
 
 jobs:
   Build:
