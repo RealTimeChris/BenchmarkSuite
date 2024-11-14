@@ -33,6 +33,7 @@ template<size_t currentSize, typename value_type> struct index_processor_parse_m
 };
 
 template<size_t maxIndexCount, typename lambda> struct index_executor : lambda {
+	using std::remove_cvref_t<lambda>::operator();
 	template<typename... arg_types> JSONIFIER_ALWAYS_INLINE void executeIndices(arg_types&&... args) const {
 		executeIndicesImpl(std::make_index_sequence<maxIndexCount>{}, std::forward<arg_types>(args)...);
 	}
