@@ -38,7 +38,7 @@ template<size_t maxIndexCount, typename lambda> struct index_executor : lambda {
 	}
 
 	template<typename... arg_types, size_t... indices> JSONIFIER_ALWAYS_INLINE void executeIndicesImpl(std::index_sequence<indices...>, arg_types&&... args) const {
-		(this->template operator()<indices>(std::forward<arg_types>(args)...), ...);
+		(this->operator()<indices>(std::forward<arg_types>(args)...), ...);
 	}
 };
 
