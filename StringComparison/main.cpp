@@ -4,114 +4,281 @@
 #include "Tests/Glaze.hpp"
 #include <jsonifier/Index.hpp>
 #include <BnchSwt/BenchmarkSuite.hpp>
+#include "Tests/Jsonifier.hpp"
+#include "FastFloatNew.hpp"
+#include "StrToDNew.hpp"
 
-struct index_processor_parse {
-	template<size_t index, typename value_type>
-	JSONIFIER_ALWAYS_INLINE static void processIndex(value_type& value) noexcept {
-		value += index;
+template<typename value_type, typename char_type> struct float_parser {
+	static constexpr char_type decimalNew = '.';
+	static constexpr char_type smallE	  = 'e';
+	static constexpr char_type bigE		  = 'E';
+	static constexpr char_type minusNew	  = '-';
+	static constexpr char_type plusNew	  = '+';
+	static constexpr char_type zeroNew	  = '0';
+
+	struct parsing_pack {
+		fast_float_new::parsed_number_string_t<char_type> answer;
+		char_type const* fracPtr;
+		char_type const* fracEnd; 
+	};
+
+	JSONIFIER_ALWAYS_INLINE static char_type const* parseFloatImpl(char_type const* iter, value_type& value) {
+		using namespace fast_float_new;
+		static_assert(is_supported_float_t<value_type>(), "only some floating-point types are supported");
+		static_assert(is_supported_char_t<char_type>(), "only char, wchar_t, char16_t and char32_t are supported");
+		parsing_pack pack;
+		pack.answer.valid			= false;
+		pack.answer.too_many_digits = false;
+		pack.answer.negative		= (*iter == minusNew);
+		if (pack.answer.negative) {
+			++iter;
+
+			if JSONIFIER_UNLIKELY (!is_integer(*iter)) {
+				return nullptr;
+			}
+		}
+		char_type const* const start_digits = iter;
+		uint8_t digit;
+
+		while (is_integer(*iter)) {
+			digit = static_cast<uint64_t>(*iter - zeroNew);
+			++iter;
+			pack.answer.mantissa = 10 * pack.answer.mantissa + digit;
+		}
+
+		char_type const* const intEnd = iter;
+		int64_t digit_count			  = static_cast<int64_t>(intEnd - start_digits);
+		auto intPtr					  = start_digits;
+
+		if (digit_count == 0 || (start_digits[0] == zeroNew && digit_count > 1)) {
+			return nullptr;
+		}
+
+		const bool has_decimal_point = [&] {
+			return (*iter == decimalNew);
+		}();
+		if (has_decimal_point) {
+			++iter;
+			char_type const* before = iter;
+
+			while (is_integer(*iter)) {
+				digit = static_cast<uint8_t>(*iter - zeroNew);
+				++iter;
+				pack.answer.mantissa = pack.answer.mantissa * 10 + digit;
+			}
+			pack.answer.exponent = before - iter;
+			pack.fracEnd	 = iter;
+			pack.fracPtr	 = before;
+			digit_count -= pack.answer.exponent;
+		}
+
+		if (has_decimal_point && pack.answer.exponent == 0) {
+			return nullptr;
+		}
+
+		int64_t exp_number = 0;
+
+		if ((smallE == *iter) || (bigE == *iter)) {
+			char_type const* location_of_e = iter;
+			++iter;
+			bool neg_exp = false;
+			if (minusNew == *iter) {
+				neg_exp = true;
+				++iter;
+			} else if (plusNew == *iter) {
+				++iter;
+			}
+			if (!is_integer(*iter)) {
+				iter = location_of_e;
+			} else {
+				while (is_integer(*iter)) {
+					digit = static_cast<uint8_t>(*iter - zeroNew);
+					if (exp_number < 0x10000000) {
+						exp_number = 10 * exp_number + digit;
+					}
+					++iter;
+				}
+				if (neg_exp) {
+					exp_number = -exp_number;
+				}
+				pack.answer.exponent += exp_number;
+			}
+		}
+
+		pack.answer.lastmatch = iter;
+		pack.answer.valid	  = true;
+
+		if (digit_count > 19) {
+			char_type const* start = start_digits;
+			while ((*start == zeroNew || *start == decimalNew)) {
+				if (*start == zeroNew) {
+					--digit_count;
+				}
+				++start;
+			}
+
+			if (digit_count > 19) {
+				pack.answer.too_many_digits = true;
+				pack.answer.mantissa						= 0;
+				static constexpr uint64_t minimal_nineteen_digit_integer{ 1000000000000000000 };
+				while ((pack.answer.mantissa < minimal_nineteen_digit_integer) && (intPtr != intEnd)) {
+					pack.answer.mantissa = pack.answer.mantissa * 10 + static_cast<uint64_t>(*intPtr - zeroNew);
+					++intPtr;
+				}
+				if (pack.answer.mantissa >= minimal_nineteen_digit_integer) {
+					pack.answer.exponent = intEnd - intPtr + exp_number;
+				} else {
+					intPtr = pack.fracPtr;
+					while ((pack.answer.mantissa < minimal_nineteen_digit_integer) && (intPtr != pack.fracEnd)) {
+						pack.answer.mantissa = pack.answer.mantissa * 10 + static_cast<uint64_t>(*intPtr - zeroNew);
+						++intPtr;
+					}
+					pack.answer.exponent = pack.fracPtr - intPtr + exp_number;
+				}
+			}
+		}
+		if JSONIFIER_LIKELY (pack.answer.valid) {
+			return from_chars_advanced(pack.answer, value).ptr;
+		} else {
+			return nullptr;
+		}
+	}
+
+	JSONIFIER_ALWAYS_INLINE static bool parseFloat(char_type const*& iter, value_type& value) noexcept {
+		using namespace fast_float_new;
+
+		return parseFloatImpl(iter, value);
 	}
 };
 
-template<size_t currentSize, typename value_type> struct index_processor_parse_map {
-	template<size_t... indices> static constexpr auto generateFunctionPtrsImpl(std::index_sequence<indices...>) {
-		using function_type = decltype(&index_processor_parse::template processIndex<0, value_type>);
-		return std::array<function_type, sizeof...(indices)>{ &index_processor_parse::template processIndex<indices, value_type>... };
+std::string generateIntegerString(size_t length) {
+	if (length == 0) {
+		throw std::invalid_argument("Length must be greater than 0");
 	}
 
-	static constexpr auto generateFunctionPtrs() {
-		return generateFunctionPtrsImpl(std::make_index_sequence<currentSize>{});
+	std::random_device rd;
+	std::mt19937 generator(rd());
+	std::uniform_int_distribution<int> digitDist(0, 9);
+
+	std::string result;
+	result.reserve(length);
+	result += '1' + digitDist(generator) % 9;
+	for (size_t i = 1; i < length; ++i) {
+		result += '0' + digitDist(generator);
 	}
 
-	static constexpr auto bases{ generateFunctionPtrs() };
+	return result;
+}
 
-	constexpr index_processor_parse_map() {
+std::string generateFloatingPointString(bool negative, size_t digit_count, size_t fractionalLength = 0, size_t exponentLength = 0) {
+	if (fractionalLength == 0 && exponentLength == 0) {
+		throw std::invalid_argument("At least one of fractionalLength or exponentLength must be greater than 0.");
 	}
 
-	JSONIFIER_ALWAYS_INLINE static constexpr void processIndexReal(size_t indexNew, value_type& value) {
-		return bases[indexNew](value);
-	}
-};
+	std::random_device rd;
+	std::mt19937 generator(rd());
+	std::uniform_int_distribution<size_t> lengthDist(1, 5);
 
-template<size_t maxIndexCount, typename lambda> struct index_executor : lambda {
-	using std::remove_cvref_t<lambda>::operator();
-	template<typename... arg_types> JSONIFIER_ALWAYS_INLINE void executeIndices(arg_types&&... args) const {
-		executeIndicesImpl(std::make_index_sequence<maxIndexCount>{}, std::forward<arg_types>(args)...);
+	std::string result = negative ? "-" : "";
+	result += generateIntegerString(digit_count);
+
+	if (fractionalLength > 0) {
+		result += "." + generateIntegerString(fractionalLength);
 	}
 
-	template<typename... arg_types, size_t... indices> JSONIFIER_ALWAYS_INLINE void executeIndicesImpl(std::index_sequence<indices...>, arg_types&&... args) const {
-		(this->operator()<indices>(std::forward<arg_types>(args)...), ...);
+	if (exponentLength > 0) {
+		std::uniform_int_distribution<int> exponentSignDist(0, 1);
+		char exponentSign = exponentSignDist(generator) ? '+' : '-';
+		result += "e" + exponentSign + generateIntegerString(exponentLength);
 	}
-};
+
+	return result;
+}
+
+std::vector<std::string> generateValidFloatingPointStrings(size_t count, size_t digit_count, size_t fractionalLength, size_t exponentLength, bool allowNegative) {
+	std::vector<std::string> validStrings;
+	validStrings.reserve(count);
+
+	while (validStrings.size() < count) {
+		try {
+			bool negative		  = allowNegative && (std::rand() % 2 == 0);
+			std::string candidate = generateFloatingPointString(negative, digit_count, fractionalLength, exponentLength);
+
+			char* endPtr = nullptr;
+			double value = std::strtod(candidate.c_str(), &endPtr);
+
+			if (endPtr == candidate.c_str() || *endPtr != '\0') {
+				throw std::invalid_argument("strtod failed to parse the string.");
+			}
+
+			std::string convertedBack = std::to_string(value);
+
+			validStrings.push_back(candidate);
+		} catch (...) {
+			continue;
+		}
+	}
+
+	return validStrings;
+}
 
 template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsonifier_internal::string_literal testNameNew> JSONIFIER_ALWAYS_INLINE void runForLengthSerialize() {
 	static constexpr jsonifier_internal::string_literal testStage{ testStageNew };
 	static constexpr jsonifier_internal::string_literal testName{ testNameNew };
-	int32_t value{};
-	bool newValue{};
-	uint64_t currentValue{};
-	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "constexpr-array-of-function-ptrs", "dodgerblue">(
-		[&]() mutable {
-			for (size_t y = 0; y < 1024 * 16; ++y) {
-				for (size_t x = 0; x < maxIndex; ++x) {
-					index_processor_parse_map<maxIndex, uint64_t>::processIndexReal(x, currentValue);
-					bnch_swt::doNotOptimizeAway(currentValue);
-				}
-			}
-		});
-	std::cout << "CURRENT VALUE: " << currentValue << std::endl;
-	currentValue							 = 0;
-	static constexpr auto processIndexLambda = []<size_t index>(uint64_t& value) {
-		value += index;
-	};
-	static constexpr index_executor<maxIndex, decltype(processIndexLambda)> indexProcessor{};
-	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "derived-from-lambda",
-		"dodgerblue">([&]() mutable {
-		for (size_t y = 0; y < 1024 * 16; ++y) {
-			indexProcessor.executeIndices(currentValue);
+	std::vector<std::string> newDoubles{};
+	for (size_t x = 0; x < maxIndex; ++x) {
+		std::string newValue{ std::to_string(test_generator::generateValue<double>()) };
+		double newDouble{};
+		const auto* iter = newValue.data();
+		const auto* end	 = newValue.data() + newValue.size();
+		jsonifier_internal::parseFloat(iter, end, newDouble);
+		if (newDouble != 0.0 && newDouble != -0.0f) {
+			newDoubles.emplace_back(newValue);
+		} else {
+			--x;
+			continue;
+		}
+	}
+	std::vector<double> newerDoubles01{};
+	std::vector<double> newerDoubles02{};
+	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "old-parse", "dodgerblue">([&]() mutable {
+		for (size_t y = 0; y < maxIndex; ++y) {
+			const auto* iter = newDoubles[y].data();
+			const auto* end	 = newDoubles[y].data() + newDoubles[y].size();
+			double newDouble{};
+			jsonifier_internal::parseFloat(iter, end, newDouble);
+			newerDoubles01.emplace_back(newDouble);
+			bnch_swt::doNotOptimizeAway(newDouble);
 		}
 	});
-	std::cout << "CURRENT VALUE: " << currentValue << std::endl;
+	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "new-parse", "dodgerblue">([&]() mutable {
+		for (size_t y = 0; y < maxIndex; ++y) {
+			const auto* iter = newDoubles[y].data();
+			double newDouble{};
+			float_parser<double, char>::parseFloat(iter, newDouble);
+			newerDoubles02.emplace_back(newDouble);
+			bnch_swt::doNotOptimizeAway(newDouble);
+		}
+	});
+	for (size_t x = 0; x < maxIndex; ++x) {
+		if (newerDoubles01[x] != newerDoubles02[x]) {
+			std::cout << "FAILED TO PARSE AT INDEX: " << x << std::endl;
+			std::cout << "Input Value: " << newDoubles[x] << std::endl;
+			std::cout << "Intended Value: " << newerDoubles01[x] << std::endl;
+			std::cout << "Actual Value: " << newerDoubles02[x] << std::endl;
+		} else {
+			std::cout << "Here's the value: " << newerDoubles01[x] << std::endl;
+		}
+	}
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::printResults();
 }
 
 int main() {
-	static constexpr auto newLambda = [] {
-	};
-	index_executor<2, decltype(newLambda)> newMap{};
-
-	newMap.executeIndices();
-	runForLengthSerialize<1, "Inheritance-vc-Constexpr-Array-1", "Inheritance-vc-Constexpr-Array-1">();
-	runForLengthSerialize<2, "Inheritance-vc-Constexpr-Array-2", "Inheritance-vc-Constexpr-Array-2">();
-	runForLengthSerialize<3, "Inheritance-vc-Constexpr-Array-3", "Inheritance-vc-Constexpr-Array-3">();
-	runForLengthSerialize<4, "Inheritance-vc-Constexpr-Array-4", "Inheritance-vc-Constexpr-Array-4">();
-	runForLengthSerialize<5, "Inheritance-vc-Constexpr-Array-5", "Inheritance-vc-Constexpr-Array-5">();
-	runForLengthSerialize<6, "Inheritance-vc-Constexpr-Array-6", "Inheritance-vc-Constexpr-Array-6">();
-	runForLengthSerialize<7, "Inheritance-vc-Constexpr-Array-7", "Inheritance-vc-Constexpr-Array-7">();
-	runForLengthSerialize<8, "Inheritance-vc-Constexpr-Array-8", "Inheritance-vc-Constexpr-Array-8">();
-	runForLengthSerialize<9, "Inheritance-vc-Constexpr-Array-9", "Inheritance-vc-Constexpr-Array-9">();
-	runForLengthSerialize<10, "Inheritance-vc-Constexpr-Array-10", "Inheritance-vc-Constexpr-Array-10">();
-	runForLengthSerialize<11, "Inheritance-vc-Constexpr-Array-11", "Inheritance-vc-Constexpr-Array-11">();
-	runForLengthSerialize<12, "Inheritance-vc-Constexpr-Array-12", "Inheritance-vc-Constexpr-Array-12">();
-	runForLengthSerialize<13, "Inheritance-vc-Constexpr-Array-13", "Inheritance-vc-Constexpr-Array-13">();
-	runForLengthSerialize<14, "Inheritance-vc-Constexpr-Array-14", "Inheritance-vc-Constexpr-Array-14">();
-	runForLengthSerialize<15, "Inheritance-vc-Constexpr-Array-15", "Inheritance-vc-Constexpr-Array-15">();
-	runForLengthSerialize<16, "Inheritance-vc-Constexpr-Array-16", "Inheritance-vc-Constexpr-Array-16">();
-	runForLengthSerialize<17, "Inheritance-vc-Constexpr-Array-17", "Inheritance-vc-Constexpr-Array-17">();
-	runForLengthSerialize<18, "Inheritance-vc-Constexpr-Array-18", "Inheritance-vc-Constexpr-Array-18">();
-	runForLengthSerialize<19, "Inheritance-vc-Constexpr-Array-19", "Inheritance-vc-Constexpr-Array-19">();
-	runForLengthSerialize<20, "Inheritance-vc-Constexpr-Array-20", "Inheritance-vc-Constexpr-Array-20">();
-	runForLengthSerialize<21, "Inheritance-vc-Constexpr-Array-21", "Inheritance-vc-Constexpr-Array-21">();
-	runForLengthSerialize<22, "Inheritance-vc-Constexpr-Array-22", "Inheritance-vc-Constexpr-Array-22">();
-	runForLengthSerialize<23, "Inheritance-vc-Constexpr-Array-23", "Inheritance-vc-Constexpr-Array-23">();
-	runForLengthSerialize<24, "Inheritance-vc-Constexpr-Array-24", "Inheritance-vc-Constexpr-Array-24">();
-	runForLengthSerialize<25, "Inheritance-vc-Constexpr-Array-25", "Inheritance-vc-Constexpr-Array-25">();
-	runForLengthSerialize<26, "Inheritance-vc-Constexpr-Array-26", "Inheritance-vc-Constexpr-Array-26">();
-	runForLengthSerialize<27, "Inheritance-vc-Constexpr-Array-27", "Inheritance-vc-Constexpr-Array-27">();
-	runForLengthSerialize<28, "Inheritance-vc-Constexpr-Array-28", "Inheritance-vc-Constexpr-Array-28">();
-	runForLengthSerialize<29, "Inheritance-vc-Constexpr-Array-29", "Inheritance-vc-Constexpr-Array-29">();
-	runForLengthSerialize<30, "Inheritance-vc-Constexpr-Array-30", "Inheritance-vc-Constexpr-Array-30">();
-	runForLengthSerialize<31, "Inheritance-vc-Constexpr-Array-31", "Inheritance-vc-Constexpr-Array-31">();
-	runForLengthSerialize<32, "Inheritance-vc-Constexpr-Array-32", "Inheritance-vc-Constexpr-Array-32">();
-
+	runForLengthSerialize<1, "Old-FastFloat-vs-New-FastFloat-1", "Old-FastFloat-vs-New-FastFloat-1">();
+	runForLengthSerialize<2, "Old-FastFloat-vs-New-FastFloat-2", "Old-FastFloat-vs-New-FastFloat-2">();
+	runForLengthSerialize<4, "Old-FastFloat-vs-New-FastFloat-4", "Old-FastFloat-vs-New-FastFloat-4">();
+	runForLengthSerialize<8, "Old-FastFloat-vs-New-FastFloat-8", "Old-FastFloat-vs-New-FastFloat-8">();
+	runForLengthSerialize<16, "Old-FastFloat-vs-New-FastFloat-16", "Old-FastFloat-vs-New-FastFloat-16">();
+	runForLengthSerialize<32, "Old-FastFloat-vs-New-FastFloat-32", "Old-FastFloat-vs-New-FastFloat-32">();
 	return 0;
 }

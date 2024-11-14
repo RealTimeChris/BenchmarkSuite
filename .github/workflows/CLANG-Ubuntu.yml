@@ -5,8 +5,8 @@ on:
   push:
     branches:
     - main
-    - index_processor_test
-    - index_processor_test
+    - NewStrToD
+    - NewStrToD
 
 jobs:
   Build:

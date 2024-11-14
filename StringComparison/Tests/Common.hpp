@@ -144,7 +144,12 @@ struct test_generator {
 	}
 
 	template<jsonifier::concepts::float_t value_type> static value_type generateValue(size_t size = 1) {
-		return randomizeNumberUniform(std::numeric_limits<double>::min(), std::numeric_limits<double>::max());
+		static constexpr double min = std::numeric_limits<double>::min();
+		static constexpr double max = std::numeric_limits<double>::max();
+		std::uniform_real_distribution<double> dis(log(min), log(max));
+		double logValue = dis(gen);
+		bool negative{ generateValue<bool>() };
+		return negative ? -std::exp(logValue) : std::exp(logValue);
 	};
 
 	template<jsonifier::concepts::bool_t value_type> static value_type generateValue(size_t size = 1) {
