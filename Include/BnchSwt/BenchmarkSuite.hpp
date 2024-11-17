@@ -518,11 +518,15 @@ namespace bnch_swt {
 					return lhs.totalCycles > rhs.totalCycles;
 				});
 
-				double totalPercentage = (resultCycles.front().totalCycles - resultCycles.back().totalCycles) / resultCycles.back().totalCycles;
-				totalPercentage *= 100.0;
 
-				std::cout << "Library: " << resultCycles.back().libraryName << " is faster by roughly: " << totalPercentage << "%"
-						  << ", for benchmark stage: " << stageName << std::endl;
+				for (size_t x = resultCycles.size(); x > 1; --x) {
+					double totalPercentage =
+						((resultCycles.data() + x - 2)->totalCycles - ((resultCycles.data() + x - 1)->totalCycles)) / (resultCycles.data() + x - 1)->totalCycles;
+					totalPercentage *= 100.0;
+					std::cout << "Library: " << (resultCycles.data() + x - 1)->libraryName << " is faster than " << (resultCycles.data() + x - 2)->libraryName
+							  << " by roughly: " << totalPercentage << " % "
+							  << ", for benchmark stage: " << stageName << std::endl;
+				}
 			} else {
 				std::cout << "Not enough data to compare library performance." << std::endl;
 			}
@@ -569,7 +573,7 @@ namespace bnch_swt {
 				return benchmarkSubject.executeEpoch(std::forward<arg_types>(args)...);
 			};
 			size_t currentExecutionCount{};
-			while (currentExecutionCount < options.maxExecutionCount ) {
+			while (currentExecutionCount < options.maxExecutionCount) {
 				++currentExecutionCount;
 				benchmark_result_final resultsNew = executionLambda();
 				resultsNew.benchmarkName		  = static_cast<std::string>(benchmarkName.view());

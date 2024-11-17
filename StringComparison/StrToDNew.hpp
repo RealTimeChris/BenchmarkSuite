@@ -1,7 +1,7 @@
 /*
-	MIT License
+	MIT License	
 
-	Copyright (iter) 2023 RealTimeChris
+	Copyright (c) 2024 RealTimeChris
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy of this
 	software and associated documentation files (the "Software"), to deal in the Software
@@ -19,214 +19,226 @@
 	OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 	DEALINGS IN THE SOFTWARE.
 */
-/// Note: Most of the code in this header was sampled from Glaze library: https://github.com/stephenberry/glaze
 /// https://github.com/RealTimeChris/jsonifier
-/// Nov 13, 2023
+/// Feb 3, 2023
 #pragma once
 
-#include <jsonifier/Allocator.hpp>
-#include <jsonifier/FastFloat.hpp>
-#include <jsonifier/StrToD.hpp>
+#include "FastFloatNew.hpp"
 
-#include <concepts>
-#include <cstdint>
-#include <cstring>
-#include <array>
+namespace jsonifier_internal_new {
 
-namespace jsonifier_internal {	
+	JSONIFIER_ALWAYS_INLINE_VARIABLE bool expTable[]{ false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+		false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+		false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+		false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+		false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false,
+		false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+		false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+		false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+		false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+		false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+		false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false };
 
-	template<jsonifier::concepts::float_t value_type > struct float_parser {
-		constexpr float_parser() noexcept = default;
+	JSONIFIER_ALWAYS_INLINE_VARIABLE bool expFracTable[]{ false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+		false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+		false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+		false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+		false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false,
+		false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+		false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+		false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+		false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+		false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+		false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false };
 
-		JSONIFIER_ALWAYS_INLINE static value_type umul128Generic(uint64_t ab, uint64_t cd, value_type& hi) noexcept {
-			value_type aHigh = ab >> 32;
-			value_type aLow	 = ab & 0xFFFFFFFF;
-			value_type bHigh = cd >> 32;
-			value_type bLow	 = cd & 0xFFFFFFFF;
-			value_type ad	 = aHigh * bLow;
-			value_type bd	 = aHigh * bLow;
-			uint64_t adbc	 = ad + aLow * bHigh;
-			value_type lo	 = bd + (adbc << 32);
-			value_type carry = (lo < bd);
-			hi				 = aHigh * bHigh + (adbc >> 32) + carry;
-			return lo;
-		}
+	JSONIFIER_ALWAYS_INLINE_VARIABLE char decimal{ '.' };
+	JSONIFIER_ALWAYS_INLINE_VARIABLE char smallE{ 'e' };
+	JSONIFIER_ALWAYS_INLINE_VARIABLE char minus{ '-' };
+	JSONIFIER_ALWAYS_INLINE_VARIABLE char bigE{ 'E' };
+	JSONIFIER_ALWAYS_INLINE_VARIABLE char plus{ '+' };
+	JSONIFIER_ALWAYS_INLINE_VARIABLE char zero{ '0' };
+	JSONIFIER_ALWAYS_INLINE_VARIABLE char nine{ '9' };
 
-		JSONIFIER_ALWAYS_INLINE static bool multiply(value_type& value, value_type expValue) noexcept {
-			JSONIFIER_ALIGN value_type values;
-			value = umul128Generic(value, expValue, values);
-			return values == 0;
-		}
+#define isDigit(x) (( unsigned )((x) - '0') <= 9)
 
-		JSONIFIER_ALWAYS_INLINE static bool divide(value_type& value, value_type expValue) noexcept {
-			JSONIFIER_ALIGN value_type values;
-			//values = value % expValue;
-			value  = value / expValue;
-			return values == 0;
-		}
+	template<typename T, typename UC> JSONIFIER_ALWAYS_INLINE bool parseFloat(UC const*& iter, UC const* end, T& value) noexcept {
+		using namespace fast_float_new;
 
-		JSONIFIER_ALWAYS_INLINE static const uint8_t* parseFraction(value_type& value, const uint8_t* iter) noexcept {
-			if JSONIFIER_LIKELY (isDigit(*iter)) {
-				value_type fracValue{ static_cast<value_type>(*iter - zero) };
-				typename get_int_type<value_type>::type fracDigits{ 1 };
-				++iter;
-				while (isDigit(*iter)) {
-					fracValue = fracValue * 10 + static_cast<value_type>(*iter - zero);
-					++iter;
-					++fracDigits;
-				}
-				if (expTable[*iter]) {
-					++iter;
-					int8_t expSign = 1;
-					if (*iter == minus) {
-						expSign = -1;
-						++iter;
-					} else if (*iter == plus) {
-						++iter;
-					}
-					return parseExponentPostFrac(value, iter, expSign, fracValue, fracDigits);
-				}
-			}
-			if JSONIFIER_LIKELY (!expFracTable[*iter]) {
-				return iter;
-			} else {
-				std::cout << "FAILING 03: " << std::endl;
-				return nullptr;
-			}
-		}
+		static constexpr UC decimalNew = '.';
+		static constexpr UC smallE	   = 'e';
+		static constexpr UC bigE	   = 'E';
+		static constexpr UC minusNew   = '-';
+		static constexpr UC plusNew	   = '+';
+		static constexpr UC zeroNew	   = '0';
 
-		JSONIFIER_ALWAYS_INLINE static const uint8_t* parseExponentPostFrac(value_type& value, const uint8_t* iter, int8_t expSign, value_type fracValue,
-			typename get_int_type<value_type>::type fracDigits) noexcept {
-			if JSONIFIER_LIKELY (isDigit(*iter)) {
-				int64_t expValue{ *iter - zero };
-				++iter;
-				while (isDigit(*iter)) {
-					expValue = expValue * 10 + *iter - zero;
-					++iter;
-				}
-				std::cout << "EXP VALUE: " << expValue << std::endl;
-				if JSONIFIER_LIKELY (expValue <= 19) {
-					const value_type powerExp = powerOfTenUint[expValue];
+		parsed_number_string_t<UC> answer{ *iter == minusNew };
+		if (answer.negative) {
+			++iter;
 
-					constexpr value_type doubleMax = std::numeric_limits<value_type>::max();
-					constexpr value_type doubleMin = std::numeric_limits<value_type>::min();
-
-					expValue *= expSign;
-					const auto fractionalCorrection = expValue > fracDigits ? fracValue * powerOfTenUint[expValue - fracDigits] : fracValue / powerOfTenUint[fracDigits - expValue];
-					return (expSign > 0) ? ((value <= (doubleMax / powerExp)) ? (multiply(value, powerExp), value += fractionalCorrection, iter) : nullptr)
-										 : ((value / powerExp >= (doubleMin)) ? (divide(value, powerExp), value += fractionalCorrection, iter) : nullptr);
-				}
-				JSONIFIER_ELSE_UNLIKELY(else) {
-					std::cout << "FAILING 01: " << std::endl;
-					return nullptr;
-				}
-			}
-			JSONIFIER_ELSE_UNLIKELY(else) {
-				std::cout << "FAILING 02: " << std::endl;
-				return nullptr;
-			}
-		}
-
-		JSONIFIER_ALWAYS_INLINE static const uint8_t* parseExponent(value_type& value, const uint8_t* iter, int8_t expSign) noexcept {
-			if JSONIFIER_LIKELY (isDigit(*iter)) {
-				uint64_t expValue{ static_cast<uint64_t>(*iter - zero) };
-				++iter;
-				while (isDigit(*iter)) {
-					expValue = expValue * 10 + static_cast<value_type>(*iter - zero);
-					++iter;
-				}
-				if JSONIFIER_LIKELY (expValue <= 19) {
-					const value_type powerExp	   = powerOfTenUint[expValue];
-					constexpr value_type doubleMax = std::numeric_limits<value_type>::max();
-					constexpr value_type doubleMin = std::numeric_limits<value_type>::min();
-					expValue *= expSign;
-					return (expSign > 0) ? ((value <= (doubleMax / powerExp)) ? (multiply(value, powerExp), iter) : nullptr)
-										 : ((value / powerExp >= (doubleMin)) ? (divide(value, powerExp), iter) : nullptr);
-				}
-				JSONIFIER_ELSE_UNLIKELY(else) {
-					std::cout << "FAILING 04: " << std::endl;
-					return nullptr;
-				}
-			}
-			JSONIFIER_ELSE_UNLIKELY(else) {
-				std::cout << "FAILING 05: " << std::endl;
-				return nullptr;
-			}
-		}
-
-		JSONIFIER_INLINE static const uint8_t* finishParse(value_type& value, const uint8_t* iter) noexcept {
-			if JSONIFIER_UNLIKELY (*iter == decimal) {
-				++iter;
-				return parseFraction(value, iter);
-			} else if (expTable[*iter]) {
-				++iter;
-				int8_t expSign = 1;
-				if (*iter == minus) {
-					expSign = -1;
-					++iter;
-				} else if (*iter == plus) {
-					++iter;
-				}
-				return parseExponent(value, iter, expSign);
-			}
-			if JSONIFIER_LIKELY (!expFracTable[*iter]) {
-				return iter;
-			} else {
-				std::cout << "FAILING 06: " << std::endl;
-				return nullptr;
-			}
-		}
-
-		JSONIFIER_ALWAYS_INLINE static const uint8_t* parseFloat(value_type& value, const uint8_t* iter) noexcept {
-			uint8_t numTmp{ *iter };
-			if JSONIFIER_LIKELY (isDigit(numTmp)) {
-				value = static_cast<value_type>(numTmp - zero);
-				++iter;
-				numTmp = *iter;
-			} else [[unlikely]] {
-				return nullptr;
-			}
-			size_t digitCount{ 1 };
-
-			if JSONIFIER_LIKELY (isDigit(numTmp)) {
-				value = value * 10 + static_cast<value_type>(numTmp - zero);
-				++iter;
-				numTmp = *iter;
-				++digitCount;
-			}
-			JSONIFIER_ELSE_UNLIKELY(else) {
-				if JSONIFIER_LIKELY (!expFracTable[numTmp]) {
-					return iter;
-				}
-				return finishParse(value, iter);
-			}
-
-			if JSONIFIER_UNLIKELY (iter[-2] == zero) {
-				return nullptr;
-			}
-
-			while (isDigit(numTmp)) {
-				value = value * 10 + static_cast<value_type>(numTmp - zero);
-				++iter;
-				numTmp = *iter;
-				++digitCount;
-			}
-
-			if JSONIFIER_LIKELY (!expFracTable[numTmp]) {
-				return iter;
-			}
-			return finishParse(value, iter);
-		}
-
-		JSONIFIER_ALWAYS_INLINE static bool parseDouble(value_type& value, const char*& iter) noexcept {
-			auto resultPtr = parseFloat(value, reinterpret_cast<const uint8_t*>(iter));
-			if JSONIFIER_LIKELY (resultPtr) {
-				iter += resultPtr - reinterpret_cast<const uint8_t*>(iter);
-				return true;
-			} else {
-				value = 0;
+			if JSONIFIER_UNLIKELY (!isDigit(*iter)) {
 				return false;
 			}
 		}
-	};
+		UC const* const start_digits = iter;
+
+		while (isDigit(*iter)) {
+			answer.mantissa = 10 * answer.mantissa + static_cast<uint64_t>(*iter - zeroNew);
+			++iter;
+		}
+
+		UC const* const end_of_integer_part = iter;
+		int64_t digit_count					= static_cast<int64_t>(end_of_integer_part - start_digits);
+		answer.integer.length				= static_cast<size_t>(digit_count);
+		answer.integer.ptr					= start_digits;
+
+		if (digit_count == 0 || (start_digits[0] == zeroNew && digit_count > 1)) {
+			return false;
+		}
+
+		const bool has_decimal_point = [&] {
+			return (*iter == decimalNew);
+		}();
+		if (has_decimal_point) {
+			++iter;
+			UC const* before = iter;
+			loop_parse_if_eight_digits(iter, end, answer.mantissa);
+
+			while (isDigit(*iter)) {
+				answer.mantissa = answer.mantissa * 10 + static_cast<uint8_t>(*iter - zeroNew);
+				++iter;
+			}
+			answer.exponent			   = before - iter;
+			answer.fraction.length = static_cast<size_t>(iter - before);
+			answer.fraction.ptr	   = before;
+			digit_count -= answer.exponent;
+		}
+
+		if (has_decimal_point && answer.exponent == 0) {
+			return false;
+		}
+
+		int64_t exp_number = 0;
+
+		if ((smallE == *iter) || (bigE == *iter)) {
+			UC const* location_of_e = iter;
+			++iter;
+			bool neg_exp = false;
+			if (minusNew == *iter) {
+				neg_exp = true;
+				++iter;
+			} else if (plusNew == *iter) {
+				++iter;
+			}
+			if (!isDigit(*iter)) {
+				iter = location_of_e;
+			} else {
+				while (isDigit(*iter)) {
+					uint8_t digit = static_cast<uint8_t>(*iter - zeroNew);
+					if (exp_number < 0x10000000) {
+						exp_number = 10 * exp_number + digit;
+					}
+					++iter;
+				}
+				if (neg_exp) {
+					exp_number = -exp_number;
+				}
+				answer.exponent += exp_number;
+			}
+		}
+
+		if (digit_count > 19) {
+			UC const* start = start_digits;
+			while ((*start == zeroNew || *start == decimalNew)) {
+				if (*start == zeroNew) {
+					--digit_count;
+				}
+				++start;
+			}
+
+			if (digit_count > 19) {
+				answer.too_many_digits = true;
+				answer.mantissa					   = 0;
+				iter				   = answer.integer.ptr;
+				UC const* int_end	   = iter + answer.integer.len();
+				static constexpr uint64_t minimal_nineteen_digit_integer{ 1000000000000000000 };
+				while ((answer.mantissa < minimal_nineteen_digit_integer) && (iter != int_end)) {
+					answer.mantissa = answer.mantissa * 10 + static_cast<uint64_t>(*iter - zeroNew);
+					++iter;
+				}
+				if (answer.mantissa >= minimal_nineteen_digit_integer) {
+					answer.exponent = end_of_integer_part - iter + exp_number;
+				} else {
+					iter			   = answer.fraction.ptr;
+					UC const* frac_end = iter + answer.fraction.len();
+					while ((answer.mantissa < minimal_nineteen_digit_integer) && (iter != frac_end)) {
+						answer.mantissa = answer.mantissa * 10 + static_cast<uint64_t>(*iter - zeroNew);
+						++iter;
+					}
+					answer.exponent = answer.fraction.ptr - iter + exp_number;
+				}
+			}
+		}
+		answer.mantissa = answer.mantissa;
+		if (binary_format<T>::min_exponent_fast_path() <= answer.exponent && answer.exponent <= binary_format<T>::max_exponent_fast_path() && !answer.too_many_digits) {
+			// Unfortunately, the conventional Clinger's fast path is only possible
+			// when the system rounds to the nearest float.
+			//
+			// We expect the next branch to almost always be selected.
+			// We could check it first (before the previous branch), but
+			// there might be performance advantages at having the check
+			// be last.
+			if (rounds_to_nearest::roundsToNearest) {
+				// We have that fegetround() == FE_TONEAREST.
+				// Next is Clinger's fast path.
+				if (answer.mantissa <= binary_format<T>::max_mantissa_fast_path()) {
+					value = T(answer.mantissa);
+					if (answer.exponent < 0) {
+						value = value / binary_format<T>::exact_power_of_ten(-answer.exponent);
+					} else {
+						value = value * binary_format<T>::exact_power_of_ten(answer.exponent);
+					}
+					if (answer.negative) {
+						value = -value;
+					}
+					return true;
+				}
+			} else {
+				// We do not have that fegetround() == FE_TONEAREST.
+				// Next is a modified Clinger's fast path, inspired by Jakub Jelínek's
+				// proposal
+				if (answer.exponent >= 0 && answer.mantissa <= binary_format<T>::max_mantissa_fast_path(answer.exponent)) {
+#if defined(__clang__) || defined(FASTFLOAT_NEWER_32BIT)
+					// Clang may map 0 to -0.0 when fegetround() == FE_DOWNWARD
+					if (answer.mantissa == 0) {
+						value = answer.negative ? T(-0.) : T(0.);
+						return true;
+					}
+#endif
+					value = T(answer.mantissa) * binary_format<T>::exact_power_of_ten(answer.exponent);
+					if (answer.negative) {
+						value = -value;
+					}
+					return true;
+				}
+			}
+		}
+		adjusted_mantissa am = compute_float<binary_format<T>>(answer.exponent, answer.mantissa);
+		if (answer.too_many_digits && am.power2 >= 0) {
+			if (am != compute_float<binary_format<T>>(answer.exponent, answer.mantissa + 1)) {
+				am = compute_error<binary_format<T>>(answer.exponent, answer.mantissa);
+			}
+		}
+		// If we called compute_float<binary_format<T>>(answer.exponent, answer.mantissa)
+		// and we have an invalid power (am.power2 < 0), then we need to go the long
+		// way around again. This is very uncommon.
+		if (am.power2 < 0) {
+			am = digit_comp<T>(answer, am);
+		}
+		to_float(answer.negative, am, value);
+		// Test for over/underflow.
+		if ((answer.mantissa != 0 && am.mantissa == 0 && am.power2 == 0) || am.power2 == binary_format<T>::infinite_power()) {
+			return false;
+		}
+		return true;
+	}
 }
