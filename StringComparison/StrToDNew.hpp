@@ -72,6 +72,7 @@ namespace jsonifier_internal_new {
 		static constexpr UC zeroNew	   = '0';
 
 		parsed_number_string_t<UC> answer{ *iter == minusNew };
+		uint64_t digit;
 		if (answer.negative) {
 			++iter;
 
@@ -82,12 +83,12 @@ namespace jsonifier_internal_new {
 		UC const* const start_digits = iter;
 
 		while (isDigit(*iter)) {
-			answer.mantissa = 10 * answer.mantissa + static_cast<uint64_t>(*iter - zeroNew);
+			digit = static_cast<uint64_t>(*iter - zeroNew);
 			++iter;
+			answer.mantissa = 10 * answer.mantissa + digit;
 		}
 
-		UC const* const end_of_integer_part = iter;
-		int64_t digit_count					= static_cast<int64_t>(end_of_integer_part - start_digits);
+		int64_t digit_count					= static_cast<int64_t>(iter - start_digits);
 		answer.integer.length				= static_cast<size_t>(digit_count);
 		answer.integer.ptr					= start_digits;
 
@@ -95,31 +96,29 @@ namespace jsonifier_internal_new {
 			return false;
 		}
 
-		const bool has_decimal_point = [&] {
-			return (*iter == decimalNew);
-		}();
-		if (has_decimal_point) {
+		if (*iter == decimalNew) {
 			++iter;
 			UC const* before = iter;
 			loop_parse_if_eight_digits(iter, end, answer.mantissa);
 
 			while (isDigit(*iter)) {
-				answer.mantissa = answer.mantissa * 10 + static_cast<uint8_t>(*iter - zeroNew);
+				digit = static_cast<uint8_t>(*iter - zeroNew);
 				++iter;
+				answer.mantissa = answer.mantissa * 10 + digit;
 			}
 			answer.exponent			   = before - iter;
 			answer.fraction.length = static_cast<size_t>(iter - before);
 			answer.fraction.ptr	   = before;
 			digit_count -= answer.exponent;
-		}
 
-		if (has_decimal_point && answer.exponent == 0) {
-			return false;
+			if (answer.exponent == 0) {
+				return false;
+			}
 		}
 
 		int64_t exp_number = 0;
 
-		if ((smallE == *iter) || (bigE == *iter)) {
+		if (expTable[*iter]) {
 			UC const* location_of_e = iter;
 			++iter;
 			bool neg_exp = false;
@@ -133,7 +132,7 @@ namespace jsonifier_internal_new {
 				iter = location_of_e;
 			} else {
 				while (isDigit(*iter)) {
-					uint8_t digit = static_cast<uint8_t>(*iter - zeroNew);
+					digit = static_cast<uint8_t>(*iter - zeroNew);
 					if (exp_number < 0x10000000) {
 						exp_number = 10 * exp_number + digit;
 					}
@@ -166,7 +165,7 @@ namespace jsonifier_internal_new {
 					++iter;
 				}
 				if (answer.mantissa >= minimal_nineteen_digit_integer) {
-					answer.exponent = end_of_integer_part - iter + exp_number;
+					answer.exponent = int_end - iter + exp_number;
 				} else {
 					iter			   = answer.fraction.ptr;
 					UC const* frac_end = iter + answer.fraction.len();
@@ -178,18 +177,8 @@ namespace jsonifier_internal_new {
 				}
 			}
 		}
-		answer.mantissa = answer.mantissa;
 		if (binary_format<T>::min_exponent_fast_path() <= answer.exponent && answer.exponent <= binary_format<T>::max_exponent_fast_path() && !answer.too_many_digits) {
-			// Unfortunately, the conventional Clinger's fast path is only possible
-			// when the system rounds to the nearest float.
-			//
-			// We expect the next branch to almost always be selected.
-			// We could check it first (before the previous branch), but
-			// there might be performance advantages at having the check
-			// be last.
 			if (rounds_to_nearest::roundsToNearest) {
-				// We have that fegetround() == FE_TONEAREST.
-				// Next is Clinger's fast path.
 				if (answer.mantissa <= binary_format<T>::max_mantissa_fast_path()) {
 					value = T(answer.mantissa);
 					if (answer.exponent < 0) {
@@ -203,12 +192,8 @@ namespace jsonifier_internal_new {
 					return true;
 				}
 			} else {
-				// We do not have that fegetround() == FE_TONEAREST.
-				// Next is a modified Clinger's fast path, inspired by Jakub Jelínek's
-				// proposal
 				if (answer.exponent >= 0 && answer.mantissa <= binary_format<T>::max_mantissa_fast_path(answer.exponent)) {
 #if defined(__clang__) || defined(FASTFLOAT_NEWER_32BIT)
-					// Clang may map 0 to -0.0 when fegetround() == FE_DOWNWARD
 					if (answer.mantissa == 0) {
 						value = answer.negative ? T(-0.) : T(0.);
 						return true;
@@ -228,14 +213,10 @@ namespace jsonifier_internal_new {
 				am = compute_error<binary_format<T>>(answer.exponent, answer.mantissa);
 			}
 		}
-		// If we called compute_float<binary_format<T>>(answer.exponent, answer.mantissa)
-		// and we have an invalid power (am.power2 < 0), then we need to go the long
-		// way around again. This is very uncommon.
 		if (am.power2 < 0) {
 			am = digit_comp<T>(answer, am);
 		}
 		to_float(answer.negative, am, value);
-		// Test for over/underflow.
 		if ((answer.mantissa != 0 && am.mantissa == 0 && am.power2 == 0) || am.power2 == binary_format<T>::infinite_power()) {
 			return false;
 		}

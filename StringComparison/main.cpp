@@ -156,7 +156,25 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::printResults();
 }
 
+consteval auto newFunction(int32_t newValue) {
+	return newValue;
+}
+
+struct test_struct01 {
+	test_struct01() {
+		std::cout << "WERE BEING CONSTRUCTED: " << value << std::endl;
+	}
+	int32_t value;
+};
+
+struct test_struct02 {
+	test_struct01 value;
+};
+
 int main() {
+	test_struct02 valeNew;
+	constexpr int32_t newerValue{ 23 };
+	auto newValue = newFunction(newerValue);
 	runForLengthSerialize<1, "Old-FastFloat-vs-New-FastFloat-1", "Old-FastFloat-vs-New-FastFloat-1">();
 	runForLengthSerialize<2, "Old-FastFloat-vs-New-FastFloat-2", "Old-FastFloat-vs-New-FastFloat-2">();
 	runForLengthSerialize<4, "Old-FastFloat-vs-New-FastFloat-4", "Old-FastFloat-vs-New-FastFloat-4">();
