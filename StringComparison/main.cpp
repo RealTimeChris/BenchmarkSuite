@@ -144,11 +144,11 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "glz-from_chars", "dodgerblue">(
 		[&]() mutable {
+			double newDouble;
 			for (size_t x = 0; x < 10; ++x) {
 				for (size_t y = 0; y < maxIndex; ++y) {
 					const auto* iter = newDoubles[y].data();
 					const auto* end	 = newDoubles[y].data() + newDoubles[y].size();
-					double newDouble{};
 					glz::from_chars<true>(iter, end, newDouble);
 					newerDoubles02[y] = newDouble;
 					bnch_swt::doNotOptimizeAway(newDouble);
@@ -158,11 +158,11 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "old-parseFloat", "dodgerblue">(
 		[&]() mutable {
+			double newDouble;
 			for (size_t x = 0; x < 10; ++x) {
 				for (size_t y = 0; y < maxIndex; ++y) {
 					const auto* iter = newDoubles[y].data();
 					const auto* end	 = newDoubles[y].data() + newDoubles[y].size();
-					double newDouble{};
 					jsonifier_internal_old::parseFloat(iter, end, newDouble);
 					newerDoubles01[y] = newDouble;
 					bnch_swt::doNotOptimizeAway(newDouble);
@@ -172,11 +172,11 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "orginal-fastfloat", "dodgerblue">(
 		[&]() mutable {
+			double newDouble;
 			for (size_t x = 0; x < 10; ++x) {
 				for (size_t y = 0; y < maxIndex; ++y) {
 					const auto* iter = newDoubles[y].data();
 					const auto* end	 = newDoubles[y].data() + newDoubles[y].size();
-					double newDouble{};
 					fast_float::from_chars_advanced(iter, end, newDouble, fast_float::parse_options_t<char>{});
 					newerDoubles01[y] = newDouble;
 					bnch_swt::doNotOptimizeAway(newDouble);
@@ -186,12 +186,11 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "new-parseFloat", "dodgerblue">(
 		[&]() mutable {
+			double newDouble;
 			for (size_t x = 0; x < 10; ++x) {
 				for (size_t y = 0; y < maxIndex; ++y) {
 					const auto* iter = newDoubles[y].data();
-					const auto* end	 = newDoubles[y].data() + newDoubles[y].size();
-					double newDouble{};
-					jsonifier_internal_new::parseFloat(iter, end, newDouble);
+					jsonifier_internal_new::parseFloat(iter, newDouble);
 					newerDoubles03[y] = newDouble;
 					bnch_swt::doNotOptimizeAway(newDouble);
 				}
@@ -199,7 +198,7 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 		});
 
 	for (size_t x = 0; x < maxIndex; ++x) {
-		if (newerDoubles03[x] != newerDoubles03[x]) {
+		if (newerDoubles03[x] != newerDoubles01[x]) {
 			std::cout << "FAILED TO PARSE AT INDEX: " << x << std::endl;
 			std::cout << "Input Value: " << newDoubles[x] << std::endl;
 			std::cout << "Intended Value: " << newerDoubles01[x] << std::endl;
@@ -212,6 +211,11 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 }
 
 int main() {
+	std::string newString{ "3423424" };
+	const auto* iter = newString.data();
+	const auto* end	 = newString.data() + newString.size();
+	double newDouble{};
+	std::cout << "CURRENT VALUE: " << FASTFLOAT_NEWER_64BIT << ", VALUE: " << newDouble << std::endl;
 	runForLengthSerialize<1, "Old-FastFloat-vs-New-FastFloat-1", "Old-FastFloat-vs-New-FastFloat-1">();
 	runForLengthSerialize<2, "Old-FastFloat-vs-New-FastFloat-2", "Old-FastFloat-vs-New-FastFloat-2">();
 	runForLengthSerialize<4, "Old-FastFloat-vs-New-FastFloat-4", "Old-FastFloat-vs-New-FastFloat-4">();

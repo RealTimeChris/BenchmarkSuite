@@ -205,7 +205,7 @@
 			return false; \
 	}
 
-#define FASTFLOAT_NEWER_ENABLE_IF(...) typename std::enable_if<(__VA_ARGS__), int>::type
+#define FASTFLOAT_NEWER_ENABLE_IF(...) typename std::enable_if<(__VA_ARGS__), int32_t>::type
 
 namespace fast_float_new {
 
@@ -221,7 +221,6 @@ namespace fast_float_new {
 		}
 		JSONIFIER_ALWAYS_INLINE constexpr span() : ptr(nullptr), length(0) {
 		}
-
 	};
 
 	struct value128 {
@@ -292,7 +291,7 @@ namespace fast_float_new {
 	};
 
 	// Bias so we can get the real exponent with an invalid adjusted_mantissa.
-	constexpr static int32_t invalid_am_bias = -0x8000;
+	static constexpr int32_t invalid_am_bias = -0x8000;
 
 	// used for binary_format_lookup_tables<value_type>::max_mantissa
 	constexpr uint64_t constant_55555 = 5 * 5 * 5 * 5 * 5;
@@ -303,17 +302,17 @@ namespace fast_float_new {
 		using equiv_uint = typename std::conditional<sizeof(value_type) == 4, uint32_t, uint64_t>::type;
 
 		// Static constexpr values
-		static constexpr int mantissa_explicit_bits			   = (sizeof(value_type) == 4) ? 23 : 52;
-		static constexpr int minimum_exponent				   = (sizeof(value_type) == 4) ? -127 : -1023;
-		static constexpr int infinite_power					   = (sizeof(value_type) == 4) ? 0xFF : 0x7FF;
-		static constexpr int sign_index						   = (sizeof(value_type) == 4) ? 31 : 63;
-		static constexpr int min_exponent_fast_path			   = (sizeof(value_type) == 4) ? -10 : -22;
-		static constexpr int max_exponent_fast_path			   = (sizeof(value_type) == 4) ? 10 : 22;
-		static constexpr int max_exponent_round_to_even		   = (sizeof(value_type) == 4) ? 10 : 23;
-		static constexpr int min_exponent_round_to_even		   = (sizeof(value_type) == 4) ? -17 : -4;
+		static constexpr int32_t mantissa_explicit_bits		   = (sizeof(value_type) == 4) ? 23 : 52;
+		static constexpr int32_t minimum_exponent			   = (sizeof(value_type) == 4) ? -127 : -1023;
+		static constexpr int32_t infinite_power				   = (sizeof(value_type) == 4) ? 0xFF : 0x7FF;
+		static constexpr int32_t sign_index					   = (sizeof(value_type) == 4) ? 31 : 63;
+		static constexpr int32_t min_exponent_fast_path		   = (sizeof(value_type) == 4) ? -10 : -22;
+		static constexpr int32_t max_exponent_fast_path		   = (sizeof(value_type) == 4) ? 10 : 22;
+		static constexpr int32_t max_exponent_round_to_even	   = (sizeof(value_type) == 4) ? 10 : 23;
+		static constexpr int32_t min_exponent_round_to_even	   = (sizeof(value_type) == 4) ? -17 : -4;
 		static constexpr uint64_t max_mantissa_fast_path_value = uint64_t(2) << mantissa_explicit_bits;
-		static constexpr int largest_power_of_ten			   = (sizeof(value_type) == 4) ? 38 : 308;
-		static constexpr int smallest_power_of_ten			   = (sizeof(value_type) == 4) ? -64 : -342;
+		static constexpr int32_t largest_power_of_ten		   = (sizeof(value_type) == 4) ? 38 : 308;
+		static constexpr int32_t smallest_power_of_ten		   = (sizeof(value_type) == 4) ? -64 : -342;
 		static constexpr size_t max_digits					   = (sizeof(value_type) == 4) ? 114 : 769;
 		static constexpr equiv_uint exponent_mask			   = (sizeof(value_type) == 4) ? 0x7F800000 : 0x7FF0000000000000;
 		static constexpr equiv_uint mantissa_mask			   = (sizeof(value_type) == 4) ? 0x007FFFFF : 0x000FFFFFFFFFFFFF;
@@ -385,7 +384,7 @@ namespace fast_float_new {
 	template<typename char_t> static constexpr uint64_t int_cmp_zeros{ (sizeof(char_t) == 1) ? 0x3030303030303030
 			: (sizeof(char_t) == 2) ? (uint64_t(char_t('0')) << 48 | uint64_t(char_t('0')) << 32 | uint64_t(char_t('0')) << 16 | char_t('0'))
 									: (uint64_t(char_t('0')) << 32 | char_t('0')) };
-	template<typename char_t> static constexpr int int_cmp_len{ sizeof(uint64_t) / sizeof(char_t) };
+	template<typename char_t> static constexpr int32_t int_cmp_len{ sizeof(uint64_t) / sizeof(char_t) };
 
 	template<typename = void> struct int_luts {
 		static constexpr uint8_t chdigit[] = { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
@@ -412,13 +411,13 @@ namespace fast_float_new {
 		return int_luts<>::chdigit[static_cast<unsigned char>(c)];
 	}
 
-	JSONIFIER_ALWAYS_INLINE constexpr size_t max_digits_u64(int base) {
+	JSONIFIER_ALWAYS_INLINE constexpr size_t max_digits_u64(int32_t base) {
 		return int_luts<>::maxdigits_u64[base - 2];
 	}
 
 	// If a u64 is exactly max_digits_u64() in length, this is
 	// the value below which it has definitely overflowed.
-	JSONIFIER_ALWAYS_INLINE constexpr uint64_t min_safe_u64(int base) {
+	JSONIFIER_ALWAYS_INLINE constexpr uint64_t min_safe_u64(int32_t base) {
 		return int_luts<>::min_safe_u64[base - 2];
 	}
 
@@ -445,7 +444,7 @@ namespace fast_float_new {
 	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr uint64_t read8_to_u64(const char_t* chars) {
 		if constexpr (!std::is_same<char_t, char>::value) {
 			uint64_t val = 0;
-			for (int i = 0; i < 8; ++i) {
+			for (int32_t i = 0; i < 8; ++i) {
 				val |= uint64_t(uint8_t(*chars)) << (i * 8);
 				++chars;
 			}
@@ -545,7 +544,7 @@ namespace fast_float_new {
 		const __m128i data = _mm_loadu_si128(reinterpret_cast<const __m128i*>(chars));
 
 		// (x - '0') <= 9
-		// http://0x80.pl/articles/simd-parsing-int-sequences.html
+		// http://0x80.pl/articles/simd-parsing-int32_t-sequences.html
 		const __m128i t0 = _mm_add_epi16(data, _mm_set1_epi16(32720));
 		const __m128i t1 = _mm_cmpgt_epi16(t0, _mm_set1_epi16(-32759));
 
@@ -560,7 +559,7 @@ namespace fast_float_new {
 		const uint16x8_t data = vld1q_u16(reinterpret_cast<const uint16_t*>(chars));
 
 		// (x - '0') <= 9
-		// http://0x80.pl/articles/simd-parsing-int-sequences.html
+		// http://0x80.pl/articles/simd-parsing-int32_t-sequences.html
 		const uint16x8_t t0	  = vsubq_u16(data, vmovq_n_u16('0'));
 		const uint16x8_t mask = vcltq_u16(t0, vmovq_n_u16('9' - '0' + 1));
 
@@ -632,12 +631,12 @@ namespace fast_float_new {
       * infinite in binary64 so we never need to worry about powers
       * of 5 greater than 308.
       */
-	template<class unused = void> struct powers_template {
-		constexpr static int smallest_power_of_five = binary_format<double>::smallest_power_of_ten;
-		constexpr static int largest_power_of_five	= binary_format<double>::largest_power_of_ten;
-		constexpr static int number_of_entries		= 2 * (largest_power_of_five - smallest_power_of_five + 1);
+	struct powers {
+		static constexpr int32_t smallest_power_of_five = binary_format<double>::smallest_power_of_ten;
+		static constexpr int32_t largest_power_of_five	= binary_format<double>::largest_power_of_ten;
+		static constexpr int32_t number_of_entries		= 2 * (largest_power_of_five - smallest_power_of_five + 1);
 		// Powers of five from 5^-342 all the way to 5^308 rounded toward one.
-		constexpr static uint64_t power_of_five_128[number_of_entries] = { 0xeef453d6923bd65a, 0x113faa2906a13b3f, 0x9558b4661b6565f8, 0x4ac7ca59a424c507, 0xbaaee17fa23ebf76,
+		static constexpr uint64_t power_of_five_128[number_of_entries] = { 0xeef453d6923bd65a, 0x113faa2906a13b3f, 0x9558b4661b6565f8, 0x4ac7ca59a424c507, 0xbaaee17fa23ebf76,
 			0x5d79bcf00d2df649, 0xe95a99df8ace6f53, 0xf4d82c2c107973dc, 0x91d8a02bb6c10594, 0x79071b9b8a4be869, 0xb64ec836a47146f9, 0x9748e2826cdee284, 0xe3e27a444d8d98b7,
 			0xfd1b1b2308169b25, 0x8e6d8c6ab0787f72, 0xfe30f0f5e50e20f7, 0xb208ef855c969f4f, 0xbdbd2d335e51a935, 0xde8b2b66b3bc4723, 0xad2c788035e61382, 0x8b16fb203055ac76,
 			0x4c3bcb5021afcc31, 0xaddcb9e83c6b1793, 0xdf4abe242a1bbf3d, 0xd953e8624b85dd78, 0xd71d6dad34a2af0d, 0x87d4713d6f33aa6b, 0x8672648c40e5ad68, 0xa9c98d8ccb009506,
@@ -800,15 +799,13 @@ namespace fast_float_new {
 			0xb6472e511c81471d, 0xe0133fe4adf8e952, 0xe3d8f9e563a198e5, 0x58180fddd97723a6, 0x8e679c2f5e44ff8f, 0x570f09eaa7ea7648 };
 	};
 
-	using powers = powers_template<>;
-
 	// This will compute or rather approximate w * 5**q and return a pair of 64-bit
 	// words approximating the result, with the "high" part corresponding to the
 	// most significant bits and the low part corresponding to the least significant
 	// bits.
 	//
-	template<int bit_precision> JSONIFIER_ALWAYS_INLINE constexpr value128 compute_product_approximation(int64_t q, uint64_t w) {
-		const int index = 2 * int(q - powers::smallest_power_of_five);
+	template<int32_t bit_precision> JSONIFIER_ALWAYS_INLINE constexpr value128 compute_product_approximation(int64_t q, uint64_t w) {
+		const int32_t index = 2 * int32_t(q - powers::smallest_power_of_five);
 		// For small values of q, e.g., q in [0,27], the answer is always exact
 		// because The line value128 firstproduct = full_multiplication(w,
 		// power_of_five_128[index]); gives the exact answer.
@@ -834,19 +831,19 @@ namespace fast_float_new {
 
 	// create an adjusted mantissa, biased by the invalid power2
 	// for significant digits already multiplied by 10 ** q.
-	template<typename binary> JSONIFIER_ALWAYS_INLINE constexpr adjusted_mantissa compute_error_scaled(int64_t q, uint64_t w, int lz) noexcept {
-		int hilz = int(w >> 63) ^ 1;
+	template<typename binary> JSONIFIER_ALWAYS_INLINE constexpr adjusted_mantissa compute_error_scaled(int64_t q, uint64_t w, int32_t lz) noexcept {
+		int32_t hilz = int32_t(w >> 63) ^ 1;
 		adjusted_mantissa answer;
-		answer.mantissa	   = w << hilz;
-		constexpr int bias = binary::mantissa_explicit_bits - binary::minimum_exponent;
-		answer.power2	   = int32_t(power(int32_t(q)) + bias - hilz - lz - 62 + invalid_am_bias);
+		answer.mantissa		   = w << hilz;
+		constexpr int32_t bias = binary::mantissa_explicit_bits - binary::minimum_exponent;
+		answer.power2		   = int32_t(power(int32_t(q)) + bias - hilz - lz - 62 + invalid_am_bias);
 		return answer;
 	}
 
 	// w * 10 ** q, without rounding the representation up.
 	// the power2 in the exponent will be adjusted by invalid_am_bias.
 	template<typename binary> JSONIFIER_ALWAYS_INLINE constexpr adjusted_mantissa compute_error(int64_t q, uint64_t w) noexcept {
-		int lz = simd_internal::lzcnt(w);
+		int32_t lz = simd_internal::lzcnt(w);
 		w <<= lz;
 		value128 product = compute_product_approximation<binary::mantissa_explicit_bits + 3>(q, w);
 		return compute_error_scaled<binary>(q, product.high, lz);
@@ -875,7 +872,7 @@ namespace fast_float_new {
 		// powers::largest_power_of_five].
 
 		// We want the most significant bit of i to be 1. Shift if needed.
-		int lz = simd_internal::lzcnt(w);
+		int32_t lz = simd_internal::lzcnt(w);
 		w <<= lz;
 
 		// The required precision is binary::mantissa_explicit_bits + 3 because
@@ -895,8 +892,8 @@ namespace fast_float_new {
 		// practice, we can win big with the compute_product_approximation if its
 		// additional branch is easily predicted. Which is best is data specific.
 		constexpr auto modifiedMantissaBits{ 64 - binary::mantissa_explicit_bits - 3 };
-		int upperbit = int(product.high >> 63);
-		int shift	 = upperbit + modifiedMantissaBits;
+		int32_t upperbit = int32_t(product.high >> 63);
+		int32_t shift	 = upperbit + modifiedMantissaBits;
 
 		answer.mantissa = product.high >> shift;
 
@@ -1096,19 +1093,19 @@ namespace fast_float_new {
 	}
 
 	JSONIFIER_ALWAYS_INLINE uint64_t uint64_hi64(uint64_t r0, bool& truncated) noexcept {
-		truncated = false;
-		int shl	  = simd_internal::lzcnt(r0);
+		truncated	= false;
+		int32_t shl = simd_internal::lzcnt(r0);
 		return r0 << shl;
 	}
 
 	JSONIFIER_ALWAYS_INLINE uint64_t uint64_hi64(uint64_t r0, uint64_t r1, bool& truncated) noexcept {
-		int shl = simd_internal::lzcnt(r0);
+		int32_t shl = simd_internal::lzcnt(r0);
 		if (shl == 0) {
 			truncated = r1 != 0;
 			return r0;
 		} else {
-			int shr	  = 64 - shl;
-			truncated = (r1 << shl) != 0;
+			int32_t shr = 64 - shl;
+			truncated	= (r1 << shl) != 0;
 			return (r0 << shl) | (r1 >> shr);
 		}
 	}
@@ -1183,7 +1180,7 @@ namespace fast_float_new {
 		bool overflow;
 		while (carry != 0 && index < vec.length) {
 			vec.data[index] = scalar_add(vec.data[index], carry, overflow);
-			carry	   = limb(overflow);
+			carry			= limb(overflow);
 			index += 1;
 		}
 		if (carry != 0) {
@@ -1229,7 +1226,7 @@ namespace fast_float_new {
 				xi = scalar_add(xi, 1, c2);
 			}
 			x.data[index + start] = xi;
-			carry			 = c1 | c2;
+			carry				  = c1 | c2;
 		}
 
 		// handle overflow
@@ -1281,7 +1278,7 @@ namespace fast_float_new {
 		return true;
 	}
 
-	template<typename = void> struct pow5_tables {
+	struct pow5_tables {
 		static constexpr uint32_t large_step		 = 135;
 		static constexpr uint64_t small_power_of_5[] = {
 			1UL,
@@ -1314,9 +1311,9 @@ namespace fast_float_new {
 			7450580596923828125UL,
 		};
 #ifdef FASTFLOAT_NEWER_64BIT_LIMB
-		constexpr static limb large_power_of_5[] = { 1414648277510068013UL, 9180637584431281687UL, 4539964771860779200UL, 10482974169319127550UL, 198276706040285095UL };
+		static constexpr limb large_power_of_5[] = { 1414648277510068013UL, 9180637584431281687UL, 4539964771860779200UL, 10482974169319127550UL, 198276706040285095UL };
 #else
-		constexpr static limb large_power_of_5[] = { 4279965485U, 329373468U, 4020270615U, 2137533757U, 4287402176U, 1057042919U, 1071430142U, 2440757623U, 381945767U, 46164893U };
+		static constexpr limb large_power_of_5[] = { 4279965485U, 329373468U, 4020270615U, 2137533757U, 4287402176U, 1057042919U, 1071430142U, 2440757623U, 381945767U, 46164893U };
 #endif
 	};
 
@@ -1324,7 +1321,7 @@ namespace fast_float_new {
 	// arithmetic, using simple algorithms since asymptotically
 	// faster algorithms are slower for a small number of limbs.
 	// all operations assume the big-integer is normalized.
-	struct bigint : pow5_tables<> {
+	struct bigint : pow5_tables {
 		// storage of the limbs, in little-endian order.
 		stackvec<bigint_limbs> vec;
 
@@ -1379,7 +1376,7 @@ namespace fast_float_new {
 		// positive, this is larger, otherwise they are equal.
 		// the limbs are stored in little-endian order, so we
 		// must compare the limbs in ever order.
-		JSONIFIER_ALWAYS_INLINE constexpr int compare(const bigint& other) const noexcept {
+		JSONIFIER_ALWAYS_INLINE constexpr int32_t compare(const bigint& other) const noexcept {
 			if (vec.length > other.vec.length) {
 				return 1;
 			} else if (vec.length < other.vec.length) {
@@ -1411,9 +1408,9 @@ namespace fast_float_new {
 			size_t shr = limb_bits - shl;
 			limb prev  = 0;
 			for (size_t index = 0; index < vec.length; index++) {
-				limb xi	   = vec.data[index];
+				limb xi			= vec.data[index];
 				vec.data[index] = (xi << shl) | (prev >> shr);
-				prev	   = xi;
+				prev			= xi;
 			}
 
 			limb carry = prev >> shr;
@@ -1457,7 +1454,7 @@ namespace fast_float_new {
 		}
 
 		// get the number of leading zeros in the bigint.
-		JSONIFIER_ALWAYS_INLINE constexpr int ctlz() const noexcept {
+		JSONIFIER_ALWAYS_INLINE constexpr int32_t ctlz() const noexcept {
 			if (vec.is_empty()) {
 				return 0;
 			} else {
@@ -1472,9 +1469,9 @@ namespace fast_float_new {
 		}
 
 		// get the number of bits in the bigint.
-		JSONIFIER_ALWAYS_INLINE constexpr int bit_length() const noexcept {
-			int lz = ctlz();
-			return int(limb_bits * vec.length) - lz;
+		JSONIFIER_ALWAYS_INLINE constexpr int32_t bit_length() const noexcept {
+			int32_t lz = ctlz();
+			return int32_t(limb_bits * vec.length) - lz;
 		}
 
 		JSONIFIER_ALWAYS_INLINE constexpr bool mul(limb y) noexcept {
@@ -1528,7 +1525,7 @@ namespace fast_float_new {
 	};
 
 	// 1e0 to 1e19
-	constexpr static uint64_t powers_of_ten_uint64[] = { 1UL, 10UL, 100UL, 1000UL, 10000UL, 100000UL, 1000000UL, 10000000UL, 100000000UL, 1000000000UL, 10000000000UL,
+	static constexpr uint64_t powers_of_ten_uint64[] = { 1UL, 10UL, 100UL, 1000UL, 10000UL, 100000UL, 1000000UL, 10000000UL, 100000000UL, 1000000000UL, 10000000000UL,
 		100000000000UL, 1000000000000UL, 10000000000000UL, 100000000000000UL, 1000000000000000UL, 10000000000000000UL, 100000000000000000UL, 1000000000000000000UL,
 		10000000000000000000UL };
 
@@ -1714,8 +1711,8 @@ namespace fast_float_new {
 	}
 
 	// parse the significant digits into a big integer
-	template<typename char_t>
-	JSONIFIER_ALWAYS_INLINE constexpr void parse_mantissa(bigint& result, span<const char_t>& integer, span<const char_t>& fraction, size_t max_digits, size_t& digits) noexcept {
+	template<typename char_t, size_t max_digits>
+	JSONIFIER_ALWAYS_INLINE constexpr void parse_mantissa(bigint& result, span<const char_t>& integer, span<const char_t>& fraction, size_t& digits) noexcept {
 		// try to minimize the number of big integer and scalar multiplication.
 		// therefore, try to parse 8 digits at a time, and multiply by the largest
 		// scalar value (9 or 19 digits) for each step.
@@ -1797,9 +1794,9 @@ namespace fast_float_new {
 	template<typename value_type> JSONIFIER_ALWAYS_INLINE constexpr adjusted_mantissa positive_digit_comp(bigint& bigmant, int32_t exponent) noexcept {
 		adjusted_mantissa answer;
 		bool truncated;
-		answer.mantissa	   = bigmant.hi64(truncated);
-		constexpr int bias = binary_format<value_type>::mantissa_explicit_bits - binary_format<value_type>::minimum_exponent;
-		answer.power2	   = bigmant.bit_length() - 64 + bias;
+		answer.mantissa		   = bigmant.hi64(truncated);
+		constexpr int32_t bias = binary_format<value_type>::mantissa_explicit_bits - binary_format<value_type>::minimum_exponent;
+		answer.power2		   = bigmant.bit_length() - 64 + bias;
 
 		round<value_type>(answer, [truncated](adjusted_mantissa& a, int32_t shift) {
 			round_nearest_tie_even(a, shift, [truncated](bool is_odd, bool is_halfway, bool is_above) -> bool {
@@ -1837,7 +1834,7 @@ namespace fast_float_new {
 		uint32_t pow5_exp = uint32_t(-real_exp);
 
 		// compare digits, and use it to director rounding
-		int ord					 = real_digits.compare(theor_digits);
+		int32_t ord				 = real_digits.compare(theor_digits);
 		adjusted_mantissa answer = am;
 		round<value_type>(answer, [ord](adjusted_mantissa& a, int32_t shift) {
 			round_nearest_tie_even(a, shift, [ord](bool is_odd, bool _, bool __) -> bool {
@@ -1877,7 +1874,7 @@ namespace fast_float_new {
 		int32_t sci_exp = scientific_exponent(mantissa, exponent);
 		size_t digits	= 0;
 		bigint bigmant;
-		parse_mantissa(bigmant, integer, fraction, binary_format<value_type>::max_digits, digits);
+		parse_mantissa<char_t, binary_format<value_type>::max_digits>(bigmant, integer, fraction, digits);
 		// can't underflow, since digits is at most max_digits.
 		int32_t exponentNew = sci_exp + 1 - int32_t(digits);
 		if (exponentNew >= 0) {
