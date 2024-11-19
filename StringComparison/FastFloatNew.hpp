@@ -196,7 +196,7 @@ namespace fast_float_new {
 #elif (defined(__i386) || defined(__i386__) || defined(_M_IX86) || defined(__arm__) || defined(_M_ARM) || defined(__ppc__) || defined(__MINGW32__) || defined(__EMSCRIPTEN__))
 	#define FASTFLOAT_NEWER_32BIT 1
 #else
-// Need to check incrementally, since SIZE_MAX is a size_t, avoid overflow.
+	// Need to check incrementally, since SIZE_MAX is a size_t, avoid overflow.
 	// We can never tell the register width, but the SIZE_MAX is a good
 	// approximation. UINTPTR_MAX and INTPTR_MAX are optional, so avoid them for max
 	// portability.
@@ -239,12 +239,12 @@ namespace fast_float_new {
 	#endif
 	#
 	#ifndef __BYTE_ORDER__
-		// safe choice
+// safe choice
 		#define FASTFLOAT_NEWER_IS_BIG_ENDIAN 0
 	#endif
 	#
 	#ifndef __ORDER_LITTLE_ENDIAN__
-		// safe choice
+// safe choice
 		#define FASTFLOAT_NEWER_IS_BIG_ENDIAN 0
 	#endif
 	#
@@ -268,7 +268,7 @@ namespace fast_float_new {
 #endif
 
 #if defined(__GNUC__)
-	// disable -Wcast-align=strict (GCC only)
+// disable -Wcast-align=strict (GCC only)
 	#define FASTFLOAT_NEWER_SIMD_DISABLE_WARNINGS _Pragma("GCC diagnostic push") _Pragma("GCC diagnostic ignored \"-Wcast-align\"")
 #else
 	#define FASTFLOAT_NEWER_SIMD_DISABLE_WARNINGS
@@ -709,8 +709,8 @@ namespace fast_float_new {
 #endif
 
 	template<typename char_t> static constexpr uint64_t int_cmp_zeros{ (sizeof(char_t) == 1) ? 0x3030303030303030
-			: (sizeof(char_t) == 2)														 ? (uint64_t(char_t('0')) << 48 | uint64_t(char_t('0')) << 32 | uint64_t(char_t('0')) << 16 | char_t('0'))
-																					 : (uint64_t(char_t('0')) << 32 | char_t('0')) };
+			: (sizeof(char_t) == 2) ? (uint64_t(char_t('0')) << 48 | uint64_t(char_t('0')) << 32 | uint64_t(char_t('0')) << 16 | char_t('0'))
+									: (uint64_t(char_t('0')) << 32 | char_t('0')) };
 	template<typename char_t> static constexpr int int_cmp_len{ sizeof(uint64_t) / sizeof(char_t) };
 
 	template<typename = void> struct int_luts {
@@ -2033,9 +2033,7 @@ namespace fast_float_new {
 	// this algorithm is not even close to optimized, but it has no practical
 	// effect on performance: in order to have a faster algorithm, we'd need
 	// to slow down performance for faster algorithms, and this is still fast.
-	template<typename char_t> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR14 int32_t scientific_exponent(parsed_number_string_t<char_t>& num) noexcept {
-		uint64_t mantissa = num.mantissa;
-		int32_t exponent  = int32_t(num.exponent);
+	JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR14 int32_t scientific_exponent(uint64_t mantissa, int64_t exponent) noexcept {
 		while (mantissa >= 10000) {
 			mantissa /= 10000;
 			exponent += 4;
@@ -2218,7 +2216,8 @@ namespace fast_float_new {
 	}
 
 	// parse the significant digits into a big integer
-	template<typename char_t> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 void parse_mantissa(bigint& result, parsed_number_string_t<char_t>& num, size_t max_digits, size_t& digits) noexcept {
+	template<typename char_t> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 void parse_mantissa(bigint& result, span<const char_t>& integer, span<const char_t>& fraction,
+		size_t max_digits, size_t& digits) noexcept {
 		// try to minimize the number of big integer and scalar multiplication.
 		// therefore, try to parse 8 digits at a time, and multiply by the largest
 		// scalar value (9 or 19 digits) for each step.
@@ -2232,8 +2231,8 @@ namespace fast_float_new {
 #endif
 
 		// process all integer digits.
-		char_t const* p	   = num.integer.ptr;
-		char_t const* pend = p + num.integer.len();
+		char_t const* p	   = integer.ptr;
+		char_t const* pend = p + integer.len();
 		skip_zeros(p, pend);
 		// process all digits, in increments of step per loop
 		while (p != pend) {
@@ -2247,8 +2246,8 @@ namespace fast_float_new {
 				// add the temporary value, then check if we've truncated any digits
 				add_native(result, limb(powers_of_ten_uint64[counter]), value);
 				bool truncated = is_truncated(p, pend);
-				if (num.fraction.ptr != nullptr) {
-					truncated |= is_truncated(num.fraction);
+				if (fraction.ptr != nullptr) {
+					truncated |= is_truncated(fraction);
 				}
 				if (truncated) {
 					round_up_bigint(result, digits);
@@ -2262,9 +2261,9 @@ namespace fast_float_new {
 		}
 
 		// add our fraction digits, if they're available.
-		if (num.fraction.ptr != nullptr) {
-			p	 = num.fraction.ptr;
-			pend = p + num.fraction.len();
+		if (fraction.ptr != nullptr) {
+			p	 = fraction.ptr;
+			pend = p + fraction.len();
 			if (digits == 0) {
 				skip_zeros(p, pend);
 			}
@@ -2319,7 +2318,8 @@ namespace fast_float_new {
 	// to scale them identically, we do `n * 2^f * 5^-f`, so we now have `m * 2^e`.
 	// we then need to scale by `2^(f- e)`, and then the two significant digits
 	// are of the same magnitude.
-	template<typename T> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 adjusted_mantissa negative_digit_comp(bigint& bigmant, adjusted_mantissa am, int32_t exponent) noexcept {
+	template<typename T>
+	JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 adjusted_mantissa negative_digit_comp(bigint& bigmant, adjusted_mantissa am, int32_t exponent) noexcept {
 		bigint& real_digits = bigmant;
 		int32_t real_exp	= exponent;
 
@@ -2381,21 +2381,22 @@ namespace fast_float_new {
 	// `b` as a big-integer type, scaled to the same binary exponent as
 	// the actual digits. we then compare the big integer representations
 	// of both, and use that to direct rounding.
-	template<typename T, typename char_t> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 adjusted_mantissa digit_comp(parsed_number_string_t<char_t>& num, adjusted_mantissa am) noexcept {
+	template<typename T, typename char_t> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 adjusted_mantissa digit_comp(span<const char_t>& integer,
+		span<const char_t>& fraction, uint64_t mantissa, int64_t exponent, adjusted_mantissa &am) noexcept {
 		// remove the invalid exponent bias
 		am.power2 -= invalid_am_bias;
 
-		int32_t sci_exp	  = scientific_exponent(num);
+		int32_t sci_exp	  = scientific_exponent(mantissa, exponent);
 		size_t max_digits = binary_format<T>::max_digits();
 		size_t digits	  = 0;
 		bigint bigmant;
-		parse_mantissa(bigmant, num, max_digits, digits);
+		parse_mantissa(bigmant, integer, fraction, max_digits, digits);
 		// can't underflow, since digits is at most max_digits.
-		int32_t exponent = sci_exp + 1 - int32_t(digits);
-		if (exponent >= 0) {
-			return positive_digit_comp<T>(bigmant, exponent);
+		int32_t exponentNew = sci_exp + 1 - int32_t(digits);
+		if (exponentNew >= 0) {
+			return positive_digit_comp<T>(bigmant, exponentNew);
 		} else {
-			return negative_digit_comp<T>(bigmant, am, exponent);
+			return negative_digit_comp<T>(bigmant, am, exponentNew);
 		}
 	}
 

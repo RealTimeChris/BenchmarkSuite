@@ -61,37 +61,14 @@ namespace jsonifier_internal_new {
 
 #define isDigit(x) ((static_cast<uint8_t>(x - '0')) <= 9)
 
-	template<typename T, typename UC> JSONIFIER_ALWAYS_INLINE bool reParseFloat(fast_float_new::span<const UC> integer, fast_float_new::span<const UC> fraction,
-		int64_t digit_count, int64_t exp_number, int64_t exponent, uint64_t mantissa, bool negative, bool too_many_digits, T& value) noexcept {
+	template<typename T, typename UC> JSONIFIER_ALWAYS_INLINE bool reParseFloat(fast_float_new::span<const UC>& integer, fast_float_new::span<const UC>& fraction, int64_t exponent,
+		uint64_t mantissa, bool negative, fast_float_new::adjusted_mantissa& am, T& value) noexcept {
 		using namespace fast_float_new;
 
-		static constexpr UC decimalNew = '.';
-		static constexpr UC smallE	   = 'e';
-		static constexpr UC bigE	   = 'E';
-		static constexpr UC minusNew   = '-';
-		static constexpr UC plusNew	   = '+';
-		static constexpr UC zeroNew	   = '0';
-
-		parsed_number_string_t<UC> answer;
-		answer.digit_count = digit_count;
-		answer.negative	   = negative;
-		answer.fraction	   = fraction;
-		answer.integer	   = integer;
-		answer.exp_number  = exp_number;
-		answer.exponent	   = exponent;
-		answer.mantissa	   = mantissa;
-		answer.too_many_digits = too_many_digits;
 		static constexpr auto infinitePower{ binary_format<T>::infinite_power() };
-		adjusted_mantissa am = compute_float<binary_format<T>>(answer.exponent, answer.mantissa);
-		if (answer.too_many_digits && am.power2 >= 0) {
-			if (am != compute_float<binary_format<T>>(answer.exponent, answer.mantissa + 1)) {
-				return false;
-			}
-		} else if (am.power2 < 0) {
-			am = digit_comp<T>(answer, am);
-		}
-		to_float(answer.negative, am, value);
-		if ((answer.mantissa != 0 && am.mantissa == 0 && am.power2 == 0) || am.power2 == infinitePower) {
+		am = digit_comp<T>(integer, fraction, mantissa, exponent, am);
+		to_float(negative, am, value);
+		if ((mantissa != 0 && am.mantissa == 0 && am.power2 == 0) || am.power2 == infinitePower) {
 			return false;
 		}
 		return true;
@@ -106,9 +83,9 @@ namespace jsonifier_internal_new {
 		static constexpr UC minusNew   = '-';
 		static constexpr UC plusNew	   = '+';
 		static constexpr UC zeroNew	   = '0';
-		span<const UC> integer;// non-nullable
-		span<const UC> fraction;// nullable
-		int64_t digit_count{};
+		span<const UC> integer;
+		span<const UC> fraction;
+		int64_t digit_count;
 		int64_t exp_number{};
 		int64_t exponent{};
 		uint64_t mantissa{};
@@ -192,25 +169,25 @@ namespace jsonifier_internal_new {
 			}
 
 			if (digit_count > 19) {
-				too_many_digits = true;
-				mantissa					   = 0;
-				iter				   = integer.ptr;
-				UC const* int_end	   = iter + integer.len();
+				too_many_digits	  = true;
+				mantissa		  = 0;
+				auto newIter	  = integer.ptr;
+				UC const* int_end = newIter + integer.len();
 				static constexpr uint64_t minimal_nineteen_digit_integer{ 1000000000000000000 };
-				while ((mantissa < minimal_nineteen_digit_integer) && (iter != int_end)) {
-					mantissa = mantissa * 10 + static_cast<uint64_t>(*iter - zeroNew);
-					++iter;
+				while ((mantissa < minimal_nineteen_digit_integer) && (newIter != int_end)) {
+					mantissa = mantissa * 10 + static_cast<uint64_t>(*newIter - zeroNew);
+					++newIter;
 				}
 				if (mantissa >= minimal_nineteen_digit_integer) {
-					exponent = int_end - iter + exp_number;
+					exponent = int_end - newIter + exp_number;
 				} else {
-					iter			   = fraction.ptr;
-					UC const* frac_end = iter + fraction.len();
-					while ((mantissa < minimal_nineteen_digit_integer) && (iter != frac_end)) {
-						mantissa = mantissa * 10 + static_cast<uint64_t>(*iter - zeroNew);
-						++iter;
+					newIter			   = fraction.ptr;
+					UC const* frac_end = newIter + fraction.len();
+					while ((mantissa < minimal_nineteen_digit_integer) && (newIter != frac_end)) {
+						mantissa = mantissa * 10 + static_cast<uint64_t>(*newIter - zeroNew);
+						++newIter;
 					}
-					exponent = fraction.ptr - iter + exp_number;
+					exponent = fraction.ptr - newIter + exp_number;
 				}
 			}
 		}
@@ -251,10 +228,10 @@ namespace jsonifier_internal_new {
 		adjusted_mantissa am = compute_float<binary_format<T>>(exponent, mantissa);
 		if (too_many_digits && am.power2 >= 0) {
 			if (am != compute_float<binary_format<T>>(exponent, mantissa + 1)) {
-				return false;
+				am = compute_error<binary_format<T>>(exponent, mantissa);
 			}
 		} else if (am.power2 < 0) {
-			return reParseFloat(integer, fraction, digit_count, exp_number, exponent, mantissa, negative, too_many_digits, value);
+			am = digit_comp<T>(integer, fraction, mantissa, exponent, am);
 		}
 		to_float(negative, am, value);
 		if ((mantissa != 0 && am.mantissa == 0 && am.power2 == 0) || am.power2 == infinitePower) {
