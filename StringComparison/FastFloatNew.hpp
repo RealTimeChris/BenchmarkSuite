@@ -89,106 +89,26 @@
 //    DEALINGS IN THE SOFTWARE.
 //
 
-#ifndef FASTFLOAT_NEWER_CONSTEXPR_FEATURE_DETECT_H
-#define FASTFLOAT_NEWER_CONSTEXPR_FEATURE_DETECT_H
+#pragma once
+
+#include <jsonifier/Config.hpp>
 
 #ifdef __has_include
 	#if __has_include(<version>)
 		#include <version>
 	#endif
-#endif
-
-// Testing for https://wg21.link/N3652, adopted in C++14
-#if __cpp_constexpr >= 201304
-	#define FASTFLOAT_NEWER_CONSTEXPR14 constexpr
-#else
-	#define FASTFLOAT_NEWER_CONSTEXPR14
-#endif
-
-#if defined(__cpp_lib_bit_cast) && __cpp_lib_bit_cast >= 201806L
-	#define FASTFLOAT_NEWER_HAS_BIT_CAST 1
-#else
-	#define FASTFLOAT_NEWER_HAS_BIT_CAST 0
-#endif
-
-#if defined(__cpp_lib_is_constant_evaluated) && __cpp_lib_is_constant_evaluated >= 201811L
-	#define FASTFLOAT_NEWER_HAS_IS_CONSTANT_EVALUATED 1
-#else
-	#define FASTFLOAT_NEWER_HAS_IS_CONSTANT_EVALUATED 0
-#endif
-
-// Testing for relevant C++20 constexpr library features
-#if FASTFLOAT_NEWER_HAS_IS_CONSTANT_EVALUATED && FASTFLOAT_NEWER_HAS_BIT_CAST && __cpp_lib_constexpr_algorithms >= 201806L /*For std::copy and std::fill*/
-	#define FASTFLOAT_NEWER_CONSTEXPR20 constexpr
-	#define FASTFLOAT_NEWER_IS_CONSTEXPR 1
-#else
-	#define FASTFLOAT_NEWER_CONSTEXPR20
-	#define FASTFLOAT_NEWER_IS_CONSTEXPR 0
-#endif
-
-#if __cplusplus >= 201703L || (defined(_MSVC_LANG) && _MSVC_LANG >= 201703L)
-	#define FASTFLOAT_NEWER_DETAIL_MUST_DEFINE_CONSTEXPR_VARIABLE 0
-#else
-	#define FASTFLOAT_NEWER_DETAIL_MUST_DEFINE_CONSTEXPR_VARIABLE 1
-#endif
-
-#endif// FASTFLOAT_NEWER_CONSTEXPR_FEATURE_DETECT_H
-
-#ifndef FASTFLOAT_NEWER_FLOAT_COMMON_H
-#define FASTFLOAT_NEWER_FLOAT_COMMON_H
-
-#include <cfloat>
-#include <cstdint>
-#include <cassert>
-#include <cstring>
-#include <type_traits>
-#include <system_error>
-#ifdef __has_include
 	#if __has_include(<stdfloat>) && (__cplusplus > 202002L || _MSVC_LANG > 202002L)
 		#include <stdfloat>
 	#endif
 #endif
 
-namespace fast_float_new {
-
-#define FASTFLOAT_NEWER_JSONFMT (1 << 5)
-#define FASTFLOAT_NEWER_FORTRANFMT (1 << 6)
-
-	enum chars_format {
-		scientific = 1 << 0,
-		fixed	   = 1 << 2,
-		hex		   = 1 << 3,
-		no_infnan  = 1 << 4,
-		// RFC 8259: https://datatracker.ietf.org/doc/html/rfc8259#section-6
-		json = FASTFLOAT_NEWER_JSONFMT | fixed | scientific | no_infnan,
-		// Extension of RFC 8259 where, e.g., "inf" and "nan" are allowed.
-		json_or_infnan = FASTFLOAT_NEWER_JSONFMT | fixed | scientific,
-		fortran		   = FASTFLOAT_NEWER_FORTRANFMT | fixed | scientific,
-		general		   = fixed | scientific
-	};
-
-	template<typename char_t> struct from_chars_result_t {
-		char_t const* ptr;
-		std::errc ec;
-	};
-	using from_chars_result = from_chars_result_t<char>;
-
-	template<typename char_t> struct parse_options_t {
-		constexpr explicit parse_options_t(chars_format fmt = chars_format::general, char_t dot = char_t('.')) : format(fmt), decimal_point(dot) {
-		}
-
-		/** Which number formats are accepted */
-		chars_format format;
-		/** The character used as decimal point */
-		char_t decimal_point;
-	};
-	using parse_options = parse_options_t<char>;
-
-}// namespace fast_float_new
-
-#if FASTFLOAT_NEWER_HAS_BIT_CAST
-	#include <bit>
-#endif
+#include <system_error>
+#include <type_traits>
+#include <cstdint>
+#include <cassert>
+#include <cstring>
+#include <cfloat>
+#include <bit>
 
 #if (defined(__x86_64) || defined(__x86_64__) || defined(_M_X64) || defined(__amd64) || defined(__aarch64__) || defined(_M_ARM64) || defined(__MINGW64__) || defined(__s390x__) || \
 	(defined(__ppc64__) || defined(__PPC64__) || defined(__ppc64le__) || defined(__PPC64LE__)) || defined(__loongarch64))
@@ -211,11 +131,11 @@ namespace fast_float_new {
 	#endif
 #endif
 
-#if ((defined(_WIN32) || defined(_WIN64)) && !defined(__clang__)) || (defined(_M_ARM64) && !defined(__MINGW32__))
+#if ((defined(_WIN32) || defined(_WIN64)) && !defined(JSONIFIER_CLANG)) || (defined(_M_ARM64) && !defined(__MINGW32__))
 	#include <intrin.h>
 #endif
 
-#if defined(_MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(JSONIFIER_CLANG)
 	#define FASTFLOAT_NEWER_VISUAL_STUDIO 1
 #endif
 
@@ -239,12 +159,12 @@ namespace fast_float_new {
 	#endif
 	#
 	#ifndef __BYTE_ORDER__
-// safe choice
+	// safe choice
 		#define FASTFLOAT_NEWER_IS_BIG_ENDIAN 0
 	#endif
 	#
 	#ifndef __ORDER_LITTLE_ENDIAN__
-// safe choice
+	// safe choice
 		#define FASTFLOAT_NEWER_IS_BIG_ENDIAN 0
 	#endif
 	#
@@ -257,37 +177,25 @@ namespace fast_float_new {
 
 #if defined(__SSE2__) || (defined(FASTFLOAT_NEWER_VISUAL_STUDIO) && (defined(_M_AMD64) || defined(_M_X64) || (defined(_M_IX86_FP) && _M_IX86_FP == 2)))
 	#define FASTFLOAT_NEWER_SSE2 1
+	#include <emmintrin.h>
 #endif
 
 #if defined(__aarch64__) || defined(_M_ARM64)
 	#define FASTFLOAT_NEWER_NEON 1
+	#include <arm_neon.h>
 #endif
 
 #if defined(FASTFLOAT_NEWER_SSE2) || defined(FASTFLOAT_NEWER_NEON)
 	#define FASTFLOAT_NEWER_HAS_SIMD 1
 #endif
 
-#if defined(__GNUC__)
-// disable -Wcast-align=strict (GCC only)
+#if defined(JSONIFIER_GNUCXX)
+	// disable -Wcast-align=strict (GCC only)
 	#define FASTFLOAT_NEWER_SIMD_DISABLE_WARNINGS _Pragma("GCC diagnostic push") _Pragma("GCC diagnostic ignored \"-Wcast-align\"")
-#else
-	#define FASTFLOAT_NEWER_SIMD_DISABLE_WARNINGS
-#endif
-
-#if defined(__GNUC__)
 	#define FASTFLOAT_NEWER_SIMD_RESTORE_WARNINGS _Pragma("GCC diagnostic pop")
 #else
+	#define FASTFLOAT_NEWER_SIMD_DISABLE_WARNINGS
 	#define FASTFLOAT_NEWER_SIMD_RESTORE_WARNINGS
-#endif
-
-#ifndef FASTFLOAT_NEWER_ASSERT
-	#define FASTFLOAT_NEWER_ASSERT(x) \
-		{ (( void )(x)); }
-#endif
-
-#ifndef FASTFLOAT_NEWER_DEBUG_ASSERT
-	#define FASTFLOAT_NEWER_DEBUG_ASSERT(x) \
-		{ (( void )(x)); }
 #endif
 
 // rust style `try!()` macro, or `?` operator
@@ -301,58 +209,19 @@ namespace fast_float_new {
 
 namespace fast_float_new {
 
-	JSONIFIER_ALWAYS_INLINE constexpr bool cpp20_and_in_constexpr() {
-#if FASTFLOAT_NEWER_HAS_IS_CONSTANT_EVALUATED
-		return std::is_constant_evaluated();
-#else
-		return false;
-#endif
-	}
-
-	template<typename T> JSONIFIER_ALWAYS_INLINE constexpr bool is_supported_float_type() {
-		return std::is_same<T, float>::value || std::is_same<T, double>::value
-#if __STDCPP_FLOAT32_T__
-			|| std::is_same<T, std::float32_t>::value
-#endif
-#if __STDCPP_FLOAT64_T__
-			|| std::is_same<T, std::float64_t>::value
-#endif
-			;
-	}
-
-	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr bool is_supported_char_type() {
-		return std::is_same<char_t, char>::value || std::is_same<char_t, wchar_t>::value || std::is_same<char_t, char16_t>::value || std::is_same<char_t, char32_t>::value;
-	}
-
-	// Compares two ASCII strings in a case insensitive manner.
-	template<typename char_t> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR14 bool fastfloat_strncasecmp(char_t const* input1, char_t const* input2, size_t length) {
-		char running_diff{ 0 };
-		for (size_t i = 0; i < length; ++i) {
-			running_diff |= (char(input1[i]) ^ char(input2[i]));
-		}
-		return (running_diff == 0) || (running_diff == 32);
-	}
-
 #ifndef FLT_EVAL_METHOD
 	#error "FLT_EVAL_METHOD should be defined, please include cfloat."
 #endif
 
 	// a pointer and a length to a contiguous block of memory
-	template<typename T> struct span {
-		const T* ptr;
+	template<typename value_type> struct span {
+		const value_type* ptr;
 		size_t length;
-		JSONIFIER_ALWAYS_INLINE constexpr span(const T* _ptr, size_t _length) : ptr(_ptr), length(_length) {
+		JSONIFIER_ALWAYS_INLINE constexpr span(const value_type* _ptr, size_t _length) : ptr(_ptr), length(_length) {
 		}
 		JSONIFIER_ALWAYS_INLINE constexpr span() : ptr(nullptr), length(0) {
 		}
 
-		JSONIFIER_ALWAYS_INLINE constexpr size_t len() const noexcept {
-			return length;
-		}
-
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR14 const T& operator[](size_t index) const noexcept {
-			return ptr[index];
-		}
 	};
 
 	struct value128 {
@@ -364,45 +233,12 @@ namespace fast_float_new {
 		}
 	};
 
-	/* Helper C++14 constexpr generic implementation of leading_zeroes */
-	JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR14 int leading_zeroes_generic(uint64_t input_num, int last_bit = 0) {
-		if (input_num & uint64_t(0xffffffff00000000)) {
-			input_num >>= 32;
-			last_bit |= 32;
-		}
-		if (input_num & uint64_t(0xffff0000)) {
-			input_num >>= 16;
-			last_bit |= 16;
-		}
-		if (input_num & uint64_t(0xff00)) {
-			input_num >>= 8;
-			last_bit |= 8;
-		}
-		if (input_num & uint64_t(0xf0)) {
-			input_num >>= 4;
-			last_bit |= 4;
-		}
-		if (input_num & uint64_t(0xc)) {
-			input_num >>= 2;
-			last_bit |= 2;
-		}
-		if (input_num & uint64_t(0x2)) { /* input_num >>=  1; */
-			last_bit |= 1;
-		}
-		return 63 - last_bit;
-	}
-
-	/* result might be undefined when input_num is zero */
-	JSONIFIER_ALWAYS_INLINE int leading_zeroes(uint64_t input_num) {
-		return simd_internal::lzcnt(input_num);
-	}
-
 	// slow emulation routine for 32-bit
 	JSONIFIER_ALWAYS_INLINE constexpr uint64_t emulu(uint32_t x, uint32_t y) {
 		return x * ( uint64_t )y;
 	}
 
-	JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR14 uint64_t umul128_generic(uint64_t ab, uint64_t cd, uint64_t* hi) {
+	JSONIFIER_ALWAYS_INLINE constexpr uint64_t umul128_generic(uint64_t ab, uint64_t cd, uint64_t* hi) {
 		uint64_t ad			= emulu(( uint32_t )(ab >> 32), ( uint32_t )cd);
 		uint64_t bd			= emulu(( uint32_t )ab, ( uint32_t )cd);
 		uint64_t adbc		= ad + emulu(( uint32_t )ab, ( uint32_t )(cd >> 32));
@@ -414,9 +250,9 @@ namespace fast_float_new {
 
 #ifdef FASTFLOAT_NEWER_32BIT
 
-		// slow emulation routine for 32-bit
+	// slow emulation routine for 32-bit
 	#if !defined(__MINGW64__)
-	JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR14 uint64_t _umul128(uint64_t ab, uint64_t cd, uint64_t* hi) {
+	JSONIFIER_ALWAYS_INLINE constexpr uint64_t _umul128(uint64_t ab, uint64_t cd, uint64_t* hi) {
 		return umul128_generic(ab, cd, hi);
 	}
 	#endif// !__MINGW64__
@@ -424,19 +260,14 @@ namespace fast_float_new {
 #endif// FASTFLOAT_NEWER_32BIT
 
 	// compute 64-bit a*b
-	JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 value128 full_multiplication(uint64_t a, uint64_t b) {
-		if (cpp20_and_in_constexpr()) {
-			value128 answer;
-			answer.low = umul128_generic(a, b, &answer.high);
-			return answer;
-		}
+	JSONIFIER_ALWAYS_INLINE value128 full_multiplication(uint64_t a, uint64_t b) {
 		value128 answer;
 #if defined(_M_ARM64) && !defined(__MINGW32__)
 		// ARM64 has native support for 64-bit multiplications, no need to emulate
 		// But MinGW on ARM64 doesn't have native support for 64-bit multiplications
 		answer.high = __umulh(a, b);
 		answer.low	= a * b;
-#elif defined(FASTFLOAT_NEWER_32BIT) || (defined(_WIN64) && !defined(__clang__) && !defined(_M_ARM64))
+#elif defined(FASTFLOAT_NEWER_32BIT) || (defined(_WIN64) && !defined(JSONIFIER_CLANG) && !defined(_M_ARM64))
 		answer.low = _umul128(a, b, &answer.high);// _umul128 not available on ARM64
 #elif defined(FASTFLOAT_NEWER_64BIT) && defined(__SIZEOF_INT128__)
 		__uint128_t r = (( __uint128_t )a) * b;
@@ -463,31 +294,39 @@ namespace fast_float_new {
 	// Bias so we can get the real exponent with an invalid adjusted_mantissa.
 	constexpr static int32_t invalid_am_bias = -0x8000;
 
-	// used for binary_format_lookup_tables<T>::max_mantissa
+	// used for binary_format_lookup_tables<value_type>::max_mantissa
 	constexpr uint64_t constant_55555 = 5 * 5 * 5 * 5 * 5;
 
-	template<typename T, typename U = void> struct binary_format_lookup_tables;
+	template<typename value_type, typename U = void> struct binary_format_lookup_tables;
 
-	template<typename T> struct binary_format : binary_format_lookup_tables<T> {
-		using equiv_uint = typename std::conditional<sizeof(T) == 4, uint32_t, uint64_t>::type;
+	template<typename value_type> struct binary_format : binary_format_lookup_tables<value_type> {
+		using equiv_uint = typename std::conditional<sizeof(value_type) == 4, uint32_t, uint64_t>::type;
 
-		JSONIFIER_ALWAYS_INLINE static consteval int mantissa_explicit_bits();
-		JSONIFIER_ALWAYS_INLINE static consteval int minimum_exponent();
-		JSONIFIER_ALWAYS_INLINE static consteval int infinite_power();
-		JSONIFIER_ALWAYS_INLINE static consteval int sign_index();
-		JSONIFIER_ALWAYS_INLINE static consteval int min_exponent_fast_path();// used when fegetround() == FE_TONEAREST
-		JSONIFIER_ALWAYS_INLINE static consteval int max_exponent_fast_path();
-		JSONIFIER_ALWAYS_INLINE static consteval int max_exponent_round_to_even();
-		JSONIFIER_ALWAYS_INLINE static consteval int min_exponent_round_to_even();
-		JSONIFIER_ALWAYS_INLINE static uint64_t max_mantissa_fast_path(int64_t power);
-		JSONIFIER_ALWAYS_INLINE static consteval uint64_t max_mantissa_fast_path();// used when fegetround() == FE_TONEAREST
-		JSONIFIER_ALWAYS_INLINE static consteval int largest_power_of_ten();
-		JSONIFIER_ALWAYS_INLINE static consteval int smallest_power_of_ten();
-		JSONIFIER_ALWAYS_INLINE static T exact_power_of_ten(int64_t power);
-		JSONIFIER_ALWAYS_INLINE static consteval size_t max_digits();
-		JSONIFIER_ALWAYS_INLINE static consteval equiv_uint exponent_mask();
-		JSONIFIER_ALWAYS_INLINE static consteval equiv_uint mantissa_mask();
-		JSONIFIER_ALWAYS_INLINE static consteval equiv_uint hidden_bit_mask();
+		// Static constexpr values
+		static constexpr int mantissa_explicit_bits			   = (sizeof(value_type) == 4) ? 23 : 52;
+		static constexpr int minimum_exponent				   = (sizeof(value_type) == 4) ? -127 : -1023;
+		static constexpr int infinite_power					   = (sizeof(value_type) == 4) ? 0xFF : 0x7FF;
+		static constexpr int sign_index						   = (sizeof(value_type) == 4) ? 31 : 63;
+		static constexpr int min_exponent_fast_path			   = (sizeof(value_type) == 4) ? -10 : -22;
+		static constexpr int max_exponent_fast_path			   = (sizeof(value_type) == 4) ? 10 : 22;
+		static constexpr int max_exponent_round_to_even		   = (sizeof(value_type) == 4) ? 10 : 23;
+		static constexpr int min_exponent_round_to_even		   = (sizeof(value_type) == 4) ? -17 : -4;
+		static constexpr uint64_t max_mantissa_fast_path_value = uint64_t(2) << mantissa_explicit_bits;
+		static constexpr int largest_power_of_ten			   = (sizeof(value_type) == 4) ? 38 : 308;
+		static constexpr int smallest_power_of_ten			   = (sizeof(value_type) == 4) ? -64 : -342;
+		static constexpr size_t max_digits					   = (sizeof(value_type) == 4) ? 114 : 769;
+		static constexpr equiv_uint exponent_mask			   = (sizeof(value_type) == 4) ? 0x7F800000 : 0x7FF0000000000000;
+		static constexpr equiv_uint mantissa_mask			   = (sizeof(value_type) == 4) ? 0x007FFFFF : 0x000FFFFFFFFFFFFF;
+		static constexpr equiv_uint hidden_bit_mask			   = (sizeof(value_type) == 4) ? 0x00800000 : 0x0010000000000000;
+
+		// Lookup table access methods
+		JSONIFIER_ALWAYS_INLINE static constexpr uint64_t max_mantissa_fast_path(int64_t power) {
+			return binary_format_lookup_tables<value_type>::max_mantissa[power];
+		}
+
+		JSONIFIER_ALWAYS_INLINE static constexpr value_type exact_power_of_ten(int64_t power) {
+			return binary_format_lookup_tables<value_type>::powers_of_ten[power];
+		}
 	};
 
 	template<typename U> struct binary_format_lookup_tables<double, U> {
@@ -511,14 +350,6 @@ namespace fast_float_new {
 			0x20000000000000 / (constant_55555 * constant_55555 * constant_55555 * constant_55555 * 5 * 5 * 5 * 5) };
 	};
 
-#if FASTFLOAT_NEWER_DETAIL_MUST_DEFINE_CONSTEXPR_VARIABLE
-
-	template<typename U> constexpr double binary_format_lookup_tables<double, U>::powers_of_ten[];
-
-	template<typename U> constexpr uint64_t binary_format_lookup_tables<double, U>::max_mantissa[];
-
-#endif
-
 	template<typename U> struct binary_format_lookup_tables<float, U> {
 		static constexpr float powers_of_ten[] = { 1e0f, 1e1f, 1e2f, 1e3f, 1e4f, 1e5f, 1e6f, 1e7f, 1e8f, 1e9f, 1e10f };
 
@@ -529,163 +360,12 @@ namespace fast_float_new {
 			0x1000000 / (constant_55555 * 5 * 5 * 5 * 5), 0x1000000 / (constant_55555 * constant_55555), 0x1000000 / (constant_55555 * constant_55555 * 5) };
 	};
 
-#if FASTFLOAT_NEWER_DETAIL_MUST_DEFINE_CONSTEXPR_VARIABLE
-
-	template<typename U> constexpr float binary_format_lookup_tables<float, U>::powers_of_ten[];
-
-	template<typename U> constexpr uint64_t binary_format_lookup_tables<float, U>::max_mantissa[];
-
-#endif
-
-	template<> JSONIFIER_ALWAYS_INLINE consteval int binary_format<double>::min_exponent_fast_path() {
-#if (FLT_EVAL_METHOD != 1) && (FLT_EVAL_METHOD != 0)
-		return 0;
-#else
-		return -22;
-#endif
-	}
-
-	template<> JSONIFIER_ALWAYS_INLINE consteval int binary_format<float>::min_exponent_fast_path() {
-#if (FLT_EVAL_METHOD != 1) && (FLT_EVAL_METHOD != 0)
-		return 0;
-#else
-		return -10;
-#endif
-	}
-
-	template<> JSONIFIER_ALWAYS_INLINE consteval int binary_format<double>::mantissa_explicit_bits() {
-		return 52;
-	}
-	template<> JSONIFIER_ALWAYS_INLINE consteval int binary_format<float>::mantissa_explicit_bits() {
-		return 23;
-	}
-
-	template<> JSONIFIER_ALWAYS_INLINE consteval int binary_format<double>::max_exponent_round_to_even() {
-		return 23;
-	}
-
-	template<> JSONIFIER_ALWAYS_INLINE consteval int binary_format<float>::max_exponent_round_to_even() {
-		return 10;
-	}
-
-	template<> JSONIFIER_ALWAYS_INLINE consteval int binary_format<double>::min_exponent_round_to_even() {
-		return -4;
-	}
-
-	template<> JSONIFIER_ALWAYS_INLINE consteval int binary_format<float>::min_exponent_round_to_even() {
-		return -17;
-	}
-
-	template<> JSONIFIER_ALWAYS_INLINE consteval int binary_format<double>::minimum_exponent() {
-		return -1023;
-	}
-	template<> JSONIFIER_ALWAYS_INLINE consteval int binary_format<float>::minimum_exponent() {
-		return -127;
-	}
-
-	template<> JSONIFIER_ALWAYS_INLINE consteval int binary_format<double>::infinite_power() {
-		return 0x7FF;
-	}
-	template<> JSONIFIER_ALWAYS_INLINE consteval int binary_format<float>::infinite_power() {
-		return 0xFF;
-	}
-
-	template<> JSONIFIER_ALWAYS_INLINE consteval int binary_format<double>::sign_index() {
-		return 63;
-	}
-	template<> JSONIFIER_ALWAYS_INLINE consteval int binary_format<float>::sign_index() {
-		return 31;
-	}
-
-	template<> JSONIFIER_ALWAYS_INLINE consteval int binary_format<double>::max_exponent_fast_path() {
-		return 22;
-	}
-	template<> JSONIFIER_ALWAYS_INLINE consteval int binary_format<float>::max_exponent_fast_path() {
-		return 10;
-	}
-
-	template<> JSONIFIER_ALWAYS_INLINE consteval uint64_t binary_format<double>::max_mantissa_fast_path() {
-		return uint64_t(2) << mantissa_explicit_bits();
-	}
-	template<> JSONIFIER_ALWAYS_INLINE uint64_t binary_format<double>::max_mantissa_fast_path(int64_t power) {
-		// caller is responsible to ensure that
-		// power >= 0 && power <= 22
-		//
-		// Work around clang bug https://godbolt.org/z/zedh7rrhc
-		return ( void )max_mantissa[0], max_mantissa[power];
-	}
-	template<> JSONIFIER_ALWAYS_INLINE consteval uint64_t binary_format<float>::max_mantissa_fast_path() {
-		return uint64_t(2) << mantissa_explicit_bits();
-	}
-	template<> JSONIFIER_ALWAYS_INLINE uint64_t binary_format<float>::max_mantissa_fast_path(int64_t power) {
-		// caller is responsible to ensure that
-		// power >= 0 && power <= 10
-		//
-		// Work around clang bug https://godbolt.org/z/zedh7rrhc
-		return ( void )max_mantissa[0], max_mantissa[power];
-	}
-
-	template<> JSONIFIER_ALWAYS_INLINE double binary_format<double>::exact_power_of_ten(int64_t power) {
-		// Work around clang bug https://godbolt.org/z/zedh7rrhc
-		return ( void )powers_of_ten[0], powers_of_ten[power];
-	}
-	template<> JSONIFIER_ALWAYS_INLINE float binary_format<float>::exact_power_of_ten(int64_t power) {
-		// Work around clang bug https://godbolt.org/z/zedh7rrhc
-		return ( void )powers_of_ten[0], powers_of_ten[power];
-	}
-
-	template<> JSONIFIER_ALWAYS_INLINE consteval int binary_format<double>::largest_power_of_ten() {
-		return 308;
-	}
-	template<> JSONIFIER_ALWAYS_INLINE consteval int binary_format<float>::largest_power_of_ten() {
-		return 38;
-	}
-
-	template<> JSONIFIER_ALWAYS_INLINE consteval int binary_format<double>::smallest_power_of_ten() {
-		return -342;
-	}
-	template<> JSONIFIER_ALWAYS_INLINE consteval int binary_format<float>::smallest_power_of_ten() {
-		return -64;
-	}
-
-	template<> JSONIFIER_ALWAYS_INLINE consteval size_t binary_format<double>::max_digits() {
-		return 769;
-	}
-	template<> JSONIFIER_ALWAYS_INLINE consteval size_t binary_format<float>::max_digits() {
-		return 114;
-	}
-
-	template<> JSONIFIER_ALWAYS_INLINE consteval binary_format<float>::equiv_uint binary_format<float>::exponent_mask() {
-		return 0x7F800000;
-	}
-	template<> JSONIFIER_ALWAYS_INLINE consteval binary_format<double>::equiv_uint binary_format<double>::exponent_mask() {
-		return 0x7FF0000000000000;
-	}
-
-	template<> JSONIFIER_ALWAYS_INLINE consteval binary_format<float>::equiv_uint binary_format<float>::mantissa_mask() {
-		return 0x007FFFFF;
-	}
-	template<> JSONIFIER_ALWAYS_INLINE consteval binary_format<double>::equiv_uint binary_format<double>::mantissa_mask() {
-		return 0x000FFFFFFFFFFFFF;
-	}
-
-	template<> JSONIFIER_ALWAYS_INLINE consteval binary_format<float>::equiv_uint binary_format<float>::hidden_bit_mask() {
-		return 0x00800000;
-	}
-	template<> JSONIFIER_ALWAYS_INLINE consteval binary_format<double>::equiv_uint binary_format<double>::hidden_bit_mask() {
-		return 0x0010000000000000;
-	}
-
-	template<typename T> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 void to_float(bool negative, adjusted_mantissa am, T& value) {
-		using fastfloat_uint = typename binary_format<T>::equiv_uint;
+	template<typename value_type> JSONIFIER_ALWAYS_INLINE constexpr void to_float(bool negative, adjusted_mantissa& am, value_type& value) {
+		using fastfloat_uint = typename binary_format<value_type>::equiv_uint;
 		fastfloat_uint word	 = ( fastfloat_uint )am.mantissa;
-		word |= fastfloat_uint(am.power2) << binary_format<T>::mantissa_explicit_bits();
-		word |= fastfloat_uint(negative) << binary_format<T>::sign_index();
-#if FASTFLOAT_NEWER_HAS_BIT_CAST
-		value = std::bit_cast<T>(word);
-#else
-		::memcpy(&value, &word, sizeof(T));
-#endif
+		word |= fastfloat_uint(am.power2) << binary_format<value_type>::mantissa_explicit_bits;
+		word |= fastfloat_uint(negative) << binary_format<value_type>::sign_index;
+		value = std::bit_cast<value_type>(word);
 	}
 
 #ifdef FASTFLOAT_NEWER_SKIP_WHITE_SPACE// disabled by default
@@ -696,12 +376,6 @@ namespace fast_float_new {
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	};
-
-	#if FASTFLOAT_NEWER_DETAIL_MUST_DEFINE_CONSTEXPR_VARIABLE
-
-	template<typename T> constexpr bool space_lut<T>::value[];
-
-	#endif
 
 	JSONIFIER_ALWAYS_INLINE constexpr bool is_space(uint8_t c) {
 		return space_lut<>::value[c];
@@ -734,16 +408,6 @@ namespace fast_float_new {
 			3379220508056640625, 4738381338321616896 };
 	};
 
-#if FASTFLOAT_NEWER_DETAIL_MUST_DEFINE_CONSTEXPR_VARIABLE
-
-	template<typename T> constexpr uint8_t int_luts<T>::chdigit[];
-
-	template<typename T> constexpr size_t int_luts<T>::maxdigits_u64[];
-
-	template<typename T> constexpr uint64_t int_luts<T>::min_safe_u64[];
-
-#endif
-
 	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr uint8_t ch_to_digit(char_t c) {
 		return int_luts<>::chdigit[static_cast<unsigned char>(c)];
 	}
@@ -757,31 +421,6 @@ namespace fast_float_new {
 	JSONIFIER_ALWAYS_INLINE constexpr uint64_t min_safe_u64(int base) {
 		return int_luts<>::min_safe_u64[base - 2];
 	}
-
-}// namespace fast_float_new
-
-#endif
-
-#ifndef FASTFLOAT_NEWER_ASCII_NUMBER_H
-#define FASTFLOAT_NEWER_ASCII_NUMBER_H
-
-#include <cctype>
-#include <cstdint>
-#include <cstring>
-#include <iterator>
-#include <limits>
-#include <type_traits>
-
-
-#ifdef FASTFLOAT_NEWER_SSE2
-	#include <emmintrin.h>
-#endif
-
-#ifdef FASTFLOAT_NEWER_NEON
-	#include <arm_neon.h>
-#endif
-
-namespace fast_float_new {
 
 	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr bool has_simd_opt() {
 #ifdef FASTFLOAT_NEWER_HAS_SIMD
@@ -803,8 +442,8 @@ namespace fast_float_new {
 	}
 
 	// Read 8 char_t into a u64. Truncates char_t if not char.
-	template<typename char_t> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 uint64_t read8_to_u64(const char_t* chars) {
-		if (cpp20_and_in_constexpr() || !std::is_same<char_t, char>::value) {
+	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr uint64_t read8_to_u64(const char_t* chars) {
+		if constexpr (!std::is_same<char_t, char>::value) {
 			uint64_t val = 0;
 			for (int i = 0; i < 8; ++i) {
 				val |= uint64_t(uint8_t(*chars)) << (i * 8);
@@ -867,7 +506,7 @@ namespace fast_float_new {
 	template<typename char_t, FASTFLOAT_NEWER_ENABLE_IF(!has_simd_opt<char_t>()) = 0>
 #endif
 	// dummy for compile
-	uint64_t simd_read8_to_u64(char_t const*) {
+	JSONIFIER_ALWAYS_INLINE uint64_t simd_read8_to_u64(char_t const*) {
 		return 0;
 	}
 
@@ -884,7 +523,7 @@ namespace fast_float_new {
 
 	// Call this if chars are definitely 8 digits.
 	template<typename char_t> JSONIFIER_ALWAYS_INLINE uint32_t parse_eight_digits_unrolled(char_t const* chars) noexcept {
-		if (cpp20_and_in_constexpr() || !has_simd_opt<char_t>()) {
+		if constexpr (!has_simd_opt<char_t>()) {
 			return parse_eight_digits_unrolled(read8_to_u64(chars));// truncation okay
 		}
 		return parse_eight_digits_unrolled(simd_read8_to_u64(chars));
@@ -900,10 +539,7 @@ namespace fast_float_new {
 	// Call this if chars might not be 8 digits.
 	// Using this style (instead of is_made_of_eight_digits_fast() then
 	// parse_eight_digits_unrolled()) ensures we don't load SIMD registers twice.
-	JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 bool simd_parse_if_eight_digits_unrolled(const char16_t* chars, uint64_t& i) noexcept {
-		if (cpp20_and_in_constexpr()) {
-			return false;
-		}
+	JSONIFIER_ALWAYS_INLINE bool simd_parse_if_eight_digits_unrolled(const char16_t* chars, uint64_t& i) noexcept {
 	#ifdef FASTFLOAT_NEWER_SSE2
 		FASTFLOAT_NEWER_SIMD_DISABLE_WARNINGS
 		const __m128i data = _mm_loadu_si128(reinterpret_cast<const __m128i*>(chars));
@@ -972,52 +608,6 @@ namespace fast_float_new {
 		}
 	}
 
-	enum class parse_error {
-		no_error,
-		// [JSON-only] The minus sign must be followed by an integer.
-		missing_integer_after_sign,
-		// A sign must be followed by an integer or dot.
-		missing_integer_or_dot_after_sign,
-		// [JSON-only] The integer part must not have leading zeros.
-		leading_zeros_in_integer_part,
-		// [JSON-only] The integer part must have at least one digit.
-		no_digits_in_integer_part,
-		// [JSON-only] If there is a decimal point, there must be digits in the
-		// fractional part.
-		no_digits_in_fractional_part,
-		// The mantissa must have at least one digit.
-		no_digits_in_mantissa,
-		// Scientific notation requires an exponential part.
-		missing_exponential_part,
-	};
-
-	template<typename char_t> struct parsed_number_string_t {
-		JSONIFIER_ALWAYS_INLINE parsed_number_string_t() noexcept = default;
-		// contains the range of the significant digits
-		span<const char_t> integer;// non-nullable
-		span<const char_t> fraction;// nullable
-		int64_t digit_count{};
-		int64_t exp_number{};
-		int64_t exponent{};
-		uint64_t mantissa{};
-		bool negative;
-		bool too_many_digits{ false };
-	};
-
-	using byte_span			   = span<const char>;
-	using parsed_number_string = parsed_number_string_t<char>;
-
-}// namespace fast_float_new
-
-#endif
-
-#ifndef FASTFLOAT_NEWER_FAST_TABLE_H
-#define FASTFLOAT_NEWER_FAST_TABLE_H
-
-#include <cstdint>
-
-namespace fast_float_new {
-
 	/**
      * When mapping numbers from decimal to binary,
      * we go from w * 10^q to m * 2^p but we have
@@ -1043,8 +633,8 @@ namespace fast_float_new {
       * of 5 greater than 308.
       */
 	template<class unused = void> struct powers_template {
-		constexpr static int smallest_power_of_five = binary_format<double>::smallest_power_of_ten();
-		constexpr static int largest_power_of_five	= binary_format<double>::largest_power_of_ten();
+		constexpr static int smallest_power_of_five = binary_format<double>::smallest_power_of_ten;
+		constexpr static int largest_power_of_five	= binary_format<double>::largest_power_of_ten;
 		constexpr static int number_of_entries		= 2 * (largest_power_of_five - smallest_power_of_five + 1);
 		// Powers of five from 5^-342 all the way to 5^308 rounded toward one.
 		constexpr static uint64_t power_of_five_128[number_of_entries] = { 0xeef453d6923bd65a, 0x113faa2906a13b3f, 0x9558b4661b6565f8, 0x4ac7ca59a424c507, 0xbaaee17fa23ebf76,
@@ -1210,36 +800,14 @@ namespace fast_float_new {
 			0xb6472e511c81471d, 0xe0133fe4adf8e952, 0xe3d8f9e563a198e5, 0x58180fddd97723a6, 0x8e679c2f5e44ff8f, 0x570f09eaa7ea7648 };
 	};
 
-#if FASTFLOAT_NEWER_DETAIL_MUST_DEFINE_CONSTEXPR_VARIABLE
-
-	template<class unused> constexpr uint64_t powers_template<unused>::power_of_five_128[number_of_entries];
-
-#endif
-
 	using powers = powers_template<>;
-
-}// namespace fast_float_new
-
-#endif
-
-#ifndef FASTFLOAT_NEWER_DECIMAL_TO_BINARY_H
-#define FASTFLOAT_NEWER_DECIMAL_TO_BINARY_H
-
-#include <cfloat>
-#include <cinttypes>
-#include <cmath>
-#include <cstdint>
-#include <cstdlib>
-#include <cstring>
-
-namespace fast_float_new {
 
 	// This will compute or rather approximate w * 5**q and return a pair of 64-bit
 	// words approximating the result, with the "high" part corresponding to the
 	// most significant bits and the low part corresponding to the least significant
 	// bits.
 	//
-	template<int bit_precision> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 value128 compute_product_approximation(int64_t q, uint64_t w) {
+	template<int bit_precision> JSONIFIER_ALWAYS_INLINE constexpr value128 compute_product_approximation(int64_t q, uint64_t w) {
 		const int index = 2 * int(q - powers::smallest_power_of_five);
 		// For small values of q, e.g., q in [0,27], the answer is always exact
 		// because The line value128 firstproduct = full_multiplication(w,
@@ -1260,44 +828,27 @@ namespace fast_float_new {
 		return firstproduct;
 	}
 
-	namespace detail {
-		/**
-         * For q in (0,350), we have that
-         *  f = (((152170 + 65536) * q ) >> 16);
-         * is equal to
-         *   floor(p) + q
-         * where
-         *   p = log(5**q)/log(2) = q * log(5)/log(2)
-         *
-         * For negative values of q in (-400,0), we have that
-         *  f = (((152170 + 65536) * q ) >> 16);
-         * is equal to
-         *   -ceil(p) + q
-         * where
-         *   p = log(5**-q)/log(2) = -q * log(5)/log(2)
-         */
-		JSONIFIER_ALWAYS_INLINE constexpr int32_t power(int32_t q) noexcept {
-			return (((152170 + 65536) * q) >> 16) + 63;
-		}
-	}// namespace detail
+	JSONIFIER_ALWAYS_INLINE constexpr int32_t power(int32_t q) noexcept {
+		return (((152170 + 65536) * q) >> 16) + 63;
+	}
 
 	// create an adjusted mantissa, biased by the invalid power2
 	// for significant digits already multiplied by 10 ** q.
-	template<typename binary> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR14 adjusted_mantissa compute_error_scaled(int64_t q, uint64_t w, int lz) noexcept {
+	template<typename binary> JSONIFIER_ALWAYS_INLINE constexpr adjusted_mantissa compute_error_scaled(int64_t q, uint64_t w, int lz) noexcept {
 		int hilz = int(w >> 63) ^ 1;
 		adjusted_mantissa answer;
-		answer.mantissa = w << hilz;
-		int bias		= binary::mantissa_explicit_bits() - binary::minimum_exponent();
-		answer.power2	= int32_t(detail::power(int32_t(q)) + bias - hilz - lz - 62 + invalid_am_bias);
+		answer.mantissa	   = w << hilz;
+		constexpr int bias = binary::mantissa_explicit_bits - binary::minimum_exponent;
+		answer.power2	   = int32_t(power(int32_t(q)) + bias - hilz - lz - 62 + invalid_am_bias);
 		return answer;
 	}
 
 	// w * 10 ** q, without rounding the representation up.
 	// the power2 in the exponent will be adjusted by invalid_am_bias.
-	template<typename binary> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 adjusted_mantissa compute_error(int64_t q, uint64_t w) noexcept {
-		int lz = leading_zeroes(w);
+	template<typename binary> JSONIFIER_ALWAYS_INLINE constexpr adjusted_mantissa compute_error(int64_t q, uint64_t w) noexcept {
+		int lz = simd_internal::lzcnt(w);
 		w <<= lz;
-		value128 product = compute_product_approximation<binary::mantissa_explicit_bits() + 3>(q, w);
+		value128 product = compute_product_approximation<binary::mantissa_explicit_bits + 3>(q, w);
 		return compute_error_scaled<binary>(q, product.high, lz);
 	}
 
@@ -1306,17 +857,17 @@ namespace fast_float_new {
 	// packed. However, in some very rare cases, the computation will fail. In such
 	// cases, we return an adjusted_mantissa with a negative power of 2: the caller
 	// should recompute in such cases.
-	template<typename binary> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 adjusted_mantissa compute_float(int64_t q, uint64_t w) noexcept {
+	template<typename binary> JSONIFIER_ALWAYS_INLINE constexpr adjusted_mantissa compute_float(int64_t q, uint64_t w) noexcept {
 		adjusted_mantissa answer;
-		if ((w == 0) || (q < binary::smallest_power_of_ten())) {
+		if ((w == 0) || (q < binary::smallest_power_of_ten)) {
 			answer.power2	= 0;
 			answer.mantissa = 0;
 			// result should be zero
 			return answer;
 		}
-		if (q > binary::largest_power_of_ten()) {
+		if (q > binary::largest_power_of_ten) {
 			// we want to get infinity:
-			answer.power2	= binary::infinite_power();
+			answer.power2	= binary::infinite_power;
 			answer.mantissa = 0;
 			return answer;
 		}
@@ -1324,16 +875,16 @@ namespace fast_float_new {
 		// powers::largest_power_of_five].
 
 		// We want the most significant bit of i to be 1. Shift if needed.
-		int lz = leading_zeroes(w);
+		int lz = simd_internal::lzcnt(w);
 		w <<= lz;
 
-		// The required precision is binary::mantissa_explicit_bits() + 3 because
+		// The required precision is binary::mantissa_explicit_bits + 3 because
 		// 1. We need the implicit bit
 		// 2. We need an extra bit for rounding purposes
 		// 3. We might lose a bit due to the "upperbit" routine (result too small,
 		// requiring a shift)
 
-		value128 product = compute_product_approximation<binary::mantissa_explicit_bits() + 3>(q, w);
+		value128 product = compute_product_approximation<binary::mantissa_explicit_bits + 3>(q, w);
 		// The computed 'product' is always sufficient.
 		// Mathematical proof:
 		// Noble Mushtak and Daniel Lemire, Fast Number Parsing Without Fallback (to
@@ -1343,12 +894,15 @@ namespace fast_float_new {
 		// branchless approach: value128 product = compute_product(q, w); but in
 		// practice, we can win big with the compute_product_approximation if its
 		// additional branch is easily predicted. Which is best is data specific.
+		constexpr auto modifiedMantissaBits{ 64 - binary::mantissa_explicit_bits - 3 };
 		int upperbit = int(product.high >> 63);
-		int shift	 = upperbit + 64 - binary::mantissa_explicit_bits() - 3;
+		int shift	 = upperbit + modifiedMantissaBits;
 
 		answer.mantissa = product.high >> shift;
 
-		answer.power2 = int32_t(detail::power(int32_t(q)) + upperbit - lz - binary::minimum_exponent());
+		answer.power2 = int32_t(power(int32_t(q)) + upperbit - lz - binary::minimum_exponent);
+		constexpr auto shifted1{ uint64_t(1) << binary::mantissa_explicit_bits };
+		constexpr auto shifted2{ uint64_t(2) << binary::mantissa_explicit_bits };
 		if (answer.power2 <= 0) {// we have a subnormal?
 			// Here have that answer.power2 <= 0 so -answer.power2 >= 0
 			if (-answer.power2 + 1 >= 64) {// if we have more than 64 bits below the minimum exponent, you
@@ -1371,18 +925,18 @@ namespace fast_float_new {
 			// up 0x3fffffffffffff x 2^-1023-53  and once we do, we are no longer
 			// subnormal, but we can only know this after rounding.
 			// So we only declare a subnormal if we are smaller than the threshold.
-			answer.power2 = (answer.mantissa < (uint64_t(1) << binary::mantissa_explicit_bits())) ? 0 : 1;
+			answer.power2 = (answer.mantissa < (shifted1)) ? 0 : 1;
 			return answer;
 		}
 
 		// usually, we round *up*, but if we fall right in between and and we have an
 		// even basis, we need to round down
 		// We are only concerned with the cases where 5**q fits in single 64-bit word.
-		if ((product.low <= 1) && (q >= binary::min_exponent_round_to_even()) && (q <= binary::max_exponent_round_to_even()) &&
+		if ((product.low <= 1) && (q >= binary::min_exponent_round_to_even) && (q <= binary::max_exponent_round_to_even) &&
 			((answer.mantissa & 3) == 1)) {// we may fall between two floats!
 			// To be in-between two floats we need that in doing
 			//   answer.mantissa = product.high >> (upperbit + 64 -
-			//   binary::mantissa_explicit_bits() - 3);
+			//   binary::mantissa_explicit_bits - 3);
 			// ... we dropped out only zeroes. But if this happened, then we can go
 			// back!!!
 			if ((answer.mantissa << shift) == product.high) {
@@ -1392,33 +946,18 @@ namespace fast_float_new {
 
 		answer.mantissa += (answer.mantissa & 1);// round up
 		answer.mantissa >>= 1;
-		if (answer.mantissa >= (uint64_t(2) << binary::mantissa_explicit_bits())) {
-			answer.mantissa = (uint64_t(1) << binary::mantissa_explicit_bits());
+		if (answer.mantissa >= (shifted2)) {
+			answer.mantissa = (shifted1);
 			answer.power2++;// undo previous addition
 		}
 
-		answer.mantissa &= ~(uint64_t(1) << binary::mantissa_explicit_bits());
-		if (answer.power2 >= binary::infinite_power()) {// infinity
-			answer.power2	= binary::infinite_power();
+		answer.mantissa &= ~(shifted1);
+		if (answer.power2 >= binary::infinite_power) {// infinity
+			answer.power2	= binary::infinite_power;
 			answer.mantissa = 0;
 		}
 		return answer;
 	}
-
-}// namespace fast_float_new
-
-#endif
-
-#ifndef FASTFLOAT_NEWER_BIGINT_H
-#define FASTFLOAT_NEWER_BIGINT_H
-
-#include <algorithm>
-#include <cstdint>
-#include <climits>
-#include <cstring>
-
-
-namespace fast_float_new {
 
 	// the limb width: we want efficient multiplication of double the bits in
 	// limb, or for 64-bit limbs, at least 64-bit multiplication where we can
@@ -1459,29 +998,20 @@ namespace fast_float_new {
 		stackvec& operator=(stackvec&& other) = delete;
 
 		// create stack vector from existing limb span.
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 stackvec(limb_span s) {
-			FASTFLOAT_NEWER_ASSERT(try_extend(s));
+		JSONIFIER_ALWAYS_INLINE constexpr stackvec(limb_span s) {
 		}
 
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR14 limb& operator[](size_t index) noexcept {
-			return data[index];
-		}
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR14 const limb& operator[](size_t index) const noexcept {
-			return data[index];
-		}
 		// index from the end of the container
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR14 const limb& rindex(size_t index) const noexcept {
+		JSONIFIER_ALWAYS_INLINE constexpr const limb& rindex(size_t index) const noexcept {
 			size_t rindex = length - index - 1;
 			return data[rindex];
 		}
 
 		// set the length, without bounds checking.
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR14 void set_len(size_t len) noexcept {
+		JSONIFIER_ALWAYS_INLINE constexpr void set_len(size_t len) noexcept {
 			length = uint16_t(len);
 		}
-		JSONIFIER_ALWAYS_INLINE constexpr size_t len() const noexcept {
-			return length;
-		}
+
 		JSONIFIER_ALWAYS_INLINE constexpr bool is_empty() const noexcept {
 			return length == 0;
 		}
@@ -1489,13 +1019,13 @@ namespace fast_float_new {
 			return size;
 		}
 		// append item to vector, without bounds checking
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR14 void push_unchecked(limb value) noexcept {
+		JSONIFIER_ALWAYS_INLINE constexpr void push_unchecked(limb value) noexcept {
 			data[length] = value;
 			length++;
 		}
 		// append item to vector, returning if item was added
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR14 bool try_push(limb value) noexcept {
-			if (len() < capacity()) {
+		JSONIFIER_ALWAYS_INLINE constexpr bool try_push(limb value) noexcept {
+			if (length < capacity()) {
 				push_unchecked(value);
 				return true;
 			} else {
@@ -1503,14 +1033,14 @@ namespace fast_float_new {
 			}
 		}
 		// add items to the vector, from a span, without bounds checking
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 void extend_unchecked(limb_span s) noexcept {
+		JSONIFIER_ALWAYS_INLINE constexpr void extend_unchecked(limb_span s) noexcept {
 			limb* ptr = data + length;
-			std::copy_n(s.ptr, s.len(), ptr);
-			set_len(len() + s.len());
+			std::copy_n(s.ptr, s.length, ptr);
+			set_len(length + s.length);
 		}
 		// try to add items to the vector, returning if items were added
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 bool try_extend(limb_span s) noexcept {
-			if (len() + s.len() <= capacity()) {
+		JSONIFIER_ALWAYS_INLINE constexpr bool try_extend(limb_span s) noexcept {
+			if (length + s.length <= capacity()) {
 				extend_unchecked(s);
 				return true;
 			} else {
@@ -1520,10 +1050,10 @@ namespace fast_float_new {
 		// resize the vector, without bounds checking
 		// if the new size is longer than the vector, assign value to each
 		// appended item.
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 void resize_unchecked(size_t new_len, limb value) noexcept {
-			if (new_len > len()) {
-				size_t count = new_len - len();
-				limb* first	 = data + len();
+		JSONIFIER_ALWAYS_INLINE constexpr void resize_unchecked(size_t new_len, limb value) noexcept {
+			if (new_len > length) {
+				size_t count = new_len - length;
+				limb* first	 = data + length;
 				limb* last	 = first + count;
 				::std::fill(first, last, value);
 				set_len(new_len);
@@ -1532,7 +1062,7 @@ namespace fast_float_new {
 			}
 		}
 		// try to resize the vector, returning if the vector was resized.
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 bool try_resize(size_t new_len, limb value) noexcept {
+		JSONIFIER_ALWAYS_INLINE constexpr bool try_resize(size_t new_len, limb value) noexcept {
 			if (new_len > capacity()) {
 				return false;
 			} else {
@@ -1543,8 +1073,8 @@ namespace fast_float_new {
 		// check if any limbs are non-zero after the given index.
 		// this needs to be done in reverse order, since the index
 		// is relative to the most significant limbs.
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR14 bool nonzero(size_t index) const noexcept {
-			while (index < len()) {
+		JSONIFIER_ALWAYS_INLINE constexpr bool nonzero(size_t index) const noexcept {
+			while (index < length) {
 				if (rindex(index) != 0) {
 					return true;
 				}
@@ -1553,26 +1083,26 @@ namespace fast_float_new {
 			return false;
 		}
 		// normalize the big integer, so most-significant zero limbs are removed.
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR14 void normalize() noexcept {
-			while (len() > 0 && rindex(0) == 0) {
+		JSONIFIER_ALWAYS_INLINE constexpr void normalize() noexcept {
+			while (length > 0 && rindex(0) == 0) {
 				length--;
 			}
 		}
 	};
 
-	JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR14 uint64_t empty_hi64(bool& truncated) noexcept {
+	JSONIFIER_ALWAYS_INLINE constexpr uint64_t empty_hi64(bool& truncated) noexcept {
 		truncated = false;
 		return 0;
 	}
 
 	JSONIFIER_ALWAYS_INLINE uint64_t uint64_hi64(uint64_t r0, bool& truncated) noexcept {
 		truncated = false;
-		int shl	  = leading_zeroes(r0);
+		int shl	  = simd_internal::lzcnt(r0);
 		return r0 << shl;
 	}
 
 	JSONIFIER_ALWAYS_INLINE uint64_t uint64_hi64(uint64_t r0, uint64_t r1, bool& truncated) noexcept {
-		int shl = leading_zeroes(r0);
+		int shl = simd_internal::lzcnt(r0);
 		if (shl == 0) {
 			truncated = r1 != 0;
 			return r0;
@@ -1604,15 +1134,13 @@ namespace fast_float_new {
 	// we want an efficient operation. for msvc, where
 	// we don't have built-in intrinsics, this is still
 	// pretty fast.
-	JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 limb scalar_add(limb x, limb y, bool& overflow) noexcept {
+	JSONIFIER_ALWAYS_INLINE constexpr limb scalar_add(limb x, limb y, bool& overflow) noexcept {
 		limb z;
 		// gcc and clang
 #if defined(__has_builtin)
 	#if __has_builtin(__builtin_add_overflow)
-		if (!cpp20_and_in_constexpr()) {
-			overflow = __builtin_add_overflow(x, y, &z);
-			return z;
-		}
+		overflow = __builtin_add_overflow(x, y, &z);
+		return z;
 	#endif
 #endif
 
@@ -1623,7 +1151,7 @@ namespace fast_float_new {
 	}
 
 	// multiply two small integers, getting both the high and low bits.
-	JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 limb scalar_mul(limb x, limb y, limb& carry) noexcept {
+	JSONIFIER_ALWAYS_INLINE limb scalar_mul(limb x, limb y, limb& carry) noexcept {
 #ifdef FASTFLOAT_NEWER_64BIT_LIMB
 	#if defined(__SIZEOF_INT128__)
 		// GCC and clang both define it as an extension.
@@ -1649,12 +1177,12 @@ namespace fast_float_new {
 
 	// add scalar value to bigint starting from offset.
 	// used in grade school multiplication
-	template<uint16_t size> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 bool small_add_from(stackvec<size>& vec, limb y, size_t start) noexcept {
+	template<uint16_t size> JSONIFIER_ALWAYS_INLINE constexpr bool small_add_from(stackvec<size>& vec, limb y, size_t start) noexcept {
 		size_t index = start;
 		limb carry	 = y;
 		bool overflow;
-		while (carry != 0 && index < vec.len()) {
-			vec[index] = scalar_add(vec[index], carry, overflow);
+		while (carry != 0 && index < vec.length) {
+			vec.data[index] = scalar_add(vec.data[index], carry, overflow);
 			carry	   = limb(overflow);
 			index += 1;
 		}
@@ -1665,15 +1193,15 @@ namespace fast_float_new {
 	}
 
 	// add scalar value to bigint.
-	template<uint16_t size> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 bool small_add(stackvec<size>& vec, limb y) noexcept {
+	template<uint16_t size> JSONIFIER_ALWAYS_INLINE constexpr bool small_add(stackvec<size>& vec, limb y) noexcept {
 		return small_add_from(vec, y, 0);
 	}
 
 	// multiply bigint by scalar value.
-	template<uint16_t size> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 bool small_mul(stackvec<size>& vec, limb y) noexcept {
+	template<uint16_t size> JSONIFIER_ALWAYS_INLINE constexpr bool small_mul(stackvec<size>& vec, limb y) noexcept {
 		limb carry = 0;
-		for (size_t index = 0; index < vec.len(); index++) {
-			vec[index] = scalar_mul(vec[index], y, carry);
+		for (size_t index = 0; index < vec.length; index++) {
+			vec.data[index] = scalar_mul(vec.data[index], y, carry);
 		}
 		if (carry != 0) {
 			FASTFLOAT_NEWER_TRY(vec.try_push(carry));
@@ -1683,57 +1211,57 @@ namespace fast_float_new {
 
 	// add bigint to bigint starting from index.
 	// used in grade school multiplication
-	template<uint16_t size> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 bool large_add_from(stackvec<size>& x, limb_span y, size_t start) noexcept {
-		// the effective x buffer is from `xstart..x.len()`, so exit early
+	template<uint16_t size> JSONIFIER_ALWAYS_INLINE constexpr bool large_add_from(stackvec<size>& x, limb_span y, size_t start) noexcept {
+		// the effective x buffer is from `xstart..x.length`, so exit early
 		// if we can't get that current range.
-		if (x.len() < start || y.len() > x.len() - start) {
-			FASTFLOAT_NEWER_TRY(x.try_resize(y.len() + start, 0));
+		if (x.length < start || y.length > x.length - start) {
+			FASTFLOAT_NEWER_TRY(x.try_resize(y.length + start, 0));
 		}
 
 		bool carry = false;
-		for (size_t index = 0; index < y.len(); index++) {
-			limb xi = x[index + start];
-			limb yi = y[index];
+		for (size_t index = 0; index < y.length; index++) {
+			limb xi = x.data[index + start];
+			limb yi = y.ptr[index];
 			bool c1 = false;
 			bool c2 = false;
 			xi		= scalar_add(xi, yi, c1);
 			if (carry) {
 				xi = scalar_add(xi, 1, c2);
 			}
-			x[index + start] = xi;
+			x.data[index + start] = xi;
 			carry			 = c1 | c2;
 		}
 
 		// handle overflow
 		if (carry) {
-			FASTFLOAT_NEWER_TRY(small_add_from(x, 1, y.len() + start));
+			FASTFLOAT_NEWER_TRY(small_add_from(x, 1, y.length + start));
 		}
 		return true;
 	}
 
 	// add bigint to bigint.
-	template<uint16_t size> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 bool large_add_from(stackvec<size>& x, limb_span y) noexcept {
+	template<uint16_t size> JSONIFIER_ALWAYS_INLINE constexpr bool large_add_from(stackvec<size>& x, limb_span y) noexcept {
 		return large_add_from(x, y, 0);
 	}
 
 	// grade-school multiplication algorithm
-	template<uint16_t size> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 bool long_mul(stackvec<size>& x, limb_span y) noexcept {
-		limb_span xs = limb_span(x.data, x.len());
+	template<uint16_t size> JSONIFIER_ALWAYS_INLINE constexpr bool long_mul(stackvec<size>& x, limb_span y) noexcept {
+		limb_span xs = limb_span(x.data, x.length);
 		stackvec<size> z(xs);
-		limb_span zs = limb_span(z.data, z.len());
+		limb_span zs = limb_span(z.data, z.length);
 
-		if (y.len() != 0) {
-			limb y0 = y[0];
+		if (y.length != 0) {
+			limb y0 = y.ptr[0];
 			FASTFLOAT_NEWER_TRY(small_mul(x, y0));
-			for (size_t index = 1; index < y.len(); index++) {
-				limb yi = y[index];
+			for (size_t index = 1; index < y.length; index++) {
+				limb yi = y.ptr[index];
 				stackvec<size> zi;
 				if (yi != 0) {
 					// re-use the same buffer throughout
 					zi.set_len(0);
 					FASTFLOAT_NEWER_TRY(zi.try_extend(zs));
 					FASTFLOAT_NEWER_TRY(small_mul(zi, yi));
-					limb_span zis = limb_span(zi.data, zi.len());
+					limb_span zis = limb_span(zi.data, zi.length);
 					FASTFLOAT_NEWER_TRY(large_add_from(x, zis, index));
 				}
 			}
@@ -1744,9 +1272,9 @@ namespace fast_float_new {
 	}
 
 	// grade-school multiplication algorithm
-	template<uint16_t size> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 bool large_mul(stackvec<size>& x, limb_span y) noexcept {
-		if (y.len() == 1) {
-			FASTFLOAT_NEWER_TRY(small_mul(x, y[0]));
+	template<uint16_t size> JSONIFIER_ALWAYS_INLINE constexpr bool large_mul(stackvec<size>& x, limb_span y) noexcept {
+		if (y.length == 1) {
+			FASTFLOAT_NEWER_TRY(small_mul(x, y.ptr[0]));
 		} else {
 			FASTFLOAT_NEWER_TRY(long_mul(x, y));
 		}
@@ -1792,16 +1320,6 @@ namespace fast_float_new {
 #endif
 	};
 
-#if FASTFLOAT_NEWER_DETAIL_MUST_DEFINE_CONSTEXPR_VARIABLE
-
-	template<typename T> constexpr uint32_t pow5_tables<T>::large_step;
-
-	template<typename T> constexpr uint64_t pow5_tables<T>::small_power_of_5[];
-
-	template<typename T> constexpr limb pow5_tables<T>::large_power_of_5[];
-
-#endif
-
 	// big integer type. implements a small subset of big integer
 	// arithmetic, using simple algorithms since asymptotically
 	// faster algorithms are slower for a small number of limbs.
@@ -1810,14 +1328,14 @@ namespace fast_float_new {
 		// storage of the limbs, in little-endian order.
 		stackvec<bigint_limbs> vec;
 
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 bigint() : vec() {
+		JSONIFIER_ALWAYS_INLINE constexpr bigint() : vec() {
 		}
 		bigint(const bigint&)			  = delete;
 		bigint& operator=(const bigint&)  = delete;
 		bigint(bigint&&)				  = delete;
 		bigint& operator=(bigint&& other) = delete;
 
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 bigint(uint64_t value) : vec() {
+		JSONIFIER_ALWAYS_INLINE constexpr bigint(uint64_t value) : vec() {
 #ifdef FASTFLOAT_NEWER_64BIT_LIMB
 			vec.push_unchecked(value);
 #else
@@ -1829,11 +1347,11 @@ namespace fast_float_new {
 
 		// get the high 64 bits from the vector, and if bits were truncated.
 		// this is to get the significant digits for the float.
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 uint64_t hi64(bool& truncated) const noexcept {
+		JSONIFIER_ALWAYS_INLINE constexpr uint64_t hi64(bool& truncated) const noexcept {
 #ifdef FASTFLOAT_NEWER_64BIT_LIMB
-			if (vec.len() == 0) {
+			if (vec.length == 0) {
 				return empty_hi64(truncated);
-			} else if (vec.len() == 1) {
+			} else if (vec.length == 1) {
 				return uint64_hi64(vec.rindex(0), truncated);
 			} else {
 				uint64_t result = uint64_hi64(vec.rindex(0), vec.rindex(1), truncated);
@@ -1841,11 +1359,11 @@ namespace fast_float_new {
 				return result;
 			}
 #else
-			if (vec.len() == 0) {
+			if (vec.length == 0) {
 				return empty_hi64(truncated);
-			} else if (vec.len() == 1) {
+			} else if (vec.length == 1) {
 				return uint32_hi64(vec.rindex(0), truncated);
-			} else if (vec.len() == 2) {
+			} else if (vec.length == 2) {
 				return uint32_hi64(vec.rindex(0), vec.rindex(1), truncated);
 			} else {
 				uint64_t result = uint32_hi64(vec.rindex(0), vec.rindex(1), vec.rindex(2), truncated);
@@ -1861,15 +1379,15 @@ namespace fast_float_new {
 		// positive, this is larger, otherwise they are equal.
 		// the limbs are stored in little-endian order, so we
 		// must compare the limbs in ever order.
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 int compare(const bigint& other) const noexcept {
-			if (vec.len() > other.vec.len()) {
+		JSONIFIER_ALWAYS_INLINE constexpr int compare(const bigint& other) const noexcept {
+			if (vec.length > other.vec.length) {
 				return 1;
-			} else if (vec.len() < other.vec.len()) {
+			} else if (vec.length < other.vec.length) {
 				return -1;
 			} else {
-				for (size_t index = vec.len(); index > 0; index--) {
-					limb xi = vec[index - 1];
-					limb yi = other.vec[index - 1];
+				for (size_t index = vec.length; index > 0; index--) {
+					limb xi = vec.data[index - 1];
+					limb yi = other.vec.data[index - 1];
 					if (xi > yi) {
 						return 1;
 					} else if (xi < yi) {
@@ -1882,7 +1400,7 @@ namespace fast_float_new {
 
 		// shift left each limb n bits, carrying over to the new limb
 		// returns true if we were able to shift all the digits.
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 bool shl_bits(size_t n) noexcept {
+		JSONIFIER_ALWAYS_INLINE constexpr bool shl_bits(size_t n) noexcept {
 			// Internally, for each item, we shift left by n, and add the previous
 			// right shifted limb-bits.
 			// For example, we transform (for u8) shifted left 2, to:
@@ -1892,9 +1410,9 @@ namespace fast_float_new {
 			size_t shl = n;
 			size_t shr = limb_bits - shl;
 			limb prev  = 0;
-			for (size_t index = 0; index < vec.len(); index++) {
-				limb xi	   = vec[index];
-				vec[index] = (xi << shl) | (prev >> shr);
+			for (size_t index = 0; index < vec.length; index++) {
+				limb xi	   = vec.data[index];
+				vec.data[index] = (xi << shl) | (prev >> shr);
 				prev	   = xi;
 			}
 
@@ -1906,19 +1424,19 @@ namespace fast_float_new {
 		}
 
 		// move the limbs left by `n` limbs.
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 bool shl_limbs(size_t n) noexcept {
-			if (n + vec.len() > vec.capacity()) {
+		JSONIFIER_ALWAYS_INLINE constexpr bool shl_limbs(size_t n) noexcept {
+			if (n + vec.length > vec.capacity()) {
 				return false;
 			} else if (!vec.is_empty()) {
 				// move limbs
 				limb* dst		= vec.data + n;
 				const limb* src = vec.data;
-				std::copy_backward(src, src + vec.len(), dst + vec.len());
+				std::copy_backward(src, src + vec.length, dst + vec.length);
 				// fill in empty limbs
 				limb* first = vec.data;
 				limb* last	= first + n;
 				::std::fill(first, last, 0);
-				vec.set_len(n + vec.len());
+				vec.set_len(n + vec.length);
 				return true;
 			} else {
 				return true;
@@ -1926,7 +1444,7 @@ namespace fast_float_new {
 		}
 
 		// move the limbs left by `n` bits.
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 bool shl(size_t n) noexcept {
+		JSONIFIER_ALWAYS_INLINE constexpr bool shl(size_t n) noexcept {
 			size_t rem = n % limb_bits;
 			size_t div = n / limb_bits;
 			if (rem != 0) {
@@ -1939,41 +1457,41 @@ namespace fast_float_new {
 		}
 
 		// get the number of leading zeros in the bigint.
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 int ctlz() const noexcept {
+		JSONIFIER_ALWAYS_INLINE constexpr int ctlz() const noexcept {
 			if (vec.is_empty()) {
 				return 0;
 			} else {
 #ifdef FASTFLOAT_NEWER_64BIT_LIMB
-				return leading_zeroes(vec.rindex(0));
+				return simd_internal::lzcnt(vec.rindex(0));
 #else
-				// no use defining a specialized leading_zeroes for a 32-bit type.
+				// no use defining a specialized simd_internal::lzcnt for a 32-bit type.
 				uint64_t r0 = vec.rindex(0);
-				return leading_zeroes(r0 << 32);
+				return simd_internal::lzcnt(r0 << 32);
 #endif
 			}
 		}
 
 		// get the number of bits in the bigint.
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 int bit_length() const noexcept {
+		JSONIFIER_ALWAYS_INLINE constexpr int bit_length() const noexcept {
 			int lz = ctlz();
-			return int(limb_bits * vec.len()) - lz;
+			return int(limb_bits * vec.length) - lz;
 		}
 
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 bool mul(limb y) noexcept {
+		JSONIFIER_ALWAYS_INLINE constexpr bool mul(limb y) noexcept {
 			return small_mul(vec, y);
 		}
 
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 bool add(limb y) noexcept {
+		JSONIFIER_ALWAYS_INLINE constexpr bool add(limb y) noexcept {
 			return small_add(vec, y);
 		}
 
 		// multiply as if by 2 raised to a power.
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 bool pow2(uint32_t exp) noexcept {
+		JSONIFIER_ALWAYS_INLINE constexpr bool pow2(uint32_t exp) noexcept {
 			return shl(exp);
 		}
 
 		// multiply as if by 5 raised to a power.
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 bool pow5(uint32_t exp) noexcept {
+		JSONIFIER_ALWAYS_INLINE constexpr bool pow5(uint32_t exp) noexcept {
 			// multiply by a power of 5
 			size_t large_length = sizeof(large_power_of_5) / sizeof(limb);
 			limb_span large		= limb_span(large_power_of_5, large_length);
@@ -2003,26 +1521,11 @@ namespace fast_float_new {
 		}
 
 		// multiply as if by 10 raised to a power.
-		JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 bool pow10(uint32_t exp) noexcept {
+		JSONIFIER_ALWAYS_INLINE constexpr bool pow10(uint32_t exp) noexcept {
 			FASTFLOAT_NEWER_TRY(pow5(exp));
 			return pow2(exp);
 		}
 	};
-
-}// namespace fast_float_new
-
-#endif
-
-#ifndef FASTFLOAT_NEWER_DIGIT_COMPARISON_H
-#define FASTFLOAT_NEWER_DIGIT_COMPARISON_H
-
-#include <algorithm>
-#include <cstdint>
-#include <cstring>
-#include <iterator>
-
-
-namespace fast_float_new {
 
 	// 1e0 to 1e19
 	constexpr static uint64_t powers_of_ten_uint64[] = { 1UL, 10UL, 100UL, 1000UL, 10000UL, 100000UL, 1000000UL, 10000000UL, 100000000UL, 1000000000UL, 10000000000UL,
@@ -2033,7 +1536,7 @@ namespace fast_float_new {
 	// this algorithm is not even close to optimized, but it has no practical
 	// effect on performance: in order to have a faster algorithm, we'd need
 	// to slow down performance for faster algorithms, and this is still fast.
-	JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR14 int32_t scientific_exponent(uint64_t mantissa, int64_t exponent) noexcept {
+	JSONIFIER_ALWAYS_INLINE constexpr int32_t scientific_exponent(uint64_t mantissa, int64_t exponent) noexcept {
 		while (mantissa >= 10000) {
 			mantissa /= 10000;
 			exponent += 4;
@@ -2050,29 +1553,22 @@ namespace fast_float_new {
 	}
 
 	// this converts a native floating-point number to an extended-precision float.
-	template<typename T> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 adjusted_mantissa to_extended(T value) noexcept {
-		using equiv_uint					 = typename binary_format<T>::equiv_uint;
-		constexpr equiv_uint exponent_mask	 = binary_format<T>::exponent_mask();
-		constexpr equiv_uint mantissa_mask	 = binary_format<T>::mantissa_mask();
-		constexpr equiv_uint hidden_bit_mask = binary_format<T>::hidden_bit_mask();
+	template<typename value_type> JSONIFIER_ALWAYS_INLINE constexpr adjusted_mantissa to_extended(value_type value) noexcept {
+		using equiv_uint = typename binary_format<value_type>::equiv_uint;
 
 		adjusted_mantissa am;
-		int32_t bias = binary_format<T>::mantissa_explicit_bits() - binary_format<T>::minimum_exponent();
+		constexpr int32_t bias = binary_format<value_type>::mantissa_explicit_bits - binary_format<value_type>::minimum_exponent;
 		equiv_uint bits;
-#if FASTFLOAT_NEWER_HAS_BIT_CAST
 		bits = std::bit_cast<equiv_uint>(value);
-#else
-		::memcpy(&bits, &value, sizeof(T));
-#endif
-		if ((bits & exponent_mask) == 0) {
+		if ((bits & binary_format<value_type>::exponent_mask) == 0) {
 			// denormal
 			am.power2	= 1 - bias;
-			am.mantissa = bits & mantissa_mask;
+			am.mantissa = bits & binary_format<value_type>::mantissa_mask;
 		} else {
 			// normal
-			am.power2 = int32_t((bits & exponent_mask) >> binary_format<T>::mantissa_explicit_bits());
+			am.power2 = int32_t((bits & binary_format<value_type>::exponent_mask) >> binary_format<value_type>::mantissa_explicit_bits);
 			am.power2 -= bias;
-			am.mantissa = (bits & mantissa_mask) | hidden_bit_mask;
+			am.mantissa = (bits & binary_format<value_type>::mantissa_mask) | binary_format<value_type>::hidden_bit_mask;
 		}
 
 		return am;
@@ -2081,7 +1577,7 @@ namespace fast_float_new {
 	// get the extended precision value of the halfway point between b and b+u.
 	// we are given a native float that represents b, so we need to adjust it
 	// halfway between b and b+u.
-	template<typename T> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 adjusted_mantissa to_extended_halfway(T value) noexcept {
+	template<typename value_type> JSONIFIER_ALWAYS_INLINE constexpr adjusted_mantissa to_extended_halfway(value_type value) noexcept {
 		adjusted_mantissa am = to_extended(value);
 		am.mantissa <<= 1;
 		am.mantissa += 1;
@@ -2090,14 +1586,16 @@ namespace fast_float_new {
 	}
 
 	// round an extended-precision float to the nearest machine float.
-	template<typename T, typename callback> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR14 void round(adjusted_mantissa& am, callback cb) noexcept {
-		int32_t mantissa_shift = 64 - binary_format<T>::mantissa_explicit_bits() - 1;
+	template<typename value_type, typename callback> JSONIFIER_ALWAYS_INLINE constexpr void round(adjusted_mantissa& am, callback cb) noexcept {
+		constexpr int32_t mantissa_shift = 64 - binary_format<value_type>::mantissa_explicit_bits - 1;
+		constexpr auto shifted1{ (uint64_t(1) << binary_format<value_type>::mantissa_explicit_bits) };
+		constexpr auto shifted2{ (uint64_t(2) << binary_format<value_type>::mantissa_explicit_bits) };
 		if (-am.power2 >= mantissa_shift) {
 			// have a denormal float
 			int32_t shift = -am.power2 + 1;
 			cb(am, std::min<int32_t>(shift, 64));
 			// check for round-up: if rounding-nearest carried us to the hidden bit.
-			am.power2 = (am.mantissa < (uint64_t(1) << binary_format<T>::mantissa_explicit_bits())) ? 0 : 1;
+			am.power2 = (am.mantissa < shifted1) ? 0 : 1;
 			return;
 		}
 
@@ -2105,20 +1603,20 @@ namespace fast_float_new {
 		cb(am, mantissa_shift);
 
 		// check for carry
-		if (am.mantissa >= (uint64_t(2) << binary_format<T>::mantissa_explicit_bits())) {
-			am.mantissa = (uint64_t(1) << binary_format<T>::mantissa_explicit_bits());
+		if (am.mantissa >= shifted2) {
+			am.mantissa = shifted1;
 			am.power2++;
 		}
 
 		// check for infinite: we could have carried to an infinite power
-		am.mantissa &= ~(uint64_t(1) << binary_format<T>::mantissa_explicit_bits());
-		if (am.power2 >= binary_format<T>::infinite_power()) {
-			am.power2	= binary_format<T>::infinite_power();
+		am.mantissa &= ~shifted1;
+		if (am.power2 >= binary_format<value_type>::infinite_power) {
+			am.power2	= binary_format<value_type>::infinite_power;
 			am.mantissa = 0;
 		}
 	}
 
-	template<typename callback> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR14 void round_nearest_tie_even(adjusted_mantissa& am, int32_t shift, callback cb) noexcept {
+	template<typename callback> JSONIFIER_ALWAYS_INLINE constexpr void round_nearest_tie_even(adjusted_mantissa& am, int32_t shift, callback cb) noexcept {
 		const uint64_t mask		= (shift == 64) ? UINT64_MAX : (uint64_t(1) << shift) - 1;
 		const uint64_t halfway	= (shift == 0) ? 0 : uint64_t(1) << (shift - 1);
 		uint64_t truncated_bits = am.mantissa & mask;
@@ -2137,7 +1635,7 @@ namespace fast_float_new {
 		am.mantissa += uint64_t(cb(is_odd, is_halfway, is_above));
 	}
 
-	JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR14 void round_down(adjusted_mantissa& am, int32_t shift) noexcept {
+	JSONIFIER_ALWAYS_INLINE constexpr void round_down(adjusted_mantissa& am, int32_t shift) noexcept {
 		if (shift == 64) {
 			am.mantissa = 0;
 		} else {
@@ -2145,7 +1643,7 @@ namespace fast_float_new {
 		}
 		am.power2 += shift;
 	}
-	template<typename char_t> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 void skip_zeros(char_t const*& first, char_t const* last) noexcept {
+	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr void skip_zeros(char_t const*& first, char_t const* last) noexcept {
 		constexpr auto cmpLength{ int_cmp_len<char_t> };
 		constexpr auto cmpZeros{ int_cmp_zeros<char_t> };
 		uint64_t val;
@@ -2166,7 +1664,7 @@ namespace fast_float_new {
 
 	// determine if any non-zero digits were truncated.
 	// all characters must be valid digits.
-	template<typename char_t> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 bool is_truncated(char_t const* first, char_t const* last) noexcept {
+	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr bool is_truncated(char_t const* first, char_t const* last) noexcept {
 		constexpr auto cmpLength{ int_cmp_len<char_t> };
 		constexpr auto cmpZeros{ int_cmp_zeros<char_t> };
 		uint64_t val;
@@ -2185,30 +1683,30 @@ namespace fast_float_new {
 		}
 		return false;
 	}
-	template<typename char_t> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 bool is_truncated(span<const char_t> s) noexcept {
-		return is_truncated(s.ptr, s.ptr + s.len());
+	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr bool is_truncated(span<const char_t> s) noexcept {
+		return is_truncated(s.ptr, s.ptr + s.length);
 	}
 
-	template<typename char_t> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 void parse_eight_digits(const char_t*& p, limb& value, size_t& counter, size_t& count) noexcept {
+	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr void parse_eight_digits(const char_t*& p, limb& value, size_t& counter, size_t& count) noexcept {
 		value = value * 100000000 + parse_eight_digits_unrolled(p);
 		p += 8;
 		counter += 8;
 		count += 8;
 	}
 
-	template<typename char_t> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR14 void parse_one_digit(char_t const*& p, limb& value, size_t& counter, size_t& count) noexcept {
+	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr void parse_one_digit(char_t const*& p, limb& value, size_t& counter, size_t& count) noexcept {
 		value = value * 10 + limb(*p - char_t('0'));
 		p++;
 		counter++;
 		count++;
 	}
 
-	JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 void add_native(bigint& big, limb power, limb value) noexcept {
+	JSONIFIER_ALWAYS_INLINE constexpr void add_native(bigint& big, limb power, limb value) noexcept {
 		big.mul(power);
 		big.add(value);
 	}
 
-	JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 void round_up_bigint(bigint& big, size_t& count) noexcept {
+	JSONIFIER_ALWAYS_INLINE constexpr void round_up_bigint(bigint& big, size_t& count) noexcept {
 		// need to round-up the digits, but need to avoid rounding
 		// ....9999 to ...10000, which could cause a false halfway point.
 		add_native(big, 10, 1);
@@ -2216,8 +1714,8 @@ namespace fast_float_new {
 	}
 
 	// parse the significant digits into a big integer
-	template<typename char_t> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 void parse_mantissa(bigint& result, span<const char_t>& integer, span<const char_t>& fraction,
-		size_t max_digits, size_t& digits) noexcept {
+	template<typename char_t>
+	JSONIFIER_ALWAYS_INLINE constexpr void parse_mantissa(bigint& result, span<const char_t>& integer, span<const char_t>& fraction, size_t max_digits, size_t& digits) noexcept {
 		// try to minimize the number of big integer and scalar multiplication.
 		// therefore, try to parse 8 digits at a time, and multiply by the largest
 		// scalar value (9 or 19 digits) for each step.
@@ -2232,7 +1730,7 @@ namespace fast_float_new {
 
 		// process all integer digits.
 		char_t const* p	   = integer.ptr;
-		char_t const* pend = p + integer.len();
+		char_t const* pend = p + integer.length;
 		skip_zeros(p, pend);
 		// process all digits, in increments of step per loop
 		while (p != pend) {
@@ -2263,7 +1761,7 @@ namespace fast_float_new {
 		// add our fraction digits, if they're available.
 		if (fraction.ptr != nullptr) {
 			p	 = fraction.ptr;
-			pend = p + fraction.len();
+			pend = p + fraction.length;
 			if (digits == 0) {
 				skip_zeros(p, pend);
 			}
@@ -2296,15 +1794,14 @@ namespace fast_float_new {
 		}
 	}
 
-	template<typename T> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 adjusted_mantissa positive_digit_comp(bigint& bigmant, int32_t exponent) noexcept {
-		FASTFLOAT_NEWER_ASSERT(bigmant.pow10(uint32_t(exponent)));
+	template<typename value_type> JSONIFIER_ALWAYS_INLINE constexpr adjusted_mantissa positive_digit_comp(bigint& bigmant, int32_t exponent) noexcept {
 		adjusted_mantissa answer;
 		bool truncated;
-		answer.mantissa = bigmant.hi64(truncated);
-		int bias		= binary_format<T>::mantissa_explicit_bits() - binary_format<T>::minimum_exponent();
-		answer.power2	= bigmant.bit_length() - 64 + bias;
+		answer.mantissa	   = bigmant.hi64(truncated);
+		constexpr int bias = binary_format<value_type>::mantissa_explicit_bits - binary_format<value_type>::minimum_exponent;
+		answer.power2	   = bigmant.bit_length() - 64 + bias;
 
-		round<T>(answer, [truncated](adjusted_mantissa& a, int32_t shift) {
+		round<value_type>(answer, [truncated](adjusted_mantissa& a, int32_t shift) {
 			round_nearest_tie_even(a, shift, [truncated](bool is_odd, bool is_halfway, bool is_above) -> bool {
 				return is_above || (is_halfway && truncated) || (is_odd && is_halfway);
 			});
@@ -2318,8 +1815,7 @@ namespace fast_float_new {
 	// to scale them identically, we do `n * 2^f * 5^-f`, so we now have `m * 2^e`.
 	// we then need to scale by `2^(f- e)`, and then the two significant digits
 	// are of the same magnitude.
-	template<typename T>
-	JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 adjusted_mantissa negative_digit_comp(bigint& bigmant, adjusted_mantissa am, int32_t exponent) noexcept {
+	template<typename value_type> JSONIFIER_ALWAYS_INLINE constexpr adjusted_mantissa negative_digit_comp(bigint& bigmant, adjusted_mantissa& am, int32_t exponent) noexcept {
 		bigint& real_digits = bigmant;
 		int32_t real_exp	= exponent;
 
@@ -2327,10 +1823,10 @@ namespace fast_float_new {
 		adjusted_mantissa am_b = am;
 		// gcc7 buf: use a lambda to remove the noexcept qualifier bug with
 		// -Wnoexcept-type.
-		round<T>(am_b, [](adjusted_mantissa& a, int32_t shift) {
+		round<value_type>(am_b, [](adjusted_mantissa& a, int32_t shift) {
 			round_down(a, shift);
 		});
-		T b;
+		value_type b;
 		to_float(false, am_b, b);
 		adjusted_mantissa theor = to_extended_halfway(b);
 		bigint theor_digits(theor.mantissa);
@@ -2339,19 +1835,11 @@ namespace fast_float_new {
 		// scale real digits and theor digits to be same power.
 		int32_t pow2_exp  = theor_exp - real_exp;
 		uint32_t pow5_exp = uint32_t(-real_exp);
-		if (pow5_exp != 0) {
-			FASTFLOAT_NEWER_ASSERT(theor_digits.pow5(pow5_exp));
-		}
-		if (pow2_exp > 0) {
-			FASTFLOAT_NEWER_ASSERT(theor_digits.pow2(uint32_t(pow2_exp)));
-		} else if (pow2_exp < 0) {
-			FASTFLOAT_NEWER_ASSERT(real_digits.pow2(uint32_t(-pow2_exp)));
-		}
 
 		// compare digits, and use it to director rounding
 		int ord					 = real_digits.compare(theor_digits);
 		adjusted_mantissa answer = am;
-		round<T>(answer, [ord](adjusted_mantissa& a, int32_t shift) {
+		round<value_type>(answer, [ord](adjusted_mantissa& a, int32_t shift) {
 			round_nearest_tie_even(a, shift, [ord](bool is_odd, bool _, bool __) -> bool {
 				( void )_;// not needed, since we've done our comparison
 				( void )__;// not needed, since we've done our comparison
@@ -2381,112 +1869,91 @@ namespace fast_float_new {
 	// `b` as a big-integer type, scaled to the same binary exponent as
 	// the actual digits. we then compare the big integer representations
 	// of both, and use that to direct rounding.
-	template<typename T, typename char_t> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 adjusted_mantissa digit_comp(span<const char_t>& integer,
-		span<const char_t>& fraction, uint64_t mantissa, int64_t exponent, adjusted_mantissa &am) noexcept {
+	template<typename value_type, typename char_t> JSONIFIER_ALWAYS_INLINE constexpr adjusted_mantissa digit_comp(span<const char_t>& integer, span<const char_t>& fraction,
+		uint64_t mantissa, int64_t exponent, adjusted_mantissa& am) noexcept {
 		// remove the invalid exponent bias
 		am.power2 -= invalid_am_bias;
 
-		int32_t sci_exp	  = scientific_exponent(mantissa, exponent);
-		size_t max_digits = binary_format<T>::max_digits();
-		size_t digits	  = 0;
+		int32_t sci_exp = scientific_exponent(mantissa, exponent);
+		size_t digits	= 0;
 		bigint bigmant;
-		parse_mantissa(bigmant, integer, fraction, max_digits, digits);
+		parse_mantissa(bigmant, integer, fraction, binary_format<value_type>::max_digits, digits);
 		// can't underflow, since digits is at most max_digits.
 		int32_t exponentNew = sci_exp + 1 - int32_t(digits);
 		if (exponentNew >= 0) {
-			return positive_digit_comp<T>(bigmant, exponentNew);
+			return positive_digit_comp<value_type>(bigmant, exponentNew);
 		} else {
-			return negative_digit_comp<T>(bigmant, am, exponentNew);
+			return negative_digit_comp<value_type>(bigmant, am, exponentNew);
 		}
 	}
 
-}// namespace fast_float_new
-
-#endif
-
-#ifndef FASTFLOAT_NEWER_PARSE_NUMBER_H
-#define FASTFLOAT_NEWER_PARSE_NUMBER_H
-
-
-#include <cmath>
-#include <cstring>
-#include <limits>
-#include <system_error>
-namespace fast_float_new {
-
-	namespace detail {
-
-		/**
+	/**
          * Returns true if the floating-pointing rounding mode is to 'nearest'.
          * It is the default on most system. This function is meant to be inexpensive.
          * Credit : @mwalcott3
          */
-		JSONIFIER_ALWAYS_INLINE bool rounds_to_nearest() noexcept {
-			// https://lemire.me/blog/2020/06/26/gcc-not-nearest/
+	JSONIFIER_ALWAYS_INLINE bool rounds_to_nearest_fn() noexcept {
+		// https://lemire.me/blog/2020/06/26/gcc-not-nearest/
 #if (FLT_EVAL_METHOD != 1) && (FLT_EVAL_METHOD != 0)
-			return false;
+		return false;
 #endif
-			// See
-			// A fast function to check your floating-point rounding mode
-			// https://lemire.me/blog/2022/11/16/a-fast-function-to-check-your-floating-point-rounding-mode/
-			//
-			// This function is meant to be equivalent to :
-			// prior: #include <cfenv>
-			//  return fegetround() == FE_TONEAREST;
-			// However, it is expected to be much faster than the fegetround()
-			// function call.
-			//
-			// The volatile keywoard prevents the compiler from computing the function
-			// at compile-time.
-			// There might be other ways to prevent compile-time optimizations (e.g.,
-			// asm). The value does not need to be std::numeric_limits<float>::min(), any
-			// small value so that 1 + x should round to 1 would do (after accounting for
-			// excess precision, as in 387 instructions).
-			static volatile float fmin = std::numeric_limits<float>::min();
-			float fmini				   = fmin;// we copy it so that it gets loaded at most once.
-			//
-			// Explanation:
-			// Only when fegetround() == FE_TONEAREST do we have that
-			// fmin + 1.0f == 1.0f - fmin.
-			//
-			// FE_UPWARD:
-			//  fmin + 1.0f > 1
-			//  1.0f - fmin == 1
-			//
-			// FE_DOWNWARD or  FE_TOWARDZERO:
-			//  fmin + 1.0f == 1
-			//  1.0f - fmin < 1
-			//
-			// Note: This may fail to be accurate if fast-math has been
-			// enabled, as rounding conventions may not apply.
+		// See
+		// A fast function to check your floating-point rounding mode
+		// https://lemire.me/blog/2022/11/16/a-fast-function-to-check-your-floating-point-rounding-mode/
+		//
+		// This function is meant to be equivalent to :
+		// prior: #include <cfenv>
+		//  return fegetround() == FE_TONEAREST;
+		// However, it is expected to be much faster than the fegetround()
+		// function call.
+		//
+		// The volatile keywoard prevents the compiler from computing the function
+		// at compile-time.
+		// There might be other ways to prevent compile-time optimizations (e.g.,
+		// asm). The value does not need to be std::numeric_limits<float>::min(), any
+		// small value so that 1 + x should round to 1 would do (after accounting for
+		// excess precision, as in 387 instructions).
+		static volatile float fmin = std::numeric_limits<float>::min();
+		float fmini				   = fmin;// we copy it so that it gets loaded at most once.
+		//
+		// Explanation:
+		// Only when fegetround() == FE_TONEAREST do we have that
+		// fmin + 1.0f == 1.0f - fmin.
+		//
+		// FE_UPWARD:
+		//  fmin + 1.0f > 1
+		//  1.0f - fmin == 1
+		//
+		// FE_DOWNWARD or  FE_TOWARDZERO:
+		//  fmin + 1.0f == 1
+		//  1.0f - fmin < 1
+		//
+		// Note: This may fail to be accurate if fast-math has been
+		// enabled, as rounding conventions may not apply.
 #ifdef FASTFLOAT_NEWER_VISUAL_STUDIO
 	#pragma warning(push)
 //  todo: is there a VS warning?
 //  see
 //  https://stackoverflow.com/questions/46079446/is-there-a-warning-for-floating-point-equality-checking-in-visual-studio-2013
-#elif defined(__clang__)
+#elif defined(JSONIFIER_CLANG)
 	#pragma clang diagnostic push
 	#pragma clang diagnostic ignored "-Wfloat-equal"
-#elif defined(__GNUC__)
+#elif defined(JSONIFIER_GNUCXX)
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wfloat-equal"
 #endif
-			return (fmini + 1.0f == 1.0f - fmini);
+		return (fmini + 1.0f == 1.0f - fmini);
 #ifdef FASTFLOAT_NEWER_VISUAL_STUDIO
 	#pragma warning(pop)
-#elif defined(__clang__)
+#elif defined(JSONIFIER_CLANG)
 	#pragma clang diagnostic pop
-#elif defined(__GNUC__)
+#elif defined(JSONIFIER_GNUCXX)
 	#pragma GCC diagnostic pop
 #endif
-		}
-
-	}// namespace detail
+	}
 
 	struct rounds_to_nearest {
-		inline static bool roundsToNearest{ detail::rounds_to_nearest() };
+		inline static bool roundsToNearest{ rounds_to_nearest_fn() };
 	};
 
 }// namespace fast_float_new
-
-#endif

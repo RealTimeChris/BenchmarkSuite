@@ -52,157 +52,138 @@ namespace jsonifier_internal_new {
 		false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false };
 
 	JSONIFIER_ALWAYS_INLINE_VARIABLE char decimal{ '.' };
-	JSONIFIER_ALWAYS_INLINE_VARIABLE char smallE{ 'e' };
 	JSONIFIER_ALWAYS_INLINE_VARIABLE char minus{ '-' };
-	JSONIFIER_ALWAYS_INLINE_VARIABLE char bigE{ 'E' };
 	JSONIFIER_ALWAYS_INLINE_VARIABLE char plus{ '+' };
 	JSONIFIER_ALWAYS_INLINE_VARIABLE char zero{ '0' };
 	JSONIFIER_ALWAYS_INLINE_VARIABLE char nine{ '9' };
 
-#define isDigit(x) ((static_cast<uint8_t>(x - '0')) <= 9)
+#define JSONIFIER_IS_DIGIT(x) ((static_cast<uint8_t>(x - zero)) <= 9)
 
-	template<typename T, typename UC> JSONIFIER_ALWAYS_INLINE bool reParseFloat(fast_float_new::span<const UC>& integer, fast_float_new::span<const UC>& fraction, int64_t exponent,
-		uint64_t mantissa, bool negative, fast_float_new::adjusted_mantissa& am, T& value) noexcept {
+	template<typename value_type, typename char_t> JSONIFIER_ALWAYS_INLINE bool parseFloat(char_t const*& iter, char_t const* end, value_type& value) noexcept {
 		using namespace fast_float_new;
 
-		static constexpr auto infinitePower{ binary_format<T>::infinite_power() };
-		am = digit_comp<T>(integer, fraction, mantissa, exponent, am);
-		to_float(negative, am, value);
-		if ((mantissa != 0 && am.mantissa == 0 && am.power2 == 0) || am.power2 == infinitePower) {
-			return false;
-		}
-		return true;
-	}
-
-	template<typename T, typename UC> JSONIFIER_ALWAYS_INLINE bool parseFloat(UC const*& iter, UC const* end, T& value) noexcept {
-		using namespace fast_float_new;
-
-		static constexpr UC decimalNew = '.';
-		static constexpr UC smallE	   = 'e';
-		static constexpr UC bigE	   = 'E';
-		static constexpr UC minusNew   = '-';
-		static constexpr UC plusNew	   = '+';
-		static constexpr UC zeroNew	   = '0';
-		span<const UC> integer;
-		span<const UC> fraction;
-		int64_t digit_count;
-		int64_t exp_number{};
-		int64_t exponent{};
+		span<const char_t> fraction;
+		span<const char_t> integer;
+		int64_t digitCount;
+		int64_t expNumber{};
 		uint64_t mantissa{};
-		bool negative{ *iter == minusNew };
-		bool too_many_digits{ false };
+		int64_t exponent{};
+		uint8_t digit;
+		bool negative{ *iter == minus };
+		bool tooManyDigits{ false };
 
 		if (negative) {
 			++iter;
 
-			if JSONIFIER_UNLIKELY (!isDigit(*iter)) {
+			if JSONIFIER_UNLIKELY (!JSONIFIER_IS_DIGIT(*iter)) {
 				return false;
 			}
 		}
-		UC const* start_digits = iter;
+		char_t const* startDigits = iter;
 
-		while (isDigit(*iter)) {
-			mantissa = 10 * mantissa + static_cast<uint64_t>(*iter - zeroNew);
+		while (JSONIFIER_IS_DIGIT(*iter)) {
+			digit = static_cast<uint8_t>(*iter - zero);
 			++iter;
+			mantissa = 10 * mantissa + digit;
 		}
 
-		digit_count					= static_cast<int64_t>(iter - start_digits);
-		integer.length				= static_cast<size_t>(digit_count);
-		integer.ptr					= start_digits;
+		digitCount	   = static_cast<int64_t>(iter - startDigits);
+		integer.length = static_cast<size_t>(digitCount);
+		integer.ptr	   = startDigits;
 
-		if (digit_count == 0 || (start_digits[0] == zeroNew && digit_count > 1)) {
+		if JSONIFIER_UNLIKELY (digitCount == 0 || (startDigits[0] == zero && digitCount > 1)) {
 			return false;
 		}
 
-		if (*iter == decimalNew) {
+		if (*iter == decimal) {
 			++iter;
-			UC const* before = iter;
+			char_t const* before = iter;
 			loop_parse_if_eight_digits(iter, end, mantissa);
 
-			while (isDigit(*iter)) {
-				mantissa = mantissa * 10 + static_cast<uint8_t>(*iter - zeroNew);
+			while (JSONIFIER_IS_DIGIT(*iter)) {
+				digit = static_cast<uint8_t>(*iter - zero);
 				++iter;
+				mantissa = mantissa * 10 + digit;
 			}
-			exponent			   = before - iter;
+			exponent		= before - iter;
 			fraction.length = static_cast<size_t>(iter - before);
-			fraction.ptr	   = before;
-			digit_count -= exponent;
+			fraction.ptr	= before;
+			digitCount -= exponent;
 
-			if (exponent == 0) {
+			if JSONIFIER_UNLIKELY (exponent == 0) {
 				return false;
 			}
 		}
 
 		if (expTable[*iter]) {
-			UC const* location_of_e = iter;
+			char_t const* locationOfE = iter;
 			++iter;
 			bool neg_exp = false;
-			if (minusNew == *iter) {
+			if (minus == *iter) {
 				neg_exp = true;
 				++iter;
-			} else if (plusNew == *iter) {
+			} else if (plus == *iter) {
 				++iter;
 			}
-			if (!isDigit(*iter)) {
-				iter = location_of_e;
+			if (!JSONIFIER_IS_DIGIT(*iter)) {
+				iter = locationOfE;
 			} else {
-				while (isDigit(*iter)) {
-					if (exp_number < 0x10000000) {
-						exp_number = 10 * exp_number + static_cast<uint8_t>(*iter - zeroNew);
+				while (JSONIFIER_IS_DIGIT(*iter)) {
+					if (expNumber < 0x10000000) {
+						digit	  = static_cast<uint8_t>(*iter - zero);
+						expNumber = 10 * expNumber + digit;
 					}
 					++iter;
 				}
 				if (neg_exp) {
-					exp_number = -exp_number;
+					expNumber = -expNumber;
 				}
-				exponent += exp_number;
+				exponent += expNumber;
 			}
 		}
 
-		if (digit_count > 19) {
-			UC const* start = start_digits;
-			while ((*start == zeroNew || *start == decimalNew)) {
-				if (*start == zeroNew) {
-					--digit_count;
+		if (digitCount > 19) {
+			while ((*startDigits == zero || *startDigits == decimal)) {
+				if (*startDigits == zero) {
+					--digitCount;
 				}
-				++start;
+				++startDigits;
 			}
 
-			if (digit_count > 19) {
-				too_many_digits	  = true;
-				mantissa		  = 0;
-				auto newIter	  = integer.ptr;
-				UC const* int_end = newIter + integer.len();
-				static constexpr uint64_t minimal_nineteen_digit_integer{ 1000000000000000000 };
-				while ((mantissa < minimal_nineteen_digit_integer) && (newIter != int_end)) {
-					mantissa = mantissa * 10 + static_cast<uint64_t>(*newIter - zeroNew);
+			if (digitCount > 19) {
+				tooManyDigits		 = true;
+				mantissa			 = 0;
+				auto newIter		 = integer.ptr;
+				char_t const* intEnd = newIter + integer.length;
+				static constexpr uint64_t minNineteenDigitInteger{ 1000000000000000000 };
+				while ((mantissa < minNineteenDigitInteger) && (newIter != intEnd)) {
+					digit	 = static_cast<uint8_t>(*newIter - zero);
+					mantissa = mantissa * 10 + digit;
 					++newIter;
 				}
-				if (mantissa >= minimal_nineteen_digit_integer) {
-					exponent = int_end - newIter + exp_number;
+				if (mantissa >= minNineteenDigitInteger) {
+					exponent = intEnd - newIter + expNumber;
 				} else {
-					newIter			   = fraction.ptr;
-					UC const* frac_end = newIter + fraction.len();
-					while ((mantissa < minimal_nineteen_digit_integer) && (newIter != frac_end)) {
-						mantissa = mantissa * 10 + static_cast<uint64_t>(*newIter - zeroNew);
+					newIter				  = fraction.ptr;
+					char_t const* fracEnd = newIter + fraction.length;
+					while ((mantissa < minNineteenDigitInteger) && (newIter != fracEnd)) {
+						digit	 = static_cast<uint8_t>(*newIter - zero);
+						mantissa = mantissa * 10 + digit;
 						++newIter;
 					}
-					exponent = fraction.ptr - newIter + exp_number;
+					exponent = fraction.ptr - newIter + expNumber;
 				}
 			}
 		}
-		static constexpr auto minExpFastPath{ binary_format<T>::min_exponent_fast_path() };
-		static constexpr auto maxExpFastPath{ binary_format<T>::max_exponent_fast_path() };
-		static constexpr auto maxMantissaFastPath{ binary_format<T>::max_mantissa_fast_path() };
-		static constexpr auto infinitePower{ binary_format<T>::infinite_power() };
-		if (minExpFastPath <= exponent && exponent <= maxExpFastPath && !too_many_digits) {
+
+		if (binary_format<value_type>::min_exponent_fast_path <= exponent && exponent <= binary_format<value_type>::max_exponent_fast_path && !tooManyDigits) {
 			if (rounds_to_nearest::roundsToNearest) {
-				if (mantissa <= maxMantissaFastPath) {
-					value = T(mantissa);
+				if (mantissa <= binary_format<value_type>::max_mantissa_fast_path_value) {
+					value = value_type(mantissa);
 					if (exponent < 0) {
-						value = value / binary_format<T>::exact_power_of_ten(-exponent);
+						value = value / binary_format<value_type>::exact_power_of_ten(-exponent);
 					} else {
-						value = value * binary_format<T>::exact_power_of_ten(exponent);
+						value = value * binary_format<value_type>::exact_power_of_ten(exponent);
 					}
 					if (negative) {
 						value = -value;
@@ -210,14 +191,14 @@ namespace jsonifier_internal_new {
 					return true;
 				}
 			} else {
-				if (exponent >= 0 && mantissa <= binary_format<T>::max_mantissa_fast_path(exponent)) {
-#if defined(__clang__) || defined(FASTFLOAT_NEWER_32BIT)
+				if (exponent >= 0 && mantissa <= binary_format<value_type>::max_mantissa_fast_path(exponent)) {
+#if defined(__clang__) || defined(JSONIFIER_FASTFLOAT_32BIT)
 					if (mantissa == 0) {
-						value = negative ? T(-0.) : T(0.);
+						value = negative ? value_type(-0.) : value_type(0.);
 						return true;
 					}
 #endif
-					value = T(mantissa) * binary_format<T>::exact_power_of_ten(exponent);
+					value = value_type(mantissa) * binary_format<value_type>::exact_power_of_ten(exponent);
 					if (negative) {
 						value = -value;
 					}
@@ -225,16 +206,16 @@ namespace jsonifier_internal_new {
 				}
 			}
 		}
-		adjusted_mantissa am = compute_float<binary_format<T>>(exponent, mantissa);
-		if (too_many_digits && am.power2 >= 0) {
-			if (am != compute_float<binary_format<T>>(exponent, mantissa + 1)) {
-				am = compute_error<binary_format<T>>(exponent, mantissa);
+		adjusted_mantissa am = compute_float<binary_format<value_type>>(exponent, mantissa);
+		if (tooManyDigits && am.power2 >= 0) {
+			if (am != compute_float<binary_format<value_type>>(exponent, mantissa + 1)) {
+				am = compute_error<binary_format<value_type>>(exponent, mantissa);
 			}
-		} else if (am.power2 < 0) {
-			am = digit_comp<T>(integer, fraction, mantissa, exponent, am);
+		} else if JSONIFIER_UNLIKELY (am.power2 < 0) {
+			am = digit_comp<value_type>(integer, fraction, mantissa, exponent, am);
 		}
 		to_float(negative, am, value);
-		if ((mantissa != 0 && am.mantissa == 0 && am.power2 == 0) || am.power2 == infinitePower) {
+		if JSONIFIER_UNLIKELY ((mantissa != 0 && am.mantissa == 0 && am.power2 == 0) || am.power2 == binary_format<value_type>::infinite_power) {
 			return false;
 		}
 		return true;

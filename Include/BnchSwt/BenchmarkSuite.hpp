@@ -446,8 +446,8 @@ namespace bnch_swt {
 
 	  protected:
 		double targetCv{ 1.0f / static_cast<double>(optionsNew.targetCvDenom) };
-		jsonifier::vector<double> tempDurations{};
-		jsonifier::vector<double> durations{};
+		std::vector<double> tempDurations{};
+		std::vector<double> durations{};
 		bench_options options{ optionsNew };
 		std::string benchmarkColor{};
 		size_t totalDurationCount{};
@@ -475,7 +475,7 @@ namespace bnch_swt {
 		inline static std::unordered_map<std::string, benchmark_result_final> results{};
 
 		BNCH_SWT_INLINE static void printResults(bool verbose = true) {
-			jsonifier_internal::string_literal stageName{ stageNameNew };
+			static constexpr jsonifier_internal::string_literal stageName{ stageNameNew };
 			std::map<std::string, std::vector<benchmark_result_final>> groupedResults{};
 			std::set<std::pair<std::string, std::string>> printedResults{};
 			std::map<std::string, uint64_t> indices{};
@@ -483,12 +483,13 @@ namespace bnch_swt {
 			for (const auto& [key, value]: results) {
 				groupedResults[value.benchmarkName].push_back(value);
 			}
+
+
 			for (auto& [key, value]: groupedResults) {
 				std::sort(value.data(), value.data() + value.size(), [](auto& lhs, auto rhs) {
 					return lhs.median < rhs.median;
 				});
 			}
-
 			for (const auto& [benchmarkName, benchmarkResults]: groupedResults) {
 				if (verbose) {
 					std::cout << "Benchmark Name: " << benchmarkName << std::endl;
@@ -517,14 +518,12 @@ namespace bnch_swt {
 				std::sort(resultCycles.begin(), resultCycles.end(), [](const auto& lhs, const auto& rhs) {
 					return lhs.totalCycles > rhs.totalCycles;
 				});
-
-
 				for (size_t x = resultCycles.size(); x > 1; --x) {
 					double totalPercentage =
 						((resultCycles.data() + x - 2)->totalCycles - ((resultCycles.data() + x - 1)->totalCycles)) / (resultCycles.data() + x - 1)->totalCycles;
 					totalPercentage *= 100.0;
 					std::cout << "Library: " << (resultCycles.data() + x - 1)->libraryName << " is faster than " << (resultCycles.data() + x - 2)->libraryName
-							  << " by roughly: " << totalPercentage << " % "
+							  << " by roughly: " << totalPercentage << "% "
 							  << ", for benchmark stage: " << stageName << std::endl;
 				}
 			} else {
@@ -579,7 +578,7 @@ namespace bnch_swt {
 				resultsNew.benchmarkName		  = static_cast<std::string>(benchmarkName.view());
 				if (resultsNew.state == bench_state::complete_success || resultsNew.state == bench_state::complete_failure) {
 					results[static_cast<std::string>(benchmarkName.view() + subjectName.view())] = resultsNew;
-					return resultsNew;
+					return std::move(resultsNew);
 				} else if (currentExecutionCount == options.maxExecutionCount) {
 					results[static_cast<std::string>(benchmarkName.view() + subjectName.view())] = resultsNew;
 					return resultsNew;
@@ -617,7 +616,7 @@ namespace bnch_swt {
 
 		BNCH_SWT_INLINE static std::string generateMarkdown(std::string repoPath) {
 			std::ostringstream markdownStream{};
-			jsonifier::vector<benchmark_result_final> resultsNew{};
+			std::vector<benchmark_result_final> resultsNew{};
 			jsonifier_internal::string_literal stageName{ stageNameNew };
 			size_t uniqueLibraryCount{ collectUniqueLibraryCount() };
 			markdownStream << "# Benchmark Results: " + stageName.view() + "\n\n";
