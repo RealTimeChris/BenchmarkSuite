@@ -993,10 +993,11 @@ namespace fast_float_new {
 
 	template<typename char_t> struct parsed_number_string_t {
 		JSONIFIER_ALWAYS_INLINE parsed_number_string_t() noexcept = default;
-		JSONIFIER_ALWAYS_INLINE parsed_number_string_t(bool negativeNew) noexcept : negative{ negativeNew } {};
 		// contains the range of the significant digits
 		span<const char_t> integer;// non-nullable
 		span<const char_t> fraction;// nullable
+		int64_t digit_count{};
+		int64_t exp_number{};
 		int64_t exponent{};
 		uint64_t mantissa{};
 		bool negative;
