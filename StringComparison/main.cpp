@@ -392,7 +392,7 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 			for (size_t x = 0; x < 10; ++x) {
 				for (size_t y = 0; y < maxIndex; ++y) {
 					const auto* iter = newDoubles[y].data();
-#if defined(JSONIFIER_GNUCXX) || defined(JSONIFIER_MAC)
+#if defined(JSONIFIER_GNUCXX) && !defined(JSONIFIER_MAC)
 					const auto* end = newDoubles[y].data() + newDoubles[y].size();
 					jsonifier_internal_new::parseFloat(newDouble, iter, end);
 #else

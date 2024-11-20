@@ -150,9 +150,11 @@ namespace jsonifier_internal_new {
 		fast_float_new::span<const char_t> fraction;
 		char_t const* before = iter;
 
+#if defined(JSONIFIER_GNUCXX) && !defined(JSONIFIER_MAC)
 		if (end - iter >= 8) {
 			loop_parse_if_eight_digits(iter, end, mantissa);
 		}
+#endif
 
 		while (JSONIFIER_IS_DIGIT(*iter)) {
 			mantissa = mantissa * 10 + static_cast<uint8_t>(*iter - zero);
