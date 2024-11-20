@@ -639,18 +639,22 @@ namespace fast_float_new {
 			(val & 0x00000000FF000000) << 8 | (val & 0x0000000000FF0000) << 24 | (val & 0x000000000000FF00) << 40 | (val & 0x00000000000000FF) << 56;
 	}
 
+	template<typename value_type> JSONIFIER_ALWAYS_INLINE consteval value_type as_constant(value_type value) noexcept {
+		return value;
+	}
+
 	// Read 8 char_t into a u64. Truncates char_t if not char.
-	template<typename char_t> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 uint64_t read8_to_u64(const char_t* chars) {
+	template<typename char_t> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 uint64_t readbytes_to_u64(const char_t* chars, size_t size) {
 		if constexpr (!std::is_same<char_t, char>::value) {
 			uint64_t val = 0;
-			for (int i = 0; i < 8; ++i) {
+			for (int i = 0; i < size; ++i) {
 				val |= uint64_t(uint8_t(*chars)) << (i * 8);
 				++chars;
 			}
 			return val;
 		}
-		uint64_t val;
-		::memcpy(&val, chars, sizeof(uint64_t));
+		uint64_t val{ as_constant(uint64_t{}) };
+		::memcpy(&val, chars, size);
 #if FASTFLOAT_NEWER_IS_BIG_ENDIAN == 1
 		// Need to read as-if the number was in little-endian order.
 		val = byteswap(val);
@@ -708,71 +712,101 @@ namespace fast_float_new {
 		return 0;
 	}
 
-	// credit  @aqrit
-	JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR14 uint32_t parse_eight_digits_unrolled(uint64_t val) {
-		const uint64_t mask = 0x000000FF000000FF;
-		const uint64_t mul1 = 0x000F424000000064;// 100 + (1000000ULL << 32)
-		const uint64_t mul2 = 0x0000271000000001;// 1 + (10000ULL << 32)
-		val -= 0x3030303030303030;
-		val = (val * 10) + (val >> 8);// val = (val * 2561) >> 8;
-		val = (((val & mask) * mul1) + (((val >> 16) & mask) * mul2)) >> 32;
-		return static_cast<uint32_t>(val);
+	JSONIFIER_ALWAYS_INLINE uint64_t count_digit_bytes(uint64_t val) noexcept {
+		uint64_t high_bits = val + 0x4646464646464646;
+		uint64_t low_bits  = val - 0x3030303030303030;
+		uint64_t mask	   = (high_bits | low_bits) & 0x8080808080808080;
+		uint64_t non_digit_mask = mask & 0x8080808080808080;
+		return simd_internal::tzcnt(non_digit_mask) >> 3;
 	}
 
-	// Call this if chars are definitely 8 digits.
-	template<typename char_t> JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 uint32_t parse_eight_digits_unrolled(char_t const* chars) noexcept {
-		return parse_eight_digits_unrolled(simd_read8_to_u64(chars));
+	struct parse_x_digits_unrolled {
+		template<size_t size> JSONIFIER_ALWAYS_INLINE static uint32_t implInternal(const char* string) {
+			uint64_t val;
+			if constexpr (size == 8) {
+				std::memcpy(&val, string, 8);
+				constexpr uint64_t mask = 0x000000FF000000FF;
+				constexpr uint64_t mul1 = 0x000F424000000064;
+				constexpr uint64_t mul2 = 0x0000271000000001;
+				val -= 0x3030303030303030;
+				val = (val * 10) + (val >> 8);
+				val = (((val & mask) * mul1) + (((val >> 16) & mask) * mul2)) >> 32;
+				return static_cast<uint32_t>(val);
+			} else if constexpr (size == 7) {
+				std::memcpy(&val, string, 7);
+				constexpr uint64_t mask = 0x000000FF000000FF;
+				constexpr uint64_t mul1 = 10ULL + (100000ULL << 32ULL);
+				constexpr uint64_t mul2 = 1000ULL << 32ULL;
+				val -= 0x0030303030303030ULL & 0x00FFFFFFFFFFFFFFULL;
+				uint8_t spare{ static_cast<uint8_t>((val >> 48) & 0xFF) };
+				val = (val * 10ULL) + (val >> 8ULL);
+				val = (((val & mask) * mul1) + (((val >> 16ULL) & mask) * mul2)) >> 32ULL;
+				return static_cast<uint32_t>(val) + spare;
+			} else if constexpr (size == 6) {
+				std::memcpy(&val, string, 6);
+				constexpr uint64_t mask = 0x000000FF000000FF;
+				constexpr uint64_t mul1 = 1ULL + (10000ULL << 32ULL);
+				constexpr uint64_t mul2 = 100ULL << 32ULL;
+				val -= 0x0000303030303030ULL & 0x0000FFFFFFFFFFFFULL;
+				val = (val * 10ULL) + (val >> 8ULL);
+				val = (((val & mask) * mul1) + (((val >> 16ULL) & mask) * mul2)) >> 32ULL;
+				return static_cast<uint32_t>(val);
+			} else if constexpr (size == 5) {
+				std::memcpy(&val, string, 5);
+				constexpr uint64_t mask = 0x000000FF000000FF;
+				constexpr uint64_t mul1 = (1000ULL << 32ULL);
+				constexpr uint64_t mul2 = 10ULL << 32ULL;
+				val -= 0x0000003030303030ULL & 0x000000FFFFFFFFFFULL;
+				uint8_t spare{ static_cast<uint8_t>((val >> 32) & 0xFF) };
+				val = (val * 10ULL) + (val >> 8ULL);
+				val = (((val & mask) * mul1) + (((val >> 16ULL) & mask) * mul2)) >> 32ULL;
+				return static_cast<uint32_t>(val) + spare;
+			} else if constexpr (size == 4) {
+				std::memcpy(&val, string, 4);
+				constexpr uint64_t mask = 0x000000FF000000FF;
+				constexpr uint64_t mul1 = (100ULL << 32ULL);
+				constexpr uint64_t mul2 = 1ULL << 32ULL;
+				val -= 0x0000000030303030ULL & 0x00000000FFFFFFFFULL;
+				val = (val * 10ULL) + (val >> 8ULL);
+				val = (((val & mask) * mul1) + (((val >> 16ULL) & mask) * mul2)) >> 32ULL;
+				return static_cast<uint32_t>(val);
+			} else if constexpr (size == 3) {
+				std::memcpy(&val, string, 3);
+				constexpr uint64_t mask = 0x000000FF000000FF;
+				constexpr uint64_t mul1 = (10ULL << 32ULL);
+				constexpr uint64_t mul2 = 1ULL;
+				val -= 0x0000000000303030ULL & 0x0000000000FFFFFFULL;
+				uint8_t spare{ static_cast<uint8_t>((val >> 16) & 0xFF) };
+				val = (val * 10ULL) + (val >> 8ULL);
+				val = (((val & mask) * mul1) + (((val >> 16ULL) & mask) * mul2)) >> 32ULL;
+				return static_cast<uint32_t>(val) + spare;
+			} else if constexpr (size == 2) {
+				std::memcpy(&val, string, 2);
+				constexpr uint64_t mask = 0x000000FF000000FF;
+				constexpr uint64_t mul1 = (1ULL << 32ULL);
+				val -= 0x0000000000003030ULL & 0x000000000000FFFFULL;
+				val = (val * 10ULL) + (val >> 8ULL);
+				val = ((val & mask) * mul1) >> 32ULL;
+				return static_cast<uint32_t>(val);
+			} else if constexpr (size == 1) {
+				return string[0] - zero;
+			} else {
+				return {};
+			}
+		}
+	};
+
+	template<size_t... indices> JSONIFIER_ALWAYS_INLINE static constexpr auto generateFunctionPtrsImpl(std::index_sequence<indices...>) {
+		using function_type = decltype(&parse_x_digits_unrolled::implInternal<0>);
+		return std::array<function_type, sizeof...(indices)>{ parse_x_digits_unrolled::implInternal<indices>... };
 	}
+
+	static constexpr auto functionPtrs{ generateFunctionPtrsImpl(std::make_index_sequence<9>{}) };
 
 	// credit @aqrit
 	JSONIFIER_ALWAYS_INLINE constexpr bool is_made_of_eight_digits_fast(uint64_t val) noexcept {
 		return !((((val + 0x4646464646464646) | (val - 0x3030303030303030)) & 0x8080808080808080));
 	}
-
-#ifdef FASTFLOAT_NEWER_HAS_SIMD
-
-	// Call this if chars might not be 8 digits.
-	// Using this style (instead of is_made_of_eight_digits_fast() then
-	// parse_eight_digits_unrolled()) ensures we don't load SIMD registers twice.
-	JSONIFIER_ALWAYS_INLINE bool simd_parse_if_eight_digits_unrolled(const char16_t* chars, uint64_t& i) noexcept {
-	#ifdef FASTFLOAT_NEWER_SSE2
-		FASTFLOAT_NEWER_SIMD_DISABLE_WARNINGS
-		const __m128i data = _mm_loadu_si128(reinterpret_cast<const __m128i*>(chars));
-
-		// (x - '0') <= 9
-		// http://0x80.pl/articles/simd-parsing-int-sequences.html
-		const __m128i t0 = _mm_add_epi16(data, _mm_set1_epi16(32720));
-		const __m128i t1 = _mm_cmpgt_epi16(t0, _mm_set1_epi16(-32759));
-
-		if (_mm_movemask_epi8(t1) == 0) {
-			i = i * 100000000 + parse_eight_digits_unrolled(simd_read8_to_u64(data));
-			return true;
-		} else
-			return false;
-		FASTFLOAT_NEWER_SIMD_RESTORE_WARNINGS
-	#elif defined(FASTFLOAT_NEWER_NEON)
-		FASTFLOAT_NEWER_SIMD_DISABLE_WARNINGS
-		const uint16x8_t data = vld1q_u16(reinterpret_cast<const uint16_t*>(chars));
-		static constexpr auto digitVal{ '9' - '0' + 1 };
-		// (x - '0') <= 9
-		// http://0x80.pl/articles/simd-parsing-int-sequences.html
-		const uint16x8_t t0	  = vsubq_u16(data, vmovq_n_u16('0'));
-		const uint16x8_t mask = vcltq_u16(t0, vmovq_n_u16(digitVal));
-
-		if (vminvq_u16(mask) == 0xFFFF) {
-			i = i * 100000000 + parse_eight_digits_unrolled(simd_read8_to_u64(data));
-			return true;
-		} else
-			return false;
-		FASTFLOAT_NEWER_SIMD_RESTORE_WARNINGS
-	#else
-		( void )chars;
-		( void )i;
-		return false;
-	#endif// FASTFLOAT_NEWER_SSE2
-	}
-
-#endif// FASTFLOAT_NEWER_HAS_SIMD
 
 	// MSVC SFINAE is broken pre-VS2017
 #if defined(_MSC_VER) && _MSC_VER <= 1900
@@ -785,11 +819,14 @@ namespace fast_float_new {
 		return 0;
 	}
 
-	JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 void loop_parse_if_eight_digits(const char*& iter, const char*& end, uint64_t& i) {
-		// optimizes better than parse_if_eight_digits_unrolled() for char_t = char.
-		while (end - iter >= 8 && is_made_of_eight_digits_fast(read8_to_u64(iter))) {
-			i = i * 100000000 + parse_eight_digits_unrolled(read8_to_u64(iter));
-			iter += 8;
+	static constexpr uint64_t pow10Table[] = { 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000, 10000000000, 100000000000 };
+
+	JSONIFIER_ALWAYS_INLINE void loop_parse_if_digits(const char*& iter, const char*& end, uint64_t& i) {
+		auto digitCount = count_digit_bytes(fast_float_new::readbytes_to_u64(iter, 8));
+		while (end - iter >= digitCount && digitCount > 0) {
+			i = i * pow10Table[digitCount] + functionPtrs[digitCount](iter);
+			iter += digitCount;
+			digitCount = count_digit_bytes(fast_float_new::readbytes_to_u64(iter, digitCount));
 		}
 	}
 
@@ -1983,7 +2020,9 @@ namespace fast_float_new {
 
 	template<typename char_t>
 	JSONIFIER_ALWAYS_INLINE FASTFLOAT_NEWER_CONSTEXPR20 void parse_eight_digits(const char_t*& iter, limb& value, size_t& counter, size_t& count) noexcept {
-		value = value * 100000000 + parse_eight_digits_unrolled(iter);
+		uint64_t newValue;
+		std::memcpy(&newValue, iter, 8);
+		value = value * 100000000 + functionPtrs[8](iter);
 		iter += 8;
 		counter += 8;
 		count += 8;
@@ -2320,7 +2359,7 @@ namespace jsonifier_internal_new {
 		int64_t exponent;
 		if (negative) {
 			++iter;
-			if JSONIFIER_UNLIKELY (!JSONIFIER_IS_DIGIT(*iter)) {// a sign must be followed by an integer
+			if JSONIFIER_UNLIKELY (!JSONIFIER_IS_DIGIT(*iter)) {
 				return false;
 			}
 		}
@@ -2328,11 +2367,13 @@ namespace jsonifier_internal_new {
 
 		uint64_t mantissa = 0;
 
-		loop_parse_if_eight_digits(iter, end, mantissa);
-
-		while (JSONIFIER_IS_DIGIT(*iter)) {
-			mantissa = mantissa * 10 + uint8_t(*iter - zero);
-			++iter;
+		if (end - iter >= 8) {
+			loop_parse_if_digits(iter, end, mantissa);
+		} else {
+			while (JSONIFIER_IS_DIGIT(*iter)) {
+				mantissa = 10 * mantissa + static_cast<uint8_t>(*iter - zero);
+				++iter;
+			}
 		}
 
 		char_t const* const end_of_integer_part = iter;
@@ -2346,10 +2387,13 @@ namespace jsonifier_internal_new {
 		if (*iter == decimal) {
 			++iter;
 			char_t const* before = iter;
-			loop_parse_if_eight_digits(iter, end, mantissa);
-			while (JSONIFIER_IS_DIGIT(*iter)) {
-				mantissa = mantissa * 10 + uint8_t(*iter - zero);// in rare cases, this will overflow, but that's ok
-				++iter;
+			if (end - iter >= 8) {
+				loop_parse_if_digits(iter, end, mantissa);
+			} else {
+				while (JSONIFIER_IS_DIGIT(*iter)) {
+					mantissa = 10 * mantissa + static_cast<uint8_t>(*iter - zero);
+					++iter;
+				}
 			}
 			exponent		= before - iter;
 			fraction.length = size_t(iter - before);
