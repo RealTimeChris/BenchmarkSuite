@@ -6,7 +6,7 @@
 #include <BnchSwt/BenchmarkSuite.hpp>
 #include "Tests/Jsonifier.hpp"
 #include "StrToDOld.hpp"
-#include "StrToDNew.hpp"
+#include "FastFloatNew.hpp"
 #include "fast_float.h"
 
 std::string generateIntegerString(size_t length) {
@@ -191,7 +191,7 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 				for (size_t y = 0; y < maxIndex; ++y) {
 					const auto* iter = newDoubles[y].data();
 					const auto* end = newDoubles[y].data() + newDoubles[y].size();
-					jsonifier_internal_new::parseFloat(iter, end, newDouble);
+					jsonifier_internal_new::parseFloat(iter, end, newDouble); 
 					newerDoubles03[y] = newDouble;
 					bnch_swt::doNotOptimizeAway(newDouble);
 				}
@@ -287,7 +287,7 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 				for (size_t y = 0; y < maxIndex; ++y) {
 					const auto* iter = newDoubles[y].data();
 					const auto* end	 = newDoubles[y].data() + newDoubles[y].size();
-					jsonifier_internal_new::parseFloat(iter, end, newDouble);
+					jsonifier_internal_new::parseFloat(iter, end, newDouble); 
 
 					newerDoubles03[y] = newDouble;
 					bnch_swt::doNotOptimizeAway(newDouble);
@@ -457,7 +457,6 @@ int main() {
 	const auto* iter = newString.data();
 	const auto* end	 = newString.data() + newString.size();
 	double newDouble{};
-	std::cout << "CURRENT VALUE: " << jsonifier_internal_new::parseFloat(iter, end, newDouble) << ", VALUE: " << newDouble << std::endl;
 	runForLengthSerialize<1, "Old-FastFloat-vs-New-FastFloat-1", "Old-FastFloat-vs-New-FastFloat-1">();
 	runForLengthSerialize<8, "Old-FastFloat-vs-New-FastFloat-8", "Old-FastFloat-vs-New-FastFloat-8">();
 	runForLengthSerialize<64, "Old-FastFloat-vs-New-FastFloat-64", "Old-FastFloat-vs-New-FastFloat-64">();
