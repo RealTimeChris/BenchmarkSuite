@@ -409,8 +409,50 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 	}
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::printResults();
 }
+
+consteval int32_t newValue() {
+	int32_t outPut{};
+	for (size_t x = 0; x < 1024 *16; ++x) {
+		outPut += x;
+	}
+	return outPut;
+}
+
+constexpr int32_t newValue02() {
+	int32_t outPut{};
+	for (size_t x = 0; x < 1024 * 16; ++x) {
+		outPut += x;
+	}
+	return outPut;
+}
+
+template<jsonifier_internal::string_literal testStageNew, jsonifier_internal::string_literal testNameNew> JSONIFIER_ALWAYS_INLINE void runForLengthSerialize04() {
+	static constexpr jsonifier_internal::string_literal testStage{ testStageNew };
+	static constexpr jsonifier_internal::string_literal testName{ testNameNew };
+
+	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "glz-from_chars", "dodgerblue">(
+		[&]() mutable {
+			for (size_t x = 0; x < 1024; ++x) {
+				auto newerValue = newValue();
+				bnch_swt::doNotOptimizeAway(newerValue);
+			}
+		});
+
+	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "old-parseFloat", "dodgerblue">(
+		[&]() mutable {
+			for (size_t x = 0; x < 1024; ++x) {
+				auto newerValue = newValue02();
+				bnch_swt::doNotOptimizeAway(newerValue);
+			}
+		});
+
+	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::printResults();
+}
+
+
 void testFunction(const std::string& test = std::string{}){};
 int main() {
+	runForLengthSerialize04<"TEST01", "TEST02">();
 	std::string newString{ "3423424" };
 	const auto* iter = newString.data();
 	const auto* end	 = newString.data() + newString.size();
