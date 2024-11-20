@@ -1028,11 +1028,11 @@ namespace fast_float {
 	#elif defined(FASTFLOAT_NEON)
 		FASTFLOAT_SIMD_DISABLE_WARNINGS
 		const uint16x8_t data = vld1q_u16(reinterpret_cast<const uint16_t*>(chars));
-
+		static constexpr auto digitVal{ '9' - '0' + 1 };
 		// (x - '0') <= 9
 		// http://0x80.pl/articles/simd-parsing-int-sequences.html
 		const uint16x8_t t0	  = vsubq_u16(data, vmovq_n_u16('0'));
-		const uint16x8_t mask = vcltq_u16(t0, vmovq_n_u16('9' - '0' + 1));
+		const uint16x8_t mask = vcltq_u16(t0, vmovq_n_u16(digitVal));
 
 		if (vminvq_u16(mask) == 0xFFFF) {
 			i = i * 100000000 + parse_eight_digits_unrolled(simd_read8_to_u64(data));

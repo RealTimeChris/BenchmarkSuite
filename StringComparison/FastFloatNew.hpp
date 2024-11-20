@@ -282,10 +282,10 @@ namespace fast_float_new {
 		uint64_t mantissa{ 0 };
 		int32_t power2{ 0 };// a negative value indicates an invalid result
 		JSONIFIER_ALWAYS_INLINE adjusted_mantissa() = default;
-		JSONIFIER_ALWAYS_INLINE constexpr bool operator==(const adjusted_mantissa& o) const {
+		JSONIFIER_ALWAYS_INLINE constexpr bool operator==(const adjusted_mantissa o) const {
 			return mantissa == o.mantissa && power2 == o.power2;
 		}
-		JSONIFIER_ALWAYS_INLINE constexpr bool operator!=(const adjusted_mantissa& o) const {
+		JSONIFIER_ALWAYS_INLINE constexpr bool operator!=(const adjusted_mantissa o) const {
 			return mantissa != o.mantissa || power2 != o.power2;
 		}
 	};
@@ -359,7 +359,7 @@ namespace fast_float_new {
 			0x1000000 / (constant_55555 * 5 * 5 * 5 * 5), 0x1000000 / (constant_55555 * constant_55555), 0x1000000 / (constant_55555 * constant_55555 * 5) };
 	};
 
-	template<typename value_type> JSONIFIER_ALWAYS_INLINE constexpr void to_float(bool negative, adjusted_mantissa& am, value_type& value) {
+	template<typename value_type> JSONIFIER_ALWAYS_INLINE constexpr void to_float(bool negative, adjusted_mantissa am, value_type& value) {
 		using fastfloat_uint = typename binary_format<value_type>::equiv_uint;
 		fastfloat_uint word	 = ( fastfloat_uint )am.mantissa;
 		word |= fastfloat_uint(am.power2) << binary_format<value_type>::mantissa_explicit_bits;
@@ -427,12 +427,6 @@ namespace fast_float_new {
 #else
 		return false;
 #endif
-	}
-
-	// Next function can be micro-optimized, but compilers are entirely
-	// able to optimize it well.
-	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr bool is_integer(char_t c) noexcept {
-		return !(c > char_t('9') || c < char_t('0'));
 	}
 
 	JSONIFIER_ALWAYS_INLINE constexpr uint64_t byteswap(uint64_t val) {
@@ -511,9 +505,9 @@ namespace fast_float_new {
 
 	// credit  @aqrit
 	JSONIFIER_ALWAYS_INLINE uint32_t parse_eight_digits_unrolled(uint64_t val) {
-		const uint64_t mask = 0x000000FF000000FF;
-		const uint64_t mul1 = 0x000F424000000064;// 100 + (1000000ULL << 32)
-		const uint64_t mul2 = 0x0000271000000001;// 1 + (10000ULL << 32)
+		constexpr uint64_t mask = 0x000000FF000000FF;
+		constexpr uint64_t mul1 = 0x000F424000000064;
+		constexpr uint64_t mul2	= 0x0000271000000001;
 		val -= 0x3030303030303030;
 		val = (val * 10) + (val >> 8);// val = (val * 2561) >> 8;
 		val = (((val & mask) * mul1) + (((val >> 16) & mask) * mul2)) >> 32;
@@ -557,11 +551,11 @@ namespace fast_float_new {
 	#elif defined(FASTFLOAT_NEWER_NEON)
 		FASTFLOAT_NEWER_SIMD_DISABLE_WARNINGS
 		const uint16x8_t data = vld1q_u16(reinterpret_cast<const uint16_t*>(chars));
-
+		static constexpr auto digitVal{ '9' - '0' + 1 };
 		// (x - '0') <= 9
-		// http://0x80.pl/articles/simd-parsing-int32_t-sequences.html
+		// http://0x80.pl/articles/simd-parsing-int-sequences.html
 		const uint16x8_t t0	  = vsubq_u16(data, vmovq_n_u16('0'));
-		const uint16x8_t mask = vcltq_u16(t0, vmovq_n_u16('9' - '0' + 1));
+		const uint16x8_t mask = vcltq_u16(t0, vmovq_n_u16(digitVal));
 
 		if (vminvq_u16(mask) == 0xFFFF) {
 			i = i * 100000000 + parse_eight_digits_unrolled(simd_read8_to_u64(data));
@@ -594,14 +588,15 @@ namespace fast_float_new {
 		if constexpr (!has_simd_opt<char_t>()) {
 			return;
 		}
-		while ((pend - p >= 8) && simd_parse_if_eight_digits_unrolled(p, i)) {// in rare cases, this will overflow, but that's ok
+		std::cout << "WERE HERE THIS IS IT!" << std::endl;
+		while (simd_parse_if_eight_digits_unrolled(p, i)) {// in rare cases, this will overflow, but that's ok
 			p += 8;
 		}
 	}
 
 	JSONIFIER_ALWAYS_INLINE void loop_parse_if_eight_digits(const char*& p, const char* const pend, uint64_t& i) {
 		// optimizes better than parse_if_eight_digits_unrolled() for char_t = char.
-		while ((pend - p >= 8) && is_made_of_eight_digits_fast(read8_to_u64(p))) {
+		while (is_made_of_eight_digits_fast(read8_to_u64(p))) {
 			i = i * 100000000 + parse_eight_digits_unrolled(read8_to_u64(p));// in rare cases, this will overflow, but that's ok
 			p += 8;
 		}
@@ -1568,22 +1563,15 @@ namespace fast_float_new {
 			am.mantissa = (bits & binary_format<value_type>::mantissa_mask) | binary_format<value_type>::hidden_bit_mask;
 		}
 
-		return am;
-	}
-
-	// get the extended precision value of the halfway point between b and b+u.
-	// we are given a native float that represents b, so we need to adjust it
-	// halfway between b and b+u.
-	template<typename value_type> JSONIFIER_ALWAYS_INLINE constexpr adjusted_mantissa to_extended_halfway(value_type value) noexcept {
-		adjusted_mantissa am = to_extended(value);
 		am.mantissa <<= 1;
 		am.mantissa += 1;
 		am.power2 -= 1;
+
 		return am;
 	}
 
 	// round an extended-precision float to the nearest machine float.
-	template<typename value_type, typename callback> JSONIFIER_ALWAYS_INLINE constexpr void round(adjusted_mantissa& am, callback cb) noexcept {
+	template<typename value_type, typename callback> JSONIFIER_ALWAYS_INLINE constexpr void round(adjusted_mantissa am, callback cb) noexcept {
 		constexpr int32_t mantissa_shift = 64 - binary_format<value_type>::mantissa_explicit_bits - 1;
 		constexpr auto shifted1{ (uint64_t(1) << binary_format<value_type>::mantissa_explicit_bits) };
 		constexpr auto shifted2{ (uint64_t(2) << binary_format<value_type>::mantissa_explicit_bits) };
@@ -1613,7 +1601,7 @@ namespace fast_float_new {
 		}
 	}
 
-	template<typename callback> JSONIFIER_ALWAYS_INLINE constexpr void round_nearest_tie_even(adjusted_mantissa& am, int32_t shift, callback cb) noexcept {
+	template<typename callback> JSONIFIER_ALWAYS_INLINE constexpr void round_nearest_tie_even(adjusted_mantissa am, int32_t shift, callback cb) noexcept {
 		const uint64_t mask		= (shift == 64) ? UINT64_MAX : (uint64_t(1) << shift) - 1;
 		const uint64_t halfway	= (shift == 0) ? 0 : uint64_t(1) << (shift - 1);
 		uint64_t truncated_bits = am.mantissa & mask;
@@ -1632,7 +1620,7 @@ namespace fast_float_new {
 		am.mantissa += uint64_t(cb(is_odd, is_halfway, is_above));
 	}
 
-	JSONIFIER_ALWAYS_INLINE constexpr void round_down(adjusted_mantissa& am, int32_t shift) noexcept {
+	JSONIFIER_ALWAYS_INLINE constexpr void round_down(adjusted_mantissa am, int32_t shift) noexcept {
 		if (shift == 64) {
 			am.mantissa = 0;
 		} else {
@@ -1680,22 +1668,9 @@ namespace fast_float_new {
 		}
 		return false;
 	}
+
 	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr bool is_truncated(span<const char_t> s) noexcept {
 		return is_truncated(s.ptr, s.ptr + s.length);
-	}
-
-	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr void parse_eight_digits(const char_t*& p, limb& value, size_t& counter, size_t& count) noexcept {
-		value = value * 100000000 + parse_eight_digits_unrolled(p);
-		p += 8;
-		counter += 8;
-		count += 8;
-	}
-
-	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr void parse_one_digit(char_t const*& p, limb& value, size_t& counter, size_t& count) noexcept {
-		value = value * 10 + limb(*p - char_t('0'));
-		p++;
-		counter++;
-		count++;
 	}
 
 	JSONIFIER_ALWAYS_INLINE constexpr void add_native(bigint& big, limb power, limb value) noexcept {
@@ -1732,10 +1707,16 @@ namespace fast_float_new {
 		// process all digits, in increments of step per loop
 		while (p != pend) {
 			while ((pend - p >= 8) && (step - counter >= 8) && (max_digits - digits >= 8)) {
-				parse_eight_digits(p, value, counter, digits);
+				value = value * 100000000 + parse_eight_digits_unrolled(p);
+				p += 8;
+				counter += 8;
+				digits += 8;
 			}
 			while (counter < step && p != pend && digits < max_digits) {
-				parse_one_digit(p, value, counter, digits);
+				value = value * 10 + limb(*p - char_t('0'));
+				p++;
+				counter++;
+				digits++;
 			}
 			if (digits == max_digits) {
 				// add the temporary value, then check if we've truncated any digits
@@ -1765,10 +1746,16 @@ namespace fast_float_new {
 			// process all digits, in increments of step per loop
 			while (p != pend) {
 				while ((pend - p >= 8) && (step - counter >= 8) && (max_digits - digits >= 8)) {
-					parse_eight_digits(p, value, counter, digits);
+					value = value * 100000000 + parse_eight_digits_unrolled(p);
+					p += 8;
+					counter += 8;
+					digits += 8;
 				}
 				while (counter < step && p != pend && digits < max_digits) {
-					parse_one_digit(p, value, counter, digits);
+					value = value * 10 + limb(*p - char_t('0'));
+					p++;
+					counter++;
+					digits++;
 				}
 				if (digits == max_digits) {
 					// add the temporary value, then check if we've truncated any digits
@@ -1791,6 +1778,59 @@ namespace fast_float_new {
 		}
 	}
 
+	// parse the significant digits into a big integer
+	template<typename char_t, size_t max_digits>
+	JSONIFIER_ALWAYS_INLINE constexpr void parse_mantissa(bigint& result, span<const char_t>& integer, size_t& digits) noexcept {
+		// try to minimize the number of big integer and scalar multiplication.
+		// therefore, try to parse 8 digits at a time, and multiply by the largest
+		// scalar value (9 or 19 digits) for each step.
+		size_t counter = 0;
+		digits		   = 0;
+		limb value	   = 0;
+#ifdef FASTFLOAT_NEWER_64BIT_LIMB
+		size_t step = 19;
+#else
+		size_t step = 9;
+#endif
+
+		// process all integer digits.
+		char_t const* p	   = integer.ptr;
+		char_t const* pend = p + integer.length;
+		skip_zeros(p, pend);
+		// process all digits, in increments of step per loop
+		while (p != pend) {
+			while ((pend - p >= 8) && (step - counter >= 8) && (max_digits - digits >= 8)) {
+				value = value * 100000000 + parse_eight_digits_unrolled(p);
+				p += 8;
+				counter += 8;
+				digits += 8;
+			}
+			while (counter < step && p != pend && digits < max_digits) {
+				value = value * 10 + limb(*p - char_t('0'));
+				p++;
+				counter++;
+				digits++;
+			}
+			if (digits == max_digits) {
+				// add the temporary value, then check if we've truncated any digits
+				add_native(result, limb(powers_of_ten_uint64[counter]), value);
+				bool truncated = is_truncated(p, pend);
+				if (truncated) {
+					round_up_bigint(result, digits);
+				}
+				return;
+			} else {
+				add_native(result, limb(powers_of_ten_uint64[counter]), value);
+				counter = 0;
+				value	= 0;
+			}
+		}
+
+		if (counter != 0) {
+			add_native(result, limb(powers_of_ten_uint64[counter]), value);
+		}
+	}
+
 	template<typename value_type> JSONIFIER_ALWAYS_INLINE constexpr adjusted_mantissa positive_digit_comp(bigint& bigmant, int32_t exponent) noexcept {
 		adjusted_mantissa answer;
 		bool truncated;
@@ -1798,7 +1838,7 @@ namespace fast_float_new {
 		constexpr int32_t bias = binary_format<value_type>::mantissa_explicit_bits - binary_format<value_type>::minimum_exponent;
 		answer.power2		   = bigmant.bit_length() - 64 + bias;
 
-		round<value_type>(answer, [truncated](adjusted_mantissa& a, int32_t shift) {
+		round<value_type>(answer, [truncated](adjusted_mantissa a, int32_t shift) {
 			round_nearest_tie_even(a, shift, [truncated](bool is_odd, bool is_halfway, bool is_above) -> bool {
 				return is_above || (is_halfway && truncated) || (is_odd && is_halfway);
 			});
@@ -1812,7 +1852,7 @@ namespace fast_float_new {
 	// to scale them identically, we do `n * 2^f * 5^-f`, so we now have `m * 2^e`.
 	// we then need to scale by `2^(f- e)`, and then the two significant digits
 	// are of the same magnitude.
-	template<typename value_type> JSONIFIER_ALWAYS_INLINE constexpr adjusted_mantissa negative_digit_comp(bigint& bigmant, adjusted_mantissa& am, int32_t exponent) noexcept {
+	template<typename value_type> JSONIFIER_ALWAYS_INLINE constexpr adjusted_mantissa negative_digit_comp(bigint& bigmant, adjusted_mantissa am, int32_t exponent) noexcept {
 		bigint& real_digits = bigmant;
 		int32_t real_exp	= exponent;
 
@@ -1820,12 +1860,12 @@ namespace fast_float_new {
 		adjusted_mantissa am_b = am;
 		// gcc7 buf: use a lambda to remove the noexcept qualifier bug with
 		// -Wnoexcept-type.
-		round<value_type>(am_b, [](adjusted_mantissa& a, int32_t shift) {
+		round<value_type>(am_b, [](adjusted_mantissa a, int32_t shift) {
 			round_down(a, shift);
 		});
 		value_type b;
 		to_float(false, am_b, b);
-		adjusted_mantissa theor = to_extended_halfway(b);
+		adjusted_mantissa theor = to_extended(b);
 		bigint theor_digits(theor.mantissa);
 		int32_t theor_exp = theor.power2;
 
@@ -1836,7 +1876,7 @@ namespace fast_float_new {
 		// compare digits, and use it to director rounding
 		int32_t ord				 = real_digits.compare(theor_digits);
 		adjusted_mantissa answer = am;
-		round<value_type>(answer, [ord](adjusted_mantissa& a, int32_t shift) {
+		round<value_type>(answer, [ord](adjusted_mantissa a, int32_t shift) {
 			round_nearest_tie_even(a, shift, [ord](bool is_odd, bool _, bool __) -> bool {
 				( void )_;// not needed, since we've done our comparison
 				( void )__;// not needed, since we've done our comparison
@@ -1866,8 +1906,8 @@ namespace fast_float_new {
 	// `b` as a big-integer type, scaled to the same binary exponent as
 	// the actual digits. we then compare the big integer representations
 	// of both, and use that to direct rounding.
-	template<typename value_type, typename char_t> JSONIFIER_ALWAYS_INLINE constexpr adjusted_mantissa digit_comp(span<const char_t>& integer, span<const char_t>& fraction,
-		uint64_t mantissa, int64_t exponent, adjusted_mantissa& am) noexcept {
+	template<typename value_type, typename char_t> JSONIFIER_ALWAYS_INLINE constexpr adjusted_mantissa digit_comp(span<const char_t>& integer, uint64_t mantissa, int64_t exponent,
+		adjusted_mantissa am, span<const char_t>& fraction) noexcept {
 		// remove the invalid exponent bias
 		am.power2 -= invalid_am_bias;
 

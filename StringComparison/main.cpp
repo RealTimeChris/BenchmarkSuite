@@ -126,6 +126,102 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 	for (auto& value: coordinates) {
 		for (auto& valueNew: value) {
 			for (auto& valueNewer: valueNew) {
+				newerDoubles00.emplace_back(test_generator::generateDouble());
+			}
+		}
+	}
+
+	std::vector<double> newerDoubles01{};
+	std::vector<std::string> newDoubles{};
+	for (size_t x = 0; x < newerDoubles00.size(); ++x) {
+		newDoubles.emplace_back(std::to_string(newerDoubles00[x]));
+	}
+	std::vector<double> newerDoubles02{};
+	std::vector<double> newerDoubles03{};
+	newerDoubles01.resize(newDoubles.size());
+	newerDoubles03.resize(newDoubles.size());
+	newerDoubles02.resize(newDoubles.size());
+
+	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "glz-from_chars", "dodgerblue">(
+		[&]() mutable {
+			double newDouble;
+			for (size_t x = 0; x < 10; ++x) {
+				for (size_t y = 0; y < maxIndex; ++y) {
+					const auto* iter = newDoubles[y].data();
+					const auto* end	 = newDoubles[y].data() + newDoubles[y].size();
+					glz::from_chars<true>(iter, end, newDouble);
+					newerDoubles02[y] = newDouble;
+					bnch_swt::doNotOptimizeAway(newDouble);
+				}
+			}
+		});
+
+	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "old-parseFloat", "dodgerblue">(
+		[&]() mutable {
+			double newDouble;
+			for (size_t x = 0; x < 10; ++x) {
+				for (size_t y = 0; y < maxIndex; ++y) {
+					const auto* iter = newDoubles[y].data();
+					const auto* end	 = newDoubles[y].data() + newDoubles[y].size();
+					jsonifier_internal_old::parseFloat(iter, end, newDouble);
+					newerDoubles01[y] = newDouble;
+					bnch_swt::doNotOptimizeAway(newDouble);
+				}
+			}
+		});
+
+	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "orginal-fastfloat", "dodgerblue">(
+		[&]() mutable {
+			double newDouble;
+			for (size_t x = 0; x < 10; ++x) {
+				for (size_t y = 0; y < maxIndex; ++y) {
+					const auto* iter = newDoubles[y].data();
+					const auto* end	 = newDoubles[y].data() + newDoubles[y].size();
+					fast_float::from_chars_advanced(iter, end, newDouble, fast_float::parse_options_t<char>{});
+					newerDoubles01[y] = newDouble;
+					bnch_swt::doNotOptimizeAway(newDouble);
+				}
+			}
+		});
+
+	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "new-parseFloat", "dodgerblue">(
+		[&]() mutable {
+			double newDouble;
+			for (size_t x = 0; x < 10; ++x) {
+				for (size_t y = 0; y < maxIndex; ++y) {
+					const auto* iter = newDoubles[y].data();
+					const auto* end = newDoubles[y].data() + newDoubles[y].size();
+					jsonifier_internal_new::parseFloat(newDouble, iter, end);
+					newerDoubles03[y] = newDouble;
+					bnch_swt::doNotOptimizeAway(newDouble);
+				}
+			}
+		});
+
+	for (size_t x = 0; x < maxIndex; ++x) {
+		if (newerDoubles03[x] != newerDoubles01[x]) {
+			std::cout << "FAILED TO PARSE AT INDEX: " << x << std::endl;
+			std::cout << "Input Value: " << newDoubles[x] << std::endl;
+			std::cout << "Intended Value: " << newerDoubles01[x] << std::endl;
+			std::cout << "Actual Value: " << newerDoubles03[x] << std::endl;
+		} else {
+			//std::cout << "Here's the value: " << newerDoubles01[x] << std::endl;
+		}
+	}
+	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::printResults();
+}
+
+template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsonifier_internal::string_literal testNameNew> JSONIFIER_ALWAYS_INLINE void runForLengthSerialize02() {
+	static constexpr jsonifier_internal::string_literal testStage{ testStageNew };
+	static constexpr jsonifier_internal::string_literal testName{ testNameNew };
+	auto newFile{ bnch_swt::file_loader ::loadFile(std::string{ JSON_BASE_PATH } + "/CitmCatalogData-Prettified.json") };
+	jsonifier::jsonifier_core parser{};
+	std::vector<std::vector<std::vector<double>>> coordinates{};
+	parser.parseJson(coordinates, newFile);
+	std::vector<double> newerDoubles00{};
+	for (auto& value: coordinates) {
+		for (auto& valueNew: value) {
+			for (auto& valueNewer: valueNew) {
 				newerDoubles00.emplace_back(valueNewer);
 			}
 		}
@@ -190,7 +286,13 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 			for (size_t x = 0; x < 10; ++x) {
 				for (size_t y = 0; y < maxIndex; ++y) {
 					const auto* iter = newDoubles[y].data();
-					jsonifier_internal_new::parseFloat(iter, newDouble);
+#if defined(JSONIFIER_GNUCXX) || defined(JSONIFIER_MAC)
+					const auto* end = newDoubles[y].data() + newDoubles[y].size();
+					jsonifier_internal_new::parseFloat(newDouble, iter, end);
+#else
+					jsonifier_internal_new::parseFloat(newDouble, iter);
+#endif
+
 					newerDoubles03[y] = newDouble;
 					bnch_swt::doNotOptimizeAway(newDouble);
 				}
@@ -210,18 +312,130 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::printResults();
 }
 
+template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsonifier_internal::string_literal testNameNew> JSONIFIER_ALWAYS_INLINE void runForLengthSerialize03() {
+	static constexpr jsonifier_internal::string_literal testStage{ testStageNew };
+	static constexpr jsonifier_internal::string_literal testName{ testNameNew };
+	auto newFile{ bnch_swt::file_loader ::loadFile(std::string{ JSON_BASE_PATH } + "/CitmCatalogData-Prettified.json") };
+	jsonifier::jsonifier_core parser{};
+	std::vector<std::vector<std::vector<double>>> coordinates{};
+	parser.parseJson(coordinates, newFile);
+	std::vector<uint64_t> newerDoubles00{};
+	for (auto& value: coordinates) {
+		for (auto& valueNew: value) {
+			for (auto& valueNewer: valueNew) {
+				newerDoubles00.emplace_back(test_generator::generateValue<uint64_t>());
+			}
+		}
+	}
+
+	std::vector<double> newerDoubles01{};
+	std::vector<std::string> newDoubles{};
+	for (size_t x = 0; x < newerDoubles00.size(); ++x) {
+
+		std::string newString{ std::to_string(newerDoubles00[x]) };
+		if (newString.size() > 19) {
+			//newString.resize(19);
+		}
+		newDoubles.emplace_back(newString);
+	}
+	std::vector<double> newerDoubles02{};
+	std::vector<double> newerDoubles03{};
+	newerDoubles01.resize(newDoubles.size());
+	newerDoubles03.resize(newDoubles.size());
+	newerDoubles02.resize(newDoubles.size());
+
+	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "glz-from_chars", "dodgerblue">(
+		[&]() mutable {
+			double newDouble;
+			for (size_t x = 0; x < 10; ++x) {
+				for (size_t y = 0; y < maxIndex; ++y) {
+					const auto* iter = newDoubles[y].data();
+					const auto* end	 = newDoubles[y].data() + newDoubles[y].size();
+					glz::from_chars<true>(iter, end, newDouble);
+					newerDoubles02[y] = newDouble;
+					bnch_swt::doNotOptimizeAway(newDouble);
+				}
+			}
+		});
+
+	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "old-parseFloat", "dodgerblue">(
+		[&]() mutable {
+			double newDouble;
+			for (size_t x = 0; x < 10; ++x) {
+				for (size_t y = 0; y < maxIndex; ++y) {
+					const auto* iter = newDoubles[y].data();
+					const auto* end	 = newDoubles[y].data() + newDoubles[y].size();
+					jsonifier_internal_old::parseFloat(iter, end, newDouble);
+					newerDoubles01[y] = newDouble;
+					bnch_swt::doNotOptimizeAway(newDouble);
+				}
+			}
+		});
+
+	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "orginal-fastfloat", "dodgerblue">(
+		[&]() mutable {
+			double newDouble;
+			for (size_t x = 0; x < 10; ++x) {
+				for (size_t y = 0; y < maxIndex; ++y) {
+					const auto* iter = newDoubles[y].data();
+					const auto* end	 = newDoubles[y].data() + newDoubles[y].size();
+					fast_float::from_chars_advanced(iter, end, newDouble, fast_float::parse_options_t<char>{});
+					newerDoubles01[y] = newDouble;
+					bnch_swt::doNotOptimizeAway(newDouble);
+				}
+			}
+		});
+
+	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "new-parseFloat", "dodgerblue">(
+		[&]() mutable {
+			double newDouble;
+			for (size_t x = 0; x < 10; ++x) {
+				for (size_t y = 0; y < maxIndex; ++y) {
+					const auto* iter = newDoubles[y].data();
+#if defined(JSONIFIER_GNUCXX) || defined(JSONIFIER_MAC)
+					const auto* end = newDoubles[y].data() + newDoubles[y].size();
+					jsonifier_internal_new::parseFloat(newDouble, iter, end);
+#else
+					jsonifier_internal_new::parseFloat(newDouble, iter);
+#endif
+
+					newerDoubles03[y] = newDouble;
+					bnch_swt::doNotOptimizeAway(newDouble);
+				}
+			}
+		});
+
+	for (size_t x = 0; x < maxIndex; ++x) {
+		if (newerDoubles03[x] != newerDoubles01[x]) {
+			std::cout << "FAILED TO PARSE AT INDEX: " << x << std::endl;
+			std::cout << "Input Value: " << newDoubles[x] << std::endl;
+			std::cout << "Intended Value: " << newerDoubles01[x] << std::endl;
+			std::cout << "Actual Value: " << newerDoubles03[x] << std::endl;
+		} else {
+			//std::cout << "Here's the value: " << newerDoubles01[x] << std::endl;
+		}
+	}
+	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::printResults();
+}
+void testFunction(const std::string& test = std::string{}){};
 int main() {
 	std::string newString{ "3423424" };
 	const auto* iter = newString.data();
 	const auto* end	 = newString.data() + newString.size();
 	double newDouble{};
-	std::cout << "CURRENT VALUE: " << FASTFLOAT_NEWER_64BIT << ", VALUE: " << newDouble << std::endl;
+	std::cout << "CURRENT VALUE: " << jsonifier_internal_new::parseFloat(newDouble, iter, end) << ", VALUE: " << newDouble << std::endl;
 	runForLengthSerialize<1, "Old-FastFloat-vs-New-FastFloat-1", "Old-FastFloat-vs-New-FastFloat-1">();
-	runForLengthSerialize<2, "Old-FastFloat-vs-New-FastFloat-2", "Old-FastFloat-vs-New-FastFloat-2">();
-	runForLengthSerialize<4, "Old-FastFloat-vs-New-FastFloat-4", "Old-FastFloat-vs-New-FastFloat-4">();
 	runForLengthSerialize<8, "Old-FastFloat-vs-New-FastFloat-8", "Old-FastFloat-vs-New-FastFloat-8">();
-	runForLengthSerialize<16, "Old-FastFloat-vs-New-FastFloat-16", "Old-FastFloat-vs-New-FastFloat-16">();
-	runForLengthSerialize<32, "Old-FastFloat-vs-New-FastFloat-32", "Old-FastFloat-vs-New-FastFloat-32">();
-	runForLengthSerialize<512, "Old-FastFloat-vs-New-FastFloat-64", "Old-FastFloat-vs-New-FastFloat-64">();
+	runForLengthSerialize<64, "Old-FastFloat-vs-New-FastFloat-64", "Old-FastFloat-vs-New-FastFloat-64">();
+	runForLengthSerialize<512, "Old-FastFloat-vs-New-FastFloat-512", "Old-FastFloat-vs-New-FastFloat-512">();
+	runForLengthSerialize02<1, "Old-FastFloat-vs-New-FastFloat-Short-1", "Old-FastFloat-vs-New-FastFloat-Short-1">();
+	runForLengthSerialize02<8, "Old-FastFloat-vs-New-FastFloat-Short-8", "Old-FastFloat-vs-New-FastFloat-Short-8">();
+	runForLengthSerialize02<64, "Old-FastFloat-vs-New-FastFloat-Short-64", "Old-FastFloat-vs-New-FastFloat-Short-64">();
+	runForLengthSerialize02<512, "Old-FastFloat-vs-New-FastFloat-Short-512", "Old-FastFloat-vs-New-FastFloat-Short-512">();
+	/*
+	runForLengthSerialize03<1, "Old-FastFloat-vs-New-FastFloat-Integer-1", "Old-FastFloat-vs-New-FastFloat-Integer-1">();
+	runForLengthSerialize03<8, "Old-FastFloat-vs-New-FastFloat-Integer-8", "Old-FastFloat-vs-New-FastFloat-Integer-8">();
+	runForLengthSerialize03<64, "Old-FastFloat-vs-New-FastFloat-Integer-64", "Old-FastFloat-vs-New-FastFloat-Integer-64">();
+	runForLengthSerialize03<512, "Old-FastFloat-vs-New-FastFloat-Integer-512", "Old-FastFloat-vs-New-FastFloat-Integer-512">();*/
 	return 0;
 }

@@ -59,84 +59,10 @@ namespace jsonifier_internal_new {
 
 #define JSONIFIER_IS_DIGIT(x) ((static_cast<uint8_t>(x - zero)) <= 9)
 
-	template<typename value_type, typename char_t> JSONIFIER_ALWAYS_INLINE bool parseFloat(char_t const*& iter, value_type& value) noexcept {
+	template<typename value_type, typename char_t> JSONIFIER_ALWAYS_INLINE bool finishParse(value_type& value, char_t const*& iter, char_t const*& startDigits,
+		fast_float_new::span<const char_t>& integer, int16_t& digitCount, int64_t& expNumber, int64_t& exponent, uint64_t& mantissa, bool& negative, bool& tooManyDigits,
+		char_t const* end = nullptr, fast_float_new::span<const char_t> fraction = {}) noexcept {
 		using namespace fast_float_new;
-
-		span<const char_t> integer;
-		span<const char_t> fraction;
-		int64_t digitCount;
-		int64_t expNumber{};
-		int64_t exponent{};
-		uint64_t mantissa{};
-		bool negative{ *iter == minus };
-		bool tooManyDigits{ false };
-
-		if (negative) {
-			++iter;
-
-			if JSONIFIER_UNLIKELY (!JSONIFIER_IS_DIGIT(*iter)) {
-				return false;
-			}
-		}
-		char_t const* startDigits = iter;
-
-		while (JSONIFIER_IS_DIGIT(*iter)) {
-			mantissa = 10 * mantissa + static_cast<uint64_t>(*iter - zero);
-			++iter;
-		}
-
-		digitCount	   = static_cast<int64_t>(iter - startDigits);
-		integer.length = static_cast<size_t>(digitCount);
-		integer.ptr	   = startDigits;
-
-		if JSONIFIER_UNLIKELY (digitCount == 0 || (startDigits[0] == zero && digitCount > 1)) {
-			return false;
-		}
-
-		if (*iter == decimal) {
-			++iter;
-			char_t const* before = iter;
-
-			while (JSONIFIER_IS_DIGIT(*iter)) {
-				mantissa = mantissa * 10 + static_cast<uint8_t>(*iter - zero);
-				++iter;
-			}
-			exponent		= before - iter;
-			fraction.length = static_cast<size_t>(iter - before);
-			fraction.ptr	= before;
-			digitCount -= exponent;
-
-			if JSONIFIER_UNLIKELY (exponent == 0) {
-				return false;
-			}
-		}
-
-		if (expTable[*iter]) {
-			char_t const* locationOfE = iter;
-			++iter;
-			bool neg_exp = false;
-			if (minus == *iter) {
-				neg_exp = true;
-				++iter;
-			} else if (plus == *iter) {
-				++iter;
-			}
-			if (!JSONIFIER_IS_DIGIT(*iter)) {
-				iter = locationOfE;
-			} else {
-				while (JSONIFIER_IS_DIGIT(*iter)) {
-					if (expNumber < 0x10000000) {
-						expNumber = 10 * expNumber + static_cast<uint8_t>(*iter - zero);
-					}
-					++iter;
-				}
-				if (neg_exp) {
-					expNumber = -expNumber;
-				}
-				exponent += expNumber;
-			}
-		}
-
 		if (digitCount > 19) {
 			char_t const* start = startDigits;
 			while ((*start == zero || *start == decimal)) {
@@ -153,7 +79,7 @@ namespace jsonifier_internal_new {
 				char_t const* intEnd = newIter + integer.length;
 				static constexpr uint64_t minNineteenDigitInteger{ 1000000000000000000 };
 				while ((mantissa < minNineteenDigitInteger) && (newIter != intEnd)) {
-					mantissa = mantissa * 10 + static_cast<uint64_t>(*newIter - zero);
+					mantissa = mantissa * 10 + static_cast<uint8_t>(*newIter - zero);
 					++newIter;
 				}
 				if (mantissa >= minNineteenDigitInteger) {
@@ -162,7 +88,7 @@ namespace jsonifier_internal_new {
 					newIter				  = fraction.ptr;
 					char_t const* fracEnd = newIter + fraction.length;
 					while ((mantissa < minNineteenDigitInteger) && (newIter != fracEnd)) {
-						mantissa = mantissa * 10 + static_cast<uint64_t>(*newIter - zero);
+						mantissa = mantissa * 10 + static_cast<uint8_t>(*newIter - zero);
 						++newIter;
 					}
 					exponent = fraction.ptr - newIter + expNumber;
@@ -207,12 +133,139 @@ namespace jsonifier_internal_new {
 			}
 		}
 		if JSONIFIER_UNLIKELY (am.power2 < 0) {
-			am = digit_comp<value_type>(integer, fraction, mantissa, exponent, am);
+			am = digit_comp<value_type>(integer, mantissa, exponent, am, fraction);
 		}
 		to_float(negative, am, value);
 		if JSONIFIER_UNLIKELY ((mantissa != 0 && am.mantissa == 0 && am.power2 == 0) || am.power2 == binary_format<value_type>::infinite_power) {
 			return false;
 		}
 		return true;
+	}
+
+	template<typename value_type, typename char_t> JSONIFIER_ALWAYS_INLINE bool parseFloatAfterFrac(value_type& value, char_t const*& iter, char_t const*& startDigits,
+		fast_float_new::span<const char_t>& integer, int16_t& digitCount, int64_t& expNumber, int64_t& exponent, uint64_t& mantissa, bool& negative, bool& tooManyDigits,
+		char_t const* end = nullptr) noexcept {
+		using namespace fast_float_new;
+		++iter;
+		fast_float_new::span<const char_t> fraction;
+		char_t const* before = iter;
+
+		if (end - iter >= 8) {
+			loop_parse_if_eight_digits(iter, end, mantissa);
+		}
+
+		while (JSONIFIER_IS_DIGIT(*iter)) {
+			mantissa = mantissa * 10 + static_cast<uint8_t>(*iter - zero);
+			++iter;
+		}
+		exponent		= before - iter;
+		fraction.length = static_cast<size_t>(iter - before);
+		fraction.ptr	= before;
+		digitCount -= exponent;
+
+		if JSONIFIER_UNLIKELY (exponent == 0) {
+			return false;
+		}
+
+		if (expTable[*iter]) {
+			char_t const* locationOfE = iter;
+			++iter;
+			bool neg_exp = false;
+			if (minus == *iter) {
+				neg_exp = true;
+				++iter;
+			} else if (plus == *iter) {
+				++iter;
+			}
+			if (!JSONIFIER_IS_DIGIT(*iter)) {
+				iter = locationOfE;
+			} else {
+				while (JSONIFIER_IS_DIGIT(*iter)) {
+					if (expNumber < 0x10000000) {
+						expNumber = 10 * expNumber + static_cast<uint8_t>(*iter - zero);
+					}
+					++iter;
+				}
+				if (neg_exp) {
+					expNumber = -expNumber;
+				}
+				exponent += expNumber;
+			}
+		}
+
+		return finishParse(value, iter, startDigits, integer, digitCount, expNumber, exponent, mantissa, negative, tooManyDigits, end, fraction);
+	}
+
+	template<typename value_type, typename char_t> JSONIFIER_ALWAYS_INLINE bool parseFloatAfterExp(value_type& value, char_t const*& iter, char_t const*& startDigits,
+		fast_float_new::span<const char_t>& integer, int16_t& digitCount, int64_t& expNumber, int64_t& exponent, uint64_t& mantissa, bool& negative, bool& tooManyDigits,
+		char_t const* end = nullptr) noexcept {
+		using namespace fast_float_new;
+		char_t const* locationOfE = iter;
+		++iter;
+		bool neg_exp = false;
+		if (minus == *iter) {
+			neg_exp = true;
+			++iter;
+		} else if (plus == *iter) {
+			++iter;
+		}
+		if (!JSONIFIER_IS_DIGIT(*iter)) {
+			iter = locationOfE;
+		} else {
+			while (JSONIFIER_IS_DIGIT(*iter)) {
+				if (expNumber < 0x10000000) {
+					expNumber = 10 * expNumber + static_cast<uint8_t>(*iter - zero);
+				}
+				++iter;
+			}
+			if (neg_exp) {
+				expNumber = -expNumber;
+			}
+			exponent += expNumber;
+		}
+
+		return finishParse(value, iter, startDigits, integer, digitCount, expNumber, exponent, mantissa, negative, tooManyDigits, end);
+	}
+
+	template<typename value_type, typename char_t> JSONIFIER_ALWAYS_INLINE bool parseFloat(value_type& value, char_t const*& iter, char_t const* end = nullptr) noexcept {
+		using namespace fast_float_new;
+
+		span<const char_t> integer;
+		int16_t digitCount;
+		int64_t expNumber{};
+		int64_t exponent{};
+		uint64_t mantissa{};
+		bool negative{ *iter == minus };
+		bool tooManyDigits{ false };
+
+		if (negative) {
+			++iter;
+
+			if JSONIFIER_UNLIKELY (!JSONIFIER_IS_DIGIT(*iter)) {
+				return false;
+			}
+		}
+		char_t const* startDigits = iter;
+
+		while (JSONIFIER_IS_DIGIT(*iter)) {
+			mantissa = 10 * mantissa + static_cast<uint8_t>(*iter - zero);
+			++iter;
+		}
+
+		digitCount	   = static_cast<int64_t>(iter - startDigits);
+		integer.length = static_cast<size_t>(digitCount);
+		integer.ptr	   = startDigits;
+
+		if JSONIFIER_UNLIKELY (digitCount == 0 || (startDigits[0] == zero && digitCount > 1)) {
+			return false;
+		}
+
+		if (*iter == decimal) {
+			return parseFloatAfterFrac(value, iter, startDigits, integer, digitCount, expNumber, exponent, mantissa, negative, tooManyDigits, end);
+		}
+		if (expTable[*iter]) {
+			return parseFloatAfterExp(value, iter, startDigits, integer, digitCount, expNumber, exponent, mantissa, negative, tooManyDigits, end);
+		}
+		return finishParse(value, iter, startDigits, integer, digitCount, expNumber, exponent, mantissa, negative, tooManyDigits);
 	}
 }
