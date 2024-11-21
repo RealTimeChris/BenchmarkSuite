@@ -52,9 +52,7 @@ namespace jsonifier_internal_new {
 		false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false };
 
 	JSONIFIER_ALWAYS_INLINE_VARIABLE char decimal{ '.' };
-	JSONIFIER_ALWAYS_INLINE_VARIABLE char smallE{ 'e' };
 	JSONIFIER_ALWAYS_INLINE_VARIABLE char minus{ '-' };
-	JSONIFIER_ALWAYS_INLINE_VARIABLE char bigE{ 'E' };
 	JSONIFIER_ALWAYS_INLINE_VARIABLE char plus{ '+' };
 	JSONIFIER_ALWAYS_INLINE_VARIABLE char zero{ '0' };
 	JSONIFIER_ALWAYS_INLINE_VARIABLE char nine{ '9' };
@@ -63,144 +61,177 @@ namespace jsonifier_internal_new {
 
 	template<typename value_type, typename char_t> JSONIFIER_ALWAYS_INLINE bool parseFloat(value_type& value, char_t const*& iter, char_t const* end = nullptr) noexcept {
 		using namespace fast_float_new;
+		span<const char_t> fraction;
+		int64_t digitCount;
+		int64_t expNumber{};
+		int64_t exponent{};
+		size_t mantissa{};
+		const bool negative{ *iter == minus };
+		bool tooManyDigits{ false };
 
-		from_chars_result_t<char_t> answer;
-		parsed_number_string_t<char_t> pns;
-		pns.valid			= false;
-		pns.too_many_digits = false;
-		pns.negative		= (*iter == char_t('-'));
-		++iter;
-		if (!is_integer(*iter)) {// a sign must be followed by an integer
-			return false;
+		if (negative) {
+			++iter;
+
+			if JSONIFIER_UNLIKELY (!JSONIFIER_IS_DIGIT(*iter)) {
+				return false;
+			}
 		}
-		
-		char_t const* const start_digits = iter;
 
-		uint64_t i = 0;// an unsigned int avoids signed overflows (which are bad)
+		span<const char_t> integer{ iter };
+#if defined(JSONIFIER_MAC)
+		size_t newVal64{ read8_to_u64(iter) };
+		while (end - iter >= 8 && is_made_of_eight_digits_fast(newVal64)) {
+			mantissa = mantissa * 100000000 + parse_eight_digits_unrolled(newVal64);
+			iter += 8;
+			newVal64 = read8_to_u64(iter);
+		}
+#endif
 
-		while ((iter != end) && is_integer(*iter)) {
-			// a multiplication by 10 is cheaper than an arbitrary integer
-			// multiplication
-			i = 10 * i + uint64_t(*iter - char_t('0'));// might overflow, we will handle the overflow later
+		while (JSONIFIER_IS_DIGIT(*iter)) {
+			mantissa = 10 * mantissa + static_cast<size_t>(*iter - zero);
 			++iter;
 		}
-		char_t const* const end_of_integer_part = iter;
-		int64_t digit_count					= int64_t(end_of_integer_part - start_digits);
-		pns.integer							= span<const char_t>(start_digits, size_t(digit_count));
-		if (digit_count == 0) {
-			return false;
-		}
-		if ((start_digits[0] == char_t('0') && digit_count > 1)) {
+
+		digitCount	= static_cast<int64_t>(iter - integer.ptr);
+		integer.end = integer.ptr + static_cast<size_t>(digitCount);
+
+		if JSONIFIER_UNLIKELY (digitCount == 0 || (integer.ptr[0] == zero && digitCount > 1)) {
 			return false;
 		}
 
-		int64_t exponent			 = 0;
-		const bool has_decimal_point = (iter != end) && (*iter == decimal);
-		if (has_decimal_point) {
+		if (*iter == decimal) {
 			++iter;
 			char_t const* before = iter;
-			// can occur at most twice without overflowing, but let it occur more, since
-			// for integers with many digits, digit parsing is the primary bottleneck.
-			loop_parse_if_eight_digits(iter, end, i);
 
-			while ((iter != end) && is_integer(*iter)) {
-				uint8_t digit = uint8_t(*iter - char_t('0'));
+			if (auto valid = end - iter >= 8; valid) {
+#if defined(JSONIFIER_MAC)
+				newVal64 = read8_to_u64(iter);
+#else
+				size_t newVal64{ read8_to_u64(iter) };
+#endif
+				valid &= is_made_of_eight_digits_fast(newVal64);
+				while (valid) {
+					mantissa = mantissa * 100000000 + parse_eight_digits_unrolled(newVal64);
+					iter += 8;
+					newVal64 = read8_to_u64(iter);
+					valid	 = end - iter >= 8 && is_made_of_eight_digits_fast(newVal64);
+				}
+			}
+
+			while (JSONIFIER_IS_DIGIT(*iter)) {
+				mantissa = mantissa * 10 + static_cast<size_t>(*iter - zero);
 				++iter;
-				i = i * 10 + digit;// in rare cases, this will overflow, but that's ok
 			}
 			exponent	 = before - iter;
-			pns.fraction = span<const char_t>(before, size_t(iter - before));
-			digit_count -= exponent;
+			fraction.ptr = before;
+			fraction.end = fraction.ptr + static_cast<size_t>(iter - before);
+			digitCount -= exponent;
+
+			if JSONIFIER_UNLIKELY (exponent == 0) {
+				return false;
+			}
 		}
-		if (has_decimal_point && exponent == 0) {
-			return false;
-		}
-		int64_t exp_number = 0;// explicit exponential part
-		if ((iter != end) && ((char_t('+') == *iter) || (char_t('-') == *iter) || (char_t('d') == *iter) || (char_t('D') == *iter))) {
-			char_t const* location_of_e = iter;
-			if ((char_t('e') == *iter) || (char_t('E') == *iter) || (char_t('d') == *iter) || (char_t('D') == *iter)) {
+
+		if (expTable[*iter]) {
+			char_t const* locationOfE = iter;
+			++iter;
+			bool negExp = false;
+			if (minus == *iter) {
+				negExp = true;
+				++iter;
+			} else if (plus == *iter) {
 				++iter;
 			}
-			bool neg_exp = false;
-			if ((iter != end) && (char_t('-') == *iter)) {
-				neg_exp = true;
-				++iter;
-			} else if ((iter != end) && (char_t('+') == *iter)) {// '+' on exponent is allowed by C++17 20.19.3.(7.1)
-				++iter;
-			}
-			if ((iter == end) || !is_integer(*iter)) {
-				iter = location_of_e;
+			if (!JSONIFIER_IS_DIGIT(*iter)) {
+				iter = locationOfE;
 			} else {
-				while ((iter != end) && is_integer(*iter)) {
-					uint8_t digit = uint8_t(*iter - char_t('0'));
-					if (exp_number < 0x10000000) {
-						exp_number = 10 * exp_number + digit;
+				while (JSONIFIER_IS_DIGIT(*iter)) {
+					if (expNumber < 0x10000000) {
+						expNumber = 10 * expNumber + static_cast<size_t>(*iter - zero);
 					}
 					++iter;
 				}
-				if (neg_exp) {
-					exp_number = -exp_number;
+				if (negExp) {
+					expNumber = -expNumber;
 				}
-				exponent += exp_number;
+				exponent += expNumber;
 			}
 		}
-		pns.lastmatch = iter;
-		pns.valid	  = true;
 
-		// If we frequently had to deal with long strings of digits,
-		// we could extend our code by using a 128-bit integer instead
-		// of a 64-bit integer. However, this is uncommon.
-		//
-		// We can deal with up to 19 digits.
-		if (digit_count > 19) {// this is uncommon
-			// It is possible that the integer had an overflow.
-			// We have to handle the case where we have 0.0000somenumber.
-			// We need to be mindful of the case where we only have zeroes...
-			// E.g., 0.000000000...000.
-			char_t const* start = start_digits;
-			while ((start != end) && (*start == char_t('0') || *start == decimal)) {
-				if (*start == char_t('0')) {
-					digit_count--;
+		if (digitCount > 19) {
+			char_t const* start = integer.ptr;
+			while ((*start == zero || *start == decimal)) {
+				if (*start == zero) {
+					--digitCount;
 				}
-				start++;
+				++start;
 			}
 
-			if (digit_count > 19) {
-				pns.too_many_digits = true;
-				// Let us start again, this time, avoiding overflows.
-				// We don't need to check if is_integer, since we use the
-				// pre-tokenized spans from above.
-				i				  = 0;
-				iter				  = pns.integer.ptr;
-				char_t const* int_end = iter + pns.integer.len();
-				const uint64_t minimal_nineteen_digit_integer{ 1000000000000000000 };
-				while ((i < minimal_nineteen_digit_integer) && (iter != int_end)) {
-					i = i * 10 + uint64_t(*iter - char_t('0'));
-					++iter;
+			if (digitCount > 19) {
+				tooManyDigits = true;
+				mantissa	  = 0;
+				start		  = integer.ptr;
+				static constexpr size_t minNineteenDigitInteger{ 1000000000000000000 };
+				while ((mantissa < minNineteenDigitInteger) && (start != integer.end)) {
+					mantissa = mantissa * 10 + static_cast<size_t>(*start - zero);
+					++start;
 				}
-				if (i >= minimal_nineteen_digit_integer) {// We have a big integers
-					exponent = end_of_integer_part - iter + exp_number;
-				} else {// We have a value with a fractional component.
-					iter				   = pns.fraction.ptr;
-					char_t const* frac_end = iter + pns.fraction.len();
-					while ((i < minimal_nineteen_digit_integer) && (iter != frac_end)) {
-						i = i * 10 + uint64_t(*iter - char_t('0'));
-						++iter;
+				if (mantissa >= minNineteenDigitInteger) {
+					exponent = integer.end - start + expNumber;
+				} else {
+					start = fraction.ptr;
+					while ((mantissa < minNineteenDigitInteger) && (start != fraction.end)) {
+						mantissa = mantissa * 10 + static_cast<size_t>(*start - zero);
+						++start;
 					}
-					exponent = pns.fraction.ptr - iter + exp_number;
+					exponent = fraction.ptr - start + expNumber;
 				}
-				// We have now corrected both exponent and i, to a truncated value
 			}
 		}
-		pns.exponent = exponent;
-		pns.mantissa = i;
-		if (!pns.valid) { 
-			answer.ec  = std::errc::invalid_argument;
-			answer.ptr = iter;
+
+		if (binary_format<value_type>::min_exponent_fast_path <= exponent && exponent <= binary_format<value_type>::max_exponent_fast_path && !tooManyDigits) {
+			if (rounds_to_nearest::roundsToNearest) {
+				if (mantissa <= binary_format<value_type>::max_mantissa_fast_path_value) {
+					value = value_type(mantissa);
+					if (exponent < 0) {
+						value = value / binary_format<value_type>::exact_power_of_ten(-exponent);
+					} else {
+						value = value * binary_format<value_type>::exact_power_of_ten(exponent);
+					}
+					if (negative) {
+						value = -value;
+					}
+					return true;
+				}
+			} else {
+				if (exponent >= 0 && mantissa <= binary_format<value_type>::max_mantissa_fast_path(exponent)) {
+#if defined(__clang__) || defined(JSONIFIER_FASTFLOAT_32BIT)
+					if (mantissa == 0) {
+						value = negative ? value_type(-0.) : value_type(0.);
+						return true;
+					}
+#endif
+					value = value_type(mantissa) * binary_format<value_type>::exact_power_of_ten(exponent);
+					if (negative) {
+						value = -value;
+					}
+					return true;
+				}
+			}
+		}
+		adjusted_mantissa am = compute_float<binary_format<value_type>>(exponent, mantissa);
+		if (tooManyDigits && am.power2 >= 0) {
+			if (am != compute_float<binary_format<value_type>>(exponent, mantissa + 1)) {
+				am = compute_error<binary_format<value_type>>(exponent, mantissa);
+			}
+		}
+		if JSONIFIER_UNLIKELY (am.power2 < 0) {
+			am = digit_comp<value_type>(integer, fraction, mantissa, exponent, am);
+		}
+		to_float(negative, am, value);
+		if JSONIFIER_UNLIKELY ((mantissa != 0 && am.mantissa == 0 && am.power2 == 0) || am.power2 == binary_format<value_type>::infinite_power) {
 			return false;
 		}
-
-		// call overload that takes parsed_number_string_t directly.
-		return from_chars_advanced(pns, value).ptr;
+		return true;
 	}
 }

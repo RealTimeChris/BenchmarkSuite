@@ -160,11 +160,7 @@ namespace fast_float {
 		hex		   = 1 << 3,
 		no_infnan  = 1 << 4,
 		// RFC 8259: https://datatracker.ietf.org/doc/html/rfc8259#section-6
-		json = FASTFLOAT_JSONFMT | fixed | scientific | no_infnan,
-		// Extension of RFC 8259 where, e.g., "inf" and "nan" are allowed.
-		json_or_infnan = FASTFLOAT_JSONFMT | fixed | scientific,
-		fortran		   = FASTFLOAT_FORTRANFMT | fixed | scientific,
-		general		   = fixed | scientific
+		json = FASTFLOAT_JSONFMT | fixed | scientific | no_infnan
 	};
 
 	template<typename UC> struct from_chars_result_t {
@@ -174,11 +170,11 @@ namespace fast_float {
 	using from_chars_result = from_chars_result_t<char>;
 
 	template<typename UC> struct parse_options_t {
-		constexpr explicit parse_options_t(chars_format fmt = chars_format::general, UC dot = UC('.')) : format(fmt), decimal_point(dot) {
+		constexpr explicit parse_options_t(chars_format fmt = chars_format::json, UC dot = UC('.')) : format(fmt), decimal_point(dot) {
 		}
 
 		/** Which number formats are accepted */
-		chars_format format;
+		chars_format format{ json };
 		/** The character used as decimal point */
 		UC decimal_point;
 	};
@@ -852,7 +848,7 @@ namespace fast_float {
          * `scientific`.
          */
 	template<typename T, typename UC = char, typename = FASTFLOAT_ENABLE_IF(is_supported_float_type<T>())>
-	FASTFLOAT_CONSTEXPR20 from_chars_result_t<UC> from_chars(UC const* first, UC const* last, T& value, chars_format fmt = chars_format::general) noexcept;
+	FASTFLOAT_CONSTEXPR20 from_chars_result_t<UC> from_chars(UC const* first, UC const* last, T& value, chars_format fmt = chars_format::json) noexcept;
 
 	/**
          * Like from_chars, but accepts an `options` argument to govern number parsing.
