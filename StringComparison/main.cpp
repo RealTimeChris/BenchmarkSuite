@@ -131,7 +131,7 @@ void runForLengthSerialize() {
 				}
 			}
 		});
-
+	/*
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "old-parseFloat", "dodgerblue">(
 		[&]() mutable {
 			double newDouble{};
@@ -145,7 +145,7 @@ void runForLengthSerialize() {
 				}
 			}
 		});
-
+		*/
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "orginal-fastfloat", "dodgerblue">(
 		[&]() mutable {
 			double newDouble{};
@@ -247,8 +247,8 @@ void runForLengthSerialize02() {
 					bnch_swt::doNotOptimizeAway(newDouble);
 				}
 			}
-		});*/
-
+		});
+		*/
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "orginal-fastfloat", "dodgerblue">(
 		[&]() mutable {
 			double newDouble{};
@@ -299,10 +299,13 @@ void runForLengthSerialize02() {
 }
 
 int main() {
-	std::string newString{ "19222334489888113699152370959033.73845937558467039093478578706430e+44" };
+	// FAILED TO PARSE AT INDEX : 9 Input Value : 5034608817624829.7467e+61 Intended Value : 5.03461e+76 Actual Value : 1.12039e+68
+	std::string newString{ "8143048125245102.3333e+54" };
 	const auto* iter = newString.data();
 	const auto* end	 = newString.data() + newString.size();
 	double newDouble{};
+	fast_float::from_chars_advanced(iter, end, newDouble, fast_float::parse_options_t<char>{});
+	std::cout << "Intended Value: " << newDouble << std::endl;
 	jsonifier_internal_new::parseFloat(newDouble, iter, end);
 	std::cout << "Parsed Value: " << newDouble << std::endl;
 	//std::cout << "Parsed Value: " << parse_digits_unrolled_three_new_working(newString.data()) << std::endl;
@@ -315,12 +318,14 @@ int main() {
 	//std::cout << "CURRENT HEX VALUE 1 + (1000ULL << 32): " << std::hex << 1 + (1000ULL << 32) << std::endl;
 	//std::cout << "CURRENT HEX VALUE (10000ULL << 32): " << std::hex << (10000ULL << 32) << std::endl;
 	//std::cout << "CURRENT HEX VALUE (1000ULL << 32): " << std::hex << (1000ULL << 32) << std::endl;
+	
+	
 
-	runForLengthSerialize<64, 2, 0, 0, "Old-FastFloat-vs-New-FastFloat-64,2,16,2", "Old-FastFloat-vs-New-FastFloat-64,2,16,2">();
-	runForLengthSerialize<64, 2, 2, 0, "Old-FastFloat-vs-New-FastFloat-64,2,2,2", "Old-FastFloat-vs-New-FastFloat-64,2,2,2">();
-	runForLengthSerialize<64, 2, 4, 0, "Old-FastFloat-vs-New-FastFloat-64,2,4,2", "Old-FastFloat-vs-New-FastFloat-64,2,4,2">();
-	runForLengthSerialize<64, 2, 8, 0, "Old-FastFloat-vs-New-FastFloat-64,2,8,2", "Old-FastFloat-vs-New-FastFloat-64,2,8,2">();
-	runForLengthSerialize<64, 2, 16, 0, "Old-FastFloat-vs-New-FastFloat-64,2,16,2", "Old-FastFloat-vs-New-FastFloat-64,2,16,2">();
+	runForLengthSerialize<64, 2, 0, 0, "Old-FastFloat-vs-New-FastFloat-64,2,16,0", "Old-FastFloat-vs-New-FastFloat-64,2,16,0">();
+	runForLengthSerialize<64, 2, 2, 0, "Old-FastFloat-vs-New-FastFloat-64,2,2,0", "Old-FastFloat-vs-New-FastFloat-64,2,2,0">();
+	runForLengthSerialize<64, 2, 4, 0, "Old-FastFloat-vs-New-FastFloat-64,2,4,0", "Old-FastFloat-vs-New-FastFloat-64,2,4,0">();
+	runForLengthSerialize<64, 2, 8, 0, "Old-FastFloat-vs-New-FastFloat-64,2,8,0", "Old-FastFloat-vs-New-FastFloat-64,2,8,0">();
+	runForLengthSerialize<64, 2, 16, 0, "Old-FastFloat-vs-New-FastFloat-64,2,16,0", "Old-FastFloat-vs-New-FastFloat-64,2,16,0">();
 
 	runForLengthSerialize<64, 2, 0, 2, "Old-FastFloat-vs-New-FastFloat-64,2,16,2", "Old-FastFloat-vs-New-FastFloat-64,2,16,2">();
 	runForLengthSerialize<64, 2, 2, 2, "Old-FastFloat-vs-New-FastFloat-64,2,2,2", "Old-FastFloat-vs-New-FastFloat-64,2,2,2">();
@@ -328,11 +333,11 @@ int main() {
 	runForLengthSerialize<64, 2, 8, 2, "Old-FastFloat-vs-New-FastFloat-64,2,8,2", "Old-FastFloat-vs-New-FastFloat-64,2,8,2">();
 	runForLengthSerialize<64, 2, 16, 2, "Old-FastFloat-vs-New-FastFloat-64,2,16,2", "Old-FastFloat-vs-New-FastFloat-64,2,16,2">();
 
-	runForLengthSerialize<64, 4, 0, 0, "Old-FastFloat-vs-New-FastFloat-64,2,16,2", "Old-FastFloat-vs-New-FastFloat-64,2,16,2">();
-	runForLengthSerialize<64, 4, 2, 0, "Old-FastFloat-vs-New-FastFloat-64,4,2,2", "Old-FastFloat-vs-New-FastFloat-64,4,2,2">();
-	runForLengthSerialize<64, 4, 4, 0, "Old-FastFloat-vs-New-FastFloat-64,4,4,2", "Old-FastFloat-vs-New-FastFloat-64,4,4,2">();
-	runForLengthSerialize<64, 4, 8, 0, "Old-FastFloat-vs-New-FastFloat-64,4,8,2", "Old-FastFloat-vs-New-FastFloat-64,4,8,2">();
-	runForLengthSerialize<64, 4, 16, 0, "Old-FastFloat-vs-New-FastFloat-64,4,16,2", "Old-FastFloat-vs-New-FastFloat-64,4,16,2">();
+	runForLengthSerialize<64, 4, 0, 0, "Old-FastFloat-vs-New-FastFloat-64,0,16,0", "Old-FastFloat-vs-New-FastFloat-64,0,16,0">();
+	runForLengthSerialize<64, 4, 2, 0, "Old-FastFloat-vs-New-FastFloat-64,4,2,0", "Old-FastFloat-vs-New-FastFloat-64,4,2,0">();
+	runForLengthSerialize<64, 4, 4, 0, "Old-FastFloat-vs-New-FastFloat-64,4,4,0", "Old-FastFloat-vs-New-FastFloat-64,4,4,0">();
+	runForLengthSerialize<64, 4, 8, 0, "Old-FastFloat-vs-New-FastFloat-64,4,8,0", "Old-FastFloat-vs-New-FastFloat-64,4,8,0">();
+	runForLengthSerialize<64, 4, 16, 0, "Old-FastFloat-vs-New-FastFloat-64,4,16,0", "Old-FastFloat-vs-New-FastFloat-64,4,16,0">();
 
 	runForLengthSerialize<64, 4, 0, 2, "Old-FastFloat-vs-New-FastFloat-64,2,16,2", "Old-FastFloat-vs-New-FastFloat-64,2,16,2">();
 	runForLengthSerialize<64, 4, 2, 2, "Old-FastFloat-vs-New-FastFloat-64,4,2,2", "Old-FastFloat-vs-New-FastFloat-64,4,2,2">();
@@ -340,11 +345,11 @@ int main() {
 	runForLengthSerialize<64, 4, 8, 2, "Old-FastFloat-vs-New-FastFloat-64,4,8,2", "Old-FastFloat-vs-New-FastFloat-64,4,8,2">();
 	runForLengthSerialize<64, 4, 16, 2, "Old-FastFloat-vs-New-FastFloat-64,4,16,2", "Old-FastFloat-vs-New-FastFloat-64,4,16,2">();
 
-	runForLengthSerialize<64, 8, 0, 0, "Old-FastFloat-vs-New-FastFloat-64,2,16,2", "Old-FastFloat-vs-New-FastFloat-64,2,16,2">();
-	runForLengthSerialize<64, 8, 2, 0, "Old-FastFloat-vs-New-FastFloat-64,8,2,2", "Old-FastFloat-vs-New-FastFloat-64,8,2,2">();
-	runForLengthSerialize<64, 8, 4, 0, "Old-FastFloat-vs-New-FastFloat-64,8,4,2", "Old-FastFloat-vs-New-FastFloat-64,8,4,2">();
-	runForLengthSerialize<64, 8, 8, 0, "Old-FastFloat-vs-New-FastFloat-64,8,8,2", "Old-FastFloat-vs-New-FastFloat-64,8,8,2">();
-	runForLengthSerialize<64, 8, 16, 0, "Old-FastFloat-vs-New-FastFloat-64,8,16,2", "Old-FastFloat-vs-New-FastFloat-64,8,16,2">();
+	runForLengthSerialize<64, 8, 0, 0, "Old-FastFloat-vs-New-FastFloat-64,2,16,0", "Old-FastFloat-vs-New-FastFloat-64,2,16,0">();
+	runForLengthSerialize<64, 8, 2, 0, "Old-FastFloat-vs-New-FastFloat-64,8,2,0", "Old-FastFloat-vs-New-FastFloat-64,8,2,0">();
+	runForLengthSerialize<64, 8, 4, 0, "Old-FastFloat-vs-New-FastFloat-64,8,4,0", "Old-FastFloat-vs-New-FastFloat-64,8,4,0">();
+	runForLengthSerialize<64, 8, 8, 0, "Old-FastFloat-vs-New-FastFloat-64,8,8,0", "Old-FastFloat-vs-New-FastFloat-64,8,8,0">();
+	runForLengthSerialize<64, 8, 16, 0, "Old-FastFloat-vs-New-FastFloat-64,8,16,0", "Old-FastFloat-vs-New-FastFloat-64,8,16,0">();
 
 	runForLengthSerialize<64, 8, 0, 2, "Old-FastFloat-vs-New-FastFloat-64,2,16,2", "Old-FastFloat-vs-New-FastFloat-64,2,16,2">();
 	runForLengthSerialize<64, 8, 2, 2, "Old-FastFloat-vs-New-FastFloat-64,8,2,2", "Old-FastFloat-vs-New-FastFloat-64,8,2,2">();
@@ -352,11 +357,11 @@ int main() {
 	runForLengthSerialize<64, 8, 8, 2, "Old-FastFloat-vs-New-FastFloat-64,8,8,2", "Old-FastFloat-vs-New-FastFloat-64,8,8,2">();
 	runForLengthSerialize<64, 8, 16, 2, "Old-FastFloat-vs-New-FastFloat-64,8,16,2", "Old-FastFloat-vs-New-FastFloat-64,8,16,2">();
 	
-	runForLengthSerialize<64, 16, 0, 0, "Old-FastFloat-vs-New-FastFloat-64,2,16,2", "Old-FastFloat-vs-New-FastFloat-64,2,16,2">();
-	runForLengthSerialize<64, 16, 2, 0, "Old-FastFloat-vs-New-FastFloat-64,16,2,2", "Old-FastFloat-vs-New-FastFloat-64,16,2,2">();
-	runForLengthSerialize<64, 16, 4, 0, "Old-FastFloat-vs-New-FastFloat-64,16,4,2", "Old-FastFloat-vs-New-FastFloat-64,16,4,2">();
-	runForLengthSerialize<64, 16, 8, 0, "Old-FastFloat-vs-New-FastFloat-64,16,8,2", "Old-FastFloat-vs-New-FastFloat-64,16,8,2">();
-	runForLengthSerialize<64, 16, 16, 0, "Old-FastFloat-vs-New-FastFloat-64,16,16,2", "Old-FastFloat-vs-New-FastFloat-64,16,16,2">();
+	runForLengthSerialize<64, 16, 0, 0, "Old-FastFloat-vs-New-FastFloat-64,2,16,0", "Old-FastFloat-vs-New-FastFloat-64,2,16,0">();
+	runForLengthSerialize<64, 16, 2, 0, "Old-FastFloat-vs-New-FastFloat-64,16,2,0", "Old-FastFloat-vs-New-FastFloat-64,16,2,0">();
+	runForLengthSerialize<64, 16, 4, 0, "Old-FastFloat-vs-New-FastFloat-64,16,4,0", "Old-FastFloat-vs-New-FastFloat-64,16,4,0">();
+	runForLengthSerialize<64, 16, 8, 0, "Old-FastFloat-vs-New-FastFloat-64,16,8,0", "Old-FastFloat-vs-New-FastFloat-64,16,8,0">();
+	runForLengthSerialize<64, 16, 16, 0, "Old-FastFloat-vs-New-FastFloat-64,16,16,0", "Old-FastFloat-vs-New-FastFloat-64,16,16,0">();
 
 	runForLengthSerialize<64, 16, 0, 2, "Old-FastFloat-vs-New-FastFloat-64,2,16,2", "Old-FastFloat-vs-New-FastFloat-64,2,16,2">();
 	runForLengthSerialize<64, 16, 2, 2, "Old-FastFloat-vs-New-FastFloat-64,16,2,2", "Old-FastFloat-vs-New-FastFloat-64,16,2,2">();

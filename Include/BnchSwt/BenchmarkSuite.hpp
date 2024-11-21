@@ -474,7 +474,7 @@ namespace bnch_swt {
 	template<jsonifier_internal::string_literal stageNameNew, bench_options options = bench_options{}> struct benchmark_stage {
 		inline static std::unordered_map<std::string, benchmark_result_final> results{};
 
-		BNCH_SWT_INLINE static void printResults(bool verbose = true) {
+		BNCH_SWT_INLINE static void printResults(bool verbose = true, bool printDetails = false) {
 			static constexpr jsonifier_internal::string_literal stageName{ stageNameNew };
 			std::map<std::string, std::vector<benchmark_result_final>> groupedResults{};
 			std::set<std::pair<std::string, std::string>> printedResults{};
@@ -505,7 +505,7 @@ namespace bnch_swt {
 					}
 					resultCycles[indices[value.libraryName]].totalCycles += value.median;
 					++resultCycles[indices[value.libraryName]].totalCount;
-					if (verbose) {
+					if (verbose && printDetails) {
 						std::cout << status << "Library Name: " << value.libraryName << ", Result " << resultType << ": " << roundToDecimalPlaces(value.median, 2)
 								  << ", Iterations: " << jsonifier::toString(value.iterationCount)
 								  << ", Coefficient of Variance: " << jsonifier::toString(roundToDecimalPlaces(value.cv, 6)) << std::endl;
@@ -523,8 +523,7 @@ namespace bnch_swt {
 						((resultCycles.data() + x - 2)->totalCycles - ((resultCycles.data() + x - 1)->totalCycles)) / (resultCycles.data() + x - 1)->totalCycles;
 					totalPercentage *= 100.0;
 					std::cout << "Library: " << (resultCycles.data() + x - 1)->libraryName << " is faster than " << (resultCycles.data() + x - 2)->libraryName
-							  << " by roughly: " << totalPercentage << "% "
-							  << ", for benchmark stage: " << stageName << std::endl;
+							  << " by roughly: " << totalPercentage << "%." << std::endl;
 				}
 			} else {
 				std::cout << "Not enough data to compare library performance." << std::endl;
