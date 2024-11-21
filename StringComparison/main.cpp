@@ -6,7 +6,7 @@
 #include <BnchSwt/BenchmarkSuite.hpp>
 #include "Tests/Jsonifier.hpp"
 #include "StrToDOld.hpp"
-#include "FastFloatNew.hpp"
+#include "StrToDNew.hpp"
 #include "fast_float.h"
 
 std::string generateIntegerString(size_t length) {
@@ -46,18 +46,28 @@ std::string generateFloatingPointString(bool negative, size_t digit_count, size_
 
 	if (exponentLength > 0) {
 		std::uniform_int_distribution<int> exponentSignDist(0, 1);
-		char exponentSign = exponentSignDist(generator) ? '+' : '-';
+		std::string exponentSign = std::string{ exponentSignDist(generator) ? '+' : '-' };
 		result += "e" + exponentSign + generateIntegerString(exponentLength);
 	}
 
 	return result;
 }
 
-std::vector<std::string> generateValidFloatingPointStrings(size_t count, size_t digit_count, size_t fractionalLength, size_t exponentLength, bool allowNegative) {
+std::vector<std::string> generateValidFloatingPointStrings(size_t count, size_t digit_count, size_t fractionalLength, size_t exponentLength, bool allowNegative = false) {
+	if (digit_count == 0) {
+		throw std::invalid_argument("digit_count must be greater than 0");
+	}
+	if (count == 0) {
+		throw std::invalid_argument("count must be greater than 0");
+	}
+
 	std::vector<std::string> validStrings;
 	validStrings.reserve(count);
 
-	while (validStrings.size() < count) {
+	size_t maxRetries = 10000;// Limit the retries to avoid infinite loops.
+	size_t retries	  = 0;
+
+	while (validStrings.size() < count && retries < maxRetries) {
 		try {
 			bool negative		  = allowNegative && (std::rand() % 2 == 0);
 			std::string candidate = generateFloatingPointString(negative, digit_count, fractionalLength, exponentLength);
@@ -69,16 +79,22 @@ std::vector<std::string> generateValidFloatingPointStrings(size_t count, size_t 
 				throw std::invalid_argument("strtod failed to parse the string.");
 			}
 
-			std::string convertedBack = std::to_string(value);
-
 			validStrings.push_back(candidate);
-		} catch (...) {
+		} catch (const std::exception& e) {
+			// Log the error (optional)
+			std::cerr << "Error: " << e.what() << std::endl;
+			retries++;
 			continue;
 		}
 	}
 
+	if (validStrings.size() < count) {
+		throw std::runtime_error("Failed to generate enough valid strings within the retry limit.");
+	}
+
 	return validStrings;
 }
+
 
 constexpr auto Calc(auto x) {
 	for (size_t y = 0; y < 32; ++y) {
@@ -99,23 +115,25 @@ template<jsonifier_internal::string_literal testStageNew, jsonifier_internal::st
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "non-as-constant", "dodgerblue">(
 		[&]() mutable {
 			for (size_t x = 0; x < 1024 * 1024; ++x) {
-				size_t newValue{ Calc(245ull) };
-				++newValue;
+				fast_float_new::adjusted_mantissa newValue{};
+				++newValue.mantissa;
 				bnch_swt::doNotOptimizeAway(newValue);
 			}
 		});
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "as-constant", "dodgerblue">(
 		[&]() mutable {
 			for (size_t x = 0; x < 1024 * 1024; ++x) {
-				size_t newValue{ as_constant(Calc(245ull)) };
-				++newValue;
+				fast_float_new::adjusted_mantissa newValue{ as_constant(fast_float_new::adjusted_mantissa{}) };
+				++newValue.mantissa;
 				bnch_swt::doNotOptimizeAway(newValue);
 			}
 		});
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::printResults();
 }
 
-template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsonifier_internal::string_literal testNameNew> JSONIFIER_ALWAYS_INLINE void runForLengthSerialize() {
+template<size_t maxIndex, size_t integerLength, size_t fractionLength, size_t exponentLength, jsonifier_internal::string_literal testStageNew,
+	jsonifier_internal::string_literal testNameNew>
+JSONIFIER_ALWAYS_INLINE void runForLengthSerialize() {
 	static constexpr jsonifier_internal::string_literal testStage{ testStageNew };
 	static constexpr jsonifier_internal::string_literal testName{ testNameNew };
 	auto newFile{ bnch_swt::file_loader ::loadFile(std::string{ JSON_BASE_PATH } + "/CitmCatalogData-Prettified.json") };
@@ -132,9 +150,9 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 	}
 
 	std::vector<double> newerDoubles01{};
-	std::vector<std::string> newDoubles{};
-	for (size_t x = 0; x < newerDoubles00.size(); ++x) {
-		newDoubles.emplace_back(std::to_string(newerDoubles00[x]));
+	std::vector<std::string> newDoubles{ generateValidFloatingPointStrings(maxIndex, integerLength, fractionLength, exponentLength) };
+	for (auto& value: newDoubles) {
+		std::cout << "CURRENT DOUBLE: " << value << std::endl;
 	}
 	std::vector<double> newerDoubles02{};
 	std::vector<double> newerDoubles03{};
@@ -156,6 +174,8 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 			}
 		});
 
+	/*
+
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "old-parseFloat", "dodgerblue">(
 		[&]() mutable {
 			double newDouble{};
@@ -168,7 +188,7 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 					bnch_swt::doNotOptimizeAway(newDouble);
 				}
 			}
-		});
+		});*/
 
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "orginal-fastfloat", "dodgerblue">(
 		[&]() mutable {
@@ -191,7 +211,7 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 				for (size_t y = 0; y < maxIndex; ++y) {
 					const auto* iter = newDoubles[y].data();
 					const auto* end	 = newDoubles[y].data() + newDoubles[y].size();
-					jsonifier_internal_new::parseFloat(iter, end, newDouble);
+					jsonifier_internal_new::parseFloat(newDouble, iter, end);
 					newerDoubles03[y] = newDouble;
 					bnch_swt::doNotOptimizeAway(newDouble);
 				}
@@ -204,7 +224,7 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 			std::cout << "FAILED TO PARSE AT INDEX: " << x << std::endl;
 			const auto* iter = newDoubles[x].data();
 			const auto* end	 = newDoubles[x].data() + newDoubles[x].size();
-			jsonifier_internal_new::parseFloat(iter, end, newDouble);
+			jsonifier_internal_new::parseFloat(newDouble, iter, end);
 			std::cout << "Input Value: " << newDoubles[x] << std::endl;
 			std::cout << "Intended Value: " << newerDoubles01[x] << std::endl;
 			std::cout << "Actual Value: " << newerDoubles03[x] << std::endl;
@@ -255,7 +275,7 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 				}
 			}
 		});
-
+	/*
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "old-parseFloat", "dodgerblue">(
 		[&]() mutable {
 			double newDouble{};
@@ -269,7 +289,7 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 				}
 			}
 		});
-
+	*/
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "orginal-fastfloat", "dodgerblue">(
 		[&]() mutable {
 			double newDouble{};
@@ -291,7 +311,7 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 				for (size_t y = 0; y < maxIndex; ++y) {
 					const auto* iter = newDoubles[y].data();
 					const auto* end	 = newDoubles[y].data() + newDoubles[y].size();
-					jsonifier_internal_new::parseFloat(iter, end, newDouble);
+					jsonifier_internal_new::parseFloat(newDouble, iter, end);
 
 					newerDoubles03[y] = newDouble;
 					bnch_swt::doNotOptimizeAway(newDouble);
@@ -305,7 +325,7 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 			std::cout << "FAILED TO PARSE AT INDEX: " << x << std::endl;
 			const auto* iter = newDoubles[x].data();
 			const auto* end	 = newDoubles[x].data() + newDoubles[x].size();
-			jsonifier_internal_new::parseFloat(iter, end, newDouble);
+			jsonifier_internal_new::parseFloat(newDouble, iter, end);
 			std::cout << "Input Value: " << newDoubles[x] << std::endl;
 			std::cout << "Intended Value: " << newerDoubles01[x] << std::endl;
 			std::cout << "Actual Value: " << newerDoubles03[x] << std::endl;
@@ -360,7 +380,7 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 				}
 			}
 		});
-
+	/*
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "old-parseFloat", "dodgerblue">(
 		[&]() mutable {
 			double newDouble{};
@@ -374,7 +394,7 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 				}
 			}
 		});
-
+		*/
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "orginal-fastfloat", "dodgerblue">(
 		[&]() mutable {
 			double newDouble{};
@@ -396,7 +416,7 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 				for (size_t y = 0; y < maxIndex; ++y) {
 					const auto* iter = newDoubles[y].data();
 					const auto* end	 = newDoubles[y].data() + newDoubles[y].size();
-					jsonifier_internal_new::parseFloat(iter, end, newDouble);
+					jsonifier_internal_new::parseFloat(newDouble, iter, end);
 
 					newerDoubles03[y] = newDouble;
 					bnch_swt::doNotOptimizeAway(newDouble);
@@ -410,7 +430,7 @@ template<size_t maxIndex, jsonifier_internal::string_literal testStageNew, jsoni
 			std::cout << "FAILED TO PARSE AT INDEX: " << x << std::endl;
 			const auto* iter = newDoubles[x].data();
 			const auto* end	 = newDoubles[x].data() + newDoubles[x].size();
-			jsonifier_internal_new::parseFloat(iter, end, newDouble);
+			jsonifier_internal_new::parseFloat(newDouble, iter, end);
 			std::cout << "Input Value: " << newDoubles[x] << std::endl;
 			std::cout << "Intended Value: " << newerDoubles01[x] << std::endl;
 			std::cout << "Actual Value: " << newerDoubles03[x] << std::endl;
@@ -473,8 +493,8 @@ uint64_t parse_seven_digits_unrolled(const char* chars) {
 	std::uint64_t val = 0;
 	std::memcpy(&val, chars, 7);
 	constexpr uint64_t mask = 0x000000FF000000FF;
-	constexpr uint64_t mul1	  = 10ULL + (100000ULL << 32ULL);
-	constexpr uint64_t mul2	  = 1000ULL << 32ULL;
+	constexpr uint64_t mul1 = 10ULL + (100000ULL << 32ULL);
+	constexpr uint64_t mul2 = 1000ULL << 32ULL;
 	val -= 0x0030303030303030ULL;
 	uint8_t spare{ static_cast<uint8_t>(val >> 48ull & 0xFF) };
 	val = (val * 10ULL) + (val >> 8ULL);
@@ -483,18 +503,18 @@ uint64_t parse_seven_digits_unrolled(const char* chars) {
 }
 
 uint64_t parse_digits_unrolled(const char* chars) {
-	uint64_t b1			= chars[0] - '0';
-	uint64_t b2			= chars[1] - '0';
-	uint64_t b3			= chars[2] - '0';
-	uint64_t b4			= chars[3] - '0';
-	uint64_t b5			= chars[4] - '0';
-	uint64_t b6			= chars[5] - '0';
-	uint64_t b7			= chars[6] - '0';
-	uint64_t b8			= chars[7] - '0';
-	auto firstSum		= 1000000 * (10 * b1 + b2);
-	auto thirdSum		= 100 * (10 * b5 + b6);
-	auto secondSum		= 10 * b7 + b8;
-	auto fourthSum		= 10000 * (10 * b3 + b4);
+	uint64_t b1	   = chars[0] - '0';
+	uint64_t b2	   = chars[1] - '0';
+	uint64_t b3	   = chars[2] - '0';
+	uint64_t b4	   = chars[3] - '0';
+	uint64_t b5	   = chars[4] - '0';
+	uint64_t b6	   = chars[5] - '0';
+	uint64_t b7	   = chars[6] - '0';
+	uint64_t b8	   = chars[7] - '0';
+	auto firstSum  = 1000000 * (10 * b1 + b2);
+	auto thirdSum  = 100 * (10 * b5 + b6);
+	auto secondSum = 10 * b7 + b8;
+	auto fourthSum = 10000 * (10 * b3 + b4);
 	return firstSum + secondSum + thirdSum + fourthSum;
 }
 
@@ -502,8 +522,8 @@ uint64_t parse_digits_unrolled_seven_new_working(const char* chars) {
 	std::uint64_t val = 0;
 	std::memcpy(&val, chars, 7);
 	constexpr uint64_t mask = 0x000000FF000000FF;
-	constexpr uint64_t mul1	  = 10ULL + (100000ULL << 32ULL);
-	constexpr uint64_t mul2	  = 1000ULL << 32ULL;
+	constexpr uint64_t mul1 = 10ULL + (100000ULL << 32ULL);
+	constexpr uint64_t mul2 = 1000ULL << 32ULL;
 	val -= 0x0030303030303030ULL;
 	uint8_t spare{ static_cast<uint8_t>(val >> 48 & 0xFF) };
 	val = (val * 10ULL) + (val >> 8ULL);
@@ -515,8 +535,8 @@ uint64_t parse_digits_unrolled_six_new_working(const char* chars) {
 	std::uint64_t val = 0;
 	std::memcpy(&val, chars, 6);
 	constexpr uint64_t mask = 0x000000FF000000FF;
-	constexpr uint64_t mul1	  = 1 + (10000ULL << 32ULL);
-	constexpr uint64_t mul2	  = 100ULL << 32ULL;
+	constexpr uint64_t mul1 = 1 + (10000ULL << 32ULL);
+	constexpr uint64_t mul2 = 100ULL << 32ULL;
 	val -= 0x0000303030303030ULL;
 	val = (val * 10ULL) + (val >> 8ULL);
 	val = (((val & mask) * mul1) + (((val >> 16ULL) & mask) * mul2)) >> 32ULL;
@@ -527,8 +547,8 @@ uint64_t parse_digits_unrolled_five_new_working(const char* chars) {
 	std::uint64_t val = 0;
 	std::memcpy(&val, chars, 5);
 	constexpr uint64_t mask = 0x000000FF000000FF;
-	constexpr uint64_t mul1	  = (1000ULL << 32ULL);
-	constexpr uint64_t mul2	  = 10ULL << 32ULL;
+	constexpr uint64_t mul1 = (1000ULL << 32ULL);
+	constexpr uint64_t mul2 = 10ULL << 32ULL;
 	val -= 0x0000003030303030ULL;
 	uint8_t spare{ static_cast<uint8_t>(val >> 32 & 0xFF) };
 	val = (val * 10ULL) + (val >> 8ULL);
@@ -540,8 +560,8 @@ uint64_t parse_digits_unrolled_four_new_working(const char* chars) {
 	std::uint64_t val = 0;
 	std::memcpy(&val, chars, 4);
 	constexpr uint64_t mask = 0x000000FF000000FF;
-	constexpr uint64_t mul1	  = (100ULL << 32ULL);
-	constexpr uint64_t mul2	  = 1ULL << 32ULL;
+	constexpr uint64_t mul1 = (100ULL << 32ULL);
+	constexpr uint64_t mul2 = 1ULL << 32ULL;
 	val -= 0x0000000030303030ULL;
 	val = (val * 10ULL) + (val >> 8ULL);
 	val = (((val & mask) * mul1) + (((val >> 16ULL) & mask) * mul2)) >> 32ULL;
@@ -552,8 +572,8 @@ uint64_t parse_digits_unrolled_three_new_working(const char* chars) {
 	std::uint64_t val = 0;
 	std::memcpy(&val, chars, 3);
 	constexpr uint64_t mask = 0x000000FF000000FF;
-	constexpr uint64_t mul1	  = (10ULL << 32ULL);
-	constexpr uint64_t mul2	  = 1ULL;
+	constexpr uint64_t mul1 = (10ULL << 32ULL);
+	constexpr uint64_t mul2 = 1ULL;
 	val -= 0x0000000000303030ULL;
 	uint8_t spare{ static_cast<uint8_t>(val >> 16 & 0xFF) };
 	val = (val * 10ULL) + (val >> 8ULL);
@@ -580,33 +600,6 @@ static constexpr uint64_t pow10Table[] = { 10, 100, 1000, 10000, 100000, 1000000
 
 int main() {
 	std::string newString{ "29810154832.915260" };
-
-	// Ensure the string fits into a uint64_t (7 digits + pad to 8)
-	uint64_t packed_value = 0;
-	//std::memcpy(&packed_value, newString.data(), newString.size());// Only 7 digits are copied
-	const auto* iter = newString.data();
-	const auto* end	 = newString.data() + newString.size();
-	//std::cout << "Parsed Value: " << parse_seven_digits_unrolled(newString.data()) << std::endl;
-	fast_float_new::loop_parse_if_digits(iter, end, packed_value);
-	std::cout << "Parsed Value: " << packed_value << std::endl;
-	packed_value = 0;
-	newString		 = "269085";
-	iter = newString.data();
-	end	 = newString.data() + newString.size();
-	packed_value = 0;
-	std::cout << "Parsed Value: " << parse_digits_unrolled_six_new_working(newString.data()) << std::endl;
-	newString		 = "8368";
-	iter = newString.data();
-	end	 = newString.data() + newString.size();
-	fast_float_new::loop_parse_if_digits(iter, end, packed_value);
-	std::cout << "Parsed Value: " << packed_value << std::endl;
-
-	newString = "83.68";
-	iter	  = newString.data();
-	end		  = newString.data() + newString.size();
-	std::cout << "Parsed Value: " << parse_digits_unrolled_two_new_working(iter) << std::endl;
-	fast_float_new::loop_parse_if_digits(iter, end, packed_value);
-	packed_value = 0;
 	//std::cout << "Parsed Value: " << parse_digits_unrolled_four_new_working(newString.data()) << std::endl;
 	//std::cout << "Parsed Value: " << parse_digits_unrolled_three_new_working(newString.data()) << std::endl;
 	//std::cout << "Parsed Value: " << parse_digits_unrolled_two_new_working(newString.data()) << std::endl;
@@ -618,12 +611,12 @@ int main() {
 	//std::cout << "CURRENT HEX VALUE 1 + (1000ULL << 32): " << std::hex << 1 + (1000ULL << 32) << std::endl;
 	//std::cout << "CURRENT HEX VALUE (10000ULL << 32): " << std::hex << (10000ULL << 32) << std::endl;
 	//std::cout << "CURRENT HEX VALUE (1000ULL << 32): " << std::hex << (1000ULL << 32) << std::endl;
-
+	runForLengthSerialize02<"constexpr-vs-consteval", "constexpr-vs-consteval">();
 	std::cout << "CURRENT DIGITS COUNT: " << count_digit_bytes(*reinterpret_cast<uint64_t*>(newString.data())) << std::endl;
-	runForLengthSerialize<1, "Old-FastFloat-vs-New-FastFloat-1", "Old-FastFloat-vs-New-FastFloat-1">();
-	runForLengthSerialize<8, "Old-FastFloat-vs-New-FastFloat-8", "Old-FastFloat-vs-New-FastFloat-8">();
-	runForLengthSerialize<64, "Old-FastFloat-vs-New-FastFloat-64", "Old-FastFloat-vs-New-FastFloat-64">();
-	runForLengthSerialize<512, "Old-FastFloat-vs-New-FastFloat-512", "Old-FastFloat-vs-New-FastFloat-512">();
+	runForLengthSerialize<1, 4, 4, 2, "Old-FastFloat-vs-New-FastFloat-1", "Old-FastFloat-vs-New-FastFloat-1">();
+	runForLengthSerialize<8, 8, 8, 2, "Old-FastFloat-vs-New-FastFloat-8", "Old-FastFloat-vs-New-FastFloat-8">();
+	runForLengthSerialize<64, 16, 16, 2, "Old-FastFloat-vs-New-FastFloat-64", "Old-FastFloat-vs-New-FastFloat-64">();
+	runForLengthSerialize<512, 32, 32, 2, "Old-FastFloat-vs-New-FastFloat-512", "Old-FastFloat-vs-New-FastFloat-512">();
 	runForLengthSerialize02<1, "Old-FastFloat-vs-New-FastFloat-Short-1", "Old-FastFloat-vs-New-FastFloat-Short-1">();
 	runForLengthSerialize02<8, "Old-FastFloat-vs-New-FastFloat-Short-8", "Old-FastFloat-vs-New-FastFloat-Short-8">();
 	runForLengthSerialize02<64, "Old-FastFloat-vs-New-FastFloat-Short-64", "Old-FastFloat-vs-New-FastFloat-Short-64">();
