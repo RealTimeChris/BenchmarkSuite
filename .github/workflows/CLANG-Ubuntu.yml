@@ -5,8 +5,8 @@ on:
   push:
     branches:
     - main
-    - NewStrToD
-    - NewStrToD
+    - isValidForParse64
+    - isValidForParse64
 
 jobs:
   Build:

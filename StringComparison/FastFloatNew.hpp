@@ -217,30 +217,30 @@ namespace fast_float_new {
 	template<typename value_type> struct span {
 		const value_type* ptr;
 		const value_type* end;
-		JSONIFIER_ALWAYS_INLINE constexpr span(const value_type* _ptr, const value_type* _end) : ptr(_ptr), end(_end) {
+		JSONIFIER_ALWAYS_INLINE constexpr span(const value_type* _ptr, const value_type* _end) noexcept : ptr(_ptr), end(_end) {
 		}
-		JSONIFIER_ALWAYS_INLINE constexpr span(const value_type* _ptr) : ptr(_ptr), end(nullptr) {
+		JSONIFIER_ALWAYS_INLINE constexpr span(const value_type* _ptr) noexcept : ptr(_ptr), end(nullptr) {
 		}
 
-		JSONIFIER_ALWAYS_INLINE constexpr span() : ptr(nullptr), end(nullptr) {
+		JSONIFIER_ALWAYS_INLINE constexpr span() noexcept : ptr(nullptr), end(nullptr) {
 		}
 	};
 
 	struct value128 {
 		uint64_t low;
 		uint64_t high;
-		JSONIFIER_ALWAYS_INLINE constexpr value128(uint64_t _low, uint64_t _high) : low(_low), high(_high) {
+		JSONIFIER_ALWAYS_INLINE constexpr value128(uint64_t _low, uint64_t _high) noexcept : low(_low), high(_high) {
 		}
-		JSONIFIER_ALWAYS_INLINE constexpr value128() : low(0), high(0) {
+		JSONIFIER_ALWAYS_INLINE constexpr value128() noexcept : low(0), high(0) {
 		}
 	};
 
 	// slow emulation routine for 32-bit
-	JSONIFIER_ALWAYS_INLINE constexpr uint64_t emulu(uint32_t x, uint32_t y) {
+	JSONIFIER_ALWAYS_INLINE constexpr uint64_t emulu(uint32_t x, uint32_t y) noexcept {
 		return x * ( uint64_t )y;
 	}
 
-	JSONIFIER_ALWAYS_INLINE constexpr uint64_t umul128_generic(uint64_t ab, uint64_t cd, uint64_t* hi) {
+	JSONIFIER_ALWAYS_INLINE constexpr uint64_t umul128_generic(uint64_t ab, uint64_t cd, uint64_t* hi) noexcept {
 		uint64_t ad			= emulu(( uint32_t )(ab >> 32), ( uint32_t )cd);
 		uint64_t bd			= emulu(( uint32_t )ab, ( uint32_t )cd);
 		uint64_t adbc		= ad + emulu(( uint32_t )ab, ( uint32_t )(cd >> 32));
@@ -262,7 +262,7 @@ namespace fast_float_new {
 #endif// FASTFLOAT_NEWER_32BIT
 
 	// compute 64-bit a*b
-	JSONIFIER_ALWAYS_INLINE value128 full_multiplication(uint64_t a, uint64_t b) {
+	JSONIFIER_ALWAYS_INLINE value128 full_multiplication(uint64_t a, uint64_t b) noexcept {
 		value128 answer;
 #if defined(_M_ARM64) && !defined(__MINGW32__)
 		// ARM64 has native support for 64-bit multiplications, no need to emulate
@@ -284,11 +284,11 @@ namespace fast_float_new {
 	struct adjusted_mantissa {
 		uint64_t mantissa;
 		int32_t power2;// a negative value indicates an invalid result
-		JSONIFIER_ALWAYS_INLINE adjusted_mantissa() = default;
-		JSONIFIER_ALWAYS_INLINE constexpr bool operator==(const adjusted_mantissa& o) const {
+		JSONIFIER_ALWAYS_INLINE adjusted_mantissa() noexcept = default;
+		JSONIFIER_ALWAYS_INLINE constexpr bool operator==(const adjusted_mantissa& o) const noexcept {
 			return mantissa == o.mantissa && power2 == o.power2;
 		}
-		JSONIFIER_ALWAYS_INLINE constexpr bool operator!=(const adjusted_mantissa& o) const {
+		JSONIFIER_ALWAYS_INLINE constexpr bool operator!=(const adjusted_mantissa& o) const noexcept {
 			return mantissa != o.mantissa || power2 != o.power2;
 		}
 	};
@@ -322,11 +322,11 @@ namespace fast_float_new {
 		inline static constexpr equiv_uint hidden_bit_mask			  = (sizeof(value_type) == 4) ? 0x00800000 : 0x0010000000000000;
 
 		// Lookup table access methods
-		JSONIFIER_ALWAYS_INLINE static constexpr uint64_t max_mantissa_fast_path(int64_t power) {
+		JSONIFIER_ALWAYS_INLINE static constexpr uint64_t max_mantissa_fast_path(int64_t power) noexcept {
 			return binary_format_lookup_tables<value_type>::max_mantissa[power];
 		}
 
-		JSONIFIER_ALWAYS_INLINE static constexpr value_type exact_power_of_ten(int64_t power) {
+		JSONIFIER_ALWAYS_INLINE static constexpr value_type exact_power_of_ten(int64_t power) noexcept {
 			return binary_format_lookup_tables<value_type>::powers_of_ten[power];
 		}
 	};
@@ -362,7 +362,7 @@ namespace fast_float_new {
 			0x1000000 / (constant_55555 * 5 * 5 * 5 * 5), 0x1000000 / (constant_55555 * constant_55555), 0x1000000 / (constant_55555 * constant_55555 * 5) };
 	};
 
-	template<typename value_type> JSONIFIER_ALWAYS_INLINE constexpr void to_float(bool negative, adjusted_mantissa am, value_type& value) {
+	template<typename value_type> JSONIFIER_ALWAYS_INLINE constexpr void to_float(bool negative, adjusted_mantissa am, value_type& value) noexcept {
 		using fastfloat_uint = typename binary_format<value_type>::equiv_uint;
 		fastfloat_uint word	 = ( fastfloat_uint )am.mantissa;
 		word |= fastfloat_uint(am.power2) << binary_format<value_type>::mantissa_explicit_bits;
@@ -396,41 +396,13 @@ namespace fast_float_new {
 			3379220508056640625, 4738381338321616896 };
 	};
 
-	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr uint8_t ch_to_digit(char_t c) {
-		return int_luts<>::chdigit[static_cast<unsigned char>(c)];
-	}
-
-	JSONIFIER_ALWAYS_INLINE constexpr size_t max_digits_u64(int32_t base) {
-		return int_luts<>::maxdigits_u64[base - 2];
-	}
-
-	// If a u64 is exactly max_digits_u64() in length, this is
-	// the value below which it has definitely overflowed.
-	JSONIFIER_ALWAYS_INLINE constexpr uint64_t min_safe_u64(int32_t base) {
-		return int_luts<>::min_safe_u64[base - 2];
-	}
-
-	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr bool has_simd_opt() {
-#ifdef FASTFLOAT_NEWER_HAS_SIMD
-		return std::is_same<char_t, char16_t>::value;
-#else
-		return false;
-#endif
-	}
-
-	// Next function can be micro-optimized, but compilers are entirely
-	// able to optimize it well.
-	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr bool is_integer(char_t c) noexcept {
-		return !(c > char_t('9') || c < char_t('0'));
-	}
-
 	JSONIFIER_ALWAYS_INLINE constexpr uint64_t byteswap(uint64_t val) {
 		return (val & 0xFF00000000000000) >> 56 | (val & 0x00FF000000000000) >> 40 | (val & 0x0000FF0000000000) >> 24 | (val & 0x000000FF00000000) >> 8 |
 			(val & 0x00000000FF000000) << 8 | (val & 0x0000000000FF0000) << 24 | (val & 0x000000000000FF00) << 40 | (val & 0x00000000000000FF) << 56;
 	}
 
 	// Read 8 char_t into a u64. Truncates char_t if not char.
-	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr uint64_t read8_to_u64(const char_t* chars) {
+	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr uint64_t read8_to_u64(const char_t* chars) noexcept {
 		uint64_t val;
 		::memcpy(&val, chars, sizeof(uint64_t));
 #if FASTFLOAT_NEWER_IS_BIG_ENDIAN == 1
@@ -439,7 +411,7 @@ namespace fast_float_new {
 		return val;
 	}
 
-	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr uint32_t read4_to_u32(const char_t* chars) {
+	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr uint32_t read4_to_u32(const char_t* chars) noexcept {
 		uint32_t val;
 		::memcpy(&val, chars, sizeof(uint32_t));
 #if FASTFLOAT_NEWER_IS_BIG_ENDIAN == 1
@@ -448,7 +420,7 @@ namespace fast_float_new {
 		return val;
 	}
 
-	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr uint16_t read2_to_u16(const char_t* chars) {
+	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr uint16_t read2_to_u16(const char_t* chars) noexcept {
 		uint16_t val;
 		::memcpy(&val, chars, sizeof(uint16_t));
 #if FASTFLOAT_NEWER_IS_BIG_ENDIAN == 1
@@ -457,110 +429,48 @@ namespace fast_float_new {
 		return val;
 	}
 
-#if defined(_MSC_VER) && _MSC_VER <= 1900
-	template<typename char_t>
-#else
-	template<typename char_t, FASTFLOAT_NEWER_ENABLE_IF(!has_simd_opt<char_t>()) = 0>
-#endif
-	// dummy for compile
-	JSONIFIER_ALWAYS_INLINE uint64_t simd_read8_to_u64(char_t const*) {
-		return 0;
-	}
-
 	// credit  @aqrit
-	JSONIFIER_ALWAYS_INLINE uint32_t parse_eight_digits_unrolled(uint64_t val) {
-		constexpr uint64_t mask = 0x000000FF000000FF;
-		constexpr uint64_t mul1 = 0x000F424000000064;
-		constexpr uint64_t mul2 = 0x0000271000000001;
-		val -= 0x3030303030303030;
+	JSONIFIER_ALWAYS_INLINE uint32_t parse_eight_digits_unrolled(uint64_t val) noexcept {
+		constexpr uint64_t mask{ 0x000000FF000000FF };
+		constexpr uint64_t mul1{ 0x000F424000000064 };
+		constexpr uint64_t mul2{ 0x0000271000000001 };
+		constexpr uint64_t subMask{ 0x3030303030303030 };
+		val -= subMask;
 		val = (val * 10) + (val >> 8);
 		val = (((val & mask) * mul1) + (((val >> 16) & mask) * mul2)) >> 32;
 		return uint32_t(val);
 	}
 
-	JSONIFIER_ALWAYS_INLINE uint32_t parse_four_digits_unrolled(uint64_t val) {
-		constexpr uint64_t mask = 0x000000FF000000FF;
-		constexpr uint64_t mul1 = (100ULL << 32ULL);
-		constexpr uint64_t mul2 = 1ULL << 32ULL;
-		val -= 0x0000000030303030ULL & 0x00000000FFFFFFFFULL;
+	JSONIFIER_ALWAYS_INLINE uint32_t parse_four_digits_unrolled(uint64_t val) noexcept {
+		constexpr uint64_t mask{ 0x000000FF000000FF };
+		constexpr uint64_t mul1{ 100ULL << 32ULL };
+		constexpr uint64_t mul2{ 1ULL << 32ULL };
+		constexpr uint64_t subMask{ 0x0000000030303030ULL & 0x00000000FFFFFFFFULL };
+		val -= subMask;
 		val = (val * 10ULL) + (val >> 8ULL);
 		val = (((val & mask) * mul1) + (((val >> 16ULL) & mask) * mul2)) >> 32ULL;
 		return static_cast<uint32_t>(val);
 	}
 
-	JSONIFIER_ALWAYS_INLINE uint32_t parse_two_digits_unrolled(uint64_t val) {
-		constexpr uint64_t mask = 0x000000FF000000FF;
-		constexpr uint64_t mul1 = (1ULL << 32ULL);
-		val -= 0x0000000000003030ULL & 0x000000000000FFFFULL;
+	JSONIFIER_ALWAYS_INLINE uint32_t parse_two_digits_unrolled(uint64_t val) noexcept {
+		constexpr uint64_t mask{ 0x000000FF000000FF };
+		constexpr uint64_t mul1{ 1ULL << 32ULL };
+		constexpr uint64_t subMask{ 0x0000000000003030ULL & 0x000000000000FFFFULL };
+		val -= subMask;
 		val = (val * 10ULL) + (val >> 8ULL);
 		val = ((val & mask) * mul1) >> 32ULL;
 		return static_cast<uint32_t>(val);
 	}
 
-	// Call this if chars are definitely 8 digits.
-	template<typename char_t> JSONIFIER_ALWAYS_INLINE uint32_t parse_eight_digits_unrolled(char_t const* chars) noexcept {
-		return parse_eight_digits_unrolled(simd_read8_to_u64(chars));
-	}
-
-	// credit @aqrit
-	JSONIFIER_ALWAYS_INLINE constexpr bool is_made_of_eight_digits_fast(uint64_t val) noexcept {
-		return !((((val + 0x4646464646464646) | (val - 0x3030303030303030)) & 0x8080808080808080));
-	}
-
-	JSONIFIER_ALWAYS_INLINE constexpr bool is_made_of_four_digits_fast(uint32_t val) noexcept {
-		return !((((val + 0x46464646) | (val - 0x30303030)) & 0x80808080));
-	}
-
-	JSONIFIER_ALWAYS_INLINE constexpr bool is_made_of_two_digits_fast(uint32_t val) noexcept {
-		return !((((val + 0x4646) | (val - 0x3030)) & 0x8080));
-	}
-
-	// MSVC SFINAE is broken pre-VS2017
-#if defined(_MSC_VER) && _MSC_VER <= 1900
-	template<typename char_t>
+	JSONIFIER_ALWAYS_INLINE bool isValidToParse64(uint64_t value) noexcept {
+		static constexpr uint64_t byte_mask = ~uint64_t(0) / 255ull;
+		static constexpr uint64_t msb_mask	= byte_mask * 128ull;
+		static constexpr uint64_t sub_mask	= byte_mask * (127ull - 10ull) - 0x3030303030303030ull;
+#if !defined(JSONIFIER_CLANG) || defined(JSONIFIER_MAC)
+		return !bool((value + sub_mask | value) & msb_mask);
 #else
-	template<typename char_t, FASTFLOAT_NEWER_ENABLE_IF(!has_simd_opt<char_t>()) = 0>
+		return ((value + sub_mask | value) & msb_mask) == 0;
 #endif
-	// dummy for compile
-	JSONIFIER_ALWAYS_INLINE bool simd_parse_if_eight_digits_unrolled(char_t const*, uint64_t&) {
-		return 0;
-	}
-
-	template<typename char_t, FASTFLOAT_NEWER_ENABLE_IF(!std::is_same<char_t, char>::value) = 0>
-	JSONIFIER_ALWAYS_INLINE void loop_parse_if_eight_digits(const char_t*& p, const char_t* const pend, uint64_t& i) {
-		if constexpr (!has_simd_opt<char_t>()) {
-			return;
-		}
-		while ((pend - p >= 8) && simd_parse_if_eight_digits_unrolled(p, i)) {// in rare cases, this will overflow, but that's ok
-			p += 8;
-		}
-	}
-
-	JSONIFIER_ALWAYS_INLINE void loop_parse_if_eight_digits(const char*& p, const char* const pend, uint64_t& i) {
-		uint64_t newVal64{ read8_to_u64(p) };
-		while ((pend - p >= 8) && is_made_of_eight_digits_fast(newVal64)) {
-			i = i * 100000000 + parse_eight_digits_unrolled(newVal64);
-			p += 8;
-			newVal64 = read8_to_u64(p);
-		}
-	}
-
-	JSONIFIER_ALWAYS_INLINE void loop_parse_if_four_digits(const char*& p, const char* const pend, uint64_t& i) {
-		uint32_t newVal32{ read4_to_u32(p) };
-		if ((pend - p >= 4) && is_made_of_four_digits_fast(newVal32)) {
-			i = i * 10000 + parse_four_digits_unrolled(newVal32);
-			p += 4;
-			newVal32 = read4_to_u32(p);
-		}
-	}
-
-	JSONIFIER_ALWAYS_INLINE void loop_parse_if_two_digits(const char*& p, const char* const pend, uint64_t& i) {
-		uint16_t newVal16{ read2_to_u16(p) };
-		if ((pend - p >= 2) && is_made_of_two_digits_fast(newVal16)) {
-			i = i * 100 + parse_two_digits_unrolled(newVal16);
-			p += 2;
-			newVal16 = read2_to_u16(p);
-		}
 	}
 
 	/**
@@ -762,7 +672,7 @@ namespace fast_float_new {
 	// most significant bits and the low part corresponding to the least significant
 	// bits.
 	//
-	template<int32_t bit_precision> JSONIFIER_ALWAYS_INLINE constexpr value128 compute_product_approximation(int64_t q, uint64_t w) {
+	template<int32_t bit_precision> JSONIFIER_ALWAYS_INLINE constexpr value128 compute_product_approximation(int64_t q, uint64_t w) noexcept {
 		const int32_t index = 2 * int32_t(q - powers::smallest_power_of_five);
 		// For small values of q, e.g., q in [0,27], the answer is always exact
 		// because The line value128 firstproduct = full_multiplication(w,
@@ -953,7 +863,7 @@ namespace fast_float_new {
 		stackvec& operator=(stackvec&& other) = delete;
 
 		// create stack vector from existing limb span.
-		JSONIFIER_ALWAYS_INLINE constexpr stackvec(limb_span s) {
+		JSONIFIER_ALWAYS_INLINE constexpr stackvec(limb_span s) noexcept {
 			try_extend(s);
 		}
 
@@ -1292,7 +1202,7 @@ namespace fast_float_new {
 		bigint(bigint&&)				  = delete;
 		bigint& operator=(bigint&& other) = delete;
 
-		JSONIFIER_ALWAYS_INLINE bigint(uint64_t value) : vec() {
+		JSONIFIER_ALWAYS_INLINE bigint(uint64_t value) noexcept : vec() {
 #ifdef FASTFLOAT_NEWER_64BIT_LIMB
 			vec.push_unchecked(value);
 #else
@@ -1571,8 +1481,8 @@ namespace fast_float_new {
 	}
 
 	template<typename callback> JSONIFIER_ALWAYS_INLINE constexpr void round_nearest_tie_even(adjusted_mantissa& am, int32_t shift, callback cb) noexcept {
-		const uint64_t mask	   = (shift == 64) ? UINT64_MAX : (uint64_t(1) << shift) - 1;
-		const uint64_t halfway = (shift == 0) ? 0 : uint64_t(1) << (shift - 1);
+		const uint64_t mask		= (shift == 64) ? UINT64_MAX : (uint64_t(1) << shift) - 1;
+		const uint64_t halfway	= (shift == 0) ? 0 : uint64_t(1) << (shift - 1);
 		uint64_t truncated_bits = am.mantissa & mask;
 		bool is_above			= truncated_bits > halfway;
 		bool is_halfway			= truncated_bits == halfway;
@@ -1799,7 +1709,7 @@ namespace fast_float_new {
 		}
 
 		// compare digits, and use it to director rounding
-		int32_t ord = real_digits.compare(theor_digits);
+		int32_t ord				 = real_digits.compare(theor_digits);
 		adjusted_mantissa answer = am;
 		round<value_type>(answer, [ord](adjusted_mantissa& a, int32_t shift) {
 			round_nearest_tie_even(a, shift, [ord](bool is_odd, bool _, bool __) -> bool {

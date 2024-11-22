@@ -561,11 +561,11 @@ namespace fast_float_new {
 		return !((((val + 0x4646464646464646) | (val - 0x3030303030303030)) & 0x8080808080808080));
 	}
 
-	JSONIFIER_ALWAYS_INLINE constexpr bool is_made_of_four_digits_fast(uint32_t val) noexcept {
+	JSONIFIER_ALWAYS_INLINE constexpr bool isValidToParse(uint32_t val) noexcept {
 		return !((((val + 0x46464646) | (val - 0x30303030)) & 0x80808080));
 	}
 
-	JSONIFIER_ALWAYS_INLINE constexpr bool is_made_of_two_digits_fast(uint32_t val) noexcept {
+	JSONIFIER_ALWAYS_INLINE constexpr bool isValidToParse(uint32_t val) noexcept {
 		return !((((val + 0x4646) | (val - 0x3030)) & 0x8080));
 	}
 
@@ -646,7 +646,7 @@ namespace fast_float_new {
 
 	JSONIFIER_ALWAYS_INLINE void loop_parse_if_four_digits(const char*& p, const char* const pend, uint64_t& i) {
 		uint32_t newVal32{ read4_to_u32(p) };
-		if ((pend - p >= 4) && is_made_of_four_digits_fast(newVal32)) {
+		if ((pend - p >= 4) && isValidToParse(newVal32)) {
 			i = i * 10000 + parse_four_digits_unrolled(newVal32);
 			p += 4;
 			newVal32 = read4_to_u32(p);
@@ -655,7 +655,7 @@ namespace fast_float_new {
 
 	JSONIFIER_ALWAYS_INLINE void loop_parse_if_two_digits(const char*& p, const char* const pend, uint64_t& i) {
 		uint16_t newVal16{ read2_to_u16(p) };
-		if ((pend - p >= 2) && is_made_of_two_digits_fast(newVal16)) {
+		if ((pend - p >= 2) && isValidToParse(newVal16)) {
 			i = i * 100 + parse_two_digits_unrolled(newVal16);
 			p += 2;
 			newVal16 = read2_to_u16(p);

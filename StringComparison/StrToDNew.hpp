@@ -57,7 +57,7 @@ namespace jsonifier_internal_new {
 	JSONIFIER_ALWAYS_INLINE_VARIABLE char zero{ '0' };
 	JSONIFIER_ALWAYS_INLINE_VARIABLE char nine{ '9' };
 
-#define JSONIFIER_IS_DIGIT(x) ((static_cast<size_t>(x - '0')) <= 9)
+#define JSONIFIER_IS_DIGIT(x) ((static_cast<uint8_t>(x - '0')) < 10)
 
 	template<typename value_type, typename char_t> JSONIFIER_ALWAYS_INLINE bool parseFloat(value_type& value, char_t const*& iter, char_t const* end = nullptr) noexcept {
 		using namespace fast_float_new;
@@ -66,6 +66,7 @@ namespace jsonifier_internal_new {
 		int64_t expNumber{};
 		int64_t exponent{};
 		size_t mantissa{};
+		size_t newVal64;
 		const bool negative{ *iter == minus };
 		bool tooManyDigits{ false };
 
@@ -80,7 +81,7 @@ namespace jsonifier_internal_new {
 		span<const char_t> integer{ iter };
 
 		while (JSONIFIER_IS_DIGIT(*iter)) {
-			mantissa = 10 * mantissa + static_cast<size_t>(*iter - zero);
+			mantissa = 10 * mantissa + static_cast<uint8_t>(*iter - zero);
 			++iter;
 		}
 
@@ -95,19 +96,19 @@ namespace jsonifier_internal_new {
 			++iter;
 			char_t const* before = iter;
 
-			if (auto valid = end - iter >= 4; valid) {
-				size_t newVal64{ read4_to_u32(iter) };
-				valid &= is_made_of_four_digits_fast(newVal64);
+			if (auto valid = end - iter >= 8; valid) {
+				newVal64 = read8_to_u64(iter);
+				valid &= isValidToParse64(newVal64);
 				while (valid) {
-					mantissa = mantissa * 10000 + parse_four_digits_unrolled(newVal64);
-					iter += 4;
-					newVal64 = read4_to_u32(iter);
-					valid	 = end - iter >= 4 && is_made_of_four_digits_fast(newVal64);
+					mantissa = mantissa * 100000000 + parse_eight_digits_unrolled(newVal64);
+					iter += 8;
+					newVal64 = read8_to_u64(iter);
+					valid	 = end - iter >= 8 && isValidToParse64(newVal64);
 				}
 			}
 
 			while (JSONIFIER_IS_DIGIT(*iter)) {
-				mantissa = mantissa * 10 + static_cast<size_t>(*iter - zero);
+				mantissa = mantissa * 10 + static_cast<uint8_t>(*iter - zero);
 				++iter;
 			}
 			exponent	 = before - iter;
@@ -135,7 +136,7 @@ namespace jsonifier_internal_new {
 			} else {
 				while (JSONIFIER_IS_DIGIT(*iter)) {
 					if (expNumber < 0x10000000) {
-						expNumber = 10 * expNumber + static_cast<size_t>(*iter - zero);
+						expNumber = 10 * expNumber + static_cast<uint8_t>(*iter - zero);
 					}
 					++iter;
 				}
@@ -161,7 +162,7 @@ namespace jsonifier_internal_new {
 				start		  = integer.ptr;
 				static constexpr size_t minNineteenDigitInteger{ 1000000000000000000 };
 				while ((mantissa < minNineteenDigitInteger) && (start != integer.end)) {
-					mantissa = mantissa * 10 + static_cast<size_t>(*start - zero);
+					mantissa = mantissa * 10 + static_cast<uint8_t>(*start - zero);
 					++start;
 				}
 				if (mantissa >= minNineteenDigitInteger) {
@@ -169,7 +170,7 @@ namespace jsonifier_internal_new {
 				} else {
 					start = fraction.ptr;
 					while ((mantissa < minNineteenDigitInteger) && (start != fraction.end)) {
-						mantissa = mantissa * 10 + static_cast<size_t>(*start - zero);
+						mantissa = mantissa * 10 + static_cast<uint8_t>(*start - zero);
 						++start;
 					}
 					exponent = fraction.ptr - start + expNumber;
