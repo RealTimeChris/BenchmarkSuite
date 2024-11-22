@@ -95,14 +95,14 @@ namespace jsonifier_internal_new {
 			++iter;
 			char_t const* before = iter;
 
-			if (auto valid = end - iter >= 8; valid) {
-				size_t newVal64{ read8_to_u64(iter) };
-				valid &= is_made_of_eight_digits_fast(newVal64);
+			if (auto valid = end - iter >= 4; valid) {
+				size_t newVal64{ read4_to_u32(iter) };
+				valid &= is_made_of_four_digits_fast(newVal64);
 				while (valid) {
-					mantissa = mantissa * 100000000 + parse_eight_digits_unrolled(newVal64);
-					iter += 8;
-					newVal64 = read8_to_u64(iter);
-					valid	 = end - iter >= 8 && is_made_of_eight_digits_fast(newVal64);
+					mantissa = mantissa * 10000 + parse_four_digits_unrolled(newVal64);
+					iter += 4;
+					newVal64 = read4_to_u32(iter);
+					valid	 = end - iter >= 4 && is_made_of_four_digits_fast(newVal64);
 				}
 			}
 
