@@ -131,7 +131,7 @@ void runForLengthSerialize() {
 				}
 			}
 		});
-	/*
+	
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "old-parseFloat", "dodgerblue">(
 		[&]() mutable {
 			double newDouble{};
@@ -145,7 +145,7 @@ void runForLengthSerialize() {
 				}
 			}
 		});
-		*/
+		
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "orginal-fastfloat", "dodgerblue">(
 		[&]() mutable {
 			double newDouble{};
@@ -234,7 +234,7 @@ void runForLengthSerialize02() {
 				}
 			}
 		});
-	/*
+	
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "old-parseFloat", "dodgerblue">(
 		[&]() mutable {
 			double newDouble{};
@@ -248,7 +248,7 @@ void runForLengthSerialize02() {
 				}
 			}
 		});
-		*/
+
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "orginal-fastfloat", "dodgerblue">(
 		[&]() mutable {
 			double newDouble{};

@@ -78,14 +78,6 @@ namespace jsonifier_internal_new {
 		}
 
 		span<const char_t> integer{ iter };
-#if defined(JSONIFIER_MAC)
-		size_t newVal64{ read8_to_u64(iter) };
-		while (end - iter >= 8 && is_made_of_eight_digits_fast(newVal64)) {
-			mantissa = mantissa * 100000000 + parse_eight_digits_unrolled(newVal64);
-			iter += 8;
-			newVal64 = read8_to_u64(iter);
-		}
-#endif
 
 		while (JSONIFIER_IS_DIGIT(*iter)) {
 			mantissa = 10 * mantissa + static_cast<size_t>(*iter - zero);
@@ -104,11 +96,7 @@ namespace jsonifier_internal_new {
 			char_t const* before = iter;
 
 			if (auto valid = end - iter >= 8; valid) {
-#if defined(JSONIFIER_MAC)
-				newVal64 = read8_to_u64(iter);
-#else
 				size_t newVal64{ read8_to_u64(iter) };
-#endif
 				valid &= is_made_of_eight_digits_fast(newVal64);
 				while (valid) {
 					mantissa = mantissa * 100000000 + parse_eight_digits_unrolled(newVal64);
