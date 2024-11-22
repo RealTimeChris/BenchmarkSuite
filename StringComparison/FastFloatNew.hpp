@@ -411,6 +411,16 @@ namespace fast_float_new {
 		return val;
 	}
 
+	// Read 8 char_t into a u64. Truncates char_t if not char.
+	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr uint64_t read8_to_u64_sub_zero(const char_t* chars) noexcept {
+		uint64_t val;
+		::memcpy(&val, chars, sizeof(uint64_t));
+#if FASTFLOAT_NEWER_IS_BIG_ENDIAN == 1
+		val = byteswap(val);
+#endif
+		return val - 0x3030303030303030ull;
+	}
+
 	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr uint32_t read4_to_u32(const char_t* chars) noexcept {
 		uint32_t val;
 		::memcpy(&val, chars, sizeof(uint32_t));
@@ -430,47 +440,32 @@ namespace fast_float_new {
 	}
 
 	// credit  @aqrit
-	JSONIFIER_ALWAYS_INLINE uint32_t parse_eight_digits_unrolled(uint64_t val) noexcept {
-		constexpr uint64_t mask{ 0x000000FF000000FF };
-		constexpr uint64_t mul1{ 0x000F424000000064 };
-		constexpr uint64_t mul2{ 0x0000271000000001 };
-		constexpr uint64_t subMask{ 0x3030303030303030 };
-		val -= subMask;
-		val = (val * 10) + (val >> 8);
-		val = (((val & mask) * mul1) + (((val >> 16) & mask) * mul2)) >> 32;
+	JSONIFIER_ALWAYS_INLINE constexpr uint32_t parse_eight_digits_unrolled(uint64_t val) {
+		constexpr uint64_t mask = 0x000000FF000000FF;
+		constexpr uint64_t mul1 = 0x000F424000000064;// 100 + (1000000ULL << 32)
+		constexpr uint64_t mul2 = 0x0000271000000001;// 1 + (10000ULL << 32)
+		val						= (val * 10) + (val >> 8);// val = (val * 2561) >> 8;
+		val						= (((val & mask) * mul1) + (((val >> 16) & mask) * mul2)) >> 32;
 		return uint32_t(val);
 	}
 
-	JSONIFIER_ALWAYS_INLINE uint32_t parse_four_digits_unrolled(uint64_t val) noexcept {
-		constexpr uint64_t mask{ 0x000000FF000000FF };
-		constexpr uint64_t mul1{ 100ULL << 32ULL };
-		constexpr uint64_t mul2{ 1ULL << 32ULL };
-		constexpr uint64_t subMask{ 0x0000000030303030ULL & 0x00000000FFFFFFFFULL };
-		val -= subMask;
-		val = (val * 10ULL) + (val >> 8ULL);
-		val = (((val & mask) * mul1) + (((val >> 16ULL) & mask) * mul2)) >> 32ULL;
-		return static_cast<uint32_t>(val);
+	// credit  @realtimechris
+	JSONIFIER_ALWAYS_INLINE constexpr bool is_made_of_eight_digits_fast(uint64_t val) noexcept {
+		constexpr uint64_t byte_mask		   = ~uint64_t(0) / 255ull;
+		constexpr uint64_t msb_mask			   = byte_mask * 128ull;
+		constexpr uint64_t threshold_byte_mask = byte_mask * (127ull - 10ull);
+		return !((val + threshold_byte_mask | val) & msb_mask);
 	}
 
-	JSONIFIER_ALWAYS_INLINE uint32_t parse_two_digits_unrolled(uint64_t val) noexcept {
-		constexpr uint64_t mask{ 0x000000FF000000FF };
-		constexpr uint64_t mul1{ 1ULL << 32ULL };
-		constexpr uint64_t subMask{ 0x0000000000003030ULL & 0x000000000000FFFFULL };
-		val -= subMask;
-		val = (val * 10ULL) + (val >> 8ULL);
-		val = ((val & mask) * mul1) >> 32ULL;
-		return static_cast<uint32_t>(val);
-	}
-
-	JSONIFIER_ALWAYS_INLINE bool isValidToParse64(uint64_t value) noexcept {
-		static constexpr uint64_t byte_mask = ~uint64_t(0) / 255ull;
-		static constexpr uint64_t msb_mask	= byte_mask * 128ull;
-		static constexpr uint64_t sub_mask	= byte_mask * (127ull - 10ull) - 0x3030303030303030ull;
-#if !defined(JSONIFIER_CLANG) || defined(JSONIFIER_MAC)
-		return !bool((value + sub_mask | value) & msb_mask);
-#else
-		return ((value + sub_mask | value) & msb_mask) == 0;
-#endif
+	JSONIFIER_ALWAYS_INLINE constexpr void loop_parse_if_eight_digits(const char*& p, const char* const pend, uint64_t& i) {
+		uint64_t val;
+		if (pend - p >= 8 && (val = read8_to_u64_sub_zero(p), is_made_of_eight_digits_fast(val))) {
+			do {
+				i = i * 100000000 + parse_eight_digits_unrolled(val);
+				p += 8;
+				val = read8_to_u64_sub_zero(p);
+			} while ((pend - p) >= 8 && is_made_of_eight_digits_fast(val));
+		}
 	}
 
 	/**
@@ -1552,8 +1547,8 @@ namespace fast_float_new {
 	}
 
 	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr void parse_eight_digits(const char_t*& p, limb& value, size_t& counter, size_t& count) noexcept {
-		uint64_t newVal64{ read8_to_u64(p) };
-		value = value * 100000000 + parse_eight_digits_unrolled(newVal64);
+		uint64_t val{ read8_to_u64(p) };
+		value = value * 100000000 + parse_eight_digits_unrolled(val);
 		p += 8;
 		counter += 8;
 		count += 8;

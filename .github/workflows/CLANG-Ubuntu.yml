@@ -5,8 +5,8 @@ on:
   push:
     branches:
     - main
-    - isValidForParse64
-    - isValidForParse64
+    - vs-=2
+    - vs-=2
 
 jobs:
   Build:

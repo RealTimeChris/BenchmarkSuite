@@ -98,12 +98,12 @@ namespace jsonifier_internal_new {
 
 			if (auto valid = end - iter >= 8; valid) {
 				newVal64 = read8_to_u64(iter);
-				valid &= isValidToParse64(newVal64);
+				valid &= is_made_of_eight_digits_fast(newVal64);
 				while (valid) {
 					mantissa = mantissa * 100000000 + parse_eight_digits_unrolled(newVal64);
 					iter += 8;
 					newVal64 = read8_to_u64(iter);
-					valid	 = end - iter >= 8 && isValidToParse64(newVal64);
+					valid	 = end - iter >= 8 && is_made_of_eight_digits_fast(newVal64);
 				}
 			}
 
