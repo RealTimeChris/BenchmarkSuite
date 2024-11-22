@@ -210,97 +210,71 @@ void runForLengthSerialize02() {
 		}
 	}
 
-	std::vector<double> newerDoubles01{};
-	std::vector<std::string> newDoubles{  };
+	std::vector<std::string> newDoubles{};
 	for (auto value: newerDoubles00) {
 		newDoubles.emplace_back(std::to_string(value));
 	}
-	std::vector<double> newerDoubles02{};
-	std::vector<double> newerDoubles03{};
-	newerDoubles01.resize(newDoubles.size());
-	newerDoubles03.resize(newDoubles.size());
-	newerDoubles02.resize(newDoubles.size());
 
-	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "glz-from_chars", "dodgerblue">(
+	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "is_made_up_of_eight_digits_fast", "dodgerblue">(
 		[&]() mutable {
-			double newDouble{};
-			for (size_t x = 0; x < 10; ++x) {
+			for (size_t x = 0; x < 1024*32; ++x) {
 				for (size_t y = 0; y < 64; ++y) {
 					const auto* iter = newDoubles[y].data();
-					const auto* end	 = newDoubles[y].data() + newDoubles[y].size();
-					glz::from_chars<true>(iter, end, newDouble);
-					newerDoubles02[y] = newDouble;
-					bnch_swt::doNotOptimizeAway(newDouble);
+					uint64_t value{};
+					std::memcpy(&value, iter, 8);
+					bnch_swt::doNotOptimizeAway(fast_float::is_made_of_eight_digits_fast(value));
 				}
 			}
 		});
 	
-	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "old-parseFloat", "dodgerblue">(
+	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "isValidToParse64", "dodgerblue">(
 		[&]() mutable {
-			double newDouble{};
-			for (size_t x = 0; x < 10; ++x) {
+			for (size_t x = 0; x < 1024 * 32; ++x) {
 				for (size_t y = 0; y < 64; ++y) {
 					const auto* iter = newDoubles[y].data();
-					const auto* end	 = newDoubles[y].data() + newDoubles[y].size();
-					jsonifier_internal_old::parseFloat(iter, end, newDouble);
-					newerDoubles01[y] = newDouble;
-					bnch_swt::doNotOptimizeAway(newDouble);
+					uint64_t value{};
+					std::memcpy(&value, iter, 8);
+					bnch_swt::doNotOptimizeAway(fast_float_new::isValidToParse64(value));
 				}
 			}
 		});
-
-	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "orginal-fastfloat", "dodgerblue">(
-		[&]() mutable {
-			double newDouble{};
-			for (size_t x = 0; x < 10; ++x) {
-				for (size_t y = 0; y < 64; ++y) {
-					const auto* iter = newDoubles[y].data();
-					const auto* end	 = newDoubles[y].data() + newDoubles[y].size();
-					fast_float::from_chars_advanced(iter, end, newDouble, fast_float::parse_options_t<char>{});
-					newerDoubles01[y] = newDouble;
-					bnch_swt::doNotOptimizeAway(newDouble);
-				}
-			}
-		});
-
-	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "new-parseFloat", "dodgerblue">(
-		[&]() mutable {
-			double newDouble{};
-			for (size_t x = 0; x < 10; ++x) {
-				for (size_t y = 0; y < 64; ++y) {
-					const auto* iter = newDoubles[y].data();
-					const auto* end	 = newDoubles[y].data();
-					while (jsonifier_internal::numericTable[uint8_t(*end)]) {
-						++end;
-					}
-					jsonifier_internal_new::parseFloat(newDouble, iter, end);
-					newerDoubles03[y] = newDouble;
-					bnch_swt::doNotOptimizeAway(newDouble);
-				}
-			}
-		});
-
-	for (size_t x = 0; x < 64; ++x) {
-		if (newerDoubles03[x] != newerDoubles01[x]) {
-			double newDouble{};
-			std::cout << "FAILED TO PARSE AT INDEX: " << x << std::endl;
-			const auto* iter = newDoubles[x].data();
-			const auto* end	 = newDoubles[x].data() + newDoubles[x].size();
-			fast_float::from_chars_advanced(iter, end, newDouble, fast_float::parse_options_t<char>{});
-			jsonifier_internal_new::parseFloat(newDouble, iter, end);
-			std::cout << "Input Value: " << newDoubles[x] << std::endl;
-			std::cout << "Intended Value: " << newerDoubles01[x] << std::endl;
-			std::cout << "Actual Value: " << newerDoubles03[x] << std::endl;
-		} else {
-			//std::cout << "Here's the value: " << newerDoubles01[x] << std::endl;
-		}
-	}
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::printResults();
+}
+
+template<typename value_type, value_type n> JSONIFIER_ALWAYS_INLINE value_type hasLess(value_type x) {
+	constexpr value_type byte_mask = ~value_type(0) / 255;
+	constexpr value_type msb_mask  = byte_mask * 128;
+	const value_type threshold	   = byte_mask * n;
+	return ((x - threshold) & ~x & msb_mask);
+}
+
+template<typename value_type, value_type n> JSONIFIER_ALWAYS_INLINE value_type hasGreater(value_type x) {
+	constexpr value_type byte_mask			 = ~value_type(0) / 255ull;
+	constexpr value_type msb_mask			 = byte_mask * 128ull;
+	constexpr value_type threshold			 = 127ull - n;
+	constexpr value_type threshold_byte_mask = byte_mask * threshold;
+	return (x + threshold_byte_mask | x) & msb_mask;
+}
+
+template<typename value_type> JSONIFIER_ALWAYS_INLINE bool isValidToParse(value_type value) {
+	constexpr value_type subMask{ jsonifier_internal::repeatByte<0x30, value_type>() };
+	value -= subMask;
+	return !hasGreater<value_type, 10>(value);
 }
 
 int main() {
 	// FAILED TO PARSE AT INDEX : 9 Input Value : 5034608817624829.7467e+61 Intended Value : 5.03461e+76 Actual Value : 1.12039e+68
-	std::string newString{ "8143048125245102.3333e+54" };
+	std::string newString{ "12.240678" };
+	std::cout << "IS VALUE: " << isValidToParse(*reinterpret_cast<uint64_t*>(newString.data())) << std::endl;
+	std::cout << "IS VALUE: " << isValidToParse(*reinterpret_cast<uint32_t*>(newString.data())) << std::endl;
+	std::cout << "IS VALUE: " << isValidToParse(*reinterpret_cast<uint16_t*>(newString.data())) << std::endl;
+	uint32_t findBits{ 0b00110001001100010011000100110001 };
+	uint32_t findBits02{ 0b00110001001100010011000100110001 };
+	std::cout << "CURRENT BITS: " << std::bitset<32>{ *reinterpret_cast<uint32_t*>(newString.data()) } << std::endl;
+	std::cout << "CURRENT BITS FOUND: " << std::bitset<32>{ ~(*reinterpret_cast<uint32_t*>(newString.data()) ^ findBits) } << std::endl;
+	std::cout << "CURRENT BITS FOUND: "
+			  << std::bitset<32>{ ((((*reinterpret_cast<uint32_t*>(newString.data()) + 0x46464646) | (*reinterpret_cast<uint32_t*>(newString.data()) - 0x30303030)) & 0x80808080)) }
+			  << std::endl;
 	const auto* iter = newString.data();
 	const auto* end	 = newString.data() + newString.size();
 	double newDouble{};
@@ -319,7 +293,7 @@ int main() {
 	//std::cout << "CURRENT HEX VALUE (10000ULL << 32): " << std::hex << (10000ULL << 32) << std::endl;
 	//std::cout << "CURRENT HEX VALUE (1000ULL << 32): " << std::hex << (1000ULL << 32) << std::endl;
 	
-	
+	runForLengthSerialize02<"is_made_of_eight_digits_fast-vs-isValidForParse64", "is_made_of_eight_digits_fast-vs-isValidForParse64">();
 
 	runForLengthSerialize<64, 2, 0, 0, "Old-FastFloat-vs-New-FastFloat-64,2,16,0", "Old-FastFloat-vs-New-FastFloat-64,2,16,0">();
 	runForLengthSerialize<64, 2, 2, 0, "Old-FastFloat-vs-New-FastFloat-64,2,2,0", "Old-FastFloat-vs-New-FastFloat-64,2,2,0">();
