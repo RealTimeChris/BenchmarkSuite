@@ -143,6 +143,15 @@ struct test_generator {
 		return result;
 	}
 
+	static std::string generateRandomNumberString(int length) {
+		std::string randomNumber = "";
+		randomNumber += std::to_string(randomizeNumberUniform(1, 9));
+		for (int i = 1; i < length; ++i) {
+			randomNumber += std::to_string(randomizeNumberUniform(0, 9));
+		}
+		return randomNumber;
+	}
+
 	static double generateDouble() {
 		double min = std::numeric_limits<double>::min();
 		double max = std::numeric_limits<double>::max();

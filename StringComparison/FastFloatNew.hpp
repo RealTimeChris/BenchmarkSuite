@@ -411,16 +411,6 @@ namespace fast_float_new {
 		return val;
 	}
 
-	// Read 8 char_t into a u64. Truncates char_t if not char.
-	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr uint64_t read8_to_u64_sub_zero(const char_t* chars) noexcept {
-		uint64_t val;
-		::memcpy(&val, chars, sizeof(uint64_t));
-#if FASTFLOAT_NEWER_IS_BIG_ENDIAN == 1
-		val = byteswap(val);
-#endif
-		return val - 0x3030303030303030ull;
-	}
-
 	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr uint32_t read4_to_u32(const char_t* chars) noexcept {
 		uint32_t val;
 		::memcpy(&val, chars, sizeof(uint32_t));
@@ -453,19 +443,275 @@ namespace fast_float_new {
 	JSONIFIER_ALWAYS_INLINE constexpr bool is_made_of_eight_digits_fast(uint64_t val) noexcept {
 		constexpr uint64_t byte_mask		   = ~uint64_t(0) / 255ull;
 		constexpr uint64_t msb_mask			   = byte_mask * 128ull;
-		constexpr uint64_t threshold_byte_mask = byte_mask * (127ull - 10ull);
+		constexpr uint64_t threshold		   = 127ull - 10ull;
+		constexpr uint64_t threshold_byte_mask = byte_mask * threshold;
 		return !((val + threshold_byte_mask | val) & msb_mask);
 	}
 
-	JSONIFIER_ALWAYS_INLINE constexpr void loop_parse_if_eight_digits(const char*& p, const char* const pend, uint64_t& i) {
-		uint64_t val;
-		if (pend - p >= 8 && (val = read8_to_u64_sub_zero(p), is_made_of_eight_digits_fast(val))) {
-			do {
-				i = i * 100000000 + parse_eight_digits_unrolled(val);
-				p += 8;
-				val = read8_to_u64_sub_zero(p);
-			} while ((pend - p) >= 8 && is_made_of_eight_digits_fast(val));
+	JSONIFIER_ALWAYS_INLINE constexpr bool is_made_of_seven_digits_fast(uint64_t val) noexcept {
+		constexpr uint64_t byte_mask		   = ~uint64_t(0) / 255ull;
+		constexpr uint64_t msb_mask			   = byte_mask * 128ull & 0xFFFFFFFFFFFFFF;
+		constexpr uint64_t threshold		   = 127ull - 10ull;
+		constexpr uint64_t threshold_byte_mask = byte_mask * threshold;
+		return !((val + threshold_byte_mask | val) & msb_mask);
+	}
+
+	JSONIFIER_ALWAYS_INLINE constexpr bool is_made_of_six_digits_fast(uint64_t val) noexcept {
+		constexpr uint64_t byte_mask		   = ~uint64_t(0) / 255ull;
+		constexpr uint64_t msb_mask			   = byte_mask * 128ull & 0xFFFFFFFFFFFF;
+		constexpr uint64_t threshold		   = 127ull - 10ull;
+		constexpr uint64_t threshold_byte_mask = byte_mask * threshold;
+		return !((val + threshold_byte_mask | val) & msb_mask);
+	}
+
+	JSONIFIER_ALWAYS_INLINE constexpr bool is_made_of_five_digits_fast(uint64_t val) noexcept {
+		constexpr uint64_t byte_mask		   = ~uint64_t(0) / 255ull;
+		constexpr uint64_t msb_mask			   = byte_mask * 128ull & 0xFFFFFFFFFF;
+		constexpr uint64_t threshold		   = 127ull - 10ull;
+		constexpr uint64_t threshold_byte_mask = byte_mask * threshold;
+		return !((val + threshold_byte_mask | val) & msb_mask);
+	}
+
+	JSONIFIER_ALWAYS_INLINE constexpr bool is_made_of_four_digits_fast(uint64_t val) noexcept {
+		constexpr uint64_t byte_mask		   = ~uint64_t(0) / 255ull;
+		constexpr uint64_t msb_mask			   = byte_mask * 128ull & 0xFFFFFFFF;
+		constexpr uint64_t threshold		   = 127ull - 10ull;
+		constexpr uint64_t threshold_byte_mask = byte_mask * threshold;
+		return !((val + threshold_byte_mask | val) & msb_mask);
+	}
+
+	JSONIFIER_ALWAYS_INLINE constexpr bool is_made_of_three_digits_fast(uint64_t val) noexcept {
+		constexpr uint64_t byte_mask		   = ~uint64_t(0) / 255ull;
+		constexpr uint64_t msb_mask			   = byte_mask * 128ull & 0xFFFFFF;
+		constexpr uint64_t threshold		   = 127ull - 10ull;
+		constexpr uint64_t threshold_byte_mask = byte_mask * threshold;
+		return !((val + threshold_byte_mask | val) & msb_mask);
+	}
+
+	JSONIFIER_ALWAYS_INLINE constexpr bool is_made_of_two_digits_fast(uint64_t val) noexcept {
+		constexpr uint64_t byte_mask		   = ~uint64_t(0) / 255ull;
+		constexpr uint64_t msb_mask			   = byte_mask * 128ull & 0xFFFF;
+		constexpr uint64_t threshold		   = 127ull - 10ull;
+		constexpr uint64_t threshold_byte_mask = byte_mask * threshold;
+		return !((val + threshold_byte_mask | val) & msb_mask);
+	}
+
+	JSONIFIER_ALWAYS_INLINE constexpr bool is_made_of_one_digits_fast(uint64_t val) noexcept {
+		constexpr uint64_t byte_mask		   = ~uint64_t(0) / 255ull;
+		constexpr uint64_t msb_mask			   = byte_mask * 128ull & 0xFF;
+		constexpr uint64_t threshold		   = 127ull - 10ull;
+		constexpr uint64_t threshold_byte_mask = byte_mask * threshold;
+		return !((val + threshold_byte_mask | val) & msb_mask);
+	}
+
+	JSONIFIER_ALWAYS_INLINE constexpr bool is_made_of_x_digits_fast(uint64_t val) noexcept {
+		constexpr uint64_t byte_mask		   = ~uint64_t(0) / 255ull;
+		constexpr uint64_t msb_mask			   = byte_mask * 128ull;
+		constexpr uint64_t threshold		   = 127ull - 10ull;
+		constexpr uint64_t threshold_byte_mask = byte_mask * threshold;
+		return !((val + threshold_byte_mask | val) & msb_mask);
+	}
+
+	static constexpr uint64_t pow10Table[]{ 1ull, 10ull, 100ull, 1000ull, 10000ull, 100000ull, 1000000ull, 10000000ull, 100000000ull, 1000000000ull, 10000000000ull,
+		100000000000ull };
+
+	struct parse_x_digits_unrolled {
+		template<size_t size> JSONIFIER_ALWAYS_INLINE static uint64_t loadInternal(const char* string) {
+			uint64_t val;
+			if constexpr (size == 8) {
+				uint64_t value;
+				std::memcpy(&value, string, 8);
+				return value - 0x3030303030303030ull;
+			} else if constexpr (size == 7) {
+				uint64_t value;
+				std::memcpy(&value, string, 7);
+				return (value & 0xFFFFFFFFFFFFFF) - 0x30303030303030;
+			} else if constexpr (size == 6) {
+				uint64_t value;
+				std::memcpy(&value, string, 6);
+				return (value & 0xFFFFFFFFFFFF) - 0x303030303030;
+			} else if constexpr (size == 5) {
+				uint64_t value;
+				std::memcpy(&value, string, 5);
+				return (value & 0xFFFFFFFFFF) - 0x3030303030;
+			} else if constexpr (size == 4) {
+				uint32_t value;
+				std::memcpy(&value, string, 4);
+				return value - 0x30303030;
+			} else if constexpr (size == 3) {
+				uint32_t value;
+				std::memcpy(&value, string, 3);
+				return (value & 0xFFFFFF) - 0x30303030;
+			} else if constexpr (size == 2) {
+				uint16_t value;
+				std::memcpy(&value, string, 2);
+				return value - 0x3030;
+			} else if constexpr (size == 1) {
+				return string[0] - 0x30;
+			} else {
+				return {};
+			}
 		}
+
+		template<size_t size> JSONIFIER_ALWAYS_INLINE static bool checkInternal(uint64_t val) {
+			if constexpr (size == 8) {
+				constexpr uint64_t byte_mask		   = ~uint64_t(0) / 255ull;
+				constexpr uint64_t msb_mask			   = byte_mask * 128ull;
+				constexpr uint64_t threshold		   = 127ull - 10ull;
+				constexpr uint64_t threshold_byte_mask = byte_mask * threshold;
+				return !((val + threshold_byte_mask | val) & msb_mask);
+			} else if constexpr (size == 7) {
+				constexpr uint64_t byte_mask		   = ~uint64_t(0) / 255ull;
+				constexpr uint64_t msb_mask			   = byte_mask * 128ull & 0xFFFFFFFFFFFFFF;
+				constexpr uint64_t threshold		   = 127ull - 10ull;
+				constexpr uint64_t threshold_byte_mask = byte_mask * threshold;
+				return !((val + threshold_byte_mask | val) & msb_mask);
+			} else if constexpr (size == 6) {
+				constexpr uint64_t byte_mask		   = ~uint64_t(0) / 255ull;
+				constexpr uint64_t msb_mask			   = byte_mask * 128ull & 0xFFFFFFFFFFFF;
+				constexpr uint64_t threshold		   = 127ull - 10ull;
+				constexpr uint64_t threshold_byte_mask = byte_mask * threshold;
+				return !((val + threshold_byte_mask | val) & msb_mask);
+			} else if constexpr (size == 5) {
+				constexpr uint64_t byte_mask		   = ~uint64_t(0) / 255ull;
+				constexpr uint64_t msb_mask			   = byte_mask * 128ull & 0xFFFFFFFFFF;
+				constexpr uint64_t threshold		   = 127ull - 10ull;
+				constexpr uint64_t threshold_byte_mask = byte_mask * threshold;
+				return !((val + threshold_byte_mask | val) & msb_mask);
+			} else if constexpr (size == 4) {
+				constexpr uint64_t byte_mask		   = ~uint64_t(0) / 255ull;
+				constexpr uint64_t msb_mask			   = byte_mask * 128ull & 0xFFFFFFFF;
+				constexpr uint64_t threshold		   = 127ull - 10ull;
+				constexpr uint64_t threshold_byte_mask = byte_mask * threshold;
+				return !((val + threshold_byte_mask | val) & msb_mask);
+			} else if constexpr (size == 3) {
+				constexpr uint64_t byte_mask		   = ~uint64_t(0) / 255ull;
+				constexpr uint64_t msb_mask			   = byte_mask * 128ull & 0xFFFFFF;
+				constexpr uint64_t threshold		   = 127ull - 10ull;
+				constexpr uint64_t threshold_byte_mask = byte_mask * threshold;
+				return !((val + threshold_byte_mask | val) & msb_mask);
+			} else if constexpr (size == 2) {
+				constexpr uint64_t byte_mask		   = ~uint64_t(0) / 255ull;
+				constexpr uint64_t msb_mask			   = byte_mask * 128ull & 0xFFFF;
+				constexpr uint64_t threshold		   = 127ull - 10ull;
+				constexpr uint64_t threshold_byte_mask = byte_mask * threshold;
+				return !((val + threshold_byte_mask | val) & msb_mask);
+			} else if constexpr (size == 1) {
+				constexpr uint8_t byte_mask		   = ~uint8_t(0) / 255ull;
+				constexpr uint8_t msb_mask			  = byte_mask * 128ull;
+				constexpr uint8_t threshold		   = 127ull - 10ull;
+				constexpr uint8_t threshold_byte_mask = byte_mask * threshold;
+				return !((val + threshold_byte_mask | val) & msb_mask);
+			} else {
+				return {};
+			}
+		}
+
+		template<size_t size> JSONIFIER_ALWAYS_INLINE static uint64_t parseInternal(uint64_t val) {
+			if constexpr (size == 8) {
+				constexpr uint64_t mask = 0x000000FF000000FF;
+				constexpr uint64_t mul1 = 0x000F424000000064;
+				constexpr uint64_t mul2 = 0x0000271000000001;
+				val						= (val * 10) + (val >> 8);
+				val						= (((val & mask) * mul1) + (((val >> 16) & mask) * mul2)) >> 32;
+				return static_cast<uint64_t>(val);
+			} else if constexpr (size == 7) {
+				constexpr uint64_t mask = 0x000000FF000000FF;
+				constexpr uint64_t mul1 = 10ULL + (100000ULL << 32ULL);
+				constexpr uint64_t mul2 = 1000ULL << 32ULL;
+				uint8_t spare{ static_cast<uint8_t>((val >> 48) & 0xFF) };
+				val = (val * 10ULL) + (val >> 8ULL);
+				val = (((val & mask) * mul1) + (((val >> 16ULL) & mask) * mul2)) >> 32ULL;
+				return static_cast<uint64_t>(val) + spare;
+			} else if constexpr (size == 6) {
+				constexpr uint64_t mask = 0x000000FF000000FF;
+				constexpr uint64_t mul1 = 1ULL + (10000ULL << 32ULL);
+				constexpr uint64_t mul2 = 100ULL << 32ULL;
+				val						= (val * 10ULL) + (val >> 8ULL);
+				val						= (((val & mask) * mul1) + (((val >> 16ULL) & mask) * mul2)) >> 32ULL;
+				return static_cast<uint64_t>(val);
+			} else if constexpr (size == 5) {
+				constexpr uint64_t mask = 0x000000FF000000FF;
+				constexpr uint64_t mul1 = (1000ULL << 32ULL);
+				constexpr uint64_t mul2 = 10ULL << 32ULL;
+				uint8_t spare{ static_cast<uint8_t>((val >> 32) & 0xFF) };
+				val = (val * 10ULL) + (val >> 8ULL);
+				val = (((val & mask) * mul1) + (((val >> 16ULL) & mask) * mul2)) >> 32ULL;
+				return static_cast<uint64_t>(val) + spare;
+			} else if constexpr (size == 4) {
+				constexpr uint64_t mask = 0x000000FF000000FF;
+				constexpr uint64_t mul1 = (100ULL << 32ULL);
+				constexpr uint64_t mul2 = 1ULL << 32ULL;
+				val						= (val * 10ULL) + (val >> 8ULL);
+				val						= (((val & mask) * mul1) + (((val >> 16ULL) & mask) * mul2)) >> 32ULL;
+				return static_cast<uint64_t>(val);
+			} else if constexpr (size == 3) {
+				constexpr uint64_t mask = 0x000000FF000000FF;
+				constexpr uint64_t mul1 = (10ULL << 32ULL);
+				constexpr uint64_t mul2 = 1ULL;
+				uint8_t spare{ static_cast<uint8_t>((val >> 16) & 0xFF) };
+				val = (val * 10ULL) + (val >> 8ULL);
+				val = (((val & mask) * mul1) + (((val >> 16ULL) & mask) * mul2)) >> 32ULL;
+				return static_cast<uint64_t>(val) + spare;
+			} else if constexpr (size == 2) {
+				constexpr uint64_t mask = 0x000000FF000000FF;
+				constexpr uint64_t mul1 = (1ULL << 32ULL);
+				val						= (val * 10ULL) + (val >> 8ULL);
+				val						= ((val & mask) * mul1) >> 32ULL;
+				return static_cast<uint64_t>(val);
+			} else if constexpr (size == 1) {
+				return val & 0xff;
+			} else {
+				return {};
+			}
+		}
+
+		template<size_t size> static bool implInternal(const char* string, uint64_t& value) {
+			if constexpr (size == 16) {
+				if (!implInternal<8>(string, value)) {
+					return false;
+				}
+				string += 8;
+				return implInternal<8>(string, value);
+			}
+			if constexpr (size > 8) {
+				if (!implInternal<size % 8>(string, value)) {
+					return false;
+				}
+				string += size % 8;
+				return implInternal<8>(string, value);
+			}
+			uint64_t valueNew;
+			valueNew = loadInternal<size>(string);
+			//std::cout << "CURRENT STRING: " << string << std::endl;
+			//std::cout << "CURRENT VALUE: " << std::hex << valueNew << std::endl;
+			if (checkInternal<size>(valueNew)) {
+				//std::cout << "CURRENT PARSED-VALUE: " << std::hex << parseInternal<size>(valueNew) << std::endl;
+				value = value * pow10Table[size] + parseInternal<size>(valueNew);
+				return true;
+			} else {
+				//std::cout << "WE FAILED CHECKING SIZE: " << size << ", FOR VALUES : " << string << std::endl;
+				return false;
+			}
+		}
+	};
+
+	template<size_t... indices> constexpr auto generateParseFunctionPtrs(std::index_sequence<indices...>) noexcept {
+		using function_type = decltype(&parse_x_digits_unrolled::implInternal<0>);
+		return std::array<function_type, sizeof...(indices)>{ &parse_x_digits_unrolled::implInternal<indices>... };
+	}
+
+	static constexpr auto parseFunctionPtrs{ generateParseFunctionPtrs(std::make_index_sequence<17>{}) };
+
+	JSONIFIER_ALWAYS_INLINE constexpr void loop_parse_if_eight_digits(const char*& p, const char* const pend, uint64_t& i) {
+		while (pend - p >= 16) {
+			if (parseFunctionPtrs[16](p, i)) {
+				p += 16;
+			} else {
+				return;
+			}
+		}
+		parseFunctionPtrs[pend - p](p, i);
 	}
 
 	/**
@@ -1547,8 +1793,8 @@ namespace fast_float_new {
 	}
 
 	template<typename char_t> JSONIFIER_ALWAYS_INLINE constexpr void parse_eight_digits(const char_t*& p, limb& value, size_t& counter, size_t& count) noexcept {
-		uint64_t val{ read8_to_u64(p) };
-		value = value * 100000000 + parse_eight_digits_unrolled(val);
+		uint64_t newVal64{ read8_to_u64(p) };
+		value = value * 100000000 + parse_eight_digits_unrolled(newVal64);
 		p += 8;
 		counter += 8;
 		count += 8;
