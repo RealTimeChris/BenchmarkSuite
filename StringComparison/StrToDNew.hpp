@@ -62,11 +62,11 @@ namespace jsonifier_internal_new {
 	template<typename value_type, typename char_t> JSONIFIER_ALWAYS_INLINE bool parseFloat(value_type& value, char_t const*& iter, char_t const* end = nullptr) noexcept {
 		using namespace fast_float_new;
 		span<const char_t> fraction;
-		int64_t digitCount;
+
 		int64_t expNumber{};
 		int64_t exponent{};
 		size_t mantissa{};
-		size_t newVal64;
+
 		const bool negative{ *iter == minus };
 		bool tooManyDigits{ false };
 
@@ -79,24 +79,11 @@ namespace jsonifier_internal_new {
 		}
 
 		span<const char_t> integer{ iter };
-		if (auto valid = end - iter >= 4; valid) {
-			newVal64 = read4_to_u32(iter);
-			valid &= isValidToParse32(newVal64);
-			while (valid) {
-				mantissa = mantissa * 10000 + parse_four_digits_unrolled(newVal64);
-				iter += 4;
-				newVal64 = read4_to_u32(iter);
-				valid	 = end - iter >= 4 && isValidToParse32(newVal64);
-			}
-		}
 
-		while (JSONIFIER_IS_DIGIT(*iter)) {
-			mantissa = 10 * mantissa + static_cast<uint8_t>(*iter - zero);
-			++iter;
-		}
+		loop_parse_if_digits(iter, end, mantissa);
 
-		digitCount	= static_cast<int64_t>(iter - integer.ptr);
-		integer.end = integer.ptr + static_cast<size_t>(digitCount);
+		int64_t digitCount = static_cast<int64_t>(iter - integer.ptr);
+		integer.end		   = integer.ptr + static_cast<size_t>(digitCount);
 
 		if JSONIFIER_UNLIKELY (digitCount == 0 || (integer.ptr[0] == zero && digitCount > 1)) {
 			return false;
@@ -106,25 +93,8 @@ namespace jsonifier_internal_new {
 			++iter;
 			char_t const* before = iter;
 
-			if (auto valid = end - iter >= 8; valid) {
-				newVal64 = read8_to_u64(iter);
-				valid &= isValidToParse64(newVal64);
-				while (valid) {
-					mantissa = mantissa * 100000000 + parse_eight_digits_unrolled(newVal64);
-					iter += 8;
-					newVal64 = read8_to_u64(iter);
-					valid	 = end - iter >= 8 && isValidToParse64(newVal64);
-				}
-				if (isValidToParse32(static_cast<uint32_t>(newVal64))) {
-					mantissa = mantissa * 10000 + parse_four_digits_unrolled(newVal64);
-					iter += 4;
-				}
-			}
+			loop_parse_if_digits(iter, end, mantissa);
 
-			while (JSONIFIER_IS_DIGIT(*iter)) {
-				mantissa = mantissa * 10 + static_cast<uint8_t>(*iter - zero);
-				++iter;
-			}
 			exponent	 = before - iter;
 			fraction.ptr = before;
 			fraction.end = fraction.ptr + static_cast<size_t>(iter - before);

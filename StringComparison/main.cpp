@@ -192,55 +192,6 @@ void runForLengthSerialize() {
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::printResults();
 }
 
-template<jsonifier_internal::string_literal testStageNew,
-	jsonifier_internal::string_literal testNameNew>
-void runForLengthSerialize02() {
-	static constexpr jsonifier_internal::string_literal testStage{ testStageNew };
-	static constexpr jsonifier_internal::string_literal testName{ testNameNew };
-	auto newFile{ bnch_swt::file_loader ::loadFile(std::string{ JSON_BASE_PATH } + "/CitmCatalogData-Prettified.json") };
-	jsonifier::jsonifier_core parser{};
-	std::vector<std::vector<std::vector<double>>> coordinates{};
-	parser.parseJson(coordinates, newFile);
-	std::vector<double> newerDoubles00{};
-	for (auto& value: coordinates) {
-		for (auto& valueNew: value) {
-			for (auto& valueNewer: valueNew) {
-				newerDoubles00.emplace_back(valueNewer);
-			}
-		}
-	}
-
-	std::vector<std::string> newDoubles{};
-	for (auto value: newerDoubles00) {
-		newDoubles.emplace_back(std::to_string(value));
-	}
-
-	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "is_made_up_of_eight_digits_fast", "dodgerblue">(
-		[&]() mutable {
-			for (size_t x = 0; x < 1024*32; ++x) {
-				for (size_t y = 0; y < 64; ++y) {
-					const auto* iter = newDoubles[y].data();
-					uint64_t value{};
-					std::memcpy(&value, iter, 8);
-					bnch_swt::doNotOptimizeAway(fast_float::is_made_of_eight_digits_fast(value));
-				}
-			}
-		});
-	
-	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "isValidToParse64", "dodgerblue">(
-		[&]() mutable {
-			for (size_t x = 0; x < 1024 * 32; ++x) {
-				for (size_t y = 0; y < 64; ++y) {
-					const auto* iter = newDoubles[y].data();
-					uint64_t value{};
-					std::memcpy(&value, iter, 8);
-					bnch_swt::doNotOptimizeAway(fast_float_new::isValidToParse64(value));
-				}
-			}
-		});
-	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::printResults();
-}
-
 template<typename value_type, value_type n> JSONIFIER_ALWAYS_INLINE value_type hasLess(value_type x) {
 	constexpr value_type byte_mask = ~value_type(0) / 255;
 	constexpr value_type msb_mask  = byte_mask * 128;
@@ -292,8 +243,6 @@ int main() {
 	//std::cout << "CURRENT HEX VALUE 1 + (1000ULL << 32): " << std::hex << 1 + (1000ULL << 32) << std::endl;
 	//std::cout << "CURRENT HEX VALUE (10000ULL << 32): " << std::hex << (10000ULL << 32) << std::endl;
 	//std::cout << "CURRENT HEX VALUE (1000ULL << 32): " << std::hex << (1000ULL << 32) << std::endl;
-	
-	runForLengthSerialize02<"is_made_of_eight_digits_fast-vs-isValidForParse64", "is_made_of_eight_digits_fast-vs-isValidForParse64">();
 
 	runForLengthSerialize<64, 2, 0, 0, "Old-FastFloat-vs-New-FastFloat-64,2,16,0", "Old-FastFloat-vs-New-FastFloat-64,2,16,0">();
 	runForLengthSerialize<64, 2, 2, 0, "Old-FastFloat-vs-New-FastFloat-64,2,2,0", "Old-FastFloat-vs-New-FastFloat-64,2,2,0">();
