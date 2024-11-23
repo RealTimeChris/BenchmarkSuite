@@ -143,12 +143,25 @@ struct test_generator {
 		return result;
 	}
 
+	static char generateRandomNonDigitChar() {
+		constexpr std::string_view nonDigitChars = "!@#$%^&*()-_=+[]{}|;:',.<>?";
+		return nonDigitChars[randomizeNumberUniform(0, nonDigitChars.size())];
+	}
+
 	static std::string generateRandomNumberString(int length) {
 		std::string randomNumber = "";
 		randomNumber += std::to_string(randomizeNumberUniform(1, 9));
 		for (int i = 1; i < length; ++i) {
 			randomNumber += std::to_string(randomizeNumberUniform(0, 9));
 		}
+		int currentLength	= randomNumber.size();
+		int nextMultipleOf8 = ((currentLength + 7) / 8) * 8;
+		int charsToAdd		= nextMultipleOf8 - currentLength;
+
+		for (int i = 0; i < charsToAdd; ++i) {
+			randomNumber += generateRandomNonDigitChar();
+		}
+
 		return randomNumber;
 	}
 

@@ -13,8 +13,8 @@ template<size_t length, jsonifier_internal::string_literal testStageNew, jsonifi
 	static constexpr jsonifier_internal::string_literal testStage{ testStageNew };
 	static constexpr jsonifier_internal::string_literal testName{ testNameNew };
 	std::vector<std::string> newUints{};
-	std::vector<uint64_t> newerUints01{};
-	std::vector<uint64_t> newerUints02{};
+	std::vector<size_t> newerUints01{};
+	std::vector<size_t> newerUints02{};
 	for (size_t x = 0; x < 1024 * 128; ++x) {
 		newUints.emplace_back(test_generator::generateRandomNumberString(length));
 	}
@@ -26,9 +26,9 @@ template<size_t length, jsonifier_internal::string_literal testStageNew, jsonifi
 		for (size_t x = 0; x < 1024 * 128; ++x) {
 			uint64_t value{};
 			const auto* iter = newUints[x].data();
-			const auto* end	 = newUints[x].data() + newUints[x].size();
+			const auto* end	 = iter + newUints[x].size();
 			fast_float::loop_parse_if_eight_digits(iter, end, value);
-			while (end - iter > 0) {
+			while (end - iter > 0 && fast_float::is_integer(*iter)) {
 				value = value * 10 + static_cast<uint8_t>(*iter - '0');
 				++iter;
 			}
@@ -40,10 +40,10 @@ template<size_t length, jsonifier_internal::string_literal testStageNew, jsonifi
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName,
 		"fast_float_new::loop_parse_if_eight_digits", "dodgerblue">([&]() mutable {
 		for (size_t x = 0; x < 1024 * 128; ++x) {
-			uint64_t value{};
+			size_t value{};
 			const auto* iter = newUints[x].data();
-			const auto* end	 = newUints[x].data() + newUints[x].size();
-			fast_float_new::loop_parse_if_eight_digits(iter, end, value);
+			const auto* end	 = iter + newUints[x].size();
+			fast_float_new::loop_parse_if_digits(iter, end, value);
 			newerUints02[x] = value;
 			bnch_swt::doNotOptimizeAway(value);
 		}
@@ -59,51 +59,19 @@ template<size_t length, jsonifier_internal::string_literal testStageNew, jsonifi
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::printResults();
 }
 
-JSONIFIER_ALWAYS_INLINE uint32_t parse_eight_digits_unrolled(uint64_t val) noexcept {
-	constexpr uint64_t mask{ 0x000000FF000000FF };
-	constexpr uint64_t mul1{ 100 + (1000000ULL << 32) };
-	constexpr uint64_t mul2{ 1 + (10000ULL << 32) };
-	constexpr uint64_t subMask{ 0x3030303030303030 };
-	val -= subMask;
-	val = (val * 10) + (val >> 8);
-	val = (((val & mask) * mul1) + (((val >> 16) & mask) * mul2)) >> 32;
-	return uint32_t(val);
-}
-
-JSONIFIER_ALWAYS_INLINE uint32_t parse_four_digits_unrolled(uint64_t val) noexcept {
-	constexpr uint64_t mask{ 0x000000FF000000FF };
-	constexpr uint64_t mul1{ 100ULL << 32ULL };
-	constexpr uint64_t mul2{ 1ULL << 32ULL };
-	constexpr uint64_t subMask{ 0x0000000030303030ULL & 0x00000000FFFFFFFFULL };
-	val -= subMask;
-	val = (val * 10ULL) + (val >> 8ULL);
-	val = (((val & mask) * mul1) + (((val >> 16ULL) & mask) * mul2)) >> 32ULL;
-	return static_cast<uint32_t>(val);
-}
-
-JSONIFIER_ALWAYS_INLINE uint32_t parse_two_digits_unrolled(uint64_t val) noexcept {
-	constexpr uint64_t mask{ 0x000000FF000000FF };
-	constexpr uint64_t mul1{ 1ULL << 32ULL };
-	constexpr uint64_t subMask{ 0x0000000000003030ULL & 0x000000000000FFFFULL };
-	val -= subMask;
-	val = (val * 10ULL) + (val >> 8ULL);
-	val = ((val & mask) * mul1) >> 32ULL;
-	return static_cast<uint32_t>(val);
+JSONIFIER_ALWAYS_INLINE uint64_t count_digit_bytes(uint64_t val) noexcept {
+	uint64_t mask		= (val + 0x4646464646464646) | (val - 0x3030303030303030);
+	uint64_t digit_mask = (~mask & 0x8080808080808080) >> 7;
+	return popcnt(digit_mask);
 }
 
 int main() {
-	std::string newString{ "12345678" };
-	std::cout << "Parse 8: " << parse_eight_digits_unrolled(*reinterpret_cast<uint64_t*>(newString.data())) << std::endl;
-	std::cout << "Parse 7: " << parse_eight_digits_unrolled(*reinterpret_cast<uint64_t*>(newString.data())) << std::endl;
-	std::cout << "Parse 6: " << parse_eight_digits_unrolled(*reinterpret_cast<uint64_t*>(newString.data())) << std::endl;
-	std::cout << "Parse 5: " << parse_eight_digits_unrolled(*reinterpret_cast<uint64_t*>(newString.data())) << std::endl;
-	std::cout << "Parse 4: " << parse_four_digits_unrolled(*reinterpret_cast<uint64_t*>(newString.data())) << std::endl;
-	std::cout << "Parse 3: " << parse_eight_digits_unrolled(*reinterpret_cast<uint64_t*>(newString.data())) << std::endl;
-	std::cout << "Parse 2: " << parse_two_digits_unrolled(*reinterpret_cast<uint64_t*>(newString.data())) << std::endl;
-	std::cout << "Parse 1: " << parse_eight_digits_unrolled(*reinterpret_cast<uint64_t*>(newString.data())) << std::endl;
+	std::string newString{ "12345fg" };
+	std::cout << "DIGIT COUNT: " << count_digit_bytes(*reinterpret_cast<uint64_t*>(newString.data())) << std::endl;
+	
 	runForLengthSerialize02<1, "fast_float_new::loop_parse_if_eight_digits-vs-fast_float::loop_parse_if_eight_digits-1",
 		"fast_float_new::loop_parse_if_eight_digits-vs-fast_float::loop_parse_if_eight_digits-1">();
-	
+
 	runForLengthSerialize02<2, "fast_float_new::loop_parse_if_eight_digits-vs-fast_float::loop_parse_if_eight_digits-2",
 		"fast_float_new::loop_parse_if_eight_digits-vs-fast_float::loop_parse_if_eight_digits-2">();
 	runForLengthSerialize02<3, "fast_float_new::loop_parse_if_eight_digits-vs-fast_float::loop_parse_if_eight_digits-3",

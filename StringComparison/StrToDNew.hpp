@@ -80,7 +80,8 @@ namespace jsonifier_internal_new {
 
 		span<const char_t> integer{ iter };
 
-		loop_parse_if_eight_digits(iter, end, mantissa);
+		if (end - iter >= 4 && parseFunctionPtrs[4](iter, mantissa)) {
+		}
 
 		while (JSONIFIER_IS_DIGIT(*iter)) {
 			mantissa = 10 * mantissa + static_cast<uint8_t>(*iter - zero);
@@ -98,7 +99,10 @@ namespace jsonifier_internal_new {
 			++iter;
 			char_t const* before = iter;
 
-			loop_parse_if_eight_digits(iter, end, mantissa);
+			while (end - iter >= 16 && parseFunctionPtrs[16](iter, mantissa)) {
+			}
+			if (end - iter >= 8 && parseFunctionPtrs[8](iter, mantissa)) {
+			}
 
 			while (JSONIFIER_IS_DIGIT(*iter)) {
 				mantissa = mantissa * 10 + static_cast<uint8_t>(*iter - zero);
