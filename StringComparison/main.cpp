@@ -8,6 +8,7 @@
 #include "StrToDOld.hpp"
 #include "StrToDNew.hpp"
 #include "fast_float.h"
+#include <fast_float/fast_float.h>
 
 template<size_t length, jsonifier_internal::string_literal testStageNew, jsonifier_internal::string_literal testNameNew> JSONIFIER_ALWAYS_INLINE void runForLengthSerialize02() {
 	static constexpr jsonifier_internal::string_literal testStage{ testStageNew };
@@ -27,7 +28,7 @@ template<size_t length, jsonifier_internal::string_literal testStageNew, jsonifi
 			uint64_t value{};
 			const auto* iter = newUints[x].data();
 			const auto* end	 = iter + newUints[x].size();
-			fast_float::loop_parse_if_eight_digits(iter, end, value);
+			fast_float_orig::loop_parse_if_eight_digits(iter, end, value);
 			while (end - iter > 0 && fast_float::is_integer(*iter)) {
 				value = value * 10 + static_cast<uint8_t>(*iter - '0');
 				++iter;
@@ -43,7 +44,7 @@ template<size_t length, jsonifier_internal::string_literal testStageNew, jsonifi
 			size_t value{};
 			const auto* iter = newUints[x].data();
 			const auto* end	 = iter + newUints[x].size();
-			fast_float_new::loop_parse_if_digits(iter, end, value);
+			fast_float::loop_parse_if_digits(iter, end, value);
 			newerUints02[x] = value;
 			bnch_swt::doNotOptimizeAway(value);
 		}
@@ -139,7 +140,6 @@ template<typename UC> JSONIFIER_ALWAYS_INLINE constexpr bool is_integer(UC c) no
 }
 
 int main() {
-	
 	runForLengthSerialize02<1, "fast_float_new::loop_parse_if_eight_digits-vs-fast_float::loop_parse_if_eight_digits-1",
 		"fast_float_new::loop_parse_if_eight_digits-vs-fast_float::loop_parse_if_eight_digits-1">();
 

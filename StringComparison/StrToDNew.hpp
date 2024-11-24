@@ -1,7 +1,5 @@
 /*
-	MIT License	
-
-	Copyright (c) 2024 RealTimeChris
+	MIT License	Copyright (c) 2024 RealTimeChris
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy of this
 	software and associated documentation files (the "Software"), to deal in the Software
@@ -80,7 +78,7 @@ namespace jsonifier_internal_new {
 
 		span<const char_t> integer{ iter };
 
-		if (end - iter >= 4 && parseFunctionPtrs[4](iter, mantissa)) {
+		if (end - iter >= 2 && parseFunctionPtrs[2](iter, mantissa)) {
 		}
 
 		while (JSONIFIER_IS_DIGIT(*iter)) {
@@ -99,9 +97,7 @@ namespace jsonifier_internal_new {
 			++iter;
 			char_t const* before = iter;
 
-			while (end - iter >= 16 && parseFunctionPtrs[16](iter, mantissa)) {
-			}
-			if (end - iter >= 8 && parseFunctionPtrs[8](iter, mantissa)) {
+			while (end - iter >= 8 && parseFunctionPtrs[8](iter, mantissa)) {
 			}
 
 			while (JSONIFIER_IS_DIGIT(*iter)) {

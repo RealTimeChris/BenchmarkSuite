@@ -18,12 +18,12 @@ FetchContent_MakeAvailable(glaze)
 add_executable("StringComparisonExe"   "main.cpp")
 
 FetchContent_Declare(
-	  simdjson2
-	  GIT_REPOSITORY https://github.com/realtimechris/simdjson.git
-	  GIT_TAG master
-	  GIT_SHALLOW TRUE
+	fast_float
+	GIT_REPOSITORY https://github.com/realtimechris/fast_float.git
+	GIT_TAG dev
+	GIT_SHALLOW TRUE
 )
-FetchContent_MakeAvailable(simdjson2)
+FetchContent_MakeAvailable(fast_float)
 
 FetchContent_Declare(
 	  simdjson
@@ -39,8 +39,8 @@ target_link_libraries(
 	BenchmarkSuite::BenchmarkSuite
 	glaze::glaze
 	Jsonifier::Jsonifier
-	simdjson2::simdjson2
 	simdjson::simdjson
+	fast_float
 )
 
 target_link_options(
