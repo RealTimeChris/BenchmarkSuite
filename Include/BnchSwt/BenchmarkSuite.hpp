@@ -140,7 +140,7 @@ namespace bnch_swt {
 	#if defined(__x86_64__)
 		uint32_t a, d;
 		__asm__ volatile("rdtsc" : "=a"(a), "=d"(d));
-		return ( unsigned long )a | (( unsigned long )d << 32);
+		return ( uint64_t )a | (( uint64_t )d << 32);
 	#elif defined(__i386__)
 		size_t x;
 		__asm__ volatile("rdtsc" : "=A"(x));

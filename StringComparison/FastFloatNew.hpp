@@ -603,29 +603,31 @@ namespace fast_float_new {
 		return val;
 	}
 
-	struct parse_8_digits_unrolled {
-		static constexpr size_t byte_mask			= ~size_t(0) / 255ull;
-		static constexpr size_t msb_mask			= byte_mask * 128ull;
-		static constexpr size_t threshold			= 127ull - 9ull;
-		static constexpr size_t threshold_byte_mask = byte_mask * threshold;
-		static constexpr size_t mask				= 0x000000FF000000FFull;
-		static constexpr size_t mul1				= 0x000F424000000064ull;
-		static constexpr size_t mul2				= 0x0000271000000001ull;
-
-		JSONIFIER_ALWAYS_INLINE static bool implInternal(const char*& string, size_t& value) {
-			size_t valueNew{ read8_to_u64(string) };
-			valueNew -= 0x3030303030303030;
-			if (!((valueNew + threshold_byte_mask | valueNew) & msb_mask)) {
-				valueNew = (valueNew * 10) + (valueNew >> 8);
-				valueNew = (((valueNew & mask) * mul1) + (((valueNew >> 16) & mask) * mul2)) >> 32;
-				value	 = value * 100000000 + valueNew;
-				string += 8;
-				return true;
-			} else {
-				return false;
-			}
+	JSONIFIER_ALWAYS_INLINE constexpr bool parse_eight_digits_unrolled(const char*& string, size_t& value) {
+		constexpr size_t byte_mask			= ~size_t(0) / 255ull;
+		constexpr size_t msb_mask			= byte_mask * 128ull;
+		constexpr size_t threshold_byte_mask = byte_mask * (127ull - 9ull);
+		constexpr size_t mask				= 0x000000FF000000FFull;
+		constexpr size_t mul1				= 0x000F424000000064ull;
+		constexpr size_t mul2				= 0x0000271000000001ull;
+		size_t valueNew								= read8_to_u64(string) - 0x3030303030303030;
+		if (!(((valueNew + threshold_byte_mask) | valueNew) & msb_mask)) {
+			valueNew = (valueNew * 10) + (valueNew >> 8);
+			value	 = value * 100000000 + ((((valueNew & mask) * mul1) + (((valueNew >> 16) & mask) * mul2)) >> 32);
+			string += 8;
+			return true;
 		}
-	};
+		return false;
+	}
+
+	JSONIFIER_ALWAYS_INLINE constexpr void loop_parse_if_eight_digits(const char*& p, const char* const pend, size_t& i) noexcept {
+		while (pend - p >= 8 && parse_eight_digits_unrolled(p, i)) {
+		}
+		while (p < pend && is_integer(*p)) {
+			i = i * 10 + static_cast<uint8_t>(*p - '0');
+			++p;
+		}
+	}
 
 	template<size_t... indices> constexpr auto generateParseFunctionPtrs(std::index_sequence<indices...>) noexcept {
 		using function_type = decltype(&parse_x_digits_unrolled::implInternal<0>);
@@ -633,66 +635,7 @@ namespace fast_float_new {
 	}
 
 	static constexpr auto parseFunctionPtrs{ generateParseFunctionPtrs(std::make_index_sequence<9>{}) };
-
-	JSONIFIER_ALWAYS_INLINE constexpr bool is_made_of_eight_digits_fast(size_t val) noexcept {
-		constexpr size_t byte_mask			 = ~size_t(0) / 255ull;
-		constexpr size_t threshold_byte_mask = byte_mask * (127ull - 9ull);
-		constexpr size_t msb_mask			 = byte_mask * 128ull;
-		return !((val + threshold_byte_mask | val) & msb_mask);
-	}
-
-	JSONIFIER_ALWAYS_INLINE constexpr bool is_made_of_four_digits_fast(uint32_t val) noexcept {
-		constexpr uint32_t byte_mask			 = ~uint32_t(0) / 255ull;
-		constexpr uint32_t threshold_byte_mask = byte_mask * (127ull - 9ull);
-		constexpr uint32_t msb_mask			 = byte_mask * 128ull;
-		return !((val + threshold_byte_mask | val) & msb_mask);
-	}
-
-	JSONIFIER_ALWAYS_INLINE constexpr bool is_made_of_two_digits_fast(uint16_t val) noexcept {
-		constexpr uint16_t byte_mask		   = ~uint16_t(0) / 255ull;
-		constexpr uint16_t threshold_byte_mask = byte_mask * (127ull - 9ull);
-		constexpr uint16_t msb_mask			   = byte_mask * 128ull;
-		return !((val + threshold_byte_mask | val) & msb_mask);
-	}
-
-	JSONIFIER_ALWAYS_INLINE constexpr uint32_t parse_eight_digits_unrolled(size_t val) noexcept {
-		constexpr size_t mask	= 0x000000FF000000FF;
-		constexpr size_t mul1 = 0x000F424000000064;// 100 + (1000000ULL << 32)
-		constexpr size_t mul2	= 0x0000271000000001;// 1 + (10000ULL << 32)
-		val = (val * 10) + (val >> 8);// val = (val * 2561) >> 8;
-		val = (((val & mask) * mul1) + (((val >> 16) & mask) * mul2)) >> 32;
-		return uint32_t(val);
-	}
-
-	JSONIFIER_ALWAYS_INLINE constexpr uint32_t parse_four_digits_unrolled(size_t val) noexcept {
-		constexpr size_t mask = 0x000000FF000000FF;
-		constexpr size_t mul1 = (100ULL << 32ULL);
-		constexpr size_t mul2 = 1ULL << 32ULL;
-		val					  = (val * 10ULL) + (val >> 8ULL);
-		val					  = (((val & mask) * mul1) + (((val >> 16ULL) & mask) * mul2)) >> 32ULL;
-		return static_cast<uint32_t>(val);
-	}
-
-	JSONIFIER_ALWAYS_INLINE constexpr uint32_t parse_two_digits_unrolled(size_t val) noexcept {
-		constexpr size_t mask = 0x000000FF000000FF;
-		constexpr size_t mul1 = (1ULL << 32ULL);
-		val					  = (val * 10ULL) + (val >> 8ULL);
-		val					  = ((val & mask) * mul1) >> 32ULL;
-		return static_cast<uint32_t>(val);
-	}
-
-	JSONIFIER_ALWAYS_INLINE constexpr void loop_parse_if_digits(const char*& p, const char* const pend, size_t& i) noexcept {
-		size_t newValue;
-		while ((pend - p >= 8) && (newValue = read8_to_u64(p) - 0x3030303030303030, is_made_of_eight_digits_fast(newValue))) {
-			i = i * 100000000 + parse_eight_digits_unrolled(newValue);
-			p += 8;
-		}
-
-		while (pend - p > 0 && is_integer(*p)) {
-			i = i * 10 + static_cast<uint8_t>(*p - '0');
-			++p;
-		}
-	}
+	
 
 	/**
      * When mapping numbers from decimal to binary,
