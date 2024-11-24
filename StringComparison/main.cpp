@@ -59,15 +59,86 @@ template<size_t length, jsonifier_internal::string_literal testStageNew, jsonifi
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::printResults();
 }
 
+
+template<jsonifier_internal::string_literal testStageNew, jsonifier_internal::string_literal testNameNew> JSONIFIER_ALWAYS_INLINE void runForLengthSerialize() {
+	static constexpr jsonifier_internal::string_literal testStage{ testStageNew };
+	static constexpr jsonifier_internal::string_literal testName{ testNameNew };
+	std::vector<std::string> newUints{};
+	std::vector<size_t> newerUints01{};
+	std::vector<size_t> newerUints02{};
+	for (size_t x = 0; x < 1024 * 128; ++x) {
+		newUints.emplace_back(test_generator::generateRandomNumberString(10));
+	}
+	newerUints02.resize(1024 * 128);
+	newerUints01.resize(1024 * 128);
+
+	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "fast_float::is_integer", "dodgerblue">(
+		[&]() mutable {
+			for (size_t x = 0; x < 1024 * 128; ++x) {
+				size_t value{};
+				const auto* iter = newUints[x].data();
+				const auto* end	 = iter + newUints[x].size();
+				while (end - iter > 0 && fast_float::is_integer(*iter)) {
+					value += *iter;
+					++iter;
+				}
+				bnch_swt::doNotOptimizeAway(value);
+			}
+		});
+
+	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "fast_float_new::is_integer",
+		"dodgerblue">([&]() mutable {
+		for (size_t x = 0; x < 1024 * 128; ++x) {
+			size_t value{};
+			const auto* iter = newUints[x].data();
+			const auto* end	 = iter + newUints[x].size();
+			while (end - iter > 0 && fast_float_new::is_integer(*iter)) {
+				value += *iter;
+				++iter;
+			}
+			bnch_swt::doNotOptimizeAway(value);
+		}
+	});
+	for (size_t x = 0; x < 1024 * 128; ++x) {
+		if (newerUints02[x] != newerUints01[x]) {
+			std::cout << "Failed to parse at index: " << x << std::endl;
+			std::cout << "Input Value: " << newUints[x] << std::endl;
+			std::cout << "Intended Value: " << newerUints01[x] << std::endl;
+			std::cout << "Parsed Value: " << newerUints02[x] << std::endl;
+		}
+	}
+	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::printResults();
+}
+
 JSONIFIER_ALWAYS_INLINE uint64_t count_digit_bytes(uint64_t val) noexcept {
 	uint64_t mask		= (val + 0x4646464646464646) | (val - 0x3030303030303030);
 	uint64_t digit_mask = (~mask & 0x8080808080808080) >> 7;
 	return popcnt(digit_mask);
 }
 
+struct test_struct_new {
+
+	test_struct_new(char valNew) : value{ valNew } {
+		std::cout << "WERE BEING CONSTRUCTED!" << std::endl;
+	}
+	test_struct_new() {
+		std::cout << "WERE BEING CONSTRUCTED!" << std::endl;
+	}
+	bool operator<(const test_struct_new& other) const {
+		return value < other.value;
+	}
+
+	bool operator>(const test_struct_new& other) const {
+		return value > other.value;
+	}
+	char value;
+};
+
+template<typename UC> JSONIFIER_ALWAYS_INLINE constexpr bool is_integer(UC c) noexcept {
+	return (c < UC('9') && c > UC('0'));
+}
+
 int main() {
-	std::string newString{ "12345fg" };
-	std::cout << "DIGIT COUNT: " << count_digit_bytes(*reinterpret_cast<uint64_t*>(newString.data())) << std::endl;
 	
 	runForLengthSerialize02<1, "fast_float_new::loop_parse_if_eight_digits-vs-fast_float::loop_parse_if_eight_digits-1",
 		"fast_float_new::loop_parse_if_eight_digits-vs-fast_float::loop_parse_if_eight_digits-1">();
