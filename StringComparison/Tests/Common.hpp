@@ -41,7 +41,7 @@ class test_base {
 	std::string testName{};
 };
 
-bool processFilesInFolder(std::unordered_map<std::string, test_base>& resultFileContents, const std::string &testType) noexcept {
+bool processFilesInFolder(std::unordered_map<std::string, test_base>& resultFileContents, const std::string& testType) noexcept {
 	try {
 		for (const auto& entry: std::filesystem::directory_iterator(std::string{ JSON_TEST_PATH } + testType)) {
 			if (entry.is_regular_file()) {
@@ -77,12 +77,6 @@ struct test_struct {
 	std::vector<bool> testBools{};
 };
 
-#if defined(JSONIFIER_MAC)
-constexpr bnch_swt::result_type resultType{ bnch_swt::result_type::time };
-#else
-constexpr bnch_swt::result_type resultType{ bnch_swt::result_type::cycles };
-#endif
-
 template<typename value_type> struct test {
 	std::vector<value_type> a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z;
 };
@@ -98,7 +92,8 @@ struct test_generator {
 		return dis(gen);
 	}
 
-	template<jsonifier::concepts::integer_t value_type01, jsonifier::concepts::integer_t value_type02> static value_type01 randomizeNumberUniform(value_type01 start, value_type02 end) {
+	template<jsonifier::concepts::integer_t value_type01, jsonifier::concepts::integer_t value_type02>
+	static value_type01 randomizeNumberUniform(value_type01 start, value_type02 end) {
 		std::uniform_int_distribution<value_type01> dis{ start, static_cast<value_type01>(end) };
 		return dis(gen);
 	}
@@ -143,9 +138,27 @@ struct test_generator {
 		return result;
 	}
 
+	static char generateRandomNonDigitChar() {
+		constexpr std::string_view nonDigitChars = "!@#$%^&*()-_=+[]{}|;:',.<>?";
+		return nonDigitChars[randomizeNumberUniform(0, nonDigitChars.size() - 1)];
+	}
+
+	static std::string generateRandomNumberString(int32_t numberOfDigits, int32_t lengthOfString) {
+		std::string randomNumber = "";
+		randomNumber += std::to_string(randomizeNumberUniform(1, 9));
+		for (int32_t i = 1; i < lengthOfString; ++i) {
+			randomNumber += std::to_string(randomizeNumberUniform(0, 9));
+		}
+		for (int32_t i = 0; i < lengthOfString - numberOfDigits; ++i) {
+			randomNumber += generateRandomNonDigitChar();
+		}
+
+		return randomNumber;
+	}
+
 	static double generateDouble() {
-		double min = std::numeric_limits<double>::min();
-		double max = std::numeric_limits<double>::max();
+		static constexpr double min = std::numeric_limits<double>::min();
+		static constexpr double max = std::numeric_limits<double>::max();
 		std::uniform_real_distribution<double> dis(log(min), log(max));
 		double logValue = dis(gen);
 		bool negative{ generateValue<bool>() };
@@ -229,11 +242,11 @@ template<result_type type> constexpr auto enumToString() {
 }
 
 template<result_type type> struct result {
+	std::optional<double> jsonSpeedVariance{};
 	std::optional<double> iterationCount{};
 	std::optional<size_t> byteLength{};
 	std::optional<double> jsonSpeed{};
 	std::optional<double> jsonTime{};
-	std::optional<double> cv{};
 	std::string color{};
 
 	result& operator=(result&&) noexcept	  = default;
@@ -258,12 +271,12 @@ template<result_type type> struct result {
 		return writeSecondCount;
 	}
 
-	result(const std::string& colorNew, size_t byteLengthNew, const bnch_swt::benchmark_result_final& results) {
+	result(const std::string& colorNew, size_t byteLengthNew, const bnch_swt::performance_metrics& results) {
 		iterationCount.emplace(results.iterationCount);
 		byteLength.emplace(byteLengthNew);
-		jsonTime.emplace(results.median);
-		cv.emplace(results.cv * 100.0f);
-		jsonSpeed.emplace(getResultValueMbs(jsonTime.value(), byteLength.value()));
+		jsonSpeed.emplace(results.throughputMbPerSec.value());
+		jsonTime.emplace(results.timeInns);
+		jsonSpeedVariance.emplace(results.throughputVariation.value());
 		color = colorNew;
 	}
 
@@ -337,18 +350,16 @@ struct results_data {
 			std::cout << enumToString<result_type::read>() + " Length (Bytes): " << readResult.byteLength.value() << std::endl;
 			std::cout << enumToString<result_type::read>() + " Runtime (ns): " << std::setprecision(6) << readResult.jsonTime.value() << std::endl;
 			std::cout << enumToString<result_type::read>() + " Iteration Count: " << std::setprecision(4) << readResult.iterationCount.value() << std::endl;
-			std::cout << enumToString<result_type::read>() + " Coefficient of Variance (%): " << std::setprecision(4) << readResult.cv.value() << std::endl;
 		}
 		if (writeResult.byteLength.has_value() && writeResult.jsonSpeed.has_value()) {
 			std::cout << enumToString<result_type::write>() + " Speed (MB/S): " << std::setprecision(6) << writeResult.jsonSpeed.value() << std::endl;
-#if !defined(JSONIFIER_MAC) 
+#if !defined(JSONIFIER_MAC)
 			std::cout << enumToString<result_type::write>() + " Speed (Cycles/MB): " << std::setprecision(6)
 					  << writeResult.getResultValueCyclesMb(writeResult.jsonTime.value(), writeResult.byteLength.value()) << std::endl;
 #endif
 			std::cout << enumToString<result_type::write>() + " Length (Bytes): " << writeResult.byteLength.value() << std::endl;
 			std::cout << enumToString<result_type::write>() + " Runtime (ns): " << std::setprecision(6) << writeResult.jsonTime.value() << std::endl;
 			std::cout << enumToString<result_type::write>() + " Iteration Count: " << std::setprecision(4) << writeResult.iterationCount.value() << std::endl;
-			std::cout << enumToString<result_type::write>() + " Coefficient of Variance (%): " << std::setprecision(4) << writeResult.cv.value() << std::endl;
 		}
 		std::cout << "\n---" << std::endl;
 	}
@@ -391,8 +402,8 @@ struct results_data {
 #endif
 			finalString += readLength + " | " + readTime + " | " + readIterationCount + " | ";
 		}
-		if (writeResult.jsonTime.has_value() && writeResult.byteLength.has_value()) {			
-#if !defined(JSONIFIER_MAC) 
+		if (writeResult.jsonTime.has_value() && writeResult.byteLength.has_value()) {
+#if !defined(JSONIFIER_MAC)
 			std::stringstream stream00{};
 			stream00 << std::setprecision(6) << writeResult.getResultValueCyclesMb(writeResult.jsonTime.value(), writeResult.byteLength.value());
 			write02 = stream00.str();
@@ -424,4 +435,3 @@ struct test_results {
 	std::string markdownResults{};
 	std::string testName{};
 };
-

@@ -80,7 +80,10 @@ namespace jsonifier_internal_new {
 
 		span<const char_t> integer{ iter };
 
-		loop_parse_if_digits(iter, end, mantissa);
+		while (end - iter > 0 && is_integer(*iter)) {
+			mantissa = mantissa * 10 + static_cast<uint8_t>(*iter - zero);
+			++iter;
+		}
 
 		int64_t digitCount = static_cast<int64_t>(iter - integer.ptr);
 		integer.end		   = integer.ptr + static_cast<size_t>(digitCount);

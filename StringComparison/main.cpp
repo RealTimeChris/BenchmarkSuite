@@ -29,7 +29,6 @@ std::string generateIntegerString(size_t length) {
 }
 
 std::string generateFloatingPointString(bool negative, size_t digit_count, size_t fractionalLength = 0, size_t exponentLength = 0) {
-
 	std::random_device rd;
 	std::mt19937 generator(rd());
 	std::uniform_int_distribution<size_t> lengthDist(1, 5);
@@ -118,61 +117,69 @@ void runForLengthSerialize() {
 	newerDoubles03.resize(newDoubles.size());
 	newerDoubles02.resize(newDoubles.size());
 
-	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "glz-from_chars", "dodgerblue">(
-		[&]() mutable {
-			double newDouble{};
-			for (size_t x = 0; x < 10; ++x) {
-				for (size_t y = 0; y < maxIndex; ++y) {
-					const auto* iter = newDoubles[y].data();
-					const auto* end	 = newDoubles[y].data() + newDoubles[y].size();
-					glz::from_chars<true>(iter, end, newDouble);
-					newerDoubles02[y] = newDouble;
-					bnch_swt::doNotOptimizeAway(newDouble);
-				}
+	bnch_swt::benchmark_stage<testStage, 100>::template runBenchmark<testName, "glz-from_chars", "dodgerblue">([&]() mutable {
+		size_t valueTotal{};
+		double newDouble{};
+		for (size_t x = 0; x < 10; ++x) {
+			for (size_t y = 0; y < maxIndex; ++y) {
+				const auto* iter = newDoubles[y].data();
+				const auto* end	 = newDoubles[y].data() + newDoubles[y].size();
+				glz::from_chars<true>(iter, end, newDouble);
+				newerDoubles02[y] = newDouble;
+				valueTotal += 8;
+				bnch_swt::doNotOptimizeAway(newDouble);
 			}
-		});
-	
-	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "old-parseFloat", "dodgerblue">(
-		[&]() mutable {
-			double newDouble{};
-			for (size_t x = 0; x < 10; ++x) {
-				for (size_t y = 0; y < maxIndex; ++y) {
-					const auto* iter = newDoubles[y].data();
-					const auto* end	 = newDoubles[y].data() + newDoubles[y].size();
-					jsonifier_internal_old::parseFloat(iter, end, newDouble);
-					newerDoubles01[y] = newDouble;
-					bnch_swt::doNotOptimizeAway(newDouble);
-				}
-			}
-		});
-		
-	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "orginal-fastfloat", "dodgerblue">(
-		[&]() mutable {
-			double newDouble{};
-			for (size_t x = 0; x < 10; ++x) {
-				for (size_t y = 0; y < maxIndex; ++y) {
-					const auto* iter = newDoubles[y].data();
-					const auto* end	 = newDoubles[y].data() + newDoubles[y].size();
-					fast_float::from_chars_advanced(iter, end, newDouble, fast_float::parse_options_t<char>{});
-					newerDoubles01[y] = newDouble;
-					bnch_swt::doNotOptimizeAway(newDouble);
-				}
-			}
-		});
+		}
+		return valueTotal;
+	});
 
-	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "new-parseFloat", "dodgerblue">(
-		[&]() mutable {
-			double newDouble{};
-			for (size_t x = 0; x < 10; ++x) {
-				for (size_t y = 0; y < maxIndex; ++y) {
-					const auto* iter = newDoubles[y].data();
-					const auto* end	 = newDoubles[y].data() + newDoubles[y].size();
-					jsonifier_internal_new::parseFloat(newDouble, iter, end);
-					newerDoubles03[y] = newDouble;
-					bnch_swt::doNotOptimizeAway(newDouble);
-				}
+	bnch_swt::benchmark_stage<testStage, 100>::template runBenchmark<testName, "old-parseFloat", "dodgerblue">([&]() mutable {
+		size_t valueTotal{};
+		double newDouble{};
+		for (size_t x = 0; x < 10; ++x) {
+			for (size_t y = 0; y < maxIndex; ++y) {
+				const auto* iter = newDoubles[y].data();
+				const auto* end	 = newDoubles[y].data() + newDoubles[y].size();
+				jsonifier_internal_old::parseFloat(iter, end, newDouble);
+				newerDoubles01[y] = newDouble;
+				valueTotal += 8;
+				bnch_swt::doNotOptimizeAway(newDouble);
 			}
-		});
+		}
+		return valueTotal;
+	});
+
+	bnch_swt::benchmark_stage<testStage, 100>::template runBenchmark<testName, "orginal-fastfloat", "dodgerblue">([&]() mutable {
+		size_t valueTotal{};
+		double newDouble{};
+		for (size_t x = 0; x < 10; ++x) {
+			for (size_t y = 0; y < maxIndex; ++y) {
+				const auto* iter = newDoubles[y].data();
+				const auto* end	 = newDoubles[y].data() + newDoubles[y].size();
+				fast_float::from_chars_advanced(iter, end, newDouble, fast_float::parse_options_t<char>{});
+				newerDoubles01[y] = newDouble;
+				valueTotal += 8;
+				bnch_swt::doNotOptimizeAway(newDouble);
+			}
+		}
+		return valueTotal;
+	});
+
+	bnch_swt::benchmark_stage<testStage, 100>::template runBenchmark<testName, "new-parseFloat", "dodgerblue">([&]() mutable {
+		size_t valueTotal{};
+		double newDouble{};
+		for (size_t x = 0; x < 10; ++x) {
+			for (size_t y = 0; y < maxIndex; ++y) {
+				const auto* iter = newDoubles[y].data();
+				const auto* end	 = newDoubles[y].data() + newDoubles[y].size();
+				jsonifier_internal::parseFloat(newDouble, iter, end);
+				newerDoubles03[y] = newDouble;
+				valueTotal += 8;
+				bnch_swt::doNotOptimizeAway(newDouble);
+			}
+		}
+		return valueTotal;
+	});
 
 	for (size_t x = 0; x < maxIndex; ++x) {
 		if (newerDoubles03[x] != newerDoubles01[x]) {
@@ -189,61 +196,43 @@ void runForLengthSerialize() {
 			//std::cout << "Here's the value: " << newerDoubles01[x] << std::endl;
 		}
 	}
-	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::printResults();
+	bnch_swt::benchmark_stage<testStage, 100>::printResults();
 }
 
-template<typename value_type, value_type n> JSONIFIER_ALWAYS_INLINE value_type hasLess(value_type x) {
-	constexpr value_type byte_mask = ~value_type(0) / 255;
-	constexpr value_type msb_mask  = byte_mask * 128;
-	const value_type threshold	   = byte_mask * n;
-	return ((x - threshold) & ~x & msb_mask);
-}
+struct test_struc01 {
+	test_struc01() {
+		std::cout << "DEFAULT CONSTRUCTED!" << std::endl;
+	}
+};
 
-template<typename value_type, value_type n> JSONIFIER_ALWAYS_INLINE value_type hasGreater(value_type x) {
-	constexpr value_type byte_mask			 = ~value_type(0) / 255ull;
-	constexpr value_type msb_mask			 = byte_mask * 128ull;
-	constexpr value_type threshold			 = 127ull - n;
-	constexpr value_type threshold_byte_mask = byte_mask * threshold;
-	return (x + threshold_byte_mask | x) & msb_mask;
-}
+template<typename value_type> struct get_equal_sized_uint {
+	using type = std::conditional_t<sizeof(value_type) == 4, uint32_t, std::conditional_t<sizeof(value_type) == 2, uint16_t, uint8_t>>;
+};
 
-template<typename value_type> JSONIFIER_ALWAYS_INLINE bool isValidToParse(value_type value) {
-	constexpr value_type subMask{ jsonifier_internal::repeatByte<0x30, value_type>() };
-	value -= subMask;
-	return !hasGreater<value_type, 10>(value);
+template<typename value_type> 
+using get_equal_size_uint_t = typename get_equal_sized_uint<value_type>::type;
+
+template<typename UC> fastfloat_really_inline constexpr bool is_integer(UC c) noexcept {
+	return static_cast<get_equal_size_uint_t<UC>>(c - UC('0')) < 10;
 }
 
 int main() {
-	// FAILED TO PARSE AT INDEX : 9 Input Value : 5034608817624829.7467e+61 Intended Value : 5.03461e+76 Actual Value : 1.12039e+68
-	std::string newString{ "12.240678" };
-	std::cout << "IS VALUE: " << isValidToParse(*reinterpret_cast<uint64_t*>(newString.data())) << std::endl;
-	std::cout << "IS VALUE: " << isValidToParse(*reinterpret_cast<uint32_t*>(newString.data())) << std::endl;
-	std::cout << "IS VALUE: " << isValidToParse(*reinterpret_cast<uint16_t*>(newString.data())) << std::endl;
-	uint32_t findBits{ 0b00110001001100010011000100110001 };
-	uint32_t findBits02{ 0b00110001001100010011000100110001 };
-	std::cout << "CURRENT BITS: " << std::bitset<32>{ *reinterpret_cast<uint32_t*>(newString.data()) } << std::endl;
-	std::cout << "CURRENT BITS FOUND: " << std::bitset<32>{ ~(*reinterpret_cast<uint32_t*>(newString.data()) ^ findBits) } << std::endl;
-	std::cout << "CURRENT BITS FOUND: "
-			  << std::bitset<32>{ ((((*reinterpret_cast<uint32_t*>(newString.data()) + 0x46464646) | (*reinterpret_cast<uint32_t*>(newString.data()) - 0x30303030)) & 0x80808080)) }
-			  << std::endl;
-	const auto* iter = newString.data();
-	const auto* end	 = newString.data() + newString.size();
-	double newDouble{};
-	fast_float::from_chars_advanced(iter, end, newDouble, fast_float::parse_options_t<char>{});
-	std::cout << "Intended Value: " << newDouble << std::endl;
-	jsonifier_internal_new::parseFloat(newDouble, iter, end);
-	std::cout << "Parsed Value: " << newDouble << std::endl;
-	//std::cout << "Parsed Value: " << parse_digits_unrolled_three_new_working(newString.data()) << std::endl;
-	//std::cout << "Parsed Value: " << parse_digits_unrolled_two_new_working(newString.data()) << std::endl;
-	//std::cout << "Parsed Value: " << parse_digits_unrolled_one_new_working(newString.data()) << std::endl;
-
-	//std::cout << "CURRENT HEX VALUE 100 + (100000ULL << 32): " << std::hex << 100 + (100000ULL << 32) << std::endl;
-	//std::cout << "CURRENT HEX VALUE 10 + (1000000ULL << 32): " << std::hex << 10 + (1000000ULL << 32) << std::endl;
-	//std::cout << "CURRENT HEX VALUE 10 + (100000ULL << 32): " << std::hex << 10 + (100000ULL << 32) << std::endl;
-	//std::cout << "CURRENT HEX VALUE 1 + (1000ULL << 32): " << std::hex << 1 + (1000ULL << 32) << std::endl;
-	//std::cout << "CURRENT HEX VALUE (10000ULL << 32): " << std::hex << (10000ULL << 32) << std::endl;
-	//std::cout << "CURRENT HEX VALUE (1000ULL << 32): " << std::hex << (1000ULL << 32) << std::endl;
-
+	std::cout << "IS INTEGER?: " << is_integer<wchar_t>('0' + 256) << std::endl;
+	std::vector<std::string> testVector;
+	std::cout << testVector << std::endl;
+	std::unordered_map<std::string, std::vector<std::string>> testMap{ { "test", { "23223", "2323" } }, { "test02", { "23223", "2323" } } };
+	std::cout << std::tuple<int32_t, std::vector<std::string>>{} << std::endl;
+	std::variant<test_struc01, std::vector<int32_t>, std::string> testVariant;
+	std::cout << "CURRENT INDEX: " << testVariant.index() << std::endl;
+	//testVariant.emplace<std::string>(std::string{});
+	//std::cout << "HOLDS ALTERNATIVE?: " << std::holds_alternative<std::vector<int32_t>>(testVariant) << std::endl;
+	//std::cout << "HOLDS ALTERNATIVE?: " << std::holds_alternative<std::string>(testVariant) << std::endl;
+	//std::visit(
+	//		[]<typename value_type>(value_type& value) {
+	//std::cout << "WERE HERE THIS IS IT: " << value << std::endl;
+	//		},
+	//		testVariant);
+	//std::cout << testVariant << std::endl;
 	runForLengthSerialize<64, 2, 0, 0, "Old-FastFloat-vs-New-FastFloat-64,2,16,0", "Old-FastFloat-vs-New-FastFloat-64,2,16,0">();
 	runForLengthSerialize<64, 2, 2, 0, "Old-FastFloat-vs-New-FastFloat-64,2,2,0", "Old-FastFloat-vs-New-FastFloat-64,2,2,0">();
 	runForLengthSerialize<64, 2, 4, 0, "Old-FastFloat-vs-New-FastFloat-64,2,4,0", "Old-FastFloat-vs-New-FastFloat-64,2,4,0">();
@@ -279,7 +268,7 @@ int main() {
 	runForLengthSerialize<64, 8, 4, 2, "Old-FastFloat-vs-New-FastFloat-64,8,4,2", "Old-FastFloat-vs-New-FastFloat-64,8,4,2">();
 	runForLengthSerialize<64, 8, 8, 2, "Old-FastFloat-vs-New-FastFloat-64,8,8,2", "Old-FastFloat-vs-New-FastFloat-64,8,8,2">();
 	runForLengthSerialize<64, 8, 16, 2, "Old-FastFloat-vs-New-FastFloat-64,8,16,2", "Old-FastFloat-vs-New-FastFloat-64,8,16,2">();
-	
+
 	runForLengthSerialize<64, 16, 0, 0, "Old-FastFloat-vs-New-FastFloat-64,2,16,0", "Old-FastFloat-vs-New-FastFloat-64,2,16,0">();
 	runForLengthSerialize<64, 16, 2, 0, "Old-FastFloat-vs-New-FastFloat-64,16,2,0", "Old-FastFloat-vs-New-FastFloat-64,16,2,0">();
 	runForLengthSerialize<64, 16, 4, 0, "Old-FastFloat-vs-New-FastFloat-64,16,4,0", "Old-FastFloat-vs-New-FastFloat-64,16,4,0">();
