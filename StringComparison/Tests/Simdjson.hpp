@@ -224,7 +224,7 @@ template<vector_t value_type> void getValue(value_type& value, simdjson::ondeman
 	const auto size = value.size();
 	auto iter		= newArray.begin();
 	typename value_type::value_type valueNew;
-	for (size_t x = 0; (x < size) && (iter != newArray.end()); ++x, ++iter) {
+	for (uint64_t x = 0; (x < size) && (iter != newArray.end()); ++x, ++iter) {
 		getValue(valueNew, iter.value().operator*().value());
 		value[x] = std::move(valueNew);
 	}

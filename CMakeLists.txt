@@ -100,13 +100,6 @@ target_compile_definitions(
 	"JSON_BASE_PATH=\"${CMAKE_SOURCE_DIR}\""
 )
 
-if (NOT "${CPU_FREQUENCY_MHZ}" STREQUAL "")
-	target_compile_definitions(
-		"${PROJECT_NAME}" INTERFACE
-		"CPU_FREQUENCY_MHZ=${CPU_FREQUENCY_MHZ}"
-	)
-endif()
-
 set(CONFIG_FILE_NAME "BenchmarkSuiteConfig.cmake")
 set(EXPORTED_TARGETS_NAME "BenchmarkSuiteTargets")
 set(EXPORTED_TARGETS_FILE_NAME "${EXPORTED_TARGETS_NAME}.cmake")

@@ -77,21 +77,15 @@ struct test_struct {
 	std::vector<bool> testBools{};
 };
 
-#if defined(JSONIFIER_MAC)
-constexpr bnch_swt::result_type resultType{ bnch_swt::result_type::time };
-#else
-constexpr bnch_swt::result_type resultType{ bnch_swt::result_type::cycles };
-#endif
-
 template<typename value_type> struct test {
 	std::vector<value_type> a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z;
 };
 
-template<typename value_type> struct test_generator {
-	std::vector<value_type> a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z;
+struct test_generator {
 	inline static std::random_device randomEngine{};
 	inline static std::mt19937_64 gen{ randomEngine() };
 	static constexpr std::string_view charset{ "!#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~\"\\\r\b\f\t\n" };
+	static constexpr std::string_view escapeCharset{ "\"\\\r\b\f\t\n" };
 
 	template<typename value_type01, typename value_type02> static value_type01 randomizeNumberUniform(value_type01 start, value_type02 end) {
 		std::uniform_real_distribution<value_type01> dis{ start, static_cast<value_type01>(end) };
@@ -104,15 +98,15 @@ template<typename value_type> struct test_generator {
 	}
 
 	static void insertUnicodeInJSON(std::string& jsonString) {
-		auto newStringView = unicode_emoji::unicodeEmoji[randomizeNumberUniform(0ull, std::size(unicode_emoji::unicodeEmoji) - 1)];
-		jsonString += static_cast<std::string>(newStringView);
+		auto newStringView = escapeCharset[randomizeNumberUniform(0ull, std::size(escapeCharset) - 1)];
+		jsonString += newStringView;
 	}
 
-	static std::string generateString() {
-		auto length{ randomizeNumberUniform(32, 64) };
-		constexpr size_t charsetSize = charset.size();
+	template<jsonifier::concepts::string_t value_type> static value_type generateValue(uint64_t size = 16) {
+		auto length{ randomizeNumberUniform(1, size) };
+		constexpr uint64_t charsetSize = charset.size();
 		auto unicodeCount			 = std::max(1, length / 8);
-		std::vector<size_t> unicodeIndices{};
+		std::vector<uint64_t> unicodeIndices{};
 		static constexpr auto checkForPresenceOfIndex = [](auto& indices, auto index, auto&& checkForPresenceOfIndexNew) -> void {
 			if (std::find(indices.begin(), indices.end(), index) != indices.end()) {
 				index = randomizeNumberUniform(0ull, charsetSize - 1);
@@ -121,11 +115,11 @@ template<typename value_type> struct test_generator {
 				indices.emplace_back(index);
 			}
 		};
-		for (size_t x = 0; x < unicodeCount; ++x) {
+		for (uint64_t x = 0; x < unicodeCount; ++x) {
 			auto newValue = randomizeNumberUniform(0ull, charsetSize - 1);
 			checkForPresenceOfIndex(unicodeIndices, newValue, checkForPresenceOfIndex);
 		}
-		std::sort(unicodeIndices.begin(), unicodeIndices.end(), std::less<size_t>{});
+		std::sort(unicodeIndices.begin(), unicodeIndices.end(), std::less<uint64_t>{});
 
 		std::string result{};
 		int32_t insertedUnicode = 0;
@@ -143,79 +137,66 @@ template<typename value_type> struct test_generator {
 		return result;
 	}
 
+	static char generateRandomNonDigitChar() {
+		constexpr std::string_view nonDigitChars = "!@#$%^&*()-_=+[]{}|;:',.<>?";
+		return nonDigitChars[randomizeNumberUniform(0, nonDigitChars.size() - 1)];
+	}
+
+	static std::string generateRandomNumberString(int32_t numberOfDigits, int32_t lengthOfString) {
+		std::string randomNumber = "";
+		randomNumber += std::to_string(randomizeNumberUniform(1, 9));
+		for (int32_t i = 1; i < lengthOfString; ++i) {
+			randomNumber += std::to_string(randomizeNumberUniform(0, 9));
+		}
+		for (int32_t i = 0; i < lengthOfString - numberOfDigits; ++i) {
+			randomNumber += generateRandomNonDigitChar();
+		}
+
+		return randomNumber;
+	}
+
 	static double generateDouble() {
-		return randomizeNumberUniform(std::numeric_limits<double>::min(), std::numeric_limits<double>::max());
+		static constexpr double min = std::numeric_limits<double>::min();
+		static constexpr double max = std::numeric_limits<double>::max();
+		std::uniform_real_distribution<double> dis(log(min), log(max));
+		double logValue = dis(gen);
+		bool negative{ generateValue<bool>() };
+		return negative ? -std::exp(logValue) : std::exp(logValue);
+	}
+
+	template<jsonifier::concepts::float_t value_type> static value_type generateValue(uint64_t size = 1) {
+		static constexpr double min = std::numeric_limits<double>::min();
+		static constexpr double max = std::numeric_limits<double>::max();
+		std::uniform_real_distribution<double> dis(log(min), log(max));
+		double logValue = dis(gen);
+		bool negative{ generateValue<bool>() };
+		return negative ? -std::exp(logValue) : std::exp(logValue);
 	};
 
-	static bool generateBool() {
+	template<jsonifier::concepts::bool_t value_type> static value_type generateValue(uint64_t size = 1) {
 		return static_cast<bool>(randomizeNumberUniform(0, 100) >= 50);
 	};
 
-	static size_t generateUint() {
-		return randomizeNumberUniform(std::numeric_limits<size_t>::min(), std::numeric_limits<size_t>::max());
+	template<typename value_type> static std::vector<value_type> generateVector(uint64_t maxSize) {
+		auto newSize = randomizeNumberUniform(0, maxSize);
+		std ::vector<value_type> returnValues{};
+		for (uint64_t x = 0; x < newSize; ++x) {
+			returnValues.emplace_back(generateValue<value_type>());
+		}
+		return returnValues;
 	};
 
-	static int64_t generateInt() {
-		return randomizeNumberUniform(std::numeric_limits<int64_t>::min(), std::numeric_limits<int64_t>::max());
+	template<jsonifier::concepts::unsigned_t value_type> static value_type generateValue(uint64_t size = 1) {
+		return randomizeNumberUniform(std::numeric_limits<value_type>::min(), std::numeric_limits<value_type>::max());
+	};
+
+	template<jsonifier::concepts::signed_t value_type> static value_type generateValue(uint64_t size = 1) {
+		return randomizeNumberUniform(std::numeric_limits<value_type>::min(), std::numeric_limits<value_type>::max());
 	};
 
 	test_generator() {
 		auto fill = [&](auto& v) {
-			auto arraySize01 = randomizeNumberUniform(5ull, 25ull);
-			v.resize(arraySize01);
-			for (size_t x = 0; x < arraySize01; ++x) {
-				auto arraySize02 = randomizeNumberUniform(5ull, 35ull);
-				auto arraySize03 = randomizeNumberUniform(0ull, arraySize02);
-				for (size_t y = 0; y < arraySize03; ++y) {
-					auto newString = generateString();
-					v[x].testStrings.emplace_back(newString);
-				}
-				arraySize03 = randomizeNumberUniform(0ull, arraySize02);
-				for (size_t y = 0; y < arraySize03; ++y) {
-					v[x].testUints.emplace_back(generateUint());
-				}
-				arraySize03 = randomizeNumberUniform(0ull, arraySize02);
-				for (size_t y = 0; y < arraySize03; ++y) {
-					v[x].testInts.emplace_back(generateInt());
-				}
-				arraySize03 = randomizeNumberUniform(0ull, arraySize02);
-				for (size_t y = 0; y < arraySize03; ++y) {
-					auto newBool = generateBool();
-					v[x].testBools.emplace_back(newBool);
-				}
-				arraySize03 = randomizeNumberUniform(0ull, arraySize02);
-				for (size_t y = 0; y < arraySize03; ++y) {
-					v[x].testDoubles.emplace_back(generateDouble());
-				}
-			}
 		};
-
-		fill(a);
-		fill(b);
-		fill(c);
-		fill(d);
-		fill(e);
-		fill(f);
-		fill(g);
-		fill(h);
-		fill(i);
-		fill(j);
-		fill(k);
-		fill(l);
-		fill(m);
-		fill(n);
-		fill(o);
-		fill(p);
-		fill(q);
-		fill(r);
-		fill(s);
-		fill(t);
-		fill(u);
-		fill(v);
-		fill(w);
-		fill(x);
-		fill(y);
-		fill(z);
 	}
 };
 
@@ -260,11 +241,11 @@ template<result_type type> constexpr auto enumToString() {
 }
 
 template<result_type type> struct result {
+	std::optional<double> jsonSpeedVariance{};
 	std::optional<double> iterationCount{};
-	std::optional<size_t> byteLength{};
+	std::optional<uint64_t> byteLength{};
 	std::optional<double> jsonSpeed{};
 	std::optional<double> jsonTime{};
-	std::optional<double> cv{};
 	std::string color{};
 
 	result& operator=(result&&) noexcept	  = default;
@@ -289,12 +270,12 @@ template<result_type type> struct result {
 		return writeSecondCount;
 	}
 
-	result(const std::string& colorNew, size_t byteLengthNew, const bnch_swt::benchmark_result_final& results) {
+	result(const std::string& colorNew, uint64_t byteLengthNew, const bnch_swt::performance_metrics& results) {
 		iterationCount.emplace(results.iterationCount);
 		byteLength.emplace(byteLengthNew);
-		jsonTime.emplace(results.median);
-		cv.emplace(results.cv * 100.0f);
-		jsonSpeed.emplace(getResultValueMbs(jsonTime.value(), byteLength.value()));
+		jsonSpeed.emplace(results.throughputMbPerSec.value());
+		jsonTime.emplace(results.timeInns);
+		jsonSpeedVariance.emplace(results.throughputVariation.value());
 		color = colorNew;
 	}
 
@@ -321,7 +302,7 @@ struct results_data {
 	std::string name{};
 	std::string test{};
 	std::string url{};
-	size_t iterations{};
+	uint64_t iterations{};
 
 	bool operator>(const results_data& other) const noexcept {
 		if (readResult && other.readResult) {
@@ -340,7 +321,7 @@ struct results_data {
 
 	results_data() noexcept = default;
 
-	results_data(const std::string& nameNew, const std::string& testNew, const std::string& urlNew, size_t iterationsNew) {
+	results_data(const std::string& nameNew, const std::string& testNew, const std::string& urlNew, uint64_t iterationsNew) {
 		iterations = iterationsNew;
 		name	   = nameNew;
 		test	   = testNew;
@@ -368,7 +349,6 @@ struct results_data {
 			std::cout << enumToString<result_type::read>() + " Length (Bytes): " << readResult.byteLength.value() << std::endl;
 			std::cout << enumToString<result_type::read>() + " Runtime (ns): " << std::setprecision(6) << readResult.jsonTime.value() << std::endl;
 			std::cout << enumToString<result_type::read>() + " Iteration Count: " << std::setprecision(4) << readResult.iterationCount.value() << std::endl;
-			std::cout << enumToString<result_type::read>() + " Coefficient of Variance (%): " << std::setprecision(4) << readResult.cv.value() << std::endl;
 		}
 		if (writeResult.byteLength.has_value() && writeResult.jsonSpeed.has_value()) {
 			std::cout << enumToString<result_type::write>() + " Speed (MB/S): " << std::setprecision(6) << writeResult.jsonSpeed.value() << std::endl;
@@ -379,7 +359,6 @@ struct results_data {
 			std::cout << enumToString<result_type::write>() + " Length (Bytes): " << writeResult.byteLength.value() << std::endl;
 			std::cout << enumToString<result_type::write>() + " Runtime (ns): " << std::setprecision(6) << writeResult.jsonTime.value() << std::endl;
 			std::cout << enumToString<result_type::write>() + " Iteration Count: " << std::setprecision(4) << writeResult.iterationCount.value() << std::endl;
-			std::cout << enumToString<result_type::write>() + " Coefficient of Variance (%): " << std::setprecision(4) << writeResult.cv.value() << std::endl;
 		}
 		std::cout << "\n---" << std::endl;
 	}

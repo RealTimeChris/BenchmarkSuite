@@ -76,7 +76,7 @@ namespace int_validation_tests {
 		std::vector<std::string> passTests{};
 		jsonifier::jsonifier_core parser{};
 		parser.parseJson(passTests, file);
-		for (size_t x = 0; x < passTests.size(); ++x) {
+		for (uint64_t x = 0; x < passTests.size(); ++x) {
 			runTest(expectedInt64Values[x], "Integer-Pass-Test " + std::to_string(x + 1), passTests[x], parser);
 		}
 		std::string filePath02{ JSON_TEST_PATH };
@@ -84,7 +84,7 @@ namespace int_validation_tests {
 		file = bnch_swt::file_loader::loadFile(filePath02);
 		std::vector<std::string> failTests{};
 		parser.parseJson(failTests, file);
-		for (size_t x = 0; x < failTests.size(); ++x) {
+		for (uint64_t x = 0; x < failTests.size(); ++x) {
 			runTest<false>(failTests[x], "Integer-Fail-Test " + std::to_string(x + 1), failTests[x], parser);
 		}
 		return true;
