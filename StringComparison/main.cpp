@@ -20,7 +20,6 @@ JSONIFIER_ALWAYS_INLINE void parseFunction() {
 	}
 	newerUints02.resize(1024 * 128);
 	newerUints01.resize(1024 * 128);
-	std::cout << "CURRENT NEW-UINT: " << newUints[0] << ", FOR LENGTH: " << length << ", AND DIGIT COUNT: " << digitCount << std::endl;
 
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "fast_float::loop_parse_if_eight_digits",
 		"dodgerblue">([&]() mutable {
@@ -62,8 +61,6 @@ JSONIFIER_ALWAYS_INLINE void parseFunction() {
 }
 
 int main() {
-	parseFunction<3, 2, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-for-length-1-and-digit-count-1",
-		"fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-for-length-1-and-digit-count-1">();
 	parseFunction<1, 1, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-for-length-1-and-digit-count-1",
 		"fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-for-length-1-and-digit-count-1">();
 	parseFunction<2, 2, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-for-length-2-and-digit-count-2",
