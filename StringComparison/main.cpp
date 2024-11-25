@@ -8,44 +8,51 @@
 #include "fast_float.h"
 #include "fast_float_new.hpp"
 
-template<size_t length, jsonifier_internal::string_literal testStageNew, jsonifier_internal::string_literal testNameNew> JSONIFIER_ALWAYS_INLINE void parseFunction() {
+template<typename UC> fastfloat_really_inline constexpr bool is_integer01(UC c) noexcept {
+	return static_cast<uint8_t>(c - '0') < 10;
+}
+
+template<typename UC> fastfloat_really_inline constexpr bool is_integer02(UC c) noexcept {
+	return !(c > UC('9') || c < UC('0'));
+}
+
+template<jsonifier_internal::string_literal testStageNew, jsonifier_internal::string_literal testNameNew> JSONIFIER_ALWAYS_INLINE void parseFunction() {
 	static constexpr jsonifier_internal::string_literal testStage{ testStageNew };
 	static constexpr jsonifier_internal::string_literal testName{ testNameNew };
 	std::vector<std::string> newUints{};
 	std::vector<size_t> newerUints01{};
 	std::vector<size_t> newerUints02{};
 	for (size_t x = 0; x < 1024 * 128; ++x) {
-		newUints.emplace_back(test_generator::generateRandomNumberString(length));
+		newUints.emplace_back(test_generator::generateRandomNumberString(100));
 	}
 	newerUints02.resize(1024 * 128);
 	newerUints01.resize(1024 * 128);
 
-	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "fast_float::loop_parse_if_eight_digits",
+	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "is_integer01",
 		"dodgerblue">([&]() mutable {
 		for (size_t x = 0; x < 1024 * 128; ++x) {
-			uint64_t value{};
+			size_t newValue{};
 			const auto* iter = newUints[x].data();
 			const auto* end	 = iter + newUints[x].size();
-			fast_float_orig::loop_parse_if_eight_digits(iter, end, value);
-			while ((iter != end) && fast_float_orig::is_integer(*iter)) {
-				uint8_t digit = uint8_t(*iter - char('0'));
+			while ((iter != end) && is_integer01(*iter)) {
 				++iter;
-				value = value * 10 + digit;// in rare cases, this will overflow, but that's ok
+				newValue += *iter;
 			}
-			newerUints01[x] = value;
-			bnch_swt::doNotOptimizeAway(value);
+			bnch_swt::doNotOptimizeAway(newValue);
 		}
 	});
 
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName,
-		"fast_float_new::loop_parse_if_digits", "dodgerblue">([&]() mutable {
+		"is_integer02", "dodgerblue">([&]() mutable {
 		for (size_t x = 0; x < 1024 * 128; ++x) {
-			size_t value{};
+			size_t newValue{};
 			const auto* iter = newUints[x].data();
 			const auto* end	 = iter + newUints[x].size();
-			fast_float_new::loop_parse_if_digits(iter, end, value);
-			newerUints02[x] = value;
-			bnch_swt::doNotOptimizeAway(value);
+			while ((iter != end) && is_integer02(*iter)) {
+				++iter;
+				newValue += *iter;
+			}
+			bnch_swt::doNotOptimizeAway(newValue);
 		}
 	});
 	for (size_t x = 0; x < 1024 * 128; ++x) {
@@ -71,45 +78,5 @@ int main() {
 	std::cout << "IS IT NULL: " << newerPtr << std::endl;
 	static constexpr auto newerPtr01 = handle_zero(2);
 	std::cout << "IS IT NULL: " << newerPtr01 << std::endl;
-	parseFunction<1, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-1",
-		"fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-1">();
-	parseFunction<2, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-2",
-		"fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-2">();
-	parseFunction<3, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-3",
-		"fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-3">();
-	parseFunction<4, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-4",
-		"fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-4">();
-	parseFunction<5, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-5",
-		"fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-5">();
-	parseFunction<6, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-6",
-		"fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-6">();
-	parseFunction<7, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-7",
-		"fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-7">();
-	parseFunction<8, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-8",
-		"fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-8">();
-	parseFunction<9, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-9",
-		"fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-9">();
-	parseFunction<10, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-10",
-		"fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-10">();
-	parseFunction<11, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-11",
-		"fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-11">();
-	parseFunction<12, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-12",
-		"fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-12">();
-	parseFunction<13, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-13",
-		"fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-13">();
-	parseFunction<14, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-14",
-		"fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-14">();
-	parseFunction<15, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-15",
-		"fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-15">();
-	parseFunction<16, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-16",
-		"fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-16">();
-	parseFunction<17, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-17",
-		"fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-17">();
-	parseFunction<18, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-18",
-		"fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-18">();
-	parseFunction<19, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-19",
-		"fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-19">();
-	parseFunction<20, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-20",
-		"fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-20">();
-	return 0;
+	parseFunction<"is_integer01-vs-is_integer02", "is_integer01-vs-is_integer02">();
 }
