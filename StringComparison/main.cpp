@@ -44,11 +44,6 @@ template<size_t length, jsonifier_internal::string_literal testStageNew, jsonifi
 			const auto* iter = newUints[x].data();
 			const auto* end	 = iter + newUints[x].size();
 			fast_float_new::loop_parse_if_digits(iter, end, value);
-			while ((iter != end) && fast_float_new::is_integer(*iter)) {
-				uint8_t digit = uint8_t(*iter - char('0'));
-				++iter;
-				value = value * 10 + digit;
-			}
 			newerUints02[x] = value;
 			bnch_swt::doNotOptimizeAway(value);
 		}

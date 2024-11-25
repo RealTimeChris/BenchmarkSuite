@@ -158,10 +158,6 @@ struct test_generator {
 		int nextMultipleOf8 = ((currentLength + 7) / 8) * 8;
 		int charsToAdd		= nextMultipleOf8 - currentLength;
 
-		for (int i = 0; i < charsToAdd; ++i) {
-			randomNumber += generateRandomNonDigitChar();
-		}
-
 		return randomNumber;
 	}
 

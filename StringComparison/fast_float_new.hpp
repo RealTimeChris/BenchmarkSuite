@@ -205,7 +205,7 @@ namespace fast_float_new {
 #elif (defined(__i386) || defined(__i386__) || defined(_M_IX86) || defined(__arm__) || defined(_M_ARM) || defined(__ppc__) || defined(__MINGW32__) || defined(__EMSCRIPTEN__))
 	#define FASTFLOAT_NEW_ORIG_32BIT 1
 #else
-// Need to check incrementally, since SIZE_MAX is a size_t, avoid overflow.
+	// Need to check incrementally, since SIZE_MAX is a size_t, avoid overflow.
 	// We can never tell the register width, but the SIZE_MAX is a good
 	// approximation. UINTPTR_MAX and INTPTR_MAX are optional, so avoid them for max
 	// portability.
@@ -248,12 +248,12 @@ namespace fast_float_new {
 	#endif
 	#
 	#ifndef __BYTE_ORDER__
-		// safe choice
+// safe choice
 		#define FASTFLOAT_NEW_ORIG_IS_BIG_ENDIAN 0
 	#endif
 	#
 	#ifndef __ORDER_LITTLE_ENDIAN__
-		// safe choice
+// safe choice
 		#define FASTFLOAT_NEW_ORIG_IS_BIG_ENDIAN 0
 	#endif
 	#
@@ -277,7 +277,7 @@ namespace fast_float_new {
 #endif
 
 #if defined(__GNUC__)
-	// disable -Wcast-align=strict (GCC only)
+// disable -Wcast-align=strict (GCC only)
 	#define FASTFLOAT_NEW_ORIG_SIMD_DISABLE_WARNINGS _Pragma("GCC diagnostic push") _Pragma("GCC diagnostic ignored \"-Wcast-align\"")
 #else
 	#define FASTFLOAT_NEW_ORIG_SIMD_DISABLE_WARNINGS
@@ -957,7 +957,7 @@ namespace fast_float_new {
 	// Next function can be micro-optimized, but compilers are entirely
 	// able to optimize it well.
 	template<typename UC> fastfloat_really_inline constexpr bool is_integer(UC c) noexcept {
-		return !(c > UC('9') || c < UC('0'));
+		return static_cast<uint8_t>(c - '0') < 10;
 	}
 
 	fastfloat_really_inline constexpr uint64_t byteswap(uint64_t val) {
@@ -1153,42 +1153,48 @@ namespace fast_float_new {
 		}
 	}
 
-	fastfloat_really_inline constexpr uint64_t parse_if_eight_digits_unrolled(size_t value) {
-		constexpr size_t mask = 0x000000FF000000FFull;
-		constexpr size_t mul1 = 0x000F424000000064ull;
-		constexpr size_t mul2 = 0x0000271000000001ull;
-		value				  = (value * 10) + (value >> 8);
-		return ((((value & mask) * mul1) + (((value >> 16) & mask) * mul2)) >> 32);
-	}
-
-	fastfloat_really_inline constexpr bool is_made_of_eight_digits_faster(size_t value_new) {
+	fastfloat_really_inline constexpr bool parse_if_eight_digits_unrolled(const char*& string, size_t& value) {
 		constexpr size_t byte_mask			 = ~size_t(0) / 255ull;
 		constexpr size_t msb_mask			 = byte_mask * 128ull;
 		constexpr size_t threshold_byte_mask = byte_mask * (127ull - 9ull);
-		return !(((value_new + threshold_byte_mask) | value_new) & msb_mask);
+		constexpr size_t mask				 = 0x000000FF000000FFull;
+		constexpr size_t mul1				 = 0x000F424000000064ull;
+		constexpr size_t mul2				 = 0x0000271000000001ull;
+		size_t value_new					 = read8_to_u64(string) - 0x3030303030303030;
+		if (!(((value_new + threshold_byte_mask) | value_new) & msb_mask)) {
+			value_new = (value_new * 10) + (value_new >> 8);
+			value	  = value * 100000000 + ((((value_new & mask) * mul1) + (((value_new >> 16) & mask) * mul2)) >> 32);
+			string += 8;
+			return true;
+		}
+		return false;
 	}
 
 	fastfloat_really_inline constexpr void loop_parse_if_digits(const char*& p, const char* const pend, size_t& i) noexcept {
-		if (pend - p >= 16) {
-			if (size_t new_value = read8_to_u64(p) - 0x3030303030303030; is_made_of_eight_digits_faster(new_value)) {
-				i = i * 100000000 + parse_if_eight_digits_unrolled(new_value);
-				p += 8;
-				new_value = read8_to_u64(p) - 0x3030303030303030;
-				if (is_made_of_eight_digits_faster(new_value)) {
-					do {
-						i = i * 100000000 + parse_if_eight_digits_unrolled(new_value);
-						p += 8;
-						new_value = read8_to_u64(p) - 0x3030303030303030;
-					} while ((pend - p) >= 8 && (is_made_of_eight_digits_faster(new_value)));
+		if (pend - p < 8) {
+			while (p < pend && is_integer(*p)) {
+				i = i * 10 + static_cast<uint8_t>(*p - '0');
+				++p;
+			}
+		} else if (pend - p >= 16) {
+			if (parse_if_eight_digits_unrolled(p, i)) {
+				if (parse_if_eight_digits_unrolled(p, i)) {
+					while (pend - p >= 8 && parse_if_eight_digits_unrolled(p, i)) {
+					}
 				}
 			}
+			while (p < pend && is_integer(*p)) {
+				i = i * 10 + static_cast<uint8_t>(*p - '0');
+				++p;
+			}
 		} else if (pend - p >= 8) {
-			if (size_t new_value = read8_to_u64(p) - 0x3030303030303030; is_made_of_eight_digits_faster(new_value)) {
-				do {
-					i = i * 100000000 + parse_if_eight_digits_unrolled(new_value);
-					p += 8;
-					new_value = read8_to_u64(p) - 0x3030303030303030;
-				} while ((pend - p) >= 8 && (is_made_of_eight_digits_faster(new_value)));
+			if (parse_if_eight_digits_unrolled(p, i)) {
+				while (pend - p >= 8 && parse_if_eight_digits_unrolled(p, i)) {
+				}
+			}
+			while (p < pend && is_integer(*p)) {
+				i = i * 10 + static_cast<uint8_t>(*p - '0');
+				++p;
 			}
 		}
 	}
