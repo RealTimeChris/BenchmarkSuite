@@ -15,15 +15,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(glaze)
 
-add_executable("StringComparisonExe"   "main.cpp")
-
-FetchContent_Declare(
-	  simdjson2
-	  GIT_REPOSITORY https://github.com/realtimechris/simdjson.git
-	  GIT_TAG master
-	  GIT_SHALLOW TRUE
-)
-FetchContent_MakeAvailable(simdjson2)
+add_executable("StringComparisonExe" "main.cpp")
 
 FetchContent_Declare(
 	  simdjson
@@ -39,7 +31,6 @@ target_link_libraries(
 	BenchmarkSuite::BenchmarkSuite
 	glaze::glaze
 	Jsonifier::Jsonifier
-	simdjson2::simdjson2
 	simdjson::simdjson
 )
 
