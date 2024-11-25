@@ -148,13 +148,13 @@ struct test_generator {
 		return nonDigitChars[randomizeNumberUniform(0, nonDigitChars.size() - 1)];
 	}
 
-	static std::string generateRandomNumberString(int numberOfDigits, int lengthOfString) {
+	static std::string generateRandomNumberString(int32_t numberOfDigits, int32_t lengthOfString) {
 		std::string randomNumber = "";
 		randomNumber += std::to_string(randomizeNumberUniform(1, 9));
-		for (int i = 1; i < lengthOfString; ++i) {
+		for (int32_t i = 1; i < lengthOfString; ++i) {
 			randomNumber += std::to_string(randomizeNumberUniform(0, 9));
 		}
-		for (int i = 0; i < lengthOfString - numberOfDigits; ++i) {
+		for (int32_t i = 0; i < lengthOfString - numberOfDigits; ++i) {
 			randomNumber += generateRandomNonDigitChar();
 		}
 
@@ -247,11 +247,11 @@ template<result_type type> constexpr auto enumToString() {
 }
 
 template<result_type type> struct result {
+	std::optional<double> jsonSpeedVariance{};
 	std::optional<double> iterationCount{};
 	std::optional<size_t> byteLength{};
 	std::optional<double> jsonSpeed{};
 	std::optional<double> jsonTime{};
-	std::optional<double> cv{};
 	std::string color{};
 
 	result& operator=(result&&) noexcept	  = default;
@@ -276,12 +276,12 @@ template<result_type type> struct result {
 		return writeSecondCount;
 	}
 
-	result(const std::string& colorNew, size_t byteLengthNew, const bnch_swt::benchmark_result_final& results) {
+	result(const std::string& colorNew, size_t byteLengthNew, const bnch_swt::performance_metrics& results) {
 		iterationCount.emplace(results.iterationCount);
 		byteLength.emplace(byteLengthNew);
-		jsonTime.emplace(results.median);
-		cv.emplace(results.cv * 100.0f);
-		jsonSpeed.emplace(getResultValueMbs(jsonTime.value(), byteLength.value()));
+		jsonSpeed.emplace(results.throughputMbPerSec.value());
+		jsonTime.emplace(results.timeInns);
+		jsonSpeedVariance.emplace(results.throughputVariation.value());
 		color = colorNew;
 	}
 
@@ -355,7 +355,6 @@ struct results_data {
 			std::cout << enumToString<result_type::read>() + " Length (Bytes): " << readResult.byteLength.value() << std::endl;
 			std::cout << enumToString<result_type::read>() + " Runtime (ns): " << std::setprecision(6) << readResult.jsonTime.value() << std::endl;
 			std::cout << enumToString<result_type::read>() + " Iteration Count: " << std::setprecision(4) << readResult.iterationCount.value() << std::endl;
-			std::cout << enumToString<result_type::read>() + " Coefficient of Variance (%): " << std::setprecision(4) << readResult.cv.value() << std::endl;
 		}
 		if (writeResult.byteLength.has_value() && writeResult.jsonSpeed.has_value()) {
 			std::cout << enumToString<result_type::write>() + " Speed (MB/S): " << std::setprecision(6) << writeResult.jsonSpeed.value() << std::endl;
@@ -366,7 +365,6 @@ struct results_data {
 			std::cout << enumToString<result_type::write>() + " Length (Bytes): " << writeResult.byteLength.value() << std::endl;
 			std::cout << enumToString<result_type::write>() + " Runtime (ns): " << std::setprecision(6) << writeResult.jsonTime.value() << std::endl;
 			std::cout << enumToString<result_type::write>() + " Iteration Count: " << std::setprecision(4) << writeResult.iterationCount.value() << std::endl;
-			std::cout << enumToString<result_type::write>() + " Coefficient of Variance (%): " << std::setprecision(4) << writeResult.cv.value() << std::endl;
 		}
 		std::cout << "\n---" << std::endl;
 	}

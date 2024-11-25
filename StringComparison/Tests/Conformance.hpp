@@ -31,13 +31,13 @@ namespace conformance_tests {
 	struct Empty {};
 
 	struct Special {
-		int integer;
+		int32_t integer;
 		double real;
 		double e;
 		double E;
 		double emptyKey;
-		int zero;
-		int one;
+		int32_t zero;
+		int32_t one;
 		std::string space;
 		std::string quote;
 		std::string backslash;
@@ -51,21 +51,21 @@ namespace conformance_tests {
 		std::string hex;
 		bool aTrue;
 		bool aFalse;
-		int* null;
-		std::vector<int> array;
+		int32_t* null;
+		std::vector<int32_t> array;
 		Empty object;
 		std::string address;
 		std::string url;
 		std::string comment;
 		std::string commentKey;
-		std::vector<int> spaced;
-		std::vector<int> compact;
+		std::vector<int32_t> spaced;
+		std::vector<int32_t> compact;
 		std::string jsontext;
 		std::string quotes;
 		std::string key;
 	};
 
-	using Pass01 = std::tuple<std::string, std::map<std::string, std::vector<std::string>>, Empty, std::vector<int>, int, bool, bool, int*, Special, double, double, double, int,
+	using Pass01 = std::tuple<std::string, std::map<std::string, std::vector<std::string>>, Empty, std::vector<int32_t>, int32_t, bool, bool, int32_t*, Special, double, double, double, int32_t,
 		double, double, double, double, double, double, std::string>;
 
 	void printSpecial(const Special& s) {

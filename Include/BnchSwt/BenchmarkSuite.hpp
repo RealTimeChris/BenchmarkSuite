@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <BnchSwt/EventCounter.hpp>
 #include <BnchSwt/Config.hpp>
 #include <jsonifier/Index.hpp>
 #include <unordered_set>
@@ -131,10 +132,6 @@ namespace bnch_swt {
 	double getCpuFrequency();
 
 #if defined(BNCH_SWT_MSVC)
-
-	BNCH_SWT_ALWAYS_INLINE size_t rdtsc() {
-		return __rdtsc();
-	}
 
 #else
 
@@ -336,17 +333,6 @@ namespace bnch_swt {
 		size_t maxEpochCount{ 4 };
 	};
 
-	struct benchmark_result_final {
-		std::string benchmarkColor{};
-		std::string benchmarkName{};
-		std::string libraryName{};
-		size_t iterationCount{};
-		bench_state state{};
-		result_type type{};
-		double median{};
-		double cv{};
-	};
-
 	BNCH_SWT_INLINE void evictCache() {
 		const size_t cache_size = 64 * 1024;
 		char* memory			= new char[cache_size];
@@ -358,112 +344,6 @@ namespace bnch_swt {
 		delete[] memory;
 	}
 
-	template<typename function_type, bench_options optionsNew> struct benchmark_subject {
-		BNCH_SWT_INLINE benchmark_subject& operator=(benchmark_subject&&) noexcept		= default;
-		BNCH_SWT_INLINE benchmark_subject(benchmark_subject&&) noexcept					= default;
-		BNCH_SWT_INLINE benchmark_subject& operator=(const benchmark_subject&) noexcept = default;
-		BNCH_SWT_INLINE benchmark_subject(const benchmark_subject&) noexcept			= default;
-
-		BNCH_SWT_INLINE benchmark_subject(const std::string& subjectName, const std::string& subjectColor, function_type&& functionNew)
-			: benchmarkColor{ subjectColor }, subjectName{ subjectName }, function{ functionNew } {
-			tempDurations.resize(options.totalIterationCountCap);
-			durations.resize(options.totalIterationCountCap);
-		}
-
-		template<typename... arg_types> BNCH_SWT_INLINE benchmark_result_final executeEpoch(arg_types&&... args) {
-			double cpuFrequency{};
-			if constexpr (optionsNew.type == result_type::time) {
-				cpuFrequency = getCpuFrequency();
-			}
-			bench_state state{ bench_state::running };
-			benchmark_result_final returnValues{};
-			size_t currentDurationCount{};
-			size_t warmupDurationCount{};
-			double currentMedian{};
-			double currentMean{};
-			double currentStdv{};
-			double currentCv{};
-			evictCache();
-			while (warmupDurationCount < options.maxDurationCount && totalDurationCount + warmupDurationCount < options.totalIterationCountCap) {
-				if constexpr (optionsNew.type == result_type::cycles) {
-					evictCache();
-					collectCycles(function, std::forward<arg_types>(args)...);
-				} else {
-					evictCache();
-					collectTime(function, cpuFrequency, std::forward<arg_types>(args)...);
-				}
-				++warmupDurationCount;
-			}
-			totalDurationCount += warmupDurationCount;
-			currentDurationCount = 0;
-			while (currentDurationCount < options.maxDurationCount && totalDurationCount + currentDurationCount + warmupDurationCount < options.totalIterationCountCap) {
-				if constexpr (optionsNew.type == result_type::cycles) {
-					evictCache();
-					durations[currentDurationCount] = collectCycles(function, std::forward<arg_types>(args)...);
-				} else {
-					evictCache();
-					durations[currentDurationCount] = collectTime(function, cpuFrequency, std::forward<arg_types>(args)...);
-				}
-				++currentDurationCount;
-			}
-			bool greaterOrEqual{ currentDurationCount >= options.minDurationCount };
-			if (greaterOrEqual) {
-				removeOutliers(tempDurations.data(), durations.data(), currentDurationCount);
-				greaterOrEqual = currentDurationCount >= options.minDurationCount;
-				if (greaterOrEqual) {
-					currentMean = calcMean(durations.data() + currentDurationCount - options.minDurationCount, options.minDurationCount);
-					currentStdv = calcStdv(durations.data() + currentDurationCount - options.minDurationCount, options.minDurationCount, currentMean);
-				}
-			}
-			totalDurationCount += currentDurationCount;
-			++currentEpochCount;
-			currentCv = currentStdv / currentMean;
-			if (checkForValidLt(currentCv, targetCv)) {
-				currentMedian = calcMedian(durations.data() + currentDurationCount - options.minDurationCount, options.minDurationCount);
-				state		  = bench_state::complete_success;
-			} else if (std::isfinite(currentCv)) {
-				options.maxDurationCount = (options.maxDurationCount * (60.0f * currentCv)) > (options.maxDurationCount * 5) ? (options.maxDurationCount * 5)
-																															 : (options.maxDurationCount * (60.0f * currentCv));
-				targetCv += 0.01f;
-			} else {
-				options.maxDurationCount = (options.maxDurationCount * 2);
-			}
-			if (totalDurationCount + options.maxDurationCount >= options.totalIterationCountCap) {
-				options.maxDurationCount = options.totalIterationCountCap - totalDurationCount;
-			}
-			if (totalDurationCount >= options.totalIterationCountCap || (currentEpochCount >= options.maxEpochCount && state != bench_state::complete_success)) {
-				currentMedian = calcMedian(durations.data(), options.minDurationCount);
-				state		  = bench_state::complete_failure;
-			}
-			returnValues.iterationCount = totalDurationCount;
-			returnValues.type			= optionsNew.type;
-			returnValues.benchmarkColor = benchmarkColor;
-			returnValues.median			= currentMedian;
-			returnValues.type			= options.type;
-			returnValues.libraryName	= subjectName;
-			returnValues.cv				= currentCv;
-			returnValues.state			= state;
-			return returnValues;
-		}
-
-	  protected:
-		double targetCv{ 1.0f / static_cast<double>(optionsNew.targetCvDenom) };
-		std::vector<double> tempDurations{};
-		std::vector<double> durations{};
-		bench_options options{ optionsNew };
-		std::string benchmarkColor{};
-		size_t totalDurationCount{};
-		size_t currentEpochCount{};
-		std::string subjectName{};
-		function_type function{};
-	};
-
-	struct average_cycle_count {
-		std::string libraryName{};
-		uint64_t totalCount{};
-		double totalCycles{};
-	};
-
 	template<typename value_type> bool contains(value_type* values, const value_type& valueToCheckFor, size_t length) {
 		for (size_t x = 0; x < length; ++x) {
 			if (values[x] == valueToCheckFor) {
@@ -473,62 +353,54 @@ namespace bnch_swt {
 		return false;
 	}
 
+	struct performance_metrics {
+		std::optional<double> instructionsPerExecution{};
+		std::optional<double> branchMissesPerExecution{};
+		std::optional<double> instructionsVariation{};
+		std::optional<double> instructionsPerCycle{};
+		std::optional<double> branchesPerExecution{};
+		std::optional<double> instructionsPerByte{};
+		std::optional<double> throughputVariation{};
+		std::optional<double> throughputMbPerSec{};
+		std::optional<double> cyclesPerExecution{};
+		std::optional<double> cyclesVariation{};
+		std::optional<double> cyclesPerByte{};
+		std::optional<double> frequencyGHz{};
+		uint64_t iterationCount{};
+		uint64_t timeInns{};
+		std::string name{};
+	};
+
 	template<jsonifier_internal::string_literal stageNameNew, bench_options options = bench_options{}> struct benchmark_stage {
-		inline static std::unordered_map<std::string, benchmark_result_final> results{};
+		inline static std::unordered_map<std::string, performance_metrics> results{};
 
 		BNCH_SWT_INLINE static void printResults(bool verbose = true, bool printDetails = false) {
 			static constexpr jsonifier_internal::string_literal stageName{ stageNameNew };
-			std::map<std::string, std::vector<benchmark_result_final>> groupedResults{};
-			std::set<std::pair<std::string, std::string>> printedResults{};
-			std::map<std::string, uint64_t> indices{};
-			std::vector<average_cycle_count> resultCycles{};
-			for (const auto& [key, value]: results) {
-				groupedResults[value.benchmarkName].push_back(value);
-			}
+			std::cout << "Performance Metrics for: " << stageName.data() << "\n";
+			for (auto& [key, value]: results) {
+				std::cout << "Metrics for: " << value.name << "\n";
+				std::cout << std::fixed << std::setprecision(2);
 
-
-			for (auto& [key, value]: groupedResults) {
-				std::sort(value.data(), value.data() + value.size(), [](auto& lhs, auto rhs) {
-					return lhs.median < rhs.median;
-				});
-			}
-			for (const auto& [benchmarkName, benchmarkResults]: groupedResults) {
-				if (verbose) {
-					std::cout << "Benchmark Name: " << benchmarkName << std::endl;
-				}
-
-				for (const auto& value: benchmarkResults) {
-					std::string resultType = (value.type == result_type::cycles) ? "Cycles" : "Time";
-					std::string status	   = (value.state == bench_state::complete_success) ? "Success: " : "Failure: ";
-
-					if (!indices.contains(value.libraryName)) {
-						indices[value.libraryName] = resultCycles.size();
-						resultCycles.emplace_back(average_cycle_count{ value.libraryName, uint64_t{}, double{} });
+				auto printMetric = [](const std::string& label, const std::optional<double>& value) {
+					if (value.has_value()) {
+						std::cout << std::left << std::setw(30) << label << ": " << value.value() << "\n";
 					}
-					resultCycles[indices[value.libraryName]].totalCycles += value.median;
-					++resultCycles[indices[value.libraryName]].totalCount;
-					if (verbose && printDetails) {
-						std::cout << status << "Library Name: " << value.libraryName << ", Result " << resultType << ": " << roundToDecimalPlaces(value.median, 2)
-								  << ", Iterations: " << jsonifier::toString(value.iterationCount)
-								  << ", Coefficient of Variance: " << jsonifier::toString(roundToDecimalPlaces(value.cv, 6)) << std::endl;
-					}
-					printedResults.insert({ benchmarkName, value.libraryName });
-				}
-			}
+				};
 
-			if (resultCycles.size() >= 2) {
-				std::sort(resultCycles.begin(), resultCycles.end(), [](const auto& lhs, const auto& rhs) {
-					return lhs.totalCycles > rhs.totalCycles;
-				});
-				for (size_t x = resultCycles.size(); x > 1; --x) {
-					double totalPercentage =
-						((resultCycles.data() + x - 2)->totalCycles - ((resultCycles.data() + x - 1)->totalCycles)) / (resultCycles.data() + x - 1)->totalCycles;
-					totalPercentage *= 100.0;
-					std::cout << "Library: " << (resultCycles.data() + x - 1)->libraryName << " is faster than " << (resultCycles.data() + x - 2)->libraryName
-							  << " by roughly: " << totalPercentage << "%." << std::endl;
-				}
-			} else {
-				std::cout << "Not enough data to compare library performance." << std::endl;
+				printMetric("Throughput (MB/s)", value.throughputMbPerSec);
+				printMetric("Throughput Variation", value.throughputVariation);
+				printMetric("Instructions per Execution", value.instructionsPerExecution);
+				printMetric("Instructions Variation", value.instructionsVariation);
+				printMetric("Instructions per Cycle", value.instructionsPerCycle);
+				printMetric("Instructions per Byte", value.instructionsPerByte);
+				printMetric("Branches per Execution", value.branchesPerExecution);
+				printMetric("Branch Misses per Execution", value.branchMissesPerExecution);
+				printMetric("Cycles per Execution", value.cyclesPerExecution);
+				printMetric("Cycles Variation", value.cyclesVariation);
+				printMetric("Cycles per Byte", value.cyclesPerByte);
+				printMetric("Frequency (GHz)", value.frequencyGHz);
+
+				std::cout << "----------------------------------------\n";
 			}
 		}
 
@@ -562,30 +434,93 @@ namespace bnch_swt {
 
 		template<jsonifier_internal::string_literal benchmarkNameNew, jsonifier_internal::string_literal subjectNameNew, jsonifier_internal::string_literal colorNew,
 			typename function_type, typename... arg_types>
-		BNCH_SWT_INLINE static benchmark_result_final runBenchmark(function_type&& functionNew, arg_types&&... args) {
+		BNCH_SWT_INLINE static performance_metrics runBenchmark(function_type&& functionNew, arg_types&&... args) {
 			static constexpr jsonifier_internal::string_literal benchmarkName{ benchmarkNameNew };
 			static constexpr jsonifier_internal::string_literal subjectName{ subjectNameNew };
 			static constexpr jsonifier_internal::string_literal color{ colorNew };
 			std::string subjectNameNewer{ subjectName.data(), subjectName.size() };
+			event_collector collector{};
 			std::string colorName{ color.data(), color.size() };
-			benchmark_subject<function_type, options> benchmarkSubject{ subjectNameNewer, colorName, std::forward<function_type>(functionNew) };
 			auto executionLambda = [=]() mutable {
-				return benchmarkSubject.executeEpoch(std::forward<arg_types>(args)...);
+				return std::forward<function_type>(functionNew)(std::forward<arg_types>(args)...);
 			};
 			size_t currentExecutionCount{};
-			while (currentExecutionCount < options.maxExecutionCount) {
-				++currentExecutionCount;
-				benchmark_result_final resultsNew = executionLambda();
-				resultsNew.benchmarkName		  = static_cast<std::string>(benchmarkName.view());
-				if (resultsNew.state == bench_state::complete_success || resultsNew.state == bench_state::complete_failure) {
-					results[static_cast<std::string>(benchmarkName.view() + subjectName.view())] = resultsNew;
-					return std::move(resultsNew);
-				} else if (currentExecutionCount == options.maxExecutionCount) {
-					results[static_cast<std::string>(benchmarkName.view() + subjectName.view())] = resultsNew;
-					return resultsNew;
-				}
+			std::vector<event_count> aggregate{};
+			bool printed_bug = false;
+			uint64_t bytesCollected{};
+			for (size_t i = 0; i < options.maxExecutionCount; i++) {
+				collector.start();
+				bytesCollected = executionLambda();
+				aggregate.emplace_back(collector.end());
 			}
-			return {};
+			results[static_cast<std::string>(subjectName)] = collectMetrics<subjectName>(options.maxExecutionCount, bytesCollected, aggregate);
+			return results[static_cast<std::string>(subjectName)];
+		}
+
+		template<jsonifier_internal::string_literal benchmarkNameNew>
+		static performance_metrics collectMetrics(uint64_t executionCount, uint64_t bytesProcessed, std::vector<event_count> events) {
+			performance_metrics metrics{};
+			metrics.name	= static_cast<std::string>(benchmarkNameNew.data());
+			metrics.iterationCount = executionCount;
+			double volumeMB = bytesProcessed / (1024. * 1024.);
+			double average_ns{ 0 };
+			double min_ns{ DBL_MAX };
+			double cycles_min{ DBL_MAX };
+			double instructions_min{ DBL_MAX };
+			double cycles_avg{ 0 };
+			double instructions_avg{ 0 };
+			double branches_min{ 0 };
+			double branches_avg{ 0 };
+			double missedBranches_min{ 0 };
+			double missedBranches_avg{ 0 };
+			bool doWeHaveCounters{};
+			double cycles{};
+			double instructions{};
+			double branches{};
+			double missedBranches{};
+			for (const event_count& e: events) {
+				double ns = e.elapsed_ns();
+				average_ns += ns;
+				min_ns = min_ns < ns ? min_ns : ns;
+
+				e.cycles(cycles);
+				cycles_avg += cycles;
+				cycles_min = cycles_min < cycles ? cycles_min : cycles;
+
+				if (e.instructions(instructions)) {
+					doWeHaveCounters = true;
+				}
+				instructions_avg += instructions;
+				instructions_min = instructions_min < instructions ? instructions_min : instructions;
+
+				e.branches(branches);
+				branches_avg += branches;
+				branches_min = branches_min < branches ? branches_min : branches;
+
+				e.missed_branches(missedBranches);
+				missedBranches_avg += missedBranches;
+				missedBranches_min = missedBranches_min < missedBranches ? missedBranches_min : missedBranches;
+			}
+			metrics.timeInns = average_ns;
+			cycles_avg /= events.size();
+			instructions_avg /= events.size();
+			average_ns /= events.size();
+			branches_avg /= events.size();
+			metrics.throughputMbPerSec.emplace(volumeMB * 1000000000 / min_ns);
+			metrics.throughputVariation.emplace((average_ns - min_ns) * 100.0 / average_ns);
+			if (doWeHaveCounters) {
+				metrics.instructionsPerByte.emplace(instructions_avg / bytesProcessed);
+				metrics.frequencyGHz.emplace(cycles_min / min_ns);
+				metrics.instructionsPerCycle.emplace(instructions_avg / cycles_avg);
+				metrics.instructionsPerExecution.emplace(instructions_avg / executionCount);
+				metrics.instructionsVariation.emplace((instructions_avg - instructions_min) * 100.0 / instructions_avg);
+				metrics.branchMissesPerExecution.emplace(missedBranches_avg / executionCount);
+				metrics.branchesPerExecution.emplace(branches_avg / executionCount);
+				metrics.cyclesPerByte.emplace(cycles_avg / bytesProcessed);
+				metrics.cyclesPerExecution.emplace(cycles_avg / executionCount);
+				metrics.cyclesVariation.emplace((cycles_avg - cycles_min) * 100.0 / cycles_avg);
+			}
+			return metrics;
 		}
 
 	  protected:
@@ -616,30 +551,7 @@ namespace bnch_swt {
 		}
 
 		BNCH_SWT_INLINE static std::string generateMarkdown(std::string repoPath) {
-			std::ostringstream markdownStream{};
-			std::vector<benchmark_result_final> resultsNew{};
-			jsonifier_internal::string_literal stageName{ stageNameNew };
-			size_t uniqueLibraryCount{ collectUniqueLibraryCount() };
-			markdownStream << "# Benchmark Results: " + stageName.view() + "\n\n";
-			std::string currentTestName{};
-			size_t currentIndex{};
-			/*
-			for (auto [key, value]: results) {
-			for (size_t i = 0; i < results.size() / uniqueLibraryCount; ++i) {
-				const auto& result = results[i];
-				if (currentTestName != result.benchmarkName || i == results.size() - 1) {
-					resultsNew.emplace_back(results[i]);
-				}
-				currentTestName = result.benchmarkName;
-			}
-			for (auto& value: resultsNew) {
-				std::string encodedBenchmarkName = urlEncode(value.benchmarkName);
-				markdownStream << "### " << currentIndex + 1 << ". " << value.benchmarkName << "\n";
-				markdownStream << "<p align=\"left\"><img src=\"" << repoPath << encodedBenchmarkName << "_results.jpg?raw=true\" width=\"400\"/></p>\n\n";
-				++currentIndex;
-			}
-			*/
-			return markdownStream.str();
+			return {};
 		}
 	};
 
@@ -651,9 +563,9 @@ namespace bnch_swt {
 
 namespace jsonifier {
 
-	template<> struct core<bnch_swt::benchmark_result_final> {
-		using value_type = bnch_swt::benchmark_result_final;
-		static constexpr auto parseValue =
-			createValue<&value_type::benchmarkName, &value_type::median, &value_type::benchmarkColor, &value_type::iterationCount, &value_type::libraryName>();
+	template<> struct core<bnch_swt::performance_metrics> {
+		using value_type = bnch_swt::performance_metrics;
+		static constexpr auto parseValue = createValue<&value_type::branchesPerExecution, &value_type::branchMissesPerExecution, &value_type::cyclesPerByte,
+			&value_type::cyclesPerExecution, &value_type::cyclesVariation>();
 	};
 }

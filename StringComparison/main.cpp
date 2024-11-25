@@ -8,14 +8,14 @@
 #include "fast_float.h"
 #include "fast_float_new.hpp"
 
-template<size_t digitCount, size_t length, jsonifier_internal::string_literal testStageNew, jsonifier_internal::string_literal testNameNew>
+template<uint64_t digitCount, uint64_t length, jsonifier_internal::string_literal testStageNew, jsonifier_internal::string_literal testNameNew>
 JSONIFIER_ALWAYS_INLINE void parseFunction() {
 	static constexpr jsonifier_internal::string_literal testStage{ testStageNew };
 	static constexpr jsonifier_internal::string_literal testName{ testNameNew };
 	std::vector<std::string> newUints{};
-	std::vector<size_t> newerUints01{};
-	std::vector<size_t> newerUints02{};
-	for (size_t x = 0; x < 1024 * 128; ++x) {
+	std::vector<uint64_t> newerUints01{};
+	std::vector<uint64_t> newerUints02{};
+	for (uint64_t x = 0; x < 1024 * 128; ++x) {
 		newUints.emplace_back(test_generator::generateRandomNumberString(digitCount, length));
 	}
 	newerUints02.resize(1024 * 128);
@@ -23,7 +23,8 @@ JSONIFIER_ALWAYS_INLINE void parseFunction() {
 
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "fast_float::loop_parse_if_eight_digits",
 		"dodgerblue">([&]() mutable {
-		for (size_t x = 0; x < 1024 * 128; ++x) {
+		size_t totalBytes{};
+		for (uint64_t x = 0; x < 1024 * 128; ++x) {
 			uint64_t value{};
 			const auto* iter = newUints[x].data();
 			const auto* end	 = iter + newUints[x].size();
@@ -33,23 +34,26 @@ JSONIFIER_ALWAYS_INLINE void parseFunction() {
 				++iter;
 				value = value * 10 + digit;// in rare cases, this will overflow, but that's ok
 			}
+			totalBytes += 8;
 			newerUints01[x] = value;
 			bnch_swt::doNotOptimizeAway(value);
 		}
+		return totalBytes;
 	});
 
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "fast_float_new::loop_parse_if_digits",
 		"dodgerblue">([&]() mutable {
-		for (size_t x = 0; x < 1024 * 128; ++x) {
-			size_t value{};
+		for (uint64_t x = 0; x < 1024 * 128; ++x) {
+			uint64_t value{};
 			const auto* iter = newUints[x].data();
 			const auto* end	 = iter + newUints[x].size();
 			fast_float_new::loop_parse_if_digits(iter, end, value);
 			newerUints02[x] = value;
 			bnch_swt::doNotOptimizeAway(value);
 		}
+		return sizeof(uint64_t);
 	});
-	for (size_t x = 0; x < 1024 * 128; ++x) {
+	for (uint64_t x = 0; x < 1024 * 128; ++x) {
 		if (newerUints02[x] != newerUints01[x]) {
 			std::cout << "Failed to parse at index: " << x << std::endl;
 			std::cout << "Input Value: " << newUints[x] << std::endl;
@@ -60,7 +64,13 @@ JSONIFIER_ALWAYS_INLINE void parseFunction() {
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::printResults();
 }
 
-int main() {
+int32_t main() {
+	bnch_swt::event_collector counter{};
+	counter.start();
+	uint32_t valueNew{};
+	auto results = counter.end();
+	double cycles{};
+	std::cout << "CURRENT RESULTS: " << results.cycles(cycles) << std::endl;
 	parseFunction<1, 1, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-for-length-1-and-digit-count-1",
 		"fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-for-length-1-and-digit-count-1">();
 	parseFunction<2, 2, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-for-length-2-and-digit-count-2",

@@ -550,7 +550,7 @@ namespace fast_float_new {
 	template<typename UC> JSONIFIER_ALWAYS_INLINE constexpr size_t read8_to_u64(const UC* chars) noexcept {
 		if (cpp20_and_in_constexpr() || !std::is_same<UC, char>::value) {
 			size_t val = 0;
-			for (int i = 0; i < 8; ++i) {
+			for (int32_t i = 0; i < 8; ++i) {
 				val |= size_t(uint8_t(*chars)) << (i * 8);
 				++chars;
 			}
@@ -569,7 +569,7 @@ namespace fast_float_new {
 	template<typename UC> JSONIFIER_ALWAYS_INLINE constexpr uint32_t read4_to_u32(const UC* chars) noexcept {
 		if (cpp20_and_in_constexpr() || !std::is_same<UC, char>::value) {
 			uint32_t val = 0;
-			for (int i = 0; i < 4; ++i) {
+			for (int32_t i = 0; i < 4; ++i) {
 				val |= uint32_t(uint8_t(*chars)) << (i * 8);
 				++chars;
 			}
@@ -588,7 +588,7 @@ namespace fast_float_new {
 	template<typename UC> JSONIFIER_ALWAYS_INLINE constexpr uint16_t read2_to_u16(const UC* chars) noexcept {
 		if (cpp20_and_in_constexpr() || !std::is_same<UC, char>::value) {
 			uint16_t val = 0;
-			for (int i = 0; i < 2; ++i) {
+			for (int32_t i = 0; i < 2; ++i) {
 				val |= uint16_t(uint8_t(*chars)) << (i * 8);
 				++chars;
 			}
@@ -1427,7 +1427,7 @@ namespace fast_float_new {
 		// positive, this is larger, otherwise they are equal.
 		// the limbs are stored in little-endian order, so we
 		// must compare the limbs in ever order.
-		JSONIFIER_ALWAYS_INLINE constexpr int compare(const bigint& other) const noexcept {
+		JSONIFIER_ALWAYS_INLINE constexpr int32_t compare(const bigint& other) const noexcept {
 			if (vec.length > other.vec.length) {
 				return 1;
 			} else if (vec.length < other.vec.length) {
@@ -1505,7 +1505,7 @@ namespace fast_float_new {
 		}
 
 		// get the number of leading zeros in the bigint.
-		JSONIFIER_ALWAYS_INLINE constexpr int ctlz() const noexcept {
+		JSONIFIER_ALWAYS_INLINE constexpr int32_t ctlz() const noexcept {
 			if (vec.is_empty()) {
 				return 0;
 			} else {
@@ -1520,9 +1520,9 @@ namespace fast_float_new {
 		}
 
 		// get the number of bits in the bigint.
-		JSONIFIER_ALWAYS_INLINE constexpr int bit_length() const noexcept {
-			int lz = ctlz();
-			return int(limb_bits * vec.length) - lz;
+		JSONIFIER_ALWAYS_INLINE constexpr int32_t bit_length() const noexcept {
+			int32_t lz = ctlz();
+			return int32_t(limb_bits * vec.length) - lz;
 		}
 
 		JSONIFIER_ALWAYS_INLINE constexpr bool mul(limb y) noexcept {
@@ -1843,7 +1843,7 @@ namespace fast_float_new {
 		adjusted_mantissa answer;
 		bool truncated;
 		answer.mantissa	   = bigmant.hi64(truncated);
-		constexpr int bias = binary_format<value_type>::mantissa_explicit_bits - binary_format<value_type>::minimum_exponent;
+		constexpr int32_t bias = binary_format<value_type>::mantissa_explicit_bits - binary_format<value_type>::minimum_exponent;
 		answer.power2	   = bigmant.bit_length() - 64 + bias;
 
 		round<value_type>(answer, [truncated](adjusted_mantissa& a, int32_t shift) {
