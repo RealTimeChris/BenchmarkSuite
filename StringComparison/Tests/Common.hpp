@@ -30,6 +30,52 @@
 #include "Canada.hpp"
 #include <thread>
 
+#if defined(NDEBUG)
+static constexpr auto maxIterationCount{ 100 };
+#else
+static constexpr auto maxIterationCount{ 5 };
+#endif
+
+constexpr auto getCurrentOperatingSystem() {
+	constexpr jsonifier_internal::string_literal osName{ "Windows" };
+	constexpr auto osNameNew = jsonifier_internal::toLower(osName);
+	if constexpr (osNameNew.view().operator std::string_view().contains("linux")) {
+		return jsonifier_internal::string_literal{ "Ubuntu" };
+	} else if constexpr (osNameNew.view().operator std::string_view().contains("windows")) {
+		return jsonifier_internal::string_literal{ "Windows" };
+	} else if constexpr (osNameNew.view().operator std::string_view().contains("darwin")) {
+		return jsonifier_internal::string_literal{ "MacOS" };
+	} else {
+		return jsonifier_internal::string_literal{ "" };
+	}
+}
+
+constexpr auto getCurrentCompilerId() {
+	constexpr jsonifier_internal::string_literal compilerId{ "MSVC" };
+	constexpr auto osCompilerIdNew = jsonifier_internal::toLower(compilerId);
+	if constexpr (osCompilerIdNew.view().operator std::string_view().contains("gnu") || osCompilerIdNew.view().operator std::string_view().contains("gcc") ||
+		osCompilerIdNew.view().operator std::string_view().contains("g++") || osCompilerIdNew.view().operator std::string_view().contains("apple")) {
+		return jsonifier_internal::string_literal{ "GNUCXX" };
+	} else if constexpr (osCompilerIdNew.view().operator std::string_view().contains("clang")) {
+		return jsonifier_internal::string_literal{ "CLANG" };
+	} else if constexpr (osCompilerIdNew.view().operator std::string_view().contains("msvc")) {
+		return jsonifier_internal::string_literal{ "MSVC" };
+	} else {
+		return jsonifier_internal::string_literal{ "" };
+	}
+}
+
+constexpr auto getCurrentPathImpl() {
+	return getCurrentOperatingSystem() + "-" + getCurrentCompilerId();
+}
+
+constexpr jsonifier_internal::string_literal jsonifierLibraryName{ "jsonifier" };
+constexpr jsonifier_internal::string_literal jsonifierCommitUrlBase{ "https://github.com/realtimechris/jsonifier/commit/" };
+constexpr jsonifier_internal::string_literal simdjsonLibraryName{ "simdjson" };
+constexpr jsonifier_internal::string_literal simdjsonCommitUrlBase{ "https://github.com/simdjson/simdjson/commit/" };
+constexpr jsonifier_internal::string_literal glazeLibraryName{ "glaze" };
+constexpr jsonifier_internal::string_literal glazeCommitUrlBase{ "https://github.com/stephenberry/glaze/commit/" };
+
 class test_base {
   public:
 	test_base() noexcept = default;
@@ -41,32 +87,79 @@ class test_base {
 	std::string testName{};
 };
 
-bool processFilesInFolder(std::unordered_map<std::string, test_base>& resultFileContents, const std::string &testType) noexcept {
-	try {
-		for (const auto& entry: std::filesystem::directory_iterator(std::string{ JSON_TEST_PATH } + testType)) {
-			if (entry.is_regular_file()) {
-				const std::string fileName = entry.path().filename().string();
-
-				if (fileName.size() >= 5 && fileName.substr(fileName.size() - 5) == std::string{ ".json" }) {
-					std::ifstream file(entry.path());
-					if (file.is_open()) {
-						std::string fileContents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-						bool returnValue					= (fileName.find(".json") != std::string::npos);
-						resultFileContents[fileName.data()] = { fileName, fileContents, returnValue };
-						file.close();
-					} else {
-						std::cerr << "Error opening file: " << fileName << std::endl;
-						return false;
-					}
-				}
-			}
-		}
-	} catch (const std::exception& e) {
-		std::cerr << "Error while processing files: " << e.what() << std::endl;
-		return false;
+std::string getCPUInfo() {
+	char brand[49] = { 0 };
+	int32_t regs[12]{};
+	size_t length{};
+#if defined(__x86_64__) || defined(_M_AMD64)
+	static constexpr auto cpuid = [](int32_t* eax, int32_t* ebx, int32_t* ecx, int32_t* edx) {
+	#if defined(_MSC_VER)
+		int32_t cpuInfo[4];
+		__cpuidex(cpuInfo, *eax, *ecx);
+		*eax = cpuInfo[0];
+		*ebx = cpuInfo[1];
+		*ecx = cpuInfo[2];
+		*edx = cpuInfo[3];
+	#elif defined(HAVE_GCC_GET_CPUID) && defined(USE_GCC_GET_CPUID)
+		uint32_t level = *eax;
+		__get_cpuid(level, eax, ebx, ecx, edx);
+	#else
+		uint32_t a = *eax, b, c = *ecx, d;
+		asm volatile("cpuid" : "=a"(a), "=b"(b), "=c"(c), "=d"(d) : "a"(a), "c"(c));
+		*eax = a;
+		*ebx = b;
+		*ecx = c;
+		*edx = d;
+	#endif
+	};
+	regs[0] = 0x80000000;
+	cpuid(regs, regs + 1, regs + 2, regs + 3);
+	if (static_cast<uint32_t>(regs[0]) < 0x80000004) {
+		return {};
 	}
+	regs[0] = 0x80000002;
+	cpuid(regs, regs + 1, regs + 2, regs + 3);
+	regs[4] = 0x80000003;
+	cpuid(regs + 4, regs + 5, regs + 6, regs + 7);
+	regs[8] = 0x80000004;
+	cpuid(regs + 8, regs + 9, regs + 10, regs + 11);
+	memcpy(brand, regs, sizeof(regs));
+	length = std::strlen(brand) > 0 ? std::strlen(brand) - 1 : 0;
+	std::string returnValues{};
+	returnValues.resize(length - 1);
+	std::copy(brand, brand + length, returnValues.data());
+	return returnValues.substr(0, returnValues.find_last_of("abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ") + 1);
+#else
+	char newBuffer[256];
+	size_t bufferSize = sizeof(newBuffer);
+	if (sysctlbyname("machdep.cpu.brand_string", &newBuffer, &bufferSize, nullptr, 0) == 0) {
+		return std::string(newBuffer);
+	} else {
+		return std::string{ "Unknown CPU" };
+	}
+#endif
+}
 
-	return true;
+std::string getCurrentWorkingDirectory() {
+	try {
+		return std::filesystem::current_path().string();
+	} catch (const std::filesystem::filesystem_error& e) {
+		std::cout << "Error: " << e.what() << std::endl;
+		return "";
+	}
+}
+
+void executePythonScript(const std::string& scriptPath, const std::string& argument01, const std::string& argument02) {
+#if defined(JSONIFIER_WIN)
+	static std::string pythonName{ "python " };
+#else
+	static std::string pythonName{ "python3 " };
+#endif
+	std::string command = pythonName + scriptPath + " " + argument01 + " " + argument02;
+	int32_t result		= system(command.data());
+	if (result != 0) {
+		std::cout << "Error: Failed to execute Python script. Command exited with code " << result << std::endl;
+	}
 }
 
 struct test_struct {
@@ -77,28 +170,28 @@ struct test_struct {
 	std::vector<bool> testBools{};
 };
 
-#if defined(JSONIFIER_MAC)
-constexpr bnch_swt::result_type resultType{ bnch_swt::result_type::time };
-#else
-constexpr bnch_swt::result_type resultType{ bnch_swt::result_type::cycles };
-#endif
-
 template<typename value_type> struct test {
 	std::vector<value_type> a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z;
 };
 
+template<typename value_type> struct partial_test {
+	std::vector<value_type> m, s;
+};
+
+inline static std::random_device randomEngine{};
+inline static std::mt19937_64 gen{ randomEngine() };
+static constexpr std::string_view charset{ "!#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~\"\\\r\b\f\t\n" };
+
 template<typename value_type> struct test_generator {
 	std::vector<value_type> a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z;
-	inline static std::random_device randomEngine{};
-	inline static std::mt19937_64 gen{ randomEngine() };
-	static constexpr std::string_view charset{ "!#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~\"\\\r\b\f\t\n" };
 
 	template<typename value_type01, typename value_type02> static value_type01 randomizeNumberUniform(value_type01 start, value_type02 end) {
 		std::uniform_real_distribution<value_type01> dis{ start, static_cast<value_type01>(end) };
 		return dis(gen);
 	}
 
-	template<jsonifier::concepts::integer_t value_type01, jsonifier::concepts::integer_t value_type02> static value_type01 randomizeNumberUniform(value_type01 start, value_type02 end) {
+	template<jsonifier::concepts::integer_t value_type01, jsonifier::concepts::integer_t value_type02>
+	static value_type01 randomizeNumberUniform(value_type01 start, value_type02 end) {
 		std::uniform_int_distribution<value_type01> dis{ start, static_cast<value_type01>(end) };
 		return dis(gen);
 	}
@@ -109,28 +202,28 @@ template<typename value_type> struct test_generator {
 	}
 
 	static std::string generateString() {
-		auto length{ randomizeNumberUniform(32, 64) };
+		auto length{ randomizeNumberUniform(32ull, 64ull) };
 		constexpr size_t charsetSize = charset.size();
-		auto unicodeCount			 = std::max(1, length / 8);
+		auto unicodeCount			 = length / 4ull;
 		std::vector<size_t> unicodeIndices{};
-		static constexpr auto checkForPresenceOfIndex = [](auto& indices, auto index, auto&& checkForPresenceOfIndexNew) -> void {
+		static constexpr auto checkForPresenceOfIndex = [](auto& indices, auto index, auto length, auto&& checkForPresenceOfIndexNew) -> void {
 			if (std::find(indices.begin(), indices.end(), index) != indices.end()) {
-				index = randomizeNumberUniform(0ull, charsetSize - 1);
-				checkForPresenceOfIndexNew(indices, index, checkForPresenceOfIndexNew);
+				index = randomizeNumberUniform(0ull, length);
+				checkForPresenceOfIndexNew(indices, index, length, checkForPresenceOfIndexNew);
 			} else {
 				indices.emplace_back(index);
 			}
 		};
 		for (size_t x = 0; x < unicodeCount; ++x) {
-			auto newValue = randomizeNumberUniform(0ull, charsetSize - 1);
-			checkForPresenceOfIndex(unicodeIndices, newValue, checkForPresenceOfIndex);
+			auto newValue = randomizeNumberUniform(0ull, length);
+			checkForPresenceOfIndex(unicodeIndices, newValue, length, checkForPresenceOfIndex);
 		}
 		std::sort(unicodeIndices.begin(), unicodeIndices.end(), std::less<size_t>{});
 
 		std::string result{};
-		int32_t insertedUnicode = 0;
-		auto iter				= unicodeIndices.begin();
-		for (int32_t x = 0; x < length; ++x) {
+		size_t insertedUnicode = 0;
+		auto iter			   = unicodeIndices.begin();
+		for (size_t x = 0; x < length; ++x) {
 			if (iter < unicodeIndices.end() && x == *iter) [[unlikely]] {
 				insertUnicodeInJSON(result);
 				insertedUnicode++;
@@ -144,8 +237,13 @@ template<typename value_type> struct test_generator {
 	}
 
 	static double generateDouble() {
-		return randomizeNumberUniform(std::numeric_limits<double>::min(), std::numeric_limits<double>::max());
-	};
+		double min = std::numeric_limits<double>::min();
+		double max = std::numeric_limits<double>::max();
+		std::uniform_real_distribution<double> dis(log(min), log(max));
+		double logValue = dis(gen);
+		bool negative{ generateBool() };
+		return negative ? -std::exp(logValue) : std::exp(logValue);
+	}
 
 	static bool generateBool() {
 		return static_cast<bool>(randomizeNumberUniform(0, 100) >= 50);
@@ -161,10 +259,10 @@ template<typename value_type> struct test_generator {
 
 	test_generator() {
 		auto fill = [&](auto& v) {
-			auto arraySize01 = randomizeNumberUniform(5ull, 25ull);
+			auto arraySize01 = randomizeNumberUniform(15ull, 25ull);
 			v.resize(arraySize01);
 			for (size_t x = 0; x < arraySize01; ++x) {
-				auto arraySize02 = randomizeNumberUniform(5ull, 35ull);
+				auto arraySize02 = randomizeNumberUniform(15ull, 35ull);
 				auto arraySize03 = randomizeNumberUniform(0ull, arraySize02);
 				for (size_t y = 0; y < arraySize03; ++y) {
 					auto newString = generateString();
@@ -222,7 +320,6 @@ template<typename value_type> struct test_generator {
 struct test_element_final {
 	std::string libraryName{};
 	std::string resultType{};
-	double iterationCount{};
 	double resultSpeed{};
 	std::string color{};
 	bool operator>(const test_element_final& other) const noexcept {
@@ -260,41 +357,28 @@ template<result_type type> constexpr auto enumToString() {
 }
 
 template<result_type type> struct result {
-	std::optional<double> iterationCount{};
+	std::optional<double> jsonSpeedVariation{};
 	std::optional<size_t> byteLength{};
+	std::optional<double> jsonCycles{};
 	std::optional<double> jsonSpeed{};
 	std::optional<double> jsonTime{};
-	std::optional<double> cv{};
 	std::string color{};
+
+	result() noexcept = default;
 
 	result& operator=(result&&) noexcept	  = default;
 	result(result&&) noexcept				  = default;
 	result& operator=(const result&) noexcept = default;
 	result(const result&) noexcept			  = default;
 
-	result() noexcept = default;
-
-	double getResultValueMbs(double input01, uint64_t input02) const {
-#if !defined(JSONIFIER_MAC)
-		input01 = bnch_swt::cyclesToTime(input01, bnch_swt::getCpuFrequency());
-#endif
-		auto mbWrittenCount	  = static_cast<double>(input02) / 1e+6l;
-		auto writeSecondCount = input01 / 1e+9l;
-		return mbWrittenCount / writeSecondCount;
-	}
-
-	double getResultValueCyclesMb(double input01, uint64_t input02) const {
-		auto mbWrittenCount	  = static_cast<double>(input02) / 1e+6l;
-		auto writeSecondCount = input01 / mbWrittenCount;
-		return writeSecondCount;
-	}
-
-	result(const std::string& colorNew, size_t byteLengthNew, const bnch_swt::benchmark_result_final& results) {
-		iterationCount.emplace(results.iterationCount);
+	result(const std::string& colorNew, size_t byteLengthNew, const bnch_swt::performance_metrics& results) {
 		byteLength.emplace(byteLengthNew);
-		jsonTime.emplace(results.median);
-		cv.emplace(results.cv * 100.0f);
-		jsonSpeed.emplace(getResultValueMbs(jsonTime.value(), byteLength.value()));
+		jsonTime.emplace(results.timeInns);
+		jsonSpeedVariation.emplace(results.throughputVariation.value());
+		jsonSpeed.emplace(results.throughputMbPerSec.value());
+		if (results.cyclesPerByte.has_value()) {
+			jsonCycles.emplace(results.cyclesPerByte.value() * 1024 * 1024);
+		}
 		color = colorNew;
 	}
 
@@ -318,10 +402,10 @@ struct results_data {
 	std::unordered_set<std::string> jsonifierExcludedKeys{};
 	result<result_type::write> writeResult{};
 	result<result_type::read> readResult{};
+	size_t iterations{};
 	std::string name{};
 	std::string test{};
 	std::string url{};
-	size_t iterations{};
 
 	bool operator>(const results_data& other) const noexcept {
 		if (readResult && other.readResult) {
@@ -355,96 +439,25 @@ struct results_data {
 		}
 	}
 
-	void print() const noexcept {
-		std::cout << std::string{ "| " } + name + " " + test + ": " + url + "\n" +
-				"| ------------------------------------------------------------ "
-				"|\n";
-		if (readResult.byteLength.has_value() && readResult.jsonSpeed.has_value()) {
-			std::cout << enumToString<result_type::read>() + " Speed (MB/S): " << std::setprecision(6) << readResult.jsonSpeed.value() << std::endl;
-#if !defined(JSONIFIER_MAC)
-			std::cout << enumToString<result_type::read>() + " Speed (Cycles/MB): " << std::setprecision(6)
-					  << readResult.getResultValueCyclesMb(readResult.jsonTime.value(), readResult.byteLength.value()) << std::endl;
-#endif
-			std::cout << enumToString<result_type::read>() + " Length (Bytes): " << readResult.byteLength.value() << std::endl;
-			std::cout << enumToString<result_type::read>() + " Runtime (ns): " << std::setprecision(6) << readResult.jsonTime.value() << std::endl;
-			std::cout << enumToString<result_type::read>() + " Iteration Count: " << std::setprecision(4) << readResult.iterationCount.value() << std::endl;
-			std::cout << enumToString<result_type::read>() + " Coefficient of Variance (%): " << std::setprecision(4) << readResult.cv.value() << std::endl;
-		}
-		if (writeResult.byteLength.has_value() && writeResult.jsonSpeed.has_value()) {
-			std::cout << enumToString<result_type::write>() + " Speed (MB/S): " << std::setprecision(6) << writeResult.jsonSpeed.value() << std::endl;
-#if !defined(JSONIFIER_MAC) 
-			std::cout << enumToString<result_type::write>() + " Speed (Cycles/MB): " << std::setprecision(6)
-					  << writeResult.getResultValueCyclesMb(writeResult.jsonTime.value(), writeResult.byteLength.value()) << std::endl;
-#endif
-			std::cout << enumToString<result_type::write>() + " Length (Bytes): " << writeResult.byteLength.value() << std::endl;
-			std::cout << enumToString<result_type::write>() + " Runtime (ns): " << std::setprecision(6) << writeResult.jsonTime.value() << std::endl;
-			std::cout << enumToString<result_type::write>() + " Iteration Count: " << std::setprecision(4) << writeResult.iterationCount.value() << std::endl;
-			std::cout << enumToString<result_type::write>() + " Coefficient of Variance (%): " << std::setprecision(4) << writeResult.cv.value() << std::endl;
-		}
-		std::cout << "\n---" << std::endl;
-	}
-
 	std::string jsonStats() const noexcept {
-		std::string writeLength{};
-		std::string writeTime{};
-		std::string writeIterationCount{};
-		std::string writeCv{};
-		std::string write{};
-		std::string write02{};
-		std::string readLength{};
-		std::string readTime{};
-		std::string readIterationCount{};
-		std::string readCv{};
-		std::string read{};
-		std::string read02{};
 		std::string finalString{ "| [" + name + "](" + url + ") | " };
 		if (readResult.jsonTime.has_value() && readResult.byteLength.has_value()) {
-#if !defined(JSONIFIER_MAC)
-			std::stringstream stream00{};
-			stream00 << std::setprecision(6) << readResult.getResultValueCyclesMb(readResult.jsonTime.value(), readResult.byteLength.value());
-			read02 = stream00.str();
-#endif
-			std::stringstream stream01{};
-			stream01 << std::setprecision(6) << readResult.jsonSpeed.value();
-			read = stream01.str();
-			std::stringstream stream02{};
-			stream02 << readResult.byteLength.value();
-			readLength = stream02.str();
-			std::stringstream stream03{};
-			stream03 << std::setprecision(6) << readResult.jsonTime.value();
-			readTime = stream03.str();
-			std::stringstream stream04{};
-			stream04 << std::setprecision(4) << readResult.iterationCount.value();
-			readIterationCount = stream04.str();
-			finalString += read + " | ";
-#if !defined(JSONIFIER_MAC)
-			finalString += read02 + " | ";
-#endif
-			finalString += readLength + " | " + readTime + " | " + readIterationCount + " | ";
+			std::ostringstream finalStream{};
+			finalStream << std::setprecision(6) << readResult.jsonSpeed.value() << " | " << std::setprecision(6) << readResult.jsonSpeedVariation.value() << " | ";
+			if (readResult.jsonCycles.has_value()) {
+				finalStream << std::setprecision(6) << readResult.jsonCycles.value();
+			}
+			finalStream << readResult.byteLength.value() << " | " << std::setprecision(6) << readResult.jsonTime.value() << " | ";
+			finalString += finalStream.str();
 		}
-		if (writeResult.jsonTime.has_value() && writeResult.byteLength.has_value()) {			
-#if !defined(JSONIFIER_MAC) 
-			std::stringstream stream00{};
-			stream00 << std::setprecision(6) << writeResult.getResultValueCyclesMb(writeResult.jsonTime.value(), writeResult.byteLength.value());
-			write02 = stream00.str();
-#endif
-			std::stringstream stream01{};
-			stream01 << std::setprecision(6) << writeResult.jsonSpeed.value();
-			write = stream01.str();
-			std::stringstream stream02{};
-			stream02 << writeResult.byteLength.value();
-			writeLength = stream02.str();
-			std::stringstream stream03{};
-			stream03 << std::setprecision(6) << writeResult.jsonTime.value();
-			writeTime = stream03.str();
-			std::stringstream stream04{};
-			stream04 << std::setprecision(4) << writeResult.iterationCount.value();
-			writeIterationCount = stream04.str();
-			finalString += write + " | ";
-#if !defined(JSONIFIER_MAC)
-			finalString += write02 + " | ";
-#endif
-			finalString += writeLength + " | " + writeTime + " | " + writeIterationCount + " | ";
+		if (writeResult.jsonTime.has_value() && writeResult.byteLength.has_value()) {
+			std::ostringstream finalStream{};
+			finalStream << std::setprecision(6) << writeResult.jsonSpeed.value() << " | " << std::setprecision(6) << writeResult.jsonSpeedVariation.value() << " | ";
+			if (writeResult.jsonCycles.has_value()) {
+				finalStream << std::setprecision(6) << writeResult.jsonCycles.value();
+			}
+			finalStream << writeResult.byteLength.value() << " | " << std::setprecision(6) << writeResult.jsonTime.value() << " | ";
+			finalString += finalStream.str();
 		}
 		return finalString;
 	}
@@ -456,3 +469,14 @@ struct test_results {
 	std::string testName{};
 };
 
+std::tm getTime() {
+#if defined(JSONIFIER_WIN)
+	std::time_t result = std::time(nullptr);
+	std::tm resultTwo{};
+	localtime_s(&resultTwo, &result);
+	return resultTwo;
+#else
+	std::time_t result = std::time(nullptr);
+	return *localtime(&result);
+#endif
+}
