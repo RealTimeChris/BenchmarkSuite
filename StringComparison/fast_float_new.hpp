@@ -1175,13 +1175,7 @@ namespace fast_float_new {
 	}
 
 	fastfloat_really_inline constexpr void loop_parse_if_digits(const char*& p, const char* const pend, size_t& i) noexcept {
-		if (pend - p < 8) {
-			while (p < pend && is_integer(*p)) {
-				i = i * 10 + static_cast<uint8_t>(*p - '0');
-				++p;
-			}
-			return;
-		} else if (pend - p >= 16) {
+		if (pend - p >= 16) {
 			if (parse_if_eight_digits_unrolled(p, i)) {
 				if (parse_if_eight_digits_unrolled(p, i)) {
 					while (pend - p >= 8 && parse_if_eight_digits_unrolled(p, i)) {
