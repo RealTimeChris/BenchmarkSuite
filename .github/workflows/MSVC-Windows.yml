@@ -5,7 +5,7 @@ on:
   push:
     branches:
     - main
-    - NewTest
+    - is_digit_comparisons
 
 jobs:
   Build:

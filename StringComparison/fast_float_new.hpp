@@ -1,5 +1,5 @@
 // fast_float_new by Daniel Lemire
-// fast_float_new by Jo„o Paulo Magalhaes
+// fast_float_new by Jo√£o Paulo Magalhaes
 //
 //
 // with contributions from Eugene Golushkov
@@ -8,7 +8,7 @@
 // with contributions from Neal Richardson
 // with contributions from Tim Paine
 // with contributions from Fabio Pellacini
-// with contributions from LÈn·rd Szolnoki
+// with contributions from L√©n√°rd Szolnoki
 // with contributions from Jan Pharago
 // with contributions from Maya Warrier
 // with contributions from Taha Khokhar
@@ -964,6 +964,29 @@ namespace fast_float_new {
 #endif
 	}
 
+	constexpr auto digi_table{ [] {
+		std::array<uint8_t, 256> return_values{};
+		return_values.fill(std::numeric_limits<uint8_t>::max());
+		return_values['0'] = 0;
+		return_values['1'] = 1;
+		return_values['2'] = 2;
+		return_values['3'] = 3;
+		return_values['4'] = 4;
+		return_values['5'] = 5;
+		return_values['6'] = 6;
+		return_values['7'] = 7;
+		return_values['8'] = 8;
+		return_values['9'] = 9;
+		return return_values;
+	}() };
+
+	template<typename UC> fastfloat_really_inline constexpr uint8_t is_integer_and_add(UC c, size_t& val) noexcept {
+		size_t digit = static_cast<size_t>(c - '0');
+		size_t mask	 = (digit < 10) * 10 + (digit >= 10);
+		val			 = val * mask + (digit * (mask != 1));
+		return mask == 10;
+	}
+
 	fastfloat_really_inline constexpr uint64_t byteswap(uint64_t val) {
 		return (val & 0xFF00000000000000) >> 56 | (val & 0x00FF000000000000) >> 40 | (val & 0x0000FF0000000000) >> 24 | (val & 0x000000FF00000000) >> 8 |
 			(val & 0x00000000FF000000) << 8 | (val & 0x0000000000FF0000) << 24 | (val & 0x000000000000FF00) << 40 | (val & 0x00000000000000FF) << 56;
@@ -1077,7 +1100,7 @@ namespace fast_float_new {
 
 	// credit @aqrit
 	fastfloat_really_inline constexpr bool is_made_of_eight_digits_fast(uint64_t val) noexcept {
-		return !((((val + 0x4646464646464646) | (val - 0x3030303030303030)) & 0x8080808080808080));
+		return !((((val + 0x7676767676767676) | (val)) & 0x8080808080808080));
 	}
 
 #ifdef FASTFLOAT_NEW_ORIG_HAS_SIMD
@@ -1157,7 +1180,135 @@ namespace fast_float_new {
 		}
 	}
 
-	fastfloat_really_inline constexpr bool parse_if_eight_digits_unrolled(const char*& string, size_t& value) {
+	static constexpr size_t pow10Table[]{ 1ull, 10ull, 100ull, 1000ull, 10000ull, 100000ull, 1000000ull, 10000000ull, 100000000ull, 1000000000ull, 10000000000ull,
+		100000000000ull };
+
+	struct parse_x_digits_unrolled {
+		template<size_t size> JSONIFIER_ALWAYS_INLINE static size_t loadInternal(const char* string) noexcept {
+			if constexpr (size == 8) {
+				size_t value;
+				std::memcpy(&value, string, 8);
+				return value - 0x3030303030303030ull;
+			} else if constexpr (size == 7) {
+				size_t value;
+				std::memcpy(&value, string, 7);
+				return value - 0x30303030303030;
+			} else if constexpr (size == 6) {
+				size_t value;
+				std::memcpy(&value, string, 6);
+				return value - 0x303030303030;
+			} else if constexpr (size == 5) {
+				size_t value;
+				std::memcpy(&value, string, 5);
+				return value - 0x3030303030;
+			} else if constexpr (size == 4) {
+				uint32_t value;
+				std::memcpy(&value, string, 4);
+				return value - 0x30303030;
+			} else if constexpr (size == 3) {
+				uint32_t value;
+				std::memcpy(&value, string, 3);
+				return value - 0x30303030;
+			} else if constexpr (size == 2) {
+				uint16_t value;
+				std::memcpy(&value, string, 2);
+				return value - 0x3030;
+			} else if constexpr (size == 1) {
+				return string[0] - 0x30;
+			} else {
+				return {};
+			}
+		}
+
+		template<size_t size> JSONIFIER_ALWAYS_INLINE static bool checkInternal(size_t val) {
+			if constexpr (size == 8) {
+				return !((((val + 0x7676767676767676) | (val)) & 0x8080808080808080));
+			} else if constexpr (size == 7) {
+				return !((((val + 0x76767676767676) | (val)) & 0x80808080808080));
+			} else if constexpr (size == 6) {
+				return !((((val + 0x767676767676) | (val)) & 0x808080808080));
+			} else if constexpr (size == 5) {
+				return !((((val + 0x7676767676) | (val)) & 0x8080808080));
+			} else if constexpr (size == 4) {
+				return !((((val + 0x76767676) | (val)) & 0x80808080));
+			} else if constexpr (size == 3) {
+				return !((((val + 0x767676) | (val)) & 0x808080));
+			} else if constexpr (size == 2) {
+				return !((((val + 0x7676) | (val)) & 0x8080));
+			} else if constexpr (size == 1) {
+				return !((((val + 0x76) | (val)) & 0x80));
+			} else {
+				return {};
+			}
+		}
+
+		template<size_t size> JSONIFIER_ALWAYS_INLINE static uint32_t parseInternal(size_t val) {
+			constexpr size_t mask = 0x000000FF000000FF;
+			if constexpr (size == 8) {
+				constexpr size_t mul1 = 0x000F424000000064;
+				constexpr size_t mul2 = 0x0000271000000001;
+				val					  = (val * 10) + (val >> 8);
+				val					  = (((val & mask) * mul1) + (((val >> 16) & mask) * mul2)) >> 32;
+				return static_cast<uint32_t>(val);
+			} else if constexpr (size == 7) {
+				constexpr size_t mul1 = 10ULL + (100000ULL << 32ULL);
+				constexpr size_t mul2 = 1000ULL << 32ULL;
+				uint8_t spare		  = static_cast<uint8_t>((val >> 48) & 0xFF);
+				val					  = (val * 10ULL) + (val >> 8ULL);
+				val					  = (((val & mask) * mul1) + (((val >> 16ULL) & mask) * mul2)) >> 32ULL;
+				return static_cast<uint32_t>(val) + spare;
+			} else if constexpr (size == 6) {
+				constexpr size_t mul1 = 1ULL + (10000ULL << 32ULL);
+				constexpr size_t mul2 = 100ULL << 32ULL;
+				val					  = (val * 10ULL) + (val >> 8ULL);
+				val					  = (((val & mask) * mul1) + (((val >> 16ULL) & mask) * mul2)) >> 32ULL;
+				return static_cast<uint32_t>(val);
+			} else if constexpr (size == 5) {
+				constexpr size_t mul1 = (1000ULL << 32ULL);
+				constexpr size_t mul2 = 10ULL << 32ULL;
+				uint8_t spare		  = static_cast<uint8_t>((val >> 32) & 0xFF);
+				val					  = (val * 10ULL) + (val >> 8ULL);
+				val					  = (((val & mask) * mul1) + (((val >> 16ULL) & mask) * mul2)) >> 32ULL;
+				return static_cast<uint32_t>(val) + spare;
+			} else if constexpr (size == 4) {
+				constexpr size_t mul1 = (100ULL << 32ULL);
+				constexpr size_t mul2 = 1ULL << 32ULL;
+				val					  = (val * 10ULL) + (val >> 8ULL);
+				val					  = (((val & mask) * mul1) + (((val >> 16ULL) & mask) * mul2)) >> 32ULL;
+				return static_cast<uint32_t>(val);
+			} else if constexpr (size == 3) {
+				constexpr size_t mul1 = (10ULL << 32ULL);
+				constexpr size_t mul2 = 1ULL;
+				uint8_t spare		  = static_cast<uint8_t>((val >> 16) & 0xFF);
+				val					  = (val * 10ULL) + (val >> 8ULL);
+				val					  = (((val & mask) * mul1) + (((val >> 16ULL) & mask) * mul2)) >> 32ULL;
+				return static_cast<uint32_t>(val) + spare;
+			} else if constexpr (size == 2) {
+				constexpr size_t mul1 = (1ULL << 32ULL);
+				val					  = (val * 10ULL) + (val >> 8ULL);
+				val					  = ((val & mask) * mul1) >> 32ULL;
+				return static_cast<uint32_t>(val);
+			} else if constexpr (size == 1) {
+				return val & 0xff;
+			} else {
+				return {};
+			}
+		}
+
+		template<size_t size> JSONIFIER_ALWAYS_INLINE static bool implInternal(const char*& string, size_t& value) {
+			size_t valueNew{ loadInternal<size>(string) };
+			static constexpr auto multiplier{ pow10Table[size] };
+			if (checkInternal<size>(valueNew)) {
+				value = value * multiplier + parseInternal<size>(valueNew);
+				string += size;
+				return true;
+			} else {
+				return false;
+			}
+		}
+	};
+
+	template<typename UC> fastfloat_really_inline constexpr bool parse_if_eight_digits_unrolled(UC const *& string, size_t& value) {
 		constexpr size_t byte_mask			 = ~size_t(0) / 255ull;
 		constexpr size_t msb_mask			 = byte_mask * 128ull;
 		constexpr size_t threshold_byte_mask = byte_mask * (127ull - 9ull);
@@ -1174,19 +1325,43 @@ namespace fast_float_new {
 		return false;
 	}
 
-	fastfloat_really_inline constexpr void loop_parse_if_digits(const char*& p, const char* const pend, size_t& i) noexcept {
-		if (pend - p >= 16) {
-			if (parse_if_eight_digits_unrolled(p, i)) {
-				if (parse_if_eight_digits_unrolled(p, i)) {
-					while (pend - p >= 8 && parse_if_eight_digits_unrolled(p, i)) {
-					}
-				}
-			}
-		} else if (pend - p >= 8) {
-			if (parse_if_eight_digits_unrolled(p, i)) {
-				while (pend - p >= 8 && parse_if_eight_digits_unrolled(p, i)) {
-				}
-			}
+	fastfloat_really_inline constexpr uint64_t parse_eight_digits_unrolled_new(uint64_t value_new) {
+		constexpr size_t mask = 0x000000FF000000FFull;
+		constexpr size_t mul1 = 0x000F424000000064ull;
+		constexpr size_t mul2 = 0x0000271000000001ull;
+		value_new = (value_new * 10) + (value_new >> 8);
+		return ((((value_new & mask) * mul1) + (((value_new >> 16) & mask) * mul2)) >> 32);
+	}
+
+	template<typename UC> fastfloat_really_inline constexpr bool parse_if_four_digits_unrolled(UC const*& string, size_t& value) {
+		constexpr size_t byte_mask			 = ~size_t(0) / 255ull;
+		constexpr size_t msb_mask			 = byte_mask * 128ull & 0xFFFFFFFF;
+		constexpr size_t threshold_byte_mask = byte_mask * (127ull - 9ull);
+		constexpr size_t mask				 = 0x000000FF000000FFull;
+		constexpr size_t mul1				 = (100ULL << 32ULL);
+		constexpr size_t mul2				 = 1ULL << 32ULL;
+		size_t value_new					 = read4_to_u32(string) - 0x3030303030303030;
+		if (!(((value_new + threshold_byte_mask) | value_new) & msb_mask)) {
+			value_new = (value_new * 10) + (value_new >> 8);
+			value	  = value * 10000 + ((((value_new & mask) * mul1) + (((value_new >> 16ULL) & mask) * mul2)) >> 32ULL);
+			string += 4;
+			return true;
+		}
+		return false;
+	} 
+
+	fastfloat_really_inline constexpr bool is_made_of_eight_digits_faster(uint64_t val) {
+		return !((val + 0x7676767676767676 | val) & 0x8080808080808080);
+	}
+	
+	template<typename UC> fastfloat_really_inline constexpr void loop_parse_if_digits(UC const*& p, UC const* const pend, size_t& i) noexcept {
+		uint64_t val;
+		while (pend - p >= 8 && (val = read8_to_u64(p) - 0x3030303030303030ull, is_made_of_eight_digits_faster(val))) {
+			i = i * 100000000 + parse_eight_digits_unrolled_new(val);
+			p += 8;
+		}
+		if (pend - p >= 4) {
+			parse_if_four_digits_unrolled(p, i);
 		}
 		while (p < pend && is_integer(*p)) {
 			i = i * 10 + static_cast<uint8_t>(*p - '0');
@@ -4263,7 +4438,7 @@ namespace fast_float_new {
 				}
 			} else {
 				// We do not have that fegetround() == FE_TONEAREST.
-				// Next is a modified Clinger's fast path, inspired by Jakub JelÌnek's
+				// Next is a modified Clinger's fast path, inspired by Jakub Jel√≠nek's
 				// proposal
 				if (pns.exponent >= 0 && pns.mantissa <= binary_format<T>::max_mantissa_fast_path(pns.exponent)) {
 #if defined(__clang__) || defined(FASTFLOAT_NEW_ORIG_32BIT)

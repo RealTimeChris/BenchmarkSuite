@@ -7,6 +7,15 @@
 #include "Tests/Jsonifier.hpp"
 #include "fast_float.h"
 #include "fast_float_new.hpp"
+#include "Benchmarks/event_counter.h"
+
+template<typename UC> JSONIFIER_ALWAYS_INLINE bool is_digit01(UC c) {
+	return static_cast<uint8_t>(c - UC('0')) < 10;
+}
+
+template<typename UC> fastfloat_really_inline constexpr bool is_integer(UC c) noexcept {
+	return !(c > UC('9') || c < UC('0'));
+}
 
 template<size_t digitCount, size_t length, jsonifier_internal::string_literal testStageNew, jsonifier_internal::string_literal testNameNew>
 JSONIFIER_ALWAYS_INLINE void parseFunction() {
@@ -21,17 +30,16 @@ JSONIFIER_ALWAYS_INLINE void parseFunction() {
 	newerUints02.resize(1024 * 128);
 	newerUints01.resize(1024 * 128);
 
-	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "fast_float::loop_parse_if_eight_digits",
+	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "is_integer",
 		"dodgerblue">([&]() mutable {
 		for (size_t x = 0; x < 1024 * 128; ++x) {
 			uint64_t value{};
 			const auto* iter = newUints[x].data();
 			const auto* end	 = iter + newUints[x].size();
 			fast_float_orig::loop_parse_if_eight_digits(iter, end, value);
-			while ((iter != end) && fast_float_orig::is_integer(*iter)) {
-				uint8_t digit = uint8_t(*iter - char('0'));
+			while ((iter != end) ) {
+				value += is_integer(*iter);
 				++iter;
-				value = value * 10 + digit;// in rare cases, this will overflow, but that's ok
 			}
 			newerUints01[x] = value;
 			bnch_swt::doNotOptimizeAway(value);
@@ -41,10 +49,14 @@ JSONIFIER_ALWAYS_INLINE void parseFunction() {
 	bnch_swt::benchmark_stage<testStage, bnch_swt::bench_options{ .type = bnch_swt::result_type::time }>::template runBenchmark<testName, "fast_float_new::loop_parse_if_digits",
 		"dodgerblue">([&]() mutable {
 		for (size_t x = 0; x < 1024 * 128; ++x) {
-			size_t value{};
+			uint64_t value{};
 			const auto* iter = newUints[x].data();
 			const auto* end	 = iter + newUints[x].size();
-			fast_float_new::loop_parse_if_digits(iter, end, value);
+			fast_float_orig::loop_parse_if_eight_digits(iter, end, value);
+			while ((iter != end)) {
+				value += is_digit01(*iter);
+				++iter;
+			}
 			newerUints02[x] = value;
 			bnch_swt::doNotOptimizeAway(value);
 		}
@@ -61,6 +73,11 @@ JSONIFIER_ALWAYS_INLINE void parseFunction() {
 }
 
 int main() {
+	event_collector counter{};
+	counter.start();
+	uint32_t valueNew{};
+	auto results = counter.end();
+	std::cout << "CURRENT RESULTS: " << results.cycles() << std::endl;
 	parseFunction<1, 1, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-for-length-1-and-digit-count-1",
 		"fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-for-length-1-and-digit-count-1">();
 	parseFunction<2, 2, "fast_float_new::loop_parse_if_digits-vs-fast_float::loop_parse_if_eight_digits-for-length-2-and-digit-count-2",
