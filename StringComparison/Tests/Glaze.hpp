@@ -256,13 +256,6 @@ template<> struct glz::meta<test<test_struct>> {
 		&value_type::s, &value_type::t, &value_type::u, &value_type::v, &value_type::w, &value_type::x, &value_type::y, &value_type::z);
 };
 
-template<> struct glz::meta<test_generator<test_struct>> {
-	using value_type			= test_generator<test_struct>;
-	static constexpr auto value = object(&value_type::a, &value_type::b, &value_type::c, &value_type::d, &value_type::e, &value_type::f, &value_type::g, &value_type::h,
-		&value_type::i, &value_type::j, &value_type::k, &value_type::l, &value_type::m, &value_type::n, &value_type::o, &value_type::p, &value_type::q, &value_type::r,
-		&value_type::s, &value_type::t, &value_type::u, &value_type::v, &value_type::w, &value_type::x, &value_type::y, &value_type::z);
-};
-
 template<> struct glz::meta<abc_test<test_struct>> {
 	using value_type			= abc_test<test_struct>;
 	static constexpr auto value = object(&value_type::z, &value_type::y, &value_type::x, &value_type::w, &value_type::v, &value_type::u, &value_type::t, &value_type::s,

@@ -81,6 +81,7 @@ target_compile_options(
 	"$<$<CXX_COMPILER_ID:CLANG>:-march=native>"
 	"$<$<CXX_COMPILER_ID:MSVC>:/permissive->"
 	"$<$<CXX_COMPILER_ID:GNU>:-march=native>"
+	"$<$<CXX_COMPILER_ID:MSV>:/arch:AVX2>"
 	"$<$<CXX_COMPILER_ID:CLANG>:-std=c++23>"
 	"$<$<CXX_COMPILER_ID:MSVC>:/Zc:lambda>"
 	"$<$<CXX_COMPILER_ID:GNU>:-std=c++23>"
@@ -99,13 +100,6 @@ target_compile_definitions(
 	"${PROJECT_NAME}" INTERFACE
 	"JSON_BASE_PATH=\"${CMAKE_SOURCE_DIR}\""
 )
-
-if (NOT "${CPU_FREQUENCY_MHZ}" STREQUAL "")
-	target_compile_definitions(
-		"${PROJECT_NAME}" INTERFACE
-		"CPU_FREQUENCY_MHZ=${CPU_FREQUENCY_MHZ}"
-	)
-endif()
 
 set(CONFIG_FILE_NAME "BenchmarkSuiteConfig.cmake")
 set(EXPORTED_TARGETS_NAME "BenchmarkSuiteTargets")
