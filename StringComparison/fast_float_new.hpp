@@ -957,7 +957,11 @@ namespace fast_float_new {
 	// Next function can be micro-optimized, but compilers are entirely
 	// able to optimize it well.
 	template<typename UC> fastfloat_really_inline constexpr bool is_integer(UC c) noexcept {
+		#if defined(_MSC_VER)
 		return static_cast<uint8_t>(c - '0') < 10;
+		#else
+		return !(c > UC('9') || c < UC('0'));
+		#endif
 	}
 
 	fastfloat_really_inline constexpr uint64_t byteswap(uint64_t val) {
