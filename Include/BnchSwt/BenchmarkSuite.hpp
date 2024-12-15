@@ -35,6 +35,7 @@
 #include <BnchSwt/Config.hpp>
 #include <unordered_map>
 #include <unordered_set>
+#include <string_view>
 #include <filesystem>
 #include <algorithm>
 #include <iostream>
@@ -95,10 +96,12 @@ namespace bnch_swt {
 
 	struct performance_metrics {
 		std::optional<double> instructionsPercentageDeviation{};
+		std::optional<double> cacheReferencesPerExecution{};
 		std::optional<double> cyclesPercentageDeviation{};
+		std::optional<uint64_t> measuredIterationCount{};
 		std::optional<double> instructionsPerExecution{};
 		std::optional<double> branchMissesPerExecution{};
-		std::optional<uint64_t> measuredIterationCount{};
+		std::optional<double> cacheMissesPerExecution{};
 		std::optional<uint64_t> totalIterationCount{};
 		std::optional<double> instructionsPerCycle{};
 		std::optional<double> branchesPerExecution{};
@@ -135,17 +138,17 @@ namespace bnch_swt {
 		return escaped.str();
 	}
 
-	template<string_literal stageNameNew, uint64_t maxExecutionCount = 100> struct benchmark_stage {
-		static constexpr auto addAmount{ maxExecutionCount % 2 == 0 ? 0 : 1 };
+	template<string_literal stageNameNew, uint64_t maxExecutionCountNew = 100> struct benchmark_stage {
+		static constexpr auto maxExecutionCount{ maxExecutionCountNew < 2 ? 2 : maxExecutionCountNew };
 		inline static std::unordered_map<std::string, performance_metrics> results{};
 		inline static std::vector<event_count> measuredEventsNew{ [] {
 			std::vector<event_count> returnValues{};
-			returnValues.resize((maxExecutionCount + addAmount) / 2);
+			returnValues.resize((maxExecutionCount) / 2);
 			return returnValues;
 		}() };
 		inline static std::vector<event_count> eventsNew{ [] {
 			std::vector<event_count> returnValues{};
-			returnValues.resize(maxExecutionCount + addAmount);
+			returnValues.resize(maxExecutionCount);
 			return returnValues;
 		}() };
 
@@ -167,7 +170,7 @@ namespace bnch_swt {
 			}
 			if (resultsNew.size() > 0) {
 				std::sort(resultsNew.begin(), resultsNew.end(), std::greater<performance_metrics>{});
-				std::cout << "Performance Metrics for: " << stageNameNew.view() << "\n";
+				std::cout << "Performance Metrics for: " << stageNameNew.operator std::string_view() << "\n";
 				for (auto& value: resultsNew) {
 					std::cout << "Metrics for: " << value.name << "\n";
 					std::cout << std::fixed << std::setprecision(2);
@@ -190,6 +193,8 @@ namespace bnch_swt {
 					printMetric("Instructions per Cycle", value.instructionsPerCycle);
 					printMetric("Instructions per Byte", value.instructionsPerByte);
 					printMetric("Branches per Execution", value.branchesPerExecution);
+					printMetric("Cache References per Execution", value.cacheReferencesPerExecution);
+					printMetric("Cache Misses per Execution", value.cacheMissesPerExecution);
 					printMetric("Branch Misses per Execution", value.branchMissesPerExecution);
 					printMetric("Cycles per Execution", value.cyclesPerExecution);
 					printMetric("Cycles Percentage Deviation (+/-%)", value.cyclesPercentageDeviation);
@@ -210,7 +215,7 @@ namespace bnch_swt {
 					}
 				}
 			} else {
-				std::cout << "Not enough data for benchmark stage: " << stageNameNew.view() << "\n";
+				std::cout << "Not enough data for benchmark stage: " << stageNameNew.operator std::string_view() << "\n";
 			}
 		}
 
@@ -229,7 +234,8 @@ namespace bnch_swt {
 			std::string subjectNameNewer{ subjectName.data(), subjectName.size() };
 			event_collector collector{};
 			std::string colorName{ color.data(), color.size() };
-
+			static_assert(std::convertible_to<std::invoke_result_t<execution_function_type, arg_types...>, size_t>,
+				"Sorry, but the lambda must return a size_t, reflecting the number of bytes processed!");
 			auto prepLambda = [=]() mutable {
 				return std::forward<prep_function_type>(prepFunctionNew)();
 			};
@@ -241,9 +247,9 @@ namespace bnch_swt {
 			performance_metrics resultsTemp{};
 			uint64_t i{};
 			warmupThread();
-			while ((variation > threshold && i < maxExecutionCount + addAmount)) {
-				cache_clearer::evictL1Cache();
+			while ((variation > threshold && i < maxExecutionCount)) {
 				prepLambda();
+				cache_clearer::evictL1Cache();
 				eventsNew[i] = collector.start(executionLambda);
 				if ((i % (maxExecutionCount / 2) == 0 && i > 0) || maxExecutionCount < 2) {
 					resultsTemp = collectMetrics<subjectName>(i, maxExecutionCount / 2);
@@ -255,10 +261,12 @@ namespace bnch_swt {
 			return results[static_cast<std::string>(subjectName)];
 		}
 
-		template<string_literal subjectNameNew, string_literal colorNew, typename function_type, typename... arg_types>
+		template<string_literal subjectNameNew, string_literal colorNew, typename function_type, not_invocable... arg_types>
 		BNCH_SWT_ALWAYS_INLINE static const performance_metrics& runBenchmark(function_type&& functionNew, arg_types&&... args) {
 			static constexpr string_literal subjectName{ subjectNameNew };
 			static constexpr string_literal color{ colorNew };
+			static_assert(std::convertible_to<std::invoke_result_t<function_type, arg_types...>, size_t>,
+				"Sorry, but the lambda must return a size_t, reflecting the number of bytes processed!");
 			std::string subjectNameNewer{ subjectName.data(), subjectName.size() };
 			event_collector collector{};
 			std::string colorName{ color.data(), color.size() };
@@ -270,17 +278,17 @@ namespace bnch_swt {
 			performance_metrics resultsTemp{};
 			uint64_t i{};
 			warmupThread();
-			while ((variation > threshold && i < maxExecutionCount + addAmount)) {
+			while ((variation > threshold && i < maxExecutionCount)) {
 				cache_clearer::evictL1Cache();
 				eventsNew[i] = collector.start(executionLambda);
-				if ((i % (maxExecutionCount / 2) == 0 && i > 0) || maxExecutionCount < 2) {
+				if ((i % (maxExecutionCount / 2) == 0 && i > 0)) {
 					resultsTemp = collectMetrics<subjectName>(i, maxExecutionCount / 2);
 					variation	= resultsTemp.throughputPercentageDeviation;
 				}
 				++i;
 			}
-			results[static_cast<std::string>(subjectName)] = resultsTemp;
-			return results[static_cast<std::string>(subjectName)];
+			results[subjectName.operator std::string()] = resultsTemp;
+			return results[subjectName.operator std::string()];
 		}
 
 		template<string_literal benchmarkNameNew> BNCH_SWT_ALWAYS_INLINE static performance_metrics collectMetrics(uint64_t offset, uint64_t measuredIterationCount) {
@@ -291,16 +299,22 @@ namespace bnch_swt {
 			metrics.totalIterationCount.emplace(offset);
 			eventsNew[offset].bytesProcessed(metrics.bytesProcessed);
 			double volumeMB{ static_cast<double>(metrics.bytesProcessed) / (1024. * 1024.) };
-			double averageNs{ 0 };
+			double averageNs{};
 			double minNs{ std::numeric_limits<double>::max() };
 			double cyclesMin{ std::numeric_limits<double>::max() };
 			double instructionsMin{ std::numeric_limits<double>::max() };
-			double cyclesAvg{ 0 };
-			double instructionsAvg{ 0 };
-			double branchesMin{ 0 };
-			double branchesAvg{ 0 };
+			double cacheReferencesAvg{};
+			double cacheReferencesMin{};
+			double instructionsAvg{};
+			double cacheMissesAvg{};
+			double cacheMissesMin{};
+			double cacheReferences{};
+			double cacheMisses{};
+			double branchesMin{};
+			double branchesAvg{};
+			double cyclesAvg{};
 			double missedBranchesMin{ std::numeric_limits<double>::max() };
-			double missedBranchesAvg{ 0 };
+			double missedBranchesAvg{};
 			double cycles{};
 			double instructions{};
 			double branches{};
@@ -310,6 +324,14 @@ namespace bnch_swt {
 				double ns = e.elapsedNs();
 				averageNs += ns;
 				minNs = minNs < ns ? minNs : ns;
+
+				e.cacheMisses(cacheMisses);
+				cacheMissesAvg += cacheMisses;
+				cacheMissesMin = cacheMissesMin < cacheMisses ? cacheMissesMin : cacheMisses;
+
+				e.cacheReferences(cacheReferences);
+				cacheReferencesAvg += cacheReferences;
+				cacheReferencesMin = cacheReferencesMin < cacheReferences ? cacheReferencesMin : cacheReferences;
 
 				e.cycles(cycles);
 				cyclesAvg += cycles;
@@ -331,6 +353,8 @@ namespace bnch_swt {
 			cyclesAvg /= static_cast<double>(measuredIterationCount);
 			instructionsAvg /= static_cast<double>(measuredIterationCount);
 			averageNs /= static_cast<double>(measuredIterationCount);
+			cacheMissesAvg /= static_cast<double>(measuredIterationCount);
+			cacheReferencesAvg /= static_cast<double>(measuredIterationCount);
 			branchesAvg /= static_cast<double>(measuredIterationCount);
 			metrics.throughputMbPerSec			  = volumeMB * 1000000000 / averageNs;
 			metrics.throughputPercentageDeviation = (averageNs - minNs) * 100.0 / averageNs;
@@ -349,6 +373,12 @@ namespace bnch_swt {
 			if (branchesAvg != 0.0f) {
 				metrics.branchMissesPerExecution.emplace(missedBranchesAvg / static_cast<double>(measuredIterationCount));
 				metrics.branchesPerExecution.emplace(branchesAvg / static_cast<double>(measuredIterationCount));
+			}
+			if (cacheMissesAvg != 0.0f) {
+				metrics.cacheMissesPerExecution.emplace(cacheMissesAvg / static_cast<double>(measuredIterationCount));
+			}
+			if (cacheReferencesAvg != 0.0f) {
+				metrics.cacheReferencesPerExecution.emplace(cacheReferencesAvg / static_cast<double>(measuredIterationCount));
 			}
 			return metrics;
 		}
