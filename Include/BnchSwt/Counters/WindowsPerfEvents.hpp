@@ -43,11 +43,11 @@ namespace bnch_swt {
 	template<typename event_count> struct event_collector_type {
 		template<typename function_type, typename... arg_types> BNCH_SWT_ALWAYS_INLINE event_count start(function_type&& function, arg_types&&... args) {
 			event_count count{};
-			const auto startClock		 = clock_type::now();
 			volatile uint64_t cycleStart = rdtsc();
+			const auto startClock		 = clock_type::now();
 			count.bytesProcessedVal.emplace(std::forward<function_type>(function)(std::forward<arg_types>(args)...));
-			volatile uint64_t cycleEnd = rdtsc();
 			const auto endClock		   = clock_type::now();
+			volatile uint64_t cycleEnd = rdtsc();
 			count.cyclesVal.emplace(cycleEnd - cycleStart);
 			count.elapsed = endClock - startClock;
 			return count;

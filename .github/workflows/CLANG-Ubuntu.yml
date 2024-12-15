@@ -5,6 +5,7 @@ on:
   push:
     branches:
     - main
+    - compile-time-trie
 
 jobs:
   Build:
