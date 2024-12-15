@@ -29,22 +29,73 @@
 #if defined(BNCH_SWT_WIN)
 	#include <Windows.h>
 
+	#if defined(small)
+		#undef small
+	#endif
+
 #elif defined(BNCH_SWT_LINUX)
-	#include <xmmintrin.h>
+	#include <unistd.h>
 	#include <fstream>
+	#include <vector>
 	#include <string>
 
 #elif defined(BNCH_SWT_MAC)
-	#include <mach/mach_time.h>
+	#include <libkern/OSCacheControl.h>
 	#include <sys/sysctl.h>
+	#include <unistd.h>
+	#include <vector>
 #endif
 
-namespace bnch_swt {
+namespace bnch_swt::internal {
 
+	enum class cache_level {
+		one	  = 1,
+		two	  = 2,
+		three = 3,
+	};
+
+	BNCH_SWT_INLINE size_t getCacheLineSize() {
 #if defined(BNCH_SWT_WIN)
-
-	BNCH_SWT_ALWAYS_INLINE size_t getL1CacheSize() {
 		DWORD bufferSize = 0;
+		GetLogicalProcessorInformation(nullptr, &bufferSize);
+		std::vector<SYSTEM_LOGICAL_PROCESSOR_INFORMATION> buffer(bufferSize / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION));
+		if (!GetLogicalProcessorInformation(buffer.data(), &bufferSize)) {
+			std::cerr << "Failed to retrieve processor information!" << std::endl;
+			return 0;
+		}
+
+		for (const auto& info: buffer) {
+			if (info.Relationship == RelationCache && info.Cache.Level == 1) {
+				return info.Cache.LineSize;
+			}
+		}
+#elif defined(BNCH_SWT_LINUX)
+		long lineSize = sysconf(_SC_LEVEL1_DCACHE_LINESIZE);
+		if (lineSize <= 0) {
+			std::cerr << "Failed to retrieve cache line size using sysconf!" << std::endl;
+			return 0;
+		}
+		return static_cast<size_t>(lineSize);
+#elif defined(BNCH_SWT_MAC)
+		size_t lineSize = 0;
+		size_t size		= sizeof(lineSize);
+		if (sysctlbyname("hw.cachelinesize", &lineSize, &size, nullptr, 0) != 0) {
+			std::cerr << "Failed to retrieve cache line size using sysctl!" << std::endl;
+			return 0;
+		}
+		return lineSize;
+#else
+		std::cerr << "Unsupported platform!" << std::endl;
+		return 0;
+#endif
+		return 0;
+	}
+
+	BNCH_SWT_INLINE size_t getCacheSize(cache_level level) {
+#if defined(BNCH_SWT_WIN)
+		DWORD bufferSize = 0;
+		cache_level cacheLevel{ level };
+		PROCESSOR_CACHE_TYPE cacheType{ level == cache_level::one ? PROCESSOR_CACHE_TYPE::CacheInstruction : PROCESSOR_CACHE_TYPE::CacheUnified };
 		std::vector<SYSTEM_LOGICAL_PROCESSOR_INFORMATION> buffer{};
 
 		GetLogicalProcessorInformation(nullptr, &bufferSize);
@@ -55,109 +106,149 @@ namespace bnch_swt {
 			return 0;
 		}
 
-		size_t l1CacheSize	 = 0;
-		const auto infoCount = bufferSize / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION);
-		for (size_t i = 0; i < infoCount; ++i) {
-			if (buffer[i].Relationship == RelationCache && buffer[i].Cache.Level == 1 && buffer[i].Cache.Type == CacheData) {
-				l1CacheSize = buffer[i].Cache.Size;
-				break;
+		size_t cacheSize = 0;
+		auto collectSize = [&](auto cacheLevelNew, auto cacheTypeNew) {
+			size_t cacheSizeNew{};
+			const auto infoCount = bufferSize / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION);
+			for (size_t i = 0; i < infoCount; ++i) {
+				if (buffer[i].Relationship == RelationCache && buffer[i].Cache.Level == static_cast<int32_t>(cacheLevelNew) && buffer[i].Cache.Type == cacheTypeNew) {
+					cacheSizeNew = buffer[i].Cache.Size;
+					break;
+				}
 			}
+			return cacheSizeNew;
+		};
+		if (level == cache_level::one) {
+			cacheSize += collectSize(cacheLevel, PROCESSOR_CACHE_TYPE::CacheData);
 		}
-
-		return l1CacheSize;
-	}
-
+		return cacheSize + collectSize(cacheLevel, cacheType);
 #elif defined(BNCH_SWT_LINUX)
+		size_t cacheSize = 0;
 
-	BNCH_SWT_ALWAYS_INLINE size_t getL1CacheSize() {
-		const std::string cache_file = "/sys/devices/system/cpu/cpu0/cache/index0/size";
-		std::ifstream file(cache_file);
-		if (!file.is_open()) {
-			std::cerr << "Failed to open cache info file: " << cache_file << std::endl;
-			return 0;
+		auto getCacheSizeFromFile = [](const std::string& cacheType) {
+			const std::string cacheFilePath = "/sys/devices/system/cpu/cpu0/cache/index" + cacheType + "/size";
+			std::ifstream file(cacheFilePath);
+			if (!file.is_open()) {
+				std::cerr << "Failed to open cache info file: " << cacheFilePath << std::endl;
+				return static_cast<size_t>(0);
+			}
+
+			std::string sizeStr;
+			file >> sizeStr;
+			file.close();
+
+			size_t size = 0;
+			if (sizeStr.back() == 'K') {
+				size = std::stoul(sizeStr) * 1024;
+			} else if (sizeStr.back() == 'M') {
+				size = std::stoul(sizeStr) * 1024 * 1024;
+			} else {
+				size = std::stoul(sizeStr);
+			}
+			return size;
+		};
+
+		if (level == cache_level::one) {
+			cacheSize += getCacheSizeFromFile("0");
+			cacheSize += getCacheSizeFromFile("1");
+		} else {
+			std::string index = (level == cache_level::two) ? "2" : "3";
+			cacheSize		  = getCacheSizeFromFile(index);
 		}
 
-		std::string size_str;
-		file >> size_str;
-		file.close();
-
-		if (size_str.back() == 'K') {
-			return std::stoi(size_str) * 1024;
-		} else if (size_str.back() == 'M') {
-			return std::stoi(size_str) * 1024 * 1024;
-		}
-
-		return std::stoi(size_str);
-	}
-
+		return cacheSize;
 #elif defined(BNCH_SWT_MAC)
+		auto getCacheSize = [](const std::string& cacheType) {
+			size_t cacheSizeNew = 0;
+			size_t size			= sizeof(cacheSizeNew);
 
-	BNCH_SWT_ALWAYS_INLINE size_t getL1CacheSize() {
-		size_t l1CacheSize = 0;
-		size_t size		   = sizeof(l1CacheSize);
+			std::string sysctlQuery = "hw." + cacheType + "cachesize";
+			if (sysctlbyname(sysctlQuery.c_str(), &cacheSizeNew, &size, nullptr, 0) != 0) {
+				return size_t{ 0 };
+			}
+			return cacheSizeNew;
+		};
 
-		if (sysctlbyname("hw.l1dcachesize", &l1CacheSize, &size, nullptr, 0) != 0) {
-			std::cerr << "Failed to retrieve L1 cache size using sysctl!" << std::endl;
-			return 0;
+		switch (level) {
+			case cache_level::one:
+				return getCacheSize("l1d") + getCacheSize("l1i");
+			case cache_level::two:
+				return getCacheSize("l2");
+			case cache_level::three: {
+				size_t l3Cache = getCacheSize("l3");
+				return l3Cache;
+			}
 		}
-
-		return l1CacheSize;
-	}
-
-#else
-
-	BNCH_SWT_ALWAYS_INLINE size_t getL1CacheSize() {
-		std::cerr << "L1 cache size detection is not supported on this platform!" << std::endl;
-		return 0;
-	}
 #endif
+	}
 
-	struct cache_clearer {
-		inline static size_t cacheLineSize = 64;
-		inline static size_t l1CacheSize{ getL1CacheSize() };
-
+	BNCH_SWT_INLINE static void flushCache(void* ptr, size_t size, size_t cacheLineSize, bool clearInstructionCache = false) {
 #if defined(BNCH_SWT_WIN)
-		BNCH_SWT_ALWAYS_INLINE static void flushCache(void* ptr, size_t size) {
-			char* buffer = static_cast<char*>(ptr);
-			for (size_t i = 0; i < size; i += cacheLineSize) {
-				_mm_clflush(buffer + i);
+		char* buffer = static_cast<char*>(ptr);
+		for (size_t i = 0; i < size; i += cacheLineSize) {
+			_mm_clflush(buffer + i);
+		}
+		_mm_sfence();
+
+		if (clearInstructionCache) {
+			if (!FlushInstructionCache(GetCurrentProcess(), buffer, size)) {
+				std::cerr << "Failed to flush instruction cache!" << std::endl;
 			}
-			_mm_sfence();
+		}
+#elif defined(BNCH_SWT_LINUX)
+		char* buffer = static_cast<char*>(ptr);
+		for (size_t i = 0; i < size; i += cacheLineSize) {
+			__builtin_ia32_clflush(buffer + i);
 		}
 
-#elif defined(BNCH_SWT_LINUX) || defined(BNCH_SWT_MAC)
-		BNCH_SWT_ALWAYS_INLINE static void flushCache(void* ptr, size_t size) {
-			char* buffer = static_cast<char*>(ptr);
-	#if defined(__x86_64__) || defined(__i386__)
-			for (size_t i = 0; i < size; i += cacheLineSize) {
-				__builtin_ia32_clflush(buffer + i);
-			}
-			_mm_sfence();
-	#elif defined(__arm__) || defined(__aarch64__)
-			for (size_t i = 0; i < size; i += cacheLineSize) {
-				asm volatile("dc cvac, %0" ::"r"(buffer + i) : "memory");
-			}
-			asm volatile("dsb sy" ::: "memory");
-	#else
-			std::cerr << "Flush cache is not supported on this architecture!" << std::endl;
-	#endif
+		if (clearInstructionCache) {
+			__builtin___clear_cache(buffer, buffer + size);
 		}
-
-#else
-		BNCH_SWT_ALWAYS_INLINE static void flushCache(void* ptr, size_t size) {
-			( void )ptr;
-			( void )size;
-			std::cerr << "Flush cache is not supported on this platform!" << std::endl;
+#elif defined(BNCH_SWT_MAC)
+		if (clearInstructionCache) {
+			sys_icache_invalidate(ptr, size);
+		} else {
+			sys_dcache_flush(ptr, size);
 		}
-
 #endif
+	}
 
-		BNCH_SWT_ALWAYS_INLINE static void evictL1Cache() {
-			std::vector<char> evict_buffer(l1CacheSize + cacheLineSize);
-			for (size_t i = 0; i < evict_buffer.size(); i += cacheLineSize) {
-				evict_buffer[i] = static_cast<char>(i);
+	class cache_clearer {
+		inline static const size_t cacheLineSize{ getCacheLineSize() };
+		inline static const size_t cacheSizes[3]{ getCacheSize(cache_level::one), getCacheSize(cache_level::two), getCacheSize(cache_level::three) };
+		inline static const size_t topLevelCache{ [](const size_t (&cacheSizesNew)[3]) {
+			if (cacheSizesNew[2] > cacheSizesNew[1]) {
+				return 2ull;
+			} else if (cacheSizesNew[1] > cacheSizesNew[0]) {
+				return 1ull;
+			} else {
+				return 0ull;
 			}
-			flushCache(evict_buffer.data(), evict_buffer.size());
+		}(cacheSizes) };
+		std::vector<char> evictBuffer{ [&] {
+			std::vector<char> returnValues{};
+			returnValues.resize(cacheSizes[topLevelCache] + cacheLineSize);
+			return returnValues;
+		}() };
+
+		BNCH_SWT_INLINE void evictCache(size_t cacheLevel) {
+			if (cacheSizes[cacheLevel - 1] > 0) {
+				for (size_t i = 0; i < cacheSizes[cacheLevel - 1] + cacheLineSize; i += cacheLineSize) {
+					evictBuffer[i] = static_cast<char>(i);
+				}
+
+				flushCache(evictBuffer.data(), evictBuffer.size(), cacheLineSize);
+				if (cacheLevel == 1) {
+					flushCache(evictBuffer.data(), evictBuffer.size(), cacheLineSize, true);
+				}
+			}
+		}
+
+	  public:
+		BNCH_SWT_INLINE void evictCaches() {
+			evictCache(3);
+			evictCache(2);
+			evictCache(1);
 		}
 	};
 
