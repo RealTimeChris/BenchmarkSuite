@@ -23,46 +23,53 @@
 /// Feb 3, 2023
 #pragma once
 
-#include <cstddef>
+#include <BnchSwt/Printable.hpp>
 #include <type_traits>
+#include <cstddef>
 #include <utility>
+#include <random>
 
 namespace bnch_swt {
 
-	struct test_generator {
+	struct random_generator {
 
 		static constexpr std::string_view charset{ "!#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~\"\\\r\b\f\t\n" };
 		inline static std::uniform_real_distribution<double> disDouble{ log(std::numeric_limits<double>::min()), log(std::numeric_limits<double>::max()) };
 		inline static std::uniform_int_distribution<int64_t> disInt{ std::numeric_limits<int64_t>::min(), std::numeric_limits<int64_t>::max() };
-		inline static std::uniform_int_distribution<size_t> disUint{ std::numeric_limits<size_t>::min(), std::numeric_limits<size_t>::max() };
-		inline static std::uniform_int_distribution<size_t> disCharSet{ 0ull, charset.size() - 1 };
-		inline static std::uniform_int_distribution<size_t> disBool{ 0, 100 };
+		inline static std::uniform_int_distribution<uint64_t> disUint{ std::numeric_limits<uint64_t>::min(), std::numeric_limits<uint64_t>::max() };
+		inline static std::uniform_int_distribution<uint64_t> disCharSet{ 0ull, charset.size() - 1 };
+		inline static std::uniform_int_distribution<uint64_t> disBool{ 0, 100 };
 		inline static std::random_device randomEngine{};
 		inline static std::mt19937_64 gen{ randomEngine() };
 
-		static std::string generateString(size_t length) {
-			std::string result{};
-			for (size_t x = 0; x < length; ++x) {
+		template<bnch_swt::internal::string_t value_type> BNCH_SWT_INLINE static value_type generateValue(uint64_t length) {
+			value_type result{};
+			for (uint64_t x = 0; x < length; ++x) {
 				result += charset[disCharSet(gen)];
 			}
 			return result;
 		}
 
-		static double generateDouble() {
+		template<bnch_swt::internal::floating_point_t value_type> BNCH_SWT_INLINE static value_type generateValue() {
 			double logValue = std::exp(disDouble(gen));
-			return generateBool() ? -logValue : logValue;
+			return generateValue<bool>() ? -logValue : logValue;
 		}
 
-		static bool generateBool() {
+		template<bnch_swt::internal::bool_t value_type> BNCH_SWT_INLINE static value_type generateValue() {
 			return static_cast<bool>(disBool(gen) >= 50);
 		}
 
-		static size_t generateUint() {
+		template<bnch_swt::internal::integer_t value_type>
+			requires(std::is_unsigned_v<value_type>)
+		BNCH_SWT_INLINE static value_type generateValue() {
 			return disUint(gen);
 		}
 
-		static int64_t generateInt() {
+		template<bnch_swt::internal::integer_t value_type>
+			requires(std::is_signed_v<value_type>)
+		BNCH_SWT_INLINE static value_type generateValue() {
 			return disInt(gen);
 		}
 	};
+
 }
