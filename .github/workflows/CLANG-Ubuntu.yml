@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-    - main
+     - '*'
 
 jobs:
   Build:
@@ -27,7 +27,7 @@ jobs:
 
     - name: Configure CMake
       run: |
-            cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=/usr/bin/clang++-20 -DBENCH_TYPE=BENCHMARK 
+            cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=/usr/bin/clang++-20 -DBENCH_TYPE=BENCHMARK -DGENERATE_ASSEMBLY=TRUE 
 
     - name: Build the Test
       run: |
@@ -44,6 +44,6 @@ jobs:
 
     - name: Run the Test
       run: |
-            sudo chmod +x /usr/local/Tests/${{matrix.build_type}}/BenchmarkExe
-            sudo /usr/local/Tests/${{matrix.build_type}}/BenchmarkExe
+            sudo chmod +x /usr/local/bin/BenchmarkExe
+            sudo /usr/local/bin/BenchmarkExe
       continue-on-error: true
