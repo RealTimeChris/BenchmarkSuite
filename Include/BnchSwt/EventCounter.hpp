@@ -97,63 +97,30 @@ namespace bnch_swt {
 			}
 		}
 
-		BNCH_SWT_ALWAYS_INLINE event_count& operator=(const event_count& other) noexcept {
-			if (other.instructionsVal.has_value()) {
-				instructionsVal.emplace(other.instructionsVal.value());
+		BNCH_SWT_ALWAYS_INLINE bool cacheMisses(double& cacheMissesNew) const noexcept {
+			if (cacheMissesVal.has_value()) {
+				cacheMissesNew = static_cast<double>(cacheMissesVal.value());
+				return true;
+			} else {
+				return false;
 			}
-			if (other.bytesProcessedVal.has_value()) {
-				bytesProcessedVal.emplace(other.bytesProcessedVal.value());
-			}
-			if (other.missedBranchesVal.has_value()) {
-				missedBranchesVal.emplace(other.missedBranchesVal.value());
-			}
-			if (other.missedBranchesVal.has_value()) {
-				missedBranchesVal.emplace(other.missedBranchesVal.value());
-			}
-			if (other.branchesVal.has_value()) {
-				branchesVal.emplace(other.branchesVal.value());
-			}
-			if (other.cyclesVal.has_value()) {
-				cyclesVal.emplace(other.cyclesVal.value());
-			}
-			this->elapsed		  = other.elapsed;
-			return *this;
 		}
 
-		BNCH_SWT_ALWAYS_INLINE event_count(const event_count& other) noexcept {
-			*this = other;
-		}
-
-		BNCH_SWT_ALWAYS_INLINE event_count operator+(const event_count& other) const noexcept {
-			event_count countNew{};
-			if (instructionsVal.has_value() && other.instructionsVal.has_value()) {
-				countNew.instructionsVal.emplace(instructionsVal.value() + other.instructionsVal.value());
+		BNCH_SWT_ALWAYS_INLINE bool cacheReferences(double& cacheReferencesNew) const noexcept {
+			if (cacheReferencesVal.has_value()) {
+				cacheReferencesNew = static_cast<double>(cacheReferencesVal.value());
+				return true;
+			} else {
+				return false;
 			}
-			if (bytesProcessedVal.has_value() && other.bytesProcessedVal.has_value()) {
-				countNew.bytesProcessedVal.emplace(bytesProcessedVal.value() + other.bytesProcessedVal.value());
-			}
-			if (branchesVal.has_value() && other.branchesVal.has_value()) {
-				countNew.branchesVal.emplace(branchesVal.value() + other.branchesVal.value());
-			}
-			if (missedBranchesVal.has_value() && other.missedBranchesVal.has_value()) {
-				countNew.missedBranchesVal.emplace(missedBranchesVal.value() + other.missedBranchesVal.value());
-			}
-			if (cyclesVal.has_value() && other.cyclesVal.has_value()) {
-				countNew.cyclesVal.emplace(cyclesVal.value() + other.cyclesVal.value());
-			}
-			countNew.elapsed = elapsed + other.elapsed;
-			return countNew;
-		}
-
-		BNCH_SWT_ALWAYS_INLINE event_count& operator+=(const event_count& other) {
-			*this = *this + other;
-			return *this;
 		}
 
 	  protected:
+		std::optional<uint64_t> cacheReferencesVal{};
 		std::optional<uint64_t> missedBranchesVal{};
 		std::optional<uint64_t> bytesProcessedVal{};
 		std::optional<uint64_t> instructionsVal{};
+		std::optional<uint64_t> cacheMissesVal{};
 		std::chrono::duration<double> elapsed{};
 		std::optional<uint64_t> branchesVal{};
 		std::optional<uint64_t> cyclesVal{};

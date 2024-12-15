@@ -95,10 +95,12 @@ namespace bnch_swt {
 
 	struct performance_metrics {
 		std::optional<double> instructionsPercentageDeviation{};
+		std::optional<double> cacheReferencesPerExecution{};
 		std::optional<double> cyclesPercentageDeviation{};
+		std::optional<uint64_t> measuredIterationCount{};
 		std::optional<double> instructionsPerExecution{};
 		std::optional<double> branchMissesPerExecution{};
-		std::optional<uint64_t> measuredIterationCount{};
+		std::optional<double> cacheMissesPerExecution{};
 		std::optional<uint64_t> totalIterationCount{};
 		std::optional<double> instructionsPerCycle{};
 		std::optional<double> branchesPerExecution{};
@@ -135,7 +137,8 @@ namespace bnch_swt {
 		return escaped.str();
 	}
 
-	template<string_literal stageNameNew, uint64_t maxExecutionCount = 100> struct benchmark_stage {
+	template<string_literal stageNameNew, uint64_t maxExecutionCountNew = 100> struct benchmark_stage {
+		static constexpr auto maxExecutionCount{ maxExecutionCountNew < 2 ? 2 : maxExecutionCountNew };
 		static constexpr auto addAmount{ maxExecutionCount % 2 == 0 ? 0 : 1 };
 		inline static std::unordered_map<std::string, performance_metrics> results{};
 		inline static std::vector<event_count> measuredEventsNew{ [] {
@@ -190,6 +193,8 @@ namespace bnch_swt {
 					printMetric("Instructions per Cycle", value.instructionsPerCycle);
 					printMetric("Instructions per Byte", value.instructionsPerByte);
 					printMetric("Branches per Execution", value.branchesPerExecution);
+					printMetric("Cache References per Execution", value.cacheReferencesPerExecution);
+					printMetric("Cache Misses per Execution", value.cacheMissesPerExecution);
 					printMetric("Branch Misses per Execution", value.branchMissesPerExecution);
 					printMetric("Cycles per Execution", value.cyclesPerExecution);
 					printMetric("Cycles Percentage Deviation (+/-%)", value.cyclesPercentageDeviation);
@@ -295,10 +300,16 @@ namespace bnch_swt {
 			double minNs{ std::numeric_limits<double>::max() };
 			double cyclesMin{ std::numeric_limits<double>::max() };
 			double instructionsMin{ std::numeric_limits<double>::max() };
-			double cyclesAvg{ 0 };
+			double cacheReferencesAvg{ 0 };
+			double cacheReferencesMin{ 0 };
 			double instructionsAvg{ 0 };
+			double cacheMissesAvg{ 0 };
+			double cacheMissesMin{ 0 };
+			double cacheReferences{ 0 };
+			double cacheMisses{ 0 };
 			double branchesMin{ 0 };
 			double branchesAvg{ 0 };
+			double cyclesAvg{ 0 };
 			double missedBranchesMin{ std::numeric_limits<double>::max() };
 			double missedBranchesAvg{ 0 };
 			double cycles{};
@@ -310,6 +321,14 @@ namespace bnch_swt {
 				double ns = e.elapsedNs();
 				averageNs += ns;
 				minNs = minNs < ns ? minNs : ns;
+
+				e.cacheMisses(cacheMisses);
+				cacheMissesAvg += cacheMisses;
+				cacheMissesMin = cacheMissesMin < cacheMisses ? cacheMissesMin : cacheMisses;
+
+				e.cacheReferences(cacheReferences);
+				cacheReferencesAvg += cacheReferences;
+				cacheReferencesMin = cacheReferencesMin < cacheReferences ? cacheReferencesMin : cacheReferences;
 
 				e.cycles(cycles);
 				cyclesAvg += cycles;
@@ -331,6 +350,8 @@ namespace bnch_swt {
 			cyclesAvg /= static_cast<double>(measuredIterationCount);
 			instructionsAvg /= static_cast<double>(measuredIterationCount);
 			averageNs /= static_cast<double>(measuredIterationCount);
+			cacheMissesAvg /= static_cast<double>(measuredIterationCount);
+			cacheReferencesAvg /= static_cast<double>(measuredIterationCount);
 			branchesAvg /= static_cast<double>(measuredIterationCount);
 			metrics.throughputMbPerSec			  = volumeMB * 1000000000 / averageNs;
 			metrics.throughputPercentageDeviation = (averageNs - minNs) * 100.0 / averageNs;
@@ -349,6 +370,12 @@ namespace bnch_swt {
 			if (branchesAvg != 0.0f) {
 				metrics.branchMissesPerExecution.emplace(missedBranchesAvg / static_cast<double>(measuredIterationCount));
 				metrics.branchesPerExecution.emplace(branchesAvg / static_cast<double>(measuredIterationCount));
+			}
+			if (cacheMissesAvg != 0.0f) {
+				metrics.cacheMissesPerExecution.emplace(cacheMissesAvg / static_cast<double>(measuredIterationCount));
+			}
+			if (cacheReferencesAvg != 0.0f) {
+				metrics.cacheReferencesPerExecution.emplace(cacheReferencesAvg / static_cast<double>(measuredIterationCount));
 			}
 			return metrics;
 		}
