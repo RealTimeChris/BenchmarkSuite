@@ -37,14 +37,6 @@
 	#define BNCH_SWT_GNUCXX 1
 #endif
 
-#if defined(__has_builtin)
-	#define BNCH_SWT_HAS_BUILTIN(x) __has_builtin(x)
-#else
-	#define BNCH_SWT_HAS_BUILTIN(x) 0
-#endif
-
-#define BNCH_SWT_GCC_VERSION (__GNUC__ * 100 + __GNUC_MINOR__)
-
 #if defined(macintosh) || defined(Macintosh) || (defined(__APPLE__) && defined(__MACH__))
 	#define BNCH_SWT_MAC 1
 #elif defined(linux) || defined(__linux) || defined(__linux__) || defined(__gnu_linux__)
@@ -53,39 +45,29 @@
 	#define BNCH_SWT_WIN 1
 #endif
 
-#if defined(BNCH_SWT_GNUCXX) || defined(BNCH_SWT_CLANG)
-	#define JSONIFIER_ASSUME(x) \
-		do { \
-			if (!(x)) \
-				__builtin_unreachable(); \
-		} while (0)
-#elif defined(BNCH_SWT_MSVC)
-	#include <intrin.h>
-	#define JSONIFIER_ASSUME(x) __assume(x)
+#if defined(BNCH_SWT_FORCE_INLINE)
+	#if defined(BNCH_SWT_MSVC)
+		#define BNCH_SWT_INLINE [[msvc::forceinline]] inline 
+	#elif defined(BNCH_SWT_CLANG)
+		#define BNCH_SWT_INLINE inline __attribute__((always_inline))
+	#elif defined(BNCH_SWT_GNUCXX)
+		#define BNCH_SWT_INLINE inline __attribute__((always_inline))
+	#else
+		#define BNCH_SWT_INLINE inline
+	#endif
 #else
-	#define JSONIFIER_ASSUME(x) (( void )0)
+	#if defined(BNCH_SWT_MSVC)
+		#define BNCH_SWT_INLINE inline
+	#elif defined(BNCH_SWT_CLANG)
+		#define BNCH_SWT_INLINE inline 
+	#elif defined(BNCH_SWT_GNUCXX)
+		#define BNCH_SWT_INLINE inline 
+	#else
+		#define BNCH_SWT_INLINE inline
+	#endif
 #endif
 
-#if defined(BNCH_SWT_MSVC)
-	#define BNCH_SWT_NO_INLINE __declspec(noinline)
-	#define BNCH_SWT_FLATTEN [[msvc::flatten]] inline 
-	#define BNCH_SWT_ALWAYS_INLINE [[msvc::forceinline]] inline 
-	#define BNCH_SWT_INLINE inline
-#elif defined(BNCH_SWT_CLANG)
-	#define BNCH_SWT_NO_INLINE __attribute__((__noinline__))
-	#define BNCH_SWT_FLATTEN inline __attribute__((flatten))
-	#define BNCH_SWT_ALWAYS_INLINE inline __attribute__((always_inline))
-	#define BNCH_SWT_INLINE inline
-#elif defined(BNCH_SWT_GNUCXX)
-	#define BNCH_SWT_NO_INLINE __attribute__((noinline))
-	#define BNCH_SWT_FLATTEN inline __attribute__((flatten))
-	#define BNCH_SWT_ALWAYS_INLINE inline __attribute__((always_inline))
-	#define BNCH_SWT_INLINE inline
-#else
-	#define BNCH_SWT_FLATTEN inline
-	#define BNCH_SWT_NO_INLINE
-	#define BNCH_SWT_ALWAYS_INLINE inline
-	#define BNCH_SWT_INLINE inline
-#endif
+
+#define BNCH_SWT_ALIGN alignas(64)
 
 using clock_type = std::conditional_t<std::chrono::high_resolution_clock::is_steady, std::chrono::high_resolution_clock, std::chrono::steady_clock>; 
