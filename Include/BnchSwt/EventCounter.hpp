@@ -97,7 +97,31 @@ namespace bnch_swt {
 			}
 		}
 
+		BNCH_SWT_ALWAYS_INLINE bool cacheMisses(double& cacheMissesNew) const noexcept {
+			if (cacheMissesVal.has_value()) {
+				cacheMissesNew = static_cast<double>(cacheMissesVal.value());
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		BNCH_SWT_ALWAYS_INLINE bool cacheReferences(double& cacheReferencesNew) const noexcept {
+			if (cacheReferencesVal.has_value()) {
+				cacheReferencesNew = static_cast<double>(cacheReferencesVal.value());
+				return true;
+			} else {
+				return false;
+			}
+		}
+
 		BNCH_SWT_ALWAYS_INLINE event_count& operator=(const event_count& other) noexcept {
+			if (other.cacheMissesVal.has_value()) {
+				cacheMissesVal.emplace(other.cacheMissesVal.value());
+			}
+			if (other.cacheReferencesVal.has_value()) {
+				cacheReferencesVal.emplace(other.cacheReferencesVal.value());
+			}
 			if (other.instructionsVal.has_value()) {
 				instructionsVal.emplace(other.instructionsVal.value());
 			}
@@ -126,6 +150,12 @@ namespace bnch_swt {
 
 		BNCH_SWT_ALWAYS_INLINE event_count operator+(const event_count& other) const noexcept {
 			event_count countNew{};
+			if (cacheReferencesVal.has_value() && other.cacheReferencesVal.has_value()) {
+				countNew.cacheReferencesVal.emplace(cacheReferencesVal.value() + other.cacheReferencesVal.value());
+			}
+			if (cacheMissesVal.has_value() && other.cacheMissesVal.has_value()) {
+				countNew.cacheMissesVal.emplace(cacheMissesVal.value() + other.cacheMissesVal.value());
+			}
 			if (instructionsVal.has_value() && other.instructionsVal.has_value()) {
 				countNew.instructionsVal.emplace(instructionsVal.value() + other.instructionsVal.value());
 			}
@@ -151,9 +181,11 @@ namespace bnch_swt {
 		}
 
 	  protected:
+		std::optional<uint64_t> cacheReferencesVal{};
 		std::optional<uint64_t> missedBranchesVal{};
 		std::optional<uint64_t> bytesProcessedVal{};
 		std::optional<uint64_t> instructionsVal{};
+		std::optional<uint64_t> cacheMissesVal{};
 		std::chrono::duration<double> elapsed{};
 		std::optional<uint64_t> branchesVal{};
 		std::optional<uint64_t> cyclesVal{};
