@@ -1,11 +1,8 @@
-#include <BnchSwt/BenchmarkSuite.hpp>
 #include <jsonifier/Index.hpp>
-#include "RandomGenerators.hpp"
-#include <thread>
+#include <iostream>
+#include <tuple>
+#include <type_traits>
 
 int main() {
-	bnch_swt::benchmark_stage<"TEST STAGE">::runBenchmark<"TEST", "CYAN">([] {
-		return 0;
-	});
 	return 0;
 }

@@ -1,7 +1,7 @@
 ﻿cmake_minimum_required(VERSION 3.18)
 
 set(PROJECT_NAME "BenchmarkSuite")
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 project("${PROJECT_NAME}" LANGUAGES CXX)

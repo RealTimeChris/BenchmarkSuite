@@ -31,7 +31,7 @@ namespace bnch_swt {
 	concept invocable = std::is_invocable_v<std::remove_cvref_t<value_type>, arg_types...>;
 
 	template<typename value_type, typename... arg_types>
-	concept not_invocable = !std::is_invocable_v<std::remove_cvref_t<value_type>, arg_types...>;
+	concept not_invocable = !invocable<std::remove_cvref_t<value_type>, arg_types...>;
 
 	template<typename value_type, typename... arg_types>
 	concept invocable_void = invocable<value_type, arg_types...> && std::is_void_v<std::invoke_result_t<value_type, arg_types...>>;
@@ -41,7 +41,7 @@ namespace bnch_swt {
 
 	static void const volatile* volatile globalForceEscapePointer;
 
-	void useCharPointer(char const volatile* const v) {
+	BNCH_SWT_ALWAYS_INLINE void useCharPointer(char const volatile* const v) {
 		globalForceEscapePointer = reinterpret_cast<void const volatile*>(v);
 	}
 

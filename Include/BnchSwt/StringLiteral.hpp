@@ -102,27 +102,23 @@ namespace bnch_swt {
 			return length;
 		}
 
-		BNCH_SWT_INLINE operator std::string() const noexcept {
-			std::string returnValues{ values, length };
+		template<typename string_type> constexpr operator string_type() const {
+			BNCH_SWT_ALIGN string_type returnValues{ values, length };
 			return returnValues;
 		}
 
-		BNCH_SWT_INLINE constexpr std::string_view view() const noexcept {
-			return std::string_view{ values, length };
-		}
-
-		value_type values[sizeVal]{};
+		BNCH_SWT_ALIGN char values[sizeVal]{};
 	};
 
-	template<size_t N> constexpr auto stringLiteralFromView(std::string_view str) noexcept {
-		bnch_swt::string_literal<N + 1> sl{};
+	template<size_t N, typename string_type> constexpr auto stringLiteralFromView(string_type str) noexcept {
+		string_literal<N + 1> sl{};
 		std::copy_n(str.data(), str.size(), sl.values);
 		sl[N] = '\0';
 		return sl;
 	}
 
-	template<size_t size> BNCH_SWT_INLINE std::ostream& operator<<(std::ostream& os, const string_literal<size>& input) noexcept {
-		os << input.view();
+	template<size_t size> BNCH_SWT_ALWAYS_INLINE std::ostream& operator<<(std::ostream& os, const string_literal<size>& input) noexcept {
+		os << input.operator std::string_view();
 		return os;
 	}
 
@@ -142,7 +138,7 @@ namespace bnch_swt {
 	template<int64_t number, size_t numDigits = countDigits(number)> constexpr string_literal<numDigits + 1> toStringLiteral() noexcept {
 		char buffer[numDigits + 1]{};
 		char* ptr = buffer + numDigits;
-		*ptr				  = '\0';
+		*ptr	  = '\0';
 		int64_t temp{};
 		if constexpr (number < 0) {
 			temp			   = number * -1;
@@ -157,10 +153,6 @@ namespace bnch_swt {
 		return string_literal<numDigits + 1>{ buffer };
 	}
 
-	template<auto valueNew> struct make_static {
-		static constexpr auto value{ valueNew };
-	};
-
 	constexpr char toLower(char input) noexcept {
 		return (input >= 'A' && input <= 'Z') ? (input + 32) : input;
 	}
@@ -171,11 +163,6 @@ namespace bnch_swt {
 			output[x] = toLower(input[x]);
 		}
 		return output;
-	}
-
-	template<int64_t number> constexpr std::string_view toStringView() noexcept {
-		constexpr auto& lit = bnch_swt::make_static<toStringLiteral<number>()>::value;
-		return std::string_view{ lit.data(), lit.size() };
 	}
 
 }
