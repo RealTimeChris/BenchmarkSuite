@@ -1,0 +1,610 @@
+#
+# Copyright 2019 The Abseil Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+load(
+    "//absl:copts/configure_copts.bzl",
+    "ABSL_DEFAULT_COPTS",
+    "ABSL_DEFAULT_LINKOPTS",
+    "ABSL_TEST_COPTS",
+)
+
+package(
+    default_visibility = ["//visibility:public"],
+    features = [
+        "header_modules",
+        "layering_check",
+        "parse_headers",
+    ],
+)
+
+licenses(["notice"])
+
+cc_library(
+    name = "path_util",
+    hdrs = [
+        "internal/path_util.h",
+    ],
+    copts = ABSL_DEFAULT_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    visibility = [
+        "//../flags:__pkg__",
+    ],
+    deps = [
+        "//../base:config",
+        "//../strings",
+    ],
+)
+
+cc_library(
+    name = "program_name",
+    srcs = [
+        "internal/program_name.cc",
+    ],
+    hdrs = [
+        "internal/program_name.h",
+    ],
+    copts = ABSL_DEFAULT_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    visibility = [
+        "//../flags:__pkg__",
+        "//../log:__pkg__",
+    ],
+    deps = [
+        ":path_util",
+        "//../base:config",
+        "//../base:core_headers",
+        "//../base:no_destructor",
+        "//../strings",
+        "//../synchronization",
+    ],
+)
+
+cc_library(
+    name = "config",
+    srcs = [
+        "usage_config.cc",
+    ],
+    hdrs = [
+        "config.h",
+        "usage_config.h",
+    ],
+    copts = ABSL_DEFAULT_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    deps = [
+        ":path_util",
+        ":program_name",
+        "//../base:config",
+        "//../base:core_headers",
+        "//../base:no_destructor",
+        "//../strings",
+        "//../synchronization",
+    ],
+)
+
+cc_library(
+    name = "marshalling",
+    srcs = [
+        "marshalling.cc",
+    ],
+    hdrs = [
+        "marshalling.h",
+    ],
+    copts = ABSL_DEFAULT_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    deps = [
+        "//../base:config",
+        "//../base:core_headers",
+        "//../base:log_severity",
+        "//../numeric:int128",
+        "//../strings",
+        "//../strings:str_format",
+        "//../types:optional",
+    ],
+)
+
+cc_library(
+    name = "commandlineflag_internal",
+    srcs = [
+        "internal/commandlineflag.cc",
+    ],
+    hdrs = [
+        "internal/commandlineflag.h",
+    ],
+    copts = ABSL_DEFAULT_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    visibility = [
+        "//visibility:private",
+    ],
+    deps = [
+        "//../base:config",
+        "//../base:fast_type_id",
+    ],
+)
+
+cc_library(
+    name = "commandlineflag",
+    srcs = [
+        "commandlineflag.cc",
+    ],
+    hdrs = [
+        "commandlineflag.h",
+    ],
+    copts = ABSL_DEFAULT_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    deps = [
+        ":commandlineflag_internal",
+        "//../base:config",
+        "//../base:fast_type_id",
+        "//../strings",
+        "//../types:optional",
+    ],
+)
+
+cc_library(
+    name = "private_handle_accessor",
+    srcs = [
+        "internal/private_handle_accessor.cc",
+    ],
+    hdrs = [
+        "internal/private_handle_accessor.h",
+    ],
+    copts = ABSL_DEFAULT_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    visibility = [
+        "//../flags:__pkg__",
+    ],
+    deps = [
+        ":commandlineflag",
+        ":commandlineflag_internal",
+        "//../base:config",
+        "//../strings",
+    ],
+)
+
+cc_library(
+    name = "reflection",
+    srcs = [
+        "reflection.cc",
+    ],
+    hdrs = [
+        "internal/registry.h",
+        "reflection.h",
+    ],
+    copts = ABSL_DEFAULT_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    deps = [
+        ":commandlineflag",
+        ":commandlineflag_internal",
+        ":config",
+        ":private_handle_accessor",
+        "//../base:config",
+        "//../base:core_headers",
+        "//../base:no_destructor",
+        "//../container:flat_hash_map",
+        "//../strings",
+        "//../synchronization",
+    ],
+)
+
+cc_library(
+    name = "flag_internal",
+    srcs = [
+        "internal/flag.cc",
+    ],
+    hdrs = [
+        "internal/flag.h",
+        "internal/sequence_lock.h",
+    ],
+    copts = ABSL_DEFAULT_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    visibility = ["//../base:__subpackages__"],
+    deps = [
+        ":commandlineflag",
+        ":commandlineflag_internal",
+        ":config",
+        ":marshalling",
+        ":reflection",
+        "//../base",
+        "//../base:config",
+        "//../base:core_headers",
+        "//../base:dynamic_annotations",
+        "//../base:no_destructor",
+        "//../memory",
+        "//../meta:type_traits",
+        "//../strings",
+        "//../synchronization",
+        "//../utility",
+    ],
+)
+
+cc_library(
+    name = "flag",
+    hdrs = [
+        "declare.h",
+        "flag.h",
+    ],
+    copts = ABSL_DEFAULT_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    deps = [
+        ":commandlineflag",
+        ":config",
+        ":flag_internal",
+        ":reflection",
+        "//../base:config",
+        "//../base:core_headers",
+        "//../strings",
+    ],
+)
+
+cc_library(
+    name = "usage_internal",
+    srcs = [
+        "internal/usage.cc",
+    ],
+    hdrs = [
+        "internal/usage.h",
+    ],
+    copts = ABSL_DEFAULT_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    visibility = [
+        "//../flags:__pkg__",
+    ],
+    deps = [
+        ":commandlineflag",
+        ":config",
+        ":flag",
+        ":flag_internal",
+        ":path_util",
+        ":private_handle_accessor",
+        ":program_name",
+        ":reflection",
+        "//../base:config",
+        "//../base:core_headers",
+        "//../base:no_destructor",
+        "//../strings",
+        "//../synchronization",
+    ],
+)
+
+cc_library(
+    name = "usage",
+    srcs = [
+        "usage.cc",
+    ],
+    hdrs = [
+        "usage.h",
+    ],
+    copts = ABSL_DEFAULT_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    deps = [
+        ":usage_internal",
+        "//../base:config",
+        "//../base:core_headers",
+        "//../base:raw_logging_internal",
+        "//../strings",
+        "//../synchronization",
+    ],
+)
+
+cc_library(
+    name = "parse",
+    srcs = ["parse.cc"],
+    hdrs = [
+        "internal/parse.h",
+        "parse.h",
+    ],
+    copts = ABSL_DEFAULT_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    deps = [
+        ":commandlineflag",
+        ":commandlineflag_internal",
+        ":config",
+        ":flag",
+        ":flag_internal",
+        ":private_handle_accessor",
+        ":program_name",
+        ":reflection",
+        ":usage",
+        ":usage_internal",
+        "//../algorithm:container",
+        "//../base:config",
+        "//../base:core_headers",
+        "//../base:no_destructor",
+        "//../strings",
+        "//../synchronization",
+    ],
+)
+
+############################################################################
+# Unit tests in alphabetical order.
+
+cc_test(
+    name = "commandlineflag_test",
+    size = "small",
+    srcs = [
+        "commandlineflag_test.cc",
+    ],
+    copts = ABSL_TEST_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    tags = [
+        "no_test:os:android",
+        "no_test:os:ios",
+        "no_test_android",
+        "no_test_ios",
+        "no_test_wasm",
+    ],
+    deps = [
+        ":commandlineflag",
+        ":config",
+        ":flag",
+        ":private_handle_accessor",
+        ":reflection",
+        "//../memory",
+        "//../strings",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "config_test",
+    size = "small",
+    srcs = [
+        "config_test.cc",
+    ],
+    copts = ABSL_TEST_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    deps = [
+        ":config",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "flag_test",
+    size = "small",
+    srcs = [
+        "flag_test.cc",
+        "flag_test_defs.cc",
+    ],
+    copts = ABSL_TEST_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    tags = [
+        "no_test:os:android",
+        "no_test:os:ios",
+        "no_test_android",
+        "no_test_ios",
+        "no_test_wasm",
+    ],
+    deps = [
+        ":config",
+        ":flag",
+        ":flag_internal",
+        ":marshalling",
+        ":parse",
+        ":reflection",
+        "//../base:core_headers",
+        "//../base:malloc_internal",
+        "//../base:raw_logging_internal",
+        "//../numeric:int128",
+        "//../strings",
+        "//../time",
+        "//../types:optional",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_binary(
+    name = "flag_benchmark",
+    testonly = True,
+    srcs = [
+        "flag_benchmark.cc",
+    ],
+    copts = ABSL_TEST_COPTS,
+    linkopts = select({
+        "//conditions:default": [],
+    }) + ABSL_DEFAULT_LINKOPTS,
+    tags = ["benchmark"],
+    visibility = ["//visibility:private"],
+    deps = [
+        "flag_benchmark.lds",
+        ":flag",
+        ":marshalling",
+        ":parse",
+        ":reflection",
+        "//../strings",
+        "//../time",
+        "//../types:optional",
+        "@google_benchmark//:benchmark_main",
+    ],
+)
+
+cc_test(
+    name = "marshalling_test",
+    size = "small",
+    srcs = [
+        "marshalling_test.cc",
+    ],
+    copts = ABSL_TEST_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    deps = [
+        ":marshalling",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "parse_test",
+    size = "small",
+    timeout = "moderate",
+    srcs = [
+        "parse_test.cc",
+    ],
+    copts = ABSL_TEST_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    tags = [
+        "no_test:os:android",
+        "no_test:os:ios",
+        "no_test_android",
+        "no_test_ios",
+        "no_test_wasm",
+    ],
+    deps = [
+        ":config",
+        ":flag",
+        ":parse",
+        ":reflection",
+        ":usage_internal",
+        "//../base:scoped_set_env",
+        "//../log",
+        "//../strings",
+        "//../types:span",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "path_util_test",
+    size = "small",
+    srcs = [
+        "internal/path_util_test.cc",
+    ],
+    copts = ABSL_TEST_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    deps = [
+        ":path_util",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "program_name_test",
+    size = "small",
+    srcs = [
+        "internal/program_name_test.cc",
+    ],
+    copts = ABSL_TEST_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    tags = [
+        "no_test_fuchsia_x64",
+        "no_test_wasm",
+    ],
+    deps = [
+        ":program_name",
+        "//../strings",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "reflection_test",
+    size = "small",
+    srcs = [
+        "reflection_test.cc",
+    ],
+    copts = ABSL_TEST_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    tags = [
+        "no_test:os:android",
+        "no_test:os:ios",
+        "no_test_android",
+        "no_test_ios",
+        "no_test_wasm",
+    ],
+    deps = [
+        ":config",
+        ":flag",
+        ":reflection",
+        "//../memory",
+        "//../strings",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "sequence_lock_test",
+    size = "small",
+    timeout = "moderate",
+    srcs = [
+        "internal/sequence_lock_test.cc",
+    ],
+    copts = ABSL_TEST_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    shard_count = 31,
+    tags = ["no_test_wasm"],
+    deps = [
+        ":flag_internal",
+        "//../base",
+        "//../container:fixed_array",
+        "//../time",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "usage_config_test",
+    size = "small",
+    srcs = [
+        "usage_config_test.cc",
+    ],
+    copts = ABSL_TEST_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    deps = [
+        ":config",
+        ":path_util",
+        ":program_name",
+        "//../strings",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "usage_test",
+    size = "small",
+    srcs = [
+        "internal/usage_test.cc",
+    ],
+    copts = ABSL_TEST_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    tags = [
+        "no_test:os:android",
+        "no_test:os:ios",
+        "no_test_android",
+        "no_test_ios",
+        "no_test_wasm",
+    ],
+    deps = [
+        ":config",
+        ":flag",
+        ":parse",
+        ":path_util",
+        ":program_name",
+        ":reflection",
+        ":usage",
+        ":usage_internal",
+        "//../strings",
+        "@googletest//:gtest",
+    ],
+)

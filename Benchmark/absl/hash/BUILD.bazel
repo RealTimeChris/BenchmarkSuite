@@ -1,0 +1,212 @@
+#
+# Copyright 2019 The Abseil Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+load(
+    "//absl:copts/configure_copts.bzl",
+    "ABSL_DEFAULT_COPTS",
+    "ABSL_DEFAULT_LINKOPTS",
+    "ABSL_TEST_COPTS",
+)
+
+package(
+    default_visibility = ["//visibility:public"],
+    features = [
+        "header_modules",
+        "layering_check",
+        "parse_headers",
+    ],
+)
+
+licenses(["notice"])
+
+cc_library(
+    name = "hash",
+    srcs = [
+        "internal/hash.cc",
+        "internal/hash.h",
+    ],
+    hdrs = ["hash.h"],
+    copts = ABSL_DEFAULT_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    deps = [
+        ":city",
+        ":low_level_hash",
+        "//../base:config",
+        "//../base:core_headers",
+        "//../base:endian",
+        "//../container:fixed_array",
+        "//../functional:function_ref",
+        "//../meta:type_traits",
+        "//../numeric:bits",
+        "//../numeric:int128",
+        "//../strings",
+        "//../types:optional",
+        "//../types:variant",
+        "//../utility",
+    ],
+)
+
+cc_library(
+    name = "hash_testing",
+    testonly = True,
+    hdrs = ["hash_testing.h"],
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    deps = [
+        ":spy_hash_state",
+        "//../meta:type_traits",
+        "//../strings",
+        "//../types:variant",
+        "@googletest//:gtest",
+    ],
+)
+
+cc_test(
+    name = "hash_test",
+    srcs = [
+        "hash_test.cc",
+        "internal/hash_test.h",
+    ],
+    copts = ABSL_TEST_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    deps = [
+        ":hash",
+        ":hash_testing",
+        ":spy_hash_state",
+        "//../base:config",
+        "//../container:flat_hash_set",
+        "//../memory",
+        "//../meta:type_traits",
+        "//../numeric:bits",
+        "//../strings:cord_test_helpers",
+        "//../strings:string_view",
+        "//../types:optional",
+        "//../types:variant",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "hash_instantiated_test",
+    srcs = [
+        "hash_instantiated_test.cc",
+        "internal/hash_test.h",
+    ],
+    copts = ABSL_TEST_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    deps = [
+        ":hash",
+        ":hash_testing",
+        "//../base:config",
+        "//../container:btree",
+        "//../container:flat_hash_map",
+        "//../container:flat_hash_set",
+        "//../container:node_hash_map",
+        "//../container:node_hash_set",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_binary(
+    name = "hash_benchmark",
+    testonly = True,
+    srcs = ["hash_benchmark.cc"],
+    copts = ABSL_TEST_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    tags = ["benchmark"],
+    visibility = ["//visibility:private"],
+    deps = [
+        ":hash",
+        "//../base:core_headers",
+        "//../container:flat_hash_set",
+        "//../random",
+        "//../strings",
+        "//../strings:cord",
+        "//../strings:cord_test_helpers",
+        "@google_benchmark//:benchmark_main",
+    ],
+)
+
+cc_library(
+    name = "spy_hash_state",
+    testonly = True,
+    hdrs = ["internal/spy_hash_state.h"],
+    copts = ABSL_DEFAULT_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    visibility = ["//visibility:private"],
+    deps = [
+        ":hash",
+        "//../strings",
+        "//../strings:str_format",
+    ],
+)
+
+cc_library(
+    name = "city",
+    srcs = ["internal/city.cc"],
+    hdrs = [
+        "internal/city.h",
+    ],
+    copts = ABSL_DEFAULT_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    deps = [
+        "//../base:config",
+        "//../base:core_headers",
+        "//../base:endian",
+    ],
+)
+
+cc_test(
+    name = "city_test",
+    srcs = ["internal/city_test.cc"],
+    copts = ABSL_TEST_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    deps = [
+        ":city",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "low_level_hash",
+    srcs = ["internal/low_level_hash.cc"],
+    hdrs = ["internal/low_level_hash.h"],
+    copts = ABSL_DEFAULT_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    visibility = ["//visibility:private"],
+    deps = [
+        "//../base:config",
+        "//../base:endian",
+        "//../base:prefetch",
+        "//../numeric:int128",
+    ],
+)
+
+cc_test(
+    name = "low_level_hash_test",
+    srcs = ["internal/low_level_hash_test.cc"],
+    copts = ABSL_TEST_COPTS,
+    linkopts = ABSL_DEFAULT_LINKOPTS,
+    visibility = ["//visibility:private"],
+    deps = [
+        ":low_level_hash",
+        "//../strings",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)
