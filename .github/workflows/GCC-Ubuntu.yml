@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-    - main
+     - '*'
 
 jobs:
   Build:
@@ -22,11 +22,11 @@ jobs:
       run: |
             sudo apt update && sudo apt upgrade
             sudo apt-get install build-essential
-            sudo apt-get install g++-12
+            sudo apt-get install g++-14
 
     - name: Configure CMake
       run: |
-            cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=/usr/bin/g++-12 -DBENCH_TYPE=BENCHMARK
+            cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=/usr/bin/g++-12 -DBENCH_TYPE=BENCHMARK -DGENERATE_ASSEMBLY=TRUE
 
     - name: Build the Test
       run: |
@@ -43,6 +43,6 @@ jobs:
 
     - name: Run the Test
       run: |
-            sudo chmod +x /usr/local/Tests/${{matrix.build_type}}/BenchmarkExe
-            sudo /usr/local/Tests/${{matrix.build_type}}/BenchmarkExe
+            sudo chmod +x /usr/local/bin/BenchmarkExe
+            sudo /usr/local/bin/BenchmarkExe
       continue-on-error: true
