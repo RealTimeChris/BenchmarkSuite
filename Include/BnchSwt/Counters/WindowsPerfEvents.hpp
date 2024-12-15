@@ -27,30 +27,32 @@
 
 #if defined(BNCH_SWT_WIN)
 
-	#include <cerrno>// for errno
-	#include <cstring>// for memset
-	#include <stdexcept>
+	#include <intrin.h>
 
+	#include <stdexcept>
 	#include <iostream>
+	#include <cstring>
+	#include <cerrno>
 	#include <vector>
 
-namespace bnch_swt {
+namespace bnch_swt::internal {
 
-	BNCH_SWT_ALWAYS_INLINE size_t rdtsc() {
-		return __rdtsc();
-	}
+	template<typename event_count, size_t count> struct event_collector_type : public std::vector<event_count> {
+		size_t currentIndex{};
 
-	template<typename event_count> struct event_collector_type {
-		template<typename function_type, typename... arg_types> BNCH_SWT_ALWAYS_INLINE event_count start(function_type&& function, arg_types&&... args) {
-			event_count count{};
+		BNCH_SWT_INLINE event_collector_type() : std::vector<event_count>{ count } {};
+
+		template<typename function_type, typename... arg_types> BNCH_SWT_INLINE void start(function_type&& function, arg_types&&... args) {
+			volatile uint64_t cycleStart = __rdtsc();
 			const auto startClock		 = clock_type::now();
-			volatile uint64_t cycleStart = rdtsc();
-			count.bytesProcessedVal.emplace(std::forward<function_type>(function)(std::forward<arg_types>(args)...));
-			volatile uint64_t cycleEnd = rdtsc();
+			std::vector<event_count>::operator[](currentIndex)
+				.bytesProcessedVal.emplace(static_cast<size_t>(std::forward<function_type>(function)(std::forward<arg_types>(args)...)));
 			const auto endClock		   = clock_type::now();
-			count.cyclesVal.emplace(cycleEnd - cycleStart);
-			count.elapsed = endClock - startClock;
-			return count;
+			volatile uint64_t cycleEnd = __rdtsc();
+			std::vector<event_count>::operator[](currentIndex).cyclesVal.emplace(cycleEnd - cycleStart);
+			std::vector<event_count>::operator[](currentIndex).elapsed = endClock - startClock;
+			++currentIndex;
+			return;
 		}
 	};
 
