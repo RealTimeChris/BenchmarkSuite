@@ -102,27 +102,233 @@ namespace bnch_swt {
 			return length;
 		}
 
-		BNCH_SWT_INLINE operator std::string() const noexcept {
-			std::string returnValues{ values, length };
+		BNCH_SWT_ALWAYS_INLINE operator std::string() const noexcept {
+			BNCH_SWT_ALIGN std::string returnValues{ values, length };
 			return returnValues;
 		}
 
-		BNCH_SWT_INLINE constexpr std::string_view view() const noexcept {
-			return std::string_view{ values, length };
+		template<typename string_type> constexpr string_type view() const noexcept {
+			BNCH_SWT_ALIGN string_type returnValues{ values, length };
+			return returnValues;
 		}
 
-		value_type values[sizeVal]{};
+		BNCH_SWT_ALIGN value_type values[sizeVal]{};
 	};
 
-	template<size_t N> constexpr auto stringLiteralFromView(std::string_view str) noexcept {
-		bnch_swt::string_literal<N + 1> sl{};
+	template<size_t size> struct get_int_type_for_length {
+		using type = std::conditional_t<(size >= 5), uint64_t, std::conditional_t<(size > 3 && size < 6), uint32_t, std::conditional_t<(size > 1 && size < 4), uint16_t, uint8_t>>>;
+	};
+
+	template<size_t size> using get_int_type_for_length_t = get_int_type_for_length<size>::type;
+
+	template<string_literal string>
+		requires(string.length == 0)
+	constexpr auto packValues() {
+		return uint8_t{};
+	}
+
+	template<string_literal string>
+		requires(string.length > 0 && string.length <= 8)
+	constexpr auto packValues() {
+		BNCH_SWT_ALIGN get_int_type_for_length_t<string.length> returnValues{};
+		for (size_t x = 0; x < string.length; ++x) {
+			returnValues |= (static_cast<uint64_t>(string[x]) << ((x % 8) * 8));
+		}
+		return returnValues;
+	}
+
+	template<size_t size> constexpr size_t getPackingSize() {
+		if constexpr (size >= 64) {
+			return 64;
+		} else if constexpr (size >= 32) {
+			return 32;
+		} else {
+			return 16;
+		}
+	}
+
+	template<string_literal string>
+		requires(string.length != 0 && string.length > 8)
+	constexpr auto packValues() {
+		BNCH_SWT_ALIGN array<uint64_t, roundUpToMultiple<16>(getPackingSize<string.length>())> returnValues{};
+		for (size_t x = 0; x < string.length; ++x) {
+			if (x / 8 < (string.length / 8) + 1) {
+				returnValues[x / 8] |= (static_cast<uint64_t>(string[x]) << ((x % 8) * 8));
+			}
+		}
+		return returnValues;
+	}
+
+	template<typename value_type>
+	concept equals_0 = std::remove_cvref_t<value_type>::length == 0;
+
+	template<typename value_type>
+	concept gt_0_lt_16 = std::remove_cvref_t<value_type>::length > 0 && std::remove_cvref_t<value_type>::length < 16;
+
+	template<typename value_type>
+	concept eq_16 = std::remove_cvref_t<value_type>::length == 16 && bytesPerStep >= 16;
+
+	template<typename value_type>
+	concept eq_32 = std::remove_cvref_t<value_type>::length == 32 && bytesPerStep >= 32;
+
+	template<typename value_type>
+	concept eq_64 = std::remove_cvref_t<value_type>::length == 64 && bytesPerStep >= 64;
+
+	template<typename value_type>
+	concept gt_16 = std::remove_cvref_t<value_type>::length > 16 && !eq_16<value_type> && !eq_32<value_type> && !eq_64<value_type>;
+
+	template<size_t N, typename string_type> constexpr auto stringLiteralFromView(string_type str) noexcept {
+		string_literal<N + 1> sl{};
 		std::copy_n(str.data(), str.size(), sl.values);
 		sl[N] = '\0';
 		return sl;
 	}
 
-	template<size_t size> BNCH_SWT_INLINE std::ostream& operator<<(std::ostream& os, const string_literal<size>& input) noexcept {
-		os << input.view();
+	template<string_literal string, size_t offset> constexpr auto offSetNewLiteral() noexcept {
+		constexpr size_t originalSize = string.length;
+		constexpr size_t newSize	  = (offset >= originalSize) ? 0 : originalSize - offset;
+		string_literal<newSize + 1> sl{};
+		if constexpr (newSize > 0) {
+			std::copy_n(string.data() + offset, newSize, sl.values);
+			sl.values[newSize] = '\0';
+		}
+		return sl;
+	}
+
+	template<string_literal string, size_t offset> constexpr auto offSetIntoLiteral() noexcept {
+		constexpr size_t originalSize = string.length;
+		constexpr size_t newSize	  = (offset >= originalSize) ? originalSize : offset;
+		string_literal<newSize + 1> sl{};
+		if constexpr (newSize > 0) {
+			std::copy_n(string.data(), newSize, sl.values);
+			sl.values[newSize] = '\0';
+		}
+		return sl;
+	}
+
+	template<typename sl_type, std::remove_cvref_t<sl_type> stringNew> struct string_literal_comparitor;
+
+	template<equals_0 sl_type, std::remove_cvref_t<sl_type> stringNew> struct string_literal_comparitor<sl_type, stringNew> {
+		BNCH_SWT_ALWAYS_INLINE static bool impl(string_view_ptr) noexcept {
+			return true;
+		}
+	};
+
+	template<gt_0_lt_16 sl_type, std::remove_cvref_t<sl_type> stringNew> struct string_literal_comparitor<sl_type, stringNew> {
+		BNCH_SWT_ALWAYS_INLINE static bool impl(string_view_ptr str) noexcept {
+			static constexpr auto stringLiteral{ stringNew };
+			static constexpr auto newCount{ stringLiteral.size() };
+			if constexpr (newCount > 8) {
+				BNCH_SWT_ALIGN static constexpr auto valuesNew{ packValues<stringLiteral>() };
+				jsonifier_simd_int_128 data1{};
+				std::memcpy(&data1, str, newCount);
+				jsonifier_simd_int_128 data2{ simd_internal::gatherValues<jsonifier_simd_int_128>(valuesNew.data()) };
+				return !simd_internal::opTest(simd_internal::opXor(data1, data2));
+			} else if constexpr (newCount == 8) {
+				static constexpr auto valuesNew{ packValues<stringLiteral>() };
+				uint64_t l;
+				std::memcpy(&l, str, 8);
+				return !(l ^ valuesNew);
+			} else if constexpr (newCount == 7) {
+				static constexpr auto valuesNew{ packValues<stringLiteral>() };
+				uint64_t l{};
+				std::memcpy(&l, str, 7);
+				return !(l ^ valuesNew);
+			} else if constexpr (newCount == 6) {
+				static constexpr auto valuesNew{ packValues<stringLiteral>() };
+				uint64_t l{};
+				std::memcpy(&l, str, 6);
+				return !(l ^ valuesNew);
+			} else if constexpr (newCount == 5) {
+				static constexpr uint32_t valuesNew{ static_cast<uint32_t>(packValues<stringLiteral>()) };
+				uint32_t l;
+				std::memcpy(&l, str, 4);
+				return !(l ^ valuesNew) && (str[4] == stringLiteral[4]);
+			} else if constexpr (newCount == 4) {
+				static constexpr uint32_t valuesNew{ static_cast<uint32_t>(packValues<stringLiteral>()) };
+				uint32_t l;
+				std::memcpy(&l, str, 4);
+				return !(l ^ valuesNew);
+			} else if constexpr (newCount == 3) {
+				static constexpr uint16_t valuesNew{ static_cast<uint16_t>(packValues<stringLiteral>()) };
+				uint16_t l;
+				std::memcpy(&l, str, 2);
+				return !(l ^ valuesNew) && (str[2] == stringLiteral[2]);
+			} else if constexpr (newCount == 2) {
+				static constexpr uint16_t valuesNew{ static_cast<uint16_t>(packValues<stringLiteral>()) };
+				uint16_t l;
+				std::memcpy(&l, str, 2);
+				return !(l ^ valuesNew);
+			} else if constexpr (newCount == 1) {
+				return *str == stringLiteral[0];
+			} else {
+				return true;
+			}
+		};
+	};
+
+	template<eq_16 sl_type, std::remove_cvref_t<sl_type> stringNew> struct string_literal_comparitor<sl_type, stringNew> {
+		BNCH_SWT_ALWAYS_INLINE static bool impl(string_view_ptr str) noexcept {
+			static constexpr auto newLiteral{ stringNew };
+			BNCH_SWT_ALIGN static constexpr auto valuesNew{ packValues<newLiteral>() };
+			jsonifier_simd_int_128 data1{ simd_internal::gatherValuesU<jsonifier_simd_int_128>(str) };
+			jsonifier_simd_int_128 data2{ simd_internal::gatherValues<jsonifier_simd_int_128>(valuesNew.data()) };
+			return !simd_internal::opTest(simd_internal::opXor(data1, data2));
+		}
+	};
+
+#if BNCH_SWT_CHECK_FOR_INSTRUCTION(BNCH_SWT_AVX512) || BNCH_SWT_CHECK_FOR_INSTRUCTION(BNCH_SWT_AVX2)
+
+	template<eq_32 sl_type, std::remove_cvref_t<sl_type> stringNew> struct string_literal_comparitor<sl_type, stringNew> {
+		BNCH_SWT_ALWAYS_INLINE static bool impl(string_view_ptr str) noexcept {
+			static constexpr auto newLiteral{ stringNew };
+			BNCH_SWT_ALIGN static constexpr auto valuesNew{ packValues<newLiteral>() };
+			jsonifier_simd_int_256 data1{ simd_internal::gatherValuesU<jsonifier_simd_int_256>(str) };
+			jsonifier_simd_int_256 data2{ simd_internal::gatherValues<jsonifier_simd_int_256>(valuesNew.data()) };
+			return !simd_internal::opTest(simd_internal::opXor(data1, data2));
+		}
+	};
+
+#endif
+
+#if BNCH_SWT_CHECK_FOR_INSTRUCTION(BNCH_SWT_AVX512)
+	template<eq_64 value_type, std::remove_cvref_t<value_type> stringNew> struct string_literal_comparitor<value_type, stringNew> {
+		BNCH_SWT_ALWAYS_INLINE static bool impl(string_view_ptr str) noexcept {
+			static constexpr auto newLiteral{ stringNew };
+			BNCH_SWT_ALIGN static constexpr auto valuesNew{ packValues<newLiteral>() };
+			jsonifier_simd_int_512 data1{ simd_internal::gatherValuesU<jsonifier_simd_int_512>(str) };
+			jsonifier_simd_int_512 data2{ simd_internal::gatherValues<jsonifier_simd_int_512>(valuesNew.data()) };
+			return !simd_internal::opTest(simd_internal::opXor(data1, data2));
+		}
+	};
+#endif
+
+	constexpr auto getOffsetIntoLiteralSize(size_t inputSize) noexcept {
+		if (inputSize >= 64 && bytesPerStep >= 64) {
+			return 64;
+		} else if (inputSize >= 32 && bytesPerStep >= 32) {
+			return 32;
+		} else {
+			return 16;
+		}
+	}
+
+	template<gt_16 sl_type, std::remove_cvref_t<sl_type> stringNew> struct string_literal_comparitor<sl_type, stringNew> {
+		BNCH_SWT_ALWAYS_INLINE static bool impl(string_view_ptr str) noexcept {
+			static constexpr auto string{ offSetIntoLiteral<stringNew, getOffsetIntoLiteralSize(stringNew.size())>() };
+			if (!string_literal_comparitor<decltype(string), string>::impl(str)) {
+				return false;
+			} else {
+				static constexpr auto stringSize = string.size();
+				str += stringSize;
+				static constexpr auto stringNewer{ offSetNewLiteral<stringNew, stringSize>() };
+				return string_literal_comparitor<decltype(stringNewer), stringNewer>::impl(str);
+			}
+		}
+	};
+
+	template<size_t size, typename char> BNCH_SWT_ALWAYS_INLINE std::ostream& operator<<(std::ostream& os, const string_literal<size>& input) noexcept {
+		os << input.template view<jsonifier::string_view>();
 		return os;
 	}
 
@@ -141,7 +347,7 @@ namespace bnch_swt {
 
 	template<int64_t number, size_t numDigits = countDigits(number)> constexpr string_literal<numDigits + 1> toStringLiteral() noexcept {
 		char buffer[numDigits + 1]{};
-		char* ptr = buffer + numDigits;
+		string_buffer_ptr ptr = buffer + numDigits;
 		*ptr				  = '\0';
 		int64_t temp{};
 		if constexpr (number < 0) {
@@ -157,25 +363,16 @@ namespace bnch_swt {
 		return string_literal<numDigits + 1>{ buffer };
 	}
 
-	template<auto valueNew> struct make_static {
-		static constexpr auto value{ valueNew };
-	};
-
 	constexpr char toLower(char input) noexcept {
 		return (input >= 'A' && input <= 'Z') ? (input + 32) : input;
 	}
 
-	template<size_t size> constexpr auto toLower(string_literal<size> input) noexcept {
+	template<size_t size, typename value_type> constexpr auto toLower(string_literal<size> input) noexcept {
 		string_literal<size> output{};
 		for (size_t x = 0; x < size; ++x) {
 			output[x] = toLower(input[x]);
 		}
 		return output;
-	}
-
-	template<int64_t number> constexpr std::string_view toStringView() noexcept {
-		constexpr auto& lit = bnch_swt::make_static<toStringLiteral<number>()>::value;
-		return std::string_view{ lit.data(), lit.size() };
 	}
 
 }
