@@ -1,11 +1,16 @@
-#include <BnchSwt/BenchmarkSuite.hpp>
 #include <jsonifier/Index.hpp>
-#include "RandomGenerators.hpp"
-#include <thread>
+#include <iostream>
+#include <tuple>
+#include <type_traits>
+#include "Jsonifier.hpp"
+
+
 
 int main() {
-	bnch_swt::benchmark_stage<"TEST STAGE">::runBenchmark<"TEST", "CYAN">([] {
-		return 0;
-	});
+	static constexpr jsonifier_internal ::string_literal string{ "testing" };
+	static constexpr auto newString = string.operator std::string();
+	jsonifier::jsonifier_core parser{};
+	//parser.parseJson(twitter_message{}, std::string{});
+	parser.serializeJson(twitter_message{}, std::string{});
 	return 0;
 }

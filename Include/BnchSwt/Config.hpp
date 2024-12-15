@@ -88,4 +88,6 @@
 	#define BNCH_SWT_INLINE inline
 #endif
 
+#define BNCH_SWT_ALIGN alignas(64)
+
 using clock_type = std::conditional_t<std::chrono::high_resolution_clock::is_steady, std::chrono::high_resolution_clock, std::chrono::steady_clock>; 

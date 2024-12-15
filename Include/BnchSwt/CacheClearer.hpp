@@ -116,17 +116,14 @@ namespace bnch_swt {
 		inline static size_t cacheLineSize = 64;
 		inline static size_t l1CacheSize{ getL1CacheSize() };
 
-#if defined(BNCH_SWT_WIN)
 		BNCH_SWT_ALWAYS_INLINE static void flushCache(void* ptr, size_t size) {
+#if defined(BNCH_SWT_WIN)
 			char* buffer = static_cast<char*>(ptr);
 			for (size_t i = 0; i < size; i += cacheLineSize) {
 				_mm_clflush(buffer + i);
 			}
 			_mm_sfence();
-		}
-
 #elif defined(BNCH_SWT_LINUX) || defined(BNCH_SWT_MAC)
-		BNCH_SWT_ALWAYS_INLINE static void flushCache(void* ptr, size_t size) {
 			char* buffer = static_cast<char*>(ptr);
 	#if defined(__x86_64__) || defined(__i386__)
 			for (size_t i = 0; i < size; i += cacheLineSize) {
@@ -141,16 +138,12 @@ namespace bnch_swt {
 	#else
 			std::cerr << "Flush cache is not supported on this architecture!" << std::endl;
 	#endif
-		}
-
 #else
-		BNCH_SWT_ALWAYS_INLINE static void flushCache(void* ptr, size_t size) {
 			( void )ptr;
 			( void )size;
 			std::cerr << "Flush cache is not supported on this platform!" << std::endl;
-		}
-
 #endif
+		}
 
 		BNCH_SWT_ALWAYS_INLINE static void evictL1Cache() {
 			std::vector<char> evict_buffer(l1CacheSize + cacheLineSize);
