@@ -8,7 +8,7 @@ include (FetchContent)
 FetchContent_Declare(
   jsonifier
   GIT_REPOSITORY https://github.com/realtimechris/jsonifier.git
-  GIT_TAG dev
+  GIT_TAG new-json-interface
   GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(jsonifier)

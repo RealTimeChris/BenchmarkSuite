@@ -637,7 +637,7 @@ namespace bnch_swt {
 
 	static const lib_symbol lib_symbols_kperfdata[] = {
 		lib_symbol_def(kpep_config_create),
-		lib_symbol_def(kpep_config_free),
+		lib_symbol_def(nullptr),
 		lib_symbol_def(kpep_config_add_event),
 		lib_symbol_def(kpep_config_remove_event),
 		lib_symbol_def(kpep_config_force_counters),
