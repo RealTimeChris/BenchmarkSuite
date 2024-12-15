@@ -4,8 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-    - main
-    - dev
+     - '*'
 
 jobs:
   Build:
@@ -27,7 +26,7 @@ jobs:
 
     - name: Configure CMake
       run: |
-            cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DBENCH_TYPE=BENCHMARK
+            cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DBENCH_TYPE=BENCHMARK -DGENERATE_ASSEMBLY=TRUE
 
     - name: Build the Test
       run: |
@@ -38,7 +37,7 @@ jobs:
             cmake --install ./Build --config=${{matrix.build_type}}
 
     - name: Run the Test
-      working-directory: C:/Program Files (x86)/BenchmarkSuite/Tests/${{matrix.build_type}}/
+      working-directory: "C:/Program Files (x86)/BenchmarkSuite/bin/"
       run: |
             ./BenchmarkExe.exe
       continue-on-error: true
