@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-    - new-json-interface
+     - '*'
 
 jobs:
   Build:
