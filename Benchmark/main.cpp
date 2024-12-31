@@ -1,297 +1,202 @@
+#include <cstdint>
 #include <jsonifier/Index.hpp>
-
 #include <iostream>
-#include <tuple>
 #include <type_traits>
+#include <utility>
+#include <array>
+#include "BnchSwt/BenchmarkSuite.hpp"
+#include "RandomGenerators.hpp"
 
-struct search_metadata_data {
-	double completed_in{};
-	double max_id{};
-	std::string max_id_str{};
-	std::string next_results{};
-	std::string query{};
-	std::string refresh_url{};
-	int64_t count{};
-	int64_t since_id{};
-	std::string since_id_str{};
+constexpr uint8_t charTable[]{ 0x30u, 0x30u, 0x30u, 0x31u, 0x30u, 0x32u, 0x30u, 0x33u, 0x30u, 0x34u, 0x30u, 0x35u, 0x30u, 0x36u, 0x30u, 0x37u, 0x30u, 0x38u, 0x30u, 0x39u, 0x31u,
+	0x30u, 0x31u, 0x31u, 0x31u, 0x32u, 0x31u, 0x33u, 0x31u, 0x34u, 0x31u, 0x35u, 0x31u, 0x36u, 0x31u, 0x37u, 0x31u, 0x38u, 0x31u, 0x39u, 0x32u, 0x30u, 0x32u, 0x31u, 0x32u, 0x32u,
+	0x32u, 0x33u, 0x32u, 0x34u, 0x32u, 0x35u, 0x32u, 0x36u, 0x32u, 0x37u, 0x32u, 0x38u, 0x32u, 0x39u, 0x33u, 0x30u, 0x33u, 0x31u, 0x33u, 0x32u, 0x33u, 0x33u, 0x33u, 0x34u, 0x33u,
+	0x35u, 0x33u, 0x36u, 0x33u, 0x37u, 0x33u, 0x38u, 0x33u, 0x39u, 0x34u, 0x30u, 0x34u, 0x31u, 0x34u, 0x32u, 0x34u, 0x33u, 0x34u, 0x34u, 0x34u, 0x35u, 0x34u, 0x36u, 0x34u, 0x37u,
+	0x34u, 0x38u, 0x34u, 0x39u, 0x35u, 0x30u, 0x35u, 0x31u, 0x35u, 0x32u, 0x35u, 0x33u, 0x35u, 0x34u, 0x35u, 0x35u, 0x35u, 0x36u, 0x35u, 0x37u, 0x35u, 0x38u, 0x35u, 0x39u, 0x36u,
+	0x30u, 0x36u, 0x31u, 0x36u, 0x32u, 0x36u, 0x33u, 0x36u, 0x34u, 0x36u, 0x35u, 0x36u, 0x36u, 0x36u, 0x37u, 0x36u, 0x38u, 0x36u, 0x39u, 0x37u, 0x30u, 0x37u, 0x31u, 0x37u, 0x32u,
+	0x37u, 0x33u, 0x37u, 0x34u, 0x37u, 0x35u, 0x37u, 0x36u, 0x37u, 0x37u, 0x37u, 0x38u, 0x37u, 0x39u, 0x38u, 0x30u, 0x38u, 0x31u, 0x38u, 0x32u, 0x38u, 0x33u, 0x38u, 0x34u, 0x38u,
+	0x35u, 0x38u, 0x36u, 0x38u, 0x37u, 0x38u, 0x38u, 0x38u, 0x39u, 0x39u, 0x30u, 0x39u, 0x31u, 0x39u, 0x32u, 0x39u, 0x33u, 0x39u, 0x34u, 0x39u, 0x35u, 0x39u, 0x36u, 0x39u, 0x37u,
+	0x39u, 0x38u, 0x39u, 0x39u };
+
+JSONIFIER_INLINE char* toCharsU64Len8(char* buf, uint32_t value) noexcept {
+	const uint32_t aabb = static_cast<uint32_t>((static_cast<uint64_t>(value) * 109951163) >> 40);
+	const uint32_t ccdd = value - aabb * 10000;
+	const uint32_t aa	= (aabb * 5243) >> 19;
+	const uint32_t cc	= (ccdd * 5243) >> 19;
+	const uint32_t bb	= aabb - aa * 100;
+	const uint32_t dd	= ccdd - cc * 100;
+	std::memcpy(buf, charTable + aa * 2, 2);
+	std::memcpy(buf + 2, charTable + bb * 2, 2);
+	std::memcpy(buf + 4, charTable + cc * 2, 2);
+	std::memcpy(buf + 6, charTable + dd * 2, 2);
+	return buf + 8;
+}
+
+JSONIFIER_INLINE char* toCharsU64Len4(char* buf, uint32_t value) noexcept {
+	const uint32_t aa = (value * 5243) >> 19;
+	const uint32_t bb = value - aa * 100;
+	std::memcpy(buf, charTable + aa * 2, 2);
+	std::memcpy(buf + 2, charTable + bb * 2, 2);
+	return buf + 4;
+}
+
+JSONIFIER_INLINE char* toCharsU64Len18(char* buf, uint32_t value) noexcept {
+	uint32_t aa, bb, cc, dd, aabb, bbcc, ccdd, lz;
+
+	if (value < 100) {
+		lz = value < 10;
+		std::memcpy(buf, charTable + value * 2 + lz, 2);
+		buf -= lz;
+		return buf + 2;
+	} else {
+		if (value < 10000) {
+			aa = (value * 5243) >> 19;
+			bb = value - aa * 100;
+			lz = aa < 10;
+			std::memcpy(buf, charTable + aa * 2 + lz, 2);
+			buf -= lz;
+			std::memcpy(buf + 2, charTable + bb * 2, 2);
+			return buf + 4;
+		} else {
+			if (value < 1000000) {
+				aa	 = static_cast<uint32_t>((static_cast<uint64_t>(value) * 429497) >> 32);
+				bbcc = value - aa * 10000;
+				bb	 = (bbcc * 5243) >> 19;
+				cc	 = bbcc - bb * 100;
+				lz	 = aa < 10;
+				std::memcpy(buf, charTable + aa * 2 + lz, 2);
+				buf -= lz;
+				std::memcpy(buf + 2, charTable + bb * 2, 2);
+				std::memcpy(buf + 4, charTable + cc * 2, 2);
+				return buf + 6;
+			} else {
+				aabb = static_cast<uint32_t>((static_cast<uint64_t>(value) * 109951163) >> 40);
+				ccdd = value - aabb * 10000;
+				aa	 = (aabb * 5243) >> 19;
+				cc	 = (ccdd * 5243) >> 19;
+				bb	 = aabb - aa * 100;
+				dd	 = ccdd - cc * 100;
+				lz	 = aa < 10;
+				std::memcpy(buf, charTable + aa * 2 + lz, 2);
+				buf -= lz;
+				std::memcpy(buf + 2, charTable + bb * 2, 2);
+				std::memcpy(buf + 4, charTable + cc * 2, 2);
+				std::memcpy(buf + 6, charTable + dd * 2, 2);
+				return buf + 8;
+			}
+		}
+	}
+}
+
+JSONIFIER_INLINE char* toCharsU64Len58(char* buf, uint32_t value) noexcept {
+	if (value < 1000000) {
+		const uint32_t aa	= static_cast<uint32_t>((static_cast<uint64_t>(value) * 429497) >> 32);
+		const uint32_t bbcc = value - aa * 10000;
+		const uint32_t bb	= (bbcc * 5243) >> 19;
+		const uint32_t cc	= bbcc - bb * 100;
+		const uint32_t lz	= aa < 10;
+		std::memcpy(buf, charTable + aa * 2 + lz, 2);
+		buf -= lz;
+		std::memcpy(buf + 2, charTable + bb * 2, 2);
+		std::memcpy(buf + 4, charTable + cc * 2, 2);
+		return buf + 6;
+	} else {
+		const uint32_t aabb = static_cast<uint32_t>((static_cast<uint64_t>(value) * 109951163) >> 40);
+		const uint32_t ccdd = value - aabb * 10000;
+		const uint32_t aa	= (aabb * 5243) >> 19;
+		const uint32_t cc	= (ccdd * 5243) >> 19;
+		const uint32_t bb	= aabb - aa * 100;
+		const uint32_t dd	= ccdd - cc * 100;
+		const uint32_t lz	= aa < 10;
+		std::memcpy(buf, charTable + aa * 2 + lz, 2);
+		buf -= lz;
+		std::memcpy(buf + 2, charTable + bb * 2, 2);
+		std::memcpy(buf + 4, charTable + cc * 2, 2);
+		std::memcpy(buf + 6, charTable + dd * 2, 2);
+		return buf + 8;
+	}
+}
+
+template<jsonifier::concepts::uns64_t value_type> JSONIFIER_INLINE static char* toChars(char* buf, value_type value) noexcept {
+	if (value == 0) {
+		*buf = '0';
+		return buf + 1;
+	} else if (value < 100000000) {
+		buf = toCharsU64Len18(buf, static_cast<uint32_t>(value));
+		return buf;
+	} else {
+		if (value < 100000000ull * 100000000ull) {
+			const uint64_t hgh = value / 100000000;
+			auto low		   = static_cast<uint32_t>(value - hgh * 100000000);
+			buf				   = toCharsU64Len18(buf, static_cast<uint32_t>(hgh));
+			buf				   = toCharsU64Len8(buf, low);
+			return buf;
+		} else {
+			const uint64_t tmp = value / 100000000;
+			auto low		   = static_cast<uint32_t>(value - tmp * 100000000);
+			auto hgh		   = static_cast<uint32_t>(tmp / 10000);
+			auto mid		   = static_cast<uint32_t>(tmp - hgh * 10000);
+			buf				   = toCharsU64Len58(buf, hgh);
+			buf				   = toCharsU64Len4(buf, mid);
+			buf				   = toCharsU64Len8(buf, low);
+			return buf;
+		}
+	}
+}
+
+template<jsonifier::concepts::sig64_t value_type> JSONIFIER_INLINE static char* toChars(char* buf, value_type value) noexcept {
+	*buf = '-';
+	return toChars<uint64_t>(buf + (value < 0), static_cast<uint64_t>(value ^ (value >> 63)) - (value >> 63));
+}
+
+template<typename value_type, typename context_type> struct parse_entities_for_ptrs {
+	template<size_t index> BNCH_SWT_ALWAYS_INLINE static bool processIndex(value_type& value, context_type& context) noexcept {
+		std::cout << "INDEX " << index << std::endl;
+		return static_cast<bool>(static_cast<int32_t>(value) * static_cast<int32_t>(value) + static_cast<int32_t>(context));
+	}
+
+	template<size_t... indices>
+	BNCH_SWT_ALWAYS_INLINE static constexpr auto invokeFunction(value_type& value, context_type& context, size_t index, std::index_sequence<indices...>) {
+		return ((index == indices && processIndex<indices>(value, context)), ...);
+	}
+
+	BNCH_SWT_ALWAYS_INLINE static bool invokeFunction(value_type& value, context_type& context, size_t index) {
+		return invokeFunction(value, context, index, std::make_index_sequence<100>{});
+	}
 };
 
-struct hashtag_data {
-	std::string text{};
-	std::vector<int64_t> indices{};
-};
-
-struct large_data {
-	int64_t w{};
-	int64_t h{};
-	std::string resize{};
-};
-
-struct sizes_data {
-	large_data medium{};
-	large_data small{};
-	large_data thumb{};
-	large_data large{};
-};
-
-struct media_data {
-	double id{};
-	std::string id_str{};
-	std::vector<int64_t> indices{};
-	std::string media_url{};
-	std::string media_url_https{};
-	std::string url{};
-	std::string display_url{};
-	std::string expanded_url{};
-	std::string type{};
-	sizes_data sizes{};
-	std::optional<double> source_status_id{};
-	std::optional<std::string> source_status_id_str{};
-};
-
-struct url_data {
-	std::string url{};
-	std::string expanded_url{};
-	std::string display_url{};
-	std::vector<int64_t> indices{};
-};
-
-struct user_mention_data {
-	std::string screen_name{};
-	std::string name{};
-	int64_t id{};
-	std::string id_str{};
-	std::vector<int64_t> indices{};
-};
-
-struct status_entities {
-	std::vector<hashtag_data> hashtags{};
-	std::vector<std::nullptr_t> symbols{};
-	std::vector<url_data> urls{};
-	std::vector<user_mention_data> user_mentions{};
-	std::optional<std::vector<media_data>> media{};
-};
-
-struct metadata_data {
-	std::string result_type{};
-	std::string iso_language_code{};
-};
-
-struct description_data {
-	std::vector<url_data> urls{};
-};
-
-struct user_entities {
-	description_data description{};
-	std::optional<description_data> url{};
-};
-
-struct twitter_user_data {
-	int64_t id{};
-	std::string id_str{};
-	std::string name{};
-	std::string screen_name{};
-	std::string location{};
-	std::string description{};
-	std::optional<std::string> url{};
-	user_entities entities{};
-	bool protectedVal{};
-	int64_t followers_count{};
-	int64_t friends_count{};
-	int64_t listed_count{};
-	std::string created_at{};
-	int64_t favourites_count{};
-	std::optional<int64_t> utc_offset{};
-	std::optional<std::string> time_zone{};
-	bool geo_enabled{};
-	bool verified{};
-	int64_t statuses_count{};
-	std::string lang{};
-	bool contributors_enabled{};
-	bool is_translator{};
-	bool is_translation_enabled{};
-	std::string profile_background_color{};
-	std::string profile_background_image_url{};
-	std::string profile_background_image_url_https{};
-	bool profile_background_tile{};
-	std::string profile_image_url{};
-	std::string profile_image_url_https{};
-	std::optional<std::string> profile_banner_url{};
-	std::string profile_link_color{};
-	std::string profile_sidebar_border_color{};
-	std::string profile_sidebar_fill_color{};
-	std::string profile_text_color{};
-	bool profile_use_background_image{};
-	bool default_profile{};
-	bool default_profile_image{};
-	bool following{};
-	bool follow_request_sent{};
-	bool notifications{};
-};
-
-struct status_data {
-	metadata_data metadata{};
-	std::string created_at{};
-	double id{};
-	std::string id_str{};
-	std::string text{};
-	std::string source{};
-	bool truncated{};
-	std::optional<double> in_reply_to_status_id{};
-	std::optional<std::string> in_reply_to_status_id_str{};
-	std::optional<int64_t> in_reply_to_user_id{};
-	std::optional<std::string> in_reply_to_user_id_str{};
-	std::optional<std::string> in_reply_to_screen_name{};
-	twitter_user_data user{};
-	std::nullptr_t geo{};
-	std::nullptr_t coordinates{};
-	std::nullptr_t place{};
-	std::nullptr_t contributors{};
-	int64_t retweet_count{};
-	int64_t favorite_count{};
-	status_entities entities{};
-	bool favorited{};
-	bool retweeted{};
-	std::string lang{};
-	std::shared_ptr<status_data> retweeted_status{};
-	std::optional<bool> possibly_sensitive{};
-};
-
-struct twitter_message {
-	std::vector<status_data> statuses{};
-	search_metadata_data search_metadata{};
-};
-
-template<> struct jsonifier::core<search_metadata_data> {
-	using value_type = search_metadata_data;
-
-	static constexpr auto parseValue = createValue<&value_type::completed_in, &value_type::max_id, &value_type::max_id_str, &value_type::next_results, &value_type::query,
-		&value_type::refresh_url, &value_type::count, &value_type::since_id, &value_type::since_id_str>();
-};
-
-template<> struct jsonifier::core<hashtag_data> {
-	using value_type = hashtag_data;
-
-	static constexpr auto parseValue = createValue<&value_type::text, &value_type::indices>();
-};
-
-template<> struct jsonifier::core<large_data> {
-	using value_type = large_data;
-
-	static constexpr auto parseValue = createValue<&value_type::w, &value_type::h, &value_type::resize>();
-};
-
-template<> struct jsonifier::core<sizes_data> {
-	using value_type = sizes_data;
-
-	static constexpr auto parseValue = createValue<&value_type::medium, &value_type::small, &value_type::thumb, &value_type::large>();
-};
-
-template<> struct jsonifier::core<media_data> {
-	using value_type = media_data;
-
-	static constexpr auto parseValue =
-		createValue<&value_type::id, &value_type::id_str, &value_type::indices, &value_type::media_url, &value_type::media_url_https, &value_type::url, &value_type::display_url,
-			&value_type::expanded_url, &value_type::type, &value_type::sizes, &value_type::source_status_id, &value_type::source_status_id_str>();
-};
-
-template<> struct jsonifier::core<url_data> {
-	using value_type = url_data;
-
-	static constexpr auto parseValue = createValue<&value_type::url, &value_type::expanded_url, &value_type::display_url, &value_type::indices>();
-};
-
-template<> struct jsonifier::core<user_mention_data> {
-	using value_type = user_mention_data;
-
-	static constexpr auto parseValue = createValue<&value_type::screen_name, &value_type::name, &value_type::id, &value_type::id_str, &value_type::indices>();
-};
-
-template<> struct jsonifier::core<status_entities> {
-	using value_type = status_entities;
-
-	static constexpr auto parseValue = createValue<&value_type::hashtags, &value_type::symbols, &value_type::urls, &value_type::user_mentions, &value_type::media>();
-};
-
-template<> struct jsonifier::core<metadata_data> {
-	using value_type = metadata_data;
-
-	static constexpr auto parseValue = createValue<&value_type::result_type, &value_type::iso_language_code>();
-};
-
-template<> struct jsonifier::core<description_data> {
-	using value_type = description_data;
-
-	static constexpr auto parseValue = createValue<&value_type::urls>();
-};
-
-template<> struct jsonifier::core<user_entities> {
-	using value_type				 = user_entities;
-	static constexpr auto parseValue = createValue<&value_type::description, &value_type::url>();
-};
-
-template<> struct jsonifier::core<twitter_user_data> {
-	using value_type = twitter_user_data;
-	static constexpr auto parseValue =
-		createValue<&value_type::id, &value_type::id_str, &value_type::name, &value_type::screen_name, &value_type::location, &value_type::description, &value_type::url,
-			&value_type::entities, makeJsonEntity<&value_type::protectedVal, "protected">(), &value_type::followers_count, &value_type::friends_count, &value_type::listed_count,
-			&value_type::created_at, &value_type::favourites_count, &value_type::utc_offset, &value_type::time_zone, &value_type::geo_enabled, &value_type::verified,
-			&value_type::statuses_count, &value_type::lang, &value_type::contributors_enabled, &value_type::is_translator, &value_type::is_translation_enabled,
-			&value_type::profile_background_color, &value_type::profile_background_image_url, &value_type::profile_background_image_url_https, &value_type::profile_background_tile,
-			&value_type::profile_image_url, &value_type::profile_image_url_https, &value_type::profile_banner_url, &value_type::profile_link_color,
-			&value_type::profile_sidebar_border_color, &value_type::profile_sidebar_fill_color, &value_type::profile_text_color, &value_type::profile_use_background_image,
-			&value_type::default_profile, &value_type::default_profile_image, &value_type::following, &value_type::follow_request_sent, &value_type::notifications>();
-};
-
-template<> struct jsonifier::core<status_data> {
-	using value_type = status_data;
-	static constexpr auto forceInline{ true };
-	static constexpr auto parseValue = createValue<&value_type::metadata, &value_type::created_at, &value_type::id, &value_type::id_str, &value_type::text, &value_type::source,
-		&value_type::truncated, &value_type::in_reply_to_status_id, &value_type::in_reply_to_status_id_str, &value_type::in_reply_to_user_id, &value_type::in_reply_to_user_id_str,
-		&value_type::in_reply_to_screen_name, &value_type::user, &value_type::geo, &value_type::coordinates, &value_type::place, &value_type::contributors,
-		&value_type::retweet_count, &value_type::favorite_count, &value_type::entities, &value_type::favorited, &value_type::retweeted, &value_type::lang,
-		&value_type::retweeted_status, &value_type::possibly_sensitive>();
-};
-
-template<> struct jsonifier::core<twitter_message> {
-	using value_type = twitter_message;
+template<size_t integerLength, bnch_swt::string_literal testName> BNCH_SWT_ALWAYS_INLINE void testFunction() {
+	std::vector<uint64_t> testValues{};
+	for (size_t x = 0; x < 1024; ++x) {
+		std::string newString{ jsonifier::toString(bnch_swt::random_generator::generateUint()) };
+		newString.resize(integerLength);
+		testValues.emplace_back(jsonifier::strToUint64(newString));
+	}
 	
-	static constexpr auto parseValue = createValue<&value_type::statuses, &value_type::search_metadata>();
-};
-
-
-template<typename value_type, size_t depth=0> struct introspect_json_entities {
-	static void expandIfObject() {
-		if constexpr (jsonifier::concepts::jsonifier_object_t<value_type>) {
-			introspect_json_entities<value_type, depth + 1>::impl();
+	bnch_swt::benchmark_stage<"old-vs-new-i-to-str" + testName>::runBenchmark<"Old-I-To-Str", "CYAN">([&] {
+		std::string newerString{};
+		size_t bytesProcessed{};
+		newerString.resize(integerLength);
+		for (size_t x = 0; x < 1024; ++x) {
+			toChars(newerString.data(), testValues[x]);
+			bytesProcessed += newerString.size();
 		}
-	}
+		return bytesProcessed;
+	});
 
-	static void impl() {
-		expandIfObject();
-		expandIfArray();
-		expandIfOptonal();
-	};
-
-	static void expandIfArray() {
-		if constexpr (jsonifier::concepts::vector_t<value_type>) {
-			introspect_json_entities<typename value_type::value_type, depth + 1>::impl();
+	bnch_swt::benchmark_stage<"old-vs-new-i-to-str" + testName>::runBenchmark<"New-I-To-Str", "CYAN">([&] {
+		std::string newerString{};
+		size_t bytesProcessed{};
+		newerString.resize(integerLength);
+		for (size_t x = 0; x < 1024; ++x) {
+			jsonifier_internal::toChars(newerString.data(), testValues[x]);
+			bytesProcessed += newerString.size();
 		}
-	}
-
-	static void expandIfOptonal() {
-		if constexpr (jsonifier::concepts::optional_t<value_type>) {
-			introspect_json_entities<typename value_type::value_type, depth + 1>::impl();
-		}
-	}
-};
+		return bytesProcessed;
+	});
+	bnch_swt::benchmark_stage<"old-vs-new-i-to-str" + testName>::printResults();
+}
 
 int main() {
-	std::string testString{};
-	twitter_message test{};
-	jsonifier::jsonifier_core parser{};
-	parser.parseJson(test, testString);
-	parser.serializeJson(test, testString);
-	std ::cout << "CURRENT STRING: " << testString << std::endl;
+	testFunction<1, "-1">();
 	return 0;
 }
