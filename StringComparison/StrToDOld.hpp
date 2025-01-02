@@ -58,11 +58,11 @@ namespace jsonifier_internal_old {
 		}
 
 		UC const* const end_of_integer_part = iter;
-		int64_t digit_count					= static_cast<int64_t>(end_of_integer_part - start_digits);
-		answer.integer.length				= static_cast<size_t>(digit_count);
+		int64_t digitCountFast					= static_cast<int64_t>(end_of_integer_part - start_digits);
+		answer.integer.length				= static_cast<size_t>(digitCountFast);
 		answer.integer.ptr					= start_digits;
 
-		if (digit_count == 0 || (start_digits[0] == zeroNew && digit_count > 1)) {
+		if (digitCountFast == 0 || (start_digits[0] == zeroNew && digitCountFast > 1)) {
 			return false;
 		}
 
@@ -83,7 +83,7 @@ namespace jsonifier_internal_old {
 			exponent			   = before - iter;
 			answer.fraction.length = static_cast<size_t>(iter - before);
 			answer.fraction.ptr	   = before;
-			digit_count -= exponent;
+			digitCountFast -= exponent;
 		}
 
 		if (has_decimal_point && exponent == 0) {
@@ -122,16 +122,16 @@ namespace jsonifier_internal_old {
 		answer.lastmatch = iter;
 		answer.valid	 = true;
 
-		if (digit_count > 19) {
+		if (digitCountFast > 19) {
 			UC const* start = start_digits;
 			while ((*start == zeroNew || *start == decimalNew)) {
 				if (*start == zeroNew) {
-					--digit_count;
+					--digitCountFast;
 				}
 				++start;
 			}
 
-			if (digit_count > 19) {
+			if (digitCountFast > 19) {
 				answer.too_many_digits = true;
 				i					   = 0;
 				iter				   = answer.integer.ptr;

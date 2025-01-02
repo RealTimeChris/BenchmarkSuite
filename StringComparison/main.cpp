@@ -13,7 +13,7 @@ struct uint128_t {
 		if (bit_string.length() != 128) {
 			throw std::invalid_argument("String must be exactly 128 characters long");
 		}
-		for (size_t i = 0; i < 128; ++i) {
+		for (uint64_t i = 0; i < 128; ++i) {
 			if (bit_string[i] == '1') {
 				values[127 - i] = 1;
 			} else if (bit_string[i] == '0') {
@@ -25,19 +25,19 @@ struct uint128_t {
 	}
 
 	constexpr uint128_t(uint64_t val01, uint64_t val02) : values{ 0 } {
-		for (int32_t i = 0; i < 64; ++i) {
+		for (uint64_t i = 0; i < 64; ++i) {
 			values[i] = (val01 >> i) & 1;
 		}
 
-		for (int32_t i = 0; i < 64; ++i) {
+		for (uint64_t i = 0; i < 64; ++i) {
 			values[64 + i] = (val02 >> i) & 1;
 		}
 	}
 
 	constexpr uint128_t(uint64_t val01) : values{ val01 } {};
 
-	constexpr int32_t log2() const {
-		for (int32_t i = 127; i >= 0; --i) {
+	constexpr uint64_t log2() const {
+		for (uint64_t i = 127; i >= 0; --i) {
 			if (values[i] == 1) {
 				return i;
 			}
@@ -61,7 +61,7 @@ struct uint128_t {
 		return result;
 	}
 
-	constexpr uint128_t pow(size_t exponent) const {
+	constexpr uint128_t pow(uint64_t exponent) const {
 		double newVals[2]{};
 		newVals[0] = powUint64(low64(), exponent);
 		newVals[1] = powUint64(high64(), exponent);
@@ -71,7 +71,7 @@ struct uint128_t {
 
 	constexpr uint64_t low64() const {
 		uint64_t result = 0;
-		for (int32_t i = 0; i < 64; ++i) {
+		for (uint64_t i = 0; i < 64; ++i) {
 			result |= (static_cast<uint64_t>(values[i]) << i);
 		}
 		return result;
@@ -79,13 +79,13 @@ struct uint128_t {
 
 	constexpr uint64_t high64() const {
 		uint64_t result = 0;
-		for (int32_t i = 0; i < 64; ++i) {
+		for (uint64_t i = 0; i < 64; ++i) {
 			result |= (static_cast<uint64_t>(values[64 + i]) << i);
 		}
 		return result;
 	}
 
-	constexpr uint128_t operator<<(size_t shift) const {
+	constexpr uint128_t operator<<(uint64_t shift) const {
 		uint128_t result{};
 		if (shift == 0) {
 			return *this;
@@ -95,14 +95,14 @@ struct uint128_t {
 			return uint128_t(0);
 		}
 
-		for (size_t i = 0; i < 128 - shift; ++i) {
+		for (uint64_t i = 0; i < 128 - shift; ++i) {
 			result.values[i + shift] = values[i];
 		}
 
 		return result;
 	}
 
-	 void print_bits() const {
+	void print_bits() const {
 		for (int i = 127; i >= 0; --i) {
 			std::cout << values[i];
 			if (i % 8 == 0)
@@ -111,15 +111,15 @@ struct uint128_t {
 		std::cout << std::endl;
 	}
 
-	constexpr uint128_t& operator<<=(size_t shift) {
+	constexpr uint128_t& operator<<=(uint64_t shift) {
 		*this = *this >> shift;
 		return *this;
 	}
 
-	constexpr uint128_t operator>>(size_t shift) const {
+	constexpr uint128_t operator>>(uint64_t shift) const {
 		uint128_t result{};
 		if (shift < 128) {
-			for (size_t i = shift; i < 128; ++i) {
+			for (uint64_t i = shift; i < 128; ++i) {
 				result.values[i - shift] = values[i];
 			}
 		}
@@ -190,14 +190,14 @@ struct uint128_t {
 
   protected:
 	constexpr uint128_t addNumbersInBase(const uint128_t& V) const {
-		int32_t n = 127;
+		uint64_t n = 127;
 		uint128_t returnValues{};
 		std::bitset<128> W{};
-		int32_t k = 0;
-		int32_t j = 0;
+		uint64_t k = 0;
+		uint64_t j = 0;
 
 		while (j < n) {
-			int32_t sum			   = values[j] + V.values[j] + k;
+			uint64_t sum		   = values[j] + V.values[j] + k;
 			returnValues.values[j] = sum % 2;
 			k					   = sum / 2;
 			j++;
@@ -215,10 +215,10 @@ struct uint128_t {
 		valuesNew[2] = other.low64();
 		valuesNew[3] = other.high64();
 		bool carryInNew{};
-		valuesNew[2]					 = valuesNew[0] - valuesNew[2] - static_cast<uint64_t>(carryInNew);
-		carryInNew						 = valuesNew[2] > valuesNew[0];
-		valuesNew[1 + 2]				 = valuesNew[1] - valuesNew[1 + 2] - static_cast<uint64_t>(carryInNew);
-		carryInNew						 = valuesNew[1 + 2] > valuesNew[1];
+		valuesNew[2]	 = valuesNew[0] - valuesNew[2] - static_cast<uint64_t>(carryInNew);
+		carryInNew		 = valuesNew[2] > valuesNew[0];
+		valuesNew[1 + 2] = valuesNew[1] - valuesNew[1 + 2] - static_cast<uint64_t>(carryInNew);
+		carryInNew		 = valuesNew[1 + 2] > valuesNew[1];
 		return uint128_t{ valuesNew[2], valuesNew[3] };
 	}
 
@@ -227,7 +227,7 @@ struct uint128_t {
 		uint128_t multiplicand = *this;
 		uint128_t multiplier   = V;
 
-		for (int32_t i = 0; i < 128; ++i) {
+		for (uint64_t i = 0; i < 128; ++i) {
 			if (multiplier.values[i] == 1) {
 				result = result + multiplicand;
 			}
@@ -248,7 +248,7 @@ struct uint128_t {
 			throw std::invalid_argument("Division by zero.");
 		}
 
-		for (int32_t i = 127; i >= 0; --i) {
+		for (uint64_t i = 127; i >= 0; --i) {
 			remainder = remainder << 1;
 			result	  = result << 1;
 
@@ -302,9 +302,9 @@ struct uint128_t {
 };
 
 
-template<size_t size> std::vector<int32_t> convertBitsetToVector(const std::bitset<size>& bitset) {
-	std::vector<int32_t> returnValues{};
-	for (size_t x = 0; x < size; ++x) {
+template<uint64_t size> std::vector<uint64_t> convertBitsetToVector(const std::bitset<size>& bitset) {
+	std::vector<uint64_t> returnValues{};
+	for (uint64_t x = 0; x < size; ++x) {
 		returnValues.emplace_back(bitset.test(x));
 	}
 	return returnValues;
@@ -346,12 +346,12 @@ namespace cpp23 {
 		//std::cout << "Log10-1 result: " << newVal << std::endl;
 		auto newVal02 = ceil_uint64_t(newVal);
 		//std::cout << "Log10-1 result-02: " << newVal02 << std::endl;
-		return static_cast<int32_t>(newVal02);
+		return static_cast<uint64_t>(newVal02);
 	}
 
 	constexpr double pow_uint64(uint64_t base, uint64_t exponent) {
 		double result = 1.0;
-		 
+
 		// Exponentiation by squaring
 		while (exponent > 0) {
 			if (exponent % 2 == 1) {
@@ -373,106 +373,148 @@ namespace cpp23 {
 	}
 }
 
-int32_t digit_count(uint32_t x) {
-	static std::array<std::uint64_t, 32> table = []() {
-		std::array<std::uint64_t, 32> table;
-		for (uint64_t i = 1; i < 33; i++) {
-			const unsigned smallest = cpp23::pow(2, i - 1);
-			auto newVal01 = cpp23::pow(2, 32) - cpp23::pow(10, cpp23::log10(smallest));
-			auto newVal03 = (cpp23::log10(smallest) << 32);
-			table[i - 1] = (i < 31 ? (newVal01) : 0) + (newVal03);
-		}
-		return table;
-	}();
+uint32_t digitCountFast(uint32_t x) {
+	static constexpr uint64_t table[] = { 4294967296, 8589934582, 8589934582, 8589934582, 12884901788, 12884901788, 12884901788, 17179868184, 17179868184, 17179868184, 21474826480,
+		21474826480, 21474826480, 21474826480, 25769703776, 25769703776, 25769703776, 30063771072, 30063771072, 30063771072, 34349738368, 34349738368, 34349738368, 34349738368,
+		38554705664, 38554705664, 38554705664, 41949672960, 41949672960, 41949672960, 42949672960, 42949672960 };
 	return (x + table[31 - simd_internal::lzcnt(x | 1)]) >> 32;
 }
 
-uint32_t digitCountFast64(uint128_t x) {
-	static constexpr std::array<uint128_t, 64> table = []() {
-		std::array<uint128_t, 64> table{};
-		for (uint64_t i = 1; i < 65; ++i) {
-			uint128_t smallest = uint128_t{ 2 }.pow(i - 1);
-			uint128_t newVal01 = uint128_t{ 2 }.pow(64) - uint128_t{ 10 }.pow(smallest.log10().low64());
-			uint128_t newVal02 = smallest.log10() << 64;
-			table[i - 1]	   = (i < 62 ? (newVal01) : 0) + (newVal02);
-		}
-		return table;
-	}();
-	return (x + (table[62 - simd_internal::lzcnt(x.low64() | 1)]) >> 64).low64() + 1;
-}
 #include <cstring>
-#include <iostream>
 #include <cstdint>
 
-alignas(2) constexpr char charTable[]{ 0x30u, 0x30u, 0x30u, 0x31u, 0x30u, 0x32u, 0x30u, 0x33u, 0x30u, 0x34u, 0x30u, 0x35u, 0x30u, 0x36u, 0x30u, 0x37u, 0x30u, 0x38u, 0x30u, 0x39u,
-	0x31u, 0x30u, 0x31u, 0x31u, 0x31u, 0x32u, 0x31u, 0x33u, 0x31u, 0x34u, 0x31u, 0x35u, 0x31u, 0x36u, 0x31u, 0x37u, 0x31u, 0x38u, 0x31u, 0x39u, 0x32u, 0x30u, 0x32u, 0x31u, 0x32u,
-	0x32u, 0x32u, 0x33u, 0x32u, 0x34u, 0x32u, 0x35u, 0x32u, 0x36u, 0x32u, 0x37u, 0x32u, 0x38u, 0x32u, 0x39u, 0x33u, 0x30u, 0x33u, 0x31u, 0x33u, 0x32u, 0x33u, 0x33u, 0x33u, 0x34u,
-	0x33u, 0x35u, 0x33u, 0x36u, 0x33u, 0x37u, 0x33u, 0x38u, 0x33u, 0x39u, 0x34u, 0x30u, 0x34u, 0x31u, 0x34u, 0x32u, 0x34u, 0x33u, 0x34u, 0x34u, 0x34u, 0x35u, 0x34u, 0x36u, 0x34u,
-	0x37u, 0x34u, 0x38u, 0x34u, 0x39u, 0x35u, 0x30u, 0x35u, 0x31u, 0x35u, 0x32u, 0x35u, 0x33u, 0x35u, 0x34u, 0x35u, 0x35u, 0x35u, 0x36u, 0x35u, 0x37u, 0x35u, 0x38u, 0x35u, 0x39u,
-	0x36u, 0x30u, 0x36u, 0x31u, 0x36u, 0x32u, 0x36u, 0x33u, 0x36u, 0x34u, 0x36u, 0x35u, 0x36u, 0x36u, 0x36u, 0x37u, 0x36u, 0x38u, 0x36u, 0x39u, 0x37u, 0x30u, 0x37u, 0x31u, 0x37u,
-	0x32u, 0x37u, 0x33u, 0x37u, 0x34u, 0x37u, 0x35u, 0x37u, 0x36u, 0x37u, 0x37u, 0x37u, 0x38u, 0x37u, 0x39u, 0x38u, 0x30u, 0x38u, 0x31u, 0x38u, 0x32u, 0x38u, 0x33u, 0x38u, 0x34u,
-	0x38u, 0x35u, 0x38u, 0x36u, 0x38u, 0x37u, 0x38u, 0x38u, 0x38u, 0x39u, 0x39u, 0x30u, 0x39u, 0x31u, 0x39u, 0x32u, 0x39u, 0x33u, 0x39u, 0x34u, 0x39u, 0x35u, 0x39u, 0x36u, 0x39u,
-	0x37u, 0x39u, 0x38u, 0x39u, 0x39u };
+constexpr std::array<uint64_t, 10000> generateCharTable4() {
+	std::array<uint64_t, 10000> table{};
+
+	for (uint64_t i = 0; i < 10000; ++i) {
+		uint64_t thousands = i / 1000 + '0';
+		uint64_t hundreds  = (i / 100) % 10 + '0';
+		uint64_t tens	   = (i / 10) % 10 + '0';
+		uint64_t ones	   = i % 10 + '0';
+		table[i]		   = (ones << 24) | (tens << 16) | (hundreds << 8) | thousands;
+	}
+
+	return table;
+}
+
+constexpr std::array<uint64_t, 1000> generateCharTable3() {
+	std::array<uint64_t, 1000> table{};
+	for (uint64_t i = 0; i < 1000; ++i) {
+		uint64_t hundreds = (i / 100) % 10 + '0';
+		uint64_t tens	  = (i / 10) % 10 + '0';
+		uint64_t ones	  = i % 10 + '0';
+		table[i]		  = (ones << 16) | (tens << 8) | (hundreds);
+	}
+
+	return table;
+}
+
+constexpr std::array<short, 100> generateCharTable2() {
+	std::array<short, 100> table{};
+	for (uint64_t i = 0; i < 100; ++i) {
+		uint64_t tens = (i / 10) % 10 + '0';
+		uint64_t ones = i % 10 + '0';
+
+		table[i] = (ones << 8) | (tens);
+	}
+
+	return table;
+}
+
+constexpr std::array<char, 10> generateCharTable1() {
+	std::array<char, 10> table{};
+	for (uint64_t i = 0; i < 10; ++i) {
+		uint64_t ones = i + '0';
+
+		table[i] = ones;
+	}
+
+	return table;
+}
+
+constexpr auto charTable1 = generateCharTable1();
+constexpr auto charTable2 = generateCharTable2();
+constexpr auto charTable3 = generateCharTable3();
+constexpr auto charTable4 = generateCharTable4();
 
 JSONIFIER_INLINE char* length1(char* buf, uint64_t value) noexcept {
 	const uint64_t aa = (value * 5243) >> 19;
 	const uint64_t bb = value - aa * 100;
-	std::memcpy(buf, charTable + bb * 2 + 1, 1);
+	std::memcpy(buf, charTable1.data() + bb, 1);
 	return buf + 1;
 }
 
 JSONIFIER_INLINE char* length2(char* buf, uint64_t value) noexcept {
 	const uint64_t aa = (value * 5243) >> 19;
 	const uint64_t bb = value - aa * 100;
-	std::memcpy(buf, charTable + bb * 2, 2);
+	std::memcpy(buf, charTable2.data() + bb, 2);
 	return buf + 2;
 }
 
 JSONIFIER_INLINE char* length3(char* buf, uint64_t value) noexcept {
-	const uint64_t aa = (value * 5243) >> 19;
-	const uint64_t bb = value - aa * 100;
-	std::memcpy(buf, charTable + aa * 2 + 1, 1);
-	std::memcpy(buf + 1, charTable + bb * 2, 2);
-	return buf + 4;
+	const uint64_t aabb = (value * 109951163) >> 40;
+	const uint64_t ccdd = value - aabb * 10000;
+	std::memcpy(buf, charTable3.data() + ccdd, 3);
+	return buf + 3;
 }
 
 JSONIFIER_INLINE char* length4(char* buf, uint64_t value) noexcept {
-	const uint64_t aa = (value * 5243) >> 19;
-	const uint64_t bb = value - aa * 100;
-	std::memcpy(buf, charTable + aa * 2, 2);
-	std::memcpy(buf + 2, charTable + bb * 2, 2);
+	const uint64_t aabb = (value * 109951163) >> 40;
+	const uint64_t ccdd = value - aabb * 10000;
+	std::memcpy(buf, charTable4.data() + ccdd, 4);
 	return buf + 4;
 }
 
 JSONIFIER_INLINE char* length5(char* buf, uint64_t value) noexcept {
 	const uint64_t aabb = (value * 109951163) >> 40;
 	const uint64_t ccdd = value - aabb * 10000;
-	const uint64_t aa	= (aabb * 5243) >> 19;
-	const uint64_t cc	= (ccdd * 5243) >> 19;
-	const uint64_t bb	= aabb - aa * 100;
-	std::memcpy(buf, charTable + aa * 2 + 3, 1);
-	std::memcpy(buf + 1, charTable + bb * 2 + 1, 2);
-	//std::memcpy(buf + 4, charTable + cc * 2 + 1, 2);
+	std::memcpy(buf, charTable1.data() + aabb, 1);
+	std::memcpy(buf + 1, charTable4.data() + ccdd, 4);
 	return buf + 5;
 }
 
+JSONIFIER_INLINE char* length6(char* buf, uint64_t value) noexcept {
+	const uint64_t aabb = (value * 109951163) >> 40;
+	const uint64_t ccdd = value - aabb * 10000;
+	std::memcpy(buf, charTable2.data() + aabb, 2);
+	std::memcpy(buf + 2, charTable4.data() + ccdd, 4);
+	return buf + 6;
+}
+
+JSONIFIER_INLINE char* length7(char* buf, uint64_t value) noexcept {
+	const uint64_t aabb = (value * 109951163) >> 40;
+	const uint64_t ccdd = value - aabb * 10000;
+	std::memcpy(buf, charTable3.data() + aabb, 3);
+	std::memcpy(buf + 3, charTable4.data() + ccdd, 4);
+	return buf + 7;
+}
 
 JSONIFIER_INLINE char* length8(char* buf, uint64_t value) noexcept {
 	const uint64_t aabb = (value * 109951163) >> 40;
 	const uint64_t ccdd = value - aabb * 10000;
-	const uint64_t aa	= (aabb * 5243) >> 19;
-	const uint64_t cc	= (ccdd * 5243) >> 19;
-	const uint64_t bb	= aabb - aa * 100;
-	const uint64_t dd	= ccdd - cc * 100;
-	std::memcpy(buf, charTable + aa * 2, 2);
-	std::memcpy(buf + 2, charTable + bb * 2, 2);
-	std::memcpy(buf + 4, charTable + cc * 2, 2);
-	std::memcpy(buf + 6, charTable + dd * 2, 2);
+	std::memcpy(buf, charTable4.data() + aabb, 4);
+	std::memcpy(buf + 4, charTable4.data() + ccdd, 4);
 	return buf + 8;
 }
 
-template<typename T> JSONIFIER_INLINE static char* toChars(char* buf, T value, int numDigits) noexcept {
-	std::cout << "NUMBER OF DIGITS: " << numDigits << ", FOR VALUE: " << value << std::endl;
+JSONIFIER_INLINE char* length9(char* buf, uint64_t value) noexcept {
+	const uint64_t aa = value / 100000000;
+	const uint64_t bb = ( uint64_t )(value - aa * 100000000);
+	buf				  = length1(buf, aa);
+	buf				  = length8(buf, bb);
+	return buf;
+}
+
+JSONIFIER_INLINE char* length10(char* buf, uint64_t value) noexcept {
+	const uint64_t hgh = value / 100000000;
+	const uint64_t low = value - hgh * 100000000;
+	buf				   = length2(buf, hgh);
+	buf				   = length8(buf, low);
+	return buf;
+}
+
+template<typename value_type> JSONIFIER_INLINE static char* toCharsByDigitCount(char* buf, value_type value) noexcept {
+	uint64_t numDigits{ digitCountFast(value) };
 	switch (numDigits) {
 		case 1: {
 			return length1(buf, value);
@@ -489,6 +531,98 @@ template<typename T> JSONIFIER_INLINE static char* toChars(char* buf, T value, i
 		case 5: {
 			return length5(buf, value);
 		}
+		case 6: {
+			return length6(buf, value);
+		}
+		case 7: {
+			return length7(buf, value);
+		}
+		case 8: {
+			return length8(buf, value);
+		}
+		case 9: {
+			return length9(buf, value);
+		}
+		case 10: {
+			return length10(buf, value);
+		}
+	}
+}
+
+JSONIFIER_INLINE static char* lt10000000000000000(char* buf, uint64_t value) noexcept {
+	const uint64_t hgh = value / 100000000;
+	const uint64_t low = value - hgh * 100000000;
+	buf = toCharsByDigitCount(buf, hgh);
+	buf = length8(buf, low);
+	return buf;
+}
+
+JSONIFIER_INLINE static char* gte10000000000000000(char* buf, uint64_t value) noexcept {
+	const uint64_t tmp = value / 100000000;
+	const uint64_t low = value - tmp * 100000000;
+	const uint64_t hgh = tmp / 10000;
+	const uint64_t mid = tmp - hgh * 10000;
+	buf				   = toCharsByDigitCount(buf, hgh);
+	buf				   = length4(buf, mid);
+	buf				   = length8(buf, low);
+	return buf;
+}
+
+template<jsonifier::concepts::uns64_t value_type> JSONIFIER_INLINE static char* toCharsOld(char* buf, value_type value) noexcept {
+	static constexpr value_type hundred{ 100 };
+	static constexpr value_type tenThousand{ 10000 };
+	static constexpr value_type million{ 1000000 };
+	static constexpr value_type tenMillion{ 100000000 };
+	static constexpr value_type tenQuadrillion{ 10000000000000000 };
+	if (value >= tenQuadrillion) {
+		return gte10000000000000000(buf, value);
+	} else if (value >= tenMillion) {
+		return lt10000000000000000(buf, value);
+	}
+	return buf;
+}
+
+template<typename value_type> JSONIFIER_INLINE static char* toChars(char* buf, value_type value) noexcept {
+	if (value < std::numeric_limits<uint32_t>::max()) {
+		return toCharsByDigitCount(buf, value);
+	} else {
+		return toCharsOld(buf, value);
+	}
+}
+
+constexpr uint64_t pow10(uint64_t exp) {
+	uint64_t result = 1;
+	for (uint64_t i = 0; i < exp; ++i) {
+		result *= 10;
+	}
+	return result;
+}
+
+constexpr std::pair<uint64_t, uint64_t> calculateMinMaxForDigits(uint64_t digitCount) {
+	return digitCount == 1 ? std::make_pair(0ULL, 9ULL) : std::make_pair(pow10(digitCount - 1), pow10(digitCount) - 1);
+}
+
+uint64_t randomValue(uint64_t start, uint64_t end) {
+	srand(std::chrono::steady_clock::now().time_since_epoch().count());
+	return static_cast<uint64_t>((static_cast<double>(rand()) / static_cast<double>(RAND_MAX)) * (end - start)) + start;
+}
+
+template<uint64_t inputValue> void testFunction() {
+	constexpr auto newPair = calculateMinMaxForDigits(inputValue);
+	for (uint64_t x = 0; x < 10; ++x) {
+		uint64_t newValue{ randomValue(newPair.first, newPair.second) };
+		std::string outputValNew{};
+		outputValNew.resize(32);
+		toChars(outputValNew.data(), newValue);
+		auto newIter = outputValNew.data() + outputValNew.size();
+		uint64_t inputValNew{ std::strtoull(outputValNew.data(), &newIter, 10) };
+		if (inputValNew != newValue) {
+			std::cout << "INPUT VALUE: " << newValue << ", OUTPUT VALUE: " << outputValNew;
+			std::cout << ", FOR LENGTH: " << inputValue << std::endl;
+		}
+		if constexpr (inputValue == 12) {
+			//std::cout << "INPUT VALUE: " << x << ", OUTPUT VALUE: " << outputValNew << std::endl;
+		}
 	}
 }
 
@@ -496,29 +630,116 @@ int main() {
 	std::string buf{};
 	buf.resize(42);
 	uint64_t number = 1;
-	std::cout << "Serialized number: " << toChars(buf.data(), number, digitCountFast64(number)) << std::endl;
+	toChars(buf.data(), number);
 	std::cout << "Serialized number: ";
+	testFunction<1>();
+	testFunction<2>();
+	testFunction<3>();
+	testFunction<4>();
+	testFunction<5>();
+	testFunction<6>();
+	testFunction<7>();
+	testFunction<8>();
+	testFunction<9>();
+	testFunction<10>();
+	testFunction<11>();
+	testFunction<12>();
+	testFunction<13>();
+	testFunction<14>();
+	testFunction<15>();
+	testFunction<16>();
+	testFunction<17>();
+	testFunction<18>();
+	testFunction<19>();
+	testFunction<20>();
+
 	std::cout << buf << std::endl;
 	number = 12;
 	buf	   = "";
 	buf.resize(32);
-	toChars(buf.data(), number, digitCountFast64(number));
+	toChars(buf.data(), number);
 	std::cout << "Serialized number: " << buf << std::endl;
 	number = 123;
 	buf	   = "";
 	buf.resize(32);
-	toChars(buf.data(), number, digitCountFast64(number));
+	toChars(buf.data(), number);
 	std::cout << "Serialized number: " << buf << std::endl;
 	number = 1234;
 	buf	   = "";
 	buf.resize(32);
-	toChars(buf.data(), number, digitCountFast64(number));
-	std::cout << "Serialized number: " << buf << std::endl;
-	number = 12345;
-	buf	   = "";
-	buf.resize(32);
-	toChars(buf.data(), number, digitCountFast64(number));
+	toChars(buf.data(), number);
 	std::cout << "Serialized number: " << buf << std::endl;
 
+	number = 23545;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number);
+	std::cout << "Serialized number: " << buf << std::endl;
+	number = 123456;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number);
+	std::cout << "Serialized number: " << buf << std::endl;
+	/*
+	number = 123456;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number);
+	number = 1234567;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number);
+	number = 12345678;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number);
+	number = 123456789;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number);
+	number = 1234567891;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number);
+	number = 12345678912;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number);
+	number = 123456789123;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number);
+	number = 1234567891234;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number);
+	number = 12345678912345;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number);
+	number = 123456789123456;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number);
+	number = 1234567891234567;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number);
+	number = 12345678912345678;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number);
+	number = 123456789123456789;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number);
+	number = 1234567891234567890;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number);
+	number = 12345678912345678901;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number);*/
 	return 0;
 }

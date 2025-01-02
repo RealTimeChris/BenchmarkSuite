@@ -1217,14 +1217,14 @@ namespace fast_float_orig {
 			++p;
 		}
 		UC const* const end_of_integer_part = p;
-		int64_t digit_count					= int64_t(end_of_integer_part - start_digits);
-		answer.integer						= span<const UC>(start_digits, size_t(digit_count));
+		int64_t digitCountFast					= int64_t(end_of_integer_part - start_digits);
+		answer.integer						= span<const UC>(start_digits, size_t(digitCountFast));
 		if (uint64_t(fmt & detail::basic_json_fmt)) {
 			// at least 1 digit in integer part, without leading zeros
-			if (digit_count == 0) {
+			if (digitCountFast == 0) {
 				return report_parse_error<UC>(p, parse_error::no_digits_in_integer_part);
 			}
-			if ((start_digits[0] == UC('0') && digit_count > 1)) {
+			if ((start_digits[0] == UC('0') && digitCountFast > 1)) {
 				return report_parse_error<UC>(start_digits, parse_error::leading_zeros_in_integer_part);
 			}
 		}
@@ -1245,14 +1245,14 @@ namespace fast_float_orig {
 			}
 			exponent		= before - p;
 			answer.fraction = span<const UC>(before, size_t(p - before));
-			digit_count -= exponent;
+			digitCountFast -= exponent;
 		}
 		if (uint64_t(fmt & detail::basic_json_fmt)) {
 			// at least 1 digit in fractional part
 			if (has_decimal_point && exponent == 0) {
 				return report_parse_error<UC>(p, parse_error::no_digits_in_fractional_part);
 			}
-		} else if (digit_count == 0) {// we must have encountered at least one integer!
+		} else if (digitCountFast == 0) {// we must have encountered at least one integer!
 			return report_parse_error<UC>(p, parse_error::no_digits_in_mantissa);
 		}
 		int64_t exp_number = 0;// explicit exponential part
@@ -1305,7 +1305,7 @@ namespace fast_float_orig {
 		// of a 64-bit integer. However, this is uncommon.
 		//
 		// We can deal with up to 19 digits.
-		if (digit_count > 19) {// this is uncommon
+		if (digitCountFast > 19) {// this is uncommon
 			// It is possible that the integer had an overflow.
 			// We have to handle the case where we have 0.0000somenumber.
 			// We need to be mindful of the case where we only have zeroes...
@@ -1313,12 +1313,12 @@ namespace fast_float_orig {
 			UC const* start = start_digits;
 			while ((start != pend) && (*start == UC('0') || *start == decimal_point)) {
 				if (*start == UC('0')) {
-					digit_count--;
+					digitCountFast--;
 				}
 				start++;
 			}
 
-			if (digit_count > 19) {
+			if (digitCountFast > 19) {
 				answer.too_many_digits = true;
 				// Let us start again, this time, avoiding overflows.
 				// We don't need to check if is_integer, since we use the
@@ -1392,9 +1392,9 @@ namespace fast_float_orig {
 			p++;
 		}
 
-		size_t digit_count = size_t(p - start_digits);
+		size_t digitCountFast = size_t(p - start_digits);
 
-		if (digit_count == 0) {
+		if (digitCountFast == 0) {
 			if (has_leading_zeros) {
 				value	   = 0;
 				answer.ec  = std::errc();
@@ -1410,13 +1410,13 @@ namespace fast_float_orig {
 
 		// check u64 overflow
 		size_t max_digits = max_digits_u64(base);
-		if (digit_count > max_digits) {
+		if (digitCountFast > max_digits) {
 			answer.ec = std::errc::result_out_of_range;
 			return answer;
 		}
 		// this check can be eliminated for all other types, but they will all require
 		// a max_digits(base) equivalent
-		if (digit_count == max_digits && i < min_safe_u64(base)) {
+		if (digitCountFast == max_digits && i < min_safe_u64(base)) {
 			answer.ec = std::errc::result_out_of_range;
 			return answer;
 		}
