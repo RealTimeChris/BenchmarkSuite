@@ -102,7 +102,7 @@ struct uint128_t {
 		return result;
 	}
 
-	 void print_bits() const {
+	void print_bits() const {
 		for (int i = 127; i >= 0; --i) {
 			std::cout << values[i];
 			if (i % 8 == 0)
@@ -215,10 +215,10 @@ struct uint128_t {
 		valuesNew[2] = other.low64();
 		valuesNew[3] = other.high64();
 		bool carryInNew{};
-		valuesNew[2]					 = valuesNew[0] - valuesNew[2] - static_cast<uint64_t>(carryInNew);
-		carryInNew						 = valuesNew[2] > valuesNew[0];
-		valuesNew[1 + 2]				 = valuesNew[1] - valuesNew[1 + 2] - static_cast<uint64_t>(carryInNew);
-		carryInNew						 = valuesNew[1 + 2] > valuesNew[1];
+		valuesNew[2]	 = valuesNew[0] - valuesNew[2] - static_cast<uint64_t>(carryInNew);
+		carryInNew		 = valuesNew[2] > valuesNew[0];
+		valuesNew[1 + 2] = valuesNew[1] - valuesNew[1 + 2] - static_cast<uint64_t>(carryInNew);
+		carryInNew		 = valuesNew[1 + 2] > valuesNew[1];
 		return uint128_t{ valuesNew[2], valuesNew[3] };
 	}
 
@@ -351,7 +351,7 @@ namespace cpp23 {
 
 	constexpr double pow_uint64(uint64_t base, uint64_t exponent) {
 		double result = 1.0;
-		 
+
 		// Exponentiation by squaring
 		while (exponent > 0) {
 			if (exponent % 2 == 1) {
@@ -378,9 +378,9 @@ int32_t digit_count(uint32_t x) {
 		std::array<std::uint64_t, 32> table;
 		for (uint64_t i = 1; i < 33; i++) {
 			const unsigned smallest = cpp23::pow(2, i - 1);
-			auto newVal01 = cpp23::pow(2, 32) - cpp23::pow(10, cpp23::log10(smallest));
-			auto newVal03 = (cpp23::log10(smallest) << 32);
-			table[i - 1] = (i < 31 ? (newVal01) : 0) + (newVal03);
+			auto newVal01			= cpp23::pow(2, 32) - cpp23::pow(10, cpp23::log10(smallest));
+			auto newVal03			= (cpp23::log10(smallest) << 32);
+			table[i - 1]			= (i < 31 ? (newVal01) : 0) + (newVal03);
 		}
 		return table;
 	}();
@@ -390,14 +390,15 @@ int32_t digit_count(uint32_t x) {
 uint32_t digitCountFast64(uint128_t x) {
 	static constexpr std::array<uint128_t, 64> table = []() {
 		std::array<uint128_t, 64> table{};
-		for (uint64_t i = 1; i < 65; ++i) {
-			uint128_t smallest = uint128_t{ 2 }.pow(i - 1);
+		for (uint64_t i = 0; i < 64; ++i) {
+			uint128_t smallest = uint128_t{ 2 }.pow(i);
 			uint128_t newVal01 = uint128_t{ 2 }.pow(64) - uint128_t{ 10 }.pow(smallest.log10().low64());
 			uint128_t newVal02 = smallest.log10() << 64;
-			table[i - 1]	   = (i < 62 ? (newVal01) : 0) + (newVal02);
+			table[i]		   = (i < 62 ? (newVal01) : 0) + (newVal02);
 		}
 		return table;
 	}();
+	std::cout << "CURRENT INDEX: " << 63 - simd_internal::lzcnt(x.low64() | 1) << std::endl;
 	return (x + (table[62 - simd_internal::lzcnt(x.low64() | 1)]) >> 64).low64() + 1;
 }
 #include <cstring>
@@ -450,8 +451,10 @@ JSONIFIER_INLINE char* length5(char* buf, uint64_t value) noexcept {
 	const uint64_t aa	= (aabb * 5243) >> 19;
 	const uint64_t cc	= (ccdd * 5243) >> 19;
 	const uint64_t bb	= aabb - aa * 100;
-	std::memcpy(buf, charTable + aa * 2 + 3, 1);
-	std::memcpy(buf + 1, charTable + bb * 2 + 1, 2);
+	std::memcpy(buf, charTable + aa * 2 + 3, 2);
+	std::cout << "CURRENT VALUES: " << charTable + aa << std::endl;
+	std::memcpy(buf + 4, charTable + cc * 2 + 1, 2);
+	std::memcpy(buf + 2, charTable + bb * 2 + 3, 2);
 	//std::memcpy(buf + 4, charTable + cc * 2 + 1, 2);
 	return buf + 5;
 }
@@ -519,6 +522,65 @@ int main() {
 	buf.resize(32);
 	toChars(buf.data(), number, digitCountFast64(number));
 	std::cout << "Serialized number: " << buf << std::endl;
-
+	number = 123456;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number, digitCountFast64(number));
+	number = 1234567;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number, digitCountFast64(number));
+	number = 12345678;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number, digitCountFast64(number));
+	number = 123456789;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number, digitCountFast64(number));
+	number = 1234567891;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number, digitCountFast64(number));
+	number = 12345678912;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number, digitCountFast64(number));
+	number = 123456789123;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number, digitCountFast64(number));
+	number = 1234567891234;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number, digitCountFast64(number));
+	number = 12345678912345;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number, digitCountFast64(number));
+	number = 123456789123456;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number, digitCountFast64(number));
+	number = 1234567891234567;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number, digitCountFast64(number));
+	number = 12345678912345678;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number, digitCountFast64(number));
+	number = 123456789123456789;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number, digitCountFast64(number));
+	number = 1234567891234567890;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number, digitCountFast64(number));
+	number = 12345678912345678901;
+	buf	   = "";
+	buf.resize(32);
+	toChars(buf.data(), number, digitCountFast64(number));
 	return 0;
 }
