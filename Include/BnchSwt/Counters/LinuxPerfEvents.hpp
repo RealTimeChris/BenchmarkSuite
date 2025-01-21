@@ -29,15 +29,10 @@
 #if defined(BNCH_SWT_LINUX)
 
 	#include <linux/perf_event.h>
-	#include <linux/perf_event.h>
 	#include <asm/unistd.h>
 	#include <sys/ioctl.h>
-	#include <stdexcept>
 	#include <unistd.h>
-	#include <iostream>
-	#include <libgen.h>
 	#include <cstring>
-	#include <cerrno>
 	#include <vector>
 
 namespace bnch_swt::internal {
@@ -106,7 +101,7 @@ namespace bnch_swt::internal {
 			}
 		}
 
-		BNCH_SWT_INLINE void start() {
+		BNCH_SWT_INLINE void run() {
 			if (fd != -1) {
 				if (ioctl(fd, PERF_EVENT_IOC_RESET, PERF_IOC_FLAG_GROUP) == -1) {
 					reportError("ioctl(PERF_EVENT_IOC_RESET)");
@@ -153,16 +148,17 @@ namespace bnch_swt::internal {
 		std::vector<uint64_t> results{};
 		size_t currentIndex{};
 		BNCH_SWT_INLINE event_collector_type()
-			: std::vector<event_count>{ count }, linux_events{ std::vector<int32_t>{ PERF_COUNT_HW_CPU_CYCLES, PERF_COUNT_HW_INSTRUCTIONS, PERF_COUNT_HW_BRANCH_INSTRUCTIONS,
-													 PERF_COUNT_HW_BRANCH_MISSES, PERF_COUNT_HW_CACHE_REFERENCES, PERF_COUNT_HW_CACHE_MISSES } } {};
+			: linux_events{ std::vector<int32_t>{ PERF_COUNT_HW_CPU_CYCLES, PERF_COUNT_HW_INSTRUCTIONS, PERF_COUNT_HW_BRANCH_INSTRUCTIONS, PERF_COUNT_HW_BRANCH_MISSES,
+				  PERF_COUNT_HW_CACHE_REFERENCES, PERF_COUNT_HW_CACHE_MISSES } },
+			  std::vector<event_count>{ count } {};
 
 		BNCH_SWT_INLINE bool hasEvents() {
 			return linux_events::isWorking();
 		}
 
-		template<typename function_type, typename... arg_types> BNCH_SWT_INLINE void start(function_type&& function, arg_types&&... args) {
+		template<typename function_type, typename... arg_types> BNCH_SWT_INLINE void run(function_type&& function, arg_types&&... args) {
 			if (hasEvents()) {
-				linux_events::start();
+				linux_events::run();
 			}
 			volatile uint64_t cycleStart = rdtsc();
 			const auto startClock		 = clock_type::now();
