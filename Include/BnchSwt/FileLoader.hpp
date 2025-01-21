@@ -24,8 +24,8 @@
 #pragma once
 
 #include <BnchSwt/Config.hpp>
-#include <sstream>
 #include <filesystem>
+#include <sstream>
 #include <fstream>
 
 namespace bnch_swt {
