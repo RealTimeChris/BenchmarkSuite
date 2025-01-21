@@ -28,11 +28,6 @@
 #if defined(BNCH_SWT_WIN)
 
 	#include <intrin.h>
-
-	#include <stdexcept>
-	#include <iostream>
-	#include <cstring>
-	#include <cerrno>
 	#include <vector>
 
 namespace bnch_swt::internal {
@@ -42,7 +37,7 @@ namespace bnch_swt::internal {
 
 		BNCH_SWT_INLINE event_collector_type() : std::vector<event_count>{ count } {};
 
-		template<typename function_type, typename... arg_types> BNCH_SWT_INLINE void start(function_type&& function, arg_types&&... args) {
+		template<typename function_type, typename... arg_types> BNCH_SWT_INLINE void run(function_type&& function, arg_types&&... args) {
 			volatile uint64_t cycleStart = __rdtsc();
 			const auto startClock		 = clock_type::now();
 			std::vector<event_count>::operator[](currentIndex)
