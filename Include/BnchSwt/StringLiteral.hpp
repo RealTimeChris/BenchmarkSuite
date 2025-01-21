@@ -26,7 +26,6 @@
 #include <BnchSwt/Config.hpp>
 #include <string_view>
 #include <algorithm>
-#include <string>
 #include <array>
 
 namespace bnch_swt {
@@ -103,7 +102,7 @@ namespace bnch_swt {
 		}
 
 		template<typename string_type> constexpr operator string_type() const {
-			BNCH_SWT_ALIGN string_type returnValues{ values, length };
+			string_type returnValues{ values, length };
 			return returnValues;
 		}
 

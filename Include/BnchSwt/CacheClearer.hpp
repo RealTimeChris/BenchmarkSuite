@@ -24,6 +24,7 @@
 #pragma once
 
 #include <BnchSwt/Config.hpp>
+#include <iostream>
 
 #if defined(BNCH_SWT_WIN)
 	#include <Windows.h>
@@ -34,8 +35,6 @@
 
 #elif defined(BNCH_SWT_LINUX)
 	#include <unistd.h>
-	#include <iostream>
-	#include <sstream>
 	#include <fstream>
 	#include <vector>
 	#include <string>
@@ -44,7 +43,6 @@
 	#include <libkern/OSCacheControl.h>
 	#include <sys/sysctl.h>
 	#include <unistd.h>
-	#include <iostream>
 	#include <vector>
 #endif
 
