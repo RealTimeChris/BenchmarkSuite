@@ -23,11 +23,11 @@ jobs:
             sudo apt update && sudo apt upgrade
             wget https://apt.llvm.org/llvm.sh
             chmod u+x llvm.sh
-            sudo ./llvm.sh 20
+            sudo ./llvm.sh 19
 
     - name: Configure CMake
       run: |
-            cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=/usr/bin/clang++-20 -DBENCH_TYPE=BENCHMARK -DGENERATE_ASSEMBLY=TRUE 
+            cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=/usr/bin/clang++-19 -DBENCH_TYPE=BENCHMARK -DGENERATE_ASSEMBLY=TRUE 
 
     - name: Build the Test
       run: |
