@@ -1,829 +1,167 @@
-#include <cstdint>
-#include <thread>
 #include <jsonifier/Index.hpp>
-#include <iostream>
-#include <type_traits>
-#include <utility>
-#include <array>
-#include "BnchSwt/BenchmarkSuite.hpp"
-#include <BnchSwt/StringLiteral.hpp>
+#include <BnchSwt/BenchmarkSuite.hpp>
 #include "RandomGenerators.hpp"
-#include <charconv>
-#include <stdint.h>
-#include <stddef.h>
-#include <string.h>
+#include <glaze/glaze.hpp>
+#include <random>
 
-alignas(2) JSONIFIER_INLINE_VARIABLE char charTable1[]{ 0x30u, 0x31u, 0x32u, 0x33u, 0x34u, 0x35u, 0x36u, 0x37u, 0x38u, 0x39u };
+static constexpr auto maxIterations{ 100 };
 
-JSONIFIER_INLINE_VARIABLE uint16_t charTable02[]{ 0x3030u, 0x3130u, 0x3230u, 0x3330u, 0x3430u, 0x3530u, 0x3630u, 0x3730u, 0x3830u, 0x3930u, 0x3031u, 0x3131u, 0x3231u, 0x3331u,
-	0x3431u, 0x3531u, 0x3631u, 0x3731u, 0x3831u, 0x3931u, 0x3032u, 0x3132u, 0x3232u, 0x3332u, 0x3432u, 0x3532u, 0x3632u, 0x3732u, 0x3832u, 0x3932u, 0x3033u, 0x3133u, 0x3233u,
-	0x3333u, 0x3433u, 0x3533u, 0x3633u, 0x3733u, 0x3833u, 0x3933u, 0x3034u, 0x3134u, 0x3234u, 0x3334u, 0x3434u, 0x3534u, 0x3634u, 0x3734u, 0x3834u, 0x3934u, 0x3035u, 0x3135u,
-	0x3235u, 0x3335u, 0x3435u, 0x3535u, 0x3635u, 0x3735u, 0x3835u, 0x3935u, 0x3036u, 0x3136u, 0x3236u, 0x3336u, 0x3436u, 0x3536u, 0x3636u, 0x3736u, 0x3836u, 0x3936u, 0x3037u,
-	0x3137u, 0x3237u, 0x3337u, 0x3437u, 0x3537u, 0x3637u, 0x3737u, 0x3837u, 0x3937u, 0x3038u, 0x3138u, 0x3238u, 0x3338u, 0x3438u, 0x3538u, 0x3638u, 0x3738u, 0x3838u, 0x3938u,
-	0x3039u, 0x3139u, 0x3239u, 0x3339u, 0x3439u, 0x3539u, 0x3639u, 0x3739u, 0x3839u, 0x3939u };
-
-constexpr const uint64_t mask24	  = (1ull << 24) - 1ull;
-constexpr const uint64_t mask32	  = (1ull << 32) - 1ull;
-constexpr const uint64_t mask57	  = (1ull << 57) - 1ull;
-constexpr const uint64_t mult1_3  = 10ull * (1 << 24) / 1000 + 1;
-constexpr const uint64_t mult5_6  = 10ull * (1ull << 32ull) / 100000 + 1;
-constexpr const uint64_t mult7_8  = 10ull * (1ull << 48ull) / 10000000 + 1;
-constexpr const uint64_t mult9_10 = (1ull << 48ull) / 1000000 + 1;
-
-struct int_serializing_package_2 {
-	mutable uint64_t value01;
-	mutable uint64_t value02;
-};
-
-template<typename value_type> JSONIFIER_INLINE char* lengthNew1(char* buf, value_type value) {
-	buf[0] = charTable1[value];
-	return buf + 1ull;
-}
-
-template<typename value_type> JSONIFIER_INLINE char* lengthNew2(char* buf, value_type value) {
-	std::memcpy(buf, charTable02 + value, 2);
-	return buf + 2;
-}
-
-template<typename value_type> JSONIFIER_INLINE char* lengthNew3(char* buf, value_type value) {
-	constexpr int_serializing_package_2 intPackage{};
-	intPackage.value01 = mult1_3 * value;
-	buf[0]			   = charTable1[intPackage.value01 >> 24];
-	intPackage.value02 = (intPackage.value01 & mask24) * 100ull;
-	std::memcpy(buf + 1, charTable02 + (intPackage.value02 >> 24), 2);
-	return buf + 3;
-}
-
-template<typename value_type> JSONIFIER_INLINE char* lengthNew4(char* buf, value_type value) {
-	constexpr int_serializing_package_2 intPackage{};
-	intPackage.value01 = mult1_3 * value;
-	std::memcpy(buf, charTable02 + (intPackage.value01 >> 24), 2);
-	intPackage.value02 = (intPackage.value01 & mask24) * 100ull;
-	std::memcpy(buf + 2, charTable02 + (intPackage.value02 >> 24), 2);
-	return buf + 4;
-}
-
-template<typename value_type> JSONIFIER_INLINE char* lengthNew5(char* buf, value_type value) {
-	constexpr int_serializing_package_2 intPackage{};
-	intPackage.value01 = mult5_6 * value;
-	buf[0]			   = charTable1[intPackage.value01 >> 32];
-	intPackage.value02 = (intPackage.value01 & mask32) * 100ull;
-	std::memcpy(buf + 1, charTable02 + (intPackage.value02 >> 32), 2);
-	intPackage.value01 = (intPackage.value02 & mask32) * 100ull;
-	std::memcpy(buf + 3, charTable02 + (intPackage.value01 >> 32), 2);
-	return buf + 5;
-}
-
-template<typename value_type> JSONIFIER_INLINE char* lengthNew6(char* buf, value_type value) {
-	constexpr int_serializing_package_2 intPackage{};
-	intPackage.value01 = mult5_6 * value;
-	std::memcpy(buf, charTable02 + (intPackage.value01 >> 32), 2);
-	intPackage.value02 = (intPackage.value01 & mask32) * 100ull;
-	std::memcpy(buf + 2, charTable02 + (intPackage.value02 >> 32), 2);
-	intPackage.value01 = (intPackage.value02 & mask32) * 100ull;
-	std::memcpy(buf + 4, charTable02 + (intPackage.value01 >> 32), 2);
-	return buf + 6;
-}
-
-template<typename value_type> JSONIFIER_INLINE char* lengthNew7(char* buf, value_type value) {
-	constexpr int_serializing_package_2 intPackage{};
-	intPackage.value01 = mult7_8 * value >> 16;
-	buf[0]			   = charTable1[intPackage.value01 >> 32];
-	intPackage.value02 = (intPackage.value01 & mask32) * 100ull;
-	std::memcpy(buf + 1, charTable02 + (intPackage.value02 >> 32), 2);
-	intPackage.value01 = (intPackage.value02 & mask32) * 100ull;
-	std::memcpy(buf + 3, charTable02 + (intPackage.value01 >> 32), 2);
-	intPackage.value02 = (intPackage.value01 & mask32) * 100ull;
-	std::memcpy(buf + 5, charTable02 + (intPackage.value02 >> 32), 2);
-	return buf + 7;
-}
-
-template<typename value_type> JSONIFIER_INLINE char* lengthNew8(char* buf, value_type value) {
-	constexpr int_serializing_package_2 intPackage{};
-	intPackage.value01 = mult7_8 * value >> 16;
-	std::memcpy(buf, charTable02 + (intPackage.value01 >> 32), 2);
-	intPackage.value02 = (intPackage.value01 & mask32) * 100ull;
-	std::memcpy(buf + 2, charTable02 + (intPackage.value02 >> 32), 2);
-	intPackage.value01 = (intPackage.value02 & mask32) * 100ull;
-	std::memcpy(buf + 4, charTable02 + (intPackage.value01 >> 32), 2);
-	intPackage.value02 = (intPackage.value01 & mask32) * 100ull;
-	std::memcpy(buf + 6, charTable02 + (intPackage.value02 >> 32), 2);
-	return buf + 8;
-}
-
-template<typename value_type> JSONIFIER_INLINE char* lengthNew9(char* buf, value_type value) {
-	constexpr int_serializing_package_2 intPackage{};
-	intPackage.value01 = value * 1441151880ull >> 57;
-	intPackage.value02 = value - intPackage.value01 * 100000000ull;
-	buf[0]			   = charTable1[intPackage.value01];
-	intPackage.value01 = (mult9_10 * intPackage.value02 >> 16) + 1ull;
-	std::memcpy(buf + 1, charTable02 + (intPackage.value01 >> 32), 2);
-	intPackage.value02 = (intPackage.value01 & mask32) * 100ull;
-	std::memcpy(buf + 3, charTable02 + (intPackage.value02 >> 32), 2);
-	intPackage.value01 = (intPackage.value02 & mask32) * 100ull;
-	std::memcpy(buf + 5, charTable02 + (intPackage.value01 >> 32), 2);
-	intPackage.value02 = (intPackage.value01 & mask32) * 100ull;
-	std::memcpy(buf + 7, charTable02 + (intPackage.value02 >> 32), 2);
-	return buf + 9;
-}
-
-template<typename value_type> JSONIFIER_INLINE char* lengthNew10(char* buf, value_type value) {
-	constexpr int_serializing_package_2 intPackage{};
-	intPackage.value01 = value * 1441151880ull >> 57;
-	intPackage.value02 = value - intPackage.value01 * 100000000ull;
-	std::memcpy(buf, charTable02 + intPackage.value01, 2);
-	intPackage.value01 = (mult9_10 * intPackage.value02 >> 16) + 1;
-	std::memcpy(buf + 2, charTable02 + (intPackage.value01 >> 32), 2);
-	intPackage.value02 = (intPackage.value01 & mask32) * 100ull;
-	std::memcpy(buf + 4, charTable02 + (intPackage.value02 >> 32), 2);
-	intPackage.value01 = (intPackage.value02 & mask32) * 100ull;
-	std::memcpy(buf + 6, charTable02 + (intPackage.value01 >> 32), 2);
-	intPackage.value02 = (intPackage.value01 & mask32) * 100ull;
-	std::memcpy(buf + 8, charTable02 + (intPackage.value02 >> 32), 2);
-	return buf + 10ull;
-}
-
-template<typename value_type> JSONIFIER_INLINE char* lengthNew11(char* buf, value_type value) {
-	const uint64_t z = value / 10ull;
-	const uint64_t u = value - z * 10ull;
-	buf				 = lengthNew10(buf, z);
-	return lengthNew1(buf, u);
-}
-
-template<typename value_type> JSONIFIER_INLINE char* lengthNew12(char* buf, value_type value) {
-	const uint64_t z = value / 100ull;
-	const uint64_t u = value - z * 100ull;
-	buf				 = lengthNew10(buf, z);
-	return lengthNew2(buf, u);
-}
-
-template<typename value_type> JSONIFIER_INLINE char* lengthNew13(char* buf, value_type value) {
-	const uint64_t z = value / 1000ull;
-	const uint64_t u = value - z * 1000ull;
-	buf				 = lengthNew10(buf, z);
-	return lengthNew3(buf, u);
-}
-
-template<typename value_type> JSONIFIER_INLINE char* lengthNew14(char* buf, value_type value) {
-	const uint64_t z = value / 10000ull;
-	const uint64_t u = value - z * 10000ull;
-	buf				 = lengthNew10(buf, z);
-	return lengthNew4(buf, u);
-}
-
-template<typename value_type> JSONIFIER_INLINE char* lengthNew15(char* buf, value_type value) {
-	const uint64_t z = value / 100000ull;
-	const uint64_t u = value - z * 100000ull;
-	buf				 = lengthNew10(buf, z);
-	return lengthNew5(buf, u);
-}
-
-template<typename value_type> JSONIFIER_INLINE char* lengthNew16(char* buf, value_type value) {
-	const uint64_t z = value / 1000000ull;
-	const uint64_t u = value - z * 1000000ull;
-	buf				 = lengthNew10(buf, z);
-	return lengthNew6(buf, u);
-}
-
-template<typename value_type> JSONIFIER_INLINE char* lengthNew17(char* buf, value_type value) {
-	uint64_t tmp = value / 10000000000ull;
-	uint64_t f0	 = mult7_8 * tmp >> 16;
-	buf[0]		 = charTable1[f0 >> 32];
-	uint64_t f2	 = (f0 & mask32) * 100ull;
-	std::memcpy(buf + 1, charTable02 + (f2 >> 32), 2);
-	uint64_t f4 = (f2 & mask32) * 100ull;
-	std::memcpy(buf + 3, charTable02 + (f4 >> 32), 2);
-	uint64_t f6 = (f4 & mask32) * 100ull;
-	std::memcpy(buf + 5, charTable02 + (f6 >> 32), 2);
-	tmp				 = value - tmp * 10000000000ull;
-	const uint64_t u = (tmp) * 1441151880ull >> 57;
-	const uint64_t z = ( tmp )-u * 100000000ull;
-	std::memcpy(buf + 7, charTable02 + u, 2);
-	f0 = (mult9_10 * z >> 16) + 1;
-	std::memcpy(buf + 9, charTable02 + (f0 >> 32), 2);
-	f2 = (f0 & mask32) * 100ull;
-	std::memcpy(buf + 11, charTable02 + (f2 >> 32), 2);
-	f4 = (f2 & mask32) * 100ull;
-	std::memcpy(buf + 13, charTable02 + (f4 >> 32), 2);
-	f6 = (f4 & mask32) * 100ull;
-	std::memcpy(buf + 15, charTable02 + (f6 >> 32), 2);
-	return buf + 17;
-}
-
-template<typename value_type> JSONIFIER_INLINE char* lengthNew18(char* buf, value_type value) {
-	uint64_t tmp = value / 10000000000ull;
-	uint64_t f0	 = mult7_8 * tmp >> 16;
-	std::memcpy(buf, charTable02 + (f0 >> 32), 2);
-	uint64_t f2 = (f0 & mask32) * 100ull;
-	std::memcpy(buf + 2, charTable02 + (f2 >> 32), 2);
-	uint64_t f4 = (f2 & mask32) * 100ull;
-	std::memcpy(buf + 4, charTable02 + (f4 >> 32), 2);
-	uint64_t f6 = (f4 & mask32) * 100ull;
-	std::memcpy(buf + 6, charTable02 + (f6 >> 32), 2);
-	tmp				 = value - tmp * 10000000000ull;
-	const uint64_t u = (tmp) * 1441151880ull >> 57;
-	const uint64_t z = ( tmp )-u * 100000000ull;
-	std::memcpy(buf + 8, charTable02 + u, 2);
-	f0 = (mult9_10 * z >> 16) + 1;
-	std::memcpy(buf + 10, charTable02 + (f0 >> 32), 2);
-	f2 = (f0 & mask32) * 100ull;
-	std::memcpy(buf + 12, charTable02 + (f2 >> 32), 2);
-	f4 = (f2 & mask32) * 100ull;
-	std::memcpy(buf + 14, charTable02 + (f4 >> 32), 2);
-	f6 = (f4 & mask32) * 100ull;
-	std::memcpy(buf + 16, charTable02 + (f6 >> 32), 2);
-	return buf + 18;
-}
-
-template<typename value_type> JSONIFIER_INLINE char* lengthNew19(char* buf, value_type value) {
-	uint64_t u		 = value / 100000000ull;
-	const uint64_t z = value - u * 100000000ull;
-
-	const uint64_t uOld{ u };
-	u /= 100000000ull;
-	const uint64_t y = uOld - u * 100000000ull;
-
-	uint64_t f0 = mult1_3 * u;
-	buf[0]		= charTable1[f0 >> 24];
-	uint64_t f2 = (f0 & mask24) * 100ull;
-	std::memcpy(buf + 1, charTable02 + (f2 >> 24), 2);
-	f0 = (mult9_10 * y >> 16) + 1ull;
-	std::memcpy(buf + 3, charTable02 + (f0 >> 32), 2);
-	f2 = (f0 & mask32) * 100ull;
-	std::memcpy(buf + 5, charTable02 + (f2 >> 32), 2);
-	uint64_t f4 = (f2 & mask32) * 100ull;
-	std::memcpy(buf + 7, charTable02 + (f4 >> 32), 2);
-	uint64_t f6 = (f4 & mask32) * 100ull;
-	std::memcpy(buf + 9, charTable02 + (f6 >> 32), 2);
-	f0 = (mult9_10 * z >> 16) + 1ull;
-	std::memcpy(buf + 11, charTable02 + (f0 >> 32), 2);
-	f2 = (f0 & mask32) * 100ull;
-	std::memcpy(buf + 13, charTable02 + (f2 >> 32), 2);
-	f4 = (f2 & mask32) * 100ull;
-	std::memcpy(buf + 15, charTable02 + (f4 >> 32), 2);
-	f6 = (f4 & mask32) * 100ull;
-	std::memcpy(buf + 17, charTable02 + (f6 >> 32), 2);
-	return buf + 19;
-}
-
-template<typename value_type> JSONIFIER_INLINE char* lengthNew20(char* buf, value_type value) {
-	uint64_t u		 = value / 100000000ull;
-	const uint64_t z = value - u * 100000000ull;
-
-	const uint64_t uOld{ u };
-	u /= 100000000ull;
-	const uint64_t y = uOld - u * 100000000ull;
-
-	uint64_t f0 = mult1_3 * u;
-	std::memcpy(buf, charTable02 + (f0 >> 24), 2);
-	uint64_t f2 = (f0 & mask24) * 100ull;
-	std::memcpy(buf + 2, charTable02 + (f2 >> 24), 2);
-	f0 = (mult9_10 * y >> 16) + 1ull;
-	std::memcpy(buf + 4, charTable02 + (f0 >> 32), 2);
-	f2 = (f0 & mask32) * 100ull;
-	std::memcpy(buf + 6, charTable02 + (f2 >> 32), 2);
-	uint64_t f4 = (f2 & mask32) * 100ull;
-	std::memcpy(buf + 8, charTable02 + (f4 >> 32), 2);
-	uint64_t f6 = (f4 & mask32) * 100ull;
-	std::memcpy(buf + 10, charTable02 + (f6 >> 32), 2);
-	f0 = (mult9_10 * z >> 16) + 1ull;
-	std::memcpy(buf + 12, charTable02 + (f0 >> 32), 2);
-	f2 = (f0 & mask32) * 100ull;
-	std::memcpy(buf + 14, charTable02 + (f2 >> 32), 2);
-	f4 = (f2 & mask32) * 100ull;
-	std::memcpy(buf + 16, charTable02 + (f4 >> 32), 2);
-	f6 = (f4 & mask32) * 100ull;
-	std::memcpy(buf + 18, charTable02 + (f6 >> 32), 2);
-	return buf + 20ull;
-}
-
-template<typename value_type>
-	requires std::same_as<std::remove_cvref_t<value_type>, uint64_t>
-JSONIFIER_INLINE char* to_text_from_integer(char* buf, value_type value) {
-	const uint64_t index{ jsonifier::internal::fastDigitCount(value) };
-	switch (index) {
-		case 1: {
-			return lengthNew1(buf, value);
-		}
-		case 2: {
-			return lengthNew2(buf, value);
-		}
-		case 3: {
-			return lengthNew3(buf, value);
-		}
-		case 4: {
-			return lengthNew4(buf, value);
-		}
-		case 5: {
-			return lengthNew5(buf, value);
-		}
-		case 6: {
-			return lengthNew6(buf, value);
-		}
-		case 7: {
-			return lengthNew7(buf, value);
-		}
-		case 8: {
-			return lengthNew8(buf, value);
-		}
-		case 9: {
-			return lengthNew9(buf, value);
-		}
-		case 10: {
-			return lengthNew10(buf, value);
-		}
-		case 11: {
-			return lengthNew11(buf, value);
-		}
-		case 12: {
-			return lengthNew12(buf, value);
-		}
-		case 13: {
-			return lengthNew13(buf, value);
-		}
-		case 14: {
-			return lengthNew14(buf, value);
-		}
-		case 15: {
-			return lengthNew15(buf, value);
-		}
-		case 16: {
-			return lengthNew16(buf, value);
-		}
-		case 17: {
-			return lengthNew17(buf, value);
-		}
-		case 18: {
-			return lengthNew18(buf, value);
-		}
-		case 19: {
-			return lengthNew19(buf, value);
-		}
-		default: {
-			return lengthNew20(buf, value);
-		}
+template<size_t count, bnch_swt::string_literal name> JSONIFIER_INLINE void testFunction64() {
+	std::vector<double> randomDoubles{ maxIterations };
+	for (size_t x = 0; x < count; ++x) {
+		randomDoubles.emplace_back(bnch_swt::random_generator::generateValue<double>());
 	}
-}
-
-template<typename value_type>
-	requires std::same_as<std::remove_cvref_t<value_type>, int64_t>
-auto* to_text_from_integer(auto* buf, value_type x) noexcept {
-	*buf = '-';
-	return to_text_from_integer(buf + (x < 0), uint64_t(x ^ (x >> 63)) - (x >> 63));
-}
-
-constexpr char char_table[200] = { '0', '0', '0', '1', '0', '2', '0', '3', '0', '4', '0', '5', '0', '6', '0', '7', '0', '8', '0', '9', '1', '0', '1', '1', '1', '2', '1', '3', '1',
-	'4', '1', '5', '1', '6', '1', '7', '1', '8', '1', '9', '2', '0', '2', '1', '2', '2', '2', '3', '2', '4', '2', '5', '2', '6', '2', '7', '2', '8', '2', '9', '3', '0', '3', '1',
-	'3', '2', '3', '3', '3', '4', '3', '5', '3', '6', '3', '7', '3', '8', '3', '9', '4', '0', '4', '1', '4', '2', '4', '3', '4', '4', '4', '5', '4', '6', '4', '7', '4', '8', '4',
-	'9', '5', '0', '5', '1', '5', '2', '5', '3', '5', '4', '5', '5', '5', '6', '5', '7', '5', '8', '5', '9', '6', '0', '6', '1', '6', '2', '6', '3', '6', '4', '6', '5', '6', '6',
-	'6', '7', '6', '8', '6', '9', '7', '0', '7', '1', '7', '2', '7', '3', '7', '4', '7', '5', '7', '6', '7', '7', '7', '8', '7', '9', '8', '0', '8', '1', '8', '2', '8', '3', '8',
-	'4', '8', '5', '8', '6', '8', '7', '8', '8', '8', '9', '9', '0', '9', '1', '9', '2', '9', '3', '9', '4', '9', '5', '9', '6', '9', '7', '9', '8', '9', '9' };
-
-template<typename value_type>
-	requires(std::same_as<std::remove_cvref_t<value_type>, uint32_t>)
-JSONIFIER_INLINE auto* to_chars_u64_len_8(auto* buf, value_type value) noexcept {
-	/* 8 digits: aabbccdd */
-	const uint32_t aabb = uint32_t((uint64_t(value) * 109951163) >> 40); /* (value / 10000) */
-	const uint32_t ccdd = value - aabb * 10000; /* (value % 10000) */
-	const uint32_t aa	= (aabb * 5243) >> 19; /* (aabb / 100) */
-	const uint32_t cc	= (ccdd * 5243) >> 19; /* (ccdd / 100) */
-	const uint32_t bb	= aabb - aa * 100; /* (aabb % 100) */
-	const uint32_t dd	= ccdd - cc * 100; /* (ccdd % 100) */
-	std::memcpy(buf, char_table + aa * 2, 2);
-	std::memcpy(buf + 2, char_table + bb * 2, 2);
-	std::memcpy(buf + 4, char_table + cc * 2, 2);
-	std::memcpy(buf + 6, char_table + dd * 2, 2);
-	return buf + 8;
-}
-
-template<typename value_type>
-	requires(std::same_as<std::remove_cvref_t<value_type>, uint32_t>)
-JSONIFIER_INLINE auto* to_chars_u64_len_4(auto* buf, value_type value) noexcept {
-	/* 4 digits: aabb */
-	const uint32_t aa = (value * 5243) >> 19; /* (value / 100) */
-	const uint32_t bb = value - aa * 100; /* (value % 100) */
-	std::memcpy(buf, char_table + aa * 2, 2);
-	std::memcpy(buf + 2, char_table + bb * 2, 2);
-	return buf + 4;
-}
-
-template<typename value_type>
-	requires(std::same_as<std::remove_cvref_t<value_type>, uint32_t>)
-inline auto* to_chars_u64_len_1_8(auto* buf, value_type value) noexcept {
-	uint32_t aa, bb, cc, dd, aabb, bbcc, ccdd, lz;
-
-	if (value < 100) { /* 1-2 digits: aa */
-		lz = value < 10;
-		std::memcpy(buf, char_table + value * 2 + lz, 2);
-		buf -= lz;
-		return buf + 2;
-	} else if (value < 10000) { /* 3-4 digits: aabb */
-		aa = (value * 5243) >> 19; /* (value / 100) */
-		bb = value - aa * 100; /* (value % 100) */
-		lz = aa < 10;
-		std::memcpy(buf, char_table + aa * 2 + lz, 2);
-		buf -= lz;
-		std::memcpy(buf + 2, char_table + bb * 2, 2);
-		return buf + 4;
-	} else if (value < 1000000) { /* 5-6 digits: aabbcc */
-		aa	 = uint32_t((uint64_t(value) * 429497) >> 32); /* (value / 10000) */
-		bbcc = value - aa * 10000; /* (value % 10000) */
-		bb	 = (bbcc * 5243) >> 19; /* (bbcc / 100) */
-		cc	 = bbcc - bb * 100; /* (bbcc % 100) */
-		lz	 = aa < 10;
-		std::memcpy(buf, char_table + aa * 2 + lz, 2);
-		buf -= lz;
-		std::memcpy(buf + 2, char_table + bb * 2, 2);
-		std::memcpy(buf + 4, char_table + cc * 2, 2);
-		return buf + 6;
-	} else { /* 7-8 digits: aabbccdd */
-		/* (value / 10000) */
-		aabb = uint32_t((uint64_t(value) * 109951163) >> 40);
-		ccdd = value - aabb * 10000; /* (value % 10000) */
-		aa	 = (aabb * 5243) >> 19; /* (aabb / 100) */
-		cc	 = (ccdd * 5243) >> 19; /* (ccdd / 100) */
-		bb	 = aabb - aa * 100; /* (aabb % 100) */
-		dd	 = ccdd - cc * 100; /* (ccdd % 100) */
-		lz	 = aa < 10;
-		std::memcpy(buf, char_table + aa * 2 + lz, 2);
-		buf -= lz;
-		std::memcpy(buf + 2, char_table + bb * 2, 2);
-		std::memcpy(buf + 4, char_table + cc * 2, 2);
-		std::memcpy(buf + 6, char_table + dd * 2, 2);
-		return buf + 8;
-	}
-}
-
-template<typename value_type>
-	requires(std::same_as<std::remove_cvref_t<value_type>, uint32_t>)
-auto* to_chars_u64_len_5_8(auto* buf, value_type value) noexcept {
-	if (value < 1000000) { /* 5-6 digits: aabbcc */
-		const uint32_t aa	= uint32_t((uint64_t(value) * 429497) >> 32); /* (value / 10000) */
-		const uint32_t bbcc = value - aa * 10000; /* (value % 10000) */
-		const uint32_t bb	= (bbcc * 5243) >> 19; /* (bbcc / 100) */
-		const uint32_t cc	= bbcc - bb * 100; /* (bbcc % 100) */
-		const uint32_t lz	= aa < 10;
-		std::memcpy(buf, char_table + aa * 2 + lz, 2);
-		buf -= lz;
-		std::memcpy(buf + 2, char_table + bb * 2, 2);
-		std::memcpy(buf + 4, char_table + cc * 2, 2);
-		return buf + 6;
-	} else { /* 7-8 digits: aabbccdd */
-		/* (value / 10000) */
-		const uint32_t aabb = uint32_t((uint64_t(value) * 109951163) >> 40);
-		const uint32_t ccdd = value - aabb * 10000; /* (value % 10000) */
-		const uint32_t aa	= (aabb * 5243) >> 19; /* (aabb / 100) */
-		const uint32_t cc	= (ccdd * 5243) >> 19; /* (ccdd / 100) */
-		const uint32_t bb	= aabb - aa * 100; /* (aabb % 100) */
-		const uint32_t dd	= ccdd - cc * 100; /* (ccdd % 100) */
-		const uint32_t lz	= aa < 10;
-		std::memcpy(buf, char_table + aa * 2 + lz, 2);
-		buf -= lz;
-		std::memcpy(buf + 2, char_table + bb * 2, 2);
-		std::memcpy(buf + 4, char_table + cc * 2, 2);
-		std::memcpy(buf + 6, char_table + dd * 2, 2);
-		return buf + 8;
-	}
-}
-
-template<typename value_type>
-	requires(std::same_as<std::remove_cvref_t<value_type>, uint64_t>)
-auto* to_chars(auto* buf, value_type value) noexcept {
-	if (value < 100000000) { /* 1-8 digits */
-		buf = to_chars_u64_len_1_8(buf, uint32_t(value));
-		return buf;
-	} else if (value < 100000000ull * 100000000ull) { /* 9-16 digits */
-		const uint64_t hgh = value / 100000000;
-		const auto low	   = uint32_t(value - hgh * 100000000); /* (value % 100000000) */
-		buf				   = to_chars_u64_len_1_8(buf, uint32_t(hgh));
-		buf				   = to_chars_u64_len_8(buf, low);
-		return buf;
-	} else { /* 17-20 digits */
-		const uint64_t tmp = value / 100000000;
-		const auto low	   = uint32_t(value - tmp * 100000000); /* (value % 100000000) */
-		const auto hgh	   = uint32_t(tmp / 10000);
-		const auto mid	   = uint32_t(tmp - hgh * 10000); /* (tmp % 10000) */
-		buf				   = to_chars_u64_len_5_8(buf, hgh);
-		buf				   = to_chars_u64_len_4(buf, mid);
-		buf				   = to_chars_u64_len_8(buf, low);
-		return buf;
-	}
-}
-
-template<typename value_type>
-	requires std::same_as<std::remove_cvref_t<value_type>, int64_t>
-auto* to_chars(auto* buf, value_type x) noexcept {
-	*buf = '-';
-	// shifts are necessary to have the numeric_limits<int64_t>::min case
-	return to_chars(buf + (x < 0), uint64_t(x ^ (x >> 63)) - (x >> 63));
-}
-
-template<typename value_type>
-	requires(std::same_as<std::remove_cvref_t<value_type>, uint32_t>)
-JSONIFIER_INLINE string_buffer_ptr to_chars_u64_len_8_new(string_buffer_ptr buf, value_type value) noexcept {
-	/* 8 digits: aabbccdd */
-	const uint32_t aabb = uint32_t((uint64_t(value) * 109951163) >> 40); /* (value / 10000) */
-	const uint32_t ccdd = value - aabb * 10000; /* (value % 10000) */
-	const uint32_t aa	= (aabb * 5243) >> 19; /* (aabb / 100) */
-	const uint32_t cc	= (ccdd * 5243) >> 19; /* (ccdd / 100) */
-	const uint32_t bb	= aabb - aa * 100; /* (aabb % 100) */
-	const uint32_t dd	= ccdd - cc * 100; /* (ccdd % 100) */
-	std::memcpy(buf, char_table + aa * 2, 2);
-	std::memcpy(buf + 2, jsonifier::internal::int_tables<>::charTable02 + bb, 2);
-	std::memcpy(buf + 4, jsonifier::internal::int_tables<>::charTable02 + cc, 2);
-	std::memcpy(buf + 6, jsonifier::internal::int_tables<>::charTable02 + dd, 2);
-	return buf + 8;
-}
-
-template<typename value_type>
-	requires(std::same_as<std::remove_cvref_t<value_type>, uint32_t>)
-JSONIFIER_INLINE string_buffer_ptr to_chars_u64_len_4_new(string_buffer_ptr buf, value_type value) noexcept {
-	/* 4 digits: aabb */
-	const uint32_t aa = (value * 5243) >> 19; /* (value / 100) */
-	const uint32_t bb = value - aa * 100; /* (value % 100) */
-	std::memcpy(buf, char_table + aa * 2, 2);
-	std::memcpy(buf + 2, jsonifier::internal::int_tables<>::charTable02 + bb, 2);
-	return buf + 4;
-}
-
-template<typename value_type>
-	requires(std::same_as<std::remove_cvref_t<value_type>, uint32_t>)
-JSONIFIER_INLINE string_buffer_ptr to_chars_u64_len_1_8_new(string_buffer_ptr buf, value_type value) noexcept {
-	uint32_t aa, bb, cc, dd, aabb, bbcc, ccdd, lz;
-
-	if (value < 100) { /* 1-2 digits: aa */
-		lz = value < 10;
-		std::memcpy(buf, char_table + value * 2 + lz, 2);
-		buf -= lz;
-		return buf + 2;
-	} else if (value < 10000) { /* 3-4 digits: aabb */
-		aa = (value * 5243) >> 19; /* (value / 100) */
-		bb = value - aa * 100; /* (value % 100) */
-		lz = aa < 10;
-		std::memcpy(buf, char_table + aa * 2 + lz, 2);
-		buf -= lz;
-		std::memcpy(buf + 2, jsonifier::internal::int_tables<>::charTable02 + bb, 2);
-		return buf + 4;
-	} else if (value < 1000000) { /* 5-6 digits: aabbcc */
-		aa	 = uint32_t((uint64_t(value) * 429497) >> 32); /* (value / 10000) */
-		bbcc = value - aa * 10000; /* (value % 10000) */
-		bb	 = (bbcc * 5243) >> 19; /* (bbcc / 100) */
-		cc	 = bbcc - bb * 100; /* (bbcc % 100) */
-		lz	 = aa < 10;
-		std::memcpy(buf, char_table + aa * 2 + lz, 2);
-		buf -= lz;
-		std::memcpy(buf + 2, jsonifier::internal::int_tables<>::charTable02 + bb, 2);
-		std::memcpy(buf + 4, jsonifier::internal::int_tables<>::charTable02 + cc, 2);
-		return buf + 6;
-	} else { /* 7-8 digits: aabbccdd */
-		/* (value / 10000) */
-		aabb = uint32_t((uint64_t(value) * 109951163) >> 40);
-		ccdd = value - aabb * 10000; /* (value % 10000) */
-		aa	 = (aabb * 5243) >> 19; /* (aabb / 100) */
-		cc	 = (ccdd * 5243) >> 19; /* (ccdd / 100) */
-		bb	 = aabb - aa * 100; /* (aabb % 100) */
-		dd	 = ccdd - cc * 100; /* (ccdd % 100) */
-		lz	 = aa < 10;
-		std::memcpy(buf, char_table + aa * 2 + lz, 2);
-		buf -= lz;
-		std::memcpy(buf + 2, jsonifier::internal::int_tables<>::charTable02 + bb, 2);
-		std::memcpy(buf + 4, jsonifier::internal::int_tables<>::charTable02 + cc, 2);
-		std::memcpy(buf + 6, jsonifier::internal::int_tables<>::charTable02 + dd, 2);
-		return buf + 8;
-	}
-}
-
-template<typename value_type>
-	requires(std::same_as<std::remove_cvref_t<value_type>, uint32_t>)
-JSONIFIER_INLINE string_buffer_ptr to_chars_u64_len_5_8_new(string_buffer_ptr buf, value_type value) noexcept {
-	if (value < 1000000) { /* 5-6 digits: aabbcc */
-		const uint32_t aa	= uint32_t((uint64_t(value) * 429497) >> 32); /* (value / 10000) */
-		const uint32_t bbcc = value - aa * 10000; /* (value % 10000) */
-		const uint32_t bb	= (bbcc * 5243) >> 19; /* (bbcc / 100) */
-		const uint32_t cc	= bbcc - bb * 100; /* (bbcc % 100) */
-		const uint32_t lz	= aa < 10;
-		std::memcpy(buf, char_table + aa * 2 + lz, 2);
-		buf -= lz;
-		std::memcpy(buf + 2, jsonifier::internal::int_tables<>::charTable02 + bb, 2);
-		std::memcpy(buf + 4, jsonifier::internal::int_tables<>::charTable02 + cc, 2);
-		return buf + 6;
-	} else { /* 7-8 digits: aabbccdd */
-		/* (value / 10000) */
-		const uint32_t aabb = uint32_t((uint64_t(value) * 109951163) >> 40);
-		const uint32_t ccdd = value - aabb * 10000; /* (value % 10000) */
-		const uint32_t aa	= (aabb * 5243) >> 19; /* (aabb / 100) */
-		const uint32_t cc	= (ccdd * 5243) >> 19; /* (ccdd / 100) */
-		const uint32_t bb	= aabb - aa * 100; /* (aabb % 100) */
-		const uint32_t dd	= ccdd - cc * 100; /* (ccdd % 100) */
-		const uint32_t lz	= aa < 10;
-		std::memcpy(buf, char_table + aa * 2 + lz, 2);
-		buf -= lz;
-		std::memcpy(buf + 2, jsonifier::internal::int_tables<>::charTable02 + bb, 2);
-		std::memcpy(buf + 4, jsonifier::internal::int_tables<>::charTable02 + cc, 2);
-		std::memcpy(buf + 6, jsonifier::internal::int_tables<>::charTable02 + dd, 2);
-		return buf + 8;
-	}
-}
-
-template<typename value_type>
-	requires(std::same_as<std::remove_cvref_t<value_type>, uint64_t>)
-JSONIFIER_INLINE string_buffer_ptr to_chars_new(string_buffer_ptr buf, value_type value) noexcept {
-	if (value < 100000000) { /* 1-8 digits */
-		buf = to_chars_u64_len_1_8(buf, uint32_t(value));
-		return buf;
-	} else if (value < 100000000ull * 100000000ull) { /* 9-16 digits */
-		const uint64_t hgh = value / 100000000;
-		const auto low	   = uint32_t(value - hgh * 100000000); /* (value % 100000000) */
-		buf				   = to_chars_u64_len_1_8_new(buf, uint32_t(hgh));
-		buf				   = to_chars_u64_len_8_new(buf, low);
-		return buf;
-	} else { /* 17-20 digits */
-		const uint64_t tmp = value / 100000000;
-		const auto low	   = uint32_t(value - tmp * 100000000); /* (value % 100000000) */
-		const auto hgh	   = uint32_t(tmp / 10000);
-		const auto mid	   = uint32_t(tmp - hgh * 10000); /* (tmp % 10000) */
-		buf				   = to_chars_u64_len_5_8_new(buf, hgh);
-		buf				   = to_chars_u64_len_4_new(buf, mid);
-		buf				   = to_chars_u64_len_8_new(buf, low);
-		return buf;
-	}
-}
-
-static constexpr char radix_100_table[] = { '0', '0', '0', '1', '0', '2', '0', '3', '0', '4', '0', '5', '0', '6', '0', '7', '0', '8', '0', '9', '1', '0', '1', '1', '1', '2', '1',
-	'3', '1', '4', '1', '5', '1', '6', '1', '7', '1', '8', '1', '9', '2', '0', '2', '1', '2', '2', '2', '3', '2', '4', '2', '5', '2', '6', '2', '7', '2', '8', '2', '9', '3', '0',
-	'3', '1', '3', '2', '3', '3', '3', '4', '3', '5', '3', '6', '3', '7', '3', '8', '3', '9', '4', '0', '4', '1', '4', '2', '4', '3', '4', '4', '4', '5', '4', '6', '4', '7', '4',
-	'8', '4', '9', '5', '0', '5', '1', '5', '2', '5', '3', '5', '4', '5', '5', '5', '6', '5', '7', '5', '8', '5', '9', '6', '0', '6', '1', '6', '2', '6', '3', '6', '4', '6', '5',
-	'6', '6', '6', '7', '6', '8', '6', '9', '7', '0', '7', '1', '7', '2', '7', '3', '7', '4', '7', '5', '7', '6', '7', '7', '7', '8', '7', '9', '8', '0', '8', '1', '8', '2', '8',
-	'3', '8', '4', '8', '5', '8', '6', '8', '7', '8', '8', '8', '9', '9', '0', '9', '1', '9', '2', '9', '3', '9', '4', '9', '5', '9', '6', '9', '7', '9', '8', '9', '9' };
-
-char* itoa_always_10_digits(std::uint64_t n, char* buffer) {
-	constexpr auto mask = (std::uint64_t(1) << 57) - 1;
-	auto y				= n * std::uint64_t(1441151881);
-	std::memcpy(buffer + 0, radix_100_table + int(y >> 57) * 2, 2);
-	y &= mask;
-	y *= 100;
-	std::memcpy(buffer + 2, radix_100_table + int(y >> 57) * 2, 2);
-	y &= mask;
-	y *= 100;
-	std::memcpy(buffer + 4, radix_100_table + int(y >> 57) * 2, 2);
-	y &= mask;
-	y *= 100;
-	std::memcpy(buffer + 6, radix_100_table + int(y >> 57) * 2, 2);
-	y &= mask;
-	y *= 100;
-	std::memcpy(buffer + 8, radix_100_table + int(y >> 57) * 2, 2);
-
-	return buffer + 10;
-}
-
-template<typename value_type>
-	requires std::same_as<std::remove_cvref_t<value_type>, int64_t>
-JSONIFIER_INLINE string_buffer_ptr to_chars_new(string_buffer_ptr buf, value_type x) noexcept {
-	*buf = '-';
-	// shifts are necessary to have the numeric_limits<int64_t>::min case
-	return to_chars(buf + (x < 0), uint64_t(x ^ (x >> 63)) - (x >> 63));
-}
-
-uint64_t generateRandomIntegerByLength(uint32_t digitLength) {
-	std::uniform_int_distribution<uint64_t> distLength(1, digitLength);
-	std::uniform_int_distribution<uint64_t> dist01(1, 9);
-	std::uniform_int_distribution<uint64_t> dist02(0, 9);
-	std::random_device rd;
-	std::mt19937_64 gen(rd());
-	//digitLength = distLength(gen);
-
-	char buffer[22]{};
-	buffer[0] = static_cast<char>(dist01(gen) + '0');
-
-	for (uint64_t x = 1ull; x < digitLength; ++x) {
-		buffer[x] = static_cast<char>(dist02(gen) + '0');
+	std::vector<std::string> resultsReal{ count };
+	std::vector<std::string> resultsTest01{ count };
+	std::vector<std::string> resultsTest02{ count };
+	std::vector<std::string> resultsTest03{ count };
+	for (size_t x = 0; x < count; ++x) {
+		resultsReal[x].resize(32);
+		resultsTest01[x].resize(32);
+		resultsTest02[x].resize(32);
+		resultsTest03[x].resize(32);
+		auto newPtr	 = resultsReal[x].data();
+		auto newSize = static_cast<size_t>(glz::to_chars(resultsReal[x].data(), randomDoubles[x]) - newPtr);
+		resultsReal[x].resize(newSize + 1);
+		resultsTest01[x].resize(newSize + 1);
+		resultsTest02[x].resize(newSize + 1);
+		resultsTest03[x].resize(newSize + 1);
 	}
 
-	buffer[digitLength] = '\0';
-	return std::strtoull(buffer, nullptr, 10);
-}
-
-template<typename value_type> std::vector<value_type> generateRandomIntegers(uint64_t count, uint64_t maxLength = 0) {
-	std::random_device rd;
-	std::mt19937_64 gen(rd());
-	std::uniform_int_distribution<value_type> lengthNewGen(1, 20);
-	std::vector<value_type> randomNumbers;
-
-	for (uint64_t value = 0ull; value < count; ++value) {
-		uint64_t newValue{ generateRandomIntegerByLength(maxLength == 0 ? lengthNewGen(gen) : maxLength) };
-		randomNumbers.push_back(newValue);
-	}
-
-	return randomNumbers;
-}
-
-template<typename value_type> auto generateVectorOfVectors(uint64_t count01, uint64_t count02, uint64_t lengthNew) {
-	std::vector<std::vector<value_type>> returnValues{};
-	for (uint64_t x = 0ull; x < count01; ++x) {
-		returnValues.emplace_back(generateRandomIntegers<value_type>(count02, lengthNew));
-	}
-	return returnValues;
-}
-
-static constexpr auto maxIterations{ 300 };
-static constexpr auto measuredIterations{ 20 };
-
-JSONIFIER_INLINE_VARIABLE uint8_t digitCounts[]{ 19, 19, 19, 19, 18, 18, 18, 17, 17, 17, 16, 16, 16, 16, 15, 15, 15, 14, 14, 14, 13, 13, 13, 13, 12, 12, 12, 11, 11, 11, 10, 10, 10,
-	10, 9, 9, 9, 8, 8, 8, 7, 7, 7, 7, 6, 6, 6, 5, 5, 5, 4, 4, 4, 4, 3, 3, 3, 2, 2, 2, 1, 1, 1, 1, 1 };
-
-JSONIFIER_INLINE_VARIABLE uint64_t digitCountThresholds[]{ 0ull, 9ull, 99ull, 999ull, 9999ull, 99999ull, 999999ull, 9999999ull, 99999999ull, 999999999ull, 9999999999ull,
-	99999999999ull, 999999999999ull, 9999999999999ull, 99999999999999ull, 999999999999999ull, 9999999999999999ull, 99999999999999999ull, 999999999999999999ull,
-	9999999999999999999ull };
-
-JSONIFIER_INLINE uint64_t fastDigitCount(const uint64_t inputValue) {
-	const uint64_t originalDigitCount{ digitCounts[jsonifier::simd::lzcnt(inputValue)] };
-	return originalDigitCount + static_cast<uint64_t>(inputValue > digitCountThresholds[originalDigitCount]);
-}
-
-template<uint64_t count, uint64_t lengthNew, typename value_type, bnch_swt::string_literal testName> BNCH_SWT_INLINE void testFunction() {
-	std::vector<std::vector<value_type>> testValues{ generateVectorOfVectors<value_type>(maxIterations * measuredIterations, count, lengthNew) };
-	std::vector<std::vector<std::string>> testValues00{};
-	std::vector<std::vector<std::string>> testValues01{};
-	testValues01.resize(maxIterations * measuredIterations);
-	for (uint64_t x = 0ull; x < maxIterations * measuredIterations; ++x) {
-		testValues01[x].resize(count);
-	}
-	testValues00.resize(maxIterations * measuredIterations);
-	testValues01.resize(maxIterations * measuredIterations);
-	for (uint64_t x = 0ull; x < maxIterations * measuredIterations; ++x) {
-		for (uint64_t y = 0ull; y < count; ++y) {
-			testValues00[x].emplace_back(std::to_string(testValues[x][y]));
+	bnch_swt::benchmark_stage<name, maxIterations, 20>::template runBenchmark<"glz::to_chars", "cyan">([&]() {
+		uint64_t currentCount{};
+		const char* newPtr;
+		size_t newSize;
+		for (size_t x = 0; x < count; ++x) {
+			newPtr	= resultsTest01[x].data();
+			newSize = static_cast<size_t>(glz::to_chars(resultsTest01[x].data(), randomDoubles[x]) - newPtr);
+			currentCount += newSize;
 		}
-	}
-	uint64_t currentIteration{};
-	std::vector<std::array<char, 30>> newerStrings{};
-	newerStrings.resize(maxIterations * measuredIterations);
-	srand(std::chrono::high_resolution_clock::now().time_since_epoch().count());
-	bnch_swt::benchmark_stage<testName, maxIterations, measuredIterations>::template runBenchmark<"glz::to_chars", "CYAN">([&] {
-		uint64_t bytesProcessed{};
-		for (uint64_t x = 0ull; x < count; ++x) {
-			auto newPtr = to_chars(newerStrings[currentIteration].data(), testValues[currentIteration][x]);
-			bytesProcessed += testValues00[currentIteration][x].size();
-			testValues01[currentIteration][x] = std::string{ newerStrings[currentIteration].data(), static_cast<uint64_t>(newPtr - newerStrings[currentIteration].data()) };
-		}
-		bnch_swt::doNotOptimizeAway(bytesProcessed);
-		++currentIteration;
-		return bytesProcessed;
+		return currentCount;
 	});
-	std::cout << "TOTAL ITERATIONS: " << currentIteration << std::endl;
-	for (uint64_t x = 0ull; x < currentIteration; ++x) {
-		for (uint64_t y = 0ull; y < count; ++y) {
-			if (testValues00[x][y] != testValues01[x][y]) {
-				std::cout << "GLZ FAILED TO SERIALIZE THIS VALUE: " << testValues00[x][y] << std::endl;
-				std::cout << "GLZ FAILED TO SERIALIZE THIS VALUE (RAW): " << testValues[x][y] << std::endl;
-				std::cout << "GLZ FAILED TO SERIALIZE THIS VALUE-SIZE (RAW): " << testValues00[x][y].size() << std::endl;
-				std::cout << "INSTEAD IT PRODUCED THIS VALUE-SIZE: " << testValues01[x][y].size() << std::endl;
-				std::cout << "INSTEAD IT PRODUCED THIS VALUE: " << testValues01[x][y] << std::endl;
+	for (size_t x = 0; x < count; ++x) {
+		for (size_t y = 0; y < resultsReal[x].size(); ++y) {
+			if (resultsTest01[x][y] == 'e' || resultsTest01[x][y] == 'E') {
+			} else {
+				if (resultsReal[x][y] != resultsTest01[x][y]) {
+					std::cout << "glz::to_chars failed to serialize a double of value: " << resultsReal[x][y] << ", at index: " << x
+							  << ", instead it serialized: " << resultsTest01[x][y] << std::endl;
+				}
 			}
 		}
 	}
 
-	currentIteration = 0ull;
-	bnch_swt::benchmark_stage<testName, maxIterations, measuredIterations>::template runBenchmark<"jsonifier::internal::toChars", "CYAN">([&] {
-		uint64_t bytesProcessed{};
-		for (uint64_t x = 0ull; x < count; ++x) {
-			auto newPtr = jsonifier::internal::toChars(newerStrings[currentIteration].data(), testValues[currentIteration][x]);
-			bytesProcessed += testValues00[currentIteration][x].size();
-			testValues01[currentIteration][x] = std::string{ newerStrings[currentIteration].data(), static_cast<uint64_t>(newPtr - newerStrings[currentIteration].data()) };
+	bnch_swt::benchmark_stage<name, maxIterations, 20>::template runBenchmark<"std::to_chars", "cyan">([&]() {
+		uint64_t currentCount{};
+		char* newPtr;
+		char* endPtr;
+		size_t newSize;
+		for (size_t x = 0; x < count; ++x) {
+			newPtr	= resultsTest02[x].data();
+			endPtr	= resultsTest02[x].data() + resultsTest02[x].size();
+			newSize = static_cast<size_t>(std::to_chars(newPtr, endPtr, randomDoubles[x]).ptr - newPtr);
+			currentCount += newSize;
 		}
-		bnch_swt::doNotOptimizeAway(bytesProcessed);
-		++currentIteration;
-		return bytesProcessed;
+		return currentCount;
 	});
-	for (uint64_t x = 0ull; x < currentIteration; ++x) {
-		for (uint64_t y = 0ull; y < count; ++y) {
-			if (testValues00[x][y] != testValues01[x][y]) {
-				std::cout << "jsonifier::internal::toChars FAILED TO SERIALIZE THIS VALUE: " << testValues00[x][y] << std::endl;
-				std::cout << "jsonifier::internal::toChars FAILED TO SERIALIZE THIS VALUE (RAW): " << testValues[x][y] << std::endl;
-				std::cout << "jsonifier::internal::toChars FAILED TO SERIALIZE THIS VALUE-SIZE (RAW): " << testValues00[x][y].size() << std::endl;
-				std::cout << "INSTEAD IT PRODUCED THIS VALUE-SIZE: " << testValues01[x][y].size() << std::endl;
-				std::cout << "INSTEAD IT PRODUCED THIS VALUE: " << testValues01[x][y] << std::endl;
+
+	bnch_swt::benchmark_stage<name, maxIterations, 20>::template runBenchmark<"jsonifier::internal::toChars", "cyan">([&]() {
+		uint64_t currentCount{};
+		const char* newPtr;
+		size_t newSize;
+		for (size_t x = 0; x < count; ++x) {
+			newPtr	= resultsTest03[x].data();
+			newSize = static_cast<size_t>(jsonifier::internal::toChars(resultsTest03[x].data(), randomDoubles[x]) - newPtr);
+			currentCount += newSize;
+		}
+		return currentCount;
+	});
+	for (size_t x = 0; x < count; ++x) {
+		for (size_t y = 0; y < resultsReal[x].size(); ++y) {
+			if (resultsTest03[x][y] == 'e' || resultsTest03[x][y] == 'E') {
+			} else {
+				if (resultsReal[x][y] != resultsTest03[x][y]) {
+					std::cout << "jsonifier::internal::toChars failed to serialize a double of value: " << resultsReal[x][y] << ", at index: " << x
+							  << ", instead it serialized: " << resultsTest03[x][y] << std::endl;
+				}
 			}
 		}
 	}
 
-	currentIteration = 0ull;
-
-	bnch_swt::benchmark_stage<testName, maxIterations, measuredIterations>::printResults(true, true);
+	bnch_swt::benchmark_stage<name, maxIterations, 20>::printResults(true, true);
 }
+
+ constexpr std::string_view serializedDoubles[]{ "1E-300", "1E-100", "1E-50", "1E-20", "1E-10", "0.00001", "0.001", "0.1", "10", "100", "1000", "100000", "10000000000",
+	"100000000000000000000", "1E30", "1E50", "1E100", "1E150", "1E200", "1E300", "-1E-300", "-1E-100", "-1E-50", "-1E-20", "-1E-10", "-0.00001", "-0.001", "-0.1", "-10", "-100",
+	"-1000", "-100000", "-10000000000", "-100000000000000000000", "-1E30", "-1E50", "-1E100", "-1E150", "-1E200", "-1E300", "0.01", "0.001", "0.0001", "0.000001", "1E-7", "1E-8",
+	"1E-9", "1", "10000", "1000000", "10000000", "100000000", "1000000000", "0.00001234", "1234", "12340000000", "1.23456789E-12", "1.23456789E-30", "1.23456789E-100",
+	"1.23456789E100", "123.45678912345679", "-123.45678912345679", "3.141592653589793", "-3.141592653589793", "2.718281828459045", "-2.718281828459045", "1E-15", "-1E-15", "1E-15",
+	"-1E-15", "1000000000000000", "-1000000000000000", "1000000000000000", "-1000000000000000", "0.123456789", "-0.123456789", "123456.789", "-98765.4321", "42.42", "-42.42",
+	"1234.567890123456", "-1234.567890123456", "0.00001", "-0.00001", "30000000000", "-30000000000", "0", "-0", "0", "-0", "6.28855E-274", "3.25864E-140", "5.94036E-31",
+	"1.53407E118", "1.19846E23", "-2.24495E-268", "1.43791E26", "2.09946E-164", "-3.32926E88", "5.38941E231", "-4.60603E-248", "-6.87161E230", "8.03979E235", "8.29262E217",
+	"-2.49566E205", "2.8382E124", "-3.82484E-133", "1.1456E219", "-1.47418E159", "6.74627E272", "-2.27951E-8", "4.35687E-209", "-72420500000000000", "-1.53494E54", "-2.44972E290",
+	"1.54915E-120", "3.68822E-32", "-2.10929E-41", "-2.14843E-167", "1.88671E227", "7.36516E305", "3.86139E-275", "6.28415E-61", "3.26824E-67", "-1.23234E176", "1.59142E257",
+	"-4.86888E-221", "9.00979E-233", "2.16691E257", "6.46508E39", "-2.66892E-28", "-3.278E-261", "1.84682E262", "-5.60987E-234", "-0.00000830583", "-6.57657E105", "-5.6401E-229",
+	"2.71158E57", "-1.40873E-145", "5.28601E120", "-110410000000", "-7.02909E-118", "-139173000000", "-2.49037E170", "-1.25059E260", "8.81178E153", "1.92913E214", "-1.48295E297",
+	"-1.61311E-57", "-3.2379E250", "-1.02557E-300", "-176917000000", "-5.195E-108", "-1.55491E168", "-3.48015E-97", "-2.63383E123", "-1.88372E127", "-2.05178E162", "1.31758E126",
+	"-1.61467E225", "-7014450000000", "-4.86332E-115", "3.65636E209", "-6.84732E41", "-3.6574E204", "-1.10867E134", "9.90513E-30", "-2.98191E-185", "-7.70106E213", "-7.5311E225",
+	"5.54242E205", "-7.89743E221", "-8211.73", "-3.73988E247", "-1.7516E-39", "9.56319E33", "9.58279E148", "-9.35313E-102", "6.04436E122", "2.02157E134", "4.06471E-189",
+	"2.39768E197", "9.87927E281", "7.46185E222", "1.51941E-279", "-1.10689E-263", "8.99467E169", "-4.69238E294", "-2.37786E26", "-3.44725E160", "-2.13469E-95", "1.90061E45",
+	"4.93267E-248", "2.55165E176", "3.11972E-115", "2.7571E51", "-1.05865E-208", "-137979000", "1.41086E-37", "-3.21921E255", "4.0162E-131", "-3.1005E-138", "1567180000000000",
+	"-1.19446E70", "-1.16358E-203", "-1.31008E-14", "1.27877E139", "-1.21254E189", "7.59516E-19", "-6.75743E-137", "-1.15819E-171", "-9.43165E-143", "-7.34325E257", "-5.5625E-238",
+	"-2.60981E283", "-1.07029E-107", "-1.54776E32", "1.7128E-135", "-1.53769E-180", "1.08515E-299", "-9.20449E268", "-4.40949E242", "-1.59801E183", "3.52306E235", "-1.61596E46",
+	"2.84049E97", "2.88914E148", "-2.63664E162", "-2.30164E-71", "5.79461E-200", "-3.75652E-264", "0.447634", "7.09724E104", "1.09639E69", "7.3326E174", "-5.72564E44",
+	"-5.10778E26", "-7.28092E-230", "9.79438E-112", "-4.82999E161", "-1.51108E69", "-6.37064E155", "1.21474E167", "-3.07608E75", "2.57071E-98", "1.79233E208", "1.95007E-153",
+	"-2.57419E181", "-7.96068E68", "-3.02453E42", "-3.14794E23", "-4.72141E137", "-2.0436E-38", "-1.88995E77", "1.59434E-25", "-3.26435E-108", "-1.06522E35", "4.43142E229",
+	"-1.18276E-241", "2.57823E-131", "-6.54606E-233", "6.21742E-156", "-7.69367E287", "1.59134E-250", "-2.95144E241", "1.60328E233", "-1.54262E54", "1047690000000", "6.99406E-22",
+	"6.52681E-260", "-2.73535E130", "4.22134E-175", "2.86768E241", "-9.12389E126", "-6.05644E212", "3.38957E-165", "4.34233E183", "9.1027E-283", "-4.08745E148", "-3.98395E137",
+	"-6.57154E-183", "2.58013E31", "-1.62694E62", "1.0354E-34", "-3.37814E-167", "6.53416E-244", "-1.27133E-185", "3.29569E-120", "1.59973E-276", "3.01333E-26", "-4.79013E126",
+	"-2.19419E50", "-5.75848E-112", "2.43806E-290", "-3.51172E250", "4.67742E-13", "3.13829E166", "7.30613E-231", "-5.32243E-191", "-1.80482E79", "-6.66686E-24", "-2.2682E26",
+	"-8.91447E-13", "-9.30549E35", "-8.17894E-269", "3.99404E307", "-4.15761E-301", "-1.24959E93", "1.88548E-120", "5.45968E-254", "-2.31028E110", "2.47934E99", "8.24543E137",
+	"-6.04119E-229", "9.06861E-147", "-1.15565E148", "1.54E-296", "-1.82195E-53", "1.19058E-58", "1.25634E85", "-5.80673E280", "1.86275E-37", "-2.25765E-147", "-6.14371E253",
+	"-9.58434E170", "4.94569E72", "-5.19285E-97", "3.9278E-184", "1.01749E164", "-4.46058E-231", "-2.89841E-22", "-5.665E-163", "-6.91682E-69", "-3.60019E71", "-1.91797E-13",
+	"-5.00326E195", "6.27457E31", "-360.226", "-4.21174E-48", "4.16625E129", "-2.85849E-202", "-6.97085E-7", "-1.61734E171", "3.64182E-206", "1.89478E87", "4.08439E-197" };
+
+constexpr double doubles[]{ 1e-300, 1e-100, 1e-50, 1e-20, 1e-10, 1e-5, 1e-3, 1e-1, 1e1, 1e2, 1e3, 1e5, 1e10, 1e20, 1e30, 1e50, 1e100, 1e150, 1e200, 1e300, -1e-300, -1e-100,
+	 -1e-50, -1e-20, -1e-10, -1e-5, -1e-3, -1e-1, -1e1, -1e2, -1e3, -1e5, -1e10, -1e20, -1e30, -1e50, -1e100, -1e150, -1e200, -1e300, 1e-2, 1e-3, 1e-4, 1e-6, 1e-7, 1e-8, 1e-9, 1e0,
+	 1e4, 1e6, 1e7, 1e8, 1e9, 1.234e-5, 1.234e3, 1.234e10, 1.23456789e-12, 1.23456789e-30, 1.23456789e-100, 1.23456789e100, 123.456789123456789, -123.456789123456789,
+	 3.141592653589793, -3.141592653589793, 2.718281828459045, -2.718281828459045, 0.000000000000001, -0.000000000000001, 1e-15, -1e-15, 1000000000000000.0, -1000000000000000.0,
+	 1e+15, -1e+15, 0.123456789000000, -0.123456789000000, 123456.789000000000000, -98765.432100000000000, 42.420000000000000, -42.420000000000000, 1234.567890123456,
+	 -1234.567890123456, 1e-5, -1e-5, 3.0e+10, -3.0e+10, 0.000000000000000, -0.000000000000000, 0.0, -0.0, 6.28855e-274, 3.25864e-140, 5.94036e-31, 1.53407e+118, 1.19846e+23,
+	 -2.24495e-268, 1.43791e+26, 2.09946e-164, -3.32926e+88, 5.38941e+231, -4.60603e-248, -6.87161e+230, 8.03979e+235, 8.29262e+217, -2.49566e+205, 2.8382e+124, -3.82484e-133,
+	 1.1456e+219, -1.47418e+159, 6.74627e+272, -2.27951e-08, 4.35687e-209, -7.24205e+16, -1.53494e+54, -2.44972e+290, 1.54915e-120, 3.68822e-32, -2.10929e-41, -2.14843e-167,
+	 1.88671e+227, 7.36516e+305, 3.86139e-275, 6.28415e-61, 3.26824e-67, -1.23234e+176, 1.59142e+257, -4.86888e-221, 9.00979e-233, 2.16691e+257, 6.46508e+39, -2.66892e-28,
+	 -3.278e-261, 1.84682e+262, -5.60987e-234, -8.30583e-06, -6.57657e+105, -5.6401e-229, 2.71158e+57, -1.40873e-145, 5.28601e+120, -1.1041e+11, -7.02909e-118, -1.39173e+11,
+	 -2.49037e+170, -1.25059e+260, 8.81178e+153, 1.92913e+214, -1.48295e+297, -1.61311e-57, -3.2379e+250, -1.02557e-300, -1.76917e+11, -5.195e-108, -1.55491e+168, -3.48015e-97,
+	 -2.63383e+123, -1.88372e+127, -2.05178e+162, 1.31758e+126, -1.61467e+225, -7.01445e+12, -4.86332e-115, 3.65636e+209, -6.84732e+41, -3.6574e+204, -1.10867e+134, 9.90513e-30,
+	 -2.98191e-185, -7.70106e+213, -7.5311e+225, 5.54242e+205, -7.89743e+221, -8211.73, -3.73988e+247, -1.7516e-39, 9.56319e+33, 9.58279e+148, -9.35313e-102, 6.04436e+122,
+	 2.02157e+134, 4.06471e-189, 2.39768e+197, 9.87927e+281, 7.46185e+222, 1.51941e-279, -1.10689e-263, 8.99467e+169, -4.69238e+294, -2.37786e+26, -3.44725e+160, -2.13469e-95,
+	 1.90061e+45, 4.93267e-248, 2.55165e+176, 3.11972e-115, 2.7571e+51, -1.05865e-208, -1.37979e+08, 1.41086e-37, -3.21921e+255, 4.0162e-131, -3.1005e-138, 1.56718e+15,
+	 -1.19446e+70, -1.16358e-203, -1.31008e-14, 1.27877e+139, -1.21254e+189, 7.59516e-19, -6.75743e-137, -1.15819e-171, -9.43165e-143, -7.34325e+257, -5.5625e-238, -2.60981e+283,
+	 -1.07029e-107, -1.54776e+32, 1.7128e-135, -1.53769e-180, 1.08515e-299, -9.20449e+268, -4.40949e+242, -1.59801e+183, 3.52306e+235, -1.61596e+46, 2.84049e+97, 2.88914e+148,
+	 -2.63664e+162, -2.30164e-71, 5.79461e-200, -3.75652e-264, 0.447634, 7.09724e+104, 1.09639e+69, 7.3326e+174, -5.72564e+44, -5.10778e+26, -7.28092e-230, 9.79438e-112,
+	 -4.82999e+161, -1.51108e+69, -6.37064e+155, 1.21474e+167, -3.07608e+75, 2.57071e-98, 1.79233e+208, 1.95007e-153, -2.57419e+181, -7.96068e+68, -3.02453e+42, -3.14794e+23,
+	 -4.72141e+137, -2.0436e-38, -1.88995e+77, 1.59434e-25, -3.26435e-108, -1.06522e+35, 4.43142e+229, -1.18276e-241, 2.57823e-131, -6.54606e-233, 6.21742e-156, -7.69367e+287,
+	 1.59134e-250, -2.95144e+241, 1.60328e+233, -1.54262e+54, 1.04769e+12, 6.99406e-22, 6.52681e-260, -2.73535e+130, 4.22134e-175, 2.86768e+241, -9.12389e+126, -6.05644e+212,
+	 3.38957e-165, 4.34233e+183, 9.1027e-283, -4.08745e+148, -3.98395e+137, -6.57154e-183, 2.58013e+31, -1.62694e+62, 1.0354e-34, -3.37814e-167, 6.53416e-244, -1.27133e-185,
+	 3.29569e-120, 1.59973e-276, 3.01333e-26, -4.79013e+126, -2.19419e+50, -5.75848e-112, 2.43806e-290, -3.51172e+250, 4.67742e-13, 3.13829e+166, 7.30613e-231, -5.32243e-191,
+	 -1.80482e+79, -6.66686e-24, -2.2682e+26, -8.91447e-13, -9.30549e+35, -8.17894e-269, 3.99404e+307, -4.15761e-301, -1.24959e+93, 1.88548e-120, 5.45968e-254, -2.31028e+110,
+	 2.47934e+99, 8.24543e+137, -6.04119e-229, 9.06861e-147, -1.15565e+148, 1.54e-296, -1.82195e-53, 1.19058e-58, 1.25634e+85, -5.80673e+280, 1.86275e-37, -2.25765e-147,
+	 -6.14371e+253, -9.58434e+170, 4.94569e+72, -5.19285e-97, 3.9278e-184, 1.01749e+164, -4.46058e-231, -2.89841e-22, -5.665e-163, -6.91682e-69, -3.60019e+71, -1.91797e-13,
+	 -5.00326e+195, 6.27457e+31, -360.226, -4.21174e-48, 4.16625e+129, -2.85849e-202, -6.97085e-07, -1.61734e+171, 3.64182e-206, 1.89478e+87, 4.08439e-197 };
 
 int main() {
-	testFunction<512, 1, uint64_t, "int-to-string-comparisons-1">();
-	testFunction<512, 1, int64_t, "int-to-string-comparisons-1">();
-	testFunction<522, 2, uint64_t, "int-to-string-comparisons-2">();
-	testFunction<522, 2, int64_t, "int-to-string-comparisons-2">();
-	testFunction<542, 4, uint64_t, "int-to-string-comparisons-4">();
-	testFunction<542, 4, int64_t, "int-to-string-comparisons-4">();
-	testFunction<582, 8, uint64_t, "int-to-string-comparisons-8">();
-	testFunction<582, 8, int64_t, "int-to-string-comparisons-8">();
-	testFunction<5162, 16, uint64_t, "int-to-string-comparisons-16">();
-	testFunction<5162, 16, int64_t, "int-to-string-comparisons-16">();
-	testFunction<512, 0, uint64_t, "int-to-string-comparisons-x">();
-	testFunction<512, 0, int64_t, "int-to-string-comparisons-x">();
-	return 0ull;
+	std::string newString{};
+	newString.resize(32);
+	for (size_t x = 0; x < std::size(doubles); ++x) {
+		newString.resize(32);
+		auto newPtr = newString.data();
+		newString.resize(static_cast<size_t>(jsonifier::internal::toChars(newString.data(), doubles[x]) - newPtr));
+		if (newString != serializedDoubles[x]) {
+			std::cout << "Failed to properly serialize double: " << doubles[x] << ", which serialized is: " << serializedDoubles[x] << ", at index: " << x
+					  << ", instead it produced this value: " << newString << std::endl;
+		}
+	}
+	testFunction64<1000, "double-1000">();
+	return 0;
 }
