@@ -22,9 +22,8 @@
 /// https://github.com/RealTimeChris/BenchmarkSuite
 #pragma once
 
-#include <cstdint>
-#include <chrono>
 #include <concepts>
+#include <cstdint>
 #include <variant>
 
 namespace bnch_swt {

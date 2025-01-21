@@ -28,33 +28,28 @@
 #endif
 
 #include <BnchSwt/StringLiteral.hpp>
-#include <BnchSwt/EventCounter.hpp>
 #include <BnchSwt/DoNotOptimize.hpp>
+#include <BnchSwt/EventCounter.hpp>
 #include <BnchSwt/CacheClearer.hpp>
 #include <BnchSwt/FileLoader.hpp>
 #include <BnchSwt/Printable.hpp>
 #include <BnchSwt/Metrics.hpp>
 #include <BnchSwt/Config.hpp>
 #include <unordered_map>
-#include <unordered_set>
-#include <string_view>
-#include <filesystem>
-#include <algorithm>
-#include <iostream>
-#include <fstream>
-#include <iomanip>
-#include <numeric>
-#include <string>
-#include <chrono>
-#include <random>
-#include <vector>
-#include <span>
-#include <map>
-#include <set>
 
 namespace bnch_swt {
 
 	namespace internal {
+
+		template<typename... arg_types> struct arg_passer : public arg_types... {
+			template<typename... arg_types_new> constexpr arg_passer(arg_types_new&&... argTupleNew) : arg_types{ std::forward<arg_types_new>(argTupleNew)... }... {};
+
+			template<typename function_type> BNCH_SWT_INLINE auto impl(function_type&& function) {
+				return (function(*static_cast<arg_types*>(this)...));
+			}
+		};
+
+		template<typename... arg_types> arg_passer(arg_types...) -> arg_passer<arg_types...>;
 
 		template<typename value_type01, typename value_type02> BNCH_SWT_INLINE constexpr value_type01 max(value_type01 val01, value_type02 val02) {
 			return val01 > static_cast<value_type01>(val02) ? val01 : static_cast<value_type01>(val02);
@@ -66,7 +61,7 @@ namespace bnch_swt {
 
 	}
 
-	template<string_literal stageNameNew, size_t maxExecutionCount = 200, size_t measuredIterationCount = 25> struct benchmark_stage {
+	template<string_literal stageNameNew, size_t maxExecutionCount = 200, size_t measuredIterationCount = 20> struct benchmark_stage {
 		static_assert(maxExecutionCount % measuredIterationCount == 0, "Sorry, but please enter a maxExecutionCount that is divisible by measuredIterationCount.");
 		inline static std::unordered_map<std::string, performance_metrics> results{};
 
@@ -125,11 +120,31 @@ namespace bnch_swt {
 			}
 		}
 
-#if defined(NDEBUG)
-		static constexpr double threshold{ 5.0f };
-#else
-		static constexpr double threshold{ 10.0f };
-#endif
+		template<string_literal subjectNameNew, string_literal colorNew, typename function_type, internal::not_invocable... arg_types>
+		BNCH_SWT_INLINE static const performance_metrics& runBenchmark(function_type&& functionNew, arg_types&&... args) {
+			static constexpr string_literal subjectName{ subjectNameNew };
+			static_assert(std::convertible_to<std::invoke_result_t<function_type, arg_types...>, size_t>,
+				"Sorry, but the lambda passed to runBenchmark() must return a size_t, reflecting the number of bytes processed!");
+			std::remove_cvref_t<function_type> functionNewer{ std::forward<function_type>(functionNew) };
+			internal::event_collector<maxExecutionCount> events{};
+			internal::cache_clearer cacheClearer{};
+			performance_metrics lowestResults{};
+			performance_metrics resultsTemp{};
+			size_t currentGlobalIndex{ measuredIterationCount };
+			for (size_t x = 0; x < maxExecutionCount; ++x) {
+				cacheClearer.evictCaches();
+				events.run(functionNewer, std::forward<arg_types>(args)...);
+			}
+			for (size_t x = 0; x < maxExecutionCount - measuredIterationCount; ++x, ++currentGlobalIndex) {
+				auto newPtr	  = events.data() + x;
+				resultsTemp	  = collectMetrics<subjectName>(std::span{ newPtr, measuredIterationCount }, currentGlobalIndex);
+				lowestResults = resultsTemp.throughputPercentageDeviation < lowestResults.throughputPercentageDeviation ? resultsTemp : lowestResults;
+			}
+			auto& resultsTempNew = results[subjectName.operator std::string()];
+			resultsTempNew		 = lowestResults;
+			return resultsTempNew;
+		}
+
 		template<string_literal subjectNameNew, string_literal colorNew, typename prep_function_type, typename function_type, internal::not_invocable... arg_types>
 		BNCH_SWT_INLINE static const performance_metrics& runBenchmarkWithPrep(prep_function_type&& prepFunctionNew, function_type&& functionNew, arg_types&&... args) {
 			static constexpr string_literal subjectName{ subjectNameNew };
@@ -139,48 +154,21 @@ namespace bnch_swt {
 			std::remove_cvref_t<function_type> functionNewer{ std::forward<function_type>(functionNew) };
 			internal::event_collector<maxExecutionCount> events{};
 			internal::cache_clearer cacheClearer{};
-			performance_metrics lowestResultsTemp{};
+			performance_metrics lowestResults{};
 			performance_metrics resultsTemp{};
-			size_t currentGlobalIndex{};
-			cacheClearer.evictCaches();
-			for (size_t x = 0; x < maxExecutionCount && currentGlobalIndex < maxExecutionCount; ++x, ++currentGlobalIndex) {
+			size_t currentGlobalIndex{ measuredIterationCount };
+			for (size_t x = 0; x < maxExecutionCount; ++x) {
 				prepFunctionNewer();
-				events.start(functionNewer, std::forward<arg_types>(args)...);
+				cacheClearer.evictCaches();
+				events.run(functionNewer, std::forward<arg_types>(args)...);
 			}
-			currentGlobalIndex = measuredIterationCount;
 			for (size_t x = 0; x < maxExecutionCount - measuredIterationCount; ++x, ++currentGlobalIndex) {
-				auto newPtr		  = events.data() + x;
-				resultsTemp		  = collectMetrics<subjectName>(std::span{ newPtr, measuredIterationCount }, currentGlobalIndex);
-				lowestResultsTemp = resultsTemp.throughputPercentageDeviation < lowestResultsTemp.throughputPercentageDeviation ? (resultsTemp) : lowestResultsTemp;
+				auto newPtr	  = events.data() + x;
+				resultsTemp	  = collectMetrics<subjectName>(std::span{ newPtr, measuredIterationCount }, currentGlobalIndex);
+				lowestResults = resultsTemp.throughputPercentageDeviation < lowestResults.throughputPercentageDeviation ? resultsTemp : lowestResults;
 			}
 			auto& resultsTempNew = results[subjectName.operator std::string()];
-			resultsTempNew		 = lowestResultsTemp;
-			return resultsTempNew;
-		}
-
-		template<string_literal subjectNameNew, string_literal colorNew, typename function_type, internal::not_invocable... arg_types>
-		BNCH_SWT_INLINE static const performance_metrics& runBenchmark(function_type&& functionNew, arg_types&&... args) {
-			static constexpr string_literal subjectName{ subjectNameNew };
-			static_assert(std::convertible_to<std::invoke_result_t<function_type, arg_types...>, size_t>,
-				"Sorry, but the lambda passed to runBenchmark() must return a size_t, reflecting the number of bytes processed!");
-			std::remove_cvref_t<function_type> functionNewer{ std::forward<function_type>(functionNew) };
-			internal::event_collector<maxExecutionCount> events{};
-			internal::cache_clearer cacheClearer{};
-			performance_metrics lowestResultsTemp{};
-			performance_metrics resultsTemp{};
-			size_t currentGlobalIndex{};
-			cacheClearer.evictCaches();
-			for (size_t x = 0; x < maxExecutionCount && currentGlobalIndex < maxExecutionCount; ++x, ++currentGlobalIndex) {
-				events.start(functionNewer, std::forward<arg_types>(args)...);
-			}
-			currentGlobalIndex = measuredIterationCount;
-			for (size_t x = 0; x < maxExecutionCount - measuredIterationCount; ++x, ++currentGlobalIndex) {
-				auto newPtr		  = events.data() + x;
-				resultsTemp		  = collectMetrics<subjectName>(std::span{ newPtr, measuredIterationCount }, currentGlobalIndex);
-				lowestResultsTemp = resultsTemp.throughputPercentageDeviation < lowestResultsTemp.throughputPercentageDeviation ? (resultsTemp) : lowestResultsTemp;
-			}
-			auto& resultsTempNew = results[subjectName.operator std::string()];
-			resultsTempNew		 = lowestResultsTemp;
+			resultsTempNew		 = lowestResults;
 			return resultsTempNew;
 		}
 	};
