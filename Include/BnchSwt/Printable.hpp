@@ -22,9 +22,8 @@
 /// https://github.com/RealTimeChris/BenchmarkSuite
 #pragma once
 
-#include <cstdint>
-#include <chrono>
 #include <concepts>
+#include <cstdint>
 #include <variant>
 
 namespace bnch_swt {
@@ -278,8 +277,8 @@ namespace bnch_swt {
 		}
 
 		template<variant_t value_type> void printValue(std::ostream& os, const value_type& value) {
-			static constexpr auto lambda = [](auto&& valueNew, auto& os) {
-				printValue(os, valueNew);
+			static constexpr auto lambda = [](auto&& valueNew, auto& osNew) {
+				printValue(osNew, valueNew);
 			};
 			visit<lambda>(value, os);
 		}

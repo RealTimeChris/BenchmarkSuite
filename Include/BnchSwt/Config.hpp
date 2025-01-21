@@ -23,6 +23,7 @@
 #pragma once
 
 #include <cstdint>
+#include <utility>
 #include <chrono>
 
 #if defined(__clang__) || (defined(__GNUC__) && defined(__llvm__)) || (defined(__APPLE__) && defined(__clang__))

@@ -29,7 +29,7 @@
 //
 //
 // Created by YaoYuan <ibireme@gmail.com> on 2021.
-// Released into the public domain (unlicense.org).
+// Released into the public domain (https://unlicense.org).
 // =============================================================================
 
 #pragma once
@@ -38,16 +38,10 @@
 
 #if defined(BNCH_SWT_MAC)
 
-	#include <stdbool.h>
-	#include <stdint.h>
-	#include <stdio.h>
-	#include <stdlib.h>
-	#include <string.h>
-	#include <iostream>
-
 	#include <mach/mach_time.h>
-	#include <sys/kdebug.h>
 	#include <sys/sysctl.h>
+	#include <sys/kdebug.h>
+	#include <iostream>
 	#include <unistd.h>
 	#include <dlfcn.h>
 
@@ -1039,7 +1033,7 @@ namespace bnch_swt::internal {
 			}
 		}
 
-		// start counting
+		// run counting
 		if ((ret = kpc_set_counting(classes))) {
 			std::cout << "Failed to set counting: " << ret << "." << std::endl;
 			return (worked = false);
@@ -1077,7 +1071,7 @@ namespace bnch_swt::internal {
 			return hasEventsVal;
 		}
 
-		template<typename function_type, typename... arg_types> BNCH_SWT_INLINE void start(function_type&& function, arg_types&&... args) {
+		template<typename function_type, typename... arg_types> BNCH_SWT_INLINE void run(function_type&& function, arg_types&&... args) {
 			
 			if (hasEvents()) {
 				diff = get_counters();
