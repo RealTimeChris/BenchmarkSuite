@@ -34,6 +34,15 @@ struct block_q8_0_mega_float  {
 	float d[QK8_0_MEGA_D];
 };
 
+template<size_t size_new> struct new_block_q8_0_mega_quants {
+	static constexpr size_t size{ size_new };
+	int8_t* start{};
+};
+
+struct new_block_q8_0_mega_float {
+	float d[QK8_0_MEGA_D];
+};
+
 constexpr size_t dim				= 2048 * 2048;
 constexpr size_t num_blocks			= dim / sizeof(block_q8_0);
 constexpr size_t num_blocks_aligned = dim / sizeof(block_q8_0_aligned_quants);
@@ -167,25 +176,25 @@ JSONIFIER_INLINE constexpr static float ggml_compute_fp16_to_fp32(uint16_t h) {
 	const uint32_t result				   = sign | (two_w < denormalized_cutoff ? fp32_to_bits(denormalized_value) : fp32_to_bits(normalized_value));
 	return fp32_from_bits(result);
 }
-
-JSONIFIER_INLINE static __m256 sum_i16_pairs_float(const __m256i x) {
-	const __m256i ones		   = _mm256_set1_epi16(1);
-	const __m256i summed_pairs = _mm256_madd_epi16(ones, x);
+/*
+JSONIFIER_INLINE static __m256 sum_i16_pairs_float(const jsonifier::jsonifier_simd_int_128 x) {
+	const jsonifier::jsonifier_simd_int_128 ones		   = _mm256_set1_epi16(1);
+	const jsonifier::jsonifier_simd_int_128 summed_pairs = _mm256_madd_epi16(ones, x);
 	return _mm256_cvtepi32_ps(summed_pairs);
 }
 
-JSONIFIER_INLINE static __m256 mul_sum_us8_pairs_float(const __m256i ax, const __m256i sy) {
+JSONIFIER_INLINE static __m256 mul_sum_us8_pairs_float(const jsonifier::jsonifier_simd_int_128 ax, const jsonifier::jsonifier_simd_int_128 sy) {
 	// Perform multiplication and create 16-bit values
-	const __m256i dot = _mm256_maddubs_epi16(ax, sy);
+	const jsonifier::jsonifier_simd_int_128 dot = _mm256_maddubs_epi16(ax, sy);
 	return sum_i16_pairs_float(dot);
 }
 
 // multiply int8_t, add results pairwise twice and return as float vector
-JSONIFIER_INLINE static __m256 mul_sum_i8_pairs_float(const __m256i x, const __m256i y) {
+JSONIFIER_INLINE static __m256 mul_sum_i8_pairs_float(const jsonifier::jsonifier_simd_int_128 x, const jsonifier::jsonifier_simd_int_128 y) {
 	// Get absolute values of x vectors
-	const __m256i ax = _mm256_sign_epi8(x, x);
+	const jsonifier::jsonifier_simd_int_128 ax = _mm256_sign_epi8(x, x);
 	// Sign the values of the y vectors
-	const __m256i sy = _mm256_sign_epi8(y, x);
+	const jsonifier::jsonifier_simd_int_128 sy = _mm256_sign_epi8(y, x);
 	return mul_sum_us8_pairs_float(ax, sy);
 }
 
@@ -196,10 +205,10 @@ JSONIFIER_INLINE static float hsum_float_8(const __m256 x) {
 	res		   = _mm_add_ss(res, _mm_movehdup_ps(res));
 	return _mm_cvtss_f32(res);
 }
-
+*/
 JSONIFIER_INLINE void oi_vec_dot_q8_0_q8_0(const int ne, float* dst, const block_q8_0* __restrict x, const block_q8_0* __restrict y) {
 	const int nb = ne / QK8_0;
-
+	/*
 	// Initialize accumulator with zeros
 	__m256 acc = _mm256_setzero_ps();
 
@@ -210,8 +219,8 @@ JSONIFIER_INLINE void oi_vec_dot_q8_0_q8_0(const int ne, float* dst, const block
 		const float yd = ggml_compute_fp16_to_fp32(y[ib].d);
 		const __m256 d = _mm256_set1_ps(xd * yd);
 
-		__m256i qx = _mm256_load_si256(( const __m256i* )x[ib].qs);
-		__m256i qy = _mm256_load_si256(( const __m256i* )y[ib].qs);
+		jsonifier::jsonifier_simd_int_128 qx = jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )x[ib].qs);
+		jsonifier::jsonifier_simd_int_128 qy = jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )y[ib].qs);
 
 		const __m256 q = mul_sum_i8_pairs_float(qx, qy);
 
@@ -220,11 +229,13 @@ JSONIFIER_INLINE void oi_vec_dot_q8_0_q8_0(const int ne, float* dst, const block
 	}
 
 	*dst = hsum_float_8(acc);
+	*/
 }
 
 JSONIFIER_INLINE void oi_vec_dot_q8_0_q8_0_aligned(const int ne, float* dst, const block_q8_0_aligned_quants* __restrict x, const block_q8_0_aligned_quants* __restrict y,
 	const block_q8_0_aligned_float* x_x, const block_q8_0_aligned_float* y_x) {
 	const int nb = ne / QK8_0;
+	/*
 
 	__m256 acc = _mm256_setzero_ps();
 
@@ -234,8 +245,8 @@ JSONIFIER_INLINE void oi_vec_dot_q8_0_q8_0_aligned(const int ne, float* dst, con
 		const float yd = y_x[ib].d;
 		const __m256 d = _mm256_set1_ps(xd * yd);
 
-		__m256i qx = _mm256_load_si256(( const __m256i* )x[ib].qs);
-		__m256i qy = _mm256_load_si256(( const __m256i* )y[ib].qs);
+		jsonifier::jsonifier_simd_int_128 qx = jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )x[ib].qs);
+		jsonifier::jsonifier_simd_int_128 qy = jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )y[ib].qs);
 
 		const __m256 q = mul_sum_i8_pairs_float(qx, qy);
 
@@ -243,7 +254,7 @@ JSONIFIER_INLINE void oi_vec_dot_q8_0_q8_0_aligned(const int ne, float* dst, con
 		acc = _mm256_fmadd_ps(d, q, acc);
 	}
 
-	*dst = hsum_float_8(acc);
+	*dst = hsum_float_8(acc);*/
 }
 
 JSONIFIER_INLINE void oi_vec_dot_q8_0_q8_0_mega_blocks(const int ne, float* dst, const block_q8_0_mega_quants* __restrict x, const block_q8_0_mega_quants* __restrict y,
@@ -255,51 +266,59 @@ JSONIFIER_INLINE void oi_vec_dot_q8_0_q8_0_mega_blocks(const int ne, float* dst,
 
 		float dx   = x_x[ib].d[0];
 		float dy   = y_x[ib].d[0];
-		__m256i qx = _mm256_load_si256(( const __m256i* )x[ib].qs);
-		__m256i qy = _mm256_load_si256(( const __m256i* )y[ib].qs);
-
+		jsonifier::jsonifier_simd_int_128 qx = jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )x[ib].qs);
+		jsonifier::jsonifier_simd_int_128 qy = jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )y[ib].qs);
+		sum += *( float* )&qy;
+		sum += *( float* )&qx;
 		// 1
 		dx	= x_x[ib].d[1];
 		dy	= y_x[ib].d[1];
-		qx	= _mm256_load_si256(( const __m256i* )&x[ib].qs[1 * 32]);
-		qy	= _mm256_load_si256(( const __m256i* )&y[ib].qs[1 * 32]);
-
+		qx	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&x[ib].qs[1 * 32]);
+		qy	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&y[ib].qs[1 * 32]);
+		sum += *( float* )&qy;
+		sum += *( float* )&qx;
 		// 2
 		dx	= x_x[ib].d[2];
 		dy	= y_x[ib].d[2];
-		qx	= _mm256_load_si256(( const __m256i* )&x[ib].qs[2 * 32]);
-		qy	= _mm256_load_si256(( const __m256i* )&y[ib].qs[2 * 32]);
-
+		qx	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&x[ib].qs[2 * 32]);
+		qy	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&y[ib].qs[2 * 32]);
+		sum += *( float* )&qy;
+		sum += *( float* )&qx;
 		// 3
 		dx	= x_x[ib].d[3];
 		dy	= y_x[ib].d[3];
-		qx	= _mm256_load_si256(( const __m256i* )&x[ib].qs[3 * 32]);
-		qy	= _mm256_load_si256(( const __m256i* )&y[ib].qs[3 * 32]);
-
+		qx	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&x[ib].qs[3 * 32]);
+		qy	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&y[ib].qs[3 * 32]);
+		sum += *( float* )&qy;
+		sum += *( float* )&qx;
 		// 4
 		dx	= x_x[ib].d[0];
 		dy	= y_x[ib].d[0];
-		qx	= _mm256_load_si256(( const __m256i* )&x[ib].qs[4 * 32]);
-		qy	= _mm256_load_si256(( const __m256i* )&y[ib].qs[4 * 32]);
-
+		qx	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&x[ib].qs[4 * 32]);
+		qy	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&y[ib].qs[4 * 32]);
+		sum += *( float* )&qy;
+		sum += *( float* )&qx;
 		// 5
 		dx	= x_x[ib].d[1];
 		dy	= y_x[ib].d[1];
-		qx	= _mm256_load_si256(( const __m256i* )&x[ib].qs[5 * 32]);
-		qy	= _mm256_load_si256(( const __m256i* )&y[ib].qs[5 * 32]);
-
+		qx	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&x[ib].qs[5 * 32]);
+		qy	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&y[ib].qs[5 * 32]);
+		sum += *( float* )&qy;
+		sum += *( float* )&qx;
 		// 6
 		dx	= x_x[ib].d[2];
 		dy	= y_x[ib].d[2];
-		qx	= _mm256_load_si256(( const __m256i* )&x[ib].qs[6 * 32]);
-		qy	= _mm256_load_si256(( const __m256i* )&y[ib].qs[6 * 32]);
-
+		qx	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&x[ib].qs[6 * 32]);
+		qy	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&y[ib].qs[6 * 32]);
+		sum += *( float* )&qy;
+		sum += *( float* )&qx;
 		// 7
 		dx	= x_x[ib].d[3];
 		dy	= y_x[ib].d[3];
-		qx	= _mm256_load_si256(( const __m256i* )&x[ib].qs[7 * 32]);
-		qy	= _mm256_load_si256(( const __m256i* )&y[ib].qs[7 * 32]);
-		sum += qy.m256i_u64[0];
+		qx	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&x[ib].qs[7 * 32]);
+		qy	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&y[ib].qs[7 * 32]);
+		sum += *( float* )&qy;
+		sum += *( float* )&qx;
 	}
 
 	*dst = sum;
@@ -316,51 +335,59 @@ JSONIFIER_INLINE void oi_vec_dot_q8_0_q8_0_mega(const int ne, float* dst, const 
 
 		float dx   = x_x[ib * 8];
 		float dy   = y_x[ib * 8];
-		__m256i qx = _mm256_load_si256(( const __m256i* )&x[ib * 32]);
-		__m256i qy = _mm256_load_si256(( const __m256i* )&y[ib * 32]);
-
+		jsonifier::jsonifier_simd_int_128 qx = jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&x[ib * 32]);
+		jsonifier::jsonifier_simd_int_128 qy = jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&y[ib * 32]);
+		sum += *( float* )&qy;
+		sum += *( float* )&qx;
 		// 1
 		dx	= x_x[ib * 8 + 1];
 		dy	= y_x[ib * 8 + 1];
-		qx	= _mm256_load_si256(( const __m256i* )&x[(ib + 1) * 32]);
-		qy	= _mm256_load_si256(( const __m256i* )&y[(ib + 1) * 32]);
-
+		qx	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&x[(ib + 1) * 32]);
+		qy	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&y[(ib + 1) * 32]);
+		sum += *( float* )&qy;
+		sum += *( float* )&qx;
 		// 2
 		dx	= x_x[ib * 8 + 2];
 		dy	= y_x[ib * 8 + 2];
-		qx	= _mm256_load_si256(( const __m256i* )&x[(ib + 2) * 32]);
-		qy	= _mm256_load_si256(( const __m256i* )&y[(ib + 2) * 32]);
-
+		qx	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&x[(ib + 2) * 32]);
+		qy	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&y[(ib + 2) * 32]);
+		sum += *( float* )&qy;
+		sum += *( float* )&qx;
 		// 3
 		dx	= x_x[ib * 8 + 3];
 		dy	= y_x[ib * 8 + 3];
-		qx	= _mm256_load_si256(( const __m256i* )&x[(ib + 3) * 32]);
-		qy	= _mm256_load_si256(( const __m256i* )&y[(ib + 3) * 32]);
-
+		qx	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&x[(ib + 3) * 32]);
+		qy	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&y[(ib + 3) * 32]);
+		sum += *( float* )&qy;
+		sum += *( float* )&qx;
 		// 4
 		dx	= x_x[ib * 8 + 0];
 		dy	= y_x[ib * 8 + 0];
-		qx	= _mm256_load_si256(( const __m256i* )&x[(ib + 4) * 32]);
-		qy	= _mm256_load_si256(( const __m256i* )&y[(ib + 4) * 32]);
-
+		qx	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&x[(ib + 4) * 32]);
+		qy	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&y[(ib + 4) * 32]);
+		sum += *( float* )&qy;
+		sum += *( float* )&qx;
 		// 5
 		dx	= x_x[ib * 8 + 1];
 		dy	= y_x[ib * 8 + 1];
-		qx	= _mm256_load_si256(( const __m256i* )&x[(ib + 5) * 32]);
-		qy	= _mm256_load_si256(( const __m256i* )&y[(ib + 5) * 32]);
-
+		qx	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&x[(ib + 5) * 32]);
+		qy	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&y[(ib + 5) * 32]);
+		sum += *( float* )&qy;
+		sum += *( float* )&qx;
 		// 6
 		dx	= x_x[ib * 8 + 2];
 		dy	= y_x[ib * 8 + 2];
-		qx	= _mm256_load_si256(( const __m256i* )&x[(ib + 6) * 32]);
-		qy	= _mm256_load_si256(( const __m256i* )&y[(ib + 6) * 32]);
-
+		qx	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&x[(ib + 6) * 32]);
+		qy	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&y[(ib + 6) * 32]);
+		sum += *( float* )&qy;
+		sum += *( float* )&qx;
 		// 7
 		dx	= x_x[ib * 8 + 3];
 		dy	= y_x[ib * 8 + 3];
-		qx	= _mm256_load_si256(( const __m256i* )&x[(ib + 7) * 32]);
-		qy	= _mm256_load_si256(( const __m256i* )&y[(ib + 7) * 32]);
-		sum += qy.m256i_u64[0];
+		qx	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&x[(ib + 7) * 32]);
+		qy	= jsonifier::simd::gatherValues<jsonifier::jsonifier_simd_int_128>(( const jsonifier::jsonifier_simd_int_128* )&y[(ib + 7) * 32]);
+		sum += *( float* )&qy;
+		sum += *( float* )&qx;
 	}
 
 	*dst = sum;

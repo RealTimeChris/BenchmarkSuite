@@ -45,8 +45,6 @@ target_compile_options(
 	"$<$<CXX_COMPILER_ID:CLANG>:-Wextra>"
 	"$<$<CXX_COMPILER_ID:CLANG>:-Wall>"
 	"$<$<CXX_COMPILER_ID:GNU>:-Wextra>"
-    "$<$<CXX_COMPILER_ID:CLANG>:-mfma>"
-    "$<$<CXX_COMPILER_ID:Clang>:-mfma>"
     "$<$<CXX_COMPILER_ID:GNU>:-mfma>"
 	"$<$<CXX_COMPILER_ID:MSVC>:/Wall>"
 	"$<$<CXX_COMPILER_ID:GNU>:-Wall>"
