@@ -16,6 +16,7 @@ FetchContent_Declare(
   GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(jsonifier)
+
 getCommitHash("${jsonifier_SOURCE_DIR}" JSONIFIER_COMMIT_HASH)
 message(STATUS "Jsonifier Commit Hash: https://github.com/RealTimeChris/Jsonifier/commit/${JSONIFIER_COMMIT_HASH}")
 
@@ -31,33 +32,69 @@ add_executable(
   "BenchmarkExe" 
   "./main.cpp"
 )
-
+add_subdirectory(ggml)
+add_subdirectory(oiml)
 target_link_libraries(
-	"BenchmarkExe" PUBLIC 
-	Jsonifier::Jsonifier glaze::glaze BenchmarkSuite::BenchmarkSuite
+  "BenchmarkExe" PUBLIC 
+  Jsonifier::Jsonifier glaze::glaze BenchmarkSuite::BenchmarkSuite ggml oiml::oiml
 )
 
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi /DEBUG ${AVX_FLAGS}")
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
+    set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
+
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Zi /DEBUG /ZI ${AVX_FLAGS}")
+    set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /DEBUG")
+    set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} /DEBUG")
+endif()
+
 target_compile_options(
-	"BenchmarkExe" PUBLIC
-	"$<$<CXX_COMPILER_ID:MSVC>:$<$<STREQUAL:${ASAN_ENABLED},TRUE>:/fsanitize=address>>"
-     "$<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:clang>,$<CXX_COMPILER_ID:CLANG>>:-Wuninitialized;-Wconversion;-Wpedantic;-Wshadow;-Wextra;-Wall>"
-    "$<$<CXX_COMPILER_ID:GNU>:-Wnull-dereference;-Wuninitialized;-Wconversion;-Wpedantic;-Wshadow;-Wextra;-Wall>"
-    "$<$<CXX_COMPILER_ID:MSVC>:/Wall;/W4>"
+  "BenchmarkExe" PUBLIC
+  "$<$<CXX_COMPILER_ID:MSVC>:$<$<STREQUAL:${ASAN_ENABLED},TRUE>:/fsanitize=address>>"
+  "$<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:clang>,$<CXX_COMPILER_ID:CLANG>>:-Wuninitialized;-Wconversion;-Wpedantic;-Wshadow;-Wextra;-Wall>"
+  "$<$<CXX_COMPILER_ID:GNU>:-Wnull-dereference;-Wuninitialized;-Wconversion;-Wpedantic;-Wshadow;-Wextra;-Wall>"
+  "$<$<CXX_COMPILER_ID:MSVC>:/Wall;/W4>"
+  "$<$<CXX_COMPILER_ID:MSVC>:/Wall;/W4;/arch:AVX;/arch:AVX2>"
 )
 
 target_link_options(
-	"BenchmarkExe" PUBLIC
-	"$<$<CXX_COMPILER_ID:GNU>:$<$<STREQUAL:${ASAN_ENABLED},TRUE>:-fsanitize=address>>"
+  "BenchmarkExe" PUBLIC
+  "$<$<CXX_COMPILER_ID:GNU>:$<$<STREQUAL:${ASAN_ENABLED},TRUE>:-fsanitize=address>>"
 )
 
 if (WIN32)
-	install(
-		FILES 
-		"$<TARGET_PDB_FILE:BenchmarkExe>"
-		DESTINATION "$<IF:$<CONFIG:Debug>,bin,bin>"
-		OPTIONAL
-	)
+  install(
+    FILES 
+    "$<TARGET_PDB_FILE:BenchmarkExe>"
+    DESTINATION "$<IF:$<CONFIG:Debug>,bin,bin>"
+    OPTIONAL
+  )
+
+  install(
+      FILES "$<TARGET_FILE:ggml>"
+      DESTINATION "$<TARGET_FILE_DIR:BenchmarkExe>"
+      OPTIONAL
+    )
+    install(
+      FILES "$<TARGET_FILE:ggml-cpu>"
+      DESTINATION "$<TARGET_FILE_DIR:BenchmarkExe>"
+      OPTIONAL
+    )
+    install(
+      FILES "$<TARGET_FILE:ggml-base>"
+      DESTINATION "$<TARGET_FILE_DIR:BenchmarkExe>"
+      OPTIONAL
+    )
 endif()
+
+install(
+  FILES 
+  "$<TARGET_FILE:BenchmarkExe>"
+  DESTINATION "$<IF:$<CONFIG:Debug>,bin,bin>"
+  OPTIONAL
+)
+
 
 install(
 	FILES 

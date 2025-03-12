@@ -1,0 +1,228 @@
+name: CI Build
+
+"on":
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: [main]
+    types: ["opened", "synchronize"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-releases:
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        target:
+          - linux
+          # - android
+          - windows
+          - macos
+        include:
+          - target: linux
+            os: ubuntu-latest
+          - target: windows
+            os: windows-latest
+          - target: macos
+            os: macos-latest
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Debug matrix
+        run: |
+          echo "Dumping matrix: ${{ toJson(matrix) }}"
+
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_SIBLING_REPO_ACCESS }}
+          submodules: recursive
+
+      - name: Configure Git credentials
+        run: |
+          git config --global --add url."https://${{ secrets.PAT_SIBLING_REPO_ACCESS }}@github.com/".insteadOf "git@github.com:"
+          git config --global --add url."https://${{ secrets.PAT_SIBLING_REPO_ACCESS }}@github.com/".insteadOf "ssh://git@github.com/"
+          git config --global --add url."https://${{ secrets.PAT_SIBLING_REPO_ACCESS }}@github.com/".insteadOf "https://github.com/"
+
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
+        with:
+          useLocalCache: true
+          useCloudCache: true
+          cmakeVersion: 3.31.4
+          ninjaVersion: 1.12.1
+
+      - name: Set Up VS build tools
+        if: matrix.target == 'windows'
+        uses: microsoft/setup-msbuild@v2
+        with:
+          msbuild-architecture: x64
+
+      - name: Install the latest clang compiler
+        if: matrix.target == 'linux'
+        run: |
+            sudo apt update && sudo apt upgrade
+            wget https://apt.llvm.org/llvm.sh
+            chmod u+x llvm.sh
+            sudo ./llvm.sh 20
+
+      - name: Install the latest clang compiler
+        if: matrix.target == 'macos'
+        run: | 
+              brew install llvm
+              echo "LLVM binaries are at /opt/homebrew/opt/llvm/bin"
+              echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
+              clang++ --version
+
+      - name: Set up NASM
+        if: matrix.target == 'windows'
+        uses: ilammy/setup-nasm@v1
+      # - name: Install CUDA
+      #   if: matrix.asset_name == 'linux' || matrix.asset_name == 'windows'
+      #   uses: Jimver/cuda-toolkit@v0.2.21
+      #   with:
+      #     cuda: '12.8.0'
+      #     method: 'network'
+      #     sub-packages: '["nvcc", "cudart", "nvrtc", "opencl"]'
+      #     non-cuda-packages: '["libcublas", "libcufft", "libnpp"]'
+      #     log-file-suffix: '${{matrix.os}}.txt'
+
+      - name: Configure CMake.
+        if: matrix.target == 'windows'
+        run: |
+              cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=Release -DOIML_TESTS=TRUE
+
+      - name: Configure CMake.
+        if: matrix.target != 'windows'
+        run: |
+               cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=Release -DOIML_TESTS=TRUE
+
+      - name: Build the executable.
+        run: |
+              cmake --build ./Build --config=Release -v
+
+      - name: Install the executable.
+        if: matrix.target == 'windows'
+        run: |
+              cmake --install ./Build
+
+      - name: Install the executable.
+        if: matrix.target != 'windows'
+        run: |
+              sudo cmake --install ./Build
+
+      - name: Run the executable
+        if: matrix.target == 'windows'
+        run: |
+            & "C:/Program Files (x86)/oiml/bin/oiml_test.exe"
+
+      - name: Run the executable
+        if: matrix.target != 'windows'
+        run: |
+            sudo chmod +x /usr/local/bin/oiml_test
+            sudo /usr/local/bin/oiml_test
+
+  build-cuda:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Configure Git credentials
+        run: |
+          git config --global --add url."https://${{ secrets.PAT_SIBLING_REPO_ACCESS }}@github.com/".insteadOf "git@github.com:"
+          git config --global --add url."https://${{ secrets.PAT_SIBLING_REPO_ACCESS }}@github.com/".insteadOf "ssh://git@github.com/"
+          git config --global --add url."https://${{ secrets.PAT_SIBLING_REPO_ACCESS }}@github.com/".insteadOf "https://github.com/"
+
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: 3.28.0
+
+      - name: Set Up VS build tools (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: microsoft/setup-msbuild@v2
+        with:
+          msbuild-architecture: x64
+
+      - name: Install CUDA (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: Jimver/cuda-toolkit@v0.2.21
+        with:
+          method: 'network'
+          log-file-suffix: 'windows-latest.txt'
+
+      - name: Install CUDA (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        uses: Jimver/cuda-toolkit@v0.2.21
+        with:
+          method: 'network'
+          log-file-suffix: 'ubuntu-latest.txt'
+
+      - name: Verify CUDA Installation
+        run: |
+            echo "Checking CUDA Installation"
+            nvcc --version
+            if ("${{ matrix.os }}" -eq "windows-latest") {
+            ls "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8/bin"
+            } else {
+            ls /usr/local/cuda/bin
+            }
+        shell: pwsh
+
+      - name: Set CUDA Environment Variables (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          echo "CUDA_PATH=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8" >> $GITHUB_ENV
+          echo "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8/bin" >> $GITHUB_PATH
+
+      - name: Set CUDA Environment Variables (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          echo "CUDA_PATH=/usr/local/cuda" >> $GITHUB_ENV
+          echo "/usr/local/cuda/bin" >> $GITHUB_PATH
+
+      - name: Configure CMake (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          cmake -S . -B ./Build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DOIML_TESTS=TRUE -DOIML_CUDA_ON=TRUE -DCUDA_TOOLKIT_ROOT_DIR="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8" -DCUDA_HOST_COMPILER="C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.43.34808/bin/Hostx64/x64/cl.exe" -DCMAKE_CUDA_COMPILER="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8/bin/nvcc.exe"
+
+      - name: Configure CMake (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=Release -DOIML_TESTS=TRUE -DOIML_CUDA_ON=TRUE -DCUDA_TOOLKIT_ROOT_DIR="/usr/local/cuda" -DCMAKE_CUDA_COMPILER="/usr/local/cuda/bin/nvcc"
+
+      - name: Build the executable
+        run: |
+          cmake --build ./Build --config=Release -v
+
+      - name: Install the executable (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          cmake --install ./Build
+
+      - name: Install the executable (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo cmake --install ./Build
+
+      - name: Run the executable (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          & "C:/Program Files/oiml/bin/oiml_test.exe"
+
+      - name: Run the executable (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo chmod +x /usr/local/bin/oiml_test
+          sudo /usr/local/bin/oiml_test

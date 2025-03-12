@@ -25,6 +25,7 @@ jobs:
 
     - name: Configure CMake.
       run: |
+            git submodule update --init --recursive
             sudo cmake -S . -B ./Build -G Xcode -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++ -DBENCH_TYPE=BENCHMARK -DGENERATE_ASSEMBLY=TRUE
 
     - name: Build the Test

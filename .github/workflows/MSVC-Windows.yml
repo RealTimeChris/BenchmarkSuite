@@ -26,6 +26,7 @@ jobs:
 
     - name: Configure CMake
       run: |
+            git submodule update --init --recursive
             cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DBENCH_TYPE=BENCHMARK -DGENERATE_ASSEMBLY=TRUE
 
     - name: Build the Test
