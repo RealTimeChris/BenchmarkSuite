@@ -48,22 +48,30 @@
 #if defined(BNCH_SWT_FORCE_INLINE)
 	#if defined(BNCH_SWT_MSVC)
 		#define BNCH_SWT_INLINE [[msvc::forceinline]] inline 
+		#define BNCH_SWT_NOINLINE [[msvc::noinline]] 
 	#elif defined(BNCH_SWT_CLANG)
 		#define BNCH_SWT_INLINE inline __attribute__((always_inline))
+		#define BNCH_SWT_NOINLINE __attribute__((noinline))
 	#elif defined(BNCH_SWT_GNUCXX)
 		#define BNCH_SWT_INLINE inline __attribute__((always_inline))
+		#define BNCH_SWT_NOINLINE __attribute__((noinline))
 	#else
 		#define BNCH_SWT_INLINE inline
+		#define BNCH_SWT_NOINLINE
 	#endif
 #else
 	#if defined(BNCH_SWT_MSVC)
 		#define BNCH_SWT_INLINE inline
+		#define BNCH_SWT_NOINLINE [[msvc::noinline]]
 	#elif defined(BNCH_SWT_CLANG)
-		#define BNCH_SWT_INLINE inline 
+		#define BNCH_SWT_INLINE inline
+		#define BNCH_SWT_NOINLINE __attribute__((noinline))
 	#elif defined(BNCH_SWT_GNUCXX)
-		#define BNCH_SWT_INLINE inline 
+		#define BNCH_SWT_INLINE inline
+		#define BNCH_SWT_NOINLINE __attribute__((noinline))
 	#else
 		#define BNCH_SWT_INLINE inline
+		#define BNCH_SWT_NOINLINE
 	#endif
 #endif
 
