@@ -19,6 +19,17 @@ FetchContent_MakeAvailable(jsonifier)
 getCommitHash("${jsonifier_SOURCE_DIR}" JSONIFIER_COMMIT_HASH)
 message(STATUS "Jsonifier Commit Hash: https://github.com/RealTimeChris/Jsonifier/commit/${JSONIFIER_COMMIT_HASH}")
 
+set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
+set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(
+        benchmark
+        GIT_REPOSITORY "https://github.com/google/benchmark.git"
+        GIT_TAG main
+)
+FetchContent_MakeAvailable(benchmark)
+FetchContent_GetProperties(benchmark SOURCE_DIR BENCHMARK_INCLUDE_DIR)
+include_directories(${BENCHMARK_INCLUDE_DIR})
+
 FetchContent_Declare(
   glaze
   GIT_REPOSITORY https://github.com/stephenberry/glaze.git
@@ -31,10 +42,14 @@ add_executable(
   "BenchmarkExe" 
   "./main.cpp"
 )
+message("DIRECTORY: ${BENCHMARK_INCLUDE_DIR}")
+target_include_directories(
+	"BenchmarkExe" PUBLIC "${BENCHMARK_INCLUDE_DIR}"
+)
 
 target_link_libraries(
 	"BenchmarkExe" PUBLIC 
-	Jsonifier::Jsonifier glaze::glaze BenchmarkSuite::BenchmarkSuite
+	Jsonifier::Jsonifier glaze::glaze BenchmarkSuite::BenchmarkSuite benchmark::benchmark
 )
 
 target_compile_options(

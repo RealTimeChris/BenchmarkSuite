@@ -23,9 +23,7 @@
 #pragma once
 
 #include <BnchSwt/EventCounter.hpp>
-#include <iterator>
 #include <cstdint>
-#include <chrono>
 #include <span>
 
 namespace bnch_swt {
@@ -45,7 +43,7 @@ namespace bnch_swt {
 		std::optional<double> cyclesPerByte{};
 		std::optional<double> frequencyGHz{};
 		double throughputMbPerSec{};
-		double bytesProcessed{};
+		uint64_t bytesProcessed{};
 		std::string name{};
 		double timeInNs{};
 
@@ -67,9 +65,9 @@ namespace bnch_swt::internal {
 		double throughPutTotal{};
 		double throughPutAvg{};
 		double throughPutMin{ std::numeric_limits<double>::max() };
-		double bytesProcessed{};
-		double bytesProcessedTotal{};
-		double bytesProcessedAvg{};
+		uint64_t bytesProcessed{};
+		uint64_t bytesProcessedTotal{};
+		uint64_t bytesProcessedAvg{};
 		double ns{};
 		double nsTotal{};
 		double nsAvg{};
@@ -97,7 +95,7 @@ namespace bnch_swt::internal {
 
 			if (e.bytesProcessed(bytesProcessed)) {
 				bytesProcessedTotal += bytesProcessed;
-				double volumeMb = bytesProcessed / (1024. * 1024.);
+				double volumeMb = static_cast<double>(bytesProcessed) / (1024. * 1024.);
 				throughPut		= (volumeMb * 1000000000) / ns;
 				throughPutTotal += throughPut;
 				throughPutMin = throughPut < throughPutMin ? throughPut : throughPutMin;
@@ -128,7 +126,7 @@ namespace bnch_swt::internal {
 			}
 		}
 		if (eventsNewer.size() > 0) {
-			bytesProcessedAvg  = bytesProcessedTotal / static_cast<double>(eventsNewer.size());
+			bytesProcessedAvg  = bytesProcessedTotal / eventsNewer.size();
 			nsAvg			   = nsTotal / static_cast<double>(eventsNewer.size());
 			throughPutAvg	   = throughPutTotal / static_cast<double>(eventsNewer.size());
 			cyclesAvg		   = cyclesTotal / static_cast<double>(eventsNewer.size());
@@ -150,14 +148,14 @@ namespace bnch_swt::internal {
 		}
 		if (std::abs(cyclesAvg) > epsilon) {
 			if (metrics.bytesProcessed > 0) {
-				metrics.cyclesPerByte.emplace(cyclesAvg / (metrics.bytesProcessed));
+				metrics.cyclesPerByte.emplace(cyclesAvg / static_cast<double>(metrics.bytesProcessed));
 			}
 			metrics.cyclesPerExecution.emplace(cyclesTotal / static_cast<double>(eventsNewer.size()));
 			metrics.frequencyGHz.emplace(cyclesAvg / nsAvg);
 		}
 		if (std::abs(instructionsAvg) > epsilon) {
 			if (metrics.bytesProcessed > 0) {
-				metrics.instructionsPerByte.emplace(instructionsAvg / (metrics.bytesProcessed));
+				metrics.instructionsPerByte.emplace(instructionsAvg / static_cast<double>(metrics.bytesProcessed));
 			}
 			if (std::abs(cyclesAvg) > epsilon) {
 				metrics.instructionsPerCycle.emplace(instructionsAvg / cyclesAvg);
