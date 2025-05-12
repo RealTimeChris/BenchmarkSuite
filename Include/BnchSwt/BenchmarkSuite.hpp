@@ -62,7 +62,7 @@ namespace bnch_swt {
 
 	}
 
-	template<string_literal stageNameNew, size_t maxExecutionCount = 200, size_t measuredIterationCount = 25, bool clearCpuCacheBetweenEachIteration = true>
+	template<string_literal stageNameNew, size_t maxExecutionCount = 200, size_t measuredIterationCount = 25, bool clearCpuCacheBetweenEachIteration = false>
 	struct benchmark_stage {
 		static_assert(maxExecutionCount % measuredIterationCount == 0, "Sorry, but please enter a maxExecutionCount that is divisible by measuredIterationCount.");
 		static_assert(maxExecutionCount > 1, "Sorry, but please enter a maxExecutionCount that is greater than 1.");
