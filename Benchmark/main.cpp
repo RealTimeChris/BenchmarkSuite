@@ -3,43 +3,46 @@
 #include <array>
 #include <bit>
 
-inline static constexpr float fp32_from_bits(uint32_t w) {
-	return std::bit_cast<float>(w);
-}
+#include <type_traits>
+enum class oiml_op {};
+enum class oiml_type {};
 
-inline static constexpr uint32_t fp32_to_bits(float f) {
-	return std::bit_cast<uint32_t>(f);
-}
+template<oiml_op op_type, uint64_t index, oiml_type type01, oiml_type type02, oiml_type type03> struct function_dispatcher_impl;
 
-inline static constexpr float oiml_compute_fp16_to_fp32(uint16_t h) {
-	const uint32_t w	 = static_cast<uint32_t>(h) << 16;
-	const uint32_t sign	 = w & 0x80000000u;
-	const uint32_t two_w = w + w;
+template<oiml_op op_type, uint64_t index, oiml_type type01, oiml_type type02, oiml_type type03> constexpr auto error_printer() {
+	using impl = function_dispatcher_impl<op_type, index, type01, type02, type03>;
 
-	constexpr uint32_t exp_offset = 0xE0u << 23;
-	constexpr float exp_scale	  = fp32_from_bits(0x7800000u);
-	const float normalized_value  = fp32_from_bits((two_w >> 4) + exp_offset) * exp_scale;
-
-	constexpr uint32_t magic_mask  = 126u << 23;
-	constexpr float magic_bias	   = 0.5f;
-	const float denormalized_value = fp32_from_bits((two_w >> 17) | magic_mask) - magic_bias;
-
-	constexpr uint32_t denormalized_cutoff = 1u << 27;
-	const uint32_t result				   = sign | (two_w < denormalized_cutoff ? fp32_to_bits(denormalized_value) : fp32_to_bits(normalized_value));
-	return fp32_from_bits(result);
-}
-
-alignas(64)
-inline const std::array<float, (1 << 16)> fp16_to_fp32_table{ [] {
-	std::array<float, (1 << 16)> returnValues{};
-	for (uint32_t x = 0; x < (1 << 16); ++x) {
-		returnValues[x] = oiml_compute_fp16_to_fp32(static_cast<uint16_t>(x));
+	// This will only be triggered when the function is actually called
+	if constexpr (!impl::specialized) {
+		// This produces a helpful error message with the template parameters included
+		static_assert(impl::specialized, "Missing specialization for function_dispatcher_impl with these template parameters");
 	}
-	return returnValues;
-}() };
+
+	return impl{};
+}
+
+template<oiml_op op_type, uint64_t index, oiml_type type01, oiml_type type02, oiml_type type03> struct error_printer_instantiation;
+
+// Primary template - deliberately minimal
+template<oiml_op op_type, uint64_t index, oiml_type type01, oiml_type type02, oiml_type type03> struct function_dispatcher_impl {
+	inline static constexpr bool specialized = false;
+	inline static constexpr auto error_printer{ error_printer<op_type, index, type01, type02, type03> };
+};
+
+// Example specialization
+template<> struct function_dispatcher_impl<oiml_op{}, 0, oiml_type{}, oiml_type{}, oiml_type{}> {
+	inline static constexpr bool specialized = true;
+
+	static void execute() {
+		// Implementation
+	}
+};
+
+// This is the function you use to safely access a dispatcher
 
 int main() {
-	auto new_value = fp16_to_fp32_table[0];
-	std::cout << "CURRENT VALUE: " << new_value << std::endl;
+	// This works fine
+	auto d1 = error_printer<oiml_op{}, 0, oiml_type{}, oiml_type{}, oiml_type{}>();
+	// This would error if uncommented with the template parameters visible in the error:
 	return 0;
 }
