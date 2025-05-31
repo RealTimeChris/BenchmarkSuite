@@ -40,33 +40,13 @@
 
 namespace bnch_swt {
 
-	namespace internal {
-
-		template<typename... arg_types> struct arg_passer : public arg_types... {
-			template<typename... arg_types_new> constexpr arg_passer(arg_types_new&&... argTupleNew) : arg_types{ std::forward<arg_types_new>(argTupleNew)... }... {}
-
-			template<typename function_type> BNCH_SWT_INLINE auto impl(function_type&& function) {
-				return (function(*static_cast<arg_types*>(this)...));
-			}
-		};
-
-		template<typename... arg_types> arg_passer(arg_types...) -> arg_passer<arg_types...>;
-
-		template<typename value_type01, typename value_type02> BNCH_SWT_INLINE constexpr value_type01 max(value_type01 val01, value_type02 val02) {
-			return val01 > static_cast<value_type01>(val02) ? val01 : static_cast<value_type01>(val02);
-		}
-
-		template<typename value_type01, typename value_type02> BNCH_SWT_INLINE constexpr value_type01 min(value_type01 val01, value_type02 val02) {
-			return val01 < static_cast<value_type01>(val02) ? val01 : static_cast<value_type01>(val02);
-		}
-
-	}
-
-	template<string_literal stageNameNew, size_t maxExecutionCount = 200, size_t measuredIterationCount = 25, bool clearCpuCacheBetweenEachIteration = true>
+	template<string_literal stageNameNew, size_t maxExecutionCount = 200, size_t measuredIterationCount = 25, bool clearCpuCacheBetweenEachIteration = false,
+		string_literal metricNameNew = string_literal<2>{}>
 	struct benchmark_stage {
 		static_assert(maxExecutionCount % measuredIterationCount == 0, "Sorry, but please enter a maxExecutionCount that is divisible by measuredIterationCount.");
-		static_assert(maxExecutionCount > 1, "Sorry, but please enter a maxExecutionCount that is greater than 1.");
+		//static_assert(maxExecutionCount > 1, "Sorry, but please enter a maxExecutionCount that is greater than 1.");
 		inline static thread_local std::unordered_map<std::string_view, performance_metrics> results{};
+		static constexpr bool useNonMbpsMetric{ metricNameNew.size() > 1 };
 
 		BNCH_SWT_INLINE static void printResults(bool showComparison = true, bool showMetrics = true) {
 			std::vector<performance_metrics> resultsNew{};
@@ -90,18 +70,33 @@ namespace bnch_swt {
 								std::cout << std::left << std::setw(60ull) << label << ": " << valueNew << std::endl;
 							}
 						};
+						std::string instructionCount{};
+						std::string throughPutString{};
+						std::string cycleCount{};
+						std::string metricName{};
+						if constexpr (metricNameNew.size() > 0) {
+							throughPutString = "Throughput (" + metricNameNew.operator std::string() + "/s)";
+							metricName		 = metricNameNew.operator std::string() + "s Processed";
+							cycleCount		 = "Cycles per " + metricNameNew.operator std::string();
+							instructionCount = "Instructions per " + metricNameNew.operator std::string();
+						} else {
+							throughPutString = "Throughput (B/s)";
+							metricName		 = "Bytes Processed";
+							cycleCount		 = "Cycles per Byte";
+							instructionCount = "Instructions per Byte";
+						}
 						printMetric("Total Iterations to Stabilize", value.totalIterationCount);
 						printMetric("Measured Iterations", value.measuredIterationCount);
-						printMetric("Bytes Processed", value.bytesProcessed);
+						printMetric(metricName, value.bytesProcessed);
 						printMetric("Nanoseconds per Execution", value.timeInNs);
 						printMetric("Frequency (GHz)", value.frequencyGHz);
-						printMetric("Throughput (MB/s)", value.throughputMbPerSec);
+						printMetric(throughPutString, value.throughputMbPerSec);
 						printMetric("Throughput Percentage Deviation (+/-%)", value.throughputPercentageDeviation);
 						printMetric("Cycles per Execution", value.cyclesPerExecution);
-						printMetric("Cycles per Byte", value.cyclesPerByte);
+						printMetric(cycleCount, value.cyclesPerByte);
 						printMetric("Instructions per Execution", value.instructionsPerExecution);
 						printMetric("Instructions per Cycle", value.instructionsPerCycle);
-						printMetric("Instructions per Byte", value.instructionsPerByte);
+						printMetric(instructionCount, value.instructionsPerByte);
 						printMetric("Branches per Execution", value.branchesPerExecution);
 						printMetric("Branch Misses per Execution", value.branchMissesPerExecution);
 						printMetric("Cache References per Execution", value.cacheReferencesPerExecution);
@@ -113,7 +108,7 @@ namespace bnch_swt {
 				if (showComparison) {
 					double difference{};
 					for (size_t x = 0; x < resultsNew.size() - 1; ++x) {
-						difference = ((resultsNew[x].throughputMbPerSec - resultsNew[x + 1].throughputMbPerSec) / resultsNew[x + 1].throughputMbPerSec) * 100.0f;
+						difference = ((resultsNew[x].throughputMbPerSec - resultsNew[x + 1].throughputMbPerSec) / resultsNew[x + 1].throughputMbPerSec) * 100.0;
 						std::cout << "Library " << resultsNew[x].name << ", is faster than library: " << resultsNew[x + 1].name << ", by roughly: " << difference << "%."
 								  << std::endl;
 					}
@@ -123,7 +118,33 @@ namespace bnch_swt {
 			}
 		}
 
-		template<string_literal subjectNameNew, string_literal colorNew, typename function_type, internal::not_invocable... arg_types>
+		template<string_literal subjectNameNew, typename function_type, internal::not_invocable... arg_types>
+		BNCH_SWT_INLINE static performance_metrics runBenchmark(arg_types&&... args) {
+			static constexpr string_literal subjectName{ subjectNameNew };
+			static_assert(std::convertible_to<std::invoke_result_t<decltype(function_type::impl), arg_types...>, size_t>,
+				"Sorry, but the lambda passed to runBenchmark() must return a size_t, reflecting the number of bytes processed!");
+			internal::event_collector<maxExecutionCount> events{};
+			internal::cache_clearer cacheClearer{};
+			performance_metrics lowestResults{};
+			performance_metrics resultsTemp{};
+			size_t currentGlobalIndex{ measuredIterationCount };
+			for (size_t x = 0; x < maxExecutionCount; ++x) {
+				if constexpr (clearCpuCacheBetweenEachIteration) {
+					cacheClearer.evictCaches();
+				}
+				events.template run<function_type>(std::forward<arg_types>(args)...);
+			}
+			std::span<internal::event_count> newPtr{ static_cast<std::vector<internal::event_count>&>(events) };
+			static constexpr uint64_t finalMeasuredIterationCount{ maxExecutionCount - measuredIterationCount > 0 ? maxExecutionCount - measuredIterationCount : 1 };
+			for (size_t x = 0; x < finalMeasuredIterationCount; ++x, ++currentGlobalIndex) {
+				resultsTemp	  = collectMetrics<subjectName, useNonMbpsMetric>(newPtr.subspan(x, measuredIterationCount), currentGlobalIndex);
+				lowestResults = resultsTemp.throughputPercentageDeviation < lowestResults.throughputPercentageDeviation ? resultsTemp : lowestResults;
+			}
+			results[subjectName.operator std::string_view()] = lowestResults;
+			return results[subjectName.operator std::string_view()];
+		}
+
+		template<string_literal subjectNameNew, typename function_type, internal::not_invocable... arg_types>
 		BNCH_SWT_INLINE static performance_metrics runBenchmark(function_type&& functionNew, arg_types&&... args) {
 			static constexpr string_literal subjectName{ subjectNameNew };
 			static_assert(std::convertible_to<std::invoke_result_t<function_type, arg_types...>, size_t>,
@@ -140,16 +161,17 @@ namespace bnch_swt {
 				}
 				events.run(functionNewer, std::forward<arg_types>(args)...);
 			}
-			for (size_t x = 0; x < maxExecutionCount - measuredIterationCount; ++x, ++currentGlobalIndex) {
-				auto newPtr	  = events.data() + x;
-				resultsTemp	  = collectMetrics<subjectName>(std::span{ newPtr, measuredIterationCount }, currentGlobalIndex);
+			std::span<internal::event_count> newPtr{ static_cast<std::vector<internal::event_count>&>(events) };
+			static constexpr uint64_t finalMeasuredIterationCount{ maxExecutionCount - measuredIterationCount > 0 ? maxExecutionCount - measuredIterationCount : 1 };
+			for (size_t x = 0; x < finalMeasuredIterationCount; ++x, ++currentGlobalIndex) {
+				resultsTemp	  = collectMetrics<subjectName, useNonMbpsMetric>(newPtr.subspan(x, measuredIterationCount), currentGlobalIndex);
 				lowestResults = resultsTemp.throughputPercentageDeviation < lowestResults.throughputPercentageDeviation ? resultsTemp : lowestResults;
 			}
 			results[subjectName.operator std::string_view()] = lowestResults;
 			return results[subjectName.operator std::string_view()];
 		}
 
-		template<string_literal subjectNameNew, string_literal colorNew, typename prep_function_type, typename function_type, internal::not_invocable... arg_types>
+		template<string_literal subjectNameNew, typename prep_function_type, typename function_type, internal::not_invocable... arg_types>
 		BNCH_SWT_INLINE static performance_metrics runBenchmarkWithPrep(prep_function_type&& prepFunctionNew, function_type&& functionNew, arg_types&&... args) {
 			static constexpr string_literal subjectName{ subjectNameNew };
 			static_assert(std::convertible_to<std::invoke_result_t<function_type, arg_types...>, size_t>,
@@ -168,9 +190,10 @@ namespace bnch_swt {
 				}
 				events.run(functionNewer, std::forward<arg_types>(args)...);
 			}
-			for (size_t x = 0; x < maxExecutionCount - measuredIterationCount; ++x, ++currentGlobalIndex) {
-				auto newPtr	  = events.data() + x;
-				resultsTemp	  = collectMetrics<subjectName>(std::span{ newPtr, measuredIterationCount }, currentGlobalIndex);
+			std::span<internal::event_count> newPtr{ static_cast<std::vector<internal::event_count>&>(events) };
+			static constexpr uint64_t finalMeasuredIterationCount{ maxExecutionCount - measuredIterationCount > 0 ? maxExecutionCount - measuredIterationCount : 1 };
+			for (size_t x = 0; x < finalMeasuredIterationCount; ++x, ++currentGlobalIndex) {
+				resultsTemp	  = collectMetrics<subjectName, useNonMbpsMetric>(newPtr.subspan(x, measuredIterationCount), currentGlobalIndex);
 				lowestResults = resultsTemp.throughputPercentageDeviation < lowestResults.throughputPercentageDeviation ? resultsTemp : lowestResults;
 			}
 			results[subjectName.operator std::string_view()] = lowestResults;
