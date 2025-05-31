@@ -56,9 +56,8 @@ namespace bnch_swt {
 namespace bnch_swt::internal {
 
 	BNCH_SWT_INLINE double calculateThroughputMBps(double nanoseconds, double bytesProcessed) {
-		constexpr double bytesToMB	 = 1.0 / 1048576.0;
 		constexpr double nsToSeconds = 1.0 / 1000000000.0;
-		return (bytesProcessed * bytesToMB) / (nanoseconds * nsToSeconds);
+		return (bytesProcessed) / (nanoseconds * nsToSeconds);
 	}
 
 	template<string_literal benchmarkNameNew> BNCH_SWT_INLINE static performance_metrics collectMetrics(std::span<event_count>&& eventsNewer, size_t totalIterationCount) {

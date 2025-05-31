@@ -29,6 +29,7 @@
 #include <cstdint>
 #include <variant>
 #include <vector>
+#include <tuple>
 
 namespace bnch_swt {
 
@@ -211,7 +212,7 @@ namespace bnch_swt {
 		concept enum_t = std::is_enum_v<std::remove_cvref_t<value_type>>;
 
 		template<typename value_type>
-		concept vector_t = vector_subscriptable<value_type> && has_fill<value_type>;
+		concept vector_t = vector_subscriptable<value_type> && !string_t<value_type>;
 
 		template<typename value_type>
 		concept raw_array_t = ( std::is_array_v<std::remove_cvref_t<value_type>> && !std::is_pointer_v<std::remove_cvref_t<value_type>> ) ||
