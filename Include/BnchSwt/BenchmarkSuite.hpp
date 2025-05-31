@@ -43,7 +43,8 @@ namespace bnch_swt {
 	namespace internal {
 
 		template<typename... arg_types> struct arg_passer : public arg_types... {
-			template<typename... arg_types_new> constexpr arg_passer(arg_types_new&&... argTupleNew) : arg_types{ std::forward<arg_types_new>(argTupleNew)... }... {}
+			template<typename... arg_types_new> constexpr arg_passer(arg_types_new&&... argTupleNew) : arg_types{ std::forward<arg_types_new>(argTupleNew)... }... {
+			}
 
 			template<typename function_type> BNCH_SWT_INLINE auto impl(function_type&& function) {
 				return (function(*static_cast<arg_types*>(this)...));
@@ -62,7 +63,8 @@ namespace bnch_swt {
 
 	}
 
-	template<string_literal stageNameNew, size_t maxExecutionCount = 200, size_t measuredIterationCount = 25, bool clearCpuCacheBetweenEachIteration = true>
+	template<string_literal stageNameNew, size_t maxExecutionCount = 200, size_t measuredIterationCount = 25, bool clearCpuCacheBetweenEachIteration = false,
+		string_literal metricNameNew = string_literal<0>{}>
 	struct benchmark_stage {
 		static_assert(maxExecutionCount % measuredIterationCount == 0, "Sorry, but please enter a maxExecutionCount that is divisible by measuredIterationCount.");
 		static_assert(maxExecutionCount > 1, "Sorry, but please enter a maxExecutionCount that is greater than 1.");
@@ -90,18 +92,33 @@ namespace bnch_swt {
 								std::cout << std::left << std::setw(60ull) << label << ": " << valueNew << std::endl;
 							}
 						};
+						std::string instructionCount{};
+						std::string throughPutString{};
+						std::string cycleCount{};
+						std::string metricName{};
+						if constexpr (metricNameNew.size() > 0) {
+							throughPutString = "Throughput (" + metricNameNew.operator std::string() + "/s)";
+							metricName		 = metricNameNew.operator std::string() + "s Processed";
+							cycleCount		 = "Cycles per " + metricNameNew.operator std::string();
+							instructionCount = "Instructions per " + metricNameNew.operator std::string();
+						} else {
+							throughPutString = "Throughput (B/s)";
+							metricName		 = "Bytes Processed";
+							cycleCount		 = "Cycles per Byte";
+							instructionCount = "Instructions per Byte";
+						}
 						printMetric("Total Iterations to Stabilize", value.totalIterationCount);
 						printMetric("Measured Iterations", value.measuredIterationCount);
-						printMetric("Bytes Processed", value.bytesProcessed);
+						printMetric(metricName, value.bytesProcessed);
 						printMetric("Nanoseconds per Execution", value.timeInNs);
 						printMetric("Frequency (GHz)", value.frequencyGHz);
-						printMetric("Throughput (MB/s)", value.throughputMbPerSec);
+						printMetric(throughPutString, value.throughputMbPerSec);
 						printMetric("Throughput Percentage Deviation (+/-%)", value.throughputPercentageDeviation);
 						printMetric("Cycles per Execution", value.cyclesPerExecution);
-						printMetric("Cycles per Byte", value.cyclesPerByte);
+						printMetric(cycleCount, value.cyclesPerByte);
 						printMetric("Instructions per Execution", value.instructionsPerExecution);
 						printMetric("Instructions per Cycle", value.instructionsPerCycle);
-						printMetric("Instructions per Byte", value.instructionsPerByte);
+						printMetric(instructionCount, value.instructionsPerByte);
 						printMetric("Branches per Execution", value.branchesPerExecution);
 						printMetric("Branch Misses per Execution", value.branchMissesPerExecution);
 						printMetric("Cache References per Execution", value.cacheReferencesPerExecution);
