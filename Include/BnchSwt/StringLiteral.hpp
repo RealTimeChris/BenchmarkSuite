@@ -30,7 +30,7 @@
 
 namespace bnch_swt {
 
-	template<size_t sizeVal> struct string_literal {
+	template<size_t sizeVal> struct BNCH_SWT_ALIGN string_literal {
 		using value_type	  = char;
 		using const_reference = const value_type&;
 		using reference		  = value_type&;
@@ -102,7 +102,7 @@ namespace bnch_swt {
 		}
 
 		template<typename string_type> constexpr operator string_type() const {
-			string_type returnValues{ values, length };
+			BNCH_SWT_ALIGN string_type returnValues{ values, length };
 			return returnValues;
 		}
 
@@ -118,9 +118,9 @@ namespace bnch_swt {
 			return sl;
 		}
 
-		template<size_t size> BNCH_SWT_INLINE std::ostream& operator<<(std::ostream& os, const string_literal<size>& input) noexcept {
-			os << input.operator std::string_view();
-			return os;
+		template<size_t size> BNCH_SWT_INLINE std::ostream& operator<<(std::ostream&, const string_literal<size>& input) noexcept {
+			std::cout << input.operator std::string_view();
+			return std::cout;
 		}
 
 		template<typename value_type> constexpr uint64_t countDigits(value_type number) noexcept {
