@@ -118,9 +118,9 @@ namespace bnch_swt {
 			return sl;
 		}
 
-		template<size_t size> BNCH_SWT_INLINE std::ostream& operator<<(std::ostream& os, const string_literal<size>& input) noexcept {
-			os << input.operator std::string_view();
-			return os;
+		template<size_t size> BNCH_SWT_INLINE std::ostream& operator<<(std::ostream&, const string_literal<size>& input) noexcept {
+			std::cout << input.operator std::string_view();
+			return std::cout;
 		}
 
 		template<typename value_type> constexpr uint64_t countDigits(value_type number) noexcept {
