@@ -44,6 +44,7 @@
 	#include <iostream>
 	#include <unistd.h>
 	#include <dlfcn.h>
+	#include <array>
 
 namespace bnch_swt::internal {
 
@@ -53,13 +54,10 @@ namespace bnch_swt::internal {
 		double branches{};
 		double cycles{};
 
-		BNCH_SWT_INLINE performance_counters(uint64_t c, uint64_t b, uint64_t m, uint64_t i) : cycles(c), branches(b), branchMisses(m), instructions(i) {
+		BNCH_SWT_INLINE performance_counters(double c, double b, double m, double i) : branchMisses(m), instructions(i), branches(b), cycles(c) {
 		}
 
-		BNCH_SWT_INLINE performance_counters(double c, double b, double m, double i) : cycles(c), branches(b), branchMisses(m), instructions(i) {
-		}
-
-		BNCH_SWT_INLINE performance_counters(double init = 0.0f) : cycles(init), branches(init), branchMisses(init), instructions(init) {
+		BNCH_SWT_INLINE performance_counters(double init = 0.0) : branchMisses(init), instructions(init), branches(init), cycles(init) {
 		}
 
 		BNCH_SWT_INLINE performance_counters& operator-=(const performance_counters& other) {
@@ -70,10 +68,10 @@ namespace bnch_swt::internal {
 			return *this;
 		}
 		BNCH_SWT_INLINE performance_counters& min(const performance_counters& other) {
-			cycles		   = other.cycles < cycles ? other.cycles : cycles;
-			branches	   = other.branches < branches ? other.branches : branches;
+			cycles		 = other.cycles < cycles ? other.cycles : cycles;
+			branches	 = other.branches < branches ? other.branches : branches;
 			branchMisses = other.branchMisses < branchMisses ? other.branchMisses : branchMisses;
-			instructions   = other.instructions < instructions ? other.instructions : instructions;
+			instructions = other.instructions < instructions ? other.instructions : instructions;
 			return *this;
 		}
 		BNCH_SWT_INLINE performance_counters& operator+=(const performance_counters& other) {
@@ -97,40 +95,24 @@ namespace bnch_swt::internal {
 		return performance_counters(a.cycles - b.cycles, a.branches - b.branches, a.branchMisses - b.branchMisses, a.instructions - b.instructions);
 	}
 
-	// -----------------------------------------------------------------------------
-	// <kperf.framework> header (reverse engineered)
-	// This framework wraps some sysctl calls to communicate with the kpc in kernel.
-	// Most functions requires root privileges, or process is "blessed".
-	// -----------------------------------------------------------------------------
-
-	// Cross-platform class constants.
 	#define KPC_CLASS_FIXED (0)
 	#define KPC_CLASS_CONFIGURABLE (1)
 	#define KPC_CLASS_POWER (2)
 	#define KPC_CLASS_RAWPMU (3)
 
-	// Cross-platform class mask constants.
-	#define KPC_CLASS_FIXED_MASK (1u << KPC_CLASS_FIXED)// 1
-	#define KPC_CLASS_CONFIGURABLE_MASK (1u << KPC_CLASS_CONFIGURABLE)// 2
-	#define KPC_CLASS_POWER_MASK (1u << KPC_CLASS_POWER)// 4
-	#define KPC_CLASS_RAWPMU_MASK (1u << KPC_CLASS_RAWPMU)// 8
+	#define KPC_CLASS_FIXED_MASK (1u << KPC_CLASS_FIXED)
+	#define KPC_CLASS_CONFIGURABLE_MASK (1u << KPC_CLASS_CONFIGURABLE)
+	#define KPC_CLASS_POWER_MASK (1u << KPC_CLASS_POWER)
+	#define KPC_CLASS_RAWPMU_MASK (1u << KPC_CLASS_RAWPMU)
 
-	// PMU version constants.
-	#define KPC_PMU_ERROR (0)// Error
-	#define KPC_PMU_INTEL_V3 (1)// Intel
-	#define KPC_PMU_ARM_APPLE (2)// ARM64
-	#define KPC_PMU_INTEL_V2 (3)// Old Intel
-	#define KPC_PMU_ARM_V2 (4)// Old ARM
+	#define KPC_PMU_ERROR (0)
+	#define KPC_PMU_INTEL_V3 (1)
+	#define KPC_PMU_ARM_APPLE (2)
+	#define KPC_PMU_INTEL_V2 (3)
+	#define KPC_PMU_ARM_V2 (4)
 
-	// The maximum number of counters we could read from every class in one go.
-	// ARMV7: FIXED: 1, CONFIGURABLE: 4
-	// ARM32: FIXED: 2, CONFIGURABLE: 6
-	// ARM64: FIXED: 2, CONFIGURABLE: CORE_NCTRS - FIXED (6 or 8)
-	// x86: 32
 	#define KPC_MAX_COUNTERS 32
 
-	// Bits for defining what to do on an action.
-	// Defined in https://github.com/apple/darwin-xnu/blob/main/osfmk/kperf/action.h
 	#define KPERF_SAMPLER_TH_INFO (1U << 0)
 	#define KPERF_SAMPLER_TH_SNAPSHOT (1U << 1)
 	#define KPERF_SAMPLER_KSTACK (1U << 2)
@@ -146,198 +128,80 @@ namespace bnch_swt::internal {
 	#define KPERF_SAMPLER_TH_INSCYC (1U << 12)
 	#define KPERF_SAMPLER_TK_INFO (1U << 13)
 
-	// Maximum number of kperf action ids.
 	#define KPERF_ACTION_MAX (32)
 
-	// Maximum number of kperf timer ids.
 	#define KPERF_TIMER_MAX (8)
 
-	// x86/arm config registers are 64-bit
 	using kpc_config_t = uint64_t;
 
-	/// Print current CPU identification string to the buffer (same as snprintf),
-	/// such as "cpu_7_8_10b282dc_46". This string can be used to locate the PMC
-	/// database in /usr/share/kpep.
-	/// @return string's length, or negative value if error occurs.
-	/// @note This method does not requires root privileges.
-	/// @internals sysctl get(hw.cputype), get(hw.cpusubtype),
-	///                 get(hw.cpufamily), get(machdep.cpu.model)
 	static int32_t (*kpc_cpu_string)(char* buf, size_t buf_size);
 
-	/// Get the version of KPC that's being run.
-	/// @return See `PMU version constants` above.
-	/// @internals sysctl get(kpc.pmu_version)
 	static uint32_t (*kpc_pmu_version)();
 
-	/// Get running PMC classes.
-	/// @return See `class mask constants` above,
-	///         0 if error occurs or no class is set.
-	/// @internals sysctl get(kpc.counting)
 	static uint32_t (*kpc_get_counting)();
 
-	/// Set PMC classes to enable counting.
-	/// @param classes See `class mask constants` above, set 0 to shutdown counting.
-	/// @return 0 for success.
-	/// @internals sysctl set(kpc.counting)
 	static int32_t (*kpc_set_counting)(uint32_t classes);
 
-	/// Get running PMC classes for current thread.
-	/// @return See `class mask constants` above,
-	///         0 if error occurs or no class is set.
-	/// @internals sysctl get(kpc.thread_counting)
 	static uint32_t (*kpc_get_thread_counting)();
 
-	/// Set PMC classes to enable counting for current thread.
-	/// @param classes See `class mask constants` above, set 0 to shutdown counting.
-	/// @return 0 for success.
-	/// @internals sysctl set(kpc.thread_counting)
 	static int32_t (*kpc_set_thread_counting)(uint32_t classes);
 
-	/// Get how many config registers there are for a given mask.
-	/// For example: Intel may returns 1 for `KPC_CLASS_FIXED_MASK`,
-	///                        returns 4 for `KPC_CLASS_CONFIGURABLE_MASK`.
-	/// @param classes See `class mask constants` above.
-	/// @return 0 if error occurs or no class is set.
-	/// @note This method does not requires root privileges.
-	/// @internals sysctl get(kpc.config_count)
 	static uint32_t (*kpc_get_config_count)(uint32_t classes);
 
-	/// Get config registers.
-	/// @param classes see `class mask constants` above.
-	/// @param config Config buffer to receive values, should not smaller than
-	///               kpc_get_config_count(classes) * sizeof(kpc_config_t).
-	/// @return 0 for success.
-	/// @internals sysctl get(kpc.config_count), get(kpc.config)
 	static int32_t (*kpc_get_config)(uint32_t classes, kpc_config_t* config);
 
-	/// Set config registers.
-	/// @param classes see `class mask constants` above.
-	/// @param config Config buffer, should not smaller than
-	///               kpc_get_config_count(classes) * sizeof(kpc_config_t).
-	/// @return 0 for success.
-	/// @internals sysctl get(kpc.config_count), set(kpc.config)
 	static int32_t (*kpc_set_config)(uint32_t classes, kpc_config_t* config);
 
-	/// Get how many counters there are for a given mask.
-	/// For example: Intel may returns 3 for `KPC_CLASS_FIXED_MASK`,
-	///                        returns 4 for `KPC_CLASS_CONFIGURABLE_MASK`.
-	/// @param classes See `class mask constants` above.
-	/// @note This method does not requires root privileges.
-	/// @internals sysctl get(kpc.counter_count)
 	static uint32_t (*kpc_get_counter_count)(uint32_t classes);
 
-	/// Get counter accumulations.
-	/// If `all_cpus` is true, the buffer count should not smaller than
-	/// (cpu_count * counter_count). Otherwize, the buffer count should not smaller
-	/// than (counter_count).
-	/// @see kpc_get_counter_count(), kpc_cpu_count().
-	/// @param all_cpus true for all CPUs, false for current cpu.
-	/// @param classes See `class mask constants` above.
-	/// @param curcpu A pointer to receive current cpu id, can be NULL.
-	/// @param buf Buffer to receive counter's value.
-	/// @return 0 for success.
-	/// @internals sysctl get(hw.ncpu), get(kpc.counter_count), get(kpc.counters)
 	static int32_t (*kpc_get_cpu_counters)(bool all_cpus, uint32_t classes, int32_t* curcpu, uint64_t* buf);
 
-	/// Get counter accumulations for current thread.
-	/// @param tid Thread id, should be 0.
-	/// @param buf_count The number of buf's elements (not bytes),
-	///                  should not smaller than kpc_get_counter_count().
-	/// @param buf Buffer to receive counter's value.
-	/// @return 0 for success.
-	/// @internals sysctl get(kpc.thread_counters)
 	static int32_t (*kpc_get_thread_counters)(uint32_t tid, uint32_t buf_count, uint64_t* buf);
 
-	/// Acquire/release the counters used by the Power Manager.
-	/// @param val 1:acquire, 0:release
-	/// @return 0 for success.
-	/// @internals sysctl set(kpc.force_all_ctrs)
 	static int32_t (*kpc_force_all_ctrs_set)(int32_t val);
 
-	/// Get the state of all_ctrs.
-	/// @return 0 for success.
-	/// @internals sysctl get(kpc.force_all_ctrs)
 	static int32_t (*kpc_force_all_ctrs_get)(int32_t* val_out);
 
-	/// Set number of actions, should be `KPERF_ACTION_MAX`.
-	/// @internals sysctl set(kperf.action.count)
 	static int32_t (*kperf_action_count_set)(uint32_t count);
 
-	/// Get number of actions.
-	/// @internals sysctl get(kperf.action.count)
 	static int32_t (*kperf_action_count_get)(uint32_t* count);
 
-	/// Set what to sample when a trigger fires an action, e.g.
-	/// `KPERF_SAMPLER_PMC_CPU`.
-	/// @internals sysctl set(kperf.action.samplers)
 	static int32_t (*kperf_action_samplers_set)(uint32_t actionid, uint32_t sample);
 
-	/// Get what to sample when a trigger fires an action.
-	/// @internals sysctl get(kperf.action.samplers)
 	static int32_t (*kperf_action_samplers_get)(uint32_t actionid, uint32_t* sample);
 
-	/// Apply a task filter to the action, -1 to disable filter.
-	/// @internals sysctl set(kperf.action.filter_by_task)
 	static int32_t (*kperf_action_filter_set_by_task)(uint32_t actionid, int32_t port);
 
-	/// Apply a pid filter to the action, -1 to disable filter.
-	/// @internals sysctl set(kperf.action.filter_by_pid)
 	static int32_t (*kperf_action_filter_set_by_pid)(uint32_t actionid, int32_t pid);
 
-	/// Set number of time triggers, should be `KPERF_TIMER_MAX`.
-	/// @internals sysctl set(kperf.timer.count)
 	static int32_t (*kperf_timer_count_set)(uint32_t count);
 
-	/// Get number of time triggers.
-	/// @internals sysctl get(kperf.timer.count)
 	static int32_t (*kperf_timer_count_get)(uint32_t* count);
 
-	/// Set timer number and period.
-	/// @internals sysctl set(kperf.timer.period)
 	static int32_t (*kperf_timer_period_set)(uint32_t actionid, uint64_t tick);
 
-	/// Get timer number and period.
-	/// @internals sysctl get(kperf.timer.period)
 	static int32_t (*kperf_timer_period_get)(uint32_t actionid, uint64_t* tick);
 
-	/// Set timer number and actionid.
-	/// @internals sysctl set(kperf.timer.action)
 	static int32_t (*kperf_timer_action_set)(uint32_t actionid, uint32_t timerid);
 
-	/// Get timer number and actionid.
-	/// @internals sysctl get(kperf.timer.action)
 	static int32_t (*kperf_timer_action_get)(uint32_t actionid, uint32_t* timerid);
 
-	/// Set which timer ID does PET (Profile Every Thread).
-	/// @internals sysctl set(kperf.timer.pet_timer)
 	static int32_t (*kperf_timer_pet_set)(uint32_t timerid);
 
-	/// Get which timer ID does PET (Profile Every Thread).
-	/// @internals sysctl get(kperf.timer.pet_timer)
 	static int32_t (*kperf_timer_pet_get)(uint32_t* timerid);
 
-	/// Enable or disable sampling.
-	/// @internals sysctl set(kperf.sampling)
 	static int32_t (*kperf_sample_set)(uint32_t enabled);
 
-	/// Get is currently sampling.
-	/// @internals sysctl get(kperf.sampling)
 	static int32_t (*kperf_sample_get)(uint32_t* enabled);
 
-	/// Reset kperf: stop sampling, kdebug, timers and actions.
-	/// @return 0 for success.
 	static int32_t (*kperf_reset)();
 
-	/// Nanoseconds to CPU ticks.
 	static uint64_t (*kperf_ns_to_ticks)(uint64_t ns);
 
-	/// CPU ticks to nanoseconds.
 	static uint64_t (*kperf_ticks_to_ns)(uint64_t ticks);
 
-	/// CPU ticks frequency (mach_absolute_time).
 	static uint64_t (*kperf_tick_frequency)();
 
-	/// Get lightweight PET mode (not in kperf.framework).
 	BNCH_SWT_INLINE static int32_t kperf_lightweight_pet_get(uint32_t* enabled) {
 		if (!enabled) {
 			return -1;
@@ -346,30 +210,21 @@ namespace bnch_swt::internal {
 		return sysctlbyname("kperf.lightweight_pet", enabled, &size, NULL, 0);
 	}
 
-	/// Set lightweight PET mode (not in kperf.framework).
 	BNCH_SWT_INLINE static int32_t kperf_lightweight_pet_set(uint32_t enabled) {
 		return sysctlbyname("kperf.lightweight_pet", NULL, NULL, &enabled, 4);
 	}
 
-	// -----------------------------------------------------------------------------
-	// <kperfdata.framework> header (reverse engineered)
-	// This framework provides some functions to access the local CPU database.
-	// These functions do not require root privileges.
-	// -----------------------------------------------------------------------------
-
-	// KPEP CPU archtecture constants.
 	#define KPEP_ARCH_I386 0
 	#define KPEP_ARCH_X86_64 1
 	#define KPEP_ARCH_ARM 2
 	#define KPEP_ARCH_ARM64 3
 
-	/// KPEP event (size: 48/28 bytes on 64/32 bit OS)
 	struct kpep_event {
-		const char* name;///< Unique name of a event, such as "INST_RETIRED.ANY".
-		const char* description;///< Description for this event.
-		const char* errata;///< Errata, currently NULL.
-		const char* alias;///< Alias name, such as "Instructions", "Cycles".
-		const char* fallback;///< Fallback event name for fixed counter.
+		const char* name;
+		const char* description;
+		const char* errata;
+		const char* alias;
+		const char* fallback;
 		uint32_t mask;
 		uint8_t number;
 		uint8_t umask;
@@ -377,7 +232,6 @@ namespace bnch_swt::internal {
 		uint8_t is_fixed;
 	};
 
-	/// KPEP database (size: 144/80 bytes on 64/32 bit OS)
 	struct kpep_db {
 		const char* name;///< Database name, such as "haswell".
 		const char* cpu_id;///< Plist name, such as "cpu_7_8_10b282dc".
@@ -440,14 +294,14 @@ namespace bnch_swt::internal {
 	};
 
 	/// Error description for kpep_config_error_code.
-	static const char* kpep_config_error_names[static_cast<uint64_t>(kpep_config_error_code::KPEP_CONFIG_ERROR_MAX)] = { "none", "invalid argument", "out of memory", "I/O",
-		"buffer too small", "current system unknown", "database path invalid", "database not found", "database architecture unsupported", "database version unsupported",
+	static std::array<const char*, static_cast<uint64_t>(kpep_config_error_code::KPEP_CONFIG_ERROR_MAX)> kpep_config_error_names = { "none", "invalid argument", "out of memory",
+		"I/O", "buffer too small", "current system unknown", "database path invalid", "database not found", "database architecture unsupported", "database version unsupported",
 		"database corrupt", "event not found", "conflicting events", "all counters must be forced", "event unavailable", "check errno" };
 
 	/// Error description.
 	static const char* kpep_config_error_desc(int32_t code) {
-		if (0 <= code && code < static_cast<uint64_t>(kpep_config_error_code::KPEP_CONFIG_ERROR_MAX)) {
-			return kpep_config_error_names[code];
+		if (0 <= code && static_cast<uint64_t>(code) < static_cast<uint64_t>(kpep_config_error_code::KPEP_CONFIG_ERROR_MAX)) {
+			return kpep_config_error_names[static_cast<uint64_t>(code)];
 		}
 		return "unknown error";
 	}
@@ -502,7 +356,7 @@ namespace bnch_swt::internal {
 	static int32_t (*kpep_config_kpc_count)(kpep_config* cfg, size_t* count_ptr);
 
 	/// Get kpc classes.
-	/// @param classes See `class mask constants` above.
+	/// @param classes_ptr See `class mask constants` above.
 	/// @return kpep_config_error_code, 0 for success.
 	static int32_t (*kpep_config_kpc_classes)(kpep_config* cfg, uint32_t* classes_ptr);
 
@@ -579,9 +433,12 @@ namespace bnch_swt::internal {
 	};
 
 	#define lib_nelems(x) (sizeof(x) / sizeof((x)[0]))
-	#define lib_symbol_def(name) { #name, ( void** )&name }
+	#define lib_symbol_def(name) \
+		lib_symbol { \
+			#name, reinterpret_cast<void**>(&name) \
+		}
 
-	static const lib_symbol lib_symbols_kperf[] = {
+	static const std::array<lib_symbol, 34> lib_symbols_kperf{
 		lib_symbol_def(kpc_pmu_version),
 		lib_symbol_def(kpc_cpu_string),
 		lib_symbol_def(kpc_set_counting),
@@ -618,7 +475,7 @@ namespace bnch_swt::internal {
 		lib_symbol_def(kperf_tick_frequency),
 	};
 
-	static const lib_symbol lib_symbols_kperfdata[] = {
+	static const std::array<lib_symbol, 23> lib_symbols_kperfdata{
 		lib_symbol_def(kpep_config_create),
 		lib_symbol_def(kpep_config_free),
 		lib_symbol_def(kpep_config_add_event),
@@ -688,12 +545,18 @@ namespace bnch_swt::internal {
 		// load dynamic library
 		lib_handle_kperf = dlopen(lib_path_kperf, RTLD_LAZY);
 		if (!lib_handle_kperf) {
-			snprintf(lib_err_msg, sizeof(lib_err_msg), "Failed to load kperf.framework, message: %s.", dlerror());
+			std::string error_string{ "Failed to load kperf.framework, message: " };
+			error_string += (dlerror() ? dlerror() : "unknown error");
+			error_string += ".";
+			std::cout << error_string << std::endl;
 			return_err();
 		}
 		lib_handle_kperfdata = dlopen(lib_path_kperfdata, RTLD_LAZY);
 		if (!lib_handle_kperfdata) {
-			snprintf(lib_err_msg, sizeof(lib_err_msg), "Failed to load kperfdata.framework, message: %s.", dlerror());
+			std::string error_string{ "Failed to load kperfdata.framework, message: " };
+			error_string += (dlerror() ? dlerror() : "unknown error");
+			error_string += ".";
+			std::cout << error_string << std::endl;
 			return_err();
 		}
 
@@ -702,7 +565,10 @@ namespace bnch_swt::internal {
 			const lib_symbol* symbol = &lib_symbols_kperf[i];
 			*symbol->impl			 = dlsym(lib_handle_kperf, symbol->name);
 			if (!*symbol->impl) {
-				snprintf(lib_err_msg, sizeof(lib_err_msg), "Failed to load kperf function: %s.", symbol->name);
+				std::string error_string{ "Failed to load kper function, message: " };
+				error_string += (dlerror() ? dlerror() : "unknown error");
+				error_string += ".";
+				std::cout << error_string << std::endl;
 				return_err();
 			}
 		}
@@ -710,7 +576,10 @@ namespace bnch_swt::internal {
 			const lib_symbol* symbol = &lib_symbols_kperfdata[i];
 			*symbol->impl			 = dlsym(lib_handle_kperfdata, symbol->name);
 			if (!*symbol->impl) {
-				snprintf(lib_err_msg, sizeof(lib_err_msg), "Failed to load kperfdata function: %s.", symbol->name);
+				std::string error_string{ "Failed to load kperfdata function, message: " };
+				error_string += (dlerror() ? dlerror() : "unknown error");
+				error_string += ".";
+				std::cout << error_string << std::endl;
 				return_err();
 			}
 		}
@@ -825,7 +694,7 @@ namespace bnch_swt::internal {
 	/// @return 0 on success.
 	BNCH_SWT_INLINE static int32_t kdebug_trace_enable(bool enable) {
 		int32_t mib[4] = { CTL_KERN, KERN_KDEBUG, KERN_KDENABLE, enable };
-		return sysctl(mib, 4, NULL, 0, NULL, 0);
+		return sysctl(mib, 4, NULL, nullptr, NULL, 0);
 	}
 
 	/// Retrieve trace buffer information from kernel.
@@ -888,37 +757,43 @@ namespace bnch_swt::internal {
 	#define EVENT_NAME_MAX 8
 	struct event_alias {
 		const char* alias;/// name for print
-		const char* names[EVENT_NAME_MAX];/// name from pmc db
+		std::array<const char*, EVENT_NAME_MAX> names;/// name from pmc db
 	};
 
 	/// Event names from /usr/share/kpep/<name>.plist
-	static constexpr event_alias profile_events[] = {
-		{ "cycles",
+	static constexpr std::array<event_alias, 4> profile_events{ [] {
+		std::array<event_alias, 4> return_value{};
+		return_value[0].alias = "cycles";
+		return_value[0].names = { "FIXED_CYCLES", "CPU_CLK_UNHALTED.THREAD", "CPU_CLK_UNHALTED.CORE" };
+		return return_value;
+	}() };
+	/*
+		{ { "cycles",
 			{
 				"FIXED_CYCLES",// Apple A7-A15//CORE_ACTIVE_CYCLE
 				"CPU_CLK_UNHALTED.THREAD",// Intel Core 1th-10th
 				"CPU_CLK_UNHALTED.CORE",// Intel Yonah, Merom
-			} },
-		{ "instructions",
+			} } },
+		{ { "instructions",
 			{
 				"FIXED_INSTRUCTIONS",// Apple A7-A15
 				"INST_RETIRED.ANY"// Intel Yonah, Merom, Core 1th-10th
-			} },
-		{ "branches",
+			} } },
+		{ { "branches",
 			{
 				"INST_BRANCH",// Apple A7-A15
 				"BR_INST_RETIRED.ALL_BRANCHES",// Intel Core 1th-10th
 				"INST_RETIRED.ANY",// Intel Yonah, Merom
-			} },
-		{ "branch-misses",
+			} } },
+		{ { "branch-misses",
 			{
 				"BRANCH_MISPRED_NONSPEC",// Apple A7-A15, since iOS 15, macOS 12
 				"BRANCH_MISPREDICT",// Apple A7-A14
 				"BR_MISP_RETIRED.ALL_BRANCHES",// Intel Core 2th-10th
 				"BR_INST_RETIRED.MISPRED",// Intel Yonah, Merom
-			} },
+			} } },
 	};
-
+	*/
 	static kpep_event* get_event(kpep_db* db, const event_alias* alias) {
 		for (size_t j = 0; j < EVENT_NAME_MAX; j++) {
 			const char* name = alias->names[j];
@@ -933,13 +808,13 @@ namespace bnch_swt::internal {
 		return NULL;
 	}
 
-	kpc_config_t regs[KPC_MAX_COUNTERS]	  = { 0 };
-	size_t counter_map[KPC_MAX_COUNTERS]  = { 0 };
-	uint64_t counters_0[KPC_MAX_COUNTERS] = { 0 };
-	uint64_t counters_1[KPC_MAX_COUNTERS] = { 0 };
-	const size_t ev_count				  = sizeof(profile_events) / sizeof(profile_events[0]);
+	static std::array<kpc_config_t, KPC_MAX_COUNTERS> regs{ 0 };
+	static std::array<size_t, KPC_MAX_COUNTERS> counter_map{ 0 };
+	static std::array<uint64_t, KPC_MAX_COUNTERS> counters_0{ 0 };
+	static std::array<uint64_t, KPC_MAX_COUNTERS> counters_1{ 0 };
+	static const size_t ev_count = sizeof(profile_events) / sizeof(profile_events[0]);
 
-	bool setup_performance_counters() {
+	static bool setup_performance_counters() {
 		static bool init   = false;
 		static bool worked = false;
 
@@ -982,9 +857,9 @@ namespace bnch_swt::internal {
 		}
 
 		// get events
-		kpep_event* ev_arr[ev_count] = { 0 };
+		std::array<kpep_event*, ev_count> ev_arr{ nullptr };
 		for (size_t i = 0; i < ev_count; i++) {
-			const event_alias* alias = profile_events + i;
+			const event_alias* alias = &profile_events[i];
 			ev_arr[i]				 = get_event(db, alias);
 			if (!ev_arr[i]) {
 				std::cout << "Cannot find event: " << alias->alias << "." << std::endl;
@@ -1012,11 +887,11 @@ namespace bnch_swt::internal {
 			std::cout << "Failed to get kpc count: " << ret << " (" << kpep_config_error_desc(ret) << ")." << std::endl;
 			return (worked = false);
 		}
-		if ((ret = kpep_config_kpc_map(cfg, counter_map, sizeof(counter_map)))) {
+		if ((ret = kpep_config_kpc_map(cfg, counter_map.data(), sizeof(counter_map)))) {
 			std::cout << "Failed to get kpc map: " << ret << " (" << kpep_config_error_desc(ret) << ")." << std::endl;
 			return (worked = false);
 		}
-		if ((ret = kpep_config_kpc(cfg, regs, sizeof(regs)))) {
+		if ((ret = kpep_config_kpc(cfg, regs.data(), sizeof(regs)))) {
 			std::cout << "Failed to get kpc registers: " << ret << " (" << kpep_config_error_desc(ret) << ")." << std::endl;
 			return (worked = false);
 		}
@@ -1027,7 +902,7 @@ namespace bnch_swt::internal {
 			return (worked = false);
 		}
 		if ((classes & KPC_CLASS_CONFIGURABLE_MASK) && reg_count) {
-			if ((ret = kpc_set_config(classes, regs))) {
+			if ((ret = kpc_set_config(classes, regs.data()))) {
 				std::cout << "Failed to set kpc config: " << ret << "." << std::endl;
 				return (worked = false);
 			}
@@ -1050,14 +925,15 @@ namespace bnch_swt::internal {
 		static bool warned = false;
 		int32_t ret;
 		// get counters before
-		if ((ret = kpc_get_thread_counters(0, KPC_MAX_COUNTERS, counters_0))) {
+		if ((ret = kpc_get_thread_counters(0, KPC_MAX_COUNTERS, counters_0.data()))) {
 			if (!warned) {
 				std::cout << "Failed to get thread counters before: " << ret << "." << std::endl;
 				warned = true;
 			}
 			return 1;
 		}
-		return performance_counters{ counters_0[counter_map[0]], counters_0[counter_map[2]], counters_0[counter_map[3]], counters_0[counter_map[1]] };
+		return performance_counters{ static_cast<double>(counters_0[counter_map[0]]), static_cast<double>(counters_0[counter_map[2]]),
+			static_cast<double>(counters_0[counter_map[3]]), static_cast<double>(counters_0[counter_map[1]]) };
 	}
 
 	template<typename event_count, size_t count> struct event_collector_type : public std::vector<event_count> {
@@ -1065,14 +941,34 @@ namespace bnch_swt::internal {
 		size_t currentIndex{};
 		bool hasEventsVal{};
 
-		BNCH_SWT_INLINE event_collector_type() : diff(0), hasEventsVal{ setup_performance_counters() }, std::vector<event_count>{ count } {};
+		BNCH_SWT_INLINE event_collector_type() : std::vector<event_count>{ count }, diff(0), currentIndex{}, hasEventsVal{ setup_performance_counters() } {
+		}
 
 		BNCH_SWT_INLINE bool hasEvents() {
 			return hasEventsVal;
 		}
 
+		template<typename function_type, typename... arg_types> BNCH_SWT_INLINE void run(arg_types&&... args) {
+			if (hasEvents()) {
+				diff = get_counters();
+			}
+			const auto startClock = clock_type::now();
+			std::vector<event_count>::operator[](currentIndex).bytesProcessedVal.emplace(static_cast<size_t>(function_type::impl(std::forward<arg_types>(args)...)));
+			const auto endClock = clock_type::now();
+			if (hasEvents()) {
+				performance_counters end = get_counters();
+				diff					 = end - diff;
+				std::vector<event_count>::operator[](currentIndex).cyclesVal.emplace(diff.cycles);
+				std::vector<event_count>::operator[](currentIndex).instructionsVal.emplace(diff.instructions);
+				std::vector<event_count>::operator[](currentIndex).branchesVal.emplace(diff.branches);
+				std::vector<event_count>::operator[](currentIndex).branchMissesVal.emplace(diff.branchMisses);
+			}
+			std::vector<event_count>::operator[](currentIndex).elapsed = endClock - startClock;
+			++currentIndex;
+			return;
+		}
+
 		template<typename function_type, typename... arg_types> BNCH_SWT_INLINE void run(function_type&& function, arg_types&&... args) {
-			
 			if (hasEvents()) {
 				diff = get_counters();
 			}

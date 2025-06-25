@@ -29,12 +29,12 @@ FetchContent_MakeAvailable(glaze)
 
 add_executable(
   "BenchmarkExe" 
-  "./main.cpp"
+  main.cpp
 )
 
 target_link_libraries(
 	"BenchmarkExe" PUBLIC 
-	Jsonifier::Jsonifier glaze::glaze BenchmarkSuite::BenchmarkSuite
+	#Jsonifier::Jsonifier glaze::glaze BenchmarkSuite::BenchmarkSuite
 )
 
 target_compile_options(
@@ -49,6 +49,12 @@ target_link_options(
 	"BenchmarkExe" PUBLIC
 	"$<$<CXX_COMPILER_ID:GNU>:$<$<STREQUAL:${ASAN_ENABLED},TRUE>:-fsanitize=address>>"
 )
+
+if(MSVC)
+    target_compile_options("BenchmarkExe" PRIVATE 
+        /FA /Fa${CMAKE_BINARY_DIR}/main-c.asm
+    )
+endif()
 
 if (WIN32)
 	install(
