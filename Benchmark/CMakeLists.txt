@@ -3,8 +3,10 @@
 project(
   "BenchmarkExe"
   VERSION "1.0.0"
-  LANGUAGES CXX
+  LANGUAGES C
 )
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_C_STANDARD 17)
 
 include(FetchContent)
 include(GetCommitHash)
@@ -29,12 +31,12 @@ FetchContent_MakeAvailable(glaze)
 
 add_executable(
   "BenchmarkExe" 
-  "./main.cpp"
+  main.c
 )
 
 target_link_libraries(
 	"BenchmarkExe" PUBLIC 
-	Jsonifier::Jsonifier glaze::glaze BenchmarkSuite::BenchmarkSuite
+	#Jsonifier::Jsonifier glaze::glaze BenchmarkSuite::BenchmarkSuite
 )
 
 target_compile_options(
@@ -49,6 +51,12 @@ target_link_options(
 	"BenchmarkExe" PUBLIC
 	"$<$<CXX_COMPILER_ID:GNU>:$<$<STREQUAL:${ASAN_ENABLED},TRUE>:-fsanitize=address>>"
 )
+
+if(MSVC)
+    target_compile_options("BenchmarkExe" PRIVATE 
+        /FA /Fa${CMAKE_BINARY_DIR}/main-c.asm
+    )
+endif()
 
 if (WIN32)
 	install(
