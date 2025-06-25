@@ -173,23 +173,21 @@ namespace bnch_swt::internal {
 			return cacheSizeNew;
 		};
 
-		switch (level) {
-			case cache_level::one:
-				return getCacheSize("l1d") + getCacheSize("l1i");
-			case cache_level::two:
-				return getCacheSize("l2");
-			case cache_level::three: {
-				size_t l3Cache = getCacheSize("l3");
-				return l3Cache;
-			}
+		if (level == cache_level::one) {
+			return getCacheSize("l1d") + getCacheSize("l1i");
+		} else if (level == cache_level::two) {
+			return getCacheSize("l2");
+		} else {
+			return getCacheSize("l3");
 		}
 #endif
 		return 0;
 	}
 
+
+#if defined(BNCH_SWT_WIN)
 	BNCH_SWT_INLINE static void flushCache(void* ptr, size_t size, size_t cacheLineSize, bool clearInstructionCache = false) {
 		char* buffer = static_cast<char*>(ptr);
-#if defined(BNCH_SWT_WIN)
 		for (size_t i = 0; i < size; i += cacheLineSize) {
 			_mm_clflush(buffer + i);
 		}
@@ -201,21 +199,25 @@ namespace bnch_swt::internal {
 			}
 		}
 #elif defined(BNCH_SWT_LINUX)
+	BNCH_SWT_INLINE static void flushCache(void* ptr, size_t size, size_t, bool clearInstructionCache = false) {
 	#if defined(BNCH_SWT_X86_64)
 		for (size_t i = 0; i < size; i += cacheLineSize) {
-			__builtin_ia32_clflush(buffer + i);
+			__builtin_ia32_clflush(static_cast<char*>(ptr) + i);
 		}
 	#else
 	#endif
 
 		if (clearInstructionCache) {
-			__builtin___clear_cache(buffer, buffer + size);
+			__builtin___clear_cache(static_cast<char*>(ptr), static_cast<char*>(ptr) + size);
 		}
 #elif defined(BNCH_SWT_ANDROID)
+	BNCH_SWT_INLINE static void flushCache(void* ptr, size_t size, size_t, bool clearInstructionCache = false) {
+		char* buffer = static_cast<char*>(ptr);
 		if (clearInstructionCache) {
 			__builtin___clear_cache(buffer, buffer + size);
 		}
 #elif defined(BNCH_SWT_MAC)
+	BNCH_SWT_INLINE static void flushCache(void* ptr, size_t size, size_t, bool clearInstructionCache = false) {
 		if (clearInstructionCache) {
 			sys_icache_invalidate(ptr, size);
 		} else {
@@ -227,7 +229,7 @@ namespace bnch_swt::internal {
 
 	class cache_clearer {
 		size_t cacheLineSize{ getCacheLineSize() };
-		size_t cacheSizes[3]{ getCacheSize(cache_level::one), getCacheSize(cache_level::two), getCacheSize(cache_level::three) };
+		std::array<size_t, 3> cacheSizes{ { getCacheSize(cache_level::one), getCacheSize(cache_level::two), getCacheSize(cache_level::three) } };
 		size_t topLevelCache{ [&] {
 			if (cacheSizes[2] > cacheSizes[1]) {
 				return 2ull;

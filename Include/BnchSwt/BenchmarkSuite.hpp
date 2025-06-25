@@ -64,7 +64,7 @@ namespace bnch_swt {
 	}
 
 	template<string_literal stageNameNew, size_t maxExecutionCount = 200, size_t measuredIterationCount = 25, bool clearCpuCacheBetweenEachIteration = false,
-		string_literal metricNameNew = string_literal<0>{}>
+		string_literal metricNameNew = string_literal<2>{}>
 	struct benchmark_stage {
 		static_assert(maxExecutionCount % measuredIterationCount == 0, "Sorry, but please enter a maxExecutionCount that is divisible by measuredIterationCount.");
 		static_assert(maxExecutionCount > 1, "Sorry, but please enter a maxExecutionCount that is greater than 1.");
@@ -130,7 +130,7 @@ namespace bnch_swt {
 				if (showComparison) {
 					double difference{};
 					for (size_t x = 0; x < resultsNew.size() - 1; ++x) {
-						difference = ((resultsNew[x].throughputMbPerSec - resultsNew[x + 1].throughputMbPerSec) / resultsNew[x + 1].throughputMbPerSec) * 100.0f;
+						difference = ((resultsNew[x].throughputMbPerSec - resultsNew[x + 1].throughputMbPerSec) / resultsNew[x + 1].throughputMbPerSec) * 100.0;
 						std::cout << "Library " << resultsNew[x].name << ", is faster than library: " << resultsNew[x + 1].name << ", by roughly: " << difference << "%."
 								  << std::endl;
 					}
@@ -140,7 +140,32 @@ namespace bnch_swt {
 			}
 		}
 
-		template<string_literal subjectNameNew, string_literal colorNew, typename function_type, internal::not_invocable... arg_types>
+		template<string_literal subjectNameNew, typename function_type, internal::not_invocable... arg_types>
+		BNCH_SWT_INLINE static performance_metrics runBenchmark(arg_types&&... args) {
+			static constexpr string_literal subjectName{ subjectNameNew };
+			static_assert(std::convertible_to<std::invoke_result_t<decltype(function_type::impl), arg_types...>, size_t>,
+				"Sorry, but the lambda passed to runBenchmark() must return a size_t, reflecting the number of bytes processed!");
+			internal::event_collector<maxExecutionCount> events{};
+			internal::cache_clearer cacheClearer{};
+			performance_metrics lowestResults{};
+			performance_metrics resultsTemp{};
+			size_t currentGlobalIndex{ measuredIterationCount };
+			for (size_t x = 0; x < maxExecutionCount; ++x) {
+				if constexpr (clearCpuCacheBetweenEachIteration) {
+					cacheClearer.evictCaches();
+				}
+				events.template run<function_type>(std::forward<arg_types>(args)...);
+			}
+			std::span<internal::event_count> newPtr{ static_cast<std::vector<internal::event_count>&>(events) };
+			for (size_t x = 0; x < maxExecutionCount - measuredIterationCount; ++x, ++currentGlobalIndex) {
+				resultsTemp	  = collectMetrics<subjectName>(newPtr.subspan(x, measuredIterationCount), currentGlobalIndex);
+				lowestResults = resultsTemp.throughputPercentageDeviation < lowestResults.throughputPercentageDeviation ? resultsTemp : lowestResults;
+			}
+			results[subjectName.operator std::string_view()] = lowestResults;
+			return results[subjectName.operator std::string_view()];
+		}
+
+		template<string_literal subjectNameNew, typename function_type, internal::not_invocable... arg_types>
 		BNCH_SWT_INLINE static performance_metrics runBenchmark(function_type&& functionNew, arg_types&&... args) {
 			static constexpr string_literal subjectName{ subjectNameNew };
 			static_assert(std::convertible_to<std::invoke_result_t<function_type, arg_types...>, size_t>,
@@ -157,16 +182,16 @@ namespace bnch_swt {
 				}
 				events.run(functionNewer, std::forward<arg_types>(args)...);
 			}
+			std::span<internal::event_count> newPtr{ static_cast<std::vector<internal::event_count>&>(events) };
 			for (size_t x = 0; x < maxExecutionCount - measuredIterationCount; ++x, ++currentGlobalIndex) {
-				auto newPtr	  = events.data() + x;
-				resultsTemp	  = collectMetrics<subjectName>(std::span{ newPtr, measuredIterationCount }, currentGlobalIndex);
+				resultsTemp	  = collectMetrics<subjectName>(newPtr.subspan(x, measuredIterationCount), currentGlobalIndex);
 				lowestResults = resultsTemp.throughputPercentageDeviation < lowestResults.throughputPercentageDeviation ? resultsTemp : lowestResults;
 			}
 			results[subjectName.operator std::string_view()] = lowestResults;
 			return results[subjectName.operator std::string_view()];
 		}
 
-		template<string_literal subjectNameNew, string_literal colorNew, typename prep_function_type, typename function_type, internal::not_invocable... arg_types>
+		template<string_literal subjectNameNew, typename prep_function_type, typename function_type, internal::not_invocable... arg_types>
 		BNCH_SWT_INLINE static performance_metrics runBenchmarkWithPrep(prep_function_type&& prepFunctionNew, function_type&& functionNew, arg_types&&... args) {
 			static constexpr string_literal subjectName{ subjectNameNew };
 			static_assert(std::convertible_to<std::invoke_result_t<function_type, arg_types...>, size_t>,
@@ -185,9 +210,9 @@ namespace bnch_swt {
 				}
 				events.run(functionNewer, std::forward<arg_types>(args)...);
 			}
+			std::span<internal::event_count> newPtr{ static_cast<std::vector<internal::event_count>&>(events) };
 			for (size_t x = 0; x < maxExecutionCount - measuredIterationCount; ++x, ++currentGlobalIndex) {
-				auto newPtr	  = events.data() + x;
-				resultsTemp	  = collectMetrics<subjectName>(std::span{ newPtr, measuredIterationCount }, currentGlobalIndex);
+				resultsTemp	  = collectMetrics<subjectName>(newPtr.subspan(x, measuredIterationCount), currentGlobalIndex);
 				lowestResults = resultsTemp.throughputPercentageDeviation < lowestResults.throughputPercentageDeviation ? resultsTemp : lowestResults;
 			}
 			results[subjectName.operator std::string_view()] = lowestResults;
