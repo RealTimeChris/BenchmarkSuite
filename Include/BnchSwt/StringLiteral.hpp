@@ -39,13 +39,12 @@ namespace bnch_swt {
 		using size_type		  = size_t;
 
 		static constexpr size_type length{ sizeVal > 0 ? sizeVal - 1 : 0 };
+		static_assert(length > 0, "Sorry, but please instantiate string_literal with an actual string!");
 
 		constexpr string_literal() noexcept = default;
 
 		constexpr string_literal(const char (&str)[sizeVal]) noexcept {
-			for (size_t x = 0; x < length; ++x) {
-				values[x] = str[x];
-			}
+			std::copy_n(str, sizeVal, values);
 			values[length] = '\0';
 		}
 
@@ -59,29 +58,29 @@ namespace bnch_swt {
 
 		template<size_type sizeNew> constexpr auto operator+=(const string_literal<sizeNew>& str) const noexcept {
 			string_literal<sizeNew + sizeVal - 1> newLiteral{};
-			std::copy(values, values + size(), newLiteral.data());
-			std::copy(str.data(), str.data() + sizeNew, newLiteral.data() + size());
+			std::copy_n(values, size(), newLiteral.data());
+			std::copy_n(str.data(), sizeNew, newLiteral.data() + size());
 			return newLiteral;
 		}
 
 		template<size_type sizeNew> constexpr auto operator+=(const value_type (&str)[sizeNew]) const noexcept {
 			string_literal<sizeNew + sizeVal - 1> newLiteral{};
-			std::copy(values, values + size(), newLiteral.data());
-			std::copy(str, str + sizeNew, newLiteral.data() + size());
+			std::copy_n(values, size(), newLiteral.data());
+			std::copy_n(str, sizeNew, newLiteral.data() + size());
 			return newLiteral;
 		}
 
 		template<size_type sizeNew> constexpr auto operator+(const string_literal<sizeNew>& str) const noexcept {
 			string_literal<sizeNew + sizeVal - 1> newLiteral{};
-			std::copy(values, values + size(), newLiteral.data());
-			std::copy(str.data(), str.data() + sizeNew, newLiteral.data() + size());
+			std::copy_n(values, size(), newLiteral.data());
+			std::copy_n(str.data(), sizeNew, newLiteral.data() + size());
 			return newLiteral;
 		}
 
 		template<size_type sizeNew> constexpr auto operator+(const value_type (&str)[sizeNew]) const noexcept {
 			string_literal<sizeNew + sizeVal - 1> newLiteral{};
-			std::copy(values, values + size(), newLiteral.data());
-			std::copy(str, str + sizeNew, newLiteral.data() + size());
+			std::copy_n(values, size(), newLiteral.data());
+			std::copy_n(str, sizeNew, newLiteral.data() + size());
 			return newLiteral;
 		}
 
@@ -106,8 +105,10 @@ namespace bnch_swt {
 			return returnValues;
 		}
 
-		BNCH_SWT_ALIGN char values[sizeVal]{};
+		BNCH_SWT_ALIGN char values[sizeVal > 0 ? sizeVal : 1]{};
 	};
+
+	template<size_t size> string_literal(const char (&str)[size]) -> string_literal<size>;
 
 	namespace internal {
 

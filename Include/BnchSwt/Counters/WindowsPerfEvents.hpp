@@ -49,6 +49,18 @@ namespace bnch_swt::internal {
 			++currentIndex;
 			return;
 		}
+
+		template<typename function_type, typename... arg_types> BNCH_SWT_INLINE void run(arg_types&&... args) {
+			volatile uint64_t cycleStart = __rdtsc();
+			const auto startClock		 = clock_type::now();
+			std::vector<event_count>::operator[](currentIndex).bytesProcessedVal.emplace(static_cast<size_t>(function_type::impl(std::forward<arg_types>(args)...)));
+			const auto endClock		   = clock_type::now();
+			volatile uint64_t cycleEnd = __rdtsc();
+			std::vector<event_count>::operator[](currentIndex).cyclesVal.emplace(cycleEnd - cycleStart);
+			std::vector<event_count>::operator[](currentIndex).elapsed = endClock - startClock;
+			++currentIndex;
+			return;
+		}
 	};
 
 }
