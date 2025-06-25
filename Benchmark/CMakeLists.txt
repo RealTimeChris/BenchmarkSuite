@@ -1,14 +1,11 @@
 ﻿cmake_minimum_required(VERSION 3.18)
-
 project(
   "BenchmarkExe"
   VERSION "1.0.0"
   LANGUAGES CXX
 )
-
 include(FetchContent)
 include(GetCommitHash)
-
 FetchContent_Declare(
   jsonifier
   GIT_REPOSITORY https://github.com/realtimechris/jsonifier.git
@@ -18,7 +15,6 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(jsonifier)
 getCommitHash("${jsonifier_SOURCE_DIR}" JSONIFIER_COMMIT_HASH)
 message(STATUS "Jsonifier Commit Hash: https://github.com/RealTimeChris/Jsonifier/commit/${JSONIFIER_COMMIT_HASH}")
-
 FetchContent_Declare(
   glaze
   GIT_REPOSITORY https://github.com/stephenberry/glaze.git
@@ -26,17 +22,14 @@ FetchContent_Declare(
   GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(glaze)
-
 add_executable(
   "BenchmarkExe" 
-  "./main.cpp"
+  main.cpp
 )
-
 target_link_libraries(
 	"BenchmarkExe" PUBLIC 
-	Jsonifier::Jsonifier glaze::glaze BenchmarkSuite::BenchmarkSuite
+	#Jsonifier::Jsonifier glaze::glaze BenchmarkSuite::BenchmarkSuite
 )
-
 target_compile_options(
 	"BenchmarkExe" PUBLIC
 	"$<$<CXX_COMPILER_ID:MSVC>:$<$<STREQUAL:${ASAN_ENABLED},TRUE>:/fsanitize=address>>"
@@ -58,7 +51,6 @@ if (WIN32)
 		OPTIONAL
 	)
 endif()
-
 install(
 	FILES 
 	"$<TARGET_FILE:BenchmarkExe>"
