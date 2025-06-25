@@ -104,8 +104,7 @@ namespace bnch_swt {
 			!always_null_t<value_type>;
 
 		template<typename value_type>
-		concept floating_point_t = std::floating_point<std::remove_cvref_t<value_type>> && (std::numeric_limits<std::remove_cvref_t<value_type>>::radix == 2) &&
-			std::numeric_limits<std::remove_cvref_t<value_type>>::is_iec559;
+		concept floating_point_t = std::numeric_limits<std::remove_cvref_t<value_type>>::is_iec559;
 
 		template<typename value_type>
 		concept char_t = std::same_as<std::remove_cvref_t<value_type>, char>;

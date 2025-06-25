@@ -30,11 +30,13 @@
 #include <random>
 
 namespace bnch_swt {
+	
+	template<typename value_type>
+	inline static std::uniform_real_distribution<value_type> disDouble{ static_cast<value_type>(log(std::numeric_limits<value_type>::min())), static_cast<value_type>(log(std::numeric_limits<value_type>::max())) };
 
 	struct random_generator {
 
 		static constexpr std::string_view charset{ "!#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~\"\\\r\b\f\t\n" };
-		inline static std::uniform_real_distribution<double> disDouble{ log(std::numeric_limits<double>::min()), log(std::numeric_limits<double>::max()) };
 		inline static std::uniform_int_distribution<int64_t> disInt{ std::numeric_limits<int64_t>::min(), std::numeric_limits<int64_t>::max() };
 		inline static std::uniform_int_distribution<uint64_t> disUint{ std::numeric_limits<uint64_t>::min(), std::numeric_limits<uint64_t>::max() };
 		inline static std::uniform_int_distribution<uint64_t> disCharSet{ 0ull, charset.size() - 1 };
@@ -51,12 +53,12 @@ namespace bnch_swt {
 		}
 
 		template<bnch_swt::internal::floating_point_t value_type> static value_type generateValue() {
-			double logValue = std::exp(disDouble(gen));
+			value_type logValue = std::exp(disDouble<value_type>(gen));
 			return generateValue<bool>() ? -logValue : logValue;
 		}
 
 		template<bnch_swt::internal::bool_t value_type> static value_type generateValue() {
-			return static_cast<bool>(disBool(gen) >= 50);
+			return disBool(gen) >= 50;
 		}
 
 		template<bnch_swt::internal::integer_t value_type>

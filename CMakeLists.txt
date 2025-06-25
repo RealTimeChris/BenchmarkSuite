@@ -35,24 +35,9 @@ target_compile_options(
 	"${PROJECT_NAME}" INTERFACE
 	"$<$<CXX_COMPILER_ID:MSVC>:$<$<STREQUAL:${ASAN_ENABLED},TRUE>:/fsanitize=address>>"
 	"$<$<AND:$<STREQUAL:$<UPPER_CASE:${UBSAN}>,TRUE>,$<NOT:$<CXX_COMPILER_ID:MSVC>>>:-fsanitize=undefined>"
-	"$<$<CXX_COMPILER_ID:CLANG>:-Wnull-dereference>"
-	"$<$<CXX_COMPILER_ID:CLANG>:-Wuninitialized>"
-	"$<$<CXX_COMPILER_ID:CLANG>:-Wconversion>"
-	"$<$<CXX_COMPILER_ID:CLANG>:-Wpedantic>"
-	"$<$<CXX_COMPILER_ID:CLANG>:-Wshadow>"
-	"$<$<CXX_COMPILER_ID:CLANG>:-Wextra>"
-	"$<$<CXX_COMPILER_ID:CLANG>:-Wall>"
-	
-	"$<$<CXX_COMPILER_ID:GNU>:-Wnull-dereference>"
-	"$<$<CXX_COMPILER_ID:GNU>:-Wuninitialized>"
-	"$<$<CXX_COMPILER_ID:GNU>:-Wconversion>"
-	"$<$<CXX_COMPILER_ID:GNU>:-Wpedantic>"
-	"$<$<CXX_COMPILER_ID:GNU>:-Wshadow>"
-	"$<$<CXX_COMPILER_ID:GNU>:-Wextra>"
-	"$<$<CXX_COMPILER_ID:GNU>:-Wall>"
-	"$<$<CXX_COMPILER_ID:MSVC>:/FAcs>"
-	"$<$<CXX_COMPILER_ID:MSVC>:/Wall>"
-	"$<$<CXX_COMPILER_ID:MSVC>:/W4>"
+	#"$<$<CXX_COMPILER_ID:MSVC>:/wd4710;/wd4711;/Wall;/WX;/permissive-;/analyze;/sdl;/utf-8;/guard:cf;/Zc:__cplusplus;/Zc:alignedNew;/Zc:auto;/Zc:char8_t;/Zc:externC;/Zc:externConstexpr;/Zc:forScope;/Zc:hiddenFriend;/Zc:implicitNoexcept;/Zc:inline;/Zc:lambda;/Zc:noexceptTypes;/Zc:preprocessor;/Zc:referenceBinding;/Zc:rvalueCast;/Zc:sizedDealloc;/Zc:strictStrings;/Zc:ternary;/Zc:threadSafeInit;/Zc:throwingNew;/Zc:trigraphs;/Zc:twoPhase;/Zc:wchar_t>"
+    #"$<$<CXX_COMPILER_ID:Clang>:-Weverything;-Werror;-Wno-c++98-compat;-Wno-c++98-compat-pedantic;-Wno-padded;-Wno-weak-vtables;-Wno-exit-time-destructors;-Wno-global-constructors>"
+    #"$<$<CXX_COMPILER_ID:GNU>:-Wall;-Wextra;-Wpedantic;-Werror;-Wconversion;-Wsign-conversion;-Wcast-align;-Wcast-qual;-Wctor-dtor-privacy;-Wdisabled-optimization;-Wformat=2;-Winit-self;-Wlogical-op;-Wmissing-declarations;-Wnoexcept;-Wnon-virtual-dtor;-Wold-style-cast;-Woverloaded-virtual;-Wredundant-decls;-Wshadow;-Wsign-promo;-Wstrict-null-sentinel;-Wstrict-overflow=2;-Wswitch-default;-Wundef;-Wunreachable-code;-Wunused;-Wuseless-cast;-Wvariadic-macros;-Wwrite-strings>"
 )
 
 set(CONFIG_FILE_NAME "BenchmarkSuiteConfig.cmake")
