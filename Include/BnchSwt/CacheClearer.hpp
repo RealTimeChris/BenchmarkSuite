@@ -28,16 +28,20 @@
 
 #if defined(BNCH_SWT_WIN)
 	#include <Windows.h>
+	#include <intrin.h>
 
 	#if defined(small)
 		#undef small
 	#endif
 
-#elif defined(BNCH_SWT_LINUX)
+#elif defined(BNCH_SWT_LINUX) || defined(BNCH_SWT_ANDROID)
 	#include <unistd.h>
 	#include <fstream>
 	#include <vector>
 	#include <string>
+	#if defined(__i386__) || defined(__x86_64__)
+		#include <immintrin.h>
+	#endif
 
 #elif defined(BNCH_SWT_MAC)
 	#include <libkern/OSCacheControl.h>
@@ -69,7 +73,7 @@ namespace bnch_swt::internal {
 				return info.Cache.LineSize;
 			}
 		}
-#elif defined(BNCH_SWT_LINUX)
+#elif defined(BNCH_SWT_LINUX) || defined(BNCH_SWT_ANDROID)
 		long lineSize = sysconf(_SC_LEVEL1_DCACHE_LINESIZE);
 		if (lineSize <= 0) {
 			std::cerr << "Failed to retrieve cache line size using sysconf!" << std::endl;
@@ -122,7 +126,7 @@ namespace bnch_swt::internal {
 			cacheSize += collectSize(cacheLevel, PROCESSOR_CACHE_TYPE::CacheData);
 		}
 		return cacheSize + collectSize(cacheLevel, cacheType);
-#elif defined(BNCH_SWT_LINUX)
+#elif defined(BNCH_SWT_LINUX) || defined(BNCH_SWT_ANDROID)
 		size_t cacheSize = 0;
 
 		auto getCacheSizeFromFile = [](const std::string& cacheType) {
@@ -169,21 +173,20 @@ namespace bnch_swt::internal {
 			return cacheSizeNew;
 		};
 
-		switch (level) {
-			case cache_level::one:
-				return getCacheSize("l1d") + getCacheSize("l1i");
-			case cache_level::two:
-				return getCacheSize("l2");
-			case cache_level::three: {
-				size_t l3Cache = getCacheSize("l3");
-				return l3Cache;
-			}
+		if (level == cache_level::one) {
+			return getCacheSize("l1d") + getCacheSize("l1i");
+		} else if (level == cache_level::two) {
+			return getCacheSize("l2");
+		} else {
+			return getCacheSize("l3");
 		}
 #endif
+		return 0;
 	}
 
-	BNCH_SWT_INLINE static void flushCache(void* ptr, size_t size, size_t cacheLineSize, bool clearInstructionCache = false) {
+
 #if defined(BNCH_SWT_WIN)
+	BNCH_SWT_INLINE static void flushCache(void* ptr, size_t size, size_t cacheLineSize, bool clearInstructionCache = false) {
 		char* buffer = static_cast<char*>(ptr);
 		for (size_t i = 0; i < size; i += cacheLineSize) {
 			_mm_clflush(buffer + i);
@@ -196,26 +199,38 @@ namespace bnch_swt::internal {
 			}
 		}
 #elif defined(BNCH_SWT_LINUX)
+	BNCH_SWT_INLINE static void flushCache(void* ptr, size_t size, size_t, bool clearInstructionCache = false) {
 		char* buffer = static_cast<char*>(ptr);
+	#if defined(BNCH_SWT_X86_64)
 		for (size_t i = 0; i < size; i += cacheLineSize) {
 			__builtin_ia32_clflush(buffer + i);
 		}
+	#else
+	#endif
 
 		if (clearInstructionCache) {
 			__builtin___clear_cache(buffer, buffer + size);
 		}
+#elif defined(BNCH_SWT_ANDROID)
+	BNCH_SWT_INLINE static void flushCache(void* ptr, size_t size, size_t, bool clearInstructionCache = false) {
+		char* buffer = static_cast<char*>(ptr);
+		if (clearInstructionCache) {
+			__builtin___clear_cache(buffer, buffer + size);
+		}
 #elif defined(BNCH_SWT_MAC)
+	BNCH_SWT_INLINE static void flushCache(void* ptr, size_t size, size_t, bool clearInstructionCache = false) {
 		if (clearInstructionCache) {
 			sys_icache_invalidate(ptr, size);
 		} else {
 			sys_dcache_flush(ptr, size);
 		}
+#else
 #endif
 	}
 
 	class cache_clearer {
 		size_t cacheLineSize{ getCacheLineSize() };
-		size_t cacheSizes[3]{ getCacheSize(cache_level::one), getCacheSize(cache_level::two), getCacheSize(cache_level::three) };
+		std::array<size_t, 3> cacheSizes{ { getCacheSize(cache_level::one), getCacheSize(cache_level::two), getCacheSize(cache_level::three) } };
 		size_t topLevelCache{ [&] {
 			if (cacheSizes[2] > cacheSizes[1]) {
 				return 2ull;
@@ -227,14 +242,16 @@ namespace bnch_swt::internal {
 		}() };
 		std::vector<char> evictBuffer{ [&] {
 			std::vector<char> returnValues{};
-			returnValues.resize(cacheSizes[topLevelCache] + cacheLineSize);
+			returnValues.resize(topLevelCache < 3 ? (cacheSizes[topLevelCache] + cacheLineSize) : 0);
 			return returnValues;
 		}() };
 
 		BNCH_SWT_INLINE void evictCache(size_t cacheLevel) {
-			if (cacheSizes[cacheLevel - 1] > 0) {
+			if (cacheLevel >= 1 && cacheLevel <= 3 && cacheSizes[cacheLevel - 1] > 0) {
 				for (size_t i = 0; i < cacheSizes[cacheLevel - 1] + cacheLineSize; i += cacheLineSize) {
-					evictBuffer[i] = static_cast<char>(i);
+					if (i < evictBuffer.size()) {
+						evictBuffer[i] = static_cast<char>(i);
+					}
 				}
 
 				flushCache(evictBuffer.data(), evictBuffer.size(), cacheLineSize);
