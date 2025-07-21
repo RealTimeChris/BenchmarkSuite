@@ -11,7 +11,7 @@
       },
       "generator": "Ninja",
       "hidden": true,
-      "name": "Jsonifier-Windows-Base"
+      "name": "BenchmarkSuite-Windows-Base"
     },
     {
       "architecture": {
@@ -21,8 +21,8 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       },
-      "inherits": "Jsonifier-Windows-Base",
-      "name": "Jsonifier-Windows-Release"
+      "inherits": "BenchmarkSuite-Windows-Base",
+      "name": "BenchmarkSuite-Windows-Release"
     },
     {
       "architecture": {
@@ -33,8 +33,8 @@
         "CMAKE_BUILD_TYPE": "Release",
         "BENCH_TYPE": "BENCHMARK"
       },
-      "inherits": "Jsonifier-Windows-Base",
-      "name": "Jsonifier-Windows-Release-Dev"
+      "inherits": "BenchmarkSuite-Windows-Base",
+      "name": "BenchmarkSuite-Windows-Release-Dev"
     },
     {
       "architecture": {
@@ -42,8 +42,8 @@
         "value": "x64"
       },
       "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" },
-      "inherits": "Jsonifier-Windows-Base",
-      "name": "Jsonifier-Windows-Debug"
+      "inherits": "BenchmarkSuite-Windows-Base",
+      "name": "BenchmarkSuite-Windows-Debug"
     },
     {
       "architecture": {
@@ -54,8 +54,8 @@
         "CMAKE_BUILD_TYPE": "Debug",
         "BENCH_TYPE": "BENCHMARK"
       },
-      "inherits": "Jsonifier-Windows-Base",
-      "name": "Jsonifier-Windows-Debug-Dev"
+      "inherits": "BenchmarkSuite-Windows-Base",
+      "name": "BenchmarkSuite-Windows-Debug-Dev"
     },
     {
       "architecture": {
@@ -67,8 +67,8 @@
         "CMAKE_BUILD_TYPE": "Release",
         "BENCH_TYPE": "BENCHMARK"
       },
-      "inherits": "Jsonifier-Windows-Base",
-      "name": "Jsonifier-Windows-Release-Asan"
+      "inherits": "BenchmarkSuite-Windows-Base",
+      "name": "BenchmarkSuite-Windows-Release-Asan"
     },
     {
       "architecture": {
@@ -80,8 +80,8 @@
         "CMAKE_BUILD_TYPE": "Debug",
         "BENCH_TYPE": "BENCHMARK"
       },
-      "inherits": "Jsonifier-Windows-Base",
-      "name": "Jsonifier-Windows-Debug-Asan"
+      "inherits": "BenchmarkSuite-Windows-Base",
+      "name": "BenchmarkSuite-Windows-Debug-Asan"
     },
     {
       "installDir": "${sourceDir}/Install/${presetName}",
@@ -97,7 +97,7 @@
       },
       "generator": "Unix Makefiles",
       "hidden": true,
-      "name": "Jsonifier-Linux-Base"
+      "name": "BenchmarkSuite-Linux-Base"
     },
     {
       "architecture": {
@@ -105,8 +105,8 @@
         "strategy": "external"
       },
       "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" },
-      "inherits": "Jsonifier-Linux-Base",
-      "name": "Jsonifier-Linux-Release"
+      "inherits": "BenchmarkSuite-Linux-Base",
+      "name": "BenchmarkSuite-Linux-Release"
     },
     {
       "architecture": {
@@ -117,8 +117,8 @@
         "CMAKE_BUILD_TYPE": "Release",
         "BENCH_TYPE": "BENCHMARK"
       },
-      "inherits": "Jsonifier-Linux-Base",
-      "name": "Jsonifier-Linux-Release-Dev"
+      "inherits": "BenchmarkSuite-Linux-Base",
+      "name": "BenchmarkSuite-Linux-Release-Dev"
     },
     {
       "architecture": {
@@ -126,8 +126,8 @@
         "value": "x64"
       },
       "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" },
-      "inherits": "Jsonifier-Linux-Base",
-      "name": "Jsonifier-Linux-Debug"
+      "inherits": "BenchmarkSuite-Linux-Base",
+      "name": "BenchmarkSuite-Linux-Debug"
     },
     {
       "architecture": {
@@ -138,8 +138,8 @@
         "CMAKE_BUILD_TYPE": "Debug",
         "BENCH_TYPE": "BENCHMARK"
       },
-      "inherits": "Jsonifier-Linux-Base",
-      "name": "Jsonifier-Linux-Debug-Dev"
+      "inherits": "BenchmarkSuite-Linux-Base",
+      "name": "BenchmarkSuite-Linux-Debug-Dev"
     },
     {
       "architecture": {
@@ -151,8 +151,8 @@
         "CMAKE_BUILD_TYPE": "Release",
         "BENCH_TYPE": "BENCHMARK"
       },
-      "inherits": "Jsonifier-Linux-Base",
-      "name": "Jsonifier-Linux-Release-Asan"
+      "inherits": "BenchmarkSuite-Linux-Base",
+      "name": "BenchmarkSuite-Linux-Release-Asan"
     },
     {
       "architecture": {
@@ -164,93 +164,93 @@
         "CMAKE_BUILD_TYPE": "Debug",
         "BENCH_TYPE": "BENCHMARK"
       },
-      "inherits": "Jsonifier-Linux-Base",
-      "name": "Jsonifier-Linux-Debug-Asan"
+      "inherits": "BenchmarkSuite-Linux-Base",
+      "name": "BenchmarkSuite-Linux-Debug-Asan"
     }
   ],
   "buildPresets": [
     {
-      "configurePreset": "Jsonifier-Windows-Release",
+      "configurePreset": "BenchmarkSuite-Windows-Release",
       "configuration": "Release",
       "inheritConfigureEnvironment": true,
-      "name": "Jsonifier-Windows-Release",
+      "name": "BenchmarkSuite-Windows-Release",
       "verbose": true
     },
     {
-      "configurePreset": "Jsonifier-Windows-Debug",
+      "configurePreset": "BenchmarkSuite-Windows-Debug",
       "configuration": "Debug",
       "inheritConfigureEnvironment": true,
-      "name": "Jsonifier-Windows-Debug",
+      "name": "BenchmarkSuite-Windows-Debug",
       "verbose": true
     },
     {
-      "configurePreset": "Jsonifier-Windows-Release-Asan",
+      "configurePreset": "BenchmarkSuite-Windows-Release-Asan",
       "inheritConfigureEnvironment": true,
       "configuration": "Release",
-      "name": "Jsonifier-Windows-Release-Asan",
+      "name": "BenchmarkSuite-Windows-Release-Asan",
       "verbose": true
     },
     {
-      "configurePreset": "Jsonifier-Windows-Debug-Asan",
+      "configurePreset": "BenchmarkSuite-Windows-Debug-Asan",
       "inheritConfigureEnvironment": true,
       "configuration": "Debug",
-      "name": "Jsonifier-Windows-Debug-Asan",
+      "name": "BenchmarkSuite-Windows-Debug-Asan",
       "verbose": true
     },
     {
-      "configurePreset": "Jsonifier-Windows-Release-Dev",
+      "configurePreset": "BenchmarkSuite-Windows-Release-Dev",
       "inheritConfigureEnvironment": true,
       "configuration": "Release",
-      "name": "Jsonifier-Windows-Release-Dev",
+      "name": "BenchmarkSuite-Windows-Release-Dev",
       "verbose": true
     },
     {
-      "configurePreset": "Jsonifier-Windows-Debug-Dev",
+      "configurePreset": "BenchmarkSuite-Windows-Debug-Dev",
       "inheritConfigureEnvironment": true,
       "configuration": "Debug",
-      "name": "Jsonifier-Windows-Debug-Dev",
+      "name": "BenchmarkSuite-Windows-Debug-Dev",
       "verbose": true
     },
     {
-      "configurePreset": "Jsonifier-Linux-Release",
+      "configurePreset": "BenchmarkSuite-Linux-Release",
       "configuration": "Release",
       "inheritConfigureEnvironment": true,
-      "name": "Jsonifier-Linux-Release",
+      "name": "BenchmarkSuite-Linux-Release",
       "verbose": true
     },
     {
-      "configurePreset": "Jsonifier-Linux-Debug",
+      "configurePreset": "BenchmarkSuite-Linux-Debug",
       "configuration": "Debug",
       "inheritConfigureEnvironment": true,
-      "name": "Jsonifier-Linux-Debug",
+      "name": "BenchmarkSuite-Linux-Debug",
       "verbose": true
     },
     {
-      "configurePreset": "Jsonifier-Linux-Release-Asan",
+      "configurePreset": "BenchmarkSuite-Linux-Release-Asan",
       "inheritConfigureEnvironment": true,
       "configuration": "Release",
-      "name": "Jsonifier-Linux-Release-Asan",
+      "name": "BenchmarkSuite-Linux-Release-Asan",
       "verbose": true
     },
     {
-      "configurePreset": "Jsonifier-Linux-Debug-Asan",
+      "configurePreset": "BenchmarkSuite-Linux-Debug-Asan",
       "inheritConfigureEnvironment": true,
       "configuration": "Debug",
-      "name": "Jsonifier-Linux-Debug-Asan",
+      "name": "BenchmarkSuite-Linux-Debug-Asan",
       "verbose": true
     },
     {
-      "configurePreset": "Jsonifier-Linux-Release-Dev",
+      "configurePreset": "BenchmarkSuite-Linux-Release-Dev",
       "inheritConfigureEnvironment": true,
       "configuration": "Release",
-      "name": "Jsonifier-Linux-Release-Dev",
+      "name": "BenchmarkSuite-Linux-Release-Dev",
       "verbose": true
     },
     {
-      "configurePreset": "Jsonifier-Linux-Debug-Dev",
+      "configurePreset": "BenchmarkSuite-Linux-Debug-Dev",
       "inheritConfigureEnvironment": true,
       "configuration": "Debug",
-      "name": "Jsonifier-Linux-Debug-Dev",
+      "name": "BenchmarkSuite-Linux-Debug-Dev",
       "verbose": true
     }
   ]
