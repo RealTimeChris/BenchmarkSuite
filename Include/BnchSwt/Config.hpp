@@ -37,12 +37,20 @@
 	#define BNCH_SWT_GNUCXX 1
 #endif
 
+#if (defined(__x86_64__) || defined(_M_AMD64)) && !defined(_M_ARM64EC)
+	#define BNCH_SWT_IS_X86_64 1
+#elif defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM64EC)
+	#define BNCH_SWT_IS_ARM64 1
+#endif
+
 #if defined(macintosh) || defined(Macintosh) || (defined(__APPLE__) && defined(__MACH__))
 	#define BNCH_SWT_MAC 1
-#elif defined(linux) || defined(__linux) || defined(__linux__) || defined(__gnu_linux__)
-	#define BNCH_SWT_LINUX 1
 #elif defined(WIN32) || defined(_WIN32) || defined(_WIN64)
 	#define BNCH_SWT_WIN 1
+#elif defined(__ANDROID__)
+	#define BNCH_SWT_ANDROID 1
+#elif defined(linux) || defined(__linux) || defined(__linux__) || defined(__gnu_linux__)
+	#define BNCH_SWT_LINUX 1
 #endif
 
 #if defined(BNCH_SWT_FORCE_INLINE)

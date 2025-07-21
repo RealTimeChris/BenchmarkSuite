@@ -16,6 +16,14 @@ FetchContent_Declare(
   GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(jsonifier)
+
+FetchContent_Declare(
+  ggml
+  GIT_REPOSITORY https://github.com/ggml-org/ggml.git
+  GIT_TAG master
+  GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(ggml)
 getCommitHash("${jsonifier_SOURCE_DIR}" JSONIFIER_COMMIT_HASH)
 message(STATUS "Jsonifier Commit Hash: https://github.com/RealTimeChris/Jsonifier/commit/${JSONIFIER_COMMIT_HASH}")
 
@@ -34,7 +42,7 @@ add_executable(
 
 target_link_libraries(
 	"BenchmarkExe" PUBLIC 
-	Jsonifier::Jsonifier glaze::glaze BenchmarkSuite::BenchmarkSuite
+	Jsonifier::Jsonifier BenchmarkSuite::BenchmarkSuite ggml ggml-cpu
 )
 
 target_compile_options(
