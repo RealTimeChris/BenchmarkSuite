@@ -32,7 +32,7 @@ namespace bnch_swt {
 
 	class file_loader {
 	  public:
-		constexpr file_loader(){};
+		constexpr file_loader(){}
 
 		static std::string loadFile(const std::string& filePath) {
 			std::string directory{ filePath.substr(0, filePath.find_last_of("/") + 1) };
