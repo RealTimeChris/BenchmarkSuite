@@ -1,0 +1,2 @@
+"C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe" -S ./ -B ./Build-Cpu-Properties -DNIHILUS_DETECT_CPU_PROPERTIES=TRUE
+"C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe" --build ./Build-Cpu-Properties --config=Release

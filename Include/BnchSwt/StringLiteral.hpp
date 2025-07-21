@@ -30,22 +30,21 @@
 
 namespace bnch_swt {
 
-	template<size_t sizeVal> struct string_literal {
+	template<uint64_t sizeVal> struct BNCH_SWT_ALIGN string_literal {
 		using value_type	  = char;
 		using const_reference = const value_type&;
 		using reference		  = value_type&;
 		using const_pointer	  = const value_type*;
 		using pointer		  = value_type*;
-		using size_type		  = size_t;
+		using uint64_type		  = uint64_t;
 
-		static constexpr size_type length{ sizeVal > 0 ? sizeVal - 1 : 0 };
+		static constexpr uint64_type length{ sizeVal > 0 ? sizeVal - 1 : 0 };
+		static_assert(sizeVal > 0, "Sorry, but please instantiate string_literal with an actual string!");
 
 		constexpr string_literal() noexcept = default;
 
 		constexpr string_literal(const char (&str)[sizeVal]) noexcept {
-			for (size_t x = 0; x < length; ++x) {
-				values[x] = str[x];
-			}
+			std::copy_n(str, sizeVal, values);
 			values[length] = '\0';
 		}
 
@@ -57,70 +56,72 @@ namespace bnch_swt {
 			return values;
 		}
 
-		template<size_type sizeNew> constexpr auto operator+=(const string_literal<sizeNew>& str) const noexcept {
+		template<uint64_type sizeNew> constexpr auto operator+=(const string_literal<sizeNew>& str) const noexcept {
 			string_literal<sizeNew + sizeVal - 1> newLiteral{};
-			std::copy(values, values + size(), newLiteral.data());
-			std::copy(str.data(), str.data() + sizeNew, newLiteral.data() + size());
+			std::copy_n(values, size(), newLiteral.data());
+			std::copy_n(str.data(), sizeNew, newLiteral.data() + size());
 			return newLiteral;
 		}
 
-		template<size_type sizeNew> constexpr auto operator+=(const value_type (&str)[sizeNew]) const noexcept {
+		template<uint64_type sizeNew> constexpr auto operator+=(const value_type (&str)[sizeNew]) const noexcept {
 			string_literal<sizeNew + sizeVal - 1> newLiteral{};
-			std::copy(values, values + size(), newLiteral.data());
-			std::copy(str, str + sizeNew, newLiteral.data() + size());
+			std::copy_n(values, size(), newLiteral.data());
+			std::copy_n(str, sizeNew, newLiteral.data() + size());
 			return newLiteral;
 		}
 
-		template<size_type sizeNew> constexpr auto operator+(const string_literal<sizeNew>& str) const noexcept {
+		template<uint64_type sizeNew> constexpr auto operator+(const string_literal<sizeNew>& str) const noexcept {
 			string_literal<sizeNew + sizeVal - 1> newLiteral{};
-			std::copy(values, values + size(), newLiteral.data());
-			std::copy(str.data(), str.data() + sizeNew, newLiteral.data() + size());
+			std::copy_n(values, size(), newLiteral.data());
+			std::copy_n(str.data(), sizeNew, newLiteral.data() + size());
 			return newLiteral;
 		}
 
-		template<size_type sizeNew> constexpr auto operator+(const value_type (&str)[sizeNew]) const noexcept {
+		template<uint64_type sizeNew> constexpr auto operator+(const value_type (&str)[sizeNew]) const noexcept {
 			string_literal<sizeNew + sizeVal - 1> newLiteral{};
-			std::copy(values, values + size(), newLiteral.data());
-			std::copy(str, str + sizeNew, newLiteral.data() + size());
+			std::copy_n(values, size(), newLiteral.data());
+			std::copy_n(str, sizeNew, newLiteral.data() + size());
 			return newLiteral;
 		}
 
-		template<size_type sizeNew> constexpr friend auto operator+(const value_type (&lhs)[sizeNew], const string_literal<sizeVal>& str) noexcept {
+		template<uint64_type sizeNew> constexpr friend auto operator+(const value_type (&lhs)[sizeNew], const string_literal<sizeVal>& str) noexcept {
 			return string_literal<sizeNew>{ lhs } + str;
 		}
 
-		constexpr reference operator[](size_type index) noexcept {
+		constexpr reference operator[](uint64_type index) noexcept {
 			return values[index];
 		}
 
-		constexpr const_reference operator[](size_type index) const noexcept {
+		constexpr const_reference operator[](uint64_type index) const noexcept {
 			return values[index];
 		}
 
-		constexpr size_type size() const noexcept {
+		constexpr uint64_type size() const noexcept {
 			return length;
 		}
 
 		template<typename string_type> constexpr operator string_type() const {
-			string_type returnValues{ values, length };
+			BNCH_SWT_ALIGN string_type returnValues{ values, length };
 			return returnValues;
 		}
 
-		BNCH_SWT_ALIGN char values[sizeVal]{};
+		BNCH_SWT_ALIGN char values[sizeVal > 0 ? sizeVal : 1]{};
 	};
+
+	template<uint64_t size> string_literal(const char (&str)[size]) -> string_literal<size>;
 
 	namespace internal {
 
-		template<size_t N, typename string_type> constexpr auto stringLiteralFromView(string_type str) noexcept {
+		template<uint64_t N, typename string_type> constexpr auto stringLiteralFromView(string_type str) noexcept {
 			string_literal<N + 1> sl{};
 			std::copy_n(str.data(), str.size(), sl.values);
 			sl[N] = '\0';
 			return sl;
 		}
 
-		template<size_t size> BNCH_SWT_INLINE std::ostream& operator<<(std::ostream& os, const string_literal<size>& input) noexcept {
-			os << input.operator std::string_view();
-			return os;
+		template<uint64_t size> BNCH_SWT_INLINE std::ostream& operator<<(std::ostream&, const string_literal<size>& input) noexcept {
+			std::cout << input.operator std::string_view();
+			return std::cout;
 		}
 
 		template<typename value_type> constexpr uint64_t countDigits(value_type number) noexcept {
@@ -136,7 +137,7 @@ namespace bnch_swt {
 			return count;
 		}
 
-		template<auto number, size_t numDigits = countDigits(number)> constexpr string_literal<numDigits + 1> toStringLiteral() noexcept {
+		template<auto number, uint64_t numDigits = countDigits(number)> constexpr string_literal<numDigits + 1> toStringLiteral() noexcept {
 			char buffer[numDigits + 1]{};
 			char* ptr = buffer + numDigits;
 			*ptr	  = '\0';
@@ -158,9 +159,9 @@ namespace bnch_swt {
 			return (input >= 'A' && input <= 'Z') ? (input + 32) : input;
 		}
 
-		template<size_t size> constexpr auto toLower(string_literal<size> input) noexcept {
+		template<uint64_t size> constexpr auto toLower(string_literal<size> input) noexcept {
 			string_literal<size> output{};
-			for (size_t x = 0; x < size; ++x) {
+			for (uint64_t x = 0; x < size; ++x) {
 				output[x] = toLower(input[x]);
 			}
 			return output;
