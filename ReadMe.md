@@ -41,37 +41,37 @@ To use `BenchmarkSuite`, include the necessary header files in your project. Ens
 The following example demonstrates how to set up and run a benchmark comparing two integer-to-string conversion functions:
 
 ```cpp
-template<size_t count, typename value_type, bnch_swt::string_literal testName>
+template<uint64_t count, typename value_type, bnch_swt::string_literal testName>
 BNCH_SWT_INLINE void testFunction() {
     std::vector<value_type> testValues{ generateRandomIntegers<value_type>(count, sizeof(value_type) == 4 ? 10 : 20) };
     std::vector<std::string> testValues00;
     std::vector<std::string> testValues01(count);
 
-    for (size_t x = 0; x < count; ++x) {
+    for (uint64_t x = 0; x < count; ++x) {
         testValues00.emplace_back(std::to_string(testValues[x]));
     }
 
     bnch_swt::benchmark_stage<"old-vs-new-i-to-str" + testName>::template runBenchmark<"glz::to_chars", "CYAN">([&] {
-        size_t bytesProcessed = 0;
+        uint64_t bytesProcessed = 0;
         char newerString[30]{};
-        for (size_t x = 0; x < count; ++x) {
+        for (uint64_t x = 0; x < count; ++x) {
             std::memset(newerString, '\0', sizeof(newerString));
             auto newPtr = to_chars(newerString, testValues[x]);
             bytesProcessed += testValues00[x].size();
-            testValues01[x] = std::string{newerString, static_cast<size_t>(newPtr - newerString)};
+            testValues01[x] = std::string{newerString, static_cast<uint64_t>(newPtr - newerString)};
         }
         bnch_swt::doNotOptimizeAway(bytesProcessed);
         return bytesProcessed;
     });
 
     bnch_swt::benchmark_stage<"old-vs-new-i-to-str" + testName>::template runBenchmark<"jsonifier_internal::toChars", "CYAN">([&] {
-        size_t bytesProcessed = 0;
+        uint64_t bytesProcessed = 0;
         char newerString[30]{};
-        for (size_t x = 0; x < count; ++x) {
+        for (uint64_t x = 0; x < count; ++x) {
             std::memset(newerString, '\0', sizeof(newerString));
             auto newPtr = jsonifier_internal::toChars(newerString, testValues[x]);
             bytesProcessed += testValues00[x].size();
-            testValues01[x] = std::string{newerString, static_cast<size_t>(newPtr - newerString)};
+            testValues01[x] = std::string{newerString, static_cast<uint64_t>(newPtr - newerString)};
         }
         bnch_swt::doNotOptimizeAway(bytesProcessed);
         return bytesProcessed;
