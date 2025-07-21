@@ -23,6 +23,7 @@ jobs:
             sudo apt update && sudo apt upgrade
             sudo apt-get install build-essential
             sudo apt-get install g++-14
+            sudo apt-get install liburing-dev
 
     - name: Configure CMake
       run: |

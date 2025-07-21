@@ -6,26 +6,11 @@ project(
   LANGUAGES CXX
 )
 
+if(APPLE)
+    set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
+endif()
+
 include(FetchContent)
-include(GetCommitHash)
-
-FetchContent_Declare(
-  jsonifier
-  GIT_REPOSITORY https://github.com/realtimechris/jsonifier.git
-  GIT_TAG dev
-  GIT_SHALLOW TRUE
-)
-FetchContent_MakeAvailable(jsonifier)
-getCommitHash("${jsonifier_SOURCE_DIR}" JSONIFIER_COMMIT_HASH)
-message(STATUS "Jsonifier Commit Hash: https://github.com/RealTimeChris/Jsonifier/commit/${JSONIFIER_COMMIT_HASH}")
-
-FetchContent_Declare(
-  glaze
-  GIT_REPOSITORY https://github.com/stephenberry/glaze.git
-  GIT_TAG main
-  GIT_SHALLOW TRUE
-)
-FetchContent_MakeAvailable(glaze)
 
 add_executable(
   "BenchmarkExe" 
@@ -34,22 +19,36 @@ add_executable(
 
 target_link_libraries(
 	"BenchmarkExe" PUBLIC 
-	Jsonifier::Jsonifier glaze::glaze BenchmarkSuite::BenchmarkSuite
+	BenchmarkSuite::BenchmarkSuite
 )
 
 target_compile_options(
-	"BenchmarkExe" PUBLIC
-	"$<$<CXX_COMPILER_ID:MSVC>:$<$<STREQUAL:${ASAN_ENABLED},TRUE>:/fsanitize=address>>"
-     "$<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:clang>,$<CXX_COMPILER_ID:CLANG>>:-Wuninitialized;-Wconversion;-Wpedantic;-Wshadow;-Wextra;-Wall>"
-    "$<$<CXX_COMPILER_ID:GNU>:-Wnull-dereference;-Wuninitialized;-Wconversion;-Wpedantic;-Wshadow;-Wextra;-Wall>"
-    "$<$<CXX_COMPILER_ID:MSVC>:/Wall;/W4>"
+    "BenchmarkExe" PUBLIC
+"$<$<CXX_COMPILER_ID:MSVC>:/w>"      # Disable ALL warnings on MSVC
+    "$<$<CXX_COMPILER_ID:MSVC>:/WX->"    # Disable warnings-as-errors
+    "$<$<CXX_COMPILER_ID:Clang>:-w>"     # Disable ALL warnings on Clang
+    "$<$<CXX_COMPILER_ID:GNU>:-w>" 
 )
+
+if(APPLE)
+    target_compile_options(BenchmarkExe PRIVATE -stdlib=libc++)
+    target_link_options(BenchmarkExe PRIVATE -stdlib=libc++)
+endif()
+
+if(UNIX AND NOT APPLE)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(URING REQUIRED liburing)
+    target_include_directories(BenchmarkExe PRIVATE ${URING_INCLUDE_DIRS})
+    target_link_libraries(BenchmarkExe PRIVATE ${URING_LIBRARIES})
+endif()
 
 target_link_options(
 	"BenchmarkExe" PUBLIC
 	"$<$<CXX_COMPILER_ID:GNU>:$<$<STREQUAL:${ASAN_ENABLED},TRUE>:-fsanitize=address>>"
 )
 
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /w")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX-")
 if (WIN32)
 	install(
 		FILES 

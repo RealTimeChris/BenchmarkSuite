@@ -1,4 +1,4 @@
-
+// BnchSwt/EventCounter.hpp
 /*
 	MIT License
 
@@ -24,10 +24,13 @@
 /// Dec 6, 2024
 #pragma once
 
+#include <BnchSwt/Config.hpp>
 #include <BnchSwt/Counters/AppleArmPerfEvents.hpp>
 #include <BnchSwt/Counters/WindowsPerfEvents.hpp>
 #include <BnchSwt/Counters/LinuxPerfEvents.hpp>
+#include <BnchSwt/Counters/AndriodEvents.hpp>
 #include <optional>
+#include <chrono>
 
 namespace bnch_swt::internal {
 
