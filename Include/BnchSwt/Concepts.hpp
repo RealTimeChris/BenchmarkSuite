@@ -29,6 +29,7 @@
 #include <cstdint>
 #include <variant>
 #include <vector>
+#include <tuple>
 
 namespace bnch_swt {
 
@@ -49,14 +50,14 @@ namespace bnch_swt {
 
 		template<typename value_type>
 		concept vector_subscriptable = requires(std::remove_cvref_t<value_type> value) {
-			{ value[typename std::remove_cvref_t<value_type>::size_type{}] } -> std::same_as<typename std::remove_cvref_t<value_type>::const_reference>;
+			{ value[typename std::remove_cvref_t<value_type>::uint64_type{}] } -> std::same_as<typename std::remove_cvref_t<value_type>::const_reference>;
 		} || requires(std::remove_cvref_t<value_type> value) {
-			{ value[typename std::remove_cvref_t<value_type>::size_type{}] } -> std::same_as<typename std::remove_cvref_t<value_type>::reference>;
+			{ value[typename std::remove_cvref_t<value_type>::uint64_type{}] } -> std::same_as<typename std::remove_cvref_t<value_type>::reference>;
 		};
 
 		template<typename value_type>
 		concept has_size = requires(std::remove_cvref_t<value_type> value) {
-			{ value.size() } -> std::same_as<typename std::remove_cvref_t<value_type>::size_type>;
+			{ value.size() } -> std::same_as<typename std::remove_cvref_t<value_type>::uint64_type>;
 		};
 
 		template<typename value_type>
@@ -66,7 +67,7 @@ namespace bnch_swt {
 
 		template<typename value_type>
 		concept variant_t = requires(std::remove_cvref_t<value_type> var) {
-			{ var.index() } -> std::same_as<size_t>;
+			{ var.index() } -> std::same_as<uint64_t>;
 			{ var.valueless_by_exception() } -> std::same_as<bool>;
 			{ std::holds_alternative<decltype(std::get<0>(var))>(var) } -> std::same_as<bool>;
 			{ std::get<0>(var) } -> std::same_as<decltype(std::get<0>(var))&>;
@@ -74,10 +75,10 @@ namespace bnch_swt {
 		};
 
 		template<typename value_type>
-		concept has_resize = requires(std::remove_cvref_t<value_type> value) { value.resize(typename std::remove_cvref_t<value_type>::size_type{}); };
+		concept has_resize = requires(std::remove_cvref_t<value_type> value) { value.resize(typename std::remove_cvref_t<value_type>::uint64_type{}); };
 
 		template<typename value_type>
-		concept has_reserve = requires(std::remove_cvref_t<value_type> value) { value.reserve(typename std::remove_cvref_t<value_type>::size_type{}); };
+		concept has_reserve = requires(std::remove_cvref_t<value_type> value) { value.reserve(typename std::remove_cvref_t<value_type>::uint64_type{}); };
 
 		template<typename value_type>
 		concept has_data = requires(std::remove_cvref_t<value_type> value) {
@@ -103,8 +104,7 @@ namespace bnch_swt {
 			!always_null_t<value_type>;
 
 		template<typename value_type>
-		concept floating_point_t = std::floating_point<std::remove_cvref_t<value_type>> && (std::numeric_limits<std::remove_cvref_t<value_type>>::radix == 2) &&
-			std::numeric_limits<std::remove_cvref_t<value_type>>::is_iec559;
+		concept floating_point_t = std::numeric_limits<std::remove_cvref_t<value_type>>::is_iec559;
 
 		template<typename value_type>
 		concept char_t = std::same_as<std::remove_cvref_t<value_type>, char>;
@@ -112,13 +112,13 @@ namespace bnch_swt {
 		template<typename value_type>
 		concept has_substr = requires(std::remove_cvref_t<value_type> value) {
 			{
-				value.substr(typename std::remove_cvref_t<value_type>::size_type{}, typename std::remove_cvref_t<value_type>::size_type{})
+				value.substr(typename std::remove_cvref_t<value_type>::uint64_type{}, typename std::remove_cvref_t<value_type>::uint64_type{})
 			} -> std::same_as<std::remove_cvref_t<value_type>>;
 		};
 
 		template<typename value_type>
 		concept has_find = requires(std::remove_cvref_t<value_type> value) {
-			{ value.find(typename std::remove_cvref_t<value_type>::value_type{}) } -> std::same_as<typename std::remove_cvref_t<value_type>::size_type>;
+			{ value.find(typename std::remove_cvref_t<value_type>::value_type{}) } -> std::same_as<typename std::remove_cvref_t<value_type>::uint64_type>;
 		} || requires(std::remove_cvref_t<value_type> value) {
 			{ value.find(typename std::remove_cvref_t<value_type>::key_type{}) } -> std::same_as<typename std::remove_cvref_t<value_type>::iterator>;
 		} || requires(std::remove_cvref_t<value_type> value) {
@@ -211,7 +211,7 @@ namespace bnch_swt {
 		concept enum_t = std::is_enum_v<std::remove_cvref_t<value_type>>;
 
 		template<typename value_type>
-		concept vector_t = vector_subscriptable<value_type> && has_fill<value_type>;
+		concept vector_t = vector_subscriptable<value_type> && !string_t<value_type>;
 
 		template<typename value_type>
 		concept raw_array_t = ( std::is_array_v<std::remove_cvref_t<value_type>> && !std::is_pointer_v<std::remove_cvref_t<value_type>> ) ||
