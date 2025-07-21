@@ -7,26 +7,17 @@ project(
 )
 
 include(FetchContent)
-include(GetCommitHash)
+set(NIHILUS_INSTALL TRUE)
+
 
 FetchContent_Declare(
-  jsonifier
-  GIT_REPOSITORY https://github.com/realtimechris/jsonifier.git
+  nihilus
+  GIT_REPOSITORY https://github.com/notanothergaydude/nihilus.git
   GIT_TAG dev
   GIT_SHALLOW TRUE
 )
-FetchContent_MakeAvailable(jsonifier)
-getCommitHash("${jsonifier_SOURCE_DIR}" JSONIFIER_COMMIT_HASH)
-message(STATUS "Jsonifier Commit Hash: https://github.com/RealTimeChris/Jsonifier/commit/${JSONIFIER_COMMIT_HASH}")
-
-FetchContent_Declare(
-  glaze
-  GIT_REPOSITORY https://github.com/stephenberry/glaze.git
-  GIT_TAG main
-  GIT_SHALLOW TRUE
-)
-FetchContent_MakeAvailable(glaze)
-
+FetchContent_MakeAvailable(nihilus)
+set_property(TARGET nihilus PROPERTY INTERFACE_COMPILE_OPTIONS "")
 add_executable(
   "BenchmarkExe" 
   "./main.cpp"
@@ -34,15 +25,15 @@ add_executable(
 
 target_link_libraries(
 	"BenchmarkExe" PUBLIC 
-	Jsonifier::Jsonifier glaze::glaze BenchmarkSuite::BenchmarkSuite
+	nihilus::nihilus BenchmarkSuite::BenchmarkSuite
 )
 
 target_compile_options(
-	"BenchmarkExe" PUBLIC
-	"$<$<CXX_COMPILER_ID:MSVC>:$<$<STREQUAL:${ASAN_ENABLED},TRUE>:/fsanitize=address>>"
-     "$<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:clang>,$<CXX_COMPILER_ID:CLANG>>:-Wuninitialized;-Wconversion;-Wpedantic;-Wshadow;-Wextra;-Wall>"
-    "$<$<CXX_COMPILER_ID:GNU>:-Wnull-dereference;-Wuninitialized;-Wconversion;-Wpedantic;-Wshadow;-Wextra;-Wall>"
-    "$<$<CXX_COMPILER_ID:MSVC>:/Wall;/W4>"
+    "BenchmarkExe" PUBLIC
+"$<$<CXX_COMPILER_ID:MSVC>:/w>"      # Disable ALL warnings on MSVC
+    "$<$<CXX_COMPILER_ID:MSVC>:/WX->"    # Disable warnings-as-errors
+    "$<$<CXX_COMPILER_ID:Clang>:-w>"     # Disable ALL warnings on Clang
+    "$<$<CXX_COMPILER_ID:GNU>:-w>" 
 )
 
 target_link_options(
@@ -50,6 +41,8 @@ target_link_options(
 	"$<$<CXX_COMPILER_ID:GNU>:$<$<STREQUAL:${ASAN_ENABLED},TRUE>:-fsanitize=address>>"
 )
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /w")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX-")
 if (WIN32)
 	install(
 		FILES 
