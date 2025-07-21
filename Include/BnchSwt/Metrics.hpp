@@ -56,12 +56,22 @@ namespace bnch_swt {
 namespace bnch_swt::internal {
 
 	BNCH_SWT_INLINE double calculateThroughputMBps(double nanoseconds, double bytesProcessed) {
-		constexpr double bytesToMB	 = 1.0 / 1048576.0;
-		constexpr double nsToSeconds = 1.0 / 1000000000.0;
-		return (bytesProcessed * bytesToMB) / (nanoseconds * nsToSeconds);
+		constexpr double bytesPerMB		= 1024.0 * 1024.0;
+		constexpr double nanosPerSecond = 1e9;
+		double megabytes = bytesProcessed / bytesPerMB;
+		double seconds	 = nanoseconds / nanosPerSecond;
+		if (seconds == 0.0) {
+			return 0.0;
+		}
+		return megabytes / seconds;
 	}
 
-	template<string_literal benchmarkNameNew> BNCH_SWT_INLINE static performance_metrics collectMetrics(std::span<event_count>&& eventsNewer, size_t totalIterationCount) {
+	BNCH_SWT_INLINE double calculateUnitsPs(double nanoseconds, double bytesProcessed) {
+		return (bytesProcessed * 1000000000.0) / nanoseconds;
+	}
+
+	template<string_literal benchmarkNameNew, bool mbps = true>
+	BNCH_SWT_INLINE static performance_metrics collectMetrics(std::span<event_count>&& eventsNewer, size_t totalIterationCount) {
 		static constexpr string_literal benchmarkName{ benchmarkNameNew };
 		performance_metrics metrics{};
 		metrics.name = benchmarkName.operator std::string();
@@ -101,7 +111,11 @@ namespace bnch_swt::internal {
 
 			if (e.bytesProcessed(bytesProcessed)) {
 				bytesProcessedTotal += bytesProcessed;
-				throughPut = calculateThroughputMBps(ns, static_cast<double>(bytesProcessed));
+				if constexpr (mbps) {
+					throughPut = calculateThroughputMBps(ns, static_cast<double>(bytesProcessed));
+				} else {
+					throughPut = calculateUnitsPs(ns, static_cast<double>(bytesProcessed));
+				}
 				throughPutTotal += throughPut;
 				throughPutMin = throughPut < throughPutMin ? throughPut : throughPutMin;
 			}
