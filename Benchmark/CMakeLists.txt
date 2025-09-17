@@ -1,40 +1,58 @@
 ﻿cmake_minimum_required(VERSION 3.18)
-
+set(CMAKE_CUDA_ARCHITECTURES 120)
 project(
   "BenchmarkExe"
   VERSION "1.0.0"
-  LANGUAGES CXX
+  LANGUAGES CUDA
 )
 
-include(FetchContent)
-include(GetCommitHash)
+find_package(CUDAToolkit REQUIRED)
 
-FetchContent_Declare(
-  jsonifier
-  GIT_REPOSITORY https://github.com/realtimechris/jsonifier.git
-  GIT_TAG dev
-  GIT_SHALLOW TRUE
-)
-FetchContent_MakeAvailable(jsonifier)
-getCommitHash("${jsonifier_SOURCE_DIR}" JSONIFIER_COMMIT_HASH)
-message(STATUS "Jsonifier Commit Hash: https://github.com/RealTimeChris/Jsonifier/commit/${JSONIFIER_COMMIT_HASH}")
+if(MSVC OR NVCC)
+    string(REGEX REPLACE "/Ob[0-2]" "" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+    string(REGEX REPLACE "/O[0-2]" "" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+endif()
 
-FetchContent_Declare(
-  glaze
-  GIT_REPOSITORY https://github.com/stephenberry/glaze.git
-  GIT_TAG main
-  GIT_SHALLOW TRUE
+set(BNCH_SWT_COMPILE_OPTIONS
+    "$<$<CXX_COMPILER_ID:CLANG>:-O3;-funroll-loops;-fvectorize;-fslp-vectorize;-finline-functions;-fomit-frame-pointer;-fmerge-all-constants;-ftemplate-depth=2048;-fconstexpr-depth=2048;-fconstexpr-steps=50000000;-ftemplate-backtrace-limit=0;-ffunction-sections;-fdata-sections;-falign-functions=32;-fno-math-errno;-ffp-contract=on;-fvisibility=hidden;-fvisibility-inlines-hidden;-fno-rtti;-fno-asynchronous-unwind-tables;-fno-unwind-tables;-fno-stack-protector;-fno-ident;-pipe;-fno-common;-fwrapv;-D_FORTIFY_SOURCE=0;-Weverything;-Wnon-virtual-dtor;-Wno-c++98-compat;-Wno-c++98-compat-pedantic;-Wno-unsafe-buffer-usage;-Wno-padded;-Wno-c++20-compat;-Wno-exit-time-destructors>"#;-Werror>"
+    "$<$<CXX_COMPILER_ID:AppleClang>:-O3;-funroll-loops;-fvectorize;-fslp-vectorize;-finline-functions;-fomit-frame-pointer;-fmerge-all-constants;-ftemplate-depth=2048;-fconstexpr-depth=2048;-fconstexpr-steps=50000000;-ftemplate-backtrace-limit=0;-ffunction-sections;-fdata-sections;-falign-functions=32;-fno-math-errno;-ffp-contract=on;-fvisibility=hidden;-fvisibility-inlines-hidden;-fno-rtti;-fno-asynchronous-unwind-tables;-fno-unwind-tables;-fno-stack-protector;-fno-ident;-pipe;-fno-common;-fwrapv;-D_FORTIFY_SOURCE=0;-Weverything;-Wnon-virtual-dtor;-Wno-c++98-compat;-Wno-c++98-compat-pedantic;-Wno-unsafe-buffer-usage;-Wno-padded;-Wno-c++20-compat;-Wno-exit-time-destructors;-Wno-poison-system-directories>"#;-Werror>"
+    "$<$<CXX_COMPILER_ID:GNU>:-O3;;-funroll-loops;-finline-functions;-fomit-frame-pointer;-fno-math-errno;-ftemplate-depth=2000;-fconstexpr-depth=2000;-fconstexpr-ops-limit=100000000;-fconstexpr-loop-limit=1000000;-falign-functions=32;-falign-loops=32;-fprefetch-loop-arrays;-ftree-vectorize;-fstrict-aliasing;-ffunction-sections;-fdata-sections;-fvisibility=hidden;-fvisibility-inlines-hidden;-fno-keep-inline-functions;-fno-ident;-fmerge-all-constants;-fno-stack-protector;-fno-rtti;-fgcse-after-reload;-ftree-loop-distribute-patterns;-fpredictive-commoning;-funswitch-loops;-ftree-loop-vectorize;-ftree-slp-vectorize;-Wall;-Wextra;-Wpedantic;-Wnon-virtual-dtor;-Wlogical-op;-Wduplicated-cond;-Wduplicated-branches;-Wnull-dereference;-Wdouble-promotion>"#;-Werror>"
+    "$<$<CXX_COMPILER_ID:MSVC>:/Ob3;/Ot;/Oy;/GT;/GL;/fp:precise;/Qpar;/constexpr:depth2048;/constexpr:backtrace0;/constexpr:steps2000000;/GS-;/Gy;/Gw;/Zc:inline;/Zc:throwingNew;/W4;/permissive-;/Zc:__cplusplus;/wd4820;/wd4324;/wd5002;/Zc:alignedNew;/Zc:auto;/Zc:forScope;/Zc:implicitNoexcept;/Zc:noexceptTypes;/Zc:referenceBinding;/Zc:rvalueCast;/Zc:sizedDealloc;/Zc:strictStrings;/Zc:ternary;/Zc:wchar_t>"#;/WX>"\
+    "$<$<CUDA_COMPILER_ID:NVIDIA>:-O3;--fmad=false;--prec-div=true;--prec-sqrt=true;--restrict;--ftemplate-depth=2048;wwwwwww--extended-lambda>"
+    "$<$<AND:$<CXX_COMPILER_ID:CLANG>,$<PLATFORM_ID:Linux>>:-fno-plt;-fno-semantic-interposition>"
+    "${BNCH_SWT_SIMD_FLAGS}"
 )
-FetchContent_MakeAvailable(glaze)
+
+set(BNCH_SWT_LINK_OPTIONS
+    "$<$<AND:$<CXX_COMPILER_ID:CLANG>,$<PLATFORM_ID:Darwin>>:-Wl,-dead_strip;-Wl,-x;-Wl,-S>"
+    "$<$<AND:$<CXX_COMPILER_ID:AppleClang>,$<PLATFORM_ID:Darwin>>:-Wl,-dead_strip;-Wl,-x;-Wl,-S>"
+    "$<$<AND:$<CXX_COMPILER_ID:GNU>,$<PLATFORM_ID:Darwin>>:-Wl,-dead_strip;-Wl,-x;-Wl,-S>"
+    "$<$<AND:$<CXX_COMPILER_ID:CLANG>,$<PLATFORM_ID:Linux>>:-Wl,--gc-sections;-Wl,--strip-all;-Wl,--build-id=none;-Wl,--hash-style=gnu;-Wl,-z,now;-Wl,-z,relro>"
+    "$<$<AND:$<CXX_COMPILER_ID:GNU>,$<PLATFORM_ID:Linux>>:-Wl,--gc-sections;-Wl,--strip-all;-Wl,--as-needed;-Wl,-O3>"
+    "$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<PLATFORM_ID:Windows>>:/DYNAMICBASE:NO;/OPT:REF;/OPT:ICF;/INCREMENTAL:NO;/MACHINE:X64>"
+    "$<$<CUDA_COMPILER_ID:NVIDIA>:-lcudart_static;-lcublas_static;-lculibos;-lcudart;-lrt;-ldl;-lpthread;--relocatable-device-code=false>"
+)
 
 add_executable(
-  "BenchmarkExe" 
-  "./main.cpp"
+  "BenchmarkExe"
+  "main.cu"
 )
 
 target_link_libraries(
 	"BenchmarkExe" PUBLIC 
-	Jsonifier::Jsonifier glaze::glaze BenchmarkSuite::BenchmarkSuite
+	#Jsonifier::Jsonifier glaze::glaze
+    BenchmarkSuite::BenchmarkSuite
+    CUDA::cudart
+)
+
+target_link_options(
+	"BenchmarkExe" INTERFACE
+	"${BNCH_SWT_LINK_OPTIONS}"
+)
+
+target_compile_options(
+	"BenchmarkExe" INTERFACE
+	"${BNCH_SWT_COMPILE_OPTIONS}"
 )
 
 target_compile_options(

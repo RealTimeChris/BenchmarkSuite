@@ -45,7 +45,7 @@ namespace bnch_swt {
 		}
 
 		template<typename value_type> void printValue(std::ostream& os, const value_type& value) {
-			os << value;
+			static_assert(false, "Sorry, but that type is not printable!");
 		}
 
 		template<bool_t value_type> void printValue(std::ostream& os, const value_type& value) {
