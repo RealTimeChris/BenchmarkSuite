@@ -233,46 +233,43 @@ namespace bnch_swt::internal {
 	};
 
 	struct kpep_db {
-		const char* name;///< Database name, such as "haswell".
-		const char* cpu_id;///< Plist name, such as "cpu_7_8_10b282dc".
-		const char* marketing_name;///< Marketing name, such as "Intel Haswell".
-		void* plist_data;///< Plist data (CFDataRef), currently NULL.
-		void* event_map;///< All events (CFDict<CFSTR(event_name), kpep_event *>).
-		kpep_event* event_arr;///< Event struct buffer (sizeof(kpep_event) * events_count).
-		kpep_event** fixed_event_arr;///< Fixed counter events (sizeof(kpep_event *)
-			///< * fixed_counter_count)
-		void* alias_map;///< All aliases (CFDict<CFSTR(event_name), kpep_event *>).
+		const char* name;
+		const char* cpu_id;
+		const char* marketing_name;
+		void* plist_data;
+		void* event_map;
+		kpep_event* event_arr;
+		kpep_event** fixed_event_arr;
+		void* alias_map;
 		size_t reserved_1;
 		size_t reserved_2;
 		size_t reserved_3;
-		size_t event_count;///< All events eventCounts[currentIndex].
+		size_t event_count;
 		size_t alias_count;
 		size_t fixed_counter_count;
 		size_t config_counter_count;
 		size_t power_counter_count;
-		uint32_t archtecture;///< see `KPEP CPU archtecture constants` above.
+		uint32_t archtecture;
 		uint32_t fixed_counter_bits;
 		uint32_t config_counter_bits;
 		uint32_t power_counter_bits;
 	};
 
-	/// KPEP config (size: 80/44 bytes on 64/32 bit OS)
 	struct kpep_config {
 		kpep_db* db;
-		kpep_event** ev_arr;///< (sizeof(kpep_event *) * counter_count), init NULL
-		size_t* ev_map;///< (sizeof(size_t *) * counter_count), init 0
-		size_t* ev_idx;///< (sizeof(size_t *) * counter_count), init -1
-		uint32_t* flags;///< (sizeof(uint32_t *) * counter_count), init 0
-		uint64_t* kpc_periods;///< (sizeof(uint64_t *) * counter_count), init 0
-		size_t event_count;/// kpep_config_events_count()
+		kpep_event** ev_arr;
+		size_t* ev_map;
+		size_t* ev_idx;
+		uint32_t* flags;
+		uint64_t* kpc_periods;
+		size_t event_count;
 		size_t counter_count;
-		uint32_t classes;///< See `class mask constants` above.
+		uint32_t classes;
 		uint32_t config_counter;
 		uint32_t power_counter;
 		uint32_t reserved;
 	};
 
-	/// Error code for kpep_config_xxx() and kpep_db_xxx() functions.
 	enum class kpep_config_error_code {
 		KPEP_CONFIG_ERROR_NONE					 = 0,
 		KPEP_CONFIG_ERROR_INVALID_ARGUMENT		 = 1,
@@ -293,12 +290,10 @@ namespace bnch_swt::internal {
 		KPEP_CONFIG_ERROR_MAX
 	};
 
-	/// Error description for kpep_config_error_code.
 	static std::array<const char*, static_cast<uint64_t>(kpep_config_error_code::KPEP_CONFIG_ERROR_MAX)> kpep_config_error_names = { "none", "invalid argument", "out of memory",
 		"I/O", "buffer too small", "current system unknown", "database path invalid", "database not found", "database architecture unsupported", "database version unsupported",
 		"database corrupt", "event not found", "conflicting events", "all counters must be forced", "event unavailable", "check errno" };
 
-	/// Error description.
 	static const char* kpep_config_error_desc(int32_t code) {
 		if (0 <= code && static_cast<uint64_t>(code) < static_cast<uint64_t>(kpep_config_error_code::KPEP_CONFIG_ERROR_MAX)) {
 			return kpep_config_error_names[static_cast<uint64_t>(code)];
@@ -306,126 +301,51 @@ namespace bnch_swt::internal {
 		return "unknown error";
 	}
 
-	/// Create a config.
-	/// @param db A kpep db, see kpep_db_create()
-	/// @param cfg_ptr A pointer to receive the new config.
-	/// @return kpep_config_error_code, 0 for success.
 	static int32_t (*kpep_config_create)(kpep_db* db, kpep_config** cfg_ptr);
 
-	/// Free the config.
 	static void (*kpep_config_free)(kpep_config* cfg);
 
-	/// Add an event to config.
-	/// @param cfg The config.
-	/// @param ev_ptr A event pointer.
-	/// @param flag 0: all, 1: user space only
-	/// @param err Error bitmap pointer, can be NULL.
-	///            If return value is `CONFLICTING_EVENTS`, this bitmap contains
-	///            the conflicted event indices, e.g. "1 << 2" means index 2.
-	/// @return kpep_config_error_code, 0 for success.
 	static int32_t (*kpep_config_add_event)(kpep_config* cfg, kpep_event** ev_ptr, uint32_t flag, uint32_t* err);
 
-	/// Remove event at index.
-	/// @return kpep_config_error_code, 0 for success.
 	static int32_t (*kpep_config_remove_event)(kpep_config* cfg, size_t idx);
 
-	/// Force all counters.
-	/// @return kpep_config_error_code, 0 for success.
 	static int32_t (*kpep_config_force_counters)(kpep_config* cfg);
 
-	/// Get events eventCounts[currentIndex].
-	/// @return kpep_config_error_code, 0 for success.
 	static int32_t (*kpep_config_events_count)(kpep_config* cfg, size_t* count_ptr);
 
-	/// Get all event pointers.
-	/// @param buf A buffer to receive event pointers.
-	/// @param buf_size The buffer's size in bytes, should not smaller than
-	///                 kpep_config_events_count() * sizeof(void *).
-	/// @return kpep_config_error_code, 0 for success.
 	static int32_t (*kpep_config_events)(kpep_config* cfg, kpep_event** buf, size_t buf_size);
 
-	/// Get kpc register configs.
-	/// @param buf A buffer to receive kpc register configs.
-	/// @param buf_size The buffer's size in bytes, should not smaller than
-	///                 kpep_config_kpc_count() * sizeof(kpc_config_t).
-	/// @return kpep_config_error_code, 0 for success.
 	static int32_t (*kpep_config_kpc)(kpep_config* cfg, kpc_config_t* buf, size_t buf_size);
 
-	/// Get kpc register config eventCounts[currentIndex].
-	/// @return kpep_config_error_code, 0 for success.
 	static int32_t (*kpep_config_kpc_count)(kpep_config* cfg, size_t* count_ptr);
 
-	/// Get kpc classes.
-	/// @param classes_ptr See `class mask constants` above.
-	/// @return kpep_config_error_code, 0 for success.
 	static int32_t (*kpep_config_kpc_classes)(kpep_config* cfg, uint32_t* classes_ptr);
 
-	/// Get the index mapping from event to counter.
-	/// @param buf A buffer to receive indexes.
-	/// @param buf_size The buffer's size in bytes, should not smaller than
-	///                 kpep_config_events_count() * sizeof(kpc_config_t).
-	/// @return kpep_config_error_code, 0 for success.
 	static int32_t (*kpep_config_kpc_map)(kpep_config* cfg, size_t* buf, size_t buf_size);
 
-	/// Open a kpep database file in "/usr/share/kpep/" or "/usr/local/share/kpep/".
-	/// @param name File name, for example "haswell", "cpu_100000c_1_92fb37c8".
-	///             Pass NULL for current CPU.
-	/// @return kpep_config_error_code, 0 for success.
 	static int32_t (*kpep_db_create)(const char* name, kpep_db** db_ptr);
 
-	/// Free the kpep database.
 	static void (*kpep_db_free)(kpep_db* db);
 
-	/// Get the database's name.
-	/// @return kpep_config_error_code, 0 for success.
 	static int32_t (*kpep_db_name)(kpep_db* db, const char** name);
 
-	/// Get the event alias eventCounts[currentIndex].
-	/// @return kpep_config_error_code, 0 for success.
 	static int32_t (*kpep_db_aliases_count)(kpep_db* db, size_t* count);
 
-	/// Get all alias.
-	/// @param buf A buffer to receive all alias strings.
-	/// @param buf_size The buffer's size in bytes,
-	///        should not smaller than kpep_db_aliases_count() * sizeof(void *).
-	/// @return kpep_config_error_code, 0 for success.
 	static int32_t (*kpep_db_aliases)(kpep_db* db, const char** buf, size_t buf_size);
 
-	/// Get counters count for given classes.
-	/// @param classes 1: Fixed, 2: Configurable.
-	/// @return kpep_config_error_code, 0 for success.
 	static int32_t (*kpep_db_counters_count)(kpep_db* db, uint8_t classes, size_t* count);
 
-	/// Get all event eventCounts[currentIndex].
-	/// @return kpep_config_error_code, 0 for success.
 	static int32_t (*kpep_db_events_count)(kpep_db* db, size_t* count);
 
-	/// Get all events.
-	/// @param buf A buffer to receive all event pointers.
-	/// @param buf_size The buffer's size in bytes,
-	///        should not smaller than kpep_db_events_count() * sizeof(void *).
-	/// @return kpep_config_error_code, 0 for success.
 	static int32_t (*kpep_db_events)(kpep_db* db, kpep_event** buf, size_t buf_size);
 
-	/// Get one event by name.
-	/// @return kpep_config_error_code, 0 for success.
 	static int32_t (*kpep_db_event)(kpep_db* db, const char* name, kpep_event** ev_ptr);
 
-	/// Get event's name.
-	/// @return kpep_config_error_code, 0 for success.
 	static int32_t (*kpep_event_name)(kpep_event* ev, const char** name_ptr);
 
-	/// Get event's alias.
-	/// @return kpep_config_error_code, 0 for success.
 	static int32_t (*kpep_event_alias)(kpep_event* ev, const char** alias_ptr);
 
-	/// Get event's description.
-	/// @return kpep_config_error_code, 0 for success.
 	static int32_t (*kpep_event_description)(kpep_event* ev, const char** str_ptr);
-
-	// -----------------------------------------------------------------------------
-	// load kperf/kperfdata dynamic library
-	// -----------------------------------------------------------------------------
 
 	struct lib_symbol {
 		const char* name;
@@ -591,15 +511,6 @@ namespace bnch_swt::internal {
 	#undef return_err
 	}
 
-	// -----------------------------------------------------------------------------
-	// kdebug protected structs
-	// https://github.com/apple/darwin-xnu/blob/main/bsd/sys_private/kdebug_private.h
-	// -----------------------------------------------------------------------------
-
-	/*
- * Ensure that both LP32 and LP64 variants of arm64 use the same kd_buf
- * structure.
- */
 	#if defined(__arm64__)
 	using kd_buf_argtype = uint64_t;
 	#else
@@ -612,27 +523,21 @@ namespace bnch_swt::internal {
 		kd_buf_argtype arg2;
 		kd_buf_argtype arg3;
 		kd_buf_argtype arg4;
-		kd_buf_argtype arg5; /* the thread ID */
-		uint32_t debugid; /* see <sys/kdebug.h> */
+		kd_buf_argtype arg5;
+		uint32_t debugid;
 
-	/*
- * Ensure that both LP32 and LP64 variants of arm64 use the same kd_buf
- * structure.
- */
 	#if defined(__LP64__) || defined(__arm64__)
-		uint32_t cpuid; /* cpu index, from 0 */
+		uint32_t cpuid;
 		kd_buf_argtype unused;
 	#endif
 	};
 
-	/* bits for the type field of kd_regtype */
 	#define KDBG_CLASSTYPE 0x10000
 	#define KDBG_SUBCLSTYPE 0x20000
 	#define KDBG_RANGETYPE 0x40000
 	#define KDBG_TYPENONE 0x80000
 	#define KDBG_CKTYPES 0xF0000
 
-	/* only trace at most 4 types of events, at the code granularity */
 	#define KDBG_VALCHECK 0x00200000U
 
 	struct kd_regtype {
@@ -644,61 +549,39 @@ namespace bnch_swt::internal {
 	};
 
 	struct kbufinfo_t {
-		/* number of events that can fit in the buffers */
 		int32_t nkdbufs;
-		/* set if trace is disabled */
 		int32_t nolog;
-		/* kd_ctrl_page.flags */
 		uint32_t flags;
-		/* number of threads in thread map */
 		int32_t nkdthreads;
-		/* the owning pid */
 		int32_t bufid;
 	};
 
-	// -----------------------------------------------------------------------------
-	// kdebug utils
-	// -----------------------------------------------------------------------------
-
-	/// Clean up trace buffers and reset ktrace/kdebug/kperf.
-	/// @return 0 on success.
 	BNCH_SWT_INLINE static int32_t kdebug_reset() {
 		int32_t mib[3] = { CTL_KERN, KERN_KDEBUG, KERN_KDREMOVE };
 		return sysctl(mib, 3, NULL, NULL, NULL, 0);
 	}
 
-	/// Disable and reinitialize the trace buffers.
-	/// @return 0 on success.
 	BNCH_SWT_INLINE static int32_t kdebug_reinit() {
 		int32_t mib[3] = { CTL_KERN, KERN_KDEBUG, KERN_KDSETUP };
 		return sysctl(mib, 3, NULL, NULL, NULL, 0);
 	}
 
-	/// Set debug filter.
 	BNCH_SWT_INLINE static int32_t kdebug_setreg(kd_regtype* kdr) {
 		int32_t mib[3] = { CTL_KERN, KERN_KDEBUG, KERN_KDSETREG };
 		size_t size	   = sizeof(kd_regtype);
 		return sysctl(mib, 3, kdr, &size, NULL, 0);
 	}
 
-	/// Set maximum number of trace entries (kd_buf).
-	/// Only allow allocation up to half the available memory (sane_size).
-	/// @return 0 on success.
 	BNCH_SWT_INLINE static int32_t kdebug_trace_setbuf(int32_t nbufs) {
 		int32_t mib[4] = { CTL_KERN, KERN_KDEBUG, KERN_KDSETBUF, nbufs };
 		return sysctl(mib, 4, NULL, NULL, NULL, 0);
 	}
 
-	/// Enable or disable kdebug trace.
-	/// Trace buffer must already be initialized.
-	/// @return 0 on success.
 	BNCH_SWT_INLINE static int32_t kdebug_trace_enable(bool enable) {
 		int32_t mib[4] = { CTL_KERN, KERN_KDEBUG, KERN_KDENABLE, enable };
 		return sysctl(mib, 4, NULL, nullptr, NULL, 0);
 	}
 
-	/// Retrieve trace buffer information from kernel.
-	/// @return 0 on success.
 	BNCH_SWT_INLINE static int32_t kdebug_get_bufinfo(kbufinfo_t* info) {
 		if (!info) {
 			return -1;
@@ -708,11 +591,6 @@ namespace bnch_swt::internal {
 		return sysctl(mib, 3, info, &needed, NULL, 0);
 	}
 
-	/// Retrieve trace buffers from kernel.
-	/// @param buf Memory to receive buffer data, array of `kd_buf`.
-	/// @param len Length of `buf` in bytes.
-	/// @param count Number of trace entries (kd_buf) obtained.
-	/// @return 0 on success.
 	BNCH_SWT_INLINE static int32_t kdebug_trace_read(void* buf, size_t len, size_t* count) {
 		if (count) {
 			*count = 0;
@@ -721,9 +599,6 @@ namespace bnch_swt::internal {
 			return -1;
 		}
 
-		// Note: the input and output units are not the same.
-		// input: bytes
-		// output: number of kd_buf
 		int32_t mib[3] = { CTL_KERN, KERN_KDEBUG, KERN_KDREADTR };
 		int32_t ret	   = sysctl(mib, 3, buf, &len, NULL, 0);
 		if (ret != 0) {
@@ -733,10 +608,6 @@ namespace bnch_swt::internal {
 		return 0;
 	}
 
-	/// Block until there are new buffers filled or `timeout_ms` have passed.
-	/// @param timeout_ms timeout milliseconds, 0 means wait forever.
-	/// @param suc set true if new buffers filled.
-	/// @return 0 on success.
 	BNCH_SWT_INLINE static int32_t kdebug_wait(size_t timeout_ms, bool* suc) {
 		if (timeout_ms == 0) {
 			return -1;
@@ -750,50 +621,19 @@ namespace bnch_swt::internal {
 		return ret;
 	}
 
-	// -----------------------------------------------------------------------------
-	// Demo
-	// -----------------------------------------------------------------------------
-
 	#define EVENT_NAME_MAX 8
 	struct event_alias {
-		const char* alias;/// name for print
-		std::array<const char*, EVENT_NAME_MAX> names;/// name from pmc db
+		const char* alias;
+		std::array<const char*, EVENT_NAME_MAX> names;
 	};
 
-	/// Event names from /usr/share/kpep/<name>.plist
 	static constexpr std::array<event_alias, 4> profile_events{ [] {
 		std::array<event_alias, 4> return_value{};
 		return_value[0].alias = "cycles";
 		return_value[0].names = { "FIXED_CYCLES", "CPU_CLK_UNHALTED.THREAD", "CPU_CLK_UNHALTED.CORE" };
 		return return_value;
 	}() };
-	/*
-		{ { "cycles",
-			{
-				"FIXED_CYCLES",// Apple A7-A15//CORE_ACTIVE_CYCLE
-				"CPU_CLK_UNHALTED.THREAD",// Intel Core 1th-10th
-				"CPU_CLK_UNHALTED.CORE",// Intel Yonah, Merom
-			} } },
-		{ { "instructions",
-			{
-				"FIXED_INSTRUCTIONS",// Apple A7-A15
-				"INST_RETIRED.ANY"// Intel Yonah, Merom, Core 1th-10th
-			} } },
-		{ { "branches",
-			{
-				"INST_BRANCH",// Apple A7-A15
-				"BR_INST_RETIRED.ALL_BRANCHES",// Intel Core 1th-10th
-				"INST_RETIRED.ANY",// Intel Yonah, Merom
-			} } },
-		{ { "branch-misses",
-			{
-				"BRANCH_MISPRED_NONSPEC",// Apple A7-A15, since iOS 15, macOS 12
-				"BRANCH_MISPREDICT",// Apple A7-A14
-				"BR_MISP_RETIRED.ALL_BRANCHES",// Intel Core 2th-10th
-				"BR_INST_RETIRED.MISPRED",// Intel Yonah, Merom
-			} } },
-	};
-	*/
+
 	static kpep_event* get_event(kpep_db* db, const event_alias* alias) {
 		for (size_t j = 0; j < EVENT_NAME_MAX; j++) {
 			const char* name = alias->names[j];
@@ -823,13 +663,11 @@ namespace bnch_swt::internal {
 		}
 		init = true;
 
-		// load dylib
 		if (!lib_init()) {
 			std::cout << "Error: " << lib_err_msg << std::endl;
 			return (worked = false);
 		}
 
-		// check permission
 		int32_t force_ctrs = 0;
 		if (kpc_force_all_ctrs_get(&force_ctrs)) {
 			std::cout << "Permission denied, xnu/kpc requires root privileges." << std::endl;
@@ -837,7 +675,6 @@ namespace bnch_swt::internal {
 		}
 
 		int32_t ret;
-		// load pmc db
 		kpep_db* db = NULL;
 		if ((ret = kpep_db_create(NULL, &db))) {
 			std::cout << "Error: cannot load pmc database: " << ret << "." << std::endl;
@@ -845,7 +682,6 @@ namespace bnch_swt::internal {
 		}
 		std::cout << "loaded db: " << db->name << " (" << db->marketing_name << ")" << std::endl;
 
-		// create a config
 		kpep_config* cfg = NULL;
 		if ((ret = kpep_config_create(db, &cfg))) {
 			std::cout << "Failed to create kpep config: " << ret << " (" << kpep_config_error_desc(ret) << ")." << std::endl;
@@ -856,7 +692,6 @@ namespace bnch_swt::internal {
 			return (worked = false);
 		}
 
-		// get events
 		std::array<kpep_event*, ev_count> ev_arr{ nullptr };
 		for (size_t i = 0; i < ev_count; i++) {
 			const event_alias* alias = &profile_events[i];
@@ -867,7 +702,6 @@ namespace bnch_swt::internal {
 			}
 		}
 
-		// add event to config
 		for (size_t i = 0; i < ev_count; i++) {
 			kpep_event* ev = ev_arr[i];
 			if ((ret = kpep_config_add_event(cfg, &ev, 0, NULL))) {
@@ -876,7 +710,6 @@ namespace bnch_swt::internal {
 			}
 		}
 
-		// prepare buffer and config
 		uint32_t classes = 0;
 		size_t reg_count = 0;
 		if ((ret = kpep_config_kpc_classes(cfg, &classes))) {
@@ -896,7 +729,6 @@ namespace bnch_swt::internal {
 			return (worked = false);
 		}
 
-		// set config to kernel
 		if ((ret = kpc_force_all_ctrs_set(1))) {
 			std::cout << "Failed to force all ctrs: " << ret << "." << std::endl;
 			return (worked = false);
@@ -908,7 +740,6 @@ namespace bnch_swt::internal {
 			}
 		}
 
-		// run counting
 		if ((ret = kpc_set_counting(classes))) {
 			std::cout << "Failed to set counting: " << ret << "." << std::endl;
 			return (worked = false);
@@ -924,7 +755,7 @@ namespace bnch_swt::internal {
 	BNCH_SWT_INLINE performance_counters get_counters() {
 		static bool warned = false;
 		int32_t ret;
-		// get counters before
+
 		if ((ret = kpc_get_thread_counters(0, KPC_MAX_COUNTERS, counters_0.data()))) {
 			if (!warned) {
 				std::cout << "Failed to get thread counters before: " << ret << "." << std::endl;

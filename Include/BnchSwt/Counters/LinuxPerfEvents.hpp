@@ -80,7 +80,7 @@ namespace bnch_swt::internal {
 			ids.resize(config_vec.size());
 			uint32_t i = 0;
 			for (auto config: config_vec) {
-				attribs.config = static_cast<uint64_t>(config);
+				attribs.config = static_cast<long long unsigned int>(config);
 				int32_t _fd	   = static_cast<int32_t>(syscall(__NR_perf_event_open, &attribs, pid, cpu, group, flags));
 				if (_fd == -1) {
 					reportError("perf_event_open");

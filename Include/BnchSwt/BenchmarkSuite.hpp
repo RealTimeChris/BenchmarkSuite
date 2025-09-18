@@ -171,6 +171,7 @@ namespace bnch_swt {
 			results[subjectName.operator std::string_view()] = lowestResults;
 			return results[subjectName.operator std::string_view()];
 		}
+		static constexpr uint64_t finalMeasuredIterationCount{ maxExecutionCount - measuredIterationCount > 0 ? maxExecutionCount - measuredIterationCount : 1 };
 
 		template<string_literal subjectNameNew, typename prep_function_type, typename function_type, internal::not_invocable... arg_types>
 		BNCH_SWT_INLINE static performance_metrics runBenchmarkWithPrep(arg_types&&... args) {
@@ -179,8 +180,6 @@ namespace bnch_swt {
 			//"Sorry, but the lambda passed to runBenchmark() must return a uint64_t, reflecting the number of bytes processed!");
 			internal::event_collector<maxExecutionCount> events{};
 			internal::cache_clearer cacheClearer{};
-			performance_metrics lowestResults{};
-			performance_metrics resultsTemp{};
 			uint64_t currentGlobalIndex{ measuredIterationCount };
 			for (uint64_t x = 0; x < maxExecutionCount; ++x) {
 				prep_function_type::impl(std::forward<arg_types>(args)...);
@@ -190,13 +189,27 @@ namespace bnch_swt {
 				events.template run<function_type>(std::forward<arg_types>(args)...);
 			}
 			std::span<internal::event_count> newPtr{ static_cast<std::vector<internal::event_count>&>(events) };
-			static constexpr uint64_t finalMeasuredIterationCount{ maxExecutionCount - measuredIterationCount > 0 ? maxExecutionCount - measuredIterationCount : 1 };
-			for (uint64_t x = 0; x < finalMeasuredIterationCount; ++x, ++currentGlobalIndex) {
-				resultsTemp	  = collectMetrics<subjectName, useNonMbpsMetric>(newPtr.subspan(x, measuredIterationCount), currentGlobalIndex);
-				lowestResults = resultsTemp.throughputPercentageDeviation < lowestResults.throughputPercentageDeviation ? resultsTemp : lowestResults;
-			}
-			results[subjectName.operator std::string_view()] = lowestResults;
+			results[subjectName.operator std::string_view()] = sort_results<subjectName>(currentGlobalIndex, newPtr);
 			return results[subjectName.operator std::string_view()];
+		}
+
+		template<string_literal subjectNameNew>  BNCH_SWT_INLINE static auto sort_results(uint64_t currentGlobalIndex, auto& newPtr) {
+			performance_metrics lowestResults{};
+			performance_metrics resultsTemp{};
+			if constexpr (measuredIterationCount == 1) {
+				std::vector<performance_metrics> vector{};
+				for (uint64_t x = 0; x < finalMeasuredIterationCount; ++x, ++currentGlobalIndex) {
+					vector.emplace_back(collectMetrics<subjectNameNew, useNonMbpsMetric>(newPtr.subspan(x, measuredIterationCount), currentGlobalIndex));
+				}
+				std::sort(vector.data(), vector.data() + vector.size(), std::greater<performance_metrics>{});
+				return vector[0];
+			} else {
+				for (uint64_t x = 0; x < finalMeasuredIterationCount; ++x, ++currentGlobalIndex) {
+					resultsTemp	  = collectMetrics<subjectNameNew, useNonMbpsMetric>(newPtr.subspan(x, measuredIterationCount), currentGlobalIndex);
+					lowestResults = resultsTemp.throughputPercentageDeviation < lowestResults.throughputPercentageDeviation ? resultsTemp : lowestResults;
+				}
+			}
+			return lowestResults;
 		}
 
 		template<string_literal subjectNameNew, typename prep_function_type, typename function_type, internal::not_invocable... arg_types>
@@ -208,8 +221,6 @@ namespace bnch_swt {
 			std::remove_cvref_t<function_type> functionNewer{ std::forward<function_type>(functionNew) };
 			internal::event_collector<maxExecutionCount> events{};
 			internal::cache_clearer cacheClearer{};
-			performance_metrics lowestResults{};
-			performance_metrics resultsTemp{};
 			uint64_t currentGlobalIndex{ measuredIterationCount };
 			for (uint64_t x = 0; x < maxExecutionCount; ++x) {
 				prepFunctionNewer();
@@ -219,12 +230,7 @@ namespace bnch_swt {
 				events.run(functionNewer, std::forward<arg_types>(args)...);
 			}
 			std::span<internal::event_count> newPtr{ static_cast<std::vector<internal::event_count>&>(events) };
-			static constexpr uint64_t finalMeasuredIterationCount{ maxExecutionCount - measuredIterationCount > 0 ? maxExecutionCount - measuredIterationCount : 1 };
-			for (uint64_t x = 0; x < finalMeasuredIterationCount; ++x, ++currentGlobalIndex) {
-				resultsTemp	  = collectMetrics<subjectName, useNonMbpsMetric>(newPtr.subspan(x, measuredIterationCount), currentGlobalIndex);
-				lowestResults = resultsTemp.throughputPercentageDeviation < lowestResults.throughputPercentageDeviation ? resultsTemp : lowestResults;
-			}
-			results[subjectName.operator std::string_view()] = lowestResults;
+			results[subjectName.operator std::string_view()] = sort_results<subjectName>(currentGlobalIndex, newPtr);
 			return results[subjectName.operator std::string_view()];
 		}
 	};
