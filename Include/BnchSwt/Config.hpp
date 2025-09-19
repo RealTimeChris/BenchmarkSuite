@@ -65,7 +65,7 @@
 	#endif
 #else
 	#if defined(BNCH_SWT_MSVC)
-		#define BNCH_SWT_INLINE inline
+		#define BNCH_SWT_INLINE [[msvc::noinline]]
 	#elif defined(BNCH_SWT_CLANG)
 		#define BNCH_SWT_INLINE inline 
 	#elif defined(BNCH_SWT_GNUCXX)

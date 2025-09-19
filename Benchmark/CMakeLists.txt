@@ -42,7 +42,8 @@ target_link_libraries(
 	"BenchmarkExe" PUBLIC 
 	#Jsonifier::Jsonifier glaze::glaze
     BenchmarkSuite::BenchmarkSuite
-    CUDA::cudart
+    CUDA::cudart_static
+    CUDA::cublas
 )
 
 target_link_options(

@@ -80,7 +80,7 @@ namespace bnch_swt {
 							cycleCount		 = "Cycles per " + metricNameNew.operator std::string();
 							instructionCount = "Instructions per " + metricNameNew.operator std::string();
 						} else {
-							throughPutString = "Throughput (B/s)";
+							throughPutString = "Throughput (MB/s)";
 							metricName		 = "Bytes Processed";
 							cycleCount		 = "Cycles per Byte";
 							instructionCount = "Instructions per Byte";
