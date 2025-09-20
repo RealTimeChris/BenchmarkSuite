@@ -50,6 +50,10 @@ namespace bnch_swt {
 		BNCH_SWT_INLINE bool operator>(const performance_metrics& other) const {
 			return throughputMbPerSec > other.throughputMbPerSec;
 		}
+
+		BNCH_SWT_INLINE bool operator<(const performance_metrics& other) const {
+			return throughputMbPerSec < other.throughputMbPerSec;
+		}
 	};
 }
 

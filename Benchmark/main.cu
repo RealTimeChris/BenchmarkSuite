@@ -3,7 +3,7 @@
 #include <cuda_fp16.h>
 
 static constexpr uint64_t total_iterations{ 2 };
-static constexpr uint64_t measured_iterations{ 1 };
+static constexpr uint64_t measured_iterations{ 2 };
 
 template<auto multiple, typename value_01_type = decltype(multiple)> BNCH_SWT_INLINE constexpr value_01_type round_up_to_multiple(value_01_type value) noexcept {
 	if constexpr ((multiple & (multiple - 1)) == 0) {
@@ -99,28 +99,27 @@ inline static uint16_t fp32_to_fp16(float f) {
 	return static_cast<uint16_t>(_mm_extract_epi16(_mm_cvtps_ph(_mm_set_ss(f), _MM_FROUND_TO_NEAREST_INT), 0));
 }
 
-void quantize_row_q8_0_ref(const float* x, block_q8_0* y, int64_t k) {
-	const int nb = k / 32;
+inline block_q8_0 generate_block(const float* x) {
+	block_q8_0 return_values{};
 
-	for (int i = 0; i < nb; i++) {
-		float amax = 0.0f;
+	float amax = 0.0f;
 
-		for (int j = 0; j < 32; j++) {
-			const float v = x[i * 32+ j];
-			amax		  = std::max(amax, fabsf(v));
-		}
-
-		const float d  = amax / ((1 << 7) - 1);
-		const float id = d ? 1.0f / d : 0.0f;
-
-		y[i].scale = fp32_to_fp16(d);
-
-		for (int j = 0; j < 32; ++j) {
-			const float x0 = x[i * 32+ j] * id;
-
-			y[i].quants[j] = roundf(x0);
-		}
+	for (int j = 0; j < 32; j++) {
+		const float v = x[j];
+		amax		  = std::max(amax, fabsf(v));
 	}
+
+	const float d  = amax / ((1 << 7) - 1);
+	const float id = d ? 1.0f / d : 0.0f;
+
+	return_values.scale = fp32_to_fp16(d);
+
+	for (int j = 0; j < 32; ++j) {
+		const float x0 = x[j] * id;
+
+		return_values.quants[j] = roundf(x0);
+	}
+	return return_values;
 }
 
 inline std::vector<std::vector<block_q8_0>> generate_blocks(const std::vector<std::vector<float>>& floats) {
@@ -132,9 +131,10 @@ inline std::vector<std::vector<block_q8_0>> generate_blocks(const std::vector<st
 		const uint64_t blocks_needed = (row_elements + 31) / 32;
 
 		std::vector<block_q8_0> row_blocks;
-		row_blocks.resize(blocks_needed);
-
-		quantize_row_q8_0_ref(row.data(), row_blocks.data(), static_cast<int64_t>(row_elements));
+		row_blocks.reserve(blocks_needed);
+		for (uint64_t x = 0; x < row_elements / 32; ++x) {
+			row_blocks.emplace_back(generate_block(row.data() + x * 32));
+		}
 
 		result.emplace_back(std::move(row_blocks));
 	}
@@ -151,17 +151,6 @@ inline std::vector<std::vector<std::vector<block_q8_0>>> generate_blocks_final(c
 	}
 
 	return result;
-}
-
-template<typename value_type> inline std::vector<value_type> linearize_values(const std::vector<std::vector<value_type>>& values) {
-	std::vector<value_type> return_values{};
-	return_values.reserve(values.size() * values[0].size());
-	for (uint64_t x = 0; x < values.size(); ++x) {
-		for (uint64_t y = 0; y < values[x].size(); ++y) {
-			return_values.emplace_back(values[x][y]);
-		}
-	}
-	return return_values;
 }
 
 inline float generate_llm_float() {
@@ -195,11 +184,22 @@ template<uint64_t iteration_count, uint64_t dim_00, uint64_t dim_01> inline std:
 	return result;
 }
 
-inline std::vector<std::vector<float>> transpose_values(const std::vector<std::vector<float>>& floats) {
+template<typename value_type> inline std::vector<value_type> linearize_values(const std::vector<std::vector<value_type>>& values) {
+	std::vector<value_type> return_values{};
+	return_values.reserve(values.size() * values[0].size());
+	for (uint64_t x = 0; x < values.size(); ++x) {
+		for (uint64_t y = 0; y < values[x].size(); ++y) {
+			return_values.emplace_back(values[x][y]);
+		}
+	}
+	return return_values;
+}
+
+template<typename value_type> inline std::vector<std::vector<value_type>> transpose_values(const std::vector<std::vector<value_type>>& floats) {
 	const uint64_t rows = floats.size();
 	const uint64_t cols = floats.empty() ? 0 : floats[0].size();
 
-	std::vector<std::vector<float>> result;
+	std::vector<std::vector<value_type>> result;
 	result.resize(cols);
 	for (uint64_t x = 0; x < cols; ++x) {
 		result[x].reserve(rows);
@@ -213,9 +213,8 @@ inline std::vector<std::vector<float>> transpose_values(const std::vector<std::v
 	return result;
 }
 
-inline std::vector<std::vector<std::vector<float>>> transpose_values_final(const std::vector<std::vector<std::vector<float>>>& floats) {
-
-	std::vector<std::vector<std::vector<float>>> result;
+template<typename value_type> inline std::vector<std::vector<std::vector<value_type>>> transpose_values_final(const std::vector<std::vector<std::vector<value_type>>>& floats) {
+	std::vector<std::vector<std::vector<value_type>>> result;
 	result.reserve(floats.size());
 	for (uint64_t x = 0; x < floats.size(); ++x) {
 		result.emplace_back(transpose_values(floats[x]));
@@ -301,7 +300,7 @@ template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size> struct
 	}
 };
 
-template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size, bool transposed = false> struct cuda_mul_mat_01_prep {
+template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size> struct cuda_mul_mat_01_prep {
 	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats, std::vector<std::vector<block_q8_0>>& blocks,
 		std::vector<std::vector<float>>& outputs, uint64_t matB_dim_01) {
 		constexpr uint64_t total_blocks_A = ((matA_dim_00 * matA_dim_01) + block_size - 1) / block_size;
@@ -317,6 +316,8 @@ template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size, bool t
 
 		float* d_outputs = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
 
+		//cudaMemset(d_floats, 0, floats_B_size);
+		//cudaMemset(d_outputs, 0, outputs_C_size);
 		if (current_index > 0) {
 			auto& previous_outputs = outputs[current_index - 1];
 			cudaError_t err		   = cudaMemcpy(previous_outputs.data(), d_outputs, outputs_C_size, cudaMemcpyDeviceToHost);
@@ -325,23 +326,8 @@ template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size, bool t
 			}
 		}
 
-		auto& current_blocks = blocks[current_index];
+		const auto& current_blocks = blocks[current_index];
 		const auto& current_floats = floats[current_index];
-		if constexpr (transposed) {
-			std::vector<block_q8_0> transposed_in{};
-			transposed_in.resize(total_blocks_A);
-			std::vector<block_q8_0> transposed_out{};
-			transposed_out.resize(total_blocks_A);
-			std::memcpy(transposed_in.data(), current_blocks.data(), blocks_size);
-			for (uint64_t x = 0; x < matA_dim_00 / 32; ++x) {
-				for (uint64_t y = 0; y < matA_dim_01 / 32; ++y) {
-					uint64_t index_in{ y * matA_dim_00 + x };
-					uint64_t index_out{ x * matA_dim_01 + y };
-					transposed_out[index_out] = transposed_in[index_in];
-				}
-			}
-			std::memcpy(current_blocks.data(), transposed_out.data(), blocks_size);
-		}
 
 		cudaError_t err = cudaMemcpy(d_blocks, current_blocks.data(), blocks_size, cudaMemcpyHostToDevice);
 		if (err != cudaSuccess) {
@@ -353,6 +339,7 @@ template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size, bool t
 			std::cerr << "Failed to copy floats to device: " + std::string(cudaGetErrorString(err)) << std::endl;
 		}
 
+		//err = cudaMemset(d_outputs, 0, outputs_C_size);
 		if (err != cudaSuccess) {
 			std::cerr << "Failed to zero output buffer: " + std::string(cudaGetErrorString(err)) << std::endl;
 		}
@@ -492,22 +479,14 @@ enum class mul_mat_types {
 	ffn_out,
 };
 
-template<mul_mat_types core_type, kernel_type_profiles kernel_type_profile> struct mul_mat_params;
-
-template<> struct mul_mat_params<mul_mat_types::q, kernel_type_profiles::q8_gqa> {
-	static constexpr uint64_t tile_size{ 16 };
-};
-
-template<> struct mul_mat_params<mul_mat_types::ffn_up, kernel_type_profiles::q8_gqa> {
-	static constexpr uint64_t tile_size{ 16 };
-};
-
 #include <cublas_v2.h>
 #include <cublasLt.h>
 #include <cuda_runtime.h>
 #include <cuda_fp16.h>
 
-template<typename value_type> using x_type = decltype(std::remove_cvref_t<value_type>::x);
+template<typename value_type> using base_type = std::remove_cvref_t<value_type>;
+
+template<typename value_type> using x_type = decltype(base_type<value_type>::x);
 
 template<typename value_type>
 concept uint_cuda_types = std::is_unsigned_v<x_type<value_type>> && std::is_integral_v<x_type<value_type>>;
@@ -551,11 +530,11 @@ concept float64_cuda_types = float_cuda_types<value_type> && sizeof(x_type<value
 template<typename value_type>
 concept r_value_reference_types = std::is_rvalue_reference_v<value_type>;
 
-template<typename value_type> BNCH_SWT_INLINE __device__ constexpr value_type&& forward_device(value_type& arg) noexcept {
+template<typename value_type> BNCH_SWT_INLINE __device__ constexpr value_type&& device_forward(value_type& arg) noexcept {
 	return static_cast<value_type&&>(arg);
 }
 
-template<r_value_reference_types value_type> __device__ BNCH_SWT_INLINE constexpr value_type forward_device(value_type arg) noexcept {
+template<r_value_reference_types value_type> __device__ BNCH_SWT_INLINE constexpr value_type device_forward(value_type arg) noexcept {
 	return arg;
 }
 
@@ -564,283 +543,315 @@ enum class get_value_type_errors {
 };
 
 template<typename value_type>
-concept dim04_types = requires() { std::remove_cvref_t<value_type>::w; };
+concept dim04_types = requires() { base_type<value_type>::w; };
 
 template<typename value_type>
-concept dim03_types = requires() { std::remove_cvref_t<value_type>::z; } && !dim04_types<value_type>;
+concept dim03_types = requires() { base_type<value_type>::z; } && !dim04_types<value_type>;
 
 template<typename value_type>
-concept dim02_types = requires() { std::remove_cvref_t<value_type>::y; } && !dim03_types<value_type> && !dim04_types<value_type>;
+concept dim02_types = requires() { base_type<value_type>::y; } && !dim03_types<value_type> && !dim04_types<value_type>;
 
 template<typename value_type>
-concept dim01_types = requires() { std::remove_cvref_t<value_type>::x; } && !dim02_types<value_type> && !dim03_types<value_type> && !dim04_types<value_type>;
+concept dim01_types = requires() { base_type<value_type>::x; } && !dim02_types<value_type> && !dim03_types<value_type> && !dim04_types<value_type>;
 
 template<typename value_type>
-concept dim_types = requires() { std::remove_cvref_t<value_type>::x; };
+concept dim_types = requires() { base_type<value_type>::x; };
 
 template<typename value_type> struct get_value_type {
-	template<typename... value_types> BNCH_SWT_INLINE __device__ static constexpr auto impl(value_types&&... args) {
-		static_assert(false, "Failed to specialize this class!");
-	}
+	template<typename... value_types> BNCH_SWT_INLINE __device__ static constexpr decltype(auto) impl(value_types&&... args) = delete;
 };
 
 template<int8_cuda_types value_type> struct get_value_type<value_type> {
-	template<typename... value_types> BNCH_SWT_INLINE __device__ static constexpr auto impl(value_types&&... args) {
+	template<typename... value_types> BNCH_SWT_INLINE __device__ static constexpr decltype(auto) impl(value_types&&... args) {
 		if constexpr (dim01_types<value_type>) {
-			return make_char1(forward_device<value_types>(args)...);
+			return make_char1(device_forward<value_types>(args)...);
 		} else if constexpr (dim02_types<value_type>) {
-			return make_char2(forward_device<value_types>(args)...);
+			return make_char2(device_forward<value_types>(args)...);
 		} else if constexpr (dim03_types<value_type>) {
-			return make_char3(forward_device<value_types>(args)...);
+			return make_char3(device_forward<value_types>(args)...);
 		} else if constexpr (dim04_types<value_type>) {
-			return make_char4(forward_device<value_types>(args)...);
+			return make_char4(device_forward<value_types>(args)...);
 		}
 	}
 };
 
 template<int16_cuda_types value_type> struct get_value_type<value_type> {
-	template<typename... value_types> BNCH_SWT_INLINE __device__ static constexpr auto impl(value_types&&... args) {
+	template<typename... value_types> BNCH_SWT_INLINE __device__ static constexpr decltype(auto) impl(value_types&&... args) {
 		if constexpr (dim01_types<value_type>) {
-			return make_short1(forward_device<value_types>(args)...);
+			return make_short1(device_forward<value_types>(args)...);
 		} else if constexpr (dim02_types<value_type>) {
-			return make_short2(forward_device<value_types>(args)...);
+			return make_short2(device_forward<value_types>(args)...);
 		} else if constexpr (dim03_types<value_type>) {
-			return make_short3(forward_device<value_types>(args)...);
+			return make_short3(device_forward<value_types>(args)...);
 		} else if constexpr (dim04_types<value_type>) {
-			return make_short4(forward_device<value_types>(args)...);
+			return make_short4(device_forward<value_types>(args)...);
 		}
 	}
 };
 
 template<int32_cuda_types value_type> struct get_value_type<value_type> {
-	template<typename... value_types> BNCH_SWT_INLINE __device__ static constexpr auto impl(value_types&&... args) {
+	template<typename... value_types> BNCH_SWT_INLINE __device__ static constexpr decltype(auto) impl(value_types&&... args) {
 		if constexpr (dim01_types<value_type>) {
-			return make_int1(forward_device<value_types>(args)...);
+			return make_int1(device_forward<value_types>(args)...);
 		} else if constexpr (dim02_types<value_type>) {
-			return make_int2(forward_device<value_types>(args)...);
+			return make_int2(device_forward<value_types>(args)...);
 		} else if constexpr (dim03_types<value_type>) {
-			return make_int3(forward_device<value_types>(args)...);
+			return make_int3(device_forward<value_types>(args)...);
 		} else if constexpr (dim04_types<value_type>) {
-			return make_int4(forward_device<value_types>(args)...);
+			return make_int4(device_forward<value_types>(args)...);
 		}
 	}
 };
 
 template<int64_cuda_types value_type> struct get_value_type<value_type> {
-	template<typename... value_types> BNCH_SWT_INLINE __device__ static constexpr auto impl(value_types&&... args) {
+	template<typename... value_types> BNCH_SWT_INLINE __device__ static constexpr decltype(auto) impl(value_types&&... args) {
 		if constexpr (dim01_types<value_type>) {
-			return make_long1(forward_device<value_types>(args)...);
+			return make_long1(device_forward<value_types>(args)...);
 		} else if constexpr (dim02_types<value_type>) {
-			return make_long2(forward_device<value_types>(args)...);
+			return make_long2(device_forward<value_types>(args)...);
 		} else if constexpr (dim03_types<value_type>) {
-			return make_long3(forward_device<value_types>(args)...);
+			return make_long3(device_forward<value_types>(args)...);
 		} else if constexpr (dim04_types<value_type>) {
-			return make_long4(forward_device<value_types>(args)...);
+			return make_long4(device_forward<value_types>(args)...);
 		}
 	}
 };
 
 template<uint8_cuda_types value_type> struct get_value_type<value_type> {
-	template<typename... value_types> BNCH_SWT_INLINE __device__ static constexpr auto impl(value_types&&... args) {
+	template<typename... value_types> BNCH_SWT_INLINE __device__ static constexpr decltype(auto) impl(value_types&&... args) {
 		if constexpr (dim01_types<value_type>) {
-			return make_uchar1(forward_device<value_types>(args)...);
+			return make_uchar1(device_forward<value_types>(args)...);
 		} else if constexpr (dim02_types<value_type>) {
-			return make_uchar2(forward_device<value_types>(args)...);
+			return make_uchar2(device_forward<value_types>(args)...);
 		} else if constexpr (dim03_types<value_type>) {
-			return make_uchar3(forward_device<value_types>(args)...);
+			return make_uchar3(device_forward<value_types>(args)...);
 		} else if constexpr (dim04_types<value_type>) {
-			return make_uchar4(forward_device<value_types>(args)...);
+			return make_uchar4(device_forward<value_types>(args)...);
 		}
 	}
 };
 
 template<uint16_cuda_types value_type> struct get_value_type<value_type> {
-	template<typename... value_types> BNCH_SWT_INLINE __device__ static constexpr auto impl(value_types&&... args) {
+	template<typename... value_types> BNCH_SWT_INLINE __device__ static constexpr decltype(auto) impl(value_types&&... args) {
 		if constexpr (dim01_types<value_type>) {
-			return make_ushort1(forward_device<value_types>(args)...);
+			return make_ushort1(device_forward<value_types>(args)...);
 		} else if constexpr (dim02_types<value_type>) {
-			return make_ushort2(forward_device<value_types>(args)...);
+			return make_ushort2(device_forward<value_types>(args)...);
 		} else if constexpr (dim03_types<value_type>) {
-			return make_ushort3(forward_device<value_types>(args)...);
+			return make_ushort3(device_forward<value_types>(args)...);
 		} else if constexpr (dim04_types<value_type>) {
-			return make_ushort4(forward_device<value_types>(args)...);
+			return make_ushort4(device_forward<value_types>(args)...);
 		}
 	}
 };
 
 template<uint32_cuda_types value_type> struct get_value_type<value_type> {
-	template<typename... value_types> BNCH_SWT_INLINE __device__ static constexpr auto impl(value_types&&... args) {
+	template<typename... value_types> BNCH_SWT_INLINE __device__ static constexpr decltype(auto) impl(value_types&&... args) {
 		if constexpr (dim01_types<value_type>) {
-			return make_uint1(forward_device<value_types>(args)...);
+			return make_uint1(device_forward<value_types>(args)...);
 		} else if constexpr (dim02_types<value_type>) {
-			return make_uint2(forward_device<value_types>(args)...);
+			return make_uint2(device_forward<value_types>(args)...);
 		} else if constexpr (dim03_types<value_type>) {
-			return make_uint3(forward_device<value_types>(args)...);
+			return make_uint3(device_forward<value_types>(args)...);
 		} else if constexpr (dim04_types<value_type>) {
-			return make_uint4(forward_device<value_types>(args)...);
+			return make_uint4(device_forward<value_types>(args)...);
 		}
 	}
 };
 
 template<uint64_cuda_types value_type> struct get_value_type<value_type> {
-	template<typename... value_types> BNCH_SWT_INLINE __device__ static constexpr auto impl(value_types&&... args) {
+	template<typename... value_types> BNCH_SWT_INLINE __device__ static constexpr decltype(auto) impl(value_types&&... args) {
 		if constexpr (dim01_types<value_type>) {
-			return make_ulong1(forward_device<value_types>(args)...);
+			return make_ulong1(device_forward<value_types>(args)...);
 		} else if constexpr (dim02_types<value_type>) {
-			return make_ulong2(forward_device<value_types>(args)...);
+			return make_ulong2(device_forward<value_types>(args)...);
 		} else if constexpr (dim03_types<value_type>) {
-			return make_ulong3(forward_device<value_types>(args)...);
+			return make_ulong3(device_forward<value_types>(args)...);
 		} else if constexpr (dim04_types<value_type>) {
-			return make_ulong4(forward_device<value_types>(args)...);
+			return make_ulong4(device_forward<value_types>(args)...);
 		}
 	}
 };
 
 template<float32_cuda_types value_type> struct get_value_type<value_type> {
-	template<typename... value_types> BNCH_SWT_INLINE __device__ static constexpr auto impl(value_types&&... args) {
+	template<typename... value_types> BNCH_SWT_INLINE __device__ static constexpr decltype(auto) impl(value_types&&... args) {
 		if constexpr (dim01_types<value_type>) {
-			return make_float1(forward_device<value_types>(args)...);
+			return make_float1(device_forward<value_types>(args)...);
 		} else if constexpr (dim02_types<value_type>) {
-			return make_float2(forward_device<value_types>(args)...);
+			return make_float2(device_forward<value_types>(args)...);
 		} else if constexpr (dim03_types<value_type>) {
-			return make_float3(forward_device<value_types>(args)...);
+			return make_float3(device_forward<value_types>(args)...);
 		} else if constexpr (dim04_types<value_type>) {
-			return make_float4(forward_device<value_types>(args)...);
+			return make_float4(device_forward<value_types>(args)...);
 		}
 	}
 };
 
 template<float64_cuda_types value_type> struct get_value_type<value_type> {
-	template<typename... value_types> BNCH_SWT_INLINE __device__ static constexpr auto impl(value_types&&... args) {
+	template<typename... value_types> BNCH_SWT_INLINE __device__ static constexpr decltype(auto) impl(value_types&&... args) {
 		if constexpr (dim01_types<value_type>) {
-			return make_double1(forward_device<value_types>(args)...);
+			return make_double1(device_forward<value_types>(args)...);
 		} else if constexpr (dim02_types<value_type>) {
-			return make_double2(forward_device<value_types>(args)...);
+			return make_double2(device_forward<value_types>(args)...);
 		} else if constexpr (dim03_types<value_type>) {
-			return make_double3(forward_device<value_types>(args)...);
+			return make_double3(device_forward<value_types>(args)...);
 		} else if constexpr (dim04_types<value_type>) {
-			return make_double4(forward_device<value_types>(args)...);
+			return make_double4(device_forward<value_types>(args)...);
 		}
 	}
 };
 
 enum class binary_op_types {
 	add,
-	sub,
 	mul,
+	sub,
 	div,
 };
 
 template<binary_op_types> struct binary_op_core;
 
 template<> struct binary_op_core<binary_op_types::add> {
-	template<typename value_type01, std::convertible_to<value_type01> value_type02>
-	BNCH_SWT_INLINE static __device__ value_type01 impl(const value_type01& val01, value_type02&& val02) {
-		return val01 + static_cast<value_type01>(val02);
+	template<typename value_type01, typename value_type02> BNCH_SWT_INLINE static __device__ decltype(auto) impl(value_type01&& val01, value_type02&& val02) {
+		return device_forward<value_type01>(val01) + static_cast<base_type<value_type01>>(device_forward<value_type02>(val02));
 	}
-};
 
-template<> struct binary_op_core<binary_op_types::sub> {
-	template<typename value_type01, std::convertible_to<value_type01> value_type02>
-	BNCH_SWT_INLINE static __device__ value_type01 impl(const value_type01& val01, value_type02&& val02) {
-		return val01 - static_cast<value_type01>(val02);
+	template<typename value_type01, typename value_type02> BNCH_SWT_INLINE static __device__ void impl_in_place(value_type01& val01, value_type02&& val02) {
+		val01 += static_cast<base_type<value_type01>>(device_forward<value_type02>(val02));
 	}
 };
 
 template<> struct binary_op_core<binary_op_types::mul> {
-	template<typename value_type01, std::convertible_to<value_type01> value_type02>
-	BNCH_SWT_INLINE static __device__ value_type01 impl(const value_type01& val01, value_type02&& val02) {
-		return val01 * static_cast<value_type01>(val02);
+	template<typename value_type01, typename value_type02> BNCH_SWT_INLINE static __device__ decltype(auto) impl(value_type01&& val01, value_type02&& val02) {
+		return device_forward<value_type01>(val01) * static_cast<base_type<value_type01>>(device_forward<value_type02>(val02));
+	}
+
+	template<typename value_type01, typename value_type02> BNCH_SWT_INLINE static __device__ void impl_in_place(value_type01& val01, value_type02&& val02) {
+		val01 *= static_cast<base_type<value_type01>>(device_forward<value_type02>(val02));
+	}
+};
+
+template<> struct binary_op_core<binary_op_types::sub> {
+	template<typename value_type01, typename value_type02> BNCH_SWT_INLINE static __device__ decltype(auto) impl(value_type01&& val01, value_type02&& val02) {
+		return device_forward<value_type01>(val01) - static_cast<base_type<value_type01>>(device_forward<value_type02>(val02));
+	}
+
+	template<typename value_type01, typename value_type02> BNCH_SWT_INLINE static __device__ void impl_in_place(value_type01& val01, value_type02&& val02) {
+		val01 -= static_cast<base_type<value_type01>>(device_forward<value_type02>(val02));
 	}
 };
 
 template<> struct binary_op_core<binary_op_types::div> {
-	template<typename value_type01, std::convertible_to<value_type01> value_type02>
-	BNCH_SWT_INLINE static __device__ value_type01 impl(const value_type01& val01, value_type02&& val02) {
-		return val01 / static_cast<value_type01>(val02);
+	template<typename value_type01, typename value_type02> BNCH_SWT_INLINE static __device__ decltype(auto) impl(value_type01&& val01, value_type02&& val02) {
+		return device_forward<value_type01>(val01) / static_cast<base_type<value_type01>>(device_forward<value_type02>(val02));
+	}
+
+	template<typename value_type01, typename value_type02> BNCH_SWT_INLINE static __device__ void impl_in_place(value_type01& val01, value_type02&& val02) {
+		val01 /= static_cast<base_type<value_type01>>(device_forward<value_type02>(val02));
 	}
 };
 
-template<binary_op_types binary_op_type> struct binary_op_base {
-	using op_core_type = binary_op_core<binary_op_type>;
-	template<typename value_type01, std::convertible_to<value_type01> value_type02>
-	BNCH_SWT_INLINE static __device__ value_type01 impl_one(const value_type01& val01, value_type02&& val02) {
-		return get_value_type<value_type01>::impl(op_core_type::impl(val01.x, forward_device<value_type02>(val02).x));
+template<typename value_type, binary_op_types binary_op_type> struct binary_op_base;
+
+template<dim01_types value_type, binary_op_types binary_op_type> struct binary_op_base<value_type, binary_op_type> {
+	template<typename value_type01, typename value_type02> BNCH_SWT_INLINE static __device__ decltype(auto) impl(value_type01&& val01, value_type02&& val02) {
+		using op_core_type = binary_op_core<binary_op_type>;
+		return get_value_type<value_type01>::impl(op_core_type::impl(device_forward<value_type01>(val01).x, device_forward<value_type02>(val02).x));
 	}
 
-	template<typename value_type01, std::convertible_to<value_type01> value_type02>
-	BNCH_SWT_INLINE static __device__ value_type01 impl_two(const value_type01& val01, value_type02&& val02) {
-		return get_value_type<value_type01>::impl(op_core_type::impl(val01.x, forward_device<value_type02>(val02).x),
-			op_core_type::impl(val01.y, forward_device<value_type02>(val02).y));
+	template<typename value_type01, typename value_type02> BNCH_SWT_INLINE static __device__ void impl_in_place(value_type01& val01, value_type02&& val02) {
+		using op_core_type = binary_op_core<binary_op_type>;
+		op_core_type::impl_in_place(val01.x, device_forward<value_type02>(val02).x);
+	}
+};
+
+template<dim02_types value_type, binary_op_types binary_op_type> struct binary_op_base<value_type, binary_op_type> {
+	template<typename value_type01, typename value_type02> BNCH_SWT_INLINE static __device__ decltype(auto) impl(value_type01&& val01, value_type02&& val02) {
+		using op_core_type = binary_op_core<binary_op_type>;
+		return get_value_type<value_type01>::impl(op_core_type::impl(device_forward<value_type01>(val01).x, device_forward<value_type02>(val02).x),
+			op_core_type::impl(device_forward<value_type01>(val01).y, device_forward<value_type02>(val02).y));
 	}
 
-	template<typename value_type01, std::convertible_to<value_type01> value_type02>
-	BNCH_SWT_INLINE static __device__ value_type01 impl_three(const value_type01& val01, value_type02&& val02) {
-		return get_value_type<value_type01>::impl(op_core_type::impl(val01.x, forward_device<value_type02>(val02).x),
-			op_core_type::impl(val01.y, forward_device<value_type02>(val02).y), op_core_type::impl(val01.z, forward_device<value_type02>(val02).z));
+	template<typename value_type01, typename value_type02> BNCH_SWT_INLINE static __device__ void impl_in_place(value_type01& val01, value_type02&& val02) {
+		using op_core_type = binary_op_core<binary_op_type>;
+		op_core_type::impl_in_place(val01.x, device_forward<value_type02>(val02).x);
+		op_core_type::impl_in_place(val01.y, device_forward<value_type02>(val02).y);
+	}
+};
+
+template<dim03_types value_type, binary_op_types binary_op_type> struct binary_op_base<value_type, binary_op_type> {
+	template<typename value_type01, typename value_type02> BNCH_SWT_INLINE static __device__ decltype(auto) impl(value_type01&& val01, value_type02&& val02) {
+		using op_core_type = binary_op_core<binary_op_type>;
+		return get_value_type<value_type01>::impl(op_core_type::impl(device_forward<value_type01>(val01).x, device_forward<value_type02>(val02).x),
+			op_core_type::impl(device_forward<value_type01>(val01).y, device_forward<value_type02>(val02).y),
+			op_core_type::impl(device_forward<value_type01>(val01).z, device_forward<value_type02>(val02).z));
 	}
 
-	template<typename value_type01, std::convertible_to<value_type01> value_type02>
-	BNCH_SWT_INLINE static __device__ value_type01 impl_four(const value_type01& val01, value_type02&& val02) {
-		return get_value_type<value_type01>::impl(op_core_type::impl(val01.x, forward_device<value_type02>(val02).x),
-			op_core_type::impl(val01.y, forward_device<value_type02>(val02).y), op_core_type::impl(val01.z, forward_device<value_type02>(val02).z),
-			op_core_type::impl(val01.w, forward_device<value_type02>(val02).w));
+	template<typename value_type01, typename value_type02> BNCH_SWT_INLINE static __device__ void impl_in_place(value_type01& val01, value_type02&& val02) {
+		using op_core_type = binary_op_core<binary_op_type>;
+		op_core_type::impl_in_place(val01.x, device_forward<value_type02>(val02).x);
+		op_core_type::impl_in_place(val01.y, device_forward<value_type02>(val02).y);
+		op_core_type::impl_in_place(val01.z, device_forward<value_type02>(val02).z);
+	}
+};
+
+template<dim04_types value_type, binary_op_types binary_op_type> struct binary_op_base<value_type, binary_op_type> {
+	template<typename value_type01, typename value_type02> BNCH_SWT_INLINE static __device__ decltype(auto) impl(value_type01&& val01, value_type02&& val02) {
+		using op_core_type = binary_op_core<binary_op_type>;
+		return get_value_type<value_type01>::impl(op_core_type::impl(device_forward<value_type01>(val01).x, device_forward<value_type02>(val02).x),
+			op_core_type::impl(device_forward<value_type01>(val01).y, device_forward<value_type02>(val02).y),
+			op_core_type::impl(device_forward<value_type01>(val01).z, device_forward<value_type02>(val02).z),
+			op_core_type::impl(device_forward<value_type01>(val01).w, device_forward<value_type02>(val02).w));
+	}
+
+	template<typename value_type01, typename value_type02> BNCH_SWT_INLINE static __device__ void impl_in_place(value_type01& val01, value_type02&& val02) {
+		using op_core_type = binary_op_core<binary_op_type>;
+		op_core_type::impl_in_place(val01.x, device_forward<value_type02>(val02).x);
+		op_core_type::impl_in_place(val01.y, device_forward<value_type02>(val02).y);
+		op_core_type::impl_in_place(val01.z, device_forward<value_type02>(val02).z);
+		op_core_type::impl_in_place(val01.w, device_forward<value_type02>(val02).w);
 	}
 };
 
 template<binary_op_types binary_op_type> struct binary_op {
-	template<typename value_type01, std::convertible_to<value_type01> value_type02>
-	BNCH_SWT_INLINE static __device__ value_type01 impl(const value_type01& val01, value_type02&& val02) {
-		if constexpr (dim04_types<value_type01>) {
-			return binary_op_base<binary_op_type>::impl_four(val01, forward_device<value_type02>(val02));
-		} else if constexpr (dim03_types<value_type01>) {
-			return binary_op_base<binary_op_type>::impl_three(val01, forward_device<value_type02>(val02));
-		} else if constexpr (dim02_types<value_type01>) {
-			return binary_op_base<binary_op_type>::impl_two(val01, forward_device<value_type02>(val02));
-		} else {
-			return binary_op_base<binary_op_type>::impl_one(val01, forward_device<value_type02>(val02));
-		}
+	template<typename value_type01, typename value_type02> BNCH_SWT_INLINE static __device__ decltype(auto) impl(value_type01&& val01, value_type02&& val02) {
+		return binary_op_base<value_type01, binary_op_type>::impl(device_forward<value_type01>(val01), device_forward<value_type02>(val02));
+	}
+
+	template<typename value_type01, typename value_type02> BNCH_SWT_INLINE static __device__ decltype(auto) impl_in_place(value_type01& val01, value_type02&& val02) {
+		return binary_op_base<value_type01, binary_op_type>::impl_in_place(val01, device_forward<value_type02>(val02));
 	}
 };
 
-template<dim_types value_type01, std::convertible_to<value_type01> value_type02>
-BNCH_SWT_INLINE __device__ value_type01 operator+=(const value_type01& val01, value_type02&& val02) {
-	return binary_op<binary_op_types::add>::impl(val01, val02);
+template<dim_types value_type01, dim_types value_type02> BNCH_SWT_INLINE __device__ decltype(auto) operator+=(value_type01& val01, value_type02&& val02) {
+	return binary_op<binary_op_types::add>::impl_in_place(val01, device_forward<value_type02>(val02));
 }
 
-template<dim_types value_type01, std::convertible_to<value_type01> value_type02>
-BNCH_SWT_INLINE __device__ value_type01 operator+(const value_type01& val01, value_type02&& val02) {
-	return binary_op<binary_op_types::add>::impl(val01, val02);
+template<dim_types value_type01, dim_types value_type02> BNCH_SWT_INLINE __device__ decltype(auto) operator+(value_type01&& val01, value_type02&& val02) {
+	return binary_op<binary_op_types::add>::impl(device_forward<value_type01>(val01), device_forward<value_type02>(val02));
 }
 
-template<dim_types value_type01, std::convertible_to<value_type01> value_type02>
-BNCH_SWT_INLINE __device__ value_type01 operator*=(const value_type01& val01, value_type02&& val02) {
-	return binary_op<binary_op_types::mul>::impl(val01, val02);
+template<dim_types value_type01, dim_types value_type02> BNCH_SWT_INLINE __device__ decltype(auto) operator*=(value_type01& val01, value_type02&& val02) {
+	return binary_op<binary_op_types::mul>::impl_in_place(val01, device_forward<value_type02>(val02));
 }
 
-template<dim_types value_type01, std::convertible_to<value_type01> value_type02>
-BNCH_SWT_INLINE __device__ value_type01 operator*(const value_type01& val01, value_type02&& val02) {
-	return binary_op<binary_op_types::mul>::impl(val01, val02);
+template<dim_types value_type01, dim_types value_type02> BNCH_SWT_INLINE __device__ decltype(auto) operator*(value_type01&& val01, value_type02&& val02) {
+	return binary_op<binary_op_types::mul>::impl(device_forward<value_type01>(val01), device_forward<value_type02>(val02));
 }
 
-template<dim_types value_type01, std::convertible_to<value_type01> value_type02>
-BNCH_SWT_INLINE __device__ value_type01 operator-=(const value_type01& val01, value_type02&& val02) {
-	return binary_op<binary_op_types::sub>::impl(val01, val02);
+template<dim_types value_type01, dim_types value_type02> BNCH_SWT_INLINE __device__ decltype(auto) operator-=(value_type01& val01, value_type02&& val02) {
+	return binary_op<binary_op_types::sub>::impl_in_place(val01, device_forward<value_type02>(val02));
 }
 
-template<dim_types value_type01, std::convertible_to<value_type01> value_type02>
-BNCH_SWT_INLINE __device__ value_type01 operator-(const value_type01& val01, value_type02&& val02) {
-	return binary_op<binary_op_types::sub>::impl(val01, val02);
+template<dim_types value_type01, dim_types value_type02> BNCH_SWT_INLINE __device__ decltype(auto) operator-(value_type01&& val01, value_type02&& val02) {
+	return binary_op<binary_op_types::sub>::impl(device_forward<value_type01>(val01), device_forward<value_type02>(val02));
 }
 
-template<dim_types value_type01, std::convertible_to<value_type01> value_type02>
-BNCH_SWT_INLINE __device__ value_type01 operator/=(const value_type01& val01, value_type02&& val02) {
-	return binary_op<binary_op_types::div>::impl(val01, val02);
+template<dim_types value_type01, dim_types value_type02> BNCH_SWT_INLINE __device__ decltype(auto) operator/=(value_type01& val01, value_type02&& val02) {
+	return binary_op<binary_op_types::div>::impl_in_place(val01, device_forward<value_type02>(val02));
 }
 
-template<dim_types value_type01, std::convertible_to<value_type01> value_type02>
-BNCH_SWT_INLINE __device__ value_type01 operator/(const value_type01& val01, value_type02&& val02) {
-	return binary_op<binary_op_types::div>::impl(val01, val02);
+template<dim_types value_type01, dim_types value_type02> BNCH_SWT_INLINE __device__ decltype(auto) operator/(value_type01&& val01, value_type02&& val02) {
+	return binary_op<binary_op_types::div>::impl(device_forward<value_type01>(val01), device_forward<value_type02>(val02));
 }
 
 struct gpu_properties {
@@ -1003,14 +1014,16 @@ template<typename traits> __device__ __forceinline__ void compute_warp_tile(floa
 		for (uint64_t k = 0; k < block_k; ++k) {
 			for (uint64_t tm_vec = 0; tm_vec < thread_m / 4; ++tm_vec) {
 				const uint64_t base_row	   = warp_row + thread_row * thread_m + tm_vec * 4;
-				const uint64_t smem_offset = k * block_m + base_row;
-				frag_A[tm_vec]			   = *reinterpret_cast<const float4*>(&smem_A[smem_offset]);
+				const uint64_t smem_offset = base_row * block_k + k;
+
+				frag_A[tm_vec] = make_float4(smem_A[smem_offset], smem_A[smem_offset + block_k], smem_A[smem_offset + 2 * block_k], smem_A[smem_offset + 3 * block_k]);
 			}
 
 			for (uint64_t tn_vec = 0; tn_vec < thread_n / 4; ++tn_vec) {
 				const uint64_t base_col	   = warp_col + thread_col * thread_n + tn_vec * 4;
 				const uint64_t smem_offset = k * block_n + base_col;
-				frag_B[tn_vec]			   = *reinterpret_cast<const float4*>(&smem_B[smem_offset]);
+
+				frag_B[tn_vec] = *reinterpret_cast<const float4*>(&smem_B[smem_offset]);
 			}
 
 			for (uint64_t tm_vec = 0; tm_vec < thread_m / 4; ++tm_vec) {
@@ -1048,7 +1061,7 @@ template<typename traits> __device__ __forceinline__ void compute_warp_tile(floa
 			for (uint64_t tm = 0; tm < thread_m; ++tm) {
 				const uint64_t smem_row = warp_row + thread_row * thread_m + tm;
 				if (smem_row < block_m) {
-					frag_A[tm] = smem_A[k * block_m + smem_row];
+					frag_A[tm] = smem_A[smem_row * block_k + k];
 				}
 			}
 
@@ -1093,7 +1106,7 @@ template<typename traits> __device__ __forceinline__ void store_output_tile(floa
 	}
 }
 
-template<uint64_t M, uint64_t K> __global__ void rt_tm_gemm_kernel(const block_q8_0* A, const float* B, float* C, uint64_t N) {
+template<uint64_t M, uint64_t K> __launch_bounds__(256, 2) __global__ void rt_tm_gemm_kernel(const block_q8_0* A, const float* B, float* C, uint64_t N) {
 	using traits = mul_mat_1_to_1024;
 
 	constexpr uint64_t block_m	= traits::block_tile_m;
@@ -1371,10 +1384,10 @@ template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t matB_dim_00, uint6
 		sizeof(block_q8_0) };
 	static constexpr uint64_t total_floats_b{ matB_dim_00 * matB_dim_01 };
 	std::vector<std::vector<std::vector<float>>> block_floats{ generate_floats_final<total_iterations, matA_dim_00, matA_dim_01>() };
-	std::vector<std::vector<std::vector<float>>> transposed_block_floats{ transpose_values_final(block_floats) };
+	//std::vector<std::vector<std::vector<float>>> transposed_block_floats{ transpose_values_final(block_floats) };
 	std::vector<std::vector<float>> floats{ generate_values_final(generate_floats_final<total_iterations, matA_dim_00, matA_dim_01>()) };
 	std::vector<std::vector<block_q8_0>> blocks{ generate_values_final(generate_blocks_final(block_floats)) };
-	std::vector<std::vector<block_q8_0>> transposed_blocks{ generate_values_final(generate_blocks_final(transposed_block_floats)) };
+	//std::vector<std::vector<block_q8_0>> transposed_blocks{ generate_values_final(generate_blocks_final(transposed_block_floats)) };
 	std::vector<std::vector<float>> outputs01{};
 	std::vector<std::vector<float>> outputs02{};
 	std::vector<std::vector<float>> outputs03{};
@@ -1416,17 +1429,17 @@ template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t matB_dim_00, uint6
 	//cuda_mul_mat_01_prep<matA_dim_00, matA_dim_01, 32>, reference_mul_mat<matA_dim_00, matA_dim_01, 32>>(buffer, current_index, floats, blocks, outputs01, matB_dim_01);
 	//current_index = 0;
 
-	//bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"nvcuda_cublas_mul_mat",
-	//		cuda_mul_mat_01_prep<matA_dim_00, matA_dim_01, 32>, nvcuda_cublas_mul_mat_simple<matA_dim_00, matA_dim_01, 32, mul_mat_type>>(buffer, current_index, floats, blocks,
-	//		outputs03, matB_dim_01);
+	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"nvcuda_cublas_mul_mat",
+		cuda_mul_mat_01_prep<matA_dim_00, matA_dim_01, 32>, nvcuda_cublas_mul_mat_simple<matA_dim_00, matA_dim_01, 32, mul_mat_type>>(buffer, current_index, floats, blocks,
+		outputs03, matB_dim_01);
 	current_index = 0;
 	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"rt_tm_cuda_mul_mat",
-		cuda_mul_mat_01_prep<matA_dim_00, matA_dim_01, 32, true>, rt_tm_mul_mat<matA_dim_00, matA_dim_01, 32, mul_mat_type>>(buffer, current_index, floats, transposed_blocks, outputs02,
+		cuda_mul_mat_01_prep<matA_dim_00, matA_dim_01, 32>, rt_tm_mul_mat<matA_dim_00, matA_dim_01, 32, mul_mat_type>>(buffer, current_index, floats, blocks, outputs02,
 		matB_dim_01);
 
 	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::printResults();
 	compare_outputs<"outputs02">(outputs01, outputs02, total_iterations, matC_total_elems);
-	//compare_outputs<"nvcuda_cublas_mul_mat_simple producing incorrect values">(outputs01, outputs03, total_iterations, matC_total_elems);
+	compare_outputs<"nvcuda_cublas_mul_mat_simple producing incorrect values">(outputs01, outputs03, total_iterations, matC_total_elems);
 };
 
 int main() {

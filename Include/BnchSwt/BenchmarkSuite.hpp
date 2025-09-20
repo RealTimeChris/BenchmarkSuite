@@ -201,7 +201,7 @@ namespace bnch_swt {
 				for (uint64_t x = 0; x < finalMeasuredIterationCount; ++x, ++currentGlobalIndex) {
 					vector.emplace_back(collectMetrics<subjectNameNew, useNonMbpsMetric>(newPtr.subspan(x, measuredIterationCount), currentGlobalIndex));
 				}
-				std::sort(vector.data(), vector.data() + vector.size(), std::greater<performance_metrics>{});
+				std::sort(vector.data(), vector.data() + vector.size(), std::less<performance_metrics>{});
 				return vector[0];
 			} else {
 				for (uint64_t x = 0; x < finalMeasuredIterationCount; ++x, ++currentGlobalIndex) {
