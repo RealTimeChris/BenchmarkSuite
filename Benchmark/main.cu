@@ -827,19 +827,19 @@ __device__ __forceinline__ void load_smem_tile_A(float* smem_A, const block_q8_0
 	const uint64_t elements_per_block	 = block_m * block_k;
 	const uint64_t vec4_elements		 = elements_per_block / 4;
 	const uint64_t vec4_per_thread		 = (vec4_elements + threads_per_block - 1) / threads_per_block;
-	for (uint64_t i = 0; i < vec4_per_thread; i++) {
-		const uint64_t vec4_idx	  = tid + i * threads_per_block;
-		const uint64_t linear_idx = vec4_idx * 4;
-		const uint64_t row		  = linear_idx / block_k;
-		const uint64_t col		  = linear_idx % block_k;
-		const uint64_t global_row	= block_row + row;
-		const uint64_t global_col	= k_offset + col;
-		const uint64_t q8_block_row = global_row;
-		const uint64_t q8_block_col = global_col / 32;
-		const uint64_t q8_elem_idx	= global_col % 32;
-		const uint64_t q8_block_idx = q8_block_row * k_blocks + q8_block_col;
-		const block_q8_0& q8_block	= A_global[q8_block_idx];
-		const float scale_raw		= __half2float(*reinterpret_cast<const __half*>(&q8_block.scale));
+	for (uint64_t i = 0; i < vec4_per_thread; ++i) {
+		const uint64_t vec4_idx							 = tid + i * threads_per_block;
+		const uint64_t linear_idx						 = vec4_idx * 4;
+		const uint64_t row								 = linear_idx / block_k;
+		const uint64_t col								 = linear_idx % block_k;
+		const uint64_t global_row						 = block_row + row;
+		const uint64_t global_col						 = k_offset + col;
+		const uint64_t q8_block_row						 = global_row;
+		const uint64_t q8_block_col						 = global_col / 32;
+		const uint64_t q8_elem_idx						 = global_col % 32;
+		const uint64_t q8_block_idx						 = q8_block_row * k_blocks + q8_block_col;
+		const block_q8_0& q8_block						 = A_global[q8_block_idx];
+		const float scale_raw							 = __half2float(*reinterpret_cast<const __half*>(&q8_block.scale));
 		const uint64_t smem_offset						 = row * block_k + col;
 		*reinterpret_cast<float4*>(&smem_A[smem_offset]) = make_float4(static_cast<float>(q8_block.quants[q8_elem_idx]), static_cast<float>(q8_block.quants[q8_elem_idx + 1]),
 															   static_cast<float>(q8_block.quants[q8_elem_idx + 2]), static_cast<float>(q8_block.quants[q8_elem_idx + 3])) *
@@ -858,7 +858,7 @@ __device__ __forceinline__ void load_smem_tile_B(float* smem_B, const float* B_g
 	const uint64_t total_vec4_loads		 = block_k * vec4_cols_per_row;
 	const uint64_t vec4_loads_per_thread = (total_vec4_loads + threads_per_block - 1) / threads_per_block;
 
-	for (uint64_t i = 0; i < vec4_loads_per_thread; i++) {
+	for (uint64_t i = 0; i < vec4_loads_per_thread; ++i) {
 		const uint64_t vec4_idx = tid + i * threads_per_block;
 		if (vec4_idx < total_vec4_loads) {
 			const uint64_t row		= vec4_idx / vec4_cols_per_row;
@@ -873,7 +873,7 @@ __device__ __forceinline__ void load_smem_tile_B(float* smem_B, const float* B_g
 				const uint64_t smem_offset						 = row * block_n + col;
 				*reinterpret_cast<float4*>(&smem_B[smem_offset]) = *reinterpret_cast<const float4*>(&B_global[global_offset]);
 			} else {
-				for (uint64_t elem = 0; elem < 4; elem++) {
+				for (uint64_t elem = 0; elem < 4; ++elem) {
 					const uint64_t elem_global_col = global_col + elem;
 					const uint64_t elem_col		   = col + elem;
 					if (global_row < K && elem_global_col < N && elem_col < block_n) {
@@ -895,32 +895,80 @@ template<typename traits> __device__ __forceinline__ void compute_warp_tile(floa
 	constexpr uint64_t block_n	= traits::block_tile_n;
 	constexpr uint64_t block_m	= traits::block_tile_m;
 
-	uint64_t lane_id		 = threadIdx.x % 32;
-	uint64_t threads_per_row = warp_n / thread_n;
-	uint64_t thread_row		 = lane_id / threads_per_row;
-	uint64_t thread_col		 = lane_id % threads_per_row;
+	const uint64_t lane_id		   = threadIdx.x % 32;
+	const uint64_t threads_per_row = warp_n / thread_n;
+	const uint64_t thread_row	   = lane_id / threads_per_row;
+	const uint64_t thread_col	   = lane_id % threads_per_row;
 
-	float frag_A[thread_m];
-	float frag_B[thread_n];
+	if constexpr (thread_m % 4 == 0 && thread_n % 4 == 0) {
+		float4 frag_A[thread_m / 4];
+		float4 frag_B[thread_n / 4];
 
-	for (uint64_t k = 0; k < block_k; k++) {
-#pragma unroll
-		for (uint64_t tm = 0; tm < thread_m; tm++) {
-			uint64_t smem_row = warp_row + thread_row * thread_m + tm;
-			frag_A[tm]		  = smem_A[smem_row * block_k + k];
+		for (uint64_t k = 0; k < block_k; ++k) {
+			for (uint64_t tm_vec = 0; tm_vec < thread_m / 4; ++tm_vec) {
+				const uint64_t base_row	   = warp_row + thread_row * thread_m + tm_vec * 4;
+				const uint64_t smem_offset = base_row * block_k + k;
+
+				frag_A[tm_vec] = make_float4(smem_A[smem_offset], smem_A[smem_offset + block_k], smem_A[smem_offset + 2 * block_k], smem_A[smem_offset + 3 * block_k]);
+			}
+
+			for (uint64_t tn_vec = 0; tn_vec < thread_n / 4; ++tn_vec) {
+				const uint64_t base_col	   = warp_col + thread_col * thread_n + tn_vec * 4;
+				const uint64_t smem_offset = k * block_n + base_col;
+
+				frag_B[tn_vec] = *reinterpret_cast<const float4*>(&smem_B[smem_offset]);
+			}
+
+			for (uint64_t tm_vec = 0; tm_vec < thread_m / 4; ++tm_vec) {
+				for (uint64_t tn_vec = 0; tn_vec < thread_n / 4; ++tn_vec) {
+					const float4& a_vec = frag_A[tm_vec];
+					const float4& b_vec = frag_B[tn_vec];
+
+					accumulator[tm_vec * 4][tn_vec * 4] += a_vec.x * b_vec.x;
+					accumulator[tm_vec * 4][tn_vec * 4 + 1] += a_vec.x * b_vec.y;
+					accumulator[tm_vec * 4][tn_vec * 4 + 2] += a_vec.x * b_vec.z;
+					accumulator[tm_vec * 4][tn_vec * 4 + 3] += a_vec.x * b_vec.w;
+
+					accumulator[tm_vec * 4 + 1][tn_vec * 4] += a_vec.y * b_vec.x;
+					accumulator[tm_vec * 4 + 1][tn_vec * 4 + 1] += a_vec.y * b_vec.y;
+					accumulator[tm_vec * 4 + 1][tn_vec * 4 + 2] += a_vec.y * b_vec.z;
+					accumulator[tm_vec * 4 + 1][tn_vec * 4 + 3] += a_vec.y * b_vec.w;
+
+					accumulator[tm_vec * 4 + 2][tn_vec * 4] += a_vec.z * b_vec.x;
+					accumulator[tm_vec * 4 + 2][tn_vec * 4 + 1] += a_vec.z * b_vec.y;
+					accumulator[tm_vec * 4 + 2][tn_vec * 4 + 2] += a_vec.z * b_vec.z;
+					accumulator[tm_vec * 4 + 2][tn_vec * 4 + 3] += a_vec.z * b_vec.w;
+
+					accumulator[tm_vec * 4 + 3][tn_vec * 4] += a_vec.w * b_vec.x;
+					accumulator[tm_vec * 4 + 3][tn_vec * 4 + 1] += a_vec.w * b_vec.y;
+					accumulator[tm_vec * 4 + 3][tn_vec * 4 + 2] += a_vec.w * b_vec.z;
+					accumulator[tm_vec * 4 + 3][tn_vec * 4 + 3] += a_vec.w * b_vec.w;
+				}
+			}
 		}
+	} else {
+		float frag_A[thread_m];
+		float frag_B[thread_n];
 
-#pragma unroll
-		for (uint64_t tn = 0; tn < thread_n; tn++) {
-			uint64_t smem_col = warp_col + thread_col * thread_n + tn;
-			frag_B[tn]		  = smem_B[k * block_n + smem_col];
-		}
+		for (uint64_t k = 0; k < block_k; ++k) {
+			for (uint64_t tm = 0; tm < thread_m; ++tm) {
+				const uint64_t smem_row = warp_row + thread_row * thread_m + tm;
+				if (smem_row < block_m) {
+					frag_A[tm] = smem_A[smem_row * block_k + k];
+				}
+			}
 
-#pragma unroll
-		for (uint64_t tm = 0; tm < thread_m; tm++) {
-#pragma unroll
-			for (uint64_t tn = 0; tn < thread_n; tn++) {
-				accumulator[tm][tn] += frag_A[tm] * frag_B[tn];
+			for (uint64_t tn = 0; tn < thread_n; ++tn) {
+				const uint64_t smem_col = warp_col + thread_col * thread_n + tn;
+				if (smem_col < block_n) {
+					frag_B[tn] = smem_B[k * block_n + smem_col];
+				}
+			}
+
+			for (uint64_t tm = 0; tm < thread_m; ++tm) {
+				for (uint64_t tn = 0; tn < thread_n; ++tn) {
+					accumulator[tm][tn] += frag_A[tm] * frag_B[tn];
+				}
 			}
 		}
 	}
@@ -932,17 +980,17 @@ template<typename traits> __device__ __forceinline__ void store_output_tile(floa
 	constexpr uint64_t thread_n = traits::thread_tile_n;
 	constexpr uint64_t warp_n	= traits::warp_tile_n;
 
-	uint64_t lane_id		 = threadIdx.x % 32;
-	uint64_t threads_per_row = warp_n / thread_n;
-	uint64_t thread_row		 = lane_id / threads_per_row;
-	uint64_t thread_col		 = lane_id % threads_per_row;
+	const uint64_t lane_id		   = threadIdx.x % 32;
+	const uint64_t threads_per_row = warp_n / thread_n;
+	const uint64_t thread_row	   = lane_id / threads_per_row;
+	const uint64_t thread_col	   = lane_id % threads_per_row;
 
 #pragma unroll
-	for (uint64_t tm = 0; tm < thread_m; tm++) {
+	for (uint64_t tm = 0; tm < thread_m; ++tm) {
 #pragma unroll
-		for (uint64_t tn = 0; tn < thread_n; tn++) {
-			uint64_t global_row = block_row + warp_row + thread_row * thread_m + tm;
-			uint64_t global_col = block_col + warp_col + thread_col * thread_n + tn;
+		for (uint64_t tn = 0; tn < thread_n; ++tn) {
+			const uint64_t global_row = block_row + warp_row + thread_row * thread_m + tm;
+			const uint64_t global_col = block_col + warp_col + thread_col * thread_n + tn;
 
 			if (global_row < M && global_col < N) {
 				C_global[global_row * N + global_col] = accumulator[tm][tn];
@@ -967,18 +1015,18 @@ template<uint64_t M, uint64_t K> __global__ void rt_tm_gemm_kernel(const block_q
 	__shared__ float smem_A[2][block_m * block_k];
 	__shared__ float smem_B[2][block_k * block_n];
 
-	uint64_t block_row = blockIdx.y * block_m;
-	uint64_t block_col = blockIdx.x * block_n;
+	const uint64_t block_row = blockIdx.y * block_m;
+	const uint64_t block_col = blockIdx.x * block_n;
 
-	uint64_t warp_id  = threadIdx.x / 32;
-	uint64_t warp_row = (warp_id / warps_n) * warp_m;
-	uint64_t warp_col = (warp_id % warps_n) * warp_n;
+	const uint64_t warp_id	= threadIdx.x / 32;
+	const uint64_t warp_row = (warp_id / warps_n) * warp_m;
+	const uint64_t warp_col = (warp_id % warps_n) * warp_n;
 
 	float accumulator[thread_m][thread_n];
 #pragma unroll
-	for (uint64_t tm = 0; tm < thread_m; tm++) {
+	for (uint64_t tm = 0; tm < thread_m; ++tm) {
 #pragma unroll
-		for (uint64_t tn = 0; tn < thread_n; tn++) {
+		for (uint64_t tn = 0; tn < thread_n; ++tn) {
 			accumulator[tm][tn] = 0.0f;
 		}
 	}
