@@ -6,6 +6,7 @@ project(
   LANGUAGES CUDA
 )
 
+
 find_package(CUDAToolkit REQUIRED)
 
 if(MSVC OR NVCC)

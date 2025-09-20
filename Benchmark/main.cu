@@ -104,7 +104,7 @@ inline block_q8_0 generate_block(const float* x) {
 
 	float amax = 0.0f;
 
-	for (int j = 0; j < 32; j++) {
+	for (int32_t j = 0; j < 32; j++) {
 		const float v = x[j];
 		amax		  = std::max(amax, fabsf(v));
 	}
@@ -114,7 +114,7 @@ inline block_q8_0 generate_block(const float* x) {
 
 	return_values.scale = fp32_to_fp16(d);
 
-	for (int j = 0; j < 32; ++j) {
+	for (int32_t j = 0; j < 32; ++j) {
 		const float x0 = x[j] * id;
 
 		return_values.quants[j] = roundf(x0);
@@ -268,31 +268,31 @@ BNCH_SWT_INLINE static float fp16_to_fp32(uint16_t f) {
 	return fp16_to_fp32_array[f];
 }
 
-template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size> struct reference_mul_mat {
+template<uint64_t M, uint64_t K, uint64_t block_size> struct reference_mul_mat {
 	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats, std::vector<std::vector<block_q8_0>>& blocks,
-		std::vector<std::vector<float>>& outputs, uint64_t matB_dim_01) {
+		std::vector<std::vector<float>>& outputs, uint64_t N) {
 		const auto& current_blocks = blocks[current_index];
 		const auto& current_floats = floats[current_index];
 		auto& current_outputs	   = outputs[current_index];
 
-		for (uint64_t row = 0; row < matA_dim_00; ++row) {
-			for (uint64_t col = 0; col < matB_dim_01; ++col) {
+		for (uint64_t row = 0; row < M; ++row) {
+			for (uint64_t col = 0; col < N; ++col) {
 				float sum = 0.0f;
 
-				for (uint64_t k = 0; k < matA_dim_01; ++k) {
-					const uint64_t block_idx	 = (row * matA_dim_01 + k) / block_size;
-					const uint64_t elem_in_block = (row * matA_dim_01 + k) % block_size;
+				for (uint64_t k = 0; k < K; ++k) {
+					const uint64_t block_idx	 = (row * K + k) / block_size;
+					const uint64_t elem_in_block = (row * K + k) % block_size;
 
 					const auto& block  = current_blocks[block_idx];
 					const float scale  = __half2float(*reinterpret_cast<const __half*>(&block.scale));
 					const float a_elem = scale * static_cast<float>(block.quants[elem_in_block]);
 
-					const float b_elem = current_floats[k * matB_dim_01 + col];
+					const float b_elem = current_floats[k * N + col];
 
 					sum += a_elem * b_elem;
 				}
 
-				current_outputs[row * matB_dim_01 + col] = sum;
+				current_outputs[row * N + col] = sum;
 			}
 		}
 
@@ -300,13 +300,13 @@ template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size> struct
 	}
 };
 
-template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size> struct cuda_mul_mat_01_prep {
+template<uint64_t M, uint64_t K, uint64_t block_size> struct cuda_mul_mat_01_prep {
 	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats, std::vector<std::vector<block_q8_0>>& blocks,
-		std::vector<std::vector<float>>& outputs, uint64_t matB_dim_01) {
-		constexpr uint64_t total_blocks_A = ((matA_dim_00 * matA_dim_01) + block_size - 1) / block_size;
+		std::vector<std::vector<float>>& outputs, uint64_t N) {
+		constexpr uint64_t total_blocks_A = ((M * K) + block_size - 1) / block_size;
 		constexpr uint64_t blocks_size	  = total_blocks_A * sizeof(block_q8_0);
-		const uint64_t floats_B_size	  = (matA_dim_01 * matB_dim_01) * sizeof(float);
-		const uint64_t outputs_C_size	  = (matA_dim_00 * matB_dim_01) * sizeof(float);
+		const uint64_t floats_B_size	  = (K * N) * sizeof(float);
+		const uint64_t outputs_C_size	  = (M * N) * sizeof(float);
 		uint64_t offset					  = 0;
 		block_q8_0* d_blocks			  = reinterpret_cast<block_q8_0*>(static_cast<uint8_t*>(buffer.data()) + offset);
 		offset							  = round_up_to_multiple<64>(offset + blocks_size);
@@ -348,61 +348,60 @@ template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size> struct
 	}
 };
 
-template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size>
-__global__ void ggml_cuda_mul_mat_kernel(const float* input01, const block_q8_0* input02, float* output, uint64_t matB_dim_01) {
+template<uint64_t M, uint64_t K, uint64_t block_size> __global__ void ggml_cuda_mul_mat_kernel(const float* input01, const block_q8_0* input02, float* output, uint64_t N) {
 	const uint64_t row = blockIdx.y * blockDim.y + threadIdx.y;
 	const uint64_t col = blockIdx.x * blockDim.x + threadIdx.x;
 
-	if (row >= matA_dim_00 || col >= matB_dim_01)
+	if (row >= M || col >= N)
 		return;
 
 	float sum = 0.0f;
 
-	const uint64_t k_end = matA_dim_01 & ~3;
+	const uint64_t k_end = K & ~3;
 
 	uint64_t k = 0;
 	for (; k < k_end; k += 4) {
 #pragma unroll
 		for (uint64_t i = 0; i < 4; ++i) {
 			const uint64_t k_idx		 = k + i;
-			const uint64_t linear_idx	 = row * matA_dim_01 + k_idx;
+			const uint64_t linear_idx	 = row * K + k_idx;
 			const uint64_t block_idx	 = linear_idx / block_size;
 			const uint64_t elem_in_block = linear_idx % block_size;
 
 			const block_q8_0& block = input02[block_idx];
 			const float scale		= __half2float(*reinterpret_cast<const __half*>(&block.scale));
 			const float a_elem		= scale * static_cast<float>(block.quants[elem_in_block]);
-			const float b_elem		= input01[k_idx * matB_dim_01 + col];
+			const float b_elem		= input01[k_idx * N + col];
 
 			sum += a_elem * b_elem;
 		}
 	}
 
-	for (; k < matA_dim_01; ++k) {
-		const uint64_t linear_idx	 = row * matA_dim_01 + k;
+	for (; k < K; ++k) {
+		const uint64_t linear_idx	 = row * K + k;
 		const uint64_t block_idx	 = linear_idx / block_size;
 		const uint64_t elem_in_block = linear_idx % block_size;
 
 		const block_q8_0& block = input02[block_idx];
 		const float scale		= __half2float(*reinterpret_cast<const __half*>(&block.scale));
 		const float a_elem		= scale * static_cast<float>(block.quants[elem_in_block]);
-		const float b_elem		= input01[k * matB_dim_01 + col];
+		const float b_elem		= input01[k * N + col];
 
 		sum += a_elem * b_elem;
 	}
 
-	output[row * matB_dim_01 + col] = sum;
+	output[row * N + col] = sum;
 }
 
-template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size> struct ggml_cuda_mul_mat {
+template<uint64_t M, uint64_t K, uint64_t block_size> struct ggml_cuda_mul_mat {
 	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats, std::vector<std::vector<block_q8_0>>& blocks,
-		std::vector<std::vector<float>>& outputs, uint64_t matB_dim_01) {
+		std::vector<std::vector<float>>& outputs, uint64_t N) {
 		auto& current_outputs = outputs[current_index];
 
-		static constexpr uint64_t total_blocks_A = ((matA_dim_00 * matA_dim_01) + block_size - 1) / block_size;
+		static constexpr uint64_t total_blocks_A = ((M * K) + block_size - 1) / block_size;
 		static constexpr uint64_t blocks_size	 = total_blocks_A * sizeof(block_q8_0);
-		const uint64_t floats_B_size			 = (matA_dim_01 * matB_dim_01) * sizeof(float);
-		const uint64_t outputs_C_size			 = (matA_dim_00 * matB_dim_01) * sizeof(float);
+		const uint64_t floats_B_size			 = (K * N) * sizeof(float);
+		const uint64_t outputs_C_size			 = (M * N) * sizeof(float);
 
 		uint64_t offset			   = 0;
 		const block_q8_0* d_blocks = reinterpret_cast<const block_q8_0*>(static_cast<uint8_t*>(buffer.data()) + offset);
@@ -414,10 +413,10 @@ template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size> struct
 		float* d_outputs = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
 
 		uint64_t block_dim_x, block_dim_y;
-		if (matB_dim_01 <= 4) {
-			block_dim_x = matB_dim_01;
+		if (N <= 4) {
+			block_dim_x = N;
 			block_dim_y = 256 / block_dim_x;
-		} else if (matA_dim_00 <= 16) {
+		} else if (M <= 16) {
 			block_dim_x = 32;
 			block_dim_y = 16;
 		} else {
@@ -425,16 +424,16 @@ template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size> struct
 			block_dim_y = 32;
 		}
 
-		block_dim_x = std::min(block_dim_x, matB_dim_01);
-		block_dim_y = std::min(block_dim_y, matA_dim_00);
+		block_dim_x = std::min(block_dim_x, N);
+		block_dim_y = std::min(block_dim_y, M);
 
-		const uint64_t grid_dim_x = (matB_dim_01 + block_dim_x - 1) / block_dim_x;
-		const uint64_t grid_dim_y = (matA_dim_00 + block_dim_y - 1) / block_dim_y;
+		const uint64_t grid_dim_x = (N + block_dim_x - 1) / block_dim_x;
+		const uint64_t grid_dim_y = (M + block_dim_y - 1) / block_dim_y;
 
 		dim3 blockDim(static_cast<uint64_t>(block_dim_x), static_cast<uint64_t>(block_dim_y));
 		dim3 gridDim(static_cast<uint64_t>(grid_dim_x), static_cast<uint64_t>(grid_dim_y));
 
-		ggml_cuda_mul_mat_kernel<matA_dim_00, matA_dim_01, block_size><<<gridDim, blockDim>>>(d_floats, d_blocks, d_outputs, matB_dim_01);
+		ggml_cuda_mul_mat_kernel<M, K, block_size><<<gridDim, blockDim>>>(d_floats, d_blocks, d_outputs, N);
 
 		cudaError_t err = cudaGetLastError();
 		if (err != cudaSuccess) {
@@ -922,8 +921,6 @@ template<uint64_t block_m, uint64_t block_n, uint64_t block_k, uint64_t warp_m_n
 	static_assert(threads_per_block % gpu_properties::warp_size == 0, "threads_per_block must be a multiple of warp_size");
 };
 
-using mul_mat_1_to_1024 = cuda_kernel_traits<32, 64, 16, 16, 32, 4, 4>;
-
 template<uint64_t M, uint64_t K, typename traits>
 __device__ __forceinline__ void load_smem_tile_A(float* smem_A, const block_q8_0* A_global, uint64_t N, uint64_t k_offset, uint64_t block_row) {
 	constexpr uint64_t block_m			 = traits::block_tile_m;
@@ -1106,9 +1103,7 @@ template<typename traits> __device__ __forceinline__ void store_output_tile(floa
 	}
 }
 
-template<uint64_t M, uint64_t K> __launch_bounds__(256, 2) __global__ void rt_tm_gemm_kernel(const block_q8_0* A, const float* B, float* C, uint64_t N) {
-	using traits = mul_mat_1_to_1024;
-
+template<uint64_t M, uint64_t K, typename traits> __launch_bounds__(256, 2) __global__ void rt_tm_gemm_kernel(const block_q8_0* A, const float* B, float* C, uint64_t N) {
 	constexpr uint64_t block_m	= traits::block_tile_m;
 	constexpr uint64_t block_n	= traits::block_tile_n;
 	constexpr uint64_t block_k	= traits::block_tile_k;
@@ -1162,15 +1157,18 @@ template<uint64_t M, uint64_t K> __launch_bounds__(256, 2) __global__ void rt_tm
 	store_output_tile<traits>(C, accumulator, M, N, block_row, block_col, warp_row, warp_col);
 }
 
-template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size, mul_mat_types mul_mat_type> struct rt_tm_mul_mat {
+using mul_mat_1_to_128	 = cuda_kernel_traits<32, 64, 16, 16, 32, 4, 4>;
+using mul_mat_129_to_512 = cuda_kernel_traits<128, 64, 32, 32, 32, 8, 4>;
+
+template<uint64_t M, uint64_t K, uint64_t block_size, mul_mat_types mul_mat_type> struct rt_tm_mul_mat {
 	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats, std::vector<std::vector<block_q8_0>>& blocks,
-		std::vector<std::vector<float>>& outputs, uint64_t matB_dim_01) {
+		std::vector<std::vector<float>>& outputs, uint64_t N) {
 		auto& current_outputs = outputs[current_index];
 
-		static constexpr uint64_t total_blocks_A = ((matA_dim_00 * matA_dim_01) + block_size - 1) / block_size;
+		static constexpr uint64_t total_blocks_A = ((M * K) + block_size - 1) / block_size;
 		static constexpr uint64_t blocks_size	 = total_blocks_A * sizeof(block_q8_0);
-		const uint64_t floats_B_size			 = (matA_dim_01 * matB_dim_01) * sizeof(float);
-		const uint64_t outputs_C_size			 = (matA_dim_00 * matB_dim_01) * sizeof(float);
+		const uint64_t floats_B_size			 = (K * N) * sizeof(float);
+		const uint64_t outputs_C_size			 = (M * N) * sizeof(float);
 
 		uint64_t offset			   = 0;
 		const block_q8_0* d_blocks = reinterpret_cast<const block_q8_0*>(static_cast<uint8_t*>(buffer.data()) + offset);
@@ -1180,13 +1178,19 @@ template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size, mul_ma
 		offset				  = round_up_to_multiple<64>(offset + floats_B_size);
 
 		float* d_outputs = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		if (N > 128) {
+			using traits = mul_mat_129_to_512;
+			dim3 grid{ static_cast<uint32_t>((N + traits::block_tile_n - 1) / traits::block_tile_n), static_cast<uint32_t>((M + traits::block_tile_m - 1) / traits::block_tile_m) };
+			dim3 block{ traits::threads_per_block };
+			rt_tm_gemm_kernel<M, K, traits><<<grid, block>>>(d_blocks, d_floats, d_outputs, N);
+		} else {
+			using traits = mul_mat_1_to_128;
+			dim3 grid{ static_cast<uint32_t>((N + traits::block_tile_n - 1) / traits::block_tile_n), static_cast<uint32_t>((M + traits::block_tile_m - 1) / traits::block_tile_m) };
+			dim3 block{ traits::threads_per_block };
+			rt_tm_gemm_kernel<M, K, traits><<<grid, block>>>(d_blocks, d_floats, d_outputs, N);
+		}
 
-		using traits = mul_mat_1_to_1024;
 
-		dim3 grid{ static_cast<uint32_t>((matB_dim_01 + traits::block_tile_n - 1) / traits::block_tile_n),
-			static_cast<uint32_t>((matA_dim_00 + traits::block_tile_m - 1) / traits::block_tile_m) };
-		dim3 block{ traits::threads_per_block };
-		rt_tm_gemm_kernel<matA_dim_00, matA_dim_01><<<grid, block>>>(d_blocks, d_floats, d_outputs, matB_dim_01);
 
 		cudaError_t err = cudaGetLastError();
 		if (err != cudaSuccess) {
@@ -1217,7 +1221,7 @@ __global__ void dequantize_q8_vectorized_kernel(const block_q8_0* input_blocks, 
 	}
 }
 
-template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size, mul_mat_types mul_mat_type> struct nvcuda_cublas_mul_mat_simple {
+template<uint64_t M, uint64_t K, uint64_t block_size, mul_mat_types mul_mat_type> struct nvcuda_cublas_mul_mat_simple {
 	inline static cublasHandle_t cublas_handle;
 	inline static bool handle_initialized;
 
@@ -1230,15 +1234,15 @@ template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size, mul_ma
 	}
 
 	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats, std::vector<std::vector<block_q8_0>>& blocks,
-		std::vector<std::vector<float>>& outputs, uint64_t matB_dim_01) {
+		std::vector<std::vector<float>>& outputs, uint64_t N) {
 		initialize_handle();
 		auto& current_outputs = outputs[current_index];
 
-		static constexpr uint64_t total_blocks_A = ((matA_dim_00 * matA_dim_01) + block_size - 1) / block_size;
+		static constexpr uint64_t total_blocks_A = ((M * K) + block_size - 1) / block_size;
 		static constexpr uint64_t blocks_size	 = total_blocks_A * sizeof(block_q8_0);
-		const uint64_t floats_B_size			 = (matA_dim_01 * matB_dim_01) * sizeof(float);
-		const uint64_t outputs_C_size			 = (matA_dim_00 * matB_dim_01) * sizeof(float);
-		static constexpr uint64_t dequant_A_size = (matA_dim_00 * matA_dim_01) * sizeof(float);
+		const uint64_t floats_B_size			 = (K * N) * sizeof(float);
+		const uint64_t outputs_C_size			 = (M * N) * sizeof(float);
+		static constexpr uint64_t dequant_A_size = (M * K) * sizeof(float);
 		uint64_t offset							 = 0;
 		const block_q8_0* d_blocks				 = reinterpret_cast<const block_q8_0*>(static_cast<uint8_t*>(buffer.data()) + offset);
 		offset									 = round_up_to_multiple<64>(offset + blocks_size);
@@ -1265,7 +1269,7 @@ template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size, mul_ma
 			return 0;
 		}
 
-		const uint64_t total_elements_A = matA_dim_00 * matA_dim_01;
+		const uint64_t total_elements_A = M * K;
 		const dim3 dequant_grid((total_elements_A + 1023) / 1024);
 		const dim3 dequant_block(1024);
 
@@ -1281,8 +1285,7 @@ template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size, mul_ma
 		const float alpha = 1.0f;
 		const float beta  = 0.0f;
 
-		cublasStatus_t status = cublasSgemm(cublas_handle, CUBLAS_OP_N, CUBLAS_OP_N, matB_dim_01, matA_dim_00, matA_dim_01, &alpha, d_floats_B, matB_dim_01, d_dequant_A,
-			matA_dim_01, &beta, d_outputs, matB_dim_01);
+		cublasStatus_t status = cublasSgemm(cublas_handle, CUBLAS_OP_N, CUBLAS_OP_N, N, M, K, &alpha, d_floats_B, N, d_dequant_A, K, &beta, d_outputs, N);
 
 		if (status != CUBLAS_STATUS_SUCCESS) {
 			std::cerr << "❌ cuBLAS failed with status: " << status << std::endl;
@@ -1330,10 +1333,9 @@ template<bnch_swt::string_literal rhs> inline void compare_outputs(const std::ve
 				const float max_val	 = std::max(std::abs(val1), std::abs(val2));
 
 				const bool values_match = (abs_diff <= absolute_tolerance) || (abs_diff <= relative_tolerance * max_val);
-				std::cerr << rhs.operator std::string_view() << ": Value mismatch at [" << x << "," << y << "]: Reference Value: " << val1 << " vs Incorrect Value: " << val2
-						  << std::endl;
-				std::cerr << rhs.operator std::string_view() << ": Relative difference: " << (abs_diff / max_val) * 100.0f << "%" << std::endl;
-				break;
+				std::cerr << rhs.operator std::string_view() << ": Mismatch at [" << x << "," << y << "]: Ref Val: " << val1 << " vs Incorrect Val: " << val2 << std::endl;
+				std::cerr << "Relative difference: " << (abs_diff / max_val) * 100.0f << "%" << std::endl;
+				return;
 			}
 			if (std::isinf(val1) && std::isinf(val2)) {
 				if ((val1 > 0) == (val2 > 0)) {
@@ -1343,10 +1345,9 @@ template<bnch_swt::string_literal rhs> inline void compare_outputs(const std::ve
 					const float max_val	 = std::max(std::abs(val1), std::abs(val2));
 
 					const bool values_match = (abs_diff <= absolute_tolerance) || (abs_diff <= relative_tolerance * max_val);
-					std::cerr << rhs.operator std::string_view() << ": Value mismatch at [" << x << "," << y << "]: Reference Value: " << val1 << " vs Incorrect Value: " << val2
-							  << std::endl;
-					std::cerr << rhs.operator std::string_view() << ": Relative difference: " << (abs_diff / max_val) * 100.0f << "%" << std::endl;
-					break;
+					std::cerr << rhs.operator std::string_view() << ": Mismatch at [" << x << "," << y << "]: Ref Val: " << val1 << " vs Incorrect Val: " << val2 << std::endl;
+					std::cerr << "Relative difference: " << (abs_diff / max_val) * 100.0f << "%" << std::endl;
+					return;
 				}
 			}
 			if (std::isinf(val1) || std::isinf(val2)) {
@@ -1354,10 +1355,9 @@ template<bnch_swt::string_literal rhs> inline void compare_outputs(const std::ve
 				const float max_val	 = std::max(std::abs(val1), std::abs(val2));
 
 				const bool values_match = (abs_diff <= absolute_tolerance) || (abs_diff <= relative_tolerance * max_val);
-				std::cerr << rhs.operator std::string_view() << ": Value mismatch at [" << x << "," << y << "]: Reference Value: " << val1 << " vs Incorrect Value: " << val2
-						  << std::endl;
-				std::cerr << rhs.operator std::string_view() << ": Relative difference: " << (abs_diff / max_val) * 100.0f << "%" << std::endl;
-				break;
+				std::cerr << rhs.operator std::string_view() << ": Mismatch at [" << x << "," << y << "]: Ref Val: " << val1 << " vs Incorrect Val: " << val2 << std::endl;
+				std::cerr << "Relative difference: " << (abs_diff / max_val) * 100.0f << "%" << std::endl;
+				return;
 			}
 
 			const float abs_diff = std::abs(val1 - val2);
@@ -1366,90 +1366,245 @@ template<bnch_swt::string_literal rhs> inline void compare_outputs(const std::ve
 			const bool values_match = (abs_diff <= absolute_tolerance) || (abs_diff <= relative_tolerance * max_val);
 
 			if (!values_match) {
-				std::cerr << rhs.operator std::string_view() << ": Value mismatch at [" << x << "," << y << "]: Reference Value: " << val1 << " vs Incorrect Value: " << val2
-						  << std::endl;
-				std::cerr << rhs.operator std::string_view() << ": Relative difference: " << (abs_diff / max_val) * 100.0f << "%" << std::endl;
-				break;
+				std::cerr << rhs.operator std::string_view() << ": Mismatch at [" << x << "," << y << "]: Ref Val: " << val1 << " vs Incorrect Val: " << val2 << std::endl;
+				std::cerr << "Relative difference: " << (abs_diff / max_val) * 100.0f << "%" << std::endl;
+				return;
 			}
 		}
 	}
 }
 
-template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t matB_dim_00, uint64_t matB_dim_01, mul_mat_types mul_mat_type> BNCH_SWT_INLINE void test_function() {
-	static constexpr uint64_t matC_dim_00{ matA_dim_00 };
-	static constexpr uint64_t matC_dim_01{ matB_dim_01 };
+#include <cutlass_rt_tm/gemm/device/gemm.h>
+#include <cutlass_rt_tm/cuda_host_adapter.hpp>
+
+using ElementA = float;
+using ElementB = float;
+using ElementC = float;
+using LayoutA  = cutlass_rt_tm::layout::RowMajor;
+using LayoutB  = cutlass_rt_tm::layout::RowMajor;
+using LayoutC  = cutlass_rt_tm::layout::RowMajor;
+
+__global__ void dequantize_a_matrix_kernel(const block_q8_0* input_blocks, float* output, uint64_t total_elements) {
+	const uint64_t idx	  = blockIdx.x * blockDim.x + threadIdx.x;
+	const uint64_t stride = blockDim.x * gridDim.x;
+
+	for (uint64_t i = idx; i < total_elements; i += stride) {
+		const uint64_t block_idx	 = i >> 5;
+		const uint64_t elem_in_block = i % 32;
+
+		const block_q8_0& block = input_blocks[block_idx];
+		const float scale		= __half2float(*reinterpret_cast<const __half*>(&block.scale));
+		output[i]				= scale * static_cast<float>(block.quants[elem_in_block]);
+	}
+}
+
+template<uint64_t M, uint64_t K, uint64_t matB_dim_00N, mul_mat_types mul_mat_type> struct nihilus_gemm {
+	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats, std::vector<std::vector<block_q8_0>>& blocks,
+		std::vector<std::vector<float>>& outputs, uint64_t N) {
+		using nihilus_gemm_type					 = cutlass_rt_tm::gemm::device::Gemm<M, K, ElementA, LayoutA, ElementB, LayoutB, ElementC, LayoutC, ElementC>;
+		static constexpr uint64_t total_blocks_A = ((M * K) + 32 - 1) / 32;
+		static constexpr uint64_t blocks_size	 = total_blocks_A * sizeof(block_q8_0);
+		const uint64_t floats_B_size			 = (K * N) * sizeof(float);
+		const uint64_t outputs_C_size			 = (M * N) * sizeof(float);
+		static constexpr uint64_t dequant_A_size = (M * K) * sizeof(float);
+
+		uint64_t offset			   = 0;
+		const block_q8_0* d_blocks = reinterpret_cast<const block_q8_0*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset					   = round_up_to_multiple<64>(offset + blocks_size);
+
+		const float* B_ptr = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset			   = round_up_to_multiple<64>(offset + floats_B_size);
+
+		float* C_ptr = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset		 = round_up_to_multiple<64>(offset + outputs_C_size);
+
+		float* dequantized_A_ptr = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+
+		constexpr uint64_t total_elements_A = M * K;
+		const dim3 dequant_grid((total_elements_A + 1023) / 1024);
+		const dim3 dequant_block(1024);
+
+		dequantize_a_matrix_kernel<<<dequant_grid, dequant_block>>>(d_blocks, dequantized_A_ptr, total_elements_A);
+
+		cudaError_t dequant_err = cudaGetLastError();
+		if (dequant_err != cudaSuccess) {
+			std::cerr << "Dequantization kernel failed: " << cudaGetErrorString(dequant_err) << std::endl;
+		}
+
+		cudaDeviceSynchronize();
+
+		using index_type = cutlass_rt_tm::gemm::GemmCoord::Index;
+		nihilus_gemm_type gemm_op;
+		cutlass_rt_tm::Status status =
+			gemm_op({ { static_cast<index_type>(M), static_cast<index_type>(N), static_cast<index_type>(K) }, { dequantized_A_ptr, static_cast<index_type>(K) },
+				{ B_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
+
+		if (status != cutlass_rt_tm::Status::kSuccess) {
+			std::cerr << "CUTLASS GEMM failed: " << cutlass_rt_tm::cutlass_rt_tmGetStatusString(status) << std::endl;
+		}
+
+		++current_index;
+		return outputs[current_index - 1].size() * sizeof(float);
+	}
+};
+
+#include <cutlass/gemm/device/gemm.h>
+#include <cutlass/cuda_host_adapter.hpp>
+
+using cutless_element_a = float;
+using cutless_element_b = float;
+using cutless_element_c = float;
+using cutless_layout_a  = cutlass::layout::RowMajor;
+using cutless_layout_b  = cutlass::layout::RowMajor;
+using cutless_layout_c  = cutlass::layout::RowMajor;
+
+__global__ void cutlass_dequantize_q8_vectorized_kernel(const block_q8_0* input_blocks, float* output, uint64_t total_elements) {
+	const uint64_t idx	  = blockIdx.x * blockDim.x + threadIdx.x;
+	const uint64_t stride = blockDim.x * gridDim.x;
+
+	for (uint64_t i = idx; i < total_elements; i += stride) {
+		const uint64_t block_idx	 = i / 32;
+		const uint64_t elem_in_block = i % 32;
+
+		const block_q8_0& block = input_blocks[block_idx];
+		const float scale		= __half2float(*reinterpret_cast<const __half*>(&block.scale));
+		output[i]				= scale * static_cast<float>(block.quants[elem_in_block]);
+	}
+}
+
+using Cutlass_Gemm = cutlass::gemm::device::Gemm<cutless_element_a, cutless_layout_a, cutless_element_b, cutless_layout_b, cutless_element_c, cutless_layout_c, cutless_element_c>;
+
+template<uint64_t M, uint64_t K, uint64_t matB_dim_00N, mul_mat_types mul_mat_type> struct cutlass_baseline_gemm {
+	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats, std::vector<std::vector<block_q8_0>>& blocks,
+		std::vector<std::vector<float>>& outputs, uint64_t N) {
+		static constexpr uint64_t total_blocks_A = ((M * K) + 32 - 1) / 32;
+		static constexpr uint64_t blocks_size	 = total_blocks_A * sizeof(block_q8_0);
+		const uint64_t floats_B_size			 = (K * N) * sizeof(float);
+		const uint64_t outputs_C_size			 = (M * N) * sizeof(float);
+		static constexpr uint64_t dequant_A_size = (M * K) * sizeof(float);
+
+		uint64_t offset			   = 0;
+		const block_q8_0* d_blocks = reinterpret_cast<const block_q8_0*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset					   = round_up_to_multiple<64>(offset + blocks_size);
+
+		const float* B_ptr = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset			   = round_up_to_multiple<64>(offset + floats_B_size);
+
+		float* C_ptr = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset		 = round_up_to_multiple<64>(offset + outputs_C_size);
+
+		float* dequantized_A_ptr = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+
+		constexpr uint64_t total_elements_A = M * K;
+		const dim3 dequant_grid((total_elements_A + 1023) / 1024);
+		const dim3 dequant_block(1024);
+
+		cutlass_dequantize_q8_vectorized_kernel<<<dequant_grid, dequant_block>>>(d_blocks, dequantized_A_ptr, total_elements_A);
+
+		cudaError_t dequant_err = cudaGetLastError();
+		if (dequant_err != cudaSuccess) {
+			std::cerr << "Dequantization kernel failed: " << cudaGetErrorString(dequant_err) << std::endl;
+		}
+
+		cudaDeviceSynchronize();
+
+		using index_type = cutlass::gemm::GemmCoord::Index;
+		Cutlass_Gemm gemm_op;
+		cutlass::Status status =
+			gemm_op({ { static_cast<index_type>(M), static_cast<index_type>(N), static_cast<index_type>(K) }, { dequantized_A_ptr, static_cast<index_type>(K) },
+				{ B_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
+
+		if (status != cutlass::Status::kSuccess) {
+			std::cerr << "CUTLASS GEMM failed: " << cutlass::cutlassGetStatusString(status) << std::endl;
+		}
+
+		++current_index;
+		return outputs[current_index - 1].size() * sizeof(float);
+	}
+};
+
+template<uint64_t M, uint64_t K, uint64_t matB_dim_00, uint64_t N, mul_mat_types mul_mat_type> BNCH_SWT_INLINE void test_function() {
+	static constexpr uint64_t matC_dim_00{ M };
+	static constexpr uint64_t matC_dim_01{ N };
 	static constexpr uint64_t matC_total_elems{ matC_dim_00 * matC_dim_01 };
-	static constexpr uint64_t total_blocks_a{ static_cast<uint64_t>(static_cast<float>(matA_dim_00 * matA_dim_01) * static_cast<float>(sizeof(block_q8_0)) /
-												  static_cast<float>(std::size(block_q8_0{}.quants))) /
-		sizeof(block_q8_0) };
-	static constexpr uint64_t total_floats_b{ matB_dim_00 * matB_dim_01 };
-	std::vector<std::vector<std::vector<float>>> block_floats{ generate_floats_final<total_iterations, matA_dim_00, matA_dim_01>() };
-	//std::vector<std::vector<std::vector<float>>> transposed_block_floats{ transpose_values_final(block_floats) };
-	std::vector<std::vector<float>> floats{ generate_values_final(generate_floats_final<total_iterations, matA_dim_00, matA_dim_01>()) };
+	static constexpr uint64_t total_blocks_a{
+		static_cast<uint64_t>(static_cast<float>(M * K) * static_cast<float>(sizeof(block_q8_0)) / static_cast<float>(std::size(block_q8_0{}.quants))) / sizeof(block_q8_0)
+	};
+	static constexpr uint64_t total_floats_b{ matB_dim_00 * N };
+	std::vector<std::vector<std::vector<float>>> block_floats{ generate_floats_final<total_iterations, M, K>() };
+	std::vector<std::vector<float>> floats{ generate_values_final(generate_floats_final<total_iterations, K, N>()) };
 	std::vector<std::vector<block_q8_0>> blocks{ generate_values_final(generate_blocks_final(block_floats)) };
-	//std::vector<std::vector<block_q8_0>> transposed_blocks{ generate_values_final(generate_blocks_final(transposed_block_floats)) };
 	std::vector<std::vector<float>> outputs01{};
 	std::vector<std::vector<float>> outputs02{};
 	std::vector<std::vector<float>> outputs03{};
+	std::vector<std::vector<float>> outputs04{};
+	std::vector<std::vector<float>> outputs05{};
 	outputs01.resize(total_iterations);
 	outputs02.resize(total_iterations);
 	outputs03.resize(total_iterations);
+	outputs04.resize(total_iterations);
+	outputs05.resize(total_iterations);
 	for (uint64_t x = 0; x < total_iterations; ++x) {
 		outputs01[x].resize(matC_total_elems);
 		outputs02[x].resize(matC_total_elems);
 		outputs03[x].resize(matC_total_elems);
+		outputs04[x].resize(matC_total_elems);
+		outputs05[x].resize(matC_total_elems);
 	}
 
-	static constexpr bnch_swt::string_literal stage_name{ "mul_mat: [" + bnch_swt::internal::toStringLiteral<matA_dim_00>() + "x" +
-		bnch_swt::internal::toStringLiteral<matA_dim_01>() + " * " + bnch_swt::internal::toStringLiteral<matB_dim_00>() + "x" + bnch_swt::internal::toStringLiteral<matB_dim_01>() +
-		"]" };
-	static constexpr uint64_t total_elements_A = matA_dim_00 * matA_dim_01;
+	static constexpr bnch_swt::string_literal stage_name{ "mul_mat: [" + bnch_swt::internal::toStringLiteral<M>() + "x" + bnch_swt::internal::toStringLiteral<K>() + " * " +
+		bnch_swt::internal::toStringLiteral<matB_dim_00>() + "x" + bnch_swt::internal::toStringLiteral<N>() + "]" };
+	static constexpr uint64_t total_elements_A = M * K;
 	static constexpr uint64_t total_blocks_A   = (total_elements_A + 32 - 1) / 32;
 	static constexpr uint64_t blocks_size	   = total_blocks_A * sizeof(block_q8_0);
-	static constexpr uint64_t floats_B_count   = matB_dim_00 * matB_dim_01;
+	static constexpr uint64_t floats_B_count   = matB_dim_00 * N;
 	static constexpr uint64_t floats_B_size	   = floats_B_count * sizeof(float);
-	static constexpr uint64_t outputs_C_count  = matA_dim_00 * matB_dim_01;
+	static constexpr uint64_t outputs_C_count  = M * N;
 	static constexpr uint64_t outputs_C_size   = outputs_C_count * sizeof(float);
+	static constexpr uint64_t dequant_A_size = M * K * sizeof(float);
 
 	uint64_t total_buffer_size = 0;
 	total_buffer_size += round_up_to_multiple<64>(blocks_size);
 	total_buffer_size += round_up_to_multiple<64>(floats_B_size);
-	total_buffer_size += round_up_to_multiple<64>((matA_dim_00 * matA_dim_01) * sizeof(float));
 	total_buffer_size += round_up_to_multiple<64>(outputs_C_size);
+	total_buffer_size += round_up_to_multiple<64>(dequant_A_size);
 
 	cuda_buffer buffer{};
 	buffer.init(total_buffer_size);
 
 	uint64_t current_index{};
-	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"ggml_cuda_mul_mat",
-		cuda_mul_mat_01_prep<matA_dim_00, matA_dim_01, 32>, ggml_cuda_mul_mat<matA_dim_00, matA_dim_01, 32>>(buffer, current_index, floats, blocks, outputs01, matB_dim_01);
+	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"ggml_cuda_mul_mat", cuda_mul_mat_01_prep<M, K, 32>,
+		ggml_cuda_mul_mat<M, K, 32>>(buffer, current_index, floats, blocks, outputs01, N);
 	current_index = 0;
 
-	//bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"reference_mul_mat",
-	//cuda_mul_mat_01_prep<matA_dim_00, matA_dim_01, 32>, reference_mul_mat<matA_dim_00, matA_dim_01, 32>>(buffer, current_index, floats, blocks, outputs01, matB_dim_01);
-	//current_index = 0;
-
-	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"nvcuda_cublas_mul_mat",
-		cuda_mul_mat_01_prep<matA_dim_00, matA_dim_01, 32>, nvcuda_cublas_mul_mat_simple<matA_dim_00, matA_dim_01, 32, mul_mat_type>>(buffer, current_index, floats, blocks,
-		outputs03, matB_dim_01);
+	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"cutlass_baseline_gemm", cuda_mul_mat_01_prep<M, K, 32>,
+		cutlass_baseline_gemm<M, K, 32, mul_mat_type>>(buffer, current_index, floats, blocks, outputs02, N);
 	current_index = 0;
-	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"rt_tm_cuda_mul_mat",
-		cuda_mul_mat_01_prep<matA_dim_00, matA_dim_01, 32>, rt_tm_mul_mat<matA_dim_00, matA_dim_01, 32, mul_mat_type>>(buffer, current_index, floats, blocks, outputs02,
-		matB_dim_01);
+
+	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"nvcuda_cublas_mul_mat_simple", cuda_mul_mat_01_prep<M, K, 32>,
+		nvcuda_cublas_mul_mat_simple<M, K, 32, mul_mat_type>>(buffer, current_index, floats, blocks, outputs03, N);
+	current_index = 0;
+
+	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"rt_tm_cuda_mul_mat", cuda_mul_mat_01_prep<M, K, 32>,
+		rt_tm_mul_mat<M, K, 32, mul_mat_type>>(buffer, current_index, floats, blocks, outputs04, N);
+	current_index = 0;
+
+	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"nihilus_gemm", cuda_mul_mat_01_prep<M, K, 32>,
+		nihilus_gemm<M, K, 32, mul_mat_type>>(buffer, current_index, floats, blocks, outputs05, N);
+	current_index = 0;
 
 	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::printResults();
-	compare_outputs<"outputs02">(outputs01, outputs02, total_iterations, matC_total_elems);
-	compare_outputs<"nvcuda_cublas_mul_mat_simple producing incorrect values">(outputs01, outputs03, total_iterations, matC_total_elems);
+	compare_outputs<"cutlass_baseline_gemm Incorrect Value">(outputs01, outputs02, total_iterations, matC_total_elems);
+	compare_outputs<"nvcuda_cublas_mul_mat_simple Incorrect Value">(outputs01, outputs03, total_iterations, matC_total_elems);
+	compare_outputs<"rt_tm_cuda_mul_mat Incorrect Value">(outputs01, outputs04, total_iterations, matC_total_elems);
+	compare_outputs<"nihilus_gemm Incorrect Value">(outputs01, outputs05, total_iterations, matC_total_elems);
 };
 
-int main() {
-	//test_function<14336, 4096, 4096, 16384, mul_mat_types::ffn_up>();
-	//test_function<4096, 4096, 4096, 16384, mul_mat_types::q>();
+int32_t main() { 
 	test_function<14336, 4096, 4096, 1, mul_mat_types::ffn_up>();
 	test_function<14336, 4096, 4096, 2, mul_mat_types::ffn_up>();
 	test_function<14336, 4096, 4096, 4, mul_mat_types::ffn_up>();
 	test_function<14336, 4096, 4096, 8, mul_mat_types::ffn_up>();
-
 	test_function<14336, 4096, 4096, 16, mul_mat_types::ffn_up>();
 	test_function<14336, 4096, 4096, 32, mul_mat_types::ffn_up>();
 	test_function<14336, 4096, 4096, 64, mul_mat_types::ffn_up>();
@@ -1459,7 +1614,6 @@ int main() {
 	test_function<14336, 4096, 4096, 1024, mul_mat_types::ffn_up>();
 	test_function<14336, 4096, 4096, 2048, mul_mat_types::ffn_up>();
 	test_function<14336, 4096, 4096, 4096, mul_mat_types::ffn_up>();
-	test_function<14336, 4096, 4096, 8192, mul_mat_types::ffn_up>(); 
 	test_function<4096, 4096, 4096, 1, mul_mat_types::q>();
 	test_function<4096, 4096, 4096, 2, mul_mat_types::q>();
 	test_function<4096, 4096, 4096, 4, mul_mat_types::q>();
