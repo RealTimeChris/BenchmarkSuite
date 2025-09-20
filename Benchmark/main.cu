@@ -36,7 +36,7 @@ struct cuda_buffer {
 		*this = std::move(other);
 	}
 
-	BNCH_SWT_INLINE void init(uint64_t size) noexcept {
+	BNCH_SWT_INLINE void init(uint64_t size) {
 		if (data_val) {
 			clear();
 		}
@@ -62,7 +62,7 @@ struct cuda_buffer {
 		return data_val;
 	}
 
-	BNCH_SWT_INLINE void* claim_memory(uint64_t offset_to_claim) noexcept {
+	BNCH_SWT_INLINE void* claim_memory(uint64_t offset_to_claim) {
 		uint64_t aligned_amount = round_up_to_multiple<64>(offset_to_claim);
 		if (aligned_amount > size_val) {
 			throw std::runtime_error{ "cuda_buffer - not enough memory allocated!" };
@@ -99,50 +99,134 @@ inline static uint16_t fp32_to_fp16(float f) {
 	return static_cast<uint16_t>(_mm_extract_epi16(_mm_cvtps_ph(_mm_set_ss(f), _MM_FROUND_TO_NEAREST_INT), 0));
 }
 
-template<std::size_t count> inline std::vector<block_q8_0> generate_blocks() {
-	std::vector<block_q8_0> result;
-	result.reserve(count);
+void quantize_row_q8_0_ref(const float* x, block_q8_0* y, int64_t k) {
+	const int nb = k / 32;
 
-	for (std::size_t i = 0; i < count; ++i) {
-		block_q8_0 block{};
+	for (int i = 0; i < nb; i++) {
+		float amax = 0.0f;
 
-		for (auto& q: block.quants) {
-			q = static_cast<int8_t>((bnch_swt::random_generator::generateValue<uint8_t>() % 13) - 6);
+		for (int j = 0; j < 32; j++) {
+			const float v = x[i * 32+ j];
+			amax		  = std::max(amax, fabsf(v));
 		}
 
-		float scale_float = (bnch_swt::random_generator::generateValue<float>() / std::numeric_limits<float>::max()) * 0.1f;
+		const float d  = amax / ((1 << 7) - 1);
+		const float id = d ? 1.0f / d : 0.0f;
 
-		block.scale = static_cast<uint16_t>(fp32_to_fp16(scale_float));
+		y[i].scale = fp32_to_fp16(d);
 
-		result.emplace_back(block);
+		for (int j = 0; j < 32; ++j) {
+			const float x0 = x[i * 32+ j] * id;
+
+			y[i].quants[j] = roundf(x0);
+		}
 	}
+}
+
+inline std::vector<std::vector<block_q8_0>> generate_blocks(const std::vector<std::vector<float>>& floats) {
+	std::vector<std::vector<block_q8_0>> result;
+	result.reserve(floats.size());
+
+	for (const auto& row: floats) {
+		const uint64_t row_elements	 = row.size();
+		const uint64_t blocks_needed = (row_elements + 31) / 32;
+
+		std::vector<block_q8_0> row_blocks;
+		row_blocks.resize(blocks_needed);
+
+		quantize_row_q8_0_ref(row.data(), row_blocks.data(), static_cast<int64_t>(row_elements));
+
+		result.emplace_back(std::move(row_blocks));
+	}
+
 	return result;
 }
 
-template<uint64_t iteration_count, std::size_t count> inline std::vector<std::vector<block_q8_0>> generate_blocks_final() {
-	std::vector<std::vector<block_q8_0>> return_values{};
-	for (uint64_t x = 0; x < iteration_count; ++x) {
-		return_values.emplace_back(generate_blocks<count>());
+inline std::vector<std::vector<std::vector<block_q8_0>>> generate_blocks_final(const std::vector<std::vector<std::vector<float>>>& floats) {
+	std::vector<std::vector<std::vector<block_q8_0>>> result;
+	result.reserve(floats.size());
+
+	for (const auto& values: floats) {
+		result.emplace_back(generate_blocks(values));
+	}
+
+	return result;
+}
+
+template<typename value_type> inline std::vector<value_type> linearize_values(const std::vector<std::vector<value_type>>& values) {
+	std::vector<value_type> return_values{};
+	return_values.reserve(values.size() * values[0].size());
+	for (uint64_t x = 0; x < values.size(); ++x) {
+		for (uint64_t y = 0; y < values[x].size(); ++y) {
+			return_values.emplace_back(values[x][y]);
+		}
 	}
 	return return_values;
 }
 
-template<std::size_t count> inline std::vector<float> generate_floats() {
-	std::vector<float> result;
-	result.reserve(count);
+inline float generate_llm_float() {
+	static std::random_device rd;
+	static std::mt19937 gen(rd());
+	static std::normal_distribution<float> dist(0.0f, 0.02f);
+	float value = dist(gen);
+	return std::clamp(value, -0.5f, 0.5f);
+}
 
-	for (std::size_t i = 0; i < count; ++i) {
-		float raw_val	 = bnch_swt::random_generator::generateValue<float>();
-		float normalized = (raw_val / std::numeric_limits<float>::max());
-		result.emplace_back(normalized);
+template<uint64_t dim_00, uint64_t dim_01> inline std::vector<std::vector<float>> generate_floats() {
+	std::vector<std::vector<float>> result;
+	result.resize(dim_00);
+	for (uint64_t x = 0; x < dim_00; ++x) {
+		result[x].reserve(dim_01);
+	}
+	for (uint64_t i = 0; i < dim_00; ++i) {
+		for (uint64_t j = 0; j < dim_01; ++j) {
+			result[i].emplace_back(generate_llm_float());
+		}
 	}
 	return result;
 }
 
-template<uint64_t iteration_count, std::size_t count> inline std::vector<std::vector<float>> generate_floats_final() {
-	std::vector<std::vector<float>> return_values{};
+template<uint64_t iteration_count, uint64_t dim_00, uint64_t dim_01> inline std::vector<std::vector<std::vector<float>>> generate_floats_final() {
+	std::vector<std::vector<std::vector<float>>> result;
+	result.reserve(iteration_count);
 	for (uint64_t x = 0; x < iteration_count; ++x) {
-		return_values.emplace_back(generate_floats<count>());
+		result.emplace_back(generate_floats<dim_00, dim_01>());
+	}
+	return result;
+}
+
+inline std::vector<std::vector<float>> transpose_values(const std::vector<std::vector<float>>& floats) {
+	const uint64_t rows = floats.size();
+	const uint64_t cols = floats.empty() ? 0 : floats[0].size();
+
+	std::vector<std::vector<float>> result;
+	result.resize(cols);
+	for (uint64_t x = 0; x < cols; ++x) {
+		result[x].reserve(rows);
+	}
+
+	for (uint64_t i = 0; i < rows; ++i) {
+		for (uint64_t j = 0; j < cols; ++j) {
+			result[j].emplace_back(floats[i][j]);
+		}
+	}
+	return result;
+}
+
+inline std::vector<std::vector<std::vector<float>>> transpose_values_final(const std::vector<std::vector<std::vector<float>>>& floats) {
+
+	std::vector<std::vector<std::vector<float>>> result;
+	result.reserve(floats.size());
+	for (uint64_t x = 0; x < floats.size(); ++x) {
+		result.emplace_back(transpose_values(floats[x]));
+	}
+	return result;
+}
+
+template<typename value_type> inline std::vector<std::vector<value_type>> generate_values_final(const std::vector<std::vector<std::vector<value_type>>>& values) {
+	std::vector<std::vector<value_type>> return_values{};
+	for (uint64_t x = 0; x < values.size(); ++x) {
+		return_values.emplace_back(linearize_values(values[x]));
 	}
 	return return_values;
 }
@@ -217,7 +301,7 @@ template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size> struct
 	}
 };
 
-template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size> struct cuda_mul_mat_01_prep {
+template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size, bool transposed = false> struct cuda_mul_mat_01_prep {
 	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats, std::vector<std::vector<block_q8_0>>& blocks,
 		std::vector<std::vector<float>>& outputs, uint64_t matB_dim_01) {
 		constexpr uint64_t total_blocks_A = ((matA_dim_00 * matA_dim_01) + block_size - 1) / block_size;
@@ -233,8 +317,6 @@ template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size> struct
 
 		float* d_outputs = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
 
-		//cudaMemset(d_floats, 0, floats_B_size);
-		//cudaMemset(d_outputs, 0, outputs_C_size);
 		if (current_index > 0) {
 			auto& previous_outputs = outputs[current_index - 1];
 			cudaError_t err		   = cudaMemcpy(previous_outputs.data(), d_outputs, outputs_C_size, cudaMemcpyDeviceToHost);
@@ -243,8 +325,23 @@ template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size> struct
 			}
 		}
 
-		const auto& current_blocks = blocks[current_index];
+		auto& current_blocks = blocks[current_index];
 		const auto& current_floats = floats[current_index];
+		if constexpr (transposed) {
+			std::vector<block_q8_0> transposed_in{};
+			transposed_in.resize(total_blocks_A);
+			std::vector<block_q8_0> transposed_out{};
+			transposed_out.resize(total_blocks_A);
+			std::memcpy(transposed_in.data(), current_blocks.data(), blocks_size);
+			for (uint64_t x = 0; x < matA_dim_00 / 32; ++x) {
+				for (uint64_t y = 0; y < matA_dim_01 / 32; ++y) {
+					uint64_t index_in{ y * matA_dim_00 + x };
+					uint64_t index_out{ x * matA_dim_01 + y };
+					transposed_out[index_out] = transposed_in[index_in];
+				}
+			}
+			std::memcpy(current_blocks.data(), transposed_out.data(), blocks_size);
+		}
 
 		cudaError_t err = cudaMemcpy(d_blocks, current_blocks.data(), blocks_size, cudaMemcpyHostToDevice);
 		if (err != cudaSuccess) {
@@ -256,7 +353,6 @@ template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size> struct
 			std::cerr << "Failed to copy floats to device: " + std::string(cudaGetErrorString(err)) << std::endl;
 		}
 
-		//err = cudaMemset(d_outputs, 0, outputs_C_size);
 		if (err != cudaSuccess) {
 			std::cerr << "Failed to zero output buffer: " + std::string(cudaGetErrorString(err)) << std::endl;
 		}
@@ -907,16 +1003,14 @@ template<typename traits> __device__ __forceinline__ void compute_warp_tile(floa
 		for (uint64_t k = 0; k < block_k; ++k) {
 			for (uint64_t tm_vec = 0; tm_vec < thread_m / 4; ++tm_vec) {
 				const uint64_t base_row	   = warp_row + thread_row * thread_m + tm_vec * 4;
-				const uint64_t smem_offset = base_row * block_k + k;
-
-				frag_A[tm_vec] = make_float4(smem_A[smem_offset], smem_A[smem_offset + block_k], smem_A[smem_offset + 2 * block_k], smem_A[smem_offset + 3 * block_k]);
+				const uint64_t smem_offset = k * block_m + base_row;
+				frag_A[tm_vec]			   = *reinterpret_cast<const float4*>(&smem_A[smem_offset]);
 			}
 
 			for (uint64_t tn_vec = 0; tn_vec < thread_n / 4; ++tn_vec) {
 				const uint64_t base_col	   = warp_col + thread_col * thread_n + tn_vec * 4;
 				const uint64_t smem_offset = k * block_n + base_col;
-
-				frag_B[tn_vec] = *reinterpret_cast<const float4*>(&smem_B[smem_offset]);
+				frag_B[tn_vec]			   = *reinterpret_cast<const float4*>(&smem_B[smem_offset]);
 			}
 
 			for (uint64_t tm_vec = 0; tm_vec < thread_m / 4; ++tm_vec) {
@@ -954,7 +1048,7 @@ template<typename traits> __device__ __forceinline__ void compute_warp_tile(floa
 			for (uint64_t tm = 0; tm < thread_m; ++tm) {
 				const uint64_t smem_row = warp_row + thread_row * thread_m + tm;
 				if (smem_row < block_m) {
-					frag_A[tm] = smem_A[smem_row * block_k + k];
+					frag_A[tm] = smem_A[k * block_m + smem_row];
 				}
 			}
 
@@ -1276,8 +1370,11 @@ template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t matB_dim_00, uint6
 												  static_cast<float>(std::size(block_q8_0{}.quants))) /
 		sizeof(block_q8_0) };
 	static constexpr uint64_t total_floats_b{ matB_dim_00 * matB_dim_01 };
-	auto blocks = generate_blocks_final<total_iterations, total_blocks_a>();
-	auto floats = generate_floats_final<total_iterations, total_floats_b>();
+	std::vector<std::vector<std::vector<float>>> block_floats{ generate_floats_final<total_iterations, matA_dim_00, matA_dim_01>() };
+	std::vector<std::vector<std::vector<float>>> transposed_block_floats{ transpose_values_final(block_floats) };
+	std::vector<std::vector<float>> floats{ generate_values_final(generate_floats_final<total_iterations, matA_dim_00, matA_dim_01>()) };
+	std::vector<std::vector<block_q8_0>> blocks{ generate_values_final(generate_blocks_final(block_floats)) };
+	std::vector<std::vector<block_q8_0>> transposed_blocks{ generate_values_final(generate_blocks_final(transposed_block_floats)) };
 	std::vector<std::vector<float>> outputs01{};
 	std::vector<std::vector<float>> outputs02{};
 	std::vector<std::vector<float>> outputs03{};
@@ -1324,7 +1421,7 @@ template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t matB_dim_00, uint6
 	//		outputs03, matB_dim_01);
 	current_index = 0;
 	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"rt_tm_cuda_mul_mat",
-		cuda_mul_mat_01_prep<matA_dim_00, matA_dim_01, 32>, rt_tm_mul_mat<matA_dim_00, matA_dim_01, 32, mul_mat_type>>(buffer, current_index, floats, blocks, outputs02,
+		cuda_mul_mat_01_prep<matA_dim_00, matA_dim_01, 32, true>, rt_tm_mul_mat<matA_dim_00, matA_dim_01, 32, mul_mat_type>>(buffer, current_index, floats, transposed_blocks, outputs02,
 		matB_dim_01);
 
 	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::printResults();
