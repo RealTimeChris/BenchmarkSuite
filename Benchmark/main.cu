@@ -992,6 +992,293 @@ __device__ __forceinline__ void load_smem_tile_B(float* smem_B, const float* B_g
 	}
 }
 
+template<uint64_t block_m = 64, uint64_t block_n = 128, uint64_t block_k = 32> struct shared_memory_layout {
+	float4 A[2][block_m * block_k / 4];
+	float4 B[2][block_k * block_n / 4];
+};
+
+template<uint64_t M, uint64_t K, uint64_t block_m, uint64_t block_k>
+__device__ __forceinline__ void load_smem_tile_A(float4* smem_A, const block_q8_0* A_global, uint64_t k_offset, uint64_t block_row) {
+	const uint64_t tid				 = threadIdx.x;
+	const uint64_t threads_per_block = 256;
+
+	const uint64_t k_blocks			 = (K + 31) / 32;
+	const uint64_t total_q8_blocks	 = (block_m * block_k) / 32;
+	const uint64_t blocks_per_thread = (total_q8_blocks + threads_per_block - 1) / threads_per_block;
+
+	for (uint64_t i = 0; i < blocks_per_thread; ++i) {
+		const uint64_t q8_block_linear_idx = tid + i * threads_per_block;
+
+		if (q8_block_linear_idx < total_q8_blocks) {
+			const uint64_t local_row	 = (q8_block_linear_idx * 32) / block_k;
+			const uint64_t local_k_start = (q8_block_linear_idx * 32) % block_k;
+
+			const uint64_t global_row	  = block_row + local_row;
+			const uint64_t global_k_start = k_offset + local_k_start;
+
+			if (global_row < M && global_k_start < K) {
+				const uint64_t q8_block_row = global_row;
+				const uint64_t q8_block_k	= global_k_start / 32;
+				const uint64_t q8_block_idx = q8_block_row * k_blocks + q8_block_k;
+
+				const block_q8_0& q8_block = A_global[q8_block_idx];
+				const float scale		   = __half2float(*reinterpret_cast<const __half*>(&q8_block.scale));
+				const float4 scale_vec	   = make_float4(scale, scale, scale, scale);
+
+				uint4 q8_data_0 = *reinterpret_cast<const uint4*>(&q8_block.quants[0]);
+				uint4 q8_data_1 = *reinterpret_cast<const uint4*>(&q8_block.quants[16]);
+
+				float4 dequant_0 = make_float4(static_cast<float>(static_cast<int8_t>(q8_data_0.x & 0xFF)), static_cast<float>(static_cast<int8_t>((q8_data_0.x >> 8) & 0xFF)),
+									   static_cast<float>(static_cast<int8_t>((q8_data_0.x >> 16) & 0xFF)), static_cast<float>(static_cast<int8_t>((q8_data_0.x >> 24) & 0xFF))) *
+					scale_vec;
+
+				float4 dequant_1 = make_float4(static_cast<float>(static_cast<int8_t>(q8_data_0.y & 0xFF)), static_cast<float>(static_cast<int8_t>((q8_data_0.y >> 8) & 0xFF)),
+									   static_cast<float>(static_cast<int8_t>((q8_data_0.y >> 16) & 0xFF)), static_cast<float>(static_cast<int8_t>((q8_data_0.y >> 24) & 0xFF))) *
+					scale_vec;
+
+				float4 dequant_2 = make_float4(static_cast<float>(static_cast<int8_t>(q8_data_0.z & 0xFF)), static_cast<float>(static_cast<int8_t>((q8_data_0.z >> 8) & 0xFF)),
+									   static_cast<float>(static_cast<int8_t>((q8_data_0.z >> 16) & 0xFF)), static_cast<float>(static_cast<int8_t>((q8_data_0.z >> 24) & 0xFF))) *
+					scale_vec;
+
+				float4 dequant_3 = make_float4(static_cast<float>(static_cast<int8_t>(q8_data_0.w & 0xFF)), static_cast<float>(static_cast<int8_t>((q8_data_0.w >> 8) & 0xFF)),
+									   static_cast<float>(static_cast<int8_t>((q8_data_0.w >> 16) & 0xFF)), static_cast<float>(static_cast<int8_t>((q8_data_0.w >> 24) & 0xFF))) *
+					scale_vec;
+
+				float4 dequant_4 = make_float4(static_cast<float>(static_cast<int8_t>(q8_data_1.x & 0xFF)), static_cast<float>(static_cast<int8_t>((q8_data_1.x >> 8) & 0xFF)),
+									   static_cast<float>(static_cast<int8_t>((q8_data_1.x >> 16) & 0xFF)), static_cast<float>(static_cast<int8_t>((q8_data_1.x >> 24) & 0xFF))) *
+					scale_vec;
+
+				float4 dequant_5 = make_float4(static_cast<float>(static_cast<int8_t>(q8_data_1.y & 0xFF)), static_cast<float>(static_cast<int8_t>((q8_data_1.y >> 8) & 0xFF)),
+									   static_cast<float>(static_cast<int8_t>((q8_data_1.y >> 16) & 0xFF)), static_cast<float>(static_cast<int8_t>((q8_data_1.y >> 24) & 0xFF))) *
+					scale_vec;
+
+				float4 dequant_6 = make_float4(static_cast<float>(static_cast<int8_t>(q8_data_1.z & 0xFF)), static_cast<float>(static_cast<int8_t>((q8_data_1.z >> 8) & 0xFF)),
+									   static_cast<float>(static_cast<int8_t>((q8_data_1.z >> 16) & 0xFF)), static_cast<float>(static_cast<int8_t>((q8_data_1.z >> 24) & 0xFF))) *
+					scale_vec;
+
+				float4 dequant_7 = make_float4(static_cast<float>(static_cast<int8_t>(q8_data_1.w & 0xFF)), static_cast<float>(static_cast<int8_t>((q8_data_1.w >> 8) & 0xFF)),
+									   static_cast<float>(static_cast<int8_t>((q8_data_1.w >> 16) & 0xFF)), static_cast<float>(static_cast<int8_t>((q8_data_1.w >> 24) & 0xFF))) *
+					scale_vec;
+
+				// Store as float4 chunks - each q8_block produces 8 float4s
+				const uint64_t smem_float4_base = (local_row * block_k + local_k_start) / 4;
+				smem_A[smem_float4_base + 0]	= dequant_0;
+				smem_A[smem_float4_base + 1]	= dequant_1;
+				smem_A[smem_float4_base + 2]	= dequant_2;
+				smem_A[smem_float4_base + 3]	= dequant_3;
+				smem_A[smem_float4_base + 4]	= dequant_4;
+				smem_A[smem_float4_base + 5]	= dequant_5;
+				smem_A[smem_float4_base + 6]	= dequant_6;
+				smem_A[smem_float4_base + 7]	= dequant_7;
+			}
+		}
+	}
+}
+
+template<uint64_t K, uint64_t block_k, uint64_t block_n>
+__device__ __forceinline__ void load_smem_tile_B(float4* smem_B, const float* B_global, uint64_t k_offset, uint64_t block_col, uint64_t N) {
+	const uint64_t tid				 = threadIdx.x;
+	const uint64_t threads_per_block = 256;
+
+	const uint64_t total_float4s	  = (block_k * block_n) / 4;
+	const uint64_t float4s_per_thread = (total_float4s + threads_per_block - 1) / threads_per_block;
+
+	for (uint64_t i = 0; i < float4s_per_thread; ++i) {
+		const uint64_t float4_idx = tid + i * threads_per_block;
+
+		if (float4_idx < total_float4s) {
+			const uint64_t linear_idx = float4_idx * 4;
+			const uint64_t local_k	  = linear_idx / block_n;
+			const uint64_t local_n	  = linear_idx % block_n;
+
+			const uint64_t global_k = k_offset + local_k;
+			const uint64_t global_n = block_col + local_n;
+
+			if (global_k < K && global_n + 3 < N) {
+				const uint64_t global_offset = global_k * N + global_n;
+				float4 data					 = *reinterpret_cast<const float4*>(&B_global[global_offset]);
+				smem_B[float4_idx]			 = data;
+			} else {
+				// Handle boundary case
+				float4 data = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+				for (uint64_t elem = 0; elem < 4; ++elem) {
+					const uint64_t elem_global_n = global_n + elem;
+					if (global_k < K && elem_global_n < N) {
+						reinterpret_cast<float*>(&data)[elem] = B_global[global_k * N + elem_global_n];
+					}
+				}
+				smem_B[float4_idx] = data;
+			}
+		}
+	}
+}
+
+template<uint64_t block_m, uint64_t block_n, uint64_t block_k>
+__device__ __forceinline__ void compute_warp_tile(float4* smem_A, float4* smem_B, void* accumulator_ptr, uint64_t warp_row, uint64_t warp_col) {
+	const uint64_t lane_id	  = threadIdx.x % 32;
+	const uint64_t thread_row = lane_id / 8;
+	const uint64_t thread_col = lane_id % 8;
+	float4** accumulator{ reinterpret_cast<float4**>(accumulator_ptr) };
+	float4 frag_A{};
+	float4 frag_B[2]{};
+
+	// Iterate through K dimension of the tile
+	for (uint64_t k = 0; k < block_k; k += 4) {// Step by 4 since each float4 covers 4 K elements
+		const uint64_t k_float4 = k / 4;
+		
+		// Load A fragment: 1 float4 per thread (covers 4 elements in K dim)
+		const uint64_t smem_A_row = warp_row + thread_row * 4;// Base row for this thread
+		const uint64_t smem_A_idx = (smem_A_row * block_k + k) / 4;
+		if (smem_A_idx < (block_m * block_k / 4)) {
+			frag_A = smem_A[smem_A_idx];
+		} else {
+			frag_A = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+		}
+		
+		// Load B fragments: 2 float4s per thread (covers 8 elements in N dim)
+		const uint64_t smem_B_col_base = warp_col + thread_col * 8;
+		const uint64_t smem_B_idx_base = (k * block_n + smem_B_col_base) / 4;
+		frag_B[0]					   = smem_B[smem_B_idx_base];
+		frag_B[1]					   = smem_B[smem_B_idx_base + 1];
+		
+// Compute vectorized outer products
+// Each element of frag_A multiplies with each element of frag_B
+#pragma unroll
+		for (uint64_t a_elem = 0; a_elem < 4; ++a_elem) {
+			const float a_val		 = reinterpret_cast<float*>(&frag_A)[a_elem];
+			const float4 a_broadcast = make_float4(a_val, a_val, a_val, a_val);
+			
+			// Accumulate into corresponding accumulator row
+			const uint64_t acc_row = (thread_row * 4 + a_elem) % 4;// Map to 4 accumulator rows
+			
+			accumulator[0][0] += a_broadcast * frag_B[0];/*
+			accumulator[acc_row][1] += a_broadcast * frag_B[1];*/
+		}
+	}
+}
+
+template<uint64_t M, uint64_t block_m, uint64_t block_n> __device__ __forceinline__ void store_output_tile(float* C_global, float4 accumulator[4][2], uint64_t block_row,
+	uint64_t block_col, uint64_t warp_row, uint64_t warp_col, uint64_t N) {
+	const uint64_t lane_id	  = threadIdx.x % 32;
+	const uint64_t thread_row = lane_id / 8;
+	const uint64_t thread_col = lane_id % 8;
+
+// Store 4×2 float4 accumulator elements to global memory
+#pragma unroll
+	for (uint64_t i = 0; i < 4; ++i) {
+		const uint64_t global_row = block_row + warp_row + thread_row * 4 + i;
+
+		if (global_row < M) {
+			const uint64_t global_col_base = block_col + warp_col + thread_col * 8;
+
+			if (global_col_base + 7 < N) {
+				// Fast path: vectorized stores - 2 float4s = 8 elements
+				*reinterpret_cast<float4*>(&C_global[global_row * N + global_col_base])		= accumulator[i][0];
+				*reinterpret_cast<float4*>(&C_global[global_row * N + global_col_base + 4]) = accumulator[i][1];
+			} else {
+// Bounds-safe scalar stores
+#pragma unroll
+				for (uint64_t j = 0; j < 8; ++j) {
+					const uint64_t global_col = global_col_base + j;
+					if (global_col < N) {
+						const uint64_t float4_idx			  = j / 4;
+						const uint64_t elem_idx				  = j % 4;
+						C_global[global_row * N + global_col] = reinterpret_cast<float*>(&accumulator[i][float4_idx])[elem_idx];
+					}
+				}
+			}
+		}
+	}
+}
+template<uint64_t M, uint64_t K> __launch_bounds__(256, 2) __global__ void cutlass_q8_f32_gemm_kernel(const block_q8_0* A, const float* B, float* C, uint64_t N) {
+	constexpr uint64_t block_m = 64;
+	constexpr uint64_t block_n = 128;
+	constexpr uint64_t block_k = 32;
+
+	__shared__ shared_memory_layout<block_m, block_n, block_k> smem;
+
+	const uint64_t block_row = blockIdx.y * block_m;
+	const uint64_t block_col = blockIdx.x * block_n;
+
+	const uint64_t warp_id	= threadIdx.x / 32;
+	const uint64_t warp_row = (warp_id / 2) * 16;
+	const uint64_t warp_col = (warp_id % 2) * 64;
+
+	float4 accumulator[4][2];
+	for (uint64_t i = 0; i < 4; ++i) {
+		for (uint64_t j = 0; j < 2; ++j) {
+			accumulator[i][j] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+		}
+	}
+
+	uint64_t write_stage = 0;
+	uint64_t read_stage	 = 0;
+
+	load_smem_tile_A<M, K, block_m, block_k>(smem.A[write_stage], A, 0, block_row);
+
+	load_smem_tile_B<K, block_k, block_n>(smem.B[write_stage], B, 0, block_col, N);
+	__syncthreads();
+
+	for (uint64_t k_tile = 0; k_tile < K; k_tile += block_k) {
+		read_stage	= write_stage;
+		write_stage = 1 - write_stage;
+
+		if (k_tile + block_k < K) {
+			load_smem_tile_A<M, K, block_m, block_k>(smem.A[write_stage], A, k_tile + block_k, block_row);
+			load_smem_tile_B<K, block_k, block_n>(smem.B[write_stage], B, k_tile + block_k, block_col, N);
+		}
+		
+		compute_warp_tile<block_m, block_n, block_k>(smem.A[read_stage], smem.B[read_stage], static_cast<void*>(accumulator), warp_row, warp_col);
+
+		__syncthreads();
+		
+	}
+
+	store_output_tile<M, block_m, block_n>(C, accumulator, block_row, block_col, warp_row, warp_col, N);
+}
+
+template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size, mul_mat_types mul_mat_type> struct rt_tm_mul_mat {
+	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats, std::vector<std::vector<block_q8_0>>& blocks,
+		std::vector<std::vector<float>>& outputs, uint64_t matB_dim_01) {
+		auto& current_outputs = outputs[current_index];
+
+		static constexpr uint64_t total_blocks_A = ((matA_dim_00 * matA_dim_01) + block_size - 1) / block_size;
+		static constexpr uint64_t blocks_size	 = total_blocks_A * sizeof(block_q8_0);
+		const uint64_t floats_B_size			 = (matA_dim_01 * matB_dim_01) * sizeof(float);
+		const uint64_t outputs_C_size			 = (matA_dim_00 * matB_dim_01) * sizeof(float);
+
+		uint64_t offset			   = 0;
+		const block_q8_0* d_blocks = reinterpret_cast<const block_q8_0*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset					   = round_up_to_multiple<64>(offset + blocks_size);
+
+		const float* d_floats = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset				  = round_up_to_multiple<64>(offset + floats_B_size);
+
+		float* d_outputs = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+
+		constexpr uint64_t block_m = 64;
+		constexpr uint64_t block_n = 128;
+
+		dim3 grid{ static_cast<uint32_t>((matB_dim_01 + block_n - 1) / block_n), static_cast<uint32_t>((matA_dim_00 + block_m - 1) / block_m) };
+		dim3 block{ 256 };
+
+		cutlass_q8_f32_gemm_kernel<matA_dim_00, matA_dim_01><<<grid, block>>>(d_blocks, d_floats, d_outputs, matB_dim_01);
+
+		cudaError_t err = cudaGetLastError();
+		if (err != cudaSuccess) {
+			std::cerr << "Kernel launch failed: " << cudaGetErrorString(err) << std::endl;
+		}
+
+		err = cudaDeviceSynchronize();
+		if (err != cudaSuccess) {
+			std::cerr << "Kernel execution failed: " << cudaGetErrorString(err) << std::endl;
+		}
+
+		++current_index;
+		return current_outputs.size() * sizeof(float);
+	}
+};
+
 template<typename traits> __device__ __forceinline__ void compute_warp_tile(float* smem_A, float* smem_B, float accumulator[traits::thread_tile_m][traits::thread_tile_n],
 	uint64_t warp_row, uint64_t warp_col) {
 	constexpr uint64_t warp_m	= traits::warp_tile_m;
@@ -1162,7 +1449,7 @@ template<uint64_t M, uint64_t K> __launch_bounds__(256, 2) __global__ void rt_tm
 	store_output_tile<traits>(C, accumulator, M, N, block_row, block_col, warp_row, warp_col);
 }
 
-template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size, mul_mat_types mul_mat_type> struct rt_tm_mul_mat {
+template<uint64_t matA_dim_00, uint64_t matA_dim_01, uint64_t block_size, mul_mat_types mul_mat_type> struct rt_tm_mul_mat_old {
 	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats, std::vector<std::vector<block_q8_0>>& blocks,
 		std::vector<std::vector<float>>& outputs, uint64_t matB_dim_01) {
 		auto& current_outputs = outputs[current_index];
