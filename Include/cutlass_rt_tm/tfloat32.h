@@ -297,7 +297,7 @@ struct numeric_limits<cutlass_rt_tm::tfloat32_t> {
   static bool const is_iec559 = false;
   static bool const is_bounded = true;
   static bool const is_modulo = false;
-  static int const digits = 19;
+  static int constexpr digits = 19;
 
   /// Least positive value
   static cutlass_rt_tm::tfloat32_t min() { return cutlass_rt_tm::tfloat32_t::bitcast(0x01); }

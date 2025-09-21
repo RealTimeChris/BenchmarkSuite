@@ -346,7 +346,7 @@ struct numeric_limits<cutlass_rt_tm::bfloat16_t> {
   static bool const is_iec559 = false;
   static bool const is_bounded = true;
   static bool const is_modulo = false;
-  static int const digits = 7;
+  static int constexpr digits = 7;
 
   /// Least positive value
   CUTLASS_RT_TM_HOST_DEVICE
@@ -415,7 +415,7 @@ struct numeric_limits<cutlass_rt_tm::bfloat16_t> {
   static bool const is_iec559 = false;
   static bool const is_bounded = true;
   static bool const is_modulo = false;
-  static int const digits = 7;
+  static int constexpr digits = 7;
 
   /// Least positive value
   CUTLASS_RT_TM_HOST_DEVICE

@@ -61,7 +61,7 @@ struct AccessWidth
         ((AlignBytes <= Limit) &&  (ObjectBytes % AlignBytes == 0))>
   struct Detail
   {
-      static const int value = Detail<ObjectBytes, AlignBytes * 2>::value;
+      static constexpr int value = Detail<ObjectBytes, AlignBytes * 2>::value;
   };
 
   // Base case (ObjectBytes is not an even multiple of AlignBytes)
@@ -70,11 +70,11 @@ struct AccessWidth
       int AlignBytes>         /// Template induction variable
   struct Detail<ObjectBytes, AlignBytes, false>
   {
-      static const int value = AlignBytes / 2;
+      static constexpr int value = AlignBytes / 2;
   };
 
   /// The maximal power-of-two that evenly divides the size of T
-  static const int value = Detail<
+  static constexpr int value = Detail<
     (int) sizeof(T),
     1>::value;
 };
@@ -150,7 +150,7 @@ template <
 struct BlockStriped
 {
   /// Number of striped accesses
-  static const int kStripes = int(sizeof(ArrayT) / sizeof(AccessT));
+  static constexpr int kStripes = int(sizeof(ArrayT) / sizeof(AccessT));
   static_assert(kStripes > 0, "AccessT type must be smaller than or equal to ArrayT type");
 
   /// Load

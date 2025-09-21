@@ -741,12 +741,12 @@ CUTLASS_RT_TM_HOST_DEVICE int64_t OffsetBytes(int64_t index, int64_t element_siz
 
 template <int A, int B>
 struct Min {
-  static int const kValue = (A < B) ? A : B;
+  static int constexpr kValue = (A < B) ? A : B;
 };
 
 template <int A, int B>
 struct Max {
-  static int const kValue = (A > B) ? A : B;
+  static int constexpr kValue = (A > B) ? A : B;
 };
 
 CUTLASS_RT_TM_HOST_DEVICE

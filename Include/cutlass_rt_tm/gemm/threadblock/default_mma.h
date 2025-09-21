@@ -46,8 +46,6 @@
 
 #include "cutlass_rt_tm/gemm/gemm.h"
 #include "cutlass_rt_tm/gemm/threadblock/default_mma_core_simt.h"
-#include "cutlass_rt_tm/gemm/threadblock/default_mma_core_sm70.h"
-#include "cutlass_rt_tm/gemm/threadblock/default_mma_core_sm75.h"
 #include "cutlass_rt_tm/gemm/threadblock/default_mma_core_sm80.h"
 
 #if defined(CUTLASS_RT_TM_ARCH_WMMA_ENABLED)

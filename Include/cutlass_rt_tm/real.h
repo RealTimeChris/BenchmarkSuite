@@ -45,7 +45,7 @@ struct RealType {
   using Type = T;
 
   /// Number of elements
-  static int const kExtent = 1;
+  static int constexpr kExtent = 1;
 
 CUTLASS_RT_TM_HOST_DEVICE
   static T from_real(double x) {

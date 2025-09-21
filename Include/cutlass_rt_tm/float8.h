@@ -1346,7 +1346,7 @@ public:
   static bool const is_iec559 = false;
   static bool const is_bounded = true;
   static bool const is_modulo = false;
-  static int const digits = F8Type::FP8_NUM_MANTISSA_BITS;
+  static int constexpr digits = F8Type::FP8_NUM_MANTISSA_BITS;
 
   /// Least positive value
   CUTLASS_RT_TM_HOST_DEVICE
@@ -1423,7 +1423,7 @@ public:
   static bool const is_iec559 = false;
   static bool const is_bounded = true;
   static bool const is_modulo = false;
-  static int const digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
+  static int constexpr digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
   static bool const has_infinity = false;
 
   /// Least positive value
@@ -1498,7 +1498,7 @@ public:
   static bool const is_iec559 = false;
   static bool const is_bounded = true;
   static bool const is_modulo = false;
-  static int const digits = F8Type::FP8_NUM_MANTISSA_BITS;
+  static int constexpr digits = F8Type::FP8_NUM_MANTISSA_BITS;
 
   /// Least positive value
   CUTLASS_RT_TM_HOST_DEVICE
@@ -1579,7 +1579,7 @@ public:
   static bool const is_iec559 = false;
   static bool const is_bounded = true;
   static bool const is_modulo = false;
-  static int const digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
+  static int constexpr digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
   static bool const has_infinity = false;
 
   /// Least positive value

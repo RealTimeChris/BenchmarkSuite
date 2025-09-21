@@ -86,7 +86,7 @@ public:
   using T = int;
 
   /// Initial flag value
-  static const T INIT = 0;
+  static constexpr T INIT = 0;
 
 
 protected:

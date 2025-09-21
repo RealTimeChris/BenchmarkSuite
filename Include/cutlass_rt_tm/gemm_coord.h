@@ -48,16 +48,16 @@ template <
   int K = 1
 >
 struct GemmShape {
-  static int const kM = M;
-  static int const kN = N;
-  static int const kK = K;
+  static int constexpr kM = M;
+  static int constexpr kN = N;
+  static int constexpr kK = K;
 
-  static int const kMN = M * N;
-  static int const kMK = M * K;
-  static int const kKN = N * K;
-  static int const kMNK = M * N * K;
+  static int constexpr kMN = M * N;
+  static int constexpr kMK = M * K;
+  static int constexpr kKN = N * K;
+  static int constexpr kMNK = M * N * K;
 
-  static int const kCount = kMNK;
+  static int constexpr kCount = kMNK;
 
   //
   // Static member functions
@@ -92,13 +92,13 @@ struct GemmCoord : public Coord<3, int> {
   typedef Coord<3, Index> Base;
 
   /// GEMM M dimension - rows of the output C matrix
-  static int const kM = 0;
+  static int constexpr kM = 0;
 
   /// GEMM N dimension - columns of the output C matrix
-  static int const kN = 1;
+  static int constexpr kN = 1;
 
   /// GEMM K dimension - inner dimension of the GEMM problem
-  static int const kK = 2;
+  static int constexpr kK = 2;
 
   //
   // Methods
@@ -258,16 +258,16 @@ struct BatchedGemmCoord : public Coord<4, int> {
   typedef Coord<4, Index> Base;
 
   /// GEMM M dimension - rows of the output C matrix
-  static int const kM = 0;
+  static int constexpr kM = 0;
 
   /// GEMM N dimension - columns of the output C matrix
-  static int const kN = 1;
+  static int constexpr kN = 1;
 
   /// GEMM K dimension - inner dimension of the GEMM problem
-  static int const kK = 2;
+  static int constexpr kK = 2;
 
   /// GEMM Batch dimension - inner dimension of the GEMM problem
-  static int const kBatch = 3;
+  static int constexpr kBatch = 3;
 
   //
   // Methods

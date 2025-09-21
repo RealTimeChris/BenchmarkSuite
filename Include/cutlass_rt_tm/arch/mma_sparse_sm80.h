@@ -100,11 +100,11 @@ struct SparseMma<
   using Operator = OpMultiplyAdd;
   using ArchTag = arch::Sm80;
 
-  static int const kSparse = 2;
+  static int constexpr kSparse = 2;
 
-  static int const kMetaSizeInBits = 2;
+  static int constexpr kMetaSizeInBits = 2;
 
-  static int const kMaxID2 = 2;
+  static int constexpr kMaxID2 = 2;
 
   /// Computes multiply-add
   CUTLASS_RT_TM_HOST_DEVICE
@@ -206,11 +206,11 @@ struct SparseMma<
   using Operator = OpMultiplyAdd;
   using ArchTag = arch::Sm80;
 
-  static int const kSparse = 2;
+  static int constexpr kSparse = 2;
 
-  static int const kMetaSizeInBits = 2;
+  static int constexpr kMetaSizeInBits = 2;
 
-  static int const kMaxID2 = 2;
+  static int constexpr kMaxID2 = 2;
 
   /// Computes multiply-add
   CUTLASS_RT_TM_HOST_DEVICE
@@ -311,11 +311,11 @@ struct SparseMma<gemm::GemmShape<16, 8, 32>, 32, bfloat16_t, layout::RowMajor,
   using Operator = OpMultiplyAdd;
   using ArchTag = arch::Sm80;
 
-  static int const kSparse = 2;
+  static int constexpr kSparse = 2;
 
-  static int const kMetaSizeInBits = 2;
+  static int constexpr kMetaSizeInBits = 2;
 
-  static int const kMaxID2 = 2;
+  static int constexpr kMaxID2 = 2;
 
   CUTLASS_RT_TM_HOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
@@ -407,11 +407,11 @@ struct SparseMma<gemm::GemmShape<16, 8, 16>, 32, tfloat32_t, layout::RowMajor,
   using Operator = OpMultiplyAdd;
   using ArchTag = arch::Sm80;
 
-  static int const kSparse = 2;
+  static int constexpr kSparse = 2;
 
-  static int const kMetaSizeInBits = 4;
+  static int constexpr kMetaSizeInBits = 4;
 
-  static int const kMaxID2 = 2;
+  static int constexpr kMaxID2 = 2;
 
   CUTLASS_RT_TM_HOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
@@ -512,11 +512,11 @@ struct SparseMma<
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
 
-  static int const kSparse = 2;
+  static int constexpr kSparse = 2;
 
-  static int const kMetaSizeInBits = 2;
+  static int constexpr kMetaSizeInBits = 2;
 
-  static int const kMaxID2 = 1;
+  static int constexpr kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_RT_TM_HOST_DEVICE
@@ -604,11 +604,11 @@ struct SparseMma<
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
 
-  static int const kSparse = 2;
+  static int constexpr kSparse = 2;
 
-  static int const kMetaSizeInBits = 2;
+  static int constexpr kMetaSizeInBits = 2;
 
-  static int const kMaxID2 = 1;
+  static int constexpr kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_RT_TM_HOST_DEVICE
@@ -697,11 +697,11 @@ struct SparseMma<
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
 
-  static int const kSparse = 2;
+  static int constexpr kSparse = 2;
 
-  static int const kMetaSizeInBits = 2;
+  static int constexpr kMetaSizeInBits = 2;
 
-  static int const kMaxID2 = 1;
+  static int constexpr kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_RT_TM_HOST_DEVICE
@@ -789,11 +789,11 @@ struct SparseMma<
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
 
-  static int const kSparse = 2;
+  static int constexpr kSparse = 2;
 
-  static int const kMetaSizeInBits = 2;
+  static int constexpr kMetaSizeInBits = 2;
 
-  static int const kMaxID2 = 1;
+  static int constexpr kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_RT_TM_HOST_DEVICE
@@ -887,11 +887,11 @@ struct SparseMma<
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
 
-  static int const kSparse = 2;
+  static int constexpr kSparse = 2;
 
-  static int const kMetaSizeInBits = 2;
+  static int constexpr kMetaSizeInBits = 2;
 
-  static int const kMaxID2 = 1;
+  static int constexpr kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_RT_TM_HOST_DEVICE
@@ -980,11 +980,11 @@ struct SparseMma<
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
 
-  static int const kSparse = 2;
+  static int constexpr kSparse = 2;
 
-  static int const kMetaSizeInBits = 2;
+  static int constexpr kMetaSizeInBits = 2;
 
-  static int const kMaxID2 = 1;
+  static int constexpr kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_RT_TM_HOST_DEVICE
@@ -1073,11 +1073,11 @@ struct SparseMma<
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
 
-  static int const kSparse = 2;
+  static int constexpr kSparse = 2;
 
-  static int const kMetaSizeInBits = 2;
+  static int constexpr kMetaSizeInBits = 2;
 
-  static int const kMaxID2 = 1;
+  static int constexpr kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_RT_TM_HOST_DEVICE
@@ -1166,11 +1166,11 @@ struct SparseMma<
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
 
-  static int const kSparse = 2;
+  static int constexpr kSparse = 2;
 
-  static int const kMetaSizeInBits = 2;
+  static int constexpr kMetaSizeInBits = 2;
 
-  static int const kMaxID2 = 1;
+  static int constexpr kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_RT_TM_HOST_DEVICE

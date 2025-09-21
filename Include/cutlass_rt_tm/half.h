@@ -150,7 +150,7 @@ public:
     return f16c_enabled;
   } 
 
-  static const CpuId& instance() {
+  static constexpr CpuId& instance() {
       static CpuId cpu;
       return cpu;
   }
@@ -599,7 +599,7 @@ struct numeric_limits<cutlass_rt_tm::half_t> {
   static bool const is_iec559 = true;
   static bool const is_bounded = true;
   static bool const is_modulo = false;
-  static int const digits = 10;
+  static int constexpr digits = 10;
 
   /// Least positive value
   CUTLASS_RT_TM_HOST_DEVICE
@@ -667,7 +667,7 @@ struct numeric_limits<cutlass_rt_tm::half_t> {
   static bool const is_iec559 = true;
   static bool const is_bounded = true;
   static bool const is_modulo = false;
-  static int const digits = 10;
+  static int constexpr digits = 10;
 
   /// Least positive value
   CUTLASS_RT_TM_HOST_DEVICE

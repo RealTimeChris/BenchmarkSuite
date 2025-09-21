@@ -308,7 +308,7 @@ template<uint64_t M, uint64_t K, uint64_t block_size> struct cuda_mul_mat_01_pre
 		const uint64_t floats_B_size	  = (K * N) * sizeof(float);
 		const uint64_t outputs_C_size	  = (M * N) * sizeof(float);
 		uint64_t offset					  = 0;
-		block_q8_0* d_blocks			  = reinterpret_cast<block_q8_0*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		block_q8_0* A_ptr_raw			  = reinterpret_cast<block_q8_0*>(static_cast<uint8_t*>(buffer.data()) + offset);
 		offset							  = round_up_to_multiple<64>(offset + blocks_size);
 
 		float* d_floats = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
@@ -316,8 +316,6 @@ template<uint64_t M, uint64_t K, uint64_t block_size> struct cuda_mul_mat_01_pre
 
 		float* d_outputs = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
 
-		//cudaMemset(d_floats, 0, floats_B_size);
-		//cudaMemset(d_outputs, 0, outputs_C_size);
 		if (current_index > 0) {
 			auto& previous_outputs = outputs[current_index - 1];
 			cudaError_t err		   = cudaMemcpy(previous_outputs.data(), d_outputs, outputs_C_size, cudaMemcpyDeviceToHost);
@@ -329,7 +327,7 @@ template<uint64_t M, uint64_t K, uint64_t block_size> struct cuda_mul_mat_01_pre
 		const auto& current_blocks = blocks[current_index];
 		const auto& current_floats = floats[current_index];
 
-		cudaError_t err = cudaMemcpy(d_blocks, current_blocks.data(), blocks_size, cudaMemcpyHostToDevice);
+		cudaError_t err = cudaMemcpy(A_ptr_raw, current_blocks.data(), blocks_size, cudaMemcpyHostToDevice);
 		if (err != cudaSuccess) {
 			std::cerr << "Failed to copy blocks to device: " + std::string(cudaGetErrorString(err)) << std::endl;
 		}
@@ -339,9 +337,179 @@ template<uint64_t M, uint64_t K, uint64_t block_size> struct cuda_mul_mat_01_pre
 			std::cerr << "Failed to copy floats to device: " + std::string(cudaGetErrorString(err)) << std::endl;
 		}
 
-		//err = cudaMemset(d_outputs, 0, outputs_C_size);
+		err = cudaMemset(d_outputs, 0, outputs_C_size);
 		if (err != cudaSuccess) {
 			std::cerr << "Failed to zero output buffer: " + std::string(cudaGetErrorString(err)) << std::endl;
+		}
+
+		return 0;
+	}
+
+	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats_A, std::vector<std::vector<float>>& floats_B,
+		std::vector<std::vector<float>>& outputs, uint64_t N) {
+		const uint64_t floats_A_size  = (M * K) * sizeof(float);
+		const uint64_t floats_B_size  = (K * N) * sizeof(float);
+		const uint64_t outputs_C_size = (M * N) * sizeof(float);
+
+		uint64_t offset = 0;
+
+		float* d_floats_A = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset			  = round_up_to_multiple<64>(offset + floats_A_size);
+
+		float* d_floats_B = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset			  = round_up_to_multiple<64>(offset + floats_B_size);
+
+		float* d_outputs = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+
+		if (current_index > 0) {
+			auto& previous_outputs = outputs[current_index - 1];
+			cudaError_t err		   = cudaMemcpy(previous_outputs.data(), d_outputs, outputs_C_size, cudaMemcpyDeviceToHost);
+			if (err != cudaSuccess) {
+				std::cerr << "Failed to copy previous outputs from device: " + std::string(cudaGetErrorString(err)) << std::endl;
+			}
+		}
+
+		const auto& current_floats_A = floats_A[current_index];
+		const auto& current_floats_B = floats_B[current_index];
+
+		cudaError_t err = cudaMemcpy(d_floats_A, current_floats_A.data(), floats_A_size, cudaMemcpyHostToDevice);
+		if (err != cudaSuccess) {
+			std::cerr << "Failed to copy Matrix A floats to device: " + std::string(cudaGetErrorString(err)) << std::endl;
+		}
+
+		err = cudaMemcpy(d_floats_B, current_floats_B.data(), floats_B_size, cudaMemcpyHostToDevice);
+		if (err != cudaSuccess) {
+			std::cerr << "Failed to copy Matrix B floats to device: " + std::string(cudaGetErrorString(err)) << std::endl;
+		}
+
+		// Optional: Zero output buffer (uncomment if needed)
+		// err = cudaMemset(d_outputs, 0, outputs_C_size);
+		// if (err != cudaSuccess) {
+		//     std::cerr << "Failed to zero output buffer: " + std::string(cudaGetErrorString(err)) << std::endl;
+		// }
+
+		return 0;
+	}
+};
+
+template<uint64_t M, uint64_t K, uint64_t block_size> struct cuda_mul_mat_01_prep_transposed {
+	BNCH_SWT_INLINE static void transpose_blocks_to_column_major(const std::vector<block_q8_0>& src_blocks, std::vector<block_q8_0>& dst_blocks, uint64_t rows, uint64_t cols) {
+		constexpr uint64_t elements_per_block = block_size;
+		const uint64_t blocks_per_row		  = (cols + elements_per_block - 1) / elements_per_block;
+		const uint64_t blocks_per_col		  = (rows + elements_per_block - 1) / elements_per_block;
+
+		dst_blocks.resize(src_blocks.size());
+
+		for (uint64_t block_row = 0; block_row < blocks_per_col; ++block_row) {
+			for (uint64_t block_col = 0; block_col < blocks_per_row; ++block_col) {
+				uint64_t src_idx = block_row * blocks_per_row + block_col;
+				uint64_t dst_idx = block_col * blocks_per_col + block_row;
+				if (src_idx < src_blocks.size() && dst_idx < dst_blocks.size()) {
+					dst_blocks[dst_idx] = src_blocks[src_idx];
+				}
+			}
+		}
+	}
+
+	BNCH_SWT_INLINE static void transpose_floats_to_column_major(const std::vector<float>& src, std::vector<float>& dst, uint64_t rows, uint64_t cols) {
+		dst.resize(src.size());
+		for (uint64_t i = 0; i < rows; ++i) {
+			for (uint64_t j = 0; j < cols; ++j) {
+				dst[j * rows + i] = src[i * cols + j];
+			}
+		}
+	}
+
+	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats, std::vector<std::vector<block_q8_0>>& blocks,
+		std::vector<std::vector<float>>& outputs, uint64_t N) {
+		constexpr uint64_t total_blocks_A = ((M * K) + block_size - 1) / block_size;
+		constexpr uint64_t blocks_size	  = total_blocks_A * sizeof(block_q8_0);
+		const uint64_t floats_B_size	  = (K * N) * sizeof(float);
+		const uint64_t outputs_C_size	  = (M * N) * sizeof(float);
+		uint64_t offset					  = 0;
+		block_q8_0* A_ptr_raw			  = reinterpret_cast<block_q8_0*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset							  = round_up_to_multiple<64>(offset + blocks_size);
+
+		float* d_floats = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset			= round_up_to_multiple<64>(offset + floats_B_size);
+
+		float* d_outputs = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+
+		if (current_index > 0) {
+			auto& previous_outputs = outputs[current_index - 1];
+			cudaError_t err		   = cudaMemcpy(previous_outputs.data(), d_outputs, outputs_C_size, cudaMemcpyDeviceToHost);
+			if (err != cudaSuccess) {
+				std::cerr << "Failed to copy previous outputs from device: " + std::string(cudaGetErrorString(err)) << std::endl;
+			}
+		}
+
+		const auto& current_blocks = blocks[current_index];
+		const auto& current_floats = floats[current_index];
+
+		std::vector<block_q8_0> transposed_blocks;
+		std::vector<float> transposed_floats;
+
+		transpose_blocks_to_column_major(current_blocks, transposed_blocks, M, K);
+		transpose_floats_to_column_major(current_floats, transposed_floats, K, N);
+
+		cudaError_t err = cudaMemcpy(A_ptr_raw, transposed_blocks.data(), blocks_size, cudaMemcpyHostToDevice);
+		if (err != cudaSuccess) {
+			std::cerr << "Failed to copy blocks to device: " + std::string(cudaGetErrorString(err)) << std::endl;
+		}
+
+		err = cudaMemcpy(d_floats, transposed_floats.data(), floats_B_size, cudaMemcpyHostToDevice);
+		if (err != cudaSuccess) {
+			std::cerr << "Failed to copy floats to device: " + std::string(cudaGetErrorString(err)) << std::endl;
+		}
+
+		err = cudaMemset(d_outputs, 0, outputs_C_size);
+		if (err != cudaSuccess) {
+			std::cerr << "Failed to zero output buffer: " + std::string(cudaGetErrorString(err)) << std::endl;
+		}
+
+		return 0;
+	}
+
+	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats_A, std::vector<std::vector<float>>& floats_B,
+		std::vector<std::vector<float>>& outputs, uint64_t N) {
+		const uint64_t floats_A_size  = (M * K) * sizeof(float);
+		const uint64_t floats_B_size  = (K * N) * sizeof(float);
+		const uint64_t outputs_C_size = (M * N) * sizeof(float);
+
+		uint64_t offset = 0;
+
+		float* d_floats_A = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset			  = round_up_to_multiple<64>(offset + floats_A_size);
+
+		float* d_floats_B = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset			  = round_up_to_multiple<64>(offset + floats_B_size);
+
+		float* d_outputs = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+
+		if (current_index > 0) {
+			auto& previous_outputs = outputs[current_index - 1];
+			cudaError_t err		   = cudaMemcpy(previous_outputs.data(), d_outputs, outputs_C_size, cudaMemcpyDeviceToHost);
+			if (err != cudaSuccess) {
+				std::cerr << "Failed to copy previous outputs from device: " + std::string(cudaGetErrorString(err)) << std::endl;
+			}
+		}
+
+		const auto& current_floats_A = floats_A[current_index];
+		const auto& current_floats_B = floats_B[current_index];
+
+		std::vector<float> transposed_A, transposed_B;
+
+		transpose_floats_to_column_major(current_floats_A, transposed_A, M, K);
+		transpose_floats_to_column_major(current_floats_B, transposed_B, K, N);
+
+		cudaError_t err = cudaMemcpy(d_floats_A, transposed_A.data(), floats_A_size, cudaMemcpyHostToDevice);
+		if (err != cudaSuccess) {
+			std::cerr << "Failed to copy Matrix A floats to device: " + std::string(cudaGetErrorString(err)) << std::endl;
+		}
+
+		err = cudaMemcpy(d_floats_B, transposed_B.data(), floats_B_size, cudaMemcpyHostToDevice);
+		if (err != cudaSuccess) {
+			std::cerr << "Failed to copy Matrix B floats to device: " + std::string(cudaGetErrorString(err)) << std::endl;
 		}
 
 		return 0;
@@ -393,6 +561,37 @@ template<uint64_t M, uint64_t K, uint64_t block_size> __global__ void ggml_cuda_
 	output[row * N + col] = sum;
 }
 
+template<uint64_t M, uint64_t K> __global__ void ggml_cuda_mul_mat_float_kernel(const float* input_A, const float* input_B, float* output, uint64_t N) {
+	const uint64_t row = blockIdx.y * blockDim.y + threadIdx.y;
+	const uint64_t col = blockIdx.x * blockDim.x + threadIdx.x;
+
+	if (row >= M || col >= N)
+		return;
+
+	float sum = 0.0f;
+
+	const uint64_t k_end = K & ~3;
+	uint64_t k			 = 0;
+
+	for (; k < k_end; k += 4) {
+#pragma unroll
+		for (uint64_t i = 0; i < 4; ++i) {
+			const uint64_t k_idx = k + i;
+			const float a_elem	 = input_A[row * K + k_idx];
+			const float b_elem	 = input_B[k_idx * N + col];
+			sum += a_elem * b_elem;
+		}
+	}
+
+	for (; k < K; ++k) {
+		const float a_elem = input_A[row * K + k];
+		const float b_elem = input_B[k * N + col];
+		sum += a_elem * b_elem;
+	}
+
+	output[row * N + col] = sum;
+}
+
 template<uint64_t M, uint64_t K, uint64_t block_size> struct ggml_cuda_mul_mat {
 	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats, std::vector<std::vector<block_q8_0>>& blocks,
 		std::vector<std::vector<float>>& outputs, uint64_t N) {
@@ -403,9 +602,9 @@ template<uint64_t M, uint64_t K, uint64_t block_size> struct ggml_cuda_mul_mat {
 		const uint64_t floats_B_size			 = (K * N) * sizeof(float);
 		const uint64_t outputs_C_size			 = (M * N) * sizeof(float);
 
-		uint64_t offset			   = 0;
-		const block_q8_0* d_blocks = reinterpret_cast<const block_q8_0*>(static_cast<uint8_t*>(buffer.data()) + offset);
-		offset					   = round_up_to_multiple<64>(offset + blocks_size);
+		uint64_t offset				= 0;
+		const block_q8_0* A_ptr_raw = reinterpret_cast<const block_q8_0*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset						= round_up_to_multiple<64>(offset + blocks_size);
 
 		const float* d_floats = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
 		offset				  = round_up_to_multiple<64>(offset + floats_B_size);
@@ -433,7 +632,7 @@ template<uint64_t M, uint64_t K, uint64_t block_size> struct ggml_cuda_mul_mat {
 		dim3 blockDim(static_cast<uint64_t>(block_dim_x), static_cast<uint64_t>(block_dim_y));
 		dim3 gridDim(static_cast<uint64_t>(grid_dim_x), static_cast<uint64_t>(grid_dim_y));
 
-		ggml_cuda_mul_mat_kernel<M, K, block_size><<<gridDim, blockDim>>>(d_floats, d_blocks, d_outputs, N);
+		ggml_cuda_mul_mat_kernel<M, K, block_size><<<gridDim, blockDim>>>(d_floats, A_ptr_raw, d_outputs, N);
 
 		cudaError_t err = cudaGetLastError();
 		if (err != cudaSuccess) {
@@ -443,6 +642,189 @@ template<uint64_t M, uint64_t K, uint64_t block_size> struct ggml_cuda_mul_mat {
 		err = cudaDeviceSynchronize();
 		if (err != cudaSuccess) {
 			std::cerr << "GGML CUDA kernel execution failed: " + std::string(cudaGetErrorString(err)) << std::endl;
+		}
+
+		++current_index;
+		return current_outputs.size() * sizeof(float);
+	}
+
+	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats_A, std::vector<std::vector<float>>& floats_B,
+		std::vector<std::vector<float>>& outputs, uint64_t N) {
+		auto& current_outputs = outputs[current_index];
+
+		const uint64_t floats_A_size  = (M * K) * sizeof(float);
+		const uint64_t floats_B_size  = (K * N) * sizeof(float);
+		const uint64_t outputs_C_size = (M * N) * sizeof(float);
+
+		uint64_t offset = 0;
+
+		const float* d_floats_A = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset					= round_up_to_multiple<64>(offset + floats_A_size);
+
+		const float* d_floats_B = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset					= round_up_to_multiple<64>(offset + floats_B_size);
+
+		float* d_outputs = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+
+		uint64_t block_dim_x, block_dim_y;
+		if (N <= 4) {
+			block_dim_x = N;
+			block_dim_y = 256 / block_dim_x;
+		} else if (M <= 16) {
+			block_dim_x = 32;
+			block_dim_y = 16;
+		} else {
+			block_dim_x = 16;
+			block_dim_y = 32;
+		}
+
+		block_dim_x = std::min(block_dim_x, N);
+		block_dim_y = std::min(block_dim_y, M);
+
+		const uint64_t grid_dim_x = (N + block_dim_x - 1) / block_dim_x;
+		const uint64_t grid_dim_y = (M + block_dim_y - 1) / block_dim_y;
+
+		dim3 blockDim(static_cast<uint64_t>(block_dim_x), static_cast<uint64_t>(block_dim_y));
+		dim3 gridDim(static_cast<uint64_t>(grid_dim_x), static_cast<uint64_t>(grid_dim_y));
+
+		ggml_cuda_mul_mat_float_kernel<M, K><<<gridDim, blockDim>>>(d_floats_A, d_floats_B, d_outputs, N);
+
+		cudaError_t err = cudaGetLastError();
+		if (err != cudaSuccess) {
+			std::cerr << "GGML CUDA float kernel launch failed: " + std::string(cudaGetErrorString(err)) << std::endl;
+		}
+
+		err = cudaDeviceSynchronize();
+		if (err != cudaSuccess) {
+			std::cerr << "GGML CUDA float kernel execution failed: " + std::string(cudaGetErrorString(err)) << std::endl;
+		}
+
+		++current_index;
+		return current_outputs.size() * sizeof(float);
+	}
+};
+
+#include <cublas_v2.h>
+#include <cublasLt.h>
+#include <cuda_runtime.h>
+#include <cuda_fp16.h>
+
+__global__ void dequantize_a_matrix_kernel(const block_q8_0* input_blocks, float* output, uint64_t total_elements) {
+	const uint64_t idx	  = blockIdx.x * blockDim.x + threadIdx.x;
+	const uint64_t stride = blockDim.x * gridDim.x;
+
+	for (uint64_t i = idx; i < total_elements; i += stride) {
+		const uint64_t block_idx	 = i >> 5;
+		const uint64_t elem_in_block = i % 32;
+
+		const block_q8_0& block = input_blocks[block_idx];
+		const float scale		= __half2float(*reinterpret_cast<const __half*>(&block.scale));
+		output[i]				= scale * static_cast<float>(block.quants[elem_in_block]);
+	}
+}
+
+template<uint64_t M, uint64_t K, uint64_t block_size> struct cublas_mul_mat {
+	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats, std::vector<std::vector<block_q8_0>>& blocks,
+		std::vector<std::vector<float>>& outputs, uint64_t N) {
+		auto& current_outputs = outputs[current_index];
+
+		static constexpr uint64_t total_blocks_A = ((M * K) + block_size - 1) / block_size;
+		static constexpr uint64_t blocks_size	 = total_blocks_A * sizeof(block_q8_0);
+		const uint64_t floats_A_size			 = (M * K) * sizeof(float);
+		const uint64_t floats_B_size			 = (K * N) * sizeof(float);
+		const uint64_t outputs_C_size			 = (M * N) * sizeof(float);
+
+		uint64_t offset				   = 0;
+		const block_q8_0* A_blocks_raw = reinterpret_cast<const block_q8_0*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset						   = round_up_to_multiple<64>(offset + blocks_size);
+
+		float* d_floats_A = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset			  = round_up_to_multiple<64>(offset + floats_A_size);
+
+		const float* d_floats_B = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset					= round_up_to_multiple<64>(offset + floats_B_size);
+
+		float* d_outputs = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+
+		const uint64_t total_elements_A	 = M * K;
+		const uint64_t threads_per_block = 256;
+		const uint64_t blocks_needed	 = (total_elements_A + threads_per_block - 1) / threads_per_block;
+
+		dequantize_a_matrix_kernel<<<blocks_needed, threads_per_block>>>(A_blocks_raw, d_floats_A, total_elements_A);
+
+		cudaError_t err = cudaDeviceSynchronize();
+		if (err != cudaSuccess) {
+			std::cerr << "Dequantization kernel execution failed: " + std::string(cudaGetErrorString(err)) << std::endl;
+		}
+
+		cublasHandle_t handle;
+		cublasStatus_t status = cublasCreate(&handle);
+		if (status != CUBLAS_STATUS_SUCCESS) {
+			std::cerr << "cuBLAS initialization failed: " << status << std::endl;
+			return 0;
+		}
+
+		const float alpha = 1.0f;
+		const float beta  = 0.0f;
+
+		status = cublasSgemm(handle, CUBLAS_OP_T, CUBLAS_OP_T, static_cast<int>(N), static_cast<int>(M), static_cast<int>(K), &alpha, d_floats_B, static_cast<int>(K), d_floats_A,
+			static_cast<int>(M), &beta, d_outputs, static_cast<int>(N));
+
+		if (status != CUBLAS_STATUS_SUCCESS) {
+			std::cerr << "cuBLAS SGEMM failed: " << status << std::endl;
+		}
+
+		cublasDestroy(handle);
+
+		err = cudaDeviceSynchronize();
+		if (err != cudaSuccess) {
+			std::cerr << "CUDA synchronization failed: " + std::string(cudaGetErrorString(err)) << std::endl;
+		}
+
+		++current_index;
+		return current_outputs.size() * sizeof(float);
+	}
+
+	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats_A, std::vector<std::vector<float>>& floats_B,
+		std::vector<std::vector<float>>& outputs, uint64_t N) {
+		auto& current_outputs = outputs[current_index];
+
+		const uint64_t floats_A_size  = (M * K) * sizeof(float);
+		const uint64_t floats_B_size  = (K * N) * sizeof(float);
+		const uint64_t outputs_C_size = (M * N) * sizeof(float);
+
+		uint64_t offset = 0;
+
+		const float* d_floats_A = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset					= round_up_to_multiple<64>(offset + floats_A_size);
+
+		const float* d_floats_B = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset					= round_up_to_multiple<64>(offset + floats_B_size);
+
+		float* d_outputs = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+
+		cublasHandle_t handle;
+		cublasStatus_t status = cublasCreate(&handle);
+		if (status != CUBLAS_STATUS_SUCCESS) {
+			std::cerr << "cuBLAS initialization failed: " << status << std::endl;
+			return 0;
+		}
+
+		const float alpha = 1.0f;
+		const float beta  = 0.0f;
+
+		status = cublasSgemm(handle, CUBLAS_OP_T, CUBLAS_OP_T, static_cast<int>(N), static_cast<int>(M), static_cast<int>(K), &alpha, d_floats_B, static_cast<int>(K), d_floats_A,
+			static_cast<int>(M), &beta, d_outputs, static_cast<int>(N));
+
+		if (status != CUBLAS_STATUS_SUCCESS) {
+			std::cerr << "cuBLAS SGEMM failed: " << status << std::endl;
+		}
+
+		cublasDestroy(handle);
+
+		cudaError_t err = cudaDeviceSynchronize();
+		if (err != cudaSuccess) {
+			std::cerr << "CUDA synchronization failed: " + std::string(cudaGetErrorString(err)) << std::endl;
 		}
 
 		++current_index;
@@ -921,6 +1303,8 @@ template<uint64_t block_m, uint64_t block_n, uint64_t block_k, uint64_t warp_m_n
 	static_assert(threads_per_block % gpu_properties::warp_size == 0, "threads_per_block must be a multiple of warp_size");
 };
 
+using mul_mat_1_to_1024 = cuda_kernel_traits<32, 64, 16, 16, 32, 4, 4>;
+
 template<uint64_t M, uint64_t K, typename traits>
 __device__ __forceinline__ void load_smem_tile_A(float* smem_A, const block_q8_0* A_global, uint64_t N, uint64_t k_offset, uint64_t block_row) {
 	constexpr uint64_t block_m			 = traits::block_tile_m;
@@ -1103,7 +1487,9 @@ template<typename traits> __device__ __forceinline__ void store_output_tile(floa
 	}
 }
 
-template<uint64_t M, uint64_t K, typename traits> __launch_bounds__(256, 2) __global__ void rt_tm_gemm_kernel(const block_q8_0* A, const float* B, float* C, uint64_t N) {
+template<uint64_t M, uint64_t K> __launch_bounds__(256, 2) __global__ void rt_tm_gemm_kernel(const block_q8_0* A, const float* B, float* C, uint64_t N) {
+	using traits = mul_mat_1_to_1024;
+
 	constexpr uint64_t block_m	= traits::block_tile_m;
 	constexpr uint64_t block_n	= traits::block_tile_n;
 	constexpr uint64_t block_k	= traits::block_tile_k;
@@ -1157,260 +1543,273 @@ template<uint64_t M, uint64_t K, typename traits> __launch_bounds__(256, 2) __gl
 	store_output_tile<traits>(C, accumulator, M, N, block_row, block_col, warp_row, warp_col);
 }
 
-using mul_mat_1_to_128	 = cuda_kernel_traits<32, 64, 16, 16, 32, 4, 4>;
-using mul_mat_129_to_512 = cuda_kernel_traits<128, 64, 32, 32, 32, 8, 4>;
+template<uint64_t M, uint64_t K, typename traits>
+__device__ __forceinline__ void load_smem_tile_A_float(float* smem_A, const float* A_global, uint64_t N, uint64_t k_offset, uint64_t block_row) {
+	constexpr uint64_t block_m			 = traits::block_tile_m;
+	constexpr uint64_t block_k			 = traits::block_tile_k;
+	constexpr uint64_t threads_per_block = traits::threads_per_block;
+	const uint64_t tid					 = threadIdx.x;
+	const uint64_t elements_per_block	 = block_m * block_k;
+	const uint64_t vec4_elements		 = elements_per_block / 4;
+	const uint64_t vec4_per_thread		 = (vec4_elements + threads_per_block - 1) / threads_per_block;
 
-template<uint64_t M, uint64_t K, uint64_t block_size, mul_mat_types mul_mat_type> struct rt_tm_mul_mat {
-	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats, std::vector<std::vector<block_q8_0>>& blocks,
-		std::vector<std::vector<float>>& outputs, uint64_t N) {
-		auto& current_outputs = outputs[current_index];
+	for (uint64_t i = 0; i < vec4_per_thread; ++i) {
+		const uint64_t vec4_idx	  = tid + i * threads_per_block;
+		const uint64_t linear_idx = vec4_idx * 4;
 
-		static constexpr uint64_t total_blocks_A = ((M * K) + block_size - 1) / block_size;
-		static constexpr uint64_t blocks_size	 = total_blocks_A * sizeof(block_q8_0);
-		const uint64_t floats_B_size			 = (K * N) * sizeof(float);
-		const uint64_t outputs_C_size			 = (M * N) * sizeof(float);
+		if (linear_idx < elements_per_block) {
+			const uint64_t row		  = linear_idx / block_k;
+			const uint64_t col		  = linear_idx % block_k;
+			const uint64_t global_row = block_row + row;
+			const uint64_t global_col = k_offset + col;
 
-		uint64_t offset			   = 0;
-		const block_q8_0* d_blocks = reinterpret_cast<const block_q8_0*>(static_cast<uint8_t*>(buffer.data()) + offset);
-		offset					   = round_up_to_multiple<64>(offset + blocks_size);
-
-		const float* d_floats = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-		offset				  = round_up_to_multiple<64>(offset + floats_B_size);
-
-		float* d_outputs = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-		if (N > 128) {
-			using traits = mul_mat_129_to_512;
-			dim3 grid{ static_cast<uint32_t>((N + traits::block_tile_n - 1) / traits::block_tile_n), static_cast<uint32_t>((M + traits::block_tile_m - 1) / traits::block_tile_m) };
-			dim3 block{ traits::threads_per_block };
-			rt_tm_gemm_kernel<M, K, traits><<<grid, block>>>(d_blocks, d_floats, d_outputs, N);
-		} else {
-			using traits = mul_mat_1_to_128;
-			dim3 grid{ static_cast<uint32_t>((N + traits::block_tile_n - 1) / traits::block_tile_n), static_cast<uint32_t>((M + traits::block_tile_m - 1) / traits::block_tile_m) };
-			dim3 block{ traits::threads_per_block };
-			rt_tm_gemm_kernel<M, K, traits><<<grid, block>>>(d_blocks, d_floats, d_outputs, N);
-		}
-
-
-
-		cudaError_t err = cudaGetLastError();
-		if (err != cudaSuccess) {
-			std::cerr << "Kernel launch failed: " << cudaGetErrorString(err) << std::endl;
-		}
-
-		err = cudaDeviceSynchronize();
-		if (err != cudaSuccess) {
-			std::cerr << "Kernel execution failed: " << cudaGetErrorString(err) << std::endl;
-		}
-
-		++current_index;
-		return current_outputs.size() * sizeof(float);
-	}
-};
-
-__global__ void dequantize_q8_vectorized_kernel(const block_q8_0* input_blocks, float* output, uint64_t total_elements) {
-	const uint64_t idx	  = blockIdx.x * blockDim.x + threadIdx.x;
-	const uint64_t stride = blockDim.x * gridDim.x;
-
-	for (uint64_t i = idx; i < total_elements; i += stride) {
-		const uint64_t block_idx	 = i / 32;
-		const uint64_t elem_in_block = i % 32;
-
-		const block_q8_0& block = input_blocks[block_idx];
-		const float scale		= __half2float(*reinterpret_cast<const __half*>(&block.scale));
-		output[i]				= scale * static_cast<float>(block.quants[elem_in_block]);
-	}
-}
-
-template<uint64_t M, uint64_t K, uint64_t block_size, mul_mat_types mul_mat_type> struct nvcuda_cublas_mul_mat_simple {
-	inline static cublasHandle_t cublas_handle;
-	inline static bool handle_initialized;
-
-	static void initialize_handle() {
-		if (!handle_initialized) {
-			cublasCreate(&cublas_handle);
-			cublasSetMathMode(cublas_handle, CUBLAS_TENSOR_OP_MATH);
-			handle_initialized = true;
-		}
-	}
-
-	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats, std::vector<std::vector<block_q8_0>>& blocks,
-		std::vector<std::vector<float>>& outputs, uint64_t N) {
-		initialize_handle();
-		auto& current_outputs = outputs[current_index];
-
-		static constexpr uint64_t total_blocks_A = ((M * K) + block_size - 1) / block_size;
-		static constexpr uint64_t blocks_size	 = total_blocks_A * sizeof(block_q8_0);
-		const uint64_t floats_B_size			 = (K * N) * sizeof(float);
-		const uint64_t outputs_C_size			 = (M * N) * sizeof(float);
-		static constexpr uint64_t dequant_A_size = (M * K) * sizeof(float);
-		uint64_t offset							 = 0;
-		const block_q8_0* d_blocks				 = reinterpret_cast<const block_q8_0*>(static_cast<uint8_t*>(buffer.data()) + offset);
-		offset									 = round_up_to_multiple<64>(offset + blocks_size);
-
-		const float* d_floats_B = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-		offset					= round_up_to_multiple<64>(offset + floats_B_size);
-
-		float* d_outputs = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-		offset			 = round_up_to_multiple<64>(offset + outputs_C_size);
-
-		float* d_dequant_A = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-
-		const uint64_t required_size = offset + dequant_A_size;
-		if (required_size > buffer.size()) {
-			std::cerr << "❌ BUFFER OVERFLOW! Required: " << required_size << " Available: " << buffer.size() << std::endl;
-			return 0;
-		}
-
-		if (( uint8_t* )d_dequant_A < ( uint8_t* )buffer.data() || ( uint8_t* )d_dequant_A >= ( uint8_t* )buffer.data() + buffer.size()) {
-			std::cerr << "❌ INVALID POINTER! d_dequant_A is outside buffer bounds!" << std::endl;
-			std::cerr << "   Buffer start: " << ( void* )buffer.data() << std::endl;
-			std::cerr << "   Buffer end: " << ( void* )(( uint8_t* )buffer.data() + buffer.size()) << std::endl;
-			std::cerr << "   d_dequant_A: " << ( void* )d_dequant_A << std::endl;
-			return 0;
-		}
-
-		const uint64_t total_elements_A = M * K;
-		const dim3 dequant_grid((total_elements_A + 1023) / 1024);
-		const dim3 dequant_block(1024);
-
-		dequantize_q8_vectorized_kernel<<<dequant_grid, dequant_block>>>(d_blocks, d_dequant_A, total_elements_A);
-
-		cudaError_t dequant_err = cudaDeviceSynchronize();
-		if (dequant_err != cudaSuccess) {
-			std::cerr << "❌ Dequantization kernel failed: " << cudaGetErrorString(dequant_err) << std::endl;
-			return 0;
-		}
-
-
-		const float alpha = 1.0f;
-		const float beta  = 0.0f;
-
-		cublasStatus_t status = cublasSgemm(cublas_handle, CUBLAS_OP_N, CUBLAS_OP_N, N, M, K, &alpha, d_floats_B, N, d_dequant_A, K, &beta, d_outputs, N);
-
-		if (status != CUBLAS_STATUS_SUCCESS) {
-			std::cerr << "❌ cuBLAS failed with status: " << status << std::endl;
-		}
-
-		cudaError_t err = cudaGetLastError();
-		if (err != cudaSuccess) {
-			std::cerr << "❌ CUDA error after cuBLAS: " << cudaGetErrorString(err) << std::endl;
-		}
-
-		err = cudaDeviceSynchronize();
-		if (err != cudaSuccess) {
-			std::cerr << "❌ CUDA synchronization failed: " << cudaGetErrorString(err) << std::endl;
-		}
-
-
-		++current_index;
-		return current_outputs.size() * sizeof(float);
-	}
-};
-
-__global__ void float_to_half_kernel(const float* input, __half* output, uint64_t total_elements) {
-	const uint64_t idx	  = blockIdx.x * blockDim.x + threadIdx.x;
-	const uint64_t stride = blockDim.x * gridDim.x;
-
-	for (uint64_t i = idx; i < total_elements; i += stride) {
-		output[i] = __float2half(input[i]);
-	}
-}
-
-template<bnch_swt::string_literal rhs> inline void compare_outputs(const std::vector<std::vector<float>>& outputs01, const std::vector<std::vector<float>>& outputs02,
-	uint64_t total_iterations, uint64_t matC_total_elems) {
-	static constexpr float relative_tolerance = 5e-2f;
-	static constexpr float absolute_tolerance = 1e-30f;
-	for (uint64_t x = 0; x < total_iterations; ++x) {
-		for (uint64_t y = 0; y < matC_total_elems; ++y) {
-			const float val1 = outputs01[x][y];
-			const float val2 = outputs02[x][y];
-
-			if (std::isnan(val1) && std::isnan(val2)) {
-				continue;
-			}
-			if (std::isnan(val1) || std::isnan(val2)) {
-				const float abs_diff = std::abs(val1 - val2);
-				const float max_val	 = std::max(std::abs(val1), std::abs(val2));
-
-				const bool values_match = (abs_diff <= absolute_tolerance) || (abs_diff <= relative_tolerance * max_val);
-				std::cerr << rhs.operator std::string_view() << ": Mismatch at [" << x << "," << y << "]: Ref Val: " << val1 << " vs Incorrect Val: " << val2 << std::endl;
-				std::cerr << "Relative difference: " << (abs_diff / max_val) * 100.0f << "%" << std::endl;
-				return;
-			}
-			if (std::isinf(val1) && std::isinf(val2)) {
-				if ((val1 > 0) == (val2 > 0)) {
-					continue;
-				} else {
-					const float abs_diff = std::abs(val1 - val2);
-					const float max_val	 = std::max(std::abs(val1), std::abs(val2));
-
-					const bool values_match = (abs_diff <= absolute_tolerance) || (abs_diff <= relative_tolerance * max_val);
-					std::cerr << rhs.operator std::string_view() << ": Mismatch at [" << x << "," << y << "]: Ref Val: " << val1 << " vs Incorrect Val: " << val2 << std::endl;
-					std::cerr << "Relative difference: " << (abs_diff / max_val) * 100.0f << "%" << std::endl;
-					return;
+			if (global_row < M && global_col + 3 < K) {
+				const uint64_t global_offset					 = global_row * K + global_col;
+				const uint64_t smem_offset						 = row * block_k + col;
+				*reinterpret_cast<float4*>(&smem_A[smem_offset]) = *reinterpret_cast<const float4*>(&A_global[global_offset]);
+			} else {
+				for (uint64_t elem = 0; elem < 4; ++elem) {
+					const uint64_t elem_global_col = global_col + elem;
+					const uint64_t elem_col		   = col + elem;
+					if (global_row < M && elem_global_col < K && elem_col < block_k) {
+						smem_A[row * block_k + elem_col] = A_global[global_row * K + elem_global_col];
+					}
 				}
 			}
-			if (std::isinf(val1) || std::isinf(val2)) {
-				const float abs_diff = std::abs(val1 - val2);
-				const float max_val	 = std::max(std::abs(val1), std::abs(val2));
+		}
+	}
+}
 
-				const bool values_match = (abs_diff <= absolute_tolerance) || (abs_diff <= relative_tolerance * max_val);
-				std::cerr << rhs.operator std::string_view() << ": Mismatch at [" << x << "," << y << "]: Ref Val: " << val1 << " vs Incorrect Val: " << val2 << std::endl;
-				std::cerr << "Relative difference: " << (abs_diff / max_val) * 100.0f << "%" << std::endl;
-				return;
-			}
+template<uint64_t M, uint64_t K, typename traits>
+__device__ __forceinline__ void load_smem_tile_B_float(float* smem_B, const float* B_global, uint64_t N, uint64_t k_offset, uint64_t block_col) {
+	constexpr uint64_t block_n			 = traits::block_tile_n;
+	constexpr uint64_t block_k			 = traits::block_tile_k;
+	constexpr uint64_t threads_per_block = traits::threads_per_block;
 
-			const float abs_diff = std::abs(val1 - val2);
-			const float max_val	 = std::max(std::abs(val1), std::abs(val2));
+	const uint64_t tid					 = threadIdx.x;
+	const uint64_t vec4_cols_per_row	 = block_n / 4;
+	const uint64_t total_vec4_loads		 = block_k * vec4_cols_per_row;
+	const uint64_t vec4_loads_per_thread = (total_vec4_loads + threads_per_block - 1) / threads_per_block;
 
-			const bool values_match = (abs_diff <= absolute_tolerance) || (abs_diff <= relative_tolerance * max_val);
+	for (uint64_t i = 0; i < vec4_loads_per_thread; ++i) {
+		const uint64_t vec4_idx = tid + i * threads_per_block;
+		if (vec4_idx < total_vec4_loads) {
+			const uint64_t row		= vec4_idx / vec4_cols_per_row;
+			const uint64_t vec4_col = vec4_idx % vec4_cols_per_row;
+			const uint64_t col		= vec4_col * 4;
 
-			if (!values_match) {
-				std::cerr << rhs.operator std::string_view() << ": Mismatch at [" << x << "," << y << "]: Ref Val: " << val1 << " vs Incorrect Val: " << val2 << std::endl;
-				std::cerr << "Relative difference: " << (abs_diff / max_val) * 100.0f << "%" << std::endl;
-				return;
+			const uint64_t global_row = k_offset + row;
+			const uint64_t global_col = block_col + col;
+
+			if (global_row < K && global_col + 3 < N) {
+				const uint64_t global_offset					 = global_row * N + global_col;
+				const uint64_t smem_offset						 = row * block_n + col;
+				*reinterpret_cast<float4*>(&smem_B[smem_offset]) = *reinterpret_cast<const float4*>(&B_global[global_offset]);
+			} else {
+				for (uint64_t elem = 0; elem < 4; ++elem) {
+					const uint64_t elem_global_col = global_col + elem;
+					const uint64_t elem_col		   = col + elem;
+					if (global_row < K && elem_global_col < N && elem_col < block_n) {
+						smem_B[row * block_n + elem_col] = B_global[global_row * N + elem_global_col];
+					}
+				}
 			}
 		}
 	}
+}
+
+template<typename traits> __device__ __forceinline__ void compute_warp_tile_float(float* smem_A, float* smem_B, float accumulator[traits::thread_tile_m][traits::thread_tile_n],
+	uint64_t warp_row, uint64_t warp_col) {
+	constexpr uint64_t warp_m	= traits::warp_tile_m;
+	constexpr uint64_t warp_n	= traits::warp_tile_n;
+	constexpr uint64_t thread_m = traits::thread_tile_m;
+	constexpr uint64_t thread_n = traits::thread_tile_n;
+	constexpr uint64_t block_k	= traits::block_tile_k;
+	constexpr uint64_t block_n	= traits::block_tile_n;
+	constexpr uint64_t block_m	= traits::block_tile_m;
+
+	const uint64_t lane_id		   = threadIdx.x % 32;
+	const uint64_t threads_per_row = warp_n / thread_n;
+	const uint64_t thread_row	   = lane_id / threads_per_row;
+	const uint64_t thread_col	   = lane_id % threads_per_row;
+
+	if constexpr (thread_m % 4 == 0 && thread_n % 4 == 0) {
+		float4 frag_A[thread_m / 4];
+		float4 frag_B[thread_n / 4];
+
+		for (uint64_t k = 0; k < block_k; ++k) {
+			for (uint64_t tm_vec = 0; tm_vec < thread_m / 4; ++tm_vec) {
+				const uint64_t base_row	   = warp_row + thread_row * thread_m + tm_vec * 4;
+				const uint64_t smem_offset = base_row * block_k + k;
+
+				frag_A[tm_vec] = make_float4(smem_A[smem_offset], smem_A[smem_offset + block_k], smem_A[smem_offset + 2 * block_k], smem_A[smem_offset + 3 * block_k]);
+			}
+
+			for (uint64_t tn_vec = 0; tn_vec < thread_n / 4; ++tn_vec) {
+				const uint64_t base_col	   = warp_col + thread_col * thread_n + tn_vec * 4;
+				const uint64_t smem_offset = k * block_n + base_col;
+
+				frag_B[tn_vec] = *reinterpret_cast<const float4*>(&smem_B[smem_offset]);
+			}
+
+			for (uint64_t tm_vec = 0; tm_vec < thread_m / 4; ++tm_vec) {
+				for (uint64_t tn_vec = 0; tn_vec < thread_n / 4; ++tn_vec) {
+					const float4& a_vec = frag_A[tm_vec];
+					const float4& b_vec = frag_B[tn_vec];
+
+					accumulator[tm_vec * 4][tn_vec * 4] += a_vec.x * b_vec.x;
+					accumulator[tm_vec * 4][tn_vec * 4 + 1] += a_vec.x * b_vec.y;
+					accumulator[tm_vec * 4][tn_vec * 4 + 2] += a_vec.x * b_vec.z;
+					accumulator[tm_vec * 4][tn_vec * 4 + 3] += a_vec.x * b_vec.w;
+
+					accumulator[tm_vec * 4 + 1][tn_vec * 4] += a_vec.y * b_vec.x;
+					accumulator[tm_vec * 4 + 1][tn_vec * 4 + 1] += a_vec.y * b_vec.y;
+					accumulator[tm_vec * 4 + 1][tn_vec * 4 + 2] += a_vec.y * b_vec.z;
+					accumulator[tm_vec * 4 + 1][tn_vec * 4 + 3] += a_vec.y * b_vec.w;
+
+					accumulator[tm_vec * 4 + 2][tn_vec * 4] += a_vec.z * b_vec.x;
+					accumulator[tm_vec * 4 + 2][tn_vec * 4 + 1] += a_vec.z * b_vec.y;
+					accumulator[tm_vec * 4 + 2][tn_vec * 4 + 2] += a_vec.z * b_vec.z;
+					accumulator[tm_vec * 4 + 2][tn_vec * 4 + 3] += a_vec.z * b_vec.w;
+
+					accumulator[tm_vec * 4 + 3][tn_vec * 4] += a_vec.w * b_vec.x;
+					accumulator[tm_vec * 4 + 3][tn_vec * 4 + 1] += a_vec.w * b_vec.y;
+					accumulator[tm_vec * 4 + 3][tn_vec * 4 + 2] += a_vec.w * b_vec.z;
+					accumulator[tm_vec * 4 + 3][tn_vec * 4 + 3] += a_vec.w * b_vec.w;
+				}
+			}
+		}
+	} else {
+		float frag_A[thread_m];
+		float frag_B[thread_n];
+
+		for (uint64_t k = 0; k < block_k; ++k) {
+			for (uint64_t tm = 0; tm < thread_m; ++tm) {
+				const uint64_t smem_row = warp_row + thread_row * thread_m + tm;
+				if (smem_row < block_m) {
+					frag_A[tm] = smem_A[smem_row * block_k + k];
+				}
+			}
+
+			for (uint64_t tn = 0; tn < thread_n; ++tn) {
+				const uint64_t smem_col = warp_col + thread_col * thread_n + tn;
+				if (smem_col < block_n) {
+					frag_B[tn] = smem_B[k * block_n + smem_col];
+				}
+			}
+
+			for (uint64_t tm = 0; tm < thread_m; ++tm) {
+				for (uint64_t tn = 0; tn < thread_n; ++tn) {
+					accumulator[tm][tn] += frag_A[tm] * frag_B[tn];
+				}
+			}
+		}
+	}
+}
+
+template<typename traits> __device__ __forceinline__ void store_output_tile_float(float* C_global, float accumulator[traits::thread_tile_m][traits::thread_tile_n], uint64_t M,
+	uint64_t N, uint64_t block_row, uint64_t block_col, uint64_t warp_row, uint64_t warp_col) {
+	constexpr uint64_t thread_m = traits::thread_tile_m;
+	constexpr uint64_t thread_n = traits::thread_tile_n;
+	constexpr uint64_t warp_n	= traits::warp_tile_n;
+
+	const uint64_t lane_id		   = threadIdx.x % 32;
+	const uint64_t threads_per_row = warp_n / thread_n;
+	const uint64_t thread_row	   = lane_id / threads_per_row;
+	const uint64_t thread_col	   = lane_id % threads_per_row;
+
+#pragma unroll
+	for (uint64_t tm = 0; tm < thread_m; ++tm) {
+#pragma unroll
+		for (uint64_t tn = 0; tn < thread_n; ++tn) {
+			const uint64_t global_row = block_row + warp_row + thread_row * thread_m + tm;
+			const uint64_t global_col = block_col + warp_col + thread_col * thread_n + tn;
+
+			if (global_row < M && global_col < N) {
+				C_global[global_row * N + global_col] = accumulator[tm][tn];
+			}
+		}
+	}
+}
+
+template<uint64_t M, uint64_t K> __launch_bounds__(256, 2) __global__ void rt_tm_gemm_float_kernel(const float* A, const float* B, float* C, uint64_t N) {
+	using traits = mul_mat_1_to_1024;
+
+	constexpr uint64_t block_m	= traits::block_tile_m;
+	constexpr uint64_t block_n	= traits::block_tile_n;
+	constexpr uint64_t block_k	= traits::block_tile_k;
+	constexpr uint64_t warp_m	= traits::warp_tile_m;
+	constexpr uint64_t warp_n	= traits::warp_tile_n;
+	constexpr uint64_t thread_m = traits::thread_tile_m;
+	constexpr uint64_t thread_n = traits::thread_tile_n;
+	constexpr uint64_t warps_m	= traits::warps_m;
+	constexpr uint64_t warps_n	= traits::warps_n;
+
+	__shared__ float smem_A[2][block_m * block_k];
+	__shared__ float smem_B[2][block_k * block_n];
+
+	const uint64_t block_row = blockIdx.y * block_m;
+	const uint64_t block_col = blockIdx.x * block_n;
+
+	const uint64_t warp_id	= threadIdx.x / 32;
+	const uint64_t warp_row = (warp_id / warps_n) * warp_m;
+	const uint64_t warp_col = (warp_id % warps_n) * warp_n;
+
+	float accumulator[thread_m][thread_n];
+#pragma unroll
+	for (uint64_t tm = 0; tm < thread_m; ++tm) {
+#pragma unroll
+		for (uint64_t tn = 0; tn < thread_n; ++tn) {
+			accumulator[tm][tn] = 0.0f;
+		}
+	}
+
+	uint64_t smem_write_stage = 0;
+	uint64_t smem_read_stage  = 0;
+
+	load_smem_tile_A_float<M, K, traits>(smem_A[smem_write_stage], A, N, 0, block_row);
+	load_smem_tile_B_float<M, K, traits>(smem_B[smem_write_stage], B, N, 0, block_col);
+	__syncthreads();
+
+	for (uint64_t k_tile = 0; k_tile < K; k_tile += block_k) {
+		smem_read_stage	 = smem_write_stage;
+		smem_write_stage = 1 - smem_write_stage;
+
+		if (k_tile + block_k < K) {
+			load_smem_tile_A_float<M, K, traits>(smem_A[smem_write_stage], A, N, k_tile + block_k, block_row);
+			load_smem_tile_B_float<M, K, traits>(smem_B[smem_write_stage], B, N, k_tile + block_k, block_col);
+		}
+
+		compute_warp_tile_float<traits>(smem_A[smem_read_stage], smem_B[smem_read_stage], accumulator, warp_row, warp_col);
+
+		__syncthreads();
+	}
+
+	store_output_tile_float<traits>(C, accumulator, M, N, block_row, block_col, warp_row, warp_col);
 }
 
 #include <cutlass_rt_tm/gemm/device/gemm.h>
 #include <cutlass_rt_tm/cuda_host_adapter.hpp>
 
-using ElementA = float;
-using ElementB = float;
-using ElementC = float;
-using LayoutA  = cutlass_rt_tm::layout::RowMajor;
-using LayoutB  = cutlass_rt_tm::layout::RowMajor;
-using LayoutC  = cutlass_rt_tm::layout::RowMajor;
+using element_a = float;
+using element_b = float;
+using element_c = float;
+using layout_a	= cutlass_rt_tm::layout::RowMajor;
+using layout_b	= cutlass_rt_tm::layout::RowMajor;
+using layout_c	= cutlass_rt_tm::layout::RowMajor;
 
-__global__ void dequantize_a_matrix_kernel(const block_q8_0* input_blocks, float* output, uint64_t total_elements) {
-	const uint64_t idx	  = blockIdx.x * blockDim.x + threadIdx.x;
-	const uint64_t stride = blockDim.x * gridDim.x;
-
-	for (uint64_t i = idx; i < total_elements; i += stride) {
-		const uint64_t block_idx	 = i >> 5;
-		const uint64_t elem_in_block = i % 32;
-
-		const block_q8_0& block = input_blocks[block_idx];
-		const float scale		= __half2float(*reinterpret_cast<const __half*>(&block.scale));
-		output[i]				= scale * static_cast<float>(block.quants[elem_in_block]);
-	}
-}
-
-template<uint64_t M, uint64_t K, uint64_t matB_dim_00N, mul_mat_types mul_mat_type> struct nihilus_gemm {
+template<uint64_t M, uint64_t K, uint64_t matB_dim_00N> struct nihilus_gemm {
 	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats, std::vector<std::vector<block_q8_0>>& blocks,
 		std::vector<std::vector<float>>& outputs, uint64_t N) {
-		using nihilus_gemm_type					 = cutlass_rt_tm::gemm::device::Gemm<M, K, ElementA, LayoutA, ElementB, LayoutB, ElementC, LayoutC, ElementC>;
-		static constexpr uint64_t total_blocks_A = ((M * K) + 32 - 1) / 32;
+		static constexpr uint64_t total_blocks_A = ((M * K) + 32 - 1) >> 5;
 		static constexpr uint64_t blocks_size	 = total_blocks_A * sizeof(block_q8_0);
 		const uint64_t floats_B_size			 = (K * N) * sizeof(float);
 		const uint64_t outputs_C_size			 = (M * N) * sizeof(float);
 		static constexpr uint64_t dequant_A_size = (M * K) * sizeof(float);
 
-		uint64_t offset			   = 0;
-		const block_q8_0* d_blocks = reinterpret_cast<const block_q8_0*>(static_cast<uint8_t*>(buffer.data()) + offset);
-		offset					   = round_up_to_multiple<64>(offset + blocks_size);
+		uint64_t offset				= 0;
+		const block_q8_0* A_ptr_raw = reinterpret_cast<const block_q8_0*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset						= round_up_to_multiple<64>(offset + blocks_size);
 
 		const float* B_ptr = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
 		offset			   = round_up_to_multiple<64>(offset + floats_B_size);
@@ -1418,29 +1817,86 @@ template<uint64_t M, uint64_t K, uint64_t matB_dim_00N, mul_mat_types mul_mat_ty
 		float* C_ptr = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
 		offset		 = round_up_to_multiple<64>(offset + outputs_C_size);
 
-		float* dequantized_A_ptr = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		float* A_ptr = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
 
 		constexpr uint64_t total_elements_A = M * K;
-		const dim3 dequant_grid((total_elements_A + 1023) / 1024);
+		const dim3 dequant_grid((total_blocks_A + 1023) / 1024);
 		const dim3 dequant_block(1024);
+		cudaError_t dequant_err;
 
-		dequantize_a_matrix_kernel<<<dequant_grid, dequant_block>>>(d_blocks, dequantized_A_ptr, total_elements_A);
+		if (N <= 256) {
+			using traits = mul_mat_1_to_1024;
 
-		cudaError_t dequant_err = cudaGetLastError();
-		if (dequant_err != cudaSuccess) {
-			std::cerr << "Dequantization kernel failed: " << cudaGetErrorString(dequant_err) << std::endl;
-		}
+			dim3 grid{ static_cast<uint32_t>((N + traits::block_tile_n - 1) / traits::block_tile_n),
+				static_cast<uint32_t>((M + traits::block_tile_m - 1) / traits::block_tile_m) };
+			dim3 block{ traits::threads_per_block };
+			rt_tm_gemm_kernel<M, K><<<grid, block>>>(A_ptr_raw, B_ptr, C_ptr, N);
+		} else {
+			dequantize_a_matrix_kernel<<<dequant_grid, dequant_block>>>(A_ptr_raw, A_ptr, total_elements_A);
 
-		cudaDeviceSynchronize();
+			dequant_err = cudaGetLastError();
+			if (dequant_err != cudaSuccess) {
+				std::cerr << "Dequantization kernel failed: " << cudaGetErrorString(dequant_err) << std::endl;
+			}
 
-		using index_type = cutlass_rt_tm::gemm::GemmCoord::Index;
-		nihilus_gemm_type gemm_op;
-		cutlass_rt_tm::Status status =
-			gemm_op({ { static_cast<index_type>(M), static_cast<index_type>(N), static_cast<index_type>(K) }, { dequantized_A_ptr, static_cast<index_type>(K) },
+			cudaDeviceSynchronize();
+
+			using index_type		= cutlass_rt_tm::gemm::GemmCoord::Index;
+			using nihilus_gemm_type = cutlass_rt_tm::gemm::device::Gemm<M, K, element_a, layout_a, element_b, layout_b, element_c, layout_c, element_c>;
+			nihilus_gemm_type gemm_op;
+			cutlass_rt_tm::Status status = gemm_op({ { static_cast<index_type>(M), static_cast<index_type>(N), static_cast<index_type>(K) }, { A_ptr, static_cast<index_type>(K) },
 				{ B_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
 
-		if (status != cutlass_rt_tm::Status::kSuccess) {
-			std::cerr << "CUTLASS GEMM failed: " << cutlass_rt_tm::cutlass_rt_tmGetStatusString(status) << std::endl;
+			if (status != cutlass_rt_tm::Status::kSuccess) {
+				std::cerr << "CUTLASS GEMM failed: " << cutlass_rt_tm::cutlass_rt_tmGetStatusString(status) << std::endl;
+			}
+		}
+
+		dequant_err = cudaDeviceSynchronize();
+		if (dequant_err != cudaSuccess) {
+			std::cerr << "cudaDeviceSynchronize failed: " << cudaGetErrorString(dequant_err) << std::endl;
+		}
+
+		++current_index;
+		return outputs[current_index - 1].size() * sizeof(float);
+	}
+
+	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats_A, std::vector<std::vector<float>>& floats_B,
+		std::vector<std::vector<float>>& outputs, uint64_t N) {
+		const uint64_t floats_A_size  = (M * K) * sizeof(float);
+		const uint64_t floats_B_size  = (K * N) * sizeof(float);
+		const uint64_t outputs_C_size = (M * N) * sizeof(float);
+
+		uint64_t offset = 0;
+
+		const float* A_ptr = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset			   = round_up_to_multiple<64>(offset + floats_A_size);
+
+		const float* B_ptr = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset			   = round_up_to_multiple<64>(offset + floats_B_size);
+
+		float* C_ptr = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		if (N <= 256) {
+			using traits = mul_mat_1_to_1024;
+
+			dim3 grid{ static_cast<uint32_t>((N + traits::block_tile_n - 1) / traits::block_tile_n), static_cast<uint32_t>((M + traits::block_tile_m - 1) / traits::block_tile_m) };
+			dim3 block{ traits::threads_per_block };
+			rt_tm_gemm_float_kernel<M, K><<<grid, block>>>(A_ptr, B_ptr, C_ptr, N);
+		} else {
+			using index_type		= cutlass_rt_tm::gemm::GemmCoord::Index;
+			using nihilus_gemm_type = cutlass_rt_tm::gemm::device::Gemm<M, K, element_a, layout_a, element_b, layout_b, element_c, layout_c, element_c>;
+			nihilus_gemm_type gemm_op;
+			cutlass_rt_tm::Status status = gemm_op({ { static_cast<index_type>(M), static_cast<index_type>(N), static_cast<index_type>(K) }, { A_ptr, static_cast<index_type>(K) },
+				{ B_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
+
+			if (status != cutlass_rt_tm::Status::kSuccess) {
+				std::cerr << "CUTLASS GEMM failed: " << cutlass_rt_tm::cutlass_rt_tmGetStatusString(status) << std::endl;
+			}
+		}
+
+		auto dequant_err = cudaDeviceSynchronize();
+		if (dequant_err != cudaSuccess) {
+			std::cerr << "cudaDeviceSynchronize failed: " << cudaGetErrorString(dequant_err) << std::endl;
 		}
 
 		++current_index;
@@ -1454,9 +1910,9 @@ template<uint64_t M, uint64_t K, uint64_t matB_dim_00N, mul_mat_types mul_mat_ty
 using cutless_element_a = float;
 using cutless_element_b = float;
 using cutless_element_c = float;
-using cutless_layout_a  = cutlass::layout::RowMajor;
-using cutless_layout_b  = cutlass::layout::RowMajor;
-using cutless_layout_c  = cutlass::layout::RowMajor;
+using cutless_layout_a	= cutlass::layout::RowMajor;
+using cutless_layout_b	= cutlass::layout::RowMajor;
+using cutless_layout_c	= cutlass::layout::RowMajor;
 
 __global__ void cutlass_dequantize_q8_vectorized_kernel(const block_q8_0* input_blocks, float* output, uint64_t total_elements) {
 	const uint64_t idx	  = blockIdx.x * blockDim.x + threadIdx.x;
@@ -1474,18 +1930,18 @@ __global__ void cutlass_dequantize_q8_vectorized_kernel(const block_q8_0* input_
 
 using Cutlass_Gemm = cutlass::gemm::device::Gemm<cutless_element_a, cutless_layout_a, cutless_element_b, cutless_layout_b, cutless_element_c, cutless_layout_c, cutless_element_c>;
 
-template<uint64_t M, uint64_t K, uint64_t matB_dim_00N, mul_mat_types mul_mat_type> struct cutlass_baseline_gemm {
+template<uint64_t M, uint64_t K, uint64_t matB_dim_00N> struct cutlass_baseline_gemm {
 	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats, std::vector<std::vector<block_q8_0>>& blocks,
 		std::vector<std::vector<float>>& outputs, uint64_t N) {
-		static constexpr uint64_t total_blocks_A = ((M * K) + 32 - 1) / 32;
+		static constexpr uint64_t total_blocks_A = ((M * K) + 32 - 1) >> 5;
 		static constexpr uint64_t blocks_size	 = total_blocks_A * sizeof(block_q8_0);
 		const uint64_t floats_B_size			 = (K * N) * sizeof(float);
 		const uint64_t outputs_C_size			 = (M * N) * sizeof(float);
 		static constexpr uint64_t dequant_A_size = (M * K) * sizeof(float);
 
-		uint64_t offset			   = 0;
-		const block_q8_0* d_blocks = reinterpret_cast<const block_q8_0*>(static_cast<uint8_t*>(buffer.data()) + offset);
-		offset					   = round_up_to_multiple<64>(offset + blocks_size);
+		uint64_t offset				= 0;
+		const block_q8_0* A_ptr_raw = reinterpret_cast<const block_q8_0*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset						= round_up_to_multiple<64>(offset + blocks_size);
 
 		const float* B_ptr = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
 		offset			   = round_up_to_multiple<64>(offset + floats_B_size);
@@ -1493,13 +1949,13 @@ template<uint64_t M, uint64_t K, uint64_t matB_dim_00N, mul_mat_types mul_mat_ty
 		float* C_ptr = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
 		offset		 = round_up_to_multiple<64>(offset + outputs_C_size);
 
-		float* dequantized_A_ptr = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		float* A_ptr = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
 
 		constexpr uint64_t total_elements_A = M * K;
 		const dim3 dequant_grid((total_elements_A + 1023) / 1024);
 		const dim3 dequant_block(1024);
 
-		cutlass_dequantize_q8_vectorized_kernel<<<dequant_grid, dequant_block>>>(d_blocks, dequantized_A_ptr, total_elements_A);
+		cutlass_dequantize_q8_vectorized_kernel<<<dequant_grid, dequant_block>>>(A_ptr_raw, A_ptr, total_elements_A);
 
 		cudaError_t dequant_err = cudaGetLastError();
 		if (dequant_err != cudaSuccess) {
@@ -1508,14 +1964,67 @@ template<uint64_t M, uint64_t K, uint64_t matB_dim_00N, mul_mat_types mul_mat_ty
 
 		cudaDeviceSynchronize();
 
+		dequant_err = cudaGetLastError();
+		if (dequant_err != cudaSuccess) {
+			std::cerr << "cudaDeviceSynchronize failed: " << cudaGetErrorString(dequant_err) << std::endl;
+		}
+
 		using index_type = cutlass::gemm::GemmCoord::Index;
 		Cutlass_Gemm gemm_op;
-		cutlass::Status status =
-			gemm_op({ { static_cast<index_type>(M), static_cast<index_type>(N), static_cast<index_type>(K) }, { dequantized_A_ptr, static_cast<index_type>(K) },
-				{ B_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
+		cutlass::Status status = gemm_op({ { static_cast<index_type>(M), static_cast<index_type>(N), static_cast<index_type>(K) }, { A_ptr, static_cast<index_type>(K) },
+			{ B_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
 
 		if (status != cutlass::Status::kSuccess) {
 			std::cerr << "CUTLASS GEMM failed: " << cutlass::cutlassGetStatusString(status) << std::endl;
+		}
+
+		cudaError_t err = cudaGetLastError();
+		if (err != cudaSuccess) {
+			std::cerr << "❌ CUDA error after CUTLASS: " << cudaGetErrorString(err) << std::endl;
+		}
+
+		err = cudaDeviceSynchronize();
+		if (err != cudaSuccess) {
+			std::cerr << "❌ CUDA synchronization failed: " << cudaGetErrorString(err) << std::endl;
+		}
+
+		++current_index;
+		return outputs[current_index - 1].size() * sizeof(float);
+	}
+
+	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats_A, std::vector<std::vector<float>>& floats_B,
+		std::vector<std::vector<float>>& outputs, uint64_t N) {
+		const uint64_t floats_A_size  = (M * K) * sizeof(float);
+		const uint64_t floats_B_size  = (K * N) * sizeof(float);
+		const uint64_t outputs_C_size = (M * N) * sizeof(float);
+
+		uint64_t offset = 0;
+
+		const float* A_ptr = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset			   = round_up_to_multiple<64>(offset + floats_A_size);
+
+		const float* B_ptr = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+		offset			   = round_up_to_multiple<64>(offset + floats_B_size);
+
+		float* C_ptr = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+
+		using index_type = cutlass::gemm::GemmCoord::Index;
+		Cutlass_Gemm gemm_op;
+		cutlass::Status status = gemm_op({ { static_cast<index_type>(M), static_cast<index_type>(N), static_cast<index_type>(K) }, { A_ptr, static_cast<index_type>(K) },
+			{ B_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
+
+		if (status != cutlass::Status::kSuccess) {
+			std::cerr << "CUTLASS GEMM failed: " << cutlass::cutlassGetStatusString(status) << std::endl;
+		}
+
+		cudaError_t err = cudaGetLastError();
+		if (err != cudaSuccess) {
+			std::cerr << "❌ CUDA error after CUTLASS: " << cudaGetErrorString(err) << std::endl;
+		}
+
+		err = cudaDeviceSynchronize();
+		if (err != cudaSuccess) {
+			std::cerr << "❌ CUDA synchronization failed: " << cudaGetErrorString(err) << std::endl;
 		}
 
 		++current_index;
@@ -1523,10 +2032,38 @@ template<uint64_t M, uint64_t K, uint64_t matB_dim_00N, mul_mat_types mul_mat_ty
 	}
 };
 
-template<uint64_t M, uint64_t K, uint64_t matB_dim_00, uint64_t N, mul_mat_types mul_mat_type> BNCH_SWT_INLINE void test_function() {
+template<bnch_swt::string_literal rhs> inline void compare_outputs(const std::vector<std::vector<float>>& outputs01, const std::vector<std::vector<float>>& outputs02) {
+	static constexpr float relative_tolerance = 1e-1f;
+	static constexpr float absolute_tolerance = 1e-30f;
+	if (outputs01.size() != outputs02.size()) {
+		std::cerr << "Unequal output sizes!" << std::endl;
+		return;
+	}
+	for (uint64_t x = 0; x < outputs02.size(); ++x) {
+		if (outputs01[x].size() != outputs02[x].size()) {
+			std::cerr << "Unequal output sizes!" << std::endl;
+			return;
+		}
+		for (uint64_t y = 0; y < outputs01[x].size(); ++y) {
+			const float val1 = outputs01[x][y];
+			const float val2 = outputs02[x][y];
+
+			const float abs_diff = std::abs(val1 - val2);
+			const float max_val	 = std::max(std::abs(val1), std::abs(val2));
+
+			if (std::isinf(val1) || std::isinf(val2) || std::isnan(val1) || std::isnan(val2) || !((abs_diff <= absolute_tolerance) || (abs_diff <= relative_tolerance * max_val))) {
+				std::cerr << rhs.operator std::string_view() << ": Mismatch at [" << x << "," << y << "]: Ref Val: " << val1 << " vs Incorrect Val: " << val2 << std::endl;
+				std::cerr << "Relative difference: " << (abs_diff / max_val) * 100.0f << "%" << std::endl;
+				return;
+			}
+		}
+	}
+}
+
+template<uint64_t M, uint64_t K, uint64_t matB_dim_00, uint64_t N> BNCH_SWT_INLINE void test_function() {
 	static constexpr uint64_t matC_dim_00{ M };
 	static constexpr uint64_t matC_dim_01{ N };
-	static constexpr uint64_t matC_total_elems{ matC_dim_00 * matC_dim_01 };
+	static constexpr uint64_t total_elements_C{ matC_dim_00 * matC_dim_01 };
 	static constexpr uint64_t total_blocks_a{
 		static_cast<uint64_t>(static_cast<float>(M * K) * static_cast<float>(sizeof(block_q8_0)) / static_cast<float>(std::size(block_q8_0{}.quants))) / sizeof(block_q8_0)
 	};
@@ -1538,22 +2075,19 @@ template<uint64_t M, uint64_t K, uint64_t matB_dim_00, uint64_t N, mul_mat_types
 	std::vector<std::vector<float>> outputs02{};
 	std::vector<std::vector<float>> outputs03{};
 	std::vector<std::vector<float>> outputs04{};
-	std::vector<std::vector<float>> outputs05{};
 	outputs01.resize(total_iterations);
 	outputs02.resize(total_iterations);
 	outputs03.resize(total_iterations);
 	outputs04.resize(total_iterations);
-	outputs05.resize(total_iterations);
 	for (uint64_t x = 0; x < total_iterations; ++x) {
-		outputs01[x].resize(matC_total_elems);
-		outputs02[x].resize(matC_total_elems);
-		outputs03[x].resize(matC_total_elems);
-		outputs04[x].resize(matC_total_elems);
-		outputs05[x].resize(matC_total_elems);
+		outputs01[x].resize(total_elements_C);
+		outputs02[x].resize(total_elements_C);
+		outputs03[x].resize(total_elements_C);
+		outputs04[x].resize(total_elements_C);
 	}
 
-	static constexpr bnch_swt::string_literal stage_name{ "mul_mat: [" + bnch_swt::internal::toStringLiteral<M>() + "x" + bnch_swt::internal::toStringLiteral<K>() + " * " +
-		bnch_swt::internal::toStringLiteral<matB_dim_00>() + "x" + bnch_swt::internal::toStringLiteral<N>() + "]" };
+	static constexpr bnch_swt::string_literal stage_name{ "(Q8_0 * F32) mul_mat: [" + bnch_swt::internal::toStringLiteral<M>() + "x" + bnch_swt::internal::toStringLiteral<K>() +
+		" * " + bnch_swt::internal::toStringLiteral<matB_dim_00>() + "x" + bnch_swt::internal::toStringLiteral<N>() + "]" };
 	static constexpr uint64_t total_elements_A = M * K;
 	static constexpr uint64_t total_blocks_A   = (total_elements_A + 32 - 1) / 32;
 	static constexpr uint64_t blocks_size	   = total_blocks_A * sizeof(block_q8_0);
@@ -1561,7 +2095,7 @@ template<uint64_t M, uint64_t K, uint64_t matB_dim_00, uint64_t N, mul_mat_types
 	static constexpr uint64_t floats_B_size	   = floats_B_count * sizeof(float);
 	static constexpr uint64_t outputs_C_count  = M * N;
 	static constexpr uint64_t outputs_C_size   = outputs_C_count * sizeof(float);
-	static constexpr uint64_t dequant_A_size = M * K * sizeof(float);
+	static constexpr uint64_t dequant_A_size   = M * K * sizeof(float);
 
 	uint64_t total_buffer_size = 0;
 	total_buffer_size += round_up_to_multiple<64>(blocks_size);
@@ -1578,55 +2112,146 @@ template<uint64_t M, uint64_t K, uint64_t matB_dim_00, uint64_t N, mul_mat_types
 	current_index = 0;
 
 	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"cutlass_baseline_gemm", cuda_mul_mat_01_prep<M, K, 32>,
-		cutlass_baseline_gemm<M, K, 32, mul_mat_type>>(buffer, current_index, floats, blocks, outputs02, N);
+		cutlass_baseline_gemm<M, K, 32>>(buffer, current_index, floats, blocks, outputs02, N);
 	current_index = 0;
 
-	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"nvcuda_cublas_mul_mat_simple", cuda_mul_mat_01_prep<M, K, 32>,
-		nvcuda_cublas_mul_mat_simple<M, K, 32, mul_mat_type>>(buffer, current_index, floats, blocks, outputs03, N);
-	current_index = 0;
-
-	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"rt_tm_cuda_mul_mat", cuda_mul_mat_01_prep<M, K, 32>,
-		rt_tm_mul_mat<M, K, 32, mul_mat_type>>(buffer, current_index, floats, blocks, outputs04, N);
+	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"nvcuda_cublas_mul_mat_simple",
+		cuda_mul_mat_01_prep_transposed<M, K, 32>, cublas_mul_mat<M, K, 32>>(buffer, current_index, floats, blocks, outputs03, N);
 	current_index = 0;
 
 	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"nihilus_gemm", cuda_mul_mat_01_prep<M, K, 32>,
-		nihilus_gemm<M, K, 32, mul_mat_type>>(buffer, current_index, floats, blocks, outputs05, N);
+		nihilus_gemm<M, K, 32>>(buffer, current_index, floats, blocks, outputs04, N);
 	current_index = 0;
 
 	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::printResults();
-	compare_outputs<"cutlass_baseline_gemm Incorrect Value">(outputs01, outputs02, total_iterations, matC_total_elems);
-	compare_outputs<"nvcuda_cublas_mul_mat_simple Incorrect Value">(outputs01, outputs03, total_iterations, matC_total_elems);
-	compare_outputs<"rt_tm_cuda_mul_mat Incorrect Value">(outputs01, outputs04, total_iterations, matC_total_elems);
-	compare_outputs<"nihilus_gemm Incorrect Value">(outputs01, outputs05, total_iterations, matC_total_elems);
+	compare_outputs<"cutlass_baseline_gemm Incorrect Value">(outputs01, outputs02);
+	compare_outputs<"nvcuda_cublas_mul_mat_simple Incorrect Value">(outputs01, outputs03);
+	compare_outputs<"nihilus_gemm Incorrect Value">(outputs01, outputs04);
 };
 
-int32_t main() { 
-	test_function<14336, 4096, 4096, 1, mul_mat_types::ffn_up>();
-	test_function<14336, 4096, 4096, 2, mul_mat_types::ffn_up>();
-	test_function<14336, 4096, 4096, 4, mul_mat_types::ffn_up>();
-	test_function<14336, 4096, 4096, 8, mul_mat_types::ffn_up>();
-	test_function<14336, 4096, 4096, 16, mul_mat_types::ffn_up>();
-	test_function<14336, 4096, 4096, 32, mul_mat_types::ffn_up>();
-	test_function<14336, 4096, 4096, 64, mul_mat_types::ffn_up>();
-	test_function<14336, 4096, 4096, 128, mul_mat_types::ffn_up>();
-	test_function<14336, 4096, 4096, 256, mul_mat_types::ffn_up>();
-	test_function<14336, 4096, 4096, 512, mul_mat_types::ffn_up>();
-	test_function<14336, 4096, 4096, 1024, mul_mat_types::ffn_up>();
-	test_function<14336, 4096, 4096, 2048, mul_mat_types::ffn_up>();
-	test_function<14336, 4096, 4096, 4096, mul_mat_types::ffn_up>();
-	test_function<4096, 4096, 4096, 1, mul_mat_types::q>();
-	test_function<4096, 4096, 4096, 2, mul_mat_types::q>();
-	test_function<4096, 4096, 4096, 4, mul_mat_types::q>();
-	test_function<4096, 4096, 4096, 8, mul_mat_types::q>();
-	test_function<4096, 4096, 4096, 16, mul_mat_types::q>();
-	test_function<4096, 4096, 4096, 32, mul_mat_types::q>();
-	test_function<4096, 4096, 4096, 64, mul_mat_types::q>();
-	test_function<4096, 4096, 4096, 128, mul_mat_types::q>();
-	test_function<4096, 4096, 4096, 256, mul_mat_types::q>();
-	test_function<4096, 4096, 4096, 512, mul_mat_types::q>();
-	test_function<4096, 4096, 4096, 1024, mul_mat_types::q>();
-	test_function<4096, 4096, 4096, 2048, mul_mat_types::q>();
-	test_function<4096, 4096, 4096, 4096, mul_mat_types::q>();
-	test_function<4096, 4096, 4096, 8192, mul_mat_types::q>();
+template<uint64_t M, uint64_t K, uint64_t matB_dim_00, uint64_t N> BNCH_SWT_INLINE void test_function_floats() {
+	static constexpr uint64_t matC_dim_00{ M };
+	static constexpr uint64_t matC_dim_01{ N };
+	static constexpr uint64_t total_elements_C{ matC_dim_00 * matC_dim_01 };
+	std::vector<std::vector<float>> floats_a{ generate_values_final(generate_floats_final<total_iterations, M, K>()) };
+	std::vector<std::vector<float>> floats_b{ generate_values_final(generate_floats_final<total_iterations, K, N>()) };
+	std::vector<std::vector<float>> outputs01{};
+	std::vector<std::vector<float>> outputs02{};
+	std::vector<std::vector<float>> outputs03{};
+	std::vector<std::vector<float>> outputs04{};
+	std::vector<std::vector<float>> outputs05{};
+	outputs01.resize(total_iterations);
+	outputs02.resize(total_iterations);
+	outputs03.resize(total_iterations);
+	outputs04.resize(total_iterations);
+	outputs05.resize(total_iterations);
+	for (uint64_t x = 0; x < total_iterations; ++x) {
+		outputs01[x].resize(total_elements_C);
+		outputs02[x].resize(total_elements_C);
+		outputs03[x].resize(total_elements_C);
+		outputs04[x].resize(total_elements_C);
+		outputs05[x].resize(total_elements_C);
+	}
+
+	static constexpr bnch_swt::string_literal stage_name{ "(F32 * F32) mul_mat: [" + bnch_swt::internal::toStringLiteral<M>() + "x" + bnch_swt::internal::toStringLiteral<K>() +
+		" * " + bnch_swt::internal::toStringLiteral<matB_dim_00>() + "x" + bnch_swt::internal::toStringLiteral<N>() + "]" };
+	constexpr uint64_t total_elements_A = M * K;
+	constexpr uint64_t total_elements_B = K * N;
+	constexpr uint64_t floats_A_size	= total_elements_A * sizeof(float);
+	constexpr uint64_t floats_B_size	= total_elements_B * sizeof(float);
+	constexpr uint64_t floats_C_size	= total_elements_C * sizeof(float);
+
+	uint64_t total_buffer_size = 0;
+	total_buffer_size += round_up_to_multiple<64>(floats_A_size);
+	total_buffer_size += round_up_to_multiple<64>(floats_B_size);
+	total_buffer_size += round_up_to_multiple<64>(floats_C_size);
+
+	cuda_buffer buffer{};
+	buffer.init(total_buffer_size);
+
+	uint64_t current_index{};
+	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"ggml_cuda_mul_mat", cuda_mul_mat_01_prep<M, K, 32>,
+		ggml_cuda_mul_mat<M, K, 32>>(buffer, current_index, floats_a, floats_b, outputs01, N);
+	current_index = 0;
+
+	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"cutlass_baseline_gemm", cuda_mul_mat_01_prep<M, K, 32>,
+		cutlass_baseline_gemm<M, K, 32>>(buffer, current_index, floats_a, floats_b, outputs02, N);
+	current_index = 0;
+
+	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"nvcuda_cublas_mul_mat_simple",
+		cuda_mul_mat_01_prep_transposed<M, K, 32>, cublas_mul_mat<M, K, 32>>(buffer, current_index, floats_a, floats_b, outputs03, N);
+	current_index = 0;
+
+	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"nihilus_gemm", cuda_mul_mat_01_prep<M, K, 32>,
+		nihilus_gemm<M, K, 32>>(buffer, current_index, floats_a, floats_b, outputs04, N);
+	current_index = 0;
+
+	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::printResults();
+	compare_outputs<"cutlass_baseline_gemm Incorrect Value">(outputs01, outputs02);
+	compare_outputs<"nvcuda_cublas_mul_mat_simple Incorrect Value">(outputs01, outputs03);
+	compare_outputs<"nihilus_gemm Incorrect Value">(outputs01, outputs04);
+};
+
+int32_t main() {
+	test_function<4096, 4096, 4096, 1>();
+	test_function<4096, 4096, 4096, 2>();
+	test_function<4096, 4096, 4096, 4>();
+	test_function<4096, 4096, 4096, 8>();
+	test_function<4096, 4096, 4096, 16>();
+	test_function<4096, 4096, 4096, 32>();
+	test_function<4096, 4096, 4096, 64>();
+	test_function<4096, 4096, 4096, 128>();
+	test_function<4096, 4096, 4096, 256>();
+	test_function<4096, 4096, 4096, 512>();
+	test_function<4096, 4096, 4096, 1024>();
+	test_function<4096, 4096, 4096, 2048>();
+	test_function<4096, 4096, 4096, 4096>();
+	test_function<4096, 4096, 4096, 8192>();
+	test_function<4096, 4096, 4096, 16384>();
+	test_function<14336, 4096, 4096, 1>();
+	test_function<14336, 4096, 4096, 2>();
+	test_function<14336, 4096, 4096, 4>();
+	test_function<14336, 4096, 4096, 8>();
+	test_function<14336, 4096, 4096, 16>();
+	test_function<14336, 4096, 4096, 32>();
+	test_function<14336, 4096, 4096, 64>();
+	test_function<14336, 4096, 4096, 128>();
+	test_function<14336, 4096, 4096, 256>();
+	test_function<14336, 4096, 4096, 512>();
+	test_function<14336, 4096, 4096, 1024>();
+	test_function<14336, 4096, 4096, 2048>();
+	test_function<14336, 4096, 4096, 4096>();
+	test_function<14336, 4096, 4096, 8192>();
+	test_function<14336, 4096, 4096, 16384>();
+	test_function_floats<4096, 4096, 4096, 1>();
+	test_function_floats<4096, 4096, 4096, 2>();
+	test_function_floats<4096, 4096, 4096, 4>();
+	test_function_floats<4096, 4096, 4096, 8>();
+	test_function_floats<4096, 4096, 4096, 16>();
+	test_function_floats<4096, 4096, 4096, 32>();
+	test_function_floats<4096, 4096, 4096, 64>();
+	test_function_floats<4096, 4096, 4096, 128>();
+	test_function_floats<4096, 4096, 4096, 256>();
+	test_function_floats<4096, 4096, 4096, 512>();
+	test_function_floats<4096, 4096, 4096, 1024>();
+	test_function_floats<4096, 4096, 4096, 2048>();
+	test_function_floats<4096, 4096, 4096, 4096>();
+	test_function_floats<4096, 4096, 4096, 8192>();
+	test_function_floats<4096, 4096, 4096, 16384>();
+	test_function_floats<14336, 4096, 4096, 1>();
+	test_function_floats<14336, 4096, 4096, 2>();
+	test_function_floats<14336, 4096, 4096, 4>();
+	test_function_floats<14336, 4096, 4096, 8>();
+	test_function_floats<14336, 4096, 4096, 16>();
+	test_function_floats<14336, 4096, 4096, 32>();
+	test_function_floats<14336, 4096, 4096, 64>();
+	test_function_floats<14336, 4096, 4096, 128>();
+	test_function_floats<14336, 4096, 4096, 256>();
+	test_function_floats<14336, 4096, 4096, 512>();
+	test_function_floats<14336, 4096, 4096, 1024>();
+	test_function_floats<14336, 4096, 4096, 2048>();
+	test_function_floats<14336, 4096, 4096, 4096>();
+	test_function_floats<14336, 4096, 4096, 8192>();
+	test_function_floats<14336, 4096, 4096, 16384>();
 	return 0;
 }

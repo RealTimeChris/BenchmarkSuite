@@ -82,7 +82,7 @@ class TensorViewPlanarComplex : public TensorRefPlanarComplex<Element_, Layout_>
   using Reference = Element &;
 
   /// Logical rank of tensor index space
-  static int const kRank = Layout::kRank;
+  static int constexpr kRank = Layout::kRank;
 
   /// Index type
   using Index = typename Layout::Index;

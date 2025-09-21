@@ -67,16 +67,16 @@ struct Matrix<Element_, 1, 2> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static int const kRows = 1;
+  static int constexpr kRows = 1;
 
   /// Number of columns in matrix
-  static int const kColumns = 2;
+  static int constexpr kColumns = 2;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static int const kCount = 2;
+  static int constexpr kCount = 2;
 
   //
   // Data members
@@ -624,16 +624,16 @@ struct Matrix<Element_, 1, 3> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static int const kRows = 1;
+  static int constexpr kRows = 1;
 
   /// Number of columns in matrix
-  static int const kColumns = 3;
+  static int constexpr kColumns = 3;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static int const kCount = 3;
+  static int constexpr kCount = 3;
 
   //
   // Data members
@@ -1251,16 +1251,16 @@ struct Matrix<Element_, 1, 4> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static int const kRows = 1;
+  static int constexpr kRows = 1;
 
   /// Number of columns in matrix
-  static int const kColumns = 4;
+  static int constexpr kColumns = 4;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static int const kCount = 4;
+  static int constexpr kCount = 4;
 
   //
   // Data members
@@ -1930,16 +1930,16 @@ struct Matrix<Element_, 2, 1> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static int const kRows = 2;
+  static int constexpr kRows = 2;
 
   /// Number of columns in matrix
-  static int const kColumns = 1;
+  static int constexpr kColumns = 1;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static int const kCount = 2;
+  static int constexpr kCount = 2;
 
   //
   // Data members
@@ -2498,16 +2498,16 @@ struct Matrix<Element_, 2, 2> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static int const kRows = 2;
+  static int constexpr kRows = 2;
 
   /// Number of columns in matrix
-  static int const kColumns = 2;
+  static int constexpr kColumns = 2;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static int const kCount = 4;
+  static int constexpr kCount = 4;
 
   //
   // Data members
@@ -3285,16 +3285,16 @@ struct Matrix<Element_, 2, 3> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static int const kRows = 2;
+  static int constexpr kRows = 2;
 
   /// Number of columns in matrix
-  static int const kColumns = 3;
+  static int constexpr kColumns = 3;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static int const kCount = 6;
+  static int constexpr kCount = 6;
 
   //
   // Data members
@@ -4155,16 +4155,16 @@ struct Matrix<Element_, 2, 4> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static int const kRows = 2;
+  static int constexpr kRows = 2;
 
   /// Number of columns in matrix
-  static int const kColumns = 4;
+  static int constexpr kColumns = 4;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static int const kCount = 8;
+  static int constexpr kCount = 8;
 
   //
   // Data members
@@ -5161,16 +5161,16 @@ struct Matrix<Element_, 3, 1> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static int const kRows = 3;
+  static int constexpr kRows = 3;
 
   /// Number of columns in matrix
-  static int const kColumns = 1;
+  static int constexpr kColumns = 1;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static int const kCount = 3;
+  static int constexpr kCount = 3;
 
   //
   // Data members
@@ -5809,16 +5809,16 @@ struct Matrix<Element_, 3, 2> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static int const kRows = 3;
+  static int constexpr kRows = 3;
 
   /// Number of columns in matrix
-  static int const kColumns = 2;
+  static int constexpr kColumns = 2;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static int const kCount = 6;
+  static int constexpr kCount = 6;
 
   //
   // Data members
@@ -6694,16 +6694,16 @@ struct Matrix<Element_, 3, 3> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static int const kRows = 3;
+  static int constexpr kRows = 3;
 
   /// Number of columns in matrix
-  static int const kColumns = 3;
+  static int constexpr kColumns = 3;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static int const kCount = 9;
+  static int constexpr kCount = 9;
 
   //
   // Data members
@@ -7925,16 +7925,16 @@ struct Matrix<Element_, 3, 4> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static int const kRows = 3;
+  static int constexpr kRows = 3;
 
   /// Number of columns in matrix
-  static int const kColumns = 4;
+  static int constexpr kColumns = 4;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static int const kCount = 12;
+  static int constexpr kCount = 12;
 
   //
   // Data members
@@ -9237,16 +9237,16 @@ struct Matrix<Element_, 4, 1> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static int const kRows = 4;
+  static int constexpr kRows = 4;
 
   /// Number of columns in matrix
-  static int const kColumns = 1;
+  static int constexpr kColumns = 1;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static int const kCount = 4;
+  static int constexpr kCount = 4;
 
   //
   // Data members
@@ -9949,16 +9949,16 @@ struct Matrix<Element_, 4, 2> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static int const kRows = 4;
+  static int constexpr kRows = 4;
 
   /// Number of columns in matrix
-  static int const kColumns = 2;
+  static int constexpr kColumns = 2;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static int const kCount = 8;
+  static int constexpr kCount = 8;
 
   //
   // Data members
@@ -10989,16 +10989,16 @@ struct Matrix<Element_, 4, 3> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static int const kRows = 4;
+  static int constexpr kRows = 4;
 
   /// Number of columns in matrix
-  static int const kColumns = 3;
+  static int constexpr kColumns = 3;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static int const kCount = 12;
+  static int constexpr kCount = 12;
 
   //
   // Data members
@@ -12322,16 +12322,16 @@ struct Matrix<Element_, 4, 4> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static int const kRows = 4;
+  static int constexpr kRows = 4;
 
   /// Number of columns in matrix
-  static int const kColumns = 4;
+  static int constexpr kColumns = 4;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static int const kCount = 16;
+  static int constexpr kCount = 16;
 
   //
   // Data members

@@ -97,12 +97,12 @@ static char const* cutlass_rt_tmGetStatusString(cutlass_rt_tm::Status status) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static const int NumThreadsPerWarp = 32;
-static const int NumThreadsPerWarpGroup = 128;
-static const int NumWarpsPerWarpGroup = NumThreadsPerWarpGroup / NumThreadsPerWarp;
-static const int NumThreadsPerHalfWarp = NumThreadsPerWarp / 2;
-static const int NumThreadsPerQuad = 4;
-static const int NumThreadsPerQuadPair = NumThreadsPerQuad * 2;
+static constexpr int NumThreadsPerWarp = 32;
+static constexpr int NumThreadsPerWarpGroup = 128;
+static constexpr int NumWarpsPerWarpGroup = NumThreadsPerWarpGroup / NumThreadsPerWarp;
+static constexpr int NumThreadsPerHalfWarp = NumThreadsPerWarp / 2;
+static constexpr int NumThreadsPerQuad = 4;
+static constexpr int NumThreadsPerQuadPair = NumThreadsPerQuad * 2;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

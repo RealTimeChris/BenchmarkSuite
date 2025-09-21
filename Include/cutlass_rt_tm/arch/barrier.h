@@ -328,8 +328,8 @@ class NamedBarrier {
  public:
   // Currently we reserve 8 NamedBarriers for CUTLASS' own use cases, 
   // while leaving the renaming for general users.
-  static const uint32_t ReservedNamedBarrierCount = static_cast<uint32_t>(ReservedNamedBarriers::FirstUserBarrier);
-  static const uint32_t HardwareMaxNumNamedBarriers = 16;
+  static constexpr uint32_t ReservedNamedBarrierCount = static_cast<uint32_t>(ReservedNamedBarriers::FirstUserBarrier);
+  static constexpr uint32_t HardwareMaxNumNamedBarriers = 16;
 
 };
 

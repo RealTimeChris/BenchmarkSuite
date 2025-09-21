@@ -194,7 +194,7 @@ namespace cutlass_rt_tm {
 				/// Epilogue output operator
 				typename EpilogueOutputOp_ = typename DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::EpilogueOutputOp,
 				/// Threadblock-level swizzling operator
-				typename ThreadblockSwizzle_ = typename threadblock::GemmIdentityThreadblockSwizzle<>,
+				typename ThreadblockSwizzle_ = typename threadblock::GemmIdentityThreadblockSwizzle<M,N>,
 				/// Number of stages used in the pipelined mainloop
 				int Stages = DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::kStages,
 				/// Access granularity of A matrix in units of elements
@@ -243,7 +243,7 @@ namespace cutlass_rt_tm {
 				static ComplexTransform const kTransformB = ComplexTransform::kNone;
 
 				/// Define the kernel
-				using GemmKernel = typename kernel::DefaultGemm<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignmentB, ElementC, LayoutC, ElementAccumulator,
+				using GemmKernel = typename kernel::DefaultGemm<M, N, ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignmentB, ElementC, LayoutC, ElementAccumulator,
 					OperatorClass, ArchTag, ThreadblockShape, WarpShape, InstructionShape, EpilogueOutputOp, ThreadblockSwizzle, kStages, kSplitKSerial, Operator,
 					SharedMemoryClearOption::kNone, GatherA, GatherB, ScatterD, PermuteDLayout>::GemmKernel;
 
