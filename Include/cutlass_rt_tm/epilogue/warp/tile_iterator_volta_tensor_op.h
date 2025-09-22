@@ -95,18 +95,18 @@ public:
   using AccumulatorTile = typename Policy::AccumulatorTile;
 
   /// Number of times this iterator can be incremented
-  static int const kIterations = Policy::kIterations;
+  static constexpr int kIterations = Policy::kIterations;
 
   /// Number of elements per access
-  static int const kElementsPerAccess = Policy::kElementsPerAccess;
+  static constexpr int kElementsPerAccess = Policy::kElementsPerAccess;
 
   // Internal constants
   struct Detail {
-    static int const kLanesInQuad = 4;
-    static int const kRowsPerQuad = 4;
-    static int const kColumnsPerQuad = 8;
-    static int const kAccessesPerQuad = kColumnsPerQuad / Policy::kElementsPerAccess;
-    static int const kAccessQuadDelta = 16;
+    static constexpr int kLanesInQuad = 4;
+    static constexpr int kRowsPerQuad = 4;
+    static constexpr int kColumnsPerQuad = 8;
+    static constexpr int kAccessesPerQuad = kColumnsPerQuad / Policy::kElementsPerAccess;
+    static constexpr int kAccessQuadDelta = 16;
   };
 
   /// Padding quantity
@@ -286,18 +286,18 @@ public:
   using AccumulatorTile = typename Policy::AccumulatorTile;
 
   /// Number of times this iterator can be incremented
-  static int const kIterations = Policy::kIterations;
+  static constexpr int kIterations = Policy::kIterations;
 
   /// Number of elements per access
-  static int const kElementsPerAccess = Policy::kElementsPerAccess;
+  static constexpr int kElementsPerAccess = Policy::kElementsPerAccess;
 
   // Internal constants
   struct Detail {
-    static int const kLanesInQuad = 4;
-    static int const kRowsPerQuad = 4;
-    static int const kColumnsPerQuad = 8;
-    static int const kAccessesPerQuad = kColumnsPerQuad / Policy::kElementsPerAccess;
-    static int const kAccessQuadDelta = 16;
+    static constexpr int kLanesInQuad = 4;
+    static constexpr int kRowsPerQuad = 4;
+    static constexpr int kColumnsPerQuad = 8;
+    static constexpr int kAccessesPerQuad = kColumnsPerQuad / Policy::kElementsPerAccess;
+    static constexpr int kAccessQuadDelta = 16;
   };
 
   /// Padding quantity

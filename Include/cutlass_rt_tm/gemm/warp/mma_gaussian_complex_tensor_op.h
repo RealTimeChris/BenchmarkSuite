@@ -168,14 +168,14 @@ public:
   using MathOperator = arch::OpMultiplyAddGaussianComplex;
   
   /// Complex transform on A operand
-  static ComplexTransform const kTransformA = TransformA;
+  static constexpr ComplexTransform  kTransformA = TransformA;
 
   /// Complex transform on B operand
-  static ComplexTransform const kTransformB = TransformB;
+  static constexpr ComplexTransform  kTransformB = TransformB;
 
 
   /// Number of threads participating in warp-level matrix product
-  static int constexpr  kThreadCount = 32;
+  static constexpr int  kThreadCount = 32;
 
 public:
 
@@ -433,14 +433,14 @@ public:
   using MathOperator = arch::OpMultiplyAddGaussianComplex;
   
   /// Complex transform on A operand
-  static ComplexTransform const kTransformA = TransformA;
+  static constexpr ComplexTransform  kTransformA = TransformA;
 
   /// Complex transform on B operand
-  static ComplexTransform const kTransformB = TransformB;
+  static constexpr ComplexTransform  kTransformB = TransformB;
 
 
   /// Number of threads participating in warp-level matrix product
-  static int constexpr  kThreadCount = 32;
+  static constexpr int  kThreadCount = 32;
 
 public:
 

@@ -111,10 +111,10 @@ struct UnpackComplexConvertAndPackForMmaFastF32 <
   //
   // Type definitions
   //
-  static Operand const kOperand = Operand::kA;
-  static ComplexTransform const kTransform = Transform_;
-  static FloatRoundStyle const kRoundBig = RoundBig_;
-  static FloatRoundStyle const kRoundSmall = RoundSmall_;
+  static constexpr Operand  kOperand = Operand::kA;
+  static constexpr ComplexTransform  kTransform = Transform_;
+  static constexpr FloatRoundStyle  kRoundBig = RoundBig_;
+  static constexpr FloatRoundStyle  kRoundSmall = RoundSmall_;
 
   // Data type of elements in the destination fragment
   using MmaElement = typename DestinationFragment::Element;
@@ -124,14 +124,14 @@ struct UnpackComplexConvertAndPackForMmaFastF32 <
 
   // Operand layout parameters
   using SourceFragmentLayout = layout::ColumnMajor;
-  static int constexpr  kLdm = MmaIterations::kRow * MmaOperandShape::kRow;
+  static constexpr int  kLdm = MmaIterations::kRow * MmaOperandShape::kRow;
 
   // BigSmall Fragment holding two TF32 elements (big, small) for every float
   using BigSmallFragment = Array<MmaElement, 2>;
 
   /// Index in fargments for the big and small part
-  static int constexpr  kBigIndex = 0;
-  static int constexpr  kSmallIndex = 1;
+  static constexpr int  kBigIndex = 0;
+  static constexpr int  kSmallIndex = 1;
 
   /// Ctor
   CUTLASS_RT_TM_DEVICE
@@ -201,10 +201,10 @@ struct UnpackComplexConvertAndPackForMmaFastF32 <
   //
   // Type definitions
   //
-  static Operand const kOperand = Operand::kB;
-  static ComplexTransform const kTransform = Transform_;
-  static FloatRoundStyle const kRoundBig = RoundBig_;
-  static FloatRoundStyle const kRoundSmall = RoundSmall_;
+  static constexpr Operand  kOperand = Operand::kB;
+  static constexpr ComplexTransform  kTransform = Transform_;
+  static constexpr FloatRoundStyle  kRoundBig = RoundBig_;
+  static constexpr FloatRoundStyle  kRoundSmall = RoundSmall_;
 
   // Data type of elements in the destination fragment
   using MmaElement = typename DestinationFragment::Element;
@@ -214,14 +214,14 @@ struct UnpackComplexConvertAndPackForMmaFastF32 <
 
   // Operand layout parameters
   using SourceFragmentLayout = layout::RowMajor;
-  static int constexpr  kLdm = MmaIterations::kColumn * MmaOperandShape::kColumn;
+  static constexpr int  kLdm = MmaIterations::kColumn * MmaOperandShape::kColumn;
 
   // BigSmall Fragment holding two TF32 elements (big, small) for every float
   using BigSmallFragment = Array<MmaElement, 2>;
 
   /// Index in fargments for the big and small part
-  static int constexpr  kBigIndex = 0;
-  static int constexpr  kSmallIndex = 1;
+  static constexpr int  kBigIndex = 0;
+  static constexpr int  kSmallIndex = 1;
 
   /// Ctor
   CUTLASS_RT_TM_DEVICE
@@ -385,13 +385,13 @@ public:
   using MathOperator = arch::OpMultiplyAddComplexFastF32;
   
   /// Complex transform on A operand
-  static ComplexTransform const kTransformA = TransformA;
+  static constexpr ComplexTransform  kTransformA = TransformA;
 
   /// Complex transform on B operand
-  static ComplexTransform const kTransformB = TransformB;
+  static constexpr ComplexTransform  kTransformB = TransformB;
 
   /// Number of threads participating in warp-level matrix product
-  static int constexpr  kThreadCount = 32;
+  static constexpr int  kThreadCount = 32;
 
 
   /// Tune F32 to TF32 big small conversion for complex<float> operation
@@ -407,8 +407,8 @@ public:
   >;
 
   /// Index in fargments for the big and small part
-  static int constexpr  kBigIndex = 0;
-  static int constexpr  kSmallIndex = 1;
+  static constexpr int  kBigIndex = 0;
+  static constexpr int  kSmallIndex = 1;
 
 public:
 

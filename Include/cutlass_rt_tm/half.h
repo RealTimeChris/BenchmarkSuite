@@ -586,20 +586,20 @@ namespace std {
 /// Numeric limits
 template <>
 struct numeric_limits<cutlass_rt_tm::half_t> {
-  static bool const is_specialized = true;
-  static bool const is_signed = true;
-  static bool const is_integer = false;
-  static bool const is_exact = false;
-  static bool const has_infinity = true;
-  static bool const has_quiet_NaN = true;
-  static bool const has_signaling_NaN = false;
+  static constexpr bool is_specialized = true;
+  static constexpr bool is_signed = true;
+  static constexpr bool is_integer = false;
+  static constexpr bool is_exact = false;
+  static constexpr bool has_infinity = true;
+  static constexpr bool has_quiet_NaN = true;
+  static constexpr bool has_signaling_NaN = false;
   static std::float_denorm_style const has_denorm = std::denorm_present;
-  static bool const has_denorm_loss = true;
+  static constexpr bool has_denorm_loss = true;
   static std::float_round_style const round_style = std::round_to_nearest;
-  static bool const is_iec559 = true;
-  static bool const is_bounded = true;
-  static bool const is_modulo = false;
-  static int constexpr digits = 10;
+  static constexpr bool is_iec559 = true;
+  static constexpr bool is_bounded = true;
+  static constexpr bool is_modulo = false;
+  static constexpr int digits = 10;
 
   /// Least positive value
   CUTLASS_RT_TM_HOST_DEVICE
@@ -650,24 +650,24 @@ struct numeric_limits;
 /// Numeric limits
 template <>
 struct numeric_limits<cutlass_rt_tm::half_t> {
-  static bool const is_specialized = true;
-  static bool const is_signed = true;
-  static bool const is_integer = false;
-  static bool const is_exact = false;
-  static bool const has_infinity = true;
-  static bool const has_quiet_NaN = true;
-  static bool const has_signaling_NaN = false;
+  static constexpr bool is_specialized = true;
+  static constexpr bool is_signed = true;
+  static constexpr bool is_integer = false;
+  static constexpr bool is_exact = false;
+  static constexpr bool has_infinity = true;
+  static constexpr bool has_quiet_NaN = true;
+  static constexpr bool has_signaling_NaN = false;
 #if !defined(__CUDACC_RTC__)
   static std::float_denorm_style const has_denorm = std::denorm_present;
 #endif
-  static bool const has_denorm_loss = true;
+  static constexpr bool has_denorm_loss = true;
 #if !defined(__CUDACC_RTC__)
   static std::float_round_style const round_style = std::round_to_nearest;
 #endif
-  static bool const is_iec559 = true;
-  static bool const is_bounded = true;
-  static bool const is_modulo = false;
-  static int constexpr digits = 10;
+  static constexpr bool is_iec559 = true;
+  static constexpr bool is_bounded = true;
+  static constexpr bool is_modulo = false;
+  static constexpr int digits = 10;
 
   /// Least positive value
   CUTLASS_RT_TM_HOST_DEVICE

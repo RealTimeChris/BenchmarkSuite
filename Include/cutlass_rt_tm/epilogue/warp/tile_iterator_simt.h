@@ -101,7 +101,7 @@ public:
     Policy::kAccumulatorElementCount>;
 
   /// Number of times this iterator can be incremented
-  static int const kIterations = Policy::kIterations;
+  static constexpr int kIterations = Policy::kIterations;
 
   /// Padding quantity
   using Padding = MatrixShape<
@@ -283,7 +283,7 @@ class TileIteratorSimtDirectConv {
   using AccumulatorTile = Array<typename Operator::ElementC, Policy::kAccumulatorElementCount>;
 
   /// Number of times this iterator can be incremented
-  static int const kIterations = Policy::kIterations;
+  static constexpr int kIterations = Policy::kIterations;
 
   /// Padding quantity
   using Padding = MatrixShape<0,
@@ -575,7 +575,7 @@ public:
     Policy::kAccumulatorElementCount>;
 
   /// Number of times this iterator can be incremented
-  static int const kIterations = Policy::kIterations;
+  static constexpr int kIterations = Policy::kIterations;
 
   /// Padding quantity
   using Padding = MatrixShape<

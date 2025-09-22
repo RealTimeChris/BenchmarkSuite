@@ -109,9 +109,9 @@ struct UnpackComplexConvertAndPackForMma <
   //
   // Type definitions
   //
-  static Operand const kOperand = Operand::kA;
-  static ComplexTransform const kTransform = Transform_;
-  static FloatRoundStyle const kRound = Round_;
+  static constexpr Operand  kOperand = Operand::kA;
+  static constexpr ComplexTransform  kTransform = Transform_;
+  static constexpr FloatRoundStyle  kRound = Round_;
 
   // Data type of elements in the destination fragment
   using MmaElement = typename DestinationFragment::Element;
@@ -121,7 +121,7 @@ struct UnpackComplexConvertAndPackForMma <
 
   // Operand layout parameters
   using SourceFragmentLayout = layout::ColumnMajor;
-  static int constexpr  kLdm = MmaIterations::kRow * MmaOperandShape::kRow;
+  static constexpr int  kLdm = MmaIterations::kRow * MmaOperandShape::kRow;
 
   /// Ctor
   CUTLASS_RT_TM_DEVICE
@@ -180,9 +180,9 @@ struct UnpackComplexConvertAndPackForMma <
   //
   // Type definitions
   //
-  static Operand const kOperand = Operand::kB;
-  static ComplexTransform const kTransform = Transform_;
-  static FloatRoundStyle const kRound = Round_;
+  static constexpr Operand  kOperand = Operand::kB;
+  static constexpr ComplexTransform  kTransform = Transform_;
+  static constexpr FloatRoundStyle  kRound = Round_;
 
   // Data type of elements in the destination fragment
   using MmaElement = typename DestinationFragment::Element;
@@ -192,7 +192,7 @@ struct UnpackComplexConvertAndPackForMma <
 
   // Operand layout parameters
   using SourceFragmentLayout = layout::RowMajor;
-  static int constexpr  kLdm = MmaIterations::kColumn * MmaOperandShape::kColumn;
+  static constexpr int  kLdm = MmaIterations::kColumn * MmaOperandShape::kColumn;
 
   /// Ctor
   CUTLASS_RT_TM_DEVICE
@@ -336,13 +336,13 @@ public:
   using MathOperator = arch::OpMultiplyAddComplex;
 
   /// Complex transform on A operand
-  static ComplexTransform const kTransformA = TransformA;
+  static constexpr ComplexTransform  kTransformA = TransformA;
 
   /// Complex transform on B operand
-  static ComplexTransform const kTransformB = TransformB;
+  static constexpr ComplexTransform  kTransformB = TransformB;
 
   /// Number of threads participating in warp-level matrix product
-  static int constexpr  kThreadCount = 32;
+  static constexpr int  kThreadCount = 32;
 
 public:
 
@@ -626,13 +626,13 @@ public:
   using MathOperator = typename arch::OpMultiplyAddComplex;
   
   /// Complex transform on A operand
-  static ComplexTransform const kTransformA = TransformA;
+  static constexpr ComplexTransform  kTransformA = TransformA;
 
   /// Complex transform on B operand
-  static ComplexTransform const kTransformB = TransformB;
+  static constexpr ComplexTransform  kTransformB = TransformB;
 
   /// Number of threads participating in warp-level matrix product
-  static int constexpr  kThreadCount = 32;
+  static constexpr int  kThreadCount = 32;
 
 public:
 
@@ -936,13 +936,13 @@ public:
   using MathOperator = typename arch::OpMultiplyAddComplex;
 
   /// Complex transform on A operand
-  static ComplexTransform const kTransformA = TransformA;
+  static constexpr ComplexTransform  kTransformA = TransformA;
 
   /// Complex transform on B operand
-  static ComplexTransform const kTransformB = TransformB;
+  static constexpr ComplexTransform  kTransformB = TransformB;
 
   /// Number of threads participating in warp-level matrix product
-  static int constexpr  kThreadCount = 32;
+  static constexpr int  kThreadCount = 32;
 
 public:
 

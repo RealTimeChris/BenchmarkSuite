@@ -88,9 +88,9 @@ struct DefaultEpilogueWmmaTensorOp {
 
   using Shape = Shape_;
   using WarpMmaTensorOp = WarpMmaTensorOp_;
-  static int const kPartitionsK = PartitionsK;
+  static constexpr int kPartitionsK = PartitionsK;
   using OutputOp = OutputOp_;
-  static int const kElementsPerAccess = ElementsPerAccess;
+  static constexpr int kElementsPerAccess = ElementsPerAccess;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using LayoutC = typename WarpMmaTensorOp::LayoutC;

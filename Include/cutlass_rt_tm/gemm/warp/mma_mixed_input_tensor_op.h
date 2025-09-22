@@ -88,10 +88,10 @@ struct FragmentShuffler {
   using ElementMma = ElementMma_;
   using ElementLoad = ElementLoad_;
 
-  static int constexpr  kNumMmaInstructions = NumMmaInstructions;
-  static int constexpr  kNumElementsInWarpFragment = NumElementsInWarpFragment;
-  static int constexpr  kNumElementsInMmaFragment = NumElementsInMmaFragment;
-  static Operand const kOperand = Operand_;
+  static constexpr int  kNumMmaInstructions = NumMmaInstructions;
+  static constexpr int  kNumElementsInWarpFragment = NumElementsInWarpFragment;
+  static constexpr int  kNumElementsInMmaFragment = NumElementsInMmaFragment;
+  static constexpr Operand  kOperand = Operand_;
 
   using WarpFragment = Array<ElementLoad, kNumElementsInWarpFragment>;
   using MmaFragment = Array<ElementLoad, kNumElementsInMmaFragment>;
@@ -129,16 +129,16 @@ public:
   using ElementMma = ElementMma_;
   using ElementLoad = ElementLoad_;
 
-  static int constexpr  kNumMmaInstructions = NumMmaInstructions;
-  static int constexpr  kNumElementsInWarpFragment = NumElementsInWarpFragment;
-  static int constexpr  kNumElementsInMmaFragment = NumElementsInMmaFragment;
-  static Operand const kOperand = Operand::kA;
+  static constexpr int  kNumMmaInstructions = NumMmaInstructions;
+  static constexpr int  kNumElementsInWarpFragment = NumElementsInWarpFragment;
+  static constexpr int  kNumElementsInMmaFragment = NumElementsInMmaFragment;
+  static constexpr Operand  kOperand = Operand::kA;
 
   using WarpFragment = Array<ElementLoad, kNumElementsInWarpFragment>;
   using MmaFragment = Array<ElementLoad, kNumElementsInMmaFragment>;
 
-  static uint32_t const kSelectBytesEvenThread = 0x5410;
-  static uint32_t const kSelectBytesOddThread = 0x7632;
+  static constexpr uint32_t  kSelectBytesEvenThread = 0x5410;
+  static constexpr uint32_t  kSelectBytesOddThread = 0x7632;
 
 private:
   int delta_up_;
@@ -213,16 +213,16 @@ public:
   using ElementMma = ElementMma_;
   using ElementLoad = ElementLoad_;
 
-  static int constexpr  kNumMmaInstructions = NumMmaInstructions;
-  static int constexpr  kNumElementsInWarpFragment = NumElementsInWarpFragment;
-  static int constexpr  kNumElementsInMmaFragment = NumElementsInMmaFragment;
-  static Operand const kOperand = Operand::kB;
+  static constexpr int  kNumMmaInstructions = NumMmaInstructions;
+  static constexpr int  kNumElementsInWarpFragment = NumElementsInWarpFragment;
+  static constexpr int  kNumElementsInMmaFragment = NumElementsInMmaFragment;
+  static constexpr Operand  kOperand = Operand::kB;
 
   using WarpFragment = Array<ElementLoad, kNumElementsInWarpFragment>;
   using MmaFragment = Array<ElementLoad, kNumElementsInMmaFragment>;
 
-  static uint32_t const kSelectBytesEvenThread = 0x5410;
-  static uint32_t const kSelectBytesOddThread = 0x7632;
+  static constexpr uint32_t  kSelectBytesEvenThread = 0x5410;
+  static constexpr uint32_t  kSelectBytesOddThread = 0x7632;
 
 private:
   int delta_up_;
@@ -397,19 +397,19 @@ public:
   using InstructionShape = typename ArchMmaOperator::Shape;
 
   /// Complex transform on A operand
-  static ComplexTransform const kTransformA = ComplexTransform::kNone;
+  static constexpr ComplexTransform  kTransformA = ComplexTransform::kNone;
 
   /// Complex transform on B operand
-  static ComplexTransform const kTransformB = ComplexTransform::kNone;
+  static constexpr ComplexTransform  kTransformB = ComplexTransform::kNone;
 
   /// Number of threads participating in warp-level matrix product
-  static int constexpr  kThreadCount = 32;
+  static constexpr int  kThreadCount = 32;
 
   /// Number of partitions along K dimension
-  static int constexpr  kPartitionsK = PartitionsK_;
+  static constexpr int  kPartitionsK = PartitionsK_;
 
   /// 
-  // static int constexpr  kLoadShapeK = InstructionShape::kK * 
+  // static constexpr int  kLoadShapeK = InstructionShape::kK * 
   //  (sizeof_bits<ElementAMma>::value / sizeof_bits<ElementB>::value);
 
 public:

@@ -50,7 +50,7 @@ template <
 template <int ElementCount_>
 struct Transpose<ElementCount_, layout::PitchLinearShape<4,4> , int8_t> {
 
-    static const int kElementCount = ElementCount_;
+    static constexpr int kElementCount = ElementCount_;
     using TransposeShape = layout::PitchLinearShape<4,4>;
     using Element = int8_t;
     using Fragment = cutlass_rt_tm::Array<Element, kElementCount>;

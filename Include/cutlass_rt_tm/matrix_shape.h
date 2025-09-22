@@ -46,9 +46,9 @@ template <
   int Column_      ///< columns of a matrix
 >
 struct MatrixShape {
-  static int constexpr kRow = Row_;           ///< rows of a matrix
-  static int constexpr kColumn = Column_;           ///< columns of a matrix
-  static int constexpr kCount = Row_ * Column_;  ///< total number of elements in a matrix
+  static constexpr int kRow = Row_;           ///< rows of a matrix
+  static constexpr int kColumn = Column_;           ///< columns of a matrix
+  static constexpr int kCount = Row_ * Column_;  ///< total number of elements in a matrix
 
   //
   // Static member functions

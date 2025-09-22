@@ -419,7 +419,7 @@ struct maximum {
       return (lhs < rhs ? rhs : lhs);
     }
 
-    CUTE_GCC_UNREACHABLE;
+    CUTE_RT_TM_GCC_UNREACHABLE;
   }
 };
 

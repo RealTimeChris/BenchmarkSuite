@@ -396,7 +396,7 @@ struct is_base_of_helper {
 
   CUTLASS_RT_TM_HOST_DEVICE static no check(BaseT*, int);
 
-  static const bool value = sizeof(check(dummy<BaseT, DerivedT>(), int())) == sizeof(yes);
+  static constexpr bool value = sizeof(check(dummy<BaseT, DerivedT>(), int())) == sizeof(yes);
 };
 
 /// std::is_base_of

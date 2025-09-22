@@ -51,10 +51,10 @@ template <int Rank>
 class IdentityTensorLayout {
 public:
   /// Logical rank of tensor
-  static int constexpr kRank = Rank;
+  static constexpr int kRank = Rank;
 
   /// Rank of stride vector
-  static int constexpr kStrideRank = Rank;
+  static constexpr int kStrideRank = Rank;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -165,7 +165,7 @@ class TensorRef {
     >::type;
 
   /// Logical rank of tensor index space
-  static int constexpr kRank = Layout::kRank;
+  static constexpr int kRank = Layout::kRank;
 
   /// Index type
   using Index = typename Layout::Index;

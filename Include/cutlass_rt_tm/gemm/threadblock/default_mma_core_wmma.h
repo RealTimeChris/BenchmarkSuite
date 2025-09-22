@@ -119,13 +119,13 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   );
 
   /// Number of threads per warp
-  static int constexpr  kWarpSize = warp::WarpSize<arch::OpClassWmmaTensorOp>::value;
+  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassWmmaTensorOp>::value;
 
   /// Number of threads total
-  static int constexpr  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static int constexpr  kAccessSizeInBits = 128;
+  static constexpr int  kAccessSizeInBits = 128;
 
   /// Default Operator
   using Operator = Operator_;
@@ -138,8 +138,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using SmemLayoutB = LayoutB;
 
   // Pad shared memory to avoid bank conflicts
-  static int constexpr  kPaddingA = 128 / sizeof_bits<ElementA>::value;
-  static int constexpr  kPaddingB = 128 / sizeof_bits<ElementB>::value;
+  static constexpr int  kPaddingA = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int  kPaddingB = 128 / sizeof_bits<ElementB>::value;
 
   //
   // Iterators to write to shared memory
@@ -276,29 +276,29 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   );
 
   /// Number of threads per warp
-  static int constexpr  kWarpSize = warp::WarpSize<arch::OpClassWmmaTensorOp>::value;
+  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassWmmaTensorOp>::value;
 
   /// Number of threads per threadblock
-  static int constexpr  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
 
 
   /// Size of a threadblock-scoped access
-  static int constexpr  kAccessSizeInBits = 128;
+  static constexpr int  kAccessSizeInBits = 128;
 
   /// Default Operator
   using Operator = Operator_;
 
   // Warp thread arrangement 
-  static int constexpr  kWarpThreadArrangementContiguousA =
+  static constexpr int  kWarpThreadArrangementContiguousA =
       Shape::kK / (kAccessSizeInBits / sizeof_bits<ElementA>::value);
 
-  static int constexpr  kWarpThreadArrangementStridedA =
+  static constexpr int  kWarpThreadArrangementStridedA =
       kWarpSize / kWarpThreadArrangementContiguousA;
 
-  static int constexpr  kWarpThreadArrangementContiguousB =
+  static constexpr int  kWarpThreadArrangementContiguousB =
       Shape::kK / (kAccessSizeInBits / sizeof_bits<ElementA>::value);
 
-  static int constexpr  kWarpThreadArrangementStridedB =
+  static constexpr int  kWarpThreadArrangementStridedB =
       kWarpSize / kWarpThreadArrangementContiguousB;
 
   //
@@ -310,8 +310,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using SmemLayoutB = LayoutB;
   
   // Pad shared memory to avoid bank conflicts
-  static int constexpr  kPaddingA = 128 / sizeof_bits<ElementA>::value;
-  static int constexpr  kPaddingB = 128 / sizeof_bits<ElementB>::value;
+  static constexpr int  kPaddingA = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int  kPaddingB = 128 / sizeof_bits<ElementB>::value;
 
   //
   // Iterators to write to shared memory 
@@ -446,22 +446,22 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   );
 
   /// Number of threads per warp
-  static int constexpr  kWarpSize = warp::WarpSize<arch::OpClassWmmaTensorOp>::value;
+  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassWmmaTensorOp>::value;
 
   /// Number of threads total
-  static int constexpr  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static int constexpr  kAccessSizeInBits = 128;
+  static constexpr int  kAccessSizeInBits = 128;
 
   /// Default Operator
   using Operator = Operator_;
 
   // Warp thread arrangement 
-  static int constexpr  kWarpThreadArrangementContiguousA =
+  static constexpr int  kWarpThreadArrangementContiguousA =
       Shape::kK / (kAccessSizeInBits / sizeof_bits<ElementA>::value);
 
-  static int constexpr  kWarpThreadArrangementStridedA =
+  static constexpr int  kWarpThreadArrangementStridedA =
       kWarpSize / kWarpThreadArrangementContiguousA;
 
   //
@@ -473,8 +473,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using SmemLayoutB = LayoutB;
 
   // Pad shared memory to avoid bank conflicts
-  static int constexpr  kPaddingA = 128 / sizeof_bits<ElementA>::value;
-  static int constexpr  kPaddingB = 128 / sizeof_bits<ElementB>::value;
+  static constexpr int  kPaddingA = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int  kPaddingB = 128 / sizeof_bits<ElementB>::value;
   
   //
   // Iterators to write to shared memory
@@ -607,22 +607,22 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
       "Threadblock-scoped GEMM should be divisible by warp-scoped GEMM size.");
 
   /// Number of threads per warp
-  static int constexpr  kWarpSize = warp::WarpSize<arch::OpClassWmmaTensorOp>::value;
+  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassWmmaTensorOp>::value;
 
   /// Number of threads total
-  static int constexpr  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static int constexpr  kAccessSizeInBits = 128;
+  static constexpr int  kAccessSizeInBits = 128;
 
   /// Default Operator
   using Operator = Operator_; 
 
   // Warp thread arrangement 
-  static int constexpr  kWarpThreadArrangementContiguousB =
+  static constexpr int  kWarpThreadArrangementContiguousB =
       Shape::kK / (kAccessSizeInBits / sizeof_bits<ElementA>::value);
 
-  static int constexpr  kWarpThreadArrangementStridedB =
+  static constexpr int  kWarpThreadArrangementStridedB =
       kWarpSize / kWarpThreadArrangementContiguousB;
 
   //
@@ -634,8 +634,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using SmemLayoutB = LayoutB;
 
   // Pad shared memory to avoid bank conflicts
-  static int constexpr  kPaddingA = 128 / sizeof_bits<ElementA>::value;
-  static int constexpr  kPaddingB = 128 / sizeof_bits<ElementB>::value;
+  static constexpr int  kPaddingA = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int  kPaddingB = 128 / sizeof_bits<ElementB>::value;
   
   //
   // Iterators to write to shared memory

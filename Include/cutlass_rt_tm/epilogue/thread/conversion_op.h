@@ -64,15 +64,15 @@ public:
   using ElementCompute = ElementAccumulator_;
   using ElementD = ElementOutput;                     // for use with cute_rt_tm::collective::DefaultEpilogue
 
-  static int const kCount = Count;
+  static constexpr int kCount = Count;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
   using ComputeFragment = FragmentAccumulator;
 
-  static FloatRoundStyle const kRound = Round;
+  static constexpr FloatRoundStyle  kRound = Round;
 
-  static bool const kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
 
   /// Host-constructable parameters structure
   struct Params {

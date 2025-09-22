@@ -166,7 +166,7 @@ namespace cutlass_rt_tm {
     >
     class Gemm;
 */
-			template<uint64_t M, uint64_t N,
+			template<uint64_t M, uint64_t K,
 				/// Element type for A matrix operand
 				typename ElementA_,
 				/// Layout type for A matrix operand
@@ -194,7 +194,7 @@ namespace cutlass_rt_tm {
 				/// Epilogue output operator
 				typename EpilogueOutputOp_ = typename DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::EpilogueOutputOp,
 				/// Threadblock-level swizzling operator
-				typename ThreadblockSwizzle_ = typename threadblock::GemmIdentityThreadblockSwizzle<M, N>,
+				typename ThreadblockSwizzle_ = typename threadblock::GemmIdentityThreadblockSwizzle<M, K>,
 				/// Number of stages used in the pipelined mainloop
 				int Stages = DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::kStages,
 				/// Access granularity of A matrix in units of elements
@@ -234,16 +234,16 @@ namespace cutlass_rt_tm {
 				using EpilogueOutputOp					  = EpilogueOutputOp_;
 				using ThreadblockSwizzle				  = ThreadblockSwizzle_;
 				using Operator							  = Operator_;
-				static int constexpr kStages			  = Stages;
-				static int constexpr kAlignmentA		  = AlignmentA;
-				static int constexpr kAlignmentB		  = AlignmentB;
-				static int constexpr kAlignmentC		  = EpilogueOutputOp::kCount;
-				static bool const kSplitKSerial			  = SplitKSerial;
-				static ComplexTransform const kTransformA = ComplexTransform::kNone;
-				static ComplexTransform const kTransformB = ComplexTransform::kNone;
+				static constexpr int kStages			  = Stages;
+				static constexpr int kAlignmentA		  = AlignmentA;
+				static constexpr int kAlignmentB		  = AlignmentB;
+				static constexpr int kAlignmentC		  = EpilogueOutputOp::kCount;
+				static constexpr bool kSplitKSerial			  = SplitKSerial;
+				static constexpr ComplexTransform kTransformA = ComplexTransform::kNone;
+				static constexpr ComplexTransform kTransformB = ComplexTransform::kNone;
 
 				/// Define the kernel
-				using GemmKernel = typename kernel::DefaultGemm<M, N, ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignmentB, ElementC, LayoutC, ElementAccumulator,
+				using GemmKernel = typename kernel::DefaultGemm<M, K, ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignmentB, ElementC, LayoutC, ElementAccumulator,
 					OperatorClass, ArchTag, ThreadblockShape, WarpShape, InstructionShape, EpilogueOutputOp, ThreadblockSwizzle, kStages, kSplitKSerial, Operator,
 					SharedMemoryClearOption::kNone, GatherA, GatherB, ScatterD, PermuteDLayout>::GemmKernel;
 
@@ -253,7 +253,7 @@ namespace cutlass_rt_tm {
 					// Data members
 					//
 
-					GemmCoord problem_size;
+					uint64_t N;
 					TensorRef<ElementA const, LayoutA> ref_A;
 					TensorRef<ElementB const, LayoutB> ref_B;
 					TensorRef<ElementC const, LayoutC> ref_C;
@@ -271,16 +271,16 @@ namespace cutlass_rt_tm {
 
 					/// Default ctor
 					CUTLASS_RT_TM_HOST_DEVICE
-					__forceinline__ Arguments() : problem_size(0, 0, 0), split_k_slices(1) {
+					__forceinline__ Arguments() : N(0), split_k_slices(1) {
 					}
 
 					/// Constructs an Arguments structure
 					CUTLASS_RT_TM_HOST_DEVICE
-					__forceinline__ Arguments(GemmCoord problem_size_, TensorRef<ElementA const, LayoutA> ref_A_, TensorRef<ElementB const, LayoutB> ref_B_,
+					__forceinline__ Arguments(uint64_t N_, TensorRef<ElementA const, LayoutA> ref_A_, TensorRef<ElementB const, LayoutB> ref_B_,
 						TensorRef<ElementC const, LayoutC> ref_C_, TensorRef<ElementC, LayoutC> ref_D_,
 						typename EpilogueOutputOp::Params epilogue_ = typename EpilogueOutputOp::Params(), int split_k_slices = 1, int const* gather_A_indices_ = nullptr,
 						int const* gather_B_indices_ = nullptr, int const* scatter_D_indices_ = nullptr)
-						: problem_size(problem_size_), ref_A(ref_A_), ref_B(ref_B_), ref_C(ref_C_), ref_D(ref_D_), epilogue(epilogue_), split_k_slices(split_k_slices),
+						: N(N_), ref_A(ref_A_), ref_B(ref_B_), ref_C(ref_C_), ref_D(ref_D_), epilogue(epilogue_), split_k_slices(split_k_slices),
 						  gather_A_indices(gather_A_indices_), gather_B_indices(gather_B_indices_), scatter_D_indices(scatter_D_indices_) {
 					}
 				};
@@ -291,7 +291,7 @@ namespace cutlass_rt_tm {
 
 			  public:
 				/// Constructs the GEMM.
-				Gemm() {
+				__forceinline__ Gemm() {
 				}
 
 				/// Determines whether the GEMM can execute the given problem.
@@ -300,7 +300,7 @@ namespace cutlass_rt_tm {
 						return Status::kErrorInvalidProblem;
 					}
 
-					Status status = GemmKernel::can_implement(args.problem_size, args.ref_A.non_const_ref(), args.ref_B.non_const_ref(), args.ref_C.non_const_ref(), args.ref_D);
+					Status status = GemmKernel::can_implement(args.N, args.ref_A.non_const_ref(), args.ref_B.non_const_ref(), args.ref_C.non_const_ref(), args.ref_D);
 
 					if (status != Status::kSuccess) {
 						return status;
@@ -317,7 +317,7 @@ namespace cutlass_rt_tm {
 					ThreadblockSwizzle threadblock_swizzle;
 
 					cutlass_rt_tm::gemm::GemmCoord tiled_shape =
-						threadblock_swizzle.get_tiled_shape(args.problem_size, { ThreadblockShape::kM, ThreadblockShape::kN, ThreadblockShape::kK }, args.split_k_slices);
+						threadblock_swizzle.get_tiled_shape(args.N, { ThreadblockShape::kM, ThreadblockShape::kN, ThreadblockShape::kK }, args.split_k_slices);
 
 					if (kSplitKSerial && args.split_k_slices > 1) {
 						bytes += sizeof(int) * size_t(tiled_shape.m()) * size_t(tiled_shape.n());
@@ -332,7 +332,7 @@ namespace cutlass_rt_tm {
 					ThreadblockSwizzle threadblock_swizzle;
 
 					cutlass_rt_tm::gemm::GemmCoord grid_shape =
-						threadblock_swizzle.get_tiled_shape(args.problem_size, { ThreadblockShape::kM, ThreadblockShape::kN, ThreadblockShape::kK }, args.split_k_slices);
+						threadblock_swizzle.get_tiled_shape(args.N, { ThreadblockShape::kM, ThreadblockShape::kN, ThreadblockShape::kK }, args.split_k_slices);
 
 					if (kSplitKSerial) {
 						if (args.split_k_slices > 1) {
@@ -355,8 +355,8 @@ namespace cutlass_rt_tm {
 					}
 
 					// Initialize the Params structure
-					params_ = typename GemmKernel::Params{ args.problem_size, grid_shape, args.ref_A.non_const_ref(), args.ref_B.non_const_ref(), args.ref_C.non_const_ref(),
-						args.ref_D, args.epilogue, static_cast<int*>(workspace), args.gather_A_indices, args.gather_B_indices, args.scatter_D_indices };
+					params_ = typename GemmKernel::Params{ static_cast<uint64_t>(args.N), grid_shape, args.ref_A.non_const_ref(), args.ref_B.non_const_ref(),
+						args.ref_C.non_const_ref(), args.ref_D, args.epilogue, static_cast<int*>(workspace), args.gather_A_indices, args.gather_B_indices, args.scatter_D_indices };
 
 					return Status::kSuccess;
 				}

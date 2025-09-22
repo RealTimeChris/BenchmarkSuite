@@ -30,7 +30,7 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute_rt_tm/config.hpp>                      // CUTE_HOST_DEVICE
+#include <cute_rt_tm/config.hpp>                      // CUTE_RT_TM_HOST_DEVICE
 #include <cute_rt_tm/container/tuple.hpp>             // cute_rt_tm::is_tuple
 #include <cute_rt_tm/numeric/integral_constant.hpp>   // cute_rt_tm::constant
 #include <cute_rt_tm/numeric/math.hpp>                // cute_rt_tm::max, cute_rt_tm::min
@@ -71,7 +71,7 @@ struct Swizzle
   static constexpr uint32_t swizzle_code = uint32_t(yyy_msk::value | zzz_msk::value);
 
   template <class Offset>
-  CUTE_HOST_DEVICE constexpr static
+  CUTE_RT_TM_HOST_DEVICE constexpr static
   auto
   apply(Offset const& offset)
   {
@@ -79,7 +79,7 @@ struct Swizzle
   }
 
   template <class Offset>
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   auto
   operator()(Offset const& offset) const
   {
@@ -87,7 +87,7 @@ struct Swizzle
   }
 
   template <int B, int M, int S>
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   auto
   operator==(Swizzle<B,M,S> const&) const
   {
@@ -101,7 +101,7 @@ struct Swizzle
 //
 
 template <uint32_t Y, uint32_t Z>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 make_swizzle()
 {
@@ -118,7 +118,7 @@ make_swizzle()
 
 template <int B0, int M0, int S0,
           int B1, int M1, int S1>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 composition(Swizzle<B0,M0,S0>, Swizzle<B1,M1,S1>)
 {
@@ -156,13 +156,13 @@ struct MixedBits
   uint32_t dynamic_int_;
   // assert((dynamic_int_ & ~StaticFlags) == 0);
 
-  CUTE_HOST_DEVICE constexpr operator uint32_t() const noexcept { return StaticInt | dynamic_int_; }
+  CUTE_RT_TM_HOST_DEVICE constexpr operator uint32_t() const noexcept { return StaticInt | dynamic_int_; }
 };
 
 // Return a value representing (C<s>{} | (d & C<f>)) potentially using MixedBits to track s and f.
 // This maker does allow ((s & f) != 0) and enforces the MixedBits invariant before creation.
 template <auto s, class DynamicType, auto f>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 make_mixed_bits(C<s>, DynamicType const& d, C<f>)
 {
@@ -174,7 +174,7 @@ make_mixed_bits(C<s>, DynamicType const& d, C<f>)
     return MixedBits<s, new_f>{uint32_t(d) & new_f};            // MixedBits
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 //
@@ -183,7 +183,7 @@ make_mixed_bits(C<s>, DynamicType const& d, C<f>)
 
 // Equality
 template <uint32_t S0, uint32_t F0, auto S1>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 operator==(MixedBits<S0,F0> const& m, C<S1>)
 {
@@ -191,7 +191,7 @@ operator==(MixedBits<S0,F0> const& m, C<S1>)
 }
 
 template <uint32_t S0, uint32_t F0, auto S1>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 operator==(C<S1> s, MixedBits<S0,F0> const& m)
 {
@@ -201,7 +201,7 @@ operator==(C<S1> s, MixedBits<S0,F0> const& m)
 // Bitwise AND
 template <uint32_t S0, uint32_t F0,
           uint32_t S1, uint32_t F1>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 operator&(MixedBits<S0,F0> const& m0, MixedBits<S1,F1> const& m1)
 {
@@ -220,7 +220,7 @@ operator&(MixedBits<S0,F0> const& m0, MixedBits<S1,F1> const& m1)
 }
 
 template <uint32_t S0, uint32_t F0, auto S1>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 operator&(MixedBits<S0,F0> const& m, C<S1>)
 {
@@ -230,7 +230,7 @@ operator&(MixedBits<S0,F0> const& m, C<S1>)
 }
 
 template <uint32_t S0, uint32_t F0, auto S1>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 operator&(C<S1> s, MixedBits<S0,F0> const& m)
 {
@@ -240,7 +240,7 @@ operator&(C<S1> s, MixedBits<S0,F0> const& m)
 // Bitwise OR
 template <uint32_t S0, uint32_t F0,
           uint32_t S1, uint32_t F1>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 operator|(MixedBits<S0,F0> const& m0, MixedBits<S1,F1> const& m1)
 {
@@ -258,7 +258,7 @@ operator|(MixedBits<S0,F0> const& m0, MixedBits<S1,F1> const& m1)
 }
 
 template <uint32_t S0, uint32_t F0, auto S1>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 operator|(MixedBits<S0,F0> const& m, C<S1>)
 {
@@ -268,7 +268,7 @@ operator|(MixedBits<S0,F0> const& m, C<S1>)
 }
 
 template <uint32_t S0, uint32_t F0, auto S1>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 operator|(C<S1> s, MixedBits<S0,F0> const& m)
 {
@@ -278,7 +278,7 @@ operator|(C<S1> s, MixedBits<S0,F0> const& m)
 // Bitwise XOR
 template <uint32_t S0, uint32_t F0,
           uint32_t S1, uint32_t F1>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 operator^(MixedBits<S0,F0> const& m0, MixedBits<S1,F1> const& m1)
 {
@@ -296,7 +296,7 @@ operator^(MixedBits<S0,F0> const& m0, MixedBits<S1,F1> const& m1)
 }
 
 template <uint32_t S0, uint32_t F0, auto S1>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 operator^(MixedBits<S0,F0> const& m, C<S1>)
 {
@@ -306,7 +306,7 @@ operator^(MixedBits<S0,F0> const& m, C<S1>)
 }
 
 template <uint32_t S0, uint32_t F0, auto S1>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 operator^(C<S1> s, MixedBits<S0,F0> const& m)
 {
@@ -314,7 +314,7 @@ operator^(C<S1> s, MixedBits<S0,F0> const& m)
 }
 
 template <uint32_t S0, uint32_t F0, auto S1>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 operator<<(MixedBits<S0,F0> const& m, C<S1>)
 {
@@ -324,7 +324,7 @@ operator<<(MixedBits<S0,F0> const& m, C<S1>)
 }
 
 template <uint32_t S0, uint32_t F0, auto S1>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 operator>>(MixedBits<S0,F0> const& m, C<S1>)
 {
@@ -334,7 +334,7 @@ operator>>(MixedBits<S0,F0> const& m, C<S1>)
 }
 
 template <uint32_t S0, uint32_t F0, auto S1>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 shiftl(MixedBits<S0,F0> const& m, C<S1> s)
 {
@@ -346,7 +346,7 @@ shiftl(MixedBits<S0,F0> const& m, C<S1> s)
 }
 
 template <uint32_t S0, uint32_t F0, auto S1>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 shiftr(MixedBits<S0,F0> const& m, C<S1> s)
 {
@@ -362,7 +362,7 @@ shiftr(MixedBits<S0,F0> const& m, C<S1> s)
 //
 
 template <uint32_t S0, uint32_t F0, auto S1>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 safe_div(MixedBits<S0,F0> const& m, C<S1> s)
 {
@@ -373,7 +373,7 @@ safe_div(MixedBits<S0,F0> const& m, C<S1> s)
 }
 
 template <uint32_t N, uint32_t S0, uint32_t F0>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 upcast(MixedBits<S0,F0> const& m)
 {
@@ -381,8 +381,8 @@ upcast(MixedBits<S0,F0> const& m)
   return safe_div(m, C<N>{});
 }
 
-template <uint32_t N, class T, __CUTE_REQUIRES(cute_rt_tm::is_integral<T>::value)>
-CUTE_HOST_DEVICE constexpr
+template <uint32_t N, class T, __CUTE_RT_TM_REQUIRES(cute_rt_tm::is_integral<T>::value)>
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 upcast(T const& m)
 {
@@ -390,7 +390,7 @@ upcast(T const& m)
 }
 
 template <uint32_t N, uint32_t S0, uint32_t F0>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 downcast(MixedBits<S0,F0> const& m)
 {
@@ -400,8 +400,8 @@ downcast(MixedBits<S0,F0> const& m)
                          C<F0 * N>{});
 }
 
-template <uint32_t N, class T, __CUTE_REQUIRES(cute_rt_tm::is_integral<T>::value)>
-CUTE_HOST_DEVICE constexpr
+template <uint32_t N, class T, __CUTE_RT_TM_REQUIRES(cute_rt_tm::is_integral<T>::value)>
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 downcast(T const& m)
 {
@@ -409,7 +409,7 @@ downcast(T const& m)
 }
 
 template <uint32_t S0, uint32_t F0>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 max_alignment(MixedBits<S0,F0> const&)
 {
@@ -417,7 +417,7 @@ max_alignment(MixedBits<S0,F0> const&)
 }
 
 template <auto v>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 C<v>
 max_alignment(C<v> const& c)
 {
@@ -429,7 +429,7 @@ max_alignment(C<v> const& c)
 //
 
 template <class Shape, class Stride, class Coord>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 to_mixed_bits(Shape const& shape, Stride const& stride, Coord const& coord)
 {
@@ -445,11 +445,11 @@ to_mixed_bits(Shape const& shape, Stride const& stride, Coord const& coord)
     static_assert(is_integral<Shape>::value && is_integral<Stride>::value && is_integral<Coord>::value, "Either Shape, Stride, and Coord must be all tuples, or they must be all integral (in the sense of cute_rt_tm::is_integral).");
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 template <class Layout, class Coord>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 to_mixed_bits(Layout const& layout, Coord const& coord)
 {
@@ -461,26 +461,26 @@ to_mixed_bits(Layout const& layout, Coord const& coord)
 //
 
 template <int B, int M, int S>
-CUTE_HOST_DEVICE void print(Swizzle<B,M,S> const&)
+CUTE_RT_TM_HOST_DEVICE void print(Swizzle<B,M,S> const&)
 {
   printf("Sw<%d,%d,%d>", B, M, S);
 }
 
 template <uint32_t S, uint32_t F>
-CUTE_HOST_DEVICE void print(MixedBits<S,F> const& m)
+CUTE_RT_TM_HOST_DEVICE void print(MixedBits<S,F> const& m)
 {
   printf("M_%u|(%u&%u)=%u", S, m.dynamic_int_, F, uint32_t(m));
 }
 
 #if !defined(__CUDACC_RTC__)
 template <int B, int M, int S>
-CUTE_HOST std::ostream& operator<<(std::ostream& os, Swizzle<B,M,S> const&)
+CUTE_RT_TM_HOST std::ostream& operator<<(std::ostream& os, Swizzle<B,M,S> const&)
 {
   return os << "Sw<" << B << "," << M << "," << S << ">";
 }
 
 template <uint32_t S, class D, uint32_t F>
-CUTE_HOST std::ostream& operator<<(std::ostream& os, MixedBits<S,F> const& m)
+CUTE_RT_TM_HOST std::ostream& operator<<(std::ostream& os, MixedBits<S,F> const& m)
 {
   return os << "M_" << S << "|(" << m.dynamic_int_ << "&" << F << ")=" << uint32_t(m);
 }

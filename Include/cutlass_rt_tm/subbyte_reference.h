@@ -668,8 +668,8 @@ public:
 private:
   using StorageContainerCalculator = cutlass_rt_tm::detail::StorageContainerCalculator<Element, StorageUnit>;
 public:
-  static int constexpr kBitsStoredVec = StorageContainerCalculator::kContainerTypeNumBits; 
-  static int constexpr kNumStorageUnitPerStoredVec = StorageContainerCalculator::kContainerTypeNumStorageUnit;
+  static constexpr int kBitsStoredVec = StorageContainerCalculator::kContainerTypeNumBits; 
+  static constexpr int kNumStorageUnitPerStoredVec = StorageContainerCalculator::kContainerTypeNumStorageUnit;
 
   using StorageVec = StorageUnit[kNumStorageUnitPerStoredVec];
   using StorageVecPointer = StorageVec *;
@@ -1041,8 +1041,8 @@ public:
   ///   Type element may be stored across 2 storage units, so need a storage vector to hold integer
   ///   number of objects of type Element.
   using StorageUnit = Storage_;
-  static int constexpr kBitsStoredVec = cutlass_rt_tm::lcm_cxx11(sizeof_bits<Element>::value, sizeof_bits<StorageUnit>::value); 
-  static int constexpr kNumStorageUnitPerStoredVec = kBitsStoredVec / sizeof_bits<StorageUnit>::value;
+  static constexpr int kBitsStoredVec = cutlass_rt_tm::lcm_cxx11(sizeof_bits<Element>::value, sizeof_bits<StorageUnit>::value); 
+  static constexpr int kNumStorageUnitPerStoredVec = kBitsStoredVec / sizeof_bits<StorageUnit>::value;
 
   using StorageVec = StorageUnit[kNumStorageUnitPerStoredVec];
   using StorageVecPointer = StorageVec const *;
@@ -1327,7 +1327,7 @@ template <typename Element>
 struct ReferenceFactory<Element, false> {
 
   ///! Number of elements per storage vector
-  static int constexpr kElementsPerVector = 1;
+  static constexpr int kElementsPerVector = 1;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static Element &get(Element *ptr, int64_t offset) {
@@ -1335,7 +1335,7 @@ struct ReferenceFactory<Element, false> {
   }
 
   CUTLASS_RT_TM_HOST_DEVICE
-  static Element const &get(Element const *ptr, int64_t offset) {
+  static constexpr const Element  &get(Element const *ptr, int64_t offset) {
     return ptr[offset];
   }
 
@@ -1345,7 +1345,7 @@ struct ReferenceFactory<Element, false> {
   }
 
   CUTLASS_RT_TM_HOST_DEVICE
-  static Element const *add_pointer_offset(Element const *ptr, int64_t offset) {
+  static constexpr Element  *add_pointer_offset(Element const *ptr, int64_t offset) {
     return ptr + offset;
   }
 };
@@ -1378,7 +1378,7 @@ struct ReferenceFactory<Element, true> {
   /// Helper to add an offset in number of elements, assuming this offset is divisible
   /// by the vector size.
   CUTLASS_RT_TM_HOST_DEVICE
-  static Element const *add_pointer_offset(Element const *ptr, int64_t offset_in_elements) {
+  static constexpr Element  *add_pointer_offset(Element const *ptr, int64_t offset_in_elements) {
     return &ConstSubbyteReference<Element>(ptr, offset_in_elements);
   }
 };

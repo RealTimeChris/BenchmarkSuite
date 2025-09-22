@@ -88,7 +88,7 @@ CUTLASS_RT_TM_HOST_DEVICE LongIndex dot(
  */
 template <int N>
 struct is_pow2 {
-  static bool const value = ((N & (N - 1)) == 0);
+  static constexpr bool value = ((N & (N - 1)) == 0);
 };
 
 /**
@@ -741,12 +741,12 @@ CUTLASS_RT_TM_HOST_DEVICE int64_t OffsetBytes(int64_t index, int64_t element_siz
 
 template <int A, int B>
 struct Min {
-  static int constexpr kValue = (A < B) ? A : B;
+  static constexpr int kValue = (A < B) ? A : B;
 };
 
 template <int A, int B>
 struct Max {
-  static int constexpr kValue = (A > B) ? A : B;
+  static constexpr int kValue = (A > B) ? A : B;
 };
 
 CUTLASS_RT_TM_HOST_DEVICE

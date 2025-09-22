@@ -99,9 +99,9 @@ public:
   using OutputAccumulatorTile = AccumulatorTile;
 
   /// Number of times this iterator can be incremented
-  static int const kIterations = Policy::kIterations;
+  static constexpr int kIterations = Policy::kIterations;
   using TileIterations = typename Policy::TileIterations;
-  static int const kIterationsPerTile = kIterations / TileIterations::kCount;
+  static constexpr int kIterationsPerTile = kIterations / TileIterations::kCount;
 
 private:
 
@@ -196,9 +196,9 @@ public:
   using OutputAccumulatorTile = AccumulatorTile;
 
   /// Number of times this iterator can be incremented
-  static int const kIterations = Policy::kIterations;
+  static constexpr int kIterations = Policy::kIterations;
   using TileIterations = typename Policy::TileIterations;
-  static int const kIterationsPerTile = kIterations / TileIterations::kCount;
+  static constexpr int kIterationsPerTile = kIterations / TileIterations::kCount;
 
 private:
 
@@ -284,7 +284,7 @@ class FragmentIteratorTensorOp<WarpShape_, OperatorShape_, OperatorElementC_, Op
   using OperatorShape = OperatorShape_;
   using OperatorElementC = OperatorElementC_;
   using OperatorFragmentC = OperatorFragmentC_;
-  static int const kInterleavedK = InterleavedK;
+  static constexpr int kInterleavedK = InterleavedK;
   using Layout = layout::ColumnMajorInterleaved<kInterleavedK>;
 
   using Policy = TensorOpPolicy<WarpShape, OperatorShape, Layout>;
@@ -301,9 +301,9 @@ class FragmentIteratorTensorOp<WarpShape_, OperatorShape_, OperatorElementC_, Op
                                   Policy::OperatorCount::kColumn>;
 
   /// Number of times this iterator can be incremented
-  static int const kIterations = Policy::kIterations;
+  static constexpr int kIterations = Policy::kIterations;
   using TileIterations = typename Policy::TileIterations;
-  static int const kIterationsPerTile = kIterations / TileIterations::kCount;
+  static constexpr int kIterationsPerTile = kIterations / TileIterations::kCount;
 
  private:
   /// Internal access type

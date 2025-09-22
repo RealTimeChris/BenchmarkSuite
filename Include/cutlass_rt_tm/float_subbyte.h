@@ -571,20 +571,20 @@ private:
   using type = T;
 
 public:
-  static bool const is_specialized = true;
-  static bool const is_signed = true;
-  static bool const is_integer = false;
-  static bool const is_exact = false;
-  static bool const has_quiet_NaN = false;
-  static bool const has_signaling_NaN = false;
-  static bool const has_denorm_loss = true;
+  static constexpr bool is_specialized = true;
+  static constexpr bool is_signed = true;
+  static constexpr bool is_integer = false;
+  static constexpr bool is_exact = false;
+  static constexpr bool has_quiet_NaN = false;
+  static constexpr bool has_signaling_NaN = false;
+  static constexpr bool has_denorm_loss = true;
   static cutlass_rt_tm::platform::float_denorm_style const has_denorm = cutlass_rt_tm::platform::denorm_present;
   static cutlass_rt_tm::platform::float_round_style const round_style = cutlass_rt_tm::platform::round_to_nearest;
-  static bool const is_iec559 = false;
-  static bool const is_bounded = true;
-  static bool const is_modulo = false;
-  static int constexpr digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
-  static bool const has_infinity = false;
+  static constexpr bool is_iec559 = false;
+  static constexpr bool is_bounded = true;
+  static constexpr bool is_modulo = false;
+  static constexpr int digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
+  static constexpr bool has_infinity = false;
 
   /// Least positive value
   static type min() { return type::bitcast(0x01); }
@@ -654,20 +654,20 @@ private:
   using type = T;
 
 public:
-  static bool const is_specialized = true;
-  static bool const is_signed = true;
-  static bool const is_integer = false;
-  static bool const is_exact = false;
-  static bool const has_quiet_NaN = false;
-  static bool const has_signaling_NaN = false;
-  static bool const has_denorm_loss = true;
+  static constexpr bool is_specialized = true;
+  static constexpr bool is_signed = true;
+  static constexpr bool is_integer = false;
+  static constexpr bool is_exact = false;
+  static constexpr bool has_quiet_NaN = false;
+  static constexpr bool has_signaling_NaN = false;
+  static constexpr bool has_denorm_loss = true;
   static cutlass_rt_tm::platform::float_denorm_style const has_denorm = cutlass_rt_tm::platform::denorm_present;
   static cutlass_rt_tm::platform::float_round_style const round_style = cutlass_rt_tm::platform::round_to_nearest;
-  static bool const is_iec559 = false;
-  static bool const is_bounded = true;
-  static bool const is_modulo = false;
-  static int constexpr digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
-  static bool const has_infinity = false;
+  static constexpr bool is_iec559 = false;
+  static constexpr bool is_bounded = true;
+  static constexpr bool is_modulo = false;
+  static constexpr int digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
+  static constexpr bool has_infinity = false;
 
   /// Least positive value
   static type min() { return type::bitcast(0x01); }

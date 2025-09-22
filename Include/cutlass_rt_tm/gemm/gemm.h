@@ -44,97 +44,79 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace cutlass_rt_tm {
-namespace gemm {
+	namespace gemm {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
+		/////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Scaling kind
-enum class ScalingKind {
-  kTensorwise,   // Accumulated GEMM result is scaled per tensor (default alpha scaling)
-  kBlockwise     // Accumulated GEMM result is scaled per CTA tile (blockwise)
-};
+		/// Scaling kind
+		enum class ScalingKind {
+			kTensorwise,// Accumulated GEMM result is scaled per tensor (default alpha scaling)
+			kBlockwise// Accumulated GEMM result is scaled per CTA tile (blockwise)
+		};
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using cutlass_rt_tm::detail::TagToStrideA;
-using cutlass_rt_tm::detail::TagToStrideB;
-using cutlass_rt_tm::detail::TagToStrideC;
-using cutlass_rt_tm::detail::TagToStrideA_t;
-using cutlass_rt_tm::detail::TagToStrideB_t;
-using cutlass_rt_tm::detail::TagToStrideC_t;
+		using cutlass_rt_tm::detail::TagToStrideA;
+		using cutlass_rt_tm::detail::TagToStrideB;
+		using cutlass_rt_tm::detail::TagToStrideC;
+		using cutlass_rt_tm::detail::TagToStrideA_t;
+		using cutlass_rt_tm::detail::TagToStrideB_t;
+		using cutlass_rt_tm::detail::TagToStrideC_t;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace detail {
+		namespace detail {
 
-using cutlass_rt_tm::detail::StrideToLayoutTagA;
-using cutlass_rt_tm::detail::StrideToLayoutTagB;
-using cutlass_rt_tm::detail::StrideToLayoutTagC;
-using cutlass_rt_tm::detail::StrideToLayoutTagA_t;
-using cutlass_rt_tm::detail::StrideToLayoutTagB_t;
-using cutlass_rt_tm::detail::StrideToLayoutTagC_t;
+			using cutlass_rt_tm::detail::StrideToLayoutTagA;
+			using cutlass_rt_tm::detail::StrideToLayoutTagB;
+			using cutlass_rt_tm::detail::StrideToLayoutTagC;
+			using cutlass_rt_tm::detail::StrideToLayoutTagA_t;
+			using cutlass_rt_tm::detail::StrideToLayoutTagB_t;
+			using cutlass_rt_tm::detail::StrideToLayoutTagC_t;
 
-template<int ModeIndex, class Stride>
-constexpr bool
-is_major(Stride = {}) {
-  return ::cutlass_rt_tm::detail::is_major<ModeIndex>(Stride{});
-}
+			template<int ModeIndex, class Stride> __forceinline__ constexpr bool is_major(Stride = {}) {
+				return ::cutlass_rt_tm::detail::is_major<ModeIndex>(Stride{});
+			}
 
-template<class Stride>
-constexpr bool
-is_mn_major() {
-  return is_major<0,Stride>();
-}
+			template<class Stride> __forceinline__ constexpr bool is_mn_major() {
+				return is_major<0, Stride>();
+			}
 
-template<class Stride>
-constexpr
-bool
-is_k_major() {
-  return is_major<1,Stride>();
-}
+			template<class Stride> __forceinline__ constexpr bool is_k_major() {
+				return is_major<1, Stride>();
+			}
 
-template<class LayoutA>
-constexpr bool
-is_mn_major_A() {
-  return is_mn_major<TagToStrideA_t<LayoutA>>();
-}
+			template<class LayoutA> __forceinline__ constexpr bool is_mn_major_A() {
+				return is_mn_major<TagToStrideA_t<LayoutA>>();
+			}
 
-template<class LayoutB>
-constexpr bool
-is_mn_major_B() {
-  return is_mn_major<TagToStrideB_t<LayoutB>>();
-}
+			template<class LayoutB> __forceinline__ constexpr bool is_mn_major_B() {
+				return is_mn_major<TagToStrideB_t<LayoutB>>();
+			}
 
-template<class LayoutA>
-constexpr bool
-is_k_major_A() {
-  return is_k_major<TagToStrideA_t<LayoutA>>();
-}
+			template<class LayoutA> __forceinline__ constexpr bool is_k_major_A() {
+				return is_k_major<TagToStrideA_t<LayoutA>>();
+			}
 
-template<class LayoutB>
-constexpr bool
-is_k_major_B() {
-  return is_k_major<TagToStrideB_t<LayoutB>>();
-}
+			template<class LayoutB> __forceinline__ constexpr bool is_k_major_B() {
+				return is_k_major<TagToStrideB_t<LayoutB>>();
+			}
 
-///////////////////////////////////////////////////////////////////////////////
+			///////////////////////////////////////////////////////////////////////////////
 
-// The following two metafunctions are used to detect whether a `kernel::Gemm` or `kernel::GemmUniversal`
-// is implementing the CUTLASS 3.x API or not, by checking if the problem shape type is aliased within or not.
-template <class GemmKernel, class = void>
-struct IsCutlass3GemmKernel : cute_rt_tm::false_type { };
+			// The following two metafunctions are used to detect whether a `kernel::Gemm` or `kernel::GemmUniversal`
+			// is implementing the CUTLASS 3.x API or not, by checking if the problem shape type is aliased within or not.
+			template<class GemmKernel, class = void> struct IsCutlass3GemmKernel : cute_rt_tm::false_type {};
 
-template <typename GemmKernel>
-struct IsCutlass3GemmKernel<GemmKernel, cute_rt_tm::void_t<typename GemmKernel::ProblemShape>>
-    : cute_rt_tm::true_type { };
+			template<typename GemmKernel> struct IsCutlass3GemmKernel<GemmKernel, cute_rt_tm::void_t<typename GemmKernel::ProblemShape>> : cute_rt_tm::true_type {};
 
-///////////////////////////////////////////////////////////////////////////////
+			///////////////////////////////////////////////////////////////////////////////
 
-} // namespace detail
+		}// namespace detail
 
-///////////////////////////////////////////////////////////////////////////////
+		///////////////////////////////////////////////////////////////////////////////
 
-} // namespace gemm
-} // namespace cutlass_rt_tm
+	}// namespace gemm
+}// namespace cutlass_rt_tm
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

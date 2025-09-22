@@ -65,7 +65,7 @@ enum class Status {
 
 /// Convert cutlass_rt_tm status to status strings
 CUTLASS_RT_TM_HOST_DEVICE
-static char const* cutlass_rt_tmGetStatusString(cutlass_rt_tm::Status status) {
+static constexpr const char* cutlass_rt_tmGetStatusString(cutlass_rt_tm::Status status) {
   switch (status) {
     case cutlass_rt_tm::Status::kSuccess:
       return "Success";

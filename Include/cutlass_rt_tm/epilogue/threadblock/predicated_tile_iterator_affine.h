@@ -91,9 +91,9 @@ public:
   using LongIndex = typename Layout::LongIndex;
   using TensorCoord = typename Layout::TensorCoord;
 
-  static int const kElementsPerAccess = ThreadMap::kElementsPerAccess;
-  static int const kThreads = ThreadMap::kThreads;
-  static int const kIterations = ThreadMap::Count::kTile;
+  static constexpr int kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static constexpr int kThreads = ThreadMap::kThreads;
+  static constexpr int kIterations = ThreadMap::Count::kTile;
 
   static_assert( ThreadMap::Iterations::kRow > 0,"ThreadMap::Iterations::kRow must be > 0");
   static_assert( ThreadMap::Iterations::kGroup > 0,"ThreadMap::Iterations::kGroup must be > 0");
@@ -103,7 +103,7 @@ public:
     "Layout rank must be even. This assumes the first half of the modes correspond to the 'row' "
     "and the second half of the modes correspond to the 'column'");
 
-  static bool const kBigEndian = false;
+  static constexpr bool kBigEndian = false;
 
   /// Fragment object
   using Fragment = Array<
@@ -210,7 +210,7 @@ public:
   /// Mask object
   struct Mask {
 
-    static int const kCount = ThreadMap::Iterations::kColumn;
+    static constexpr int kCount = ThreadMap::Iterations::kColumn;
 
     /// Predicate state
     bool predicates[kCount];

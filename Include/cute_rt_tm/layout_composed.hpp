@@ -30,7 +30,7 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute_rt_tm/config.hpp>                     // CUTE_HOST_DEVICE, CUTE_GCC_UNREACHABLE
+#include <cute_rt_tm/config.hpp>                     // CUTE_RT_TM_HOST_DEVICE, CUTE_RT_TM_GCC_UNREACHABLE
 #include <cute_rt_tm/layout.hpp>                     // cute_rt_tm::tuple
 #include <cute_rt_tm/numeric/integral_constant.hpp>  // cute_rt_tm::true_type, cute_rt_tm::false_type, cute_rt_tm::Int
 
@@ -53,7 +53,7 @@ namespace cute_rt_tm
 template <class LayoutA, class Offset, class LayoutB>
 struct ComposedLayout : private cute_rt_tm::tuple<LayoutA, Offset, LayoutB>  // EBO for static layouts
 {
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   ComposedLayout(LayoutA const& layoutA = {},
                  Offset  const& offset  = {},
                  LayoutB const& layoutB = {})
@@ -66,38 +66,38 @@ struct ComposedLayout : private cute_rt_tm::tuple<LayoutA, Offset, LayoutB>  // 
 
   static constexpr int rank  = LayoutB::rank;
 
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   decltype(auto)
   layout_a() const {
     return get<0>(static_cast<cute_rt_tm::tuple<LayoutA, Offset, LayoutB> const&>(*this));
   }
 
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   decltype(auto)
   offset() const {
     return get<1>(static_cast<cute_rt_tm::tuple<LayoutA, Offset, LayoutB> const&>(*this));
   }
 
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   decltype(auto)
   layout_b() const {
     return get<2>(static_cast<cute_rt_tm::tuple<LayoutA, Offset, LayoutB> const&>(*this));
   }
 
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   decltype(auto)
   layout() const {
     return *this;
   }
 
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   decltype(auto)
   shape() const {
     return layout_b().shape();
   }
 
   // Doesn't really make sense to ask for the strides of this "layout"
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   decltype(auto)
   stride() const = delete;
 
@@ -109,7 +109,7 @@ struct ComposedLayout : private cute_rt_tm::tuple<LayoutA, Offset, LayoutB>  // 
   // OR
   // Slice the layout and return the sublayout (Coord has an Underscore slice op)
   template <class Coord>
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   auto
   operator()(Coord const& coord) const {
     if constexpr (has_underscore<Coord>::value) {
@@ -118,12 +118,12 @@ struct ComposedLayout : private cute_rt_tm::tuple<LayoutA, Offset, LayoutB>  // 
       return layout_a()(offset() + layout_b()(coord));    // (A o O o B)(c)
     }
 
-    CUTE_GCC_UNREACHABLE;
+    CUTE_RT_TM_GCC_UNREACHABLE;
   }
 
   // Convenience function for multi-dimensional coordinates
   template <class Coord0, class Coord1, class... Coords>
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   auto
   operator()(Coord0 const& c0, Coord1 const& c1, Coords const&... cs) const {
     return operator()(make_coord(c0,c1,cs...));
@@ -134,28 +134,28 @@ struct ComposedLayout : private cute_rt_tm::tuple<LayoutA, Offset, LayoutB>  // 
   //
 
   template <class OtherLayout>
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   auto
   compose(OtherLayout const& other) const {
     return composition(*this, other);
   }
 
   template <class... Layouts>
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   auto
   compose(Layouts const&... layouts) const {
     return composition(*this, make_tile(layouts...));
   }
 
   template <class OtherShape>
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   auto
   with_shape(OtherShape const& shape) const {
     return composition(*this, make_layout(shape));
   }
 
   template <class... Shapes>
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   auto
   with_shape(Shapes const&... shapes) const {
     return composition(*this, make_layout(make_shape(shapes...)));
@@ -166,14 +166,14 @@ struct ComposedLayout : private cute_rt_tm::tuple<LayoutA, Offset, LayoutB>  // 
   //
 
   template <class OtherLayout>
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   auto
   tile(OtherLayout const& other) const {
     return tiled_divide(*this, other);
   }
 
   template <class... Layouts>
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   auto
   tile(Layouts const&... layouts) const {
     return tiled_divide(*this, make_tile(layouts...));
@@ -181,7 +181,7 @@ struct ComposedLayout : private cute_rt_tm::tuple<LayoutA, Offset, LayoutB>  // 
 
   // Equality, return a static or dynamic boolean
   template <class... Args>
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   auto
   operator==(ComposedLayout<Args...> const& other) const {
     return this->layout_a() == other.layout_a() &&
@@ -203,7 +203,7 @@ struct is_composed_layout<ComposedLayout<A,O,B>> : true_type {};
 //
 
 template <class LayoutA, class Offset, class LayoutB>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 make_composed_layout(LayoutA const& layoutA,
                      Offset  const& offset,
@@ -218,7 +218,7 @@ make_composed_layout(LayoutA const& layoutA,
 
 // Return the layout of a mode
 template <int... Is, class A, class O, class B>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 decltype(auto)
 layout(ComposedLayout<A,O,B> const& clayout)
 {
@@ -227,7 +227,7 @@ layout(ComposedLayout<A,O,B> const& clayout)
 
 // Return the shape of a mode
 template <int... Is, class A, class O, class B>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 decltype(auto)
 shape(ComposedLayout<A,O,B> const& layout)
 {
@@ -236,13 +236,13 @@ shape(ComposedLayout<A,O,B> const& layout)
 
 // Doesn't make sense to directly ask for the strides of this "layout"
 template <int... Is, class Fn, class O, class Layout>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 decltype(auto)
 stride(ComposedLayout<Fn,O,Layout> const& layout) = delete;
 
 // Return the number of elements in a mode
 template <int... Is, class A, class O, class B>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 decltype(auto)
 size(ComposedLayout<A,O,B> const& layout)
 {
@@ -251,7 +251,7 @@ size(ComposedLayout<A,O,B> const& layout)
 
 // Return the number of modes
 template <int... Is, class A, class O, class B>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 rank(ComposedLayout<A,O,B> const& layout)
 {
@@ -260,7 +260,7 @@ rank(ComposedLayout<A,O,B> const& layout)
 
 // Return the depth of the layout
 template <int... Is, class A, class O, class B>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 depth(ComposedLayout<A,O,B> const& layout)
 {
@@ -269,7 +269,7 @@ depth(ComposedLayout<A,O,B> const& layout)
 
 // Return the codomain size of a mode
 template <int... Is, class A, class O, class B>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 cosize(ComposedLayout<A,O,B> const& layout)
 {
@@ -281,7 +281,7 @@ cosize(ComposedLayout<A,O,B> const& layout)
 //
 
 template <size_t I, class A, class O, class B>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 get(ComposedLayout<A,O,B> const& a)
 {
@@ -289,7 +289,7 @@ get(ComposedLayout<A,O,B> const& a)
 }
 
 template <int Begin, int End, class A, class O, class B>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 take(ComposedLayout<A,O,B> const& a)
 {
@@ -297,7 +297,7 @@ take(ComposedLayout<A,O,B> const& a)
 }
 
 template <class A, class O, class B>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 flatten(ComposedLayout<A,O,B> const& a)
 {
@@ -305,7 +305,7 @@ flatten(ComposedLayout<A,O,B> const& a)
 }
 
 template <int N, class A, class O, class B, class X>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 append(ComposedLayout<A,O,B> const& a, X const& x)
 {
@@ -313,7 +313,7 @@ append(ComposedLayout<A,O,B> const& a, X const& x)
 }
 
 template <int Begin, int End, class A, class O, class B>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 group(ComposedLayout<A,O,B> const& a)
 {
@@ -325,7 +325,7 @@ group(ComposedLayout<A,O,B> const& a)
 //
 
 template <class Coord, class A, class O, class B>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 slice_and_offset(Coord const& coord, ComposedLayout<A,O,B> const& layout)
 {
@@ -334,7 +334,7 @@ slice_and_offset(Coord const& coord, ComposedLayout<A,O,B> const& layout)
 }
 
 template <class Coord, class A, class O, class B>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 slice(Coord const& coord, ComposedLayout<A,O,B> const& layout)
 {
@@ -344,7 +344,7 @@ slice(Coord const& coord, ComposedLayout<A,O,B> const& layout)
 // Compute a pointer offset and (potentially modified) layout from a coordinate
 // For composed layout tensors the offset is accumulated in the layout itself while pointer is not updated
 template <class Coord, class A, class O, class B>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 domain_offset(Coord const& coord, ComposedLayout<A,O,B> const& layout)
 {
@@ -358,7 +358,7 @@ domain_offset(Coord const& coord, ComposedLayout<A,O,B> const& layout)
 template <class LayoutA,
           class Offset,
           class LayoutB>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 composition(LayoutA const& layoutA,
             Offset  const& offset,
@@ -368,7 +368,7 @@ composition(LayoutA const& layoutA,
 }
 
 template <class A, class O, class B, class Tiler>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 composition(ComposedLayout<A,O,B> const& a,
             Tiler                 const& b)
@@ -378,12 +378,12 @@ composition(ComposedLayout<A,O,B> const& a,
 
 template <class ShapeA, class StrideA,
           class A, class O, class B>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 composition(Layout<ShapeA,StrideA> const& a,
             ComposedLayout<A,O,B>  const& b)
 {
-  CUTE_STATIC_ASSERT_V(b.offset() == Int<0>{}, "Require offset == 0.");
+  CUTE_RT_TM_STATIC_ASSERT_V(b.offset() == Int<0>{}, "Require offset == 0.");
 
   return composition(composition(a, b.layout_a()), b.layout_b());
 }
@@ -393,7 +393,7 @@ composition(Layout<ShapeA,StrideA> const& a,
 //
 
 template <class A, class O, class B, class CoTarget>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 complement(ComposedLayout<A,O,B> const& layout, CoTarget const& cotarget)
 {
@@ -401,7 +401,7 @@ complement(ComposedLayout<A,O,B> const& layout, CoTarget const& cotarget)
 }
 
 template <class A, class O, class B>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 complement(ComposedLayout<A,O,B> const& layout)
 {
@@ -413,7 +413,7 @@ complement(ComposedLayout<A,O,B> const& layout)
 //
 
 template <class A, class O, class B>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 right_inverse(ComposedLayout<A,O,B> const& layout)
 {
@@ -421,7 +421,7 @@ right_inverse(ComposedLayout<A,O,B> const& layout)
 }
 
 template <class A, class O, class B>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 left_inverse(ComposedLayout<A,O,B> const& layout)
 {
@@ -433,7 +433,7 @@ left_inverse(ComposedLayout<A,O,B> const& layout)
 //
 
 template <class A, class O, class B>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 zip(ComposedLayout<A,O,B> const& a)
 {
@@ -443,7 +443,7 @@ zip(ComposedLayout<A,O,B> const& a)
 // Partitions
 
 template <class A, class O, class B, class Tiler>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 logical_divide(ComposedLayout<A,O,B> const& a,
                Tiler                 const& b)
@@ -452,7 +452,7 @@ logical_divide(ComposedLayout<A,O,B> const& a,
 }
 
 template <class A, class O, class B, class Tiler>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tile_unzip(ComposedLayout<A,O,B> const& a,
            Tiler                 const& b)
@@ -461,7 +461,7 @@ tile_unzip(ComposedLayout<A,O,B> const& a,
 }
 
 template <class A, class O, class B, class Tiler>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tiled_divide(ComposedLayout<A,O,B> const& a,
              Tiler                 const& b)
@@ -470,7 +470,7 @@ tiled_divide(ComposedLayout<A,O,B> const& a,
 }
 
 template <class A, class O, class B, class Tiler>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 zipped_divide(ComposedLayout<A,O,B> const& a,
               Tiler                 const& b)
@@ -479,7 +479,7 @@ zipped_divide(ComposedLayout<A,O,B> const& a,
 }
 
 template <class A, class O, class B, class Tiler>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 flat_divide(ComposedLayout<A,O,B> const& a,
             Tiler                 const& b)
@@ -488,7 +488,7 @@ flat_divide(ComposedLayout<A,O,B> const& a,
 }
 
 template <class A, class O, class B, class Tiler>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 logical_product(ComposedLayout<A,O,B> const& a,
                 Tiler                 const& b)
@@ -497,7 +497,7 @@ logical_product(ComposedLayout<A,O,B> const& a,
 }
 
 template <class A, class O, class B, class Tiler>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 zipped_product(ComposedLayout<A,O,B> const& a,
                Tiler                 const& b)
@@ -506,7 +506,7 @@ zipped_product(ComposedLayout<A,O,B> const& a,
 }
 
 template <class A, class O, class B, class Tiler>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tiled_product(ComposedLayout<A,O,B> const& a,
               Tiler                 const& b)
@@ -515,7 +515,7 @@ tiled_product(ComposedLayout<A,O,B> const& a,
 }
 
 template <class A, class O, class B, class Tiler>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 flat_product(ComposedLayout<A,O,B> const& a,
              Tiler                 const& b)
@@ -524,7 +524,7 @@ flat_product(ComposedLayout<A,O,B> const& a,
 }
 
 template <class A, class O, class B, class Tiler>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 blocked_product(ComposedLayout<A,O,B> const& a,
                 Tiler                 const& b)
@@ -533,7 +533,7 @@ blocked_product(ComposedLayout<A,O,B> const& a,
 }
 
 template <class A, class O, class B, class Tiler>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 raked_product(ComposedLayout<A,O,B> const& a,
               Tiler                 const& b)
@@ -543,7 +543,7 @@ raked_product(ComposedLayout<A,O,B> const& a,
 
 template <class A, class O, class B,
           class Shape, class ModeOrder = GenColMajor>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tile_to_shape(ComposedLayout<A,O,B> const& layout,
               Shape                 const& trg_shape,
@@ -554,7 +554,7 @@ tile_to_shape(ComposedLayout<A,O,B> const& layout,
 
 template <class A, class O, class B,
           class Shape>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 filter(ComposedLayout<A,O,B> const& layout, Shape const& trg_profile)
 {
@@ -562,7 +562,7 @@ filter(ComposedLayout<A,O,B> const& layout, Shape const& trg_profile)
 }
 
 template <class A, class O, class B>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 coalesce(ComposedLayout<A,O,B> const& layout)
 {
@@ -570,7 +570,7 @@ coalesce(ComposedLayout<A,O,B> const& layout)
 }
 
 template <class A, class O, class B, class Shape>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 coalesce(ComposedLayout<A,O,B> const& layout, Shape const& trg_profile)
 {
@@ -583,7 +583,7 @@ coalesce(ComposedLayout<A,O,B> const& layout, Shape const& trg_profile)
 //
 
 template <int N, class A, class O, class B>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 upcast(ComposedLayout<A,O,B> const& layout)
 {
@@ -591,7 +591,7 @@ upcast(ComposedLayout<A,O,B> const& layout)
 }
 
 template <int N, class A, class O, class B>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 downcast(ComposedLayout<A,O,B> const& layout)
 {
@@ -601,7 +601,7 @@ downcast(ComposedLayout<A,O,B> const& layout)
 
 template <class OldType, class NewType,
           class A, class O, class B>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 recast_layout(ComposedLayout<A,O,B> const& layout)
 {
@@ -618,11 +618,11 @@ recast_layout(ComposedLayout<A,O,B> const& layout)
   else {
     return downcast<scale::den>(upcast<scale::num>(layout));
   }
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 template <class A, class O, class B>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 max_alignment(ComposedLayout<A,O,B> const& layout)
 {
@@ -632,7 +632,7 @@ max_alignment(ComposedLayout<A,O,B> const& layout)
 }
 
 template <class A, class O, class B>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 nullspace(ComposedLayout<A,O,B> const& layout)
 {
@@ -645,14 +645,14 @@ nullspace(ComposedLayout<A,O,B> const& layout)
 //
 
 template <class A, class O, class B>
-CUTE_HOST_DEVICE void print(ComposedLayout<A,O,B> const& layout)
+CUTE_RT_TM_HOST_DEVICE void print(ComposedLayout<A,O,B> const& layout)
 {
   print(layout.layout_a()); print(" o "); print(layout.offset()); print(" o "); print(layout.layout_b());
 }
 
 #if !defined(__CUDACC_RTC__)
 template <class A, class O, class B>
-CUTE_HOST std::ostream& operator<<(std::ostream& os, ComposedLayout<A,O,B> const& layout)
+CUTE_RT_TM_HOST std::ostream& operator<<(std::ostream& os, ComposedLayout<A,O,B> const& layout)
 {
   return os << layout.layout_a() << " o " << layout.offset() << " o " << layout.layout_b();
 }

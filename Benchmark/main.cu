@@ -1,6 +1,7 @@
 #include <BnchSwt/BenchmarkSuite.hpp>
 #include <cuda_runtime.h>
 #include <cuda_fp16.h>
+#include "cutlass_rt_tm/arch/config.h"
 
 static constexpr uint64_t total_iterations{ 2 };
 static constexpr uint64_t measured_iterations{ 2 };
@@ -89,11 +90,6 @@ struct cuda_buffer {
 };
 
 using q8_quant = int8_t;
-
-struct block_q8_0 {
-	q8_quant quants[32]{};
-	uint16_t scale{};
-};
 
 inline static uint16_t fp32_to_fp16(float f) {
 	return static_cast<uint16_t>(_mm_extract_epi16(_mm_cvtps_ph(_mm_set_ss(f), _MM_FROUND_TO_NEAREST_INT), 0));
@@ -1788,7 +1784,6 @@ template<uint64_t M, uint64_t K> __launch_bounds__(256, 2) __global__ void rt_tm
 }
 
 #include <cutlass_rt_tm/gemm/device/gemm.h>
-#include <cutlass_rt_tm/cuda_host_adapter.hpp>
 
 using element_a = float;
 using element_b = float;
@@ -1839,6 +1834,13 @@ template<uint64_t M, uint64_t K> struct nihilus_gemm {
 			dim3 grid((N + policy::block_tile_n - 1) / policy::block_tile_n, (M + policy::block_tile_m - 1) / policy::block_tile_m);
 			rt_tm_gemm_kernel<M, K, policy><<<grid, block>>>(A_ptr_raw, B_ptr, C_ptr, N);
 		} else {
+
+			using element_a = float;
+			using element_b = float;
+			using element_c = float;
+			using layout_a	= cutlass_rt_tm::layout::RowMajor;
+			using layout_b	= cutlass_rt_tm::layout::RowMajor;
+			using layout_c	= cutlass_rt_tm::layout::RowMajor;
 			constexpr uint64_t total_elements_A = M * K;
 			const dim3 dequant_grid((total_blocks_A + 1023) / 1024);
 			const dim3 dequant_block(1024);
@@ -1854,8 +1856,8 @@ template<uint64_t M, uint64_t K> struct nihilus_gemm {
 			using index_type		= cutlass_rt_tm::gemm::GemmCoord::Index;
 			using nihilus_gemm_type = cutlass_rt_tm::gemm::device::Gemm<M, K, element_a, layout_a, element_b, layout_b, element_c, layout_c, element_c>;
 			nihilus_gemm_type gemm_op;
-			cutlass_rt_tm::Status status = gemm_op({ { static_cast<index_type>(M), static_cast<index_type>(N), static_cast<index_type>(K) }, { A_ptr, static_cast<index_type>(K) },
-				{ B_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
+			cutlass_rt_tm::Status status = gemm_op({ N, { A_ptr, static_cast<index_type>(K) }, { B_ptr, static_cast<index_type>(N) },
+				{ C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
 
 			if (status != cutlass_rt_tm::Status::kSuccess) {
 				std::cerr << "CUTLASS GEMM failed: " << cutlass_rt_tm::cutlass_rt_tmGetStatusString(status) << std::endl;
@@ -1889,8 +1891,8 @@ template<uint64_t M, uint64_t K> struct nihilus_gemm {
 		using index_type		= cutlass_rt_tm::gemm::GemmCoord::Index;
 		using nihilus_gemm_type = cutlass_rt_tm::gemm::device::Gemm<M, K, element_a, layout_a, element_b, layout_b, element_c, layout_c, element_c>;
 		nihilus_gemm_type gemm_op;
-		cutlass_rt_tm::Status status = gemm_op({ { static_cast<index_type>(M), static_cast<index_type>(N), static_cast<index_type>(K) }, { A_ptr, static_cast<index_type>(K) },
-			{ B_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
+		cutlass_rt_tm::Status status = gemm_op({ N, { A_ptr, static_cast<index_type>(K) }, { B_ptr, static_cast<index_type>(N) },
+			{ C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
 
 		if (status != cutlass_rt_tm::Status::kSuccess) {
 			std::cerr << "CUTLASS GEMM failed: " << cutlass_rt_tm::cutlass_rt_tmGetStatusString(status) << std::endl;

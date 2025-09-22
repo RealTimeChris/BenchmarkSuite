@@ -60,31 +60,31 @@ template <class... Layouts>
 using Tile = cute_rt_tm::tuple<Layouts...>;
 
 template <class... Ts>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 Shape<Ts...>
 make_shape(Ts const&... t) {
   return {t...};
 }
 template <class... Ts>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 Stride<Ts...>
 make_stride(Ts const&... t) {
   return {t...};
 }
 template <class... Ts>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 Step<Ts...>
 make_step(Ts const&... t) {
   return {t...};
 }
 template <class... Ts>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 Coord<Ts...>
 make_coord(Ts const&... t) {
   return {t...};
 }
 template <class... Ts>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 Tile<Ts...>
 make_tile(Ts const&... t)
 {
@@ -103,7 +103,7 @@ struct Layout
   //static_assert(is_congruent<Shape, Stride>::value, "Shape and Stride must be congruent");
 
   // NOTE: This defaults static Shapes/Strides correctly, but not dynamic
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   Layout(Shape  const& shape  = {}, Stride const& stride = {})
       : cute_rt_tm::tuple<Shape, Stride>(shape, stride)
   {}
@@ -114,41 +114,41 @@ struct Layout
 
   static constexpr int rank  = rank_v<Shape>;
 
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   decltype(auto)
   layout() {
     return *this;
   }
 
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   decltype(auto)
   layout() const {
     return *this;
   }
 
   template <int... I>
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   decltype(auto)
   shape() {
     return get<0,I...>(static_cast<cute_rt_tm::tuple<Shape, Stride>&>(*this));
   }
 
   template <int... I>
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   decltype(auto)
   shape() const {
     return get<0,I...>(static_cast<cute_rt_tm::tuple<Shape, Stride> const&>(*this));
   }
 
   template <int... I>
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   decltype(auto)
   stride() {
     return get<1,I...>(static_cast<cute_rt_tm::tuple<Shape, Stride>&>(*this));
   }
 
   template <int... I>
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   decltype(auto)
   stride() const {
     return get<1,I...>(static_cast<cute_rt_tm::tuple<Shape, Stride> const&>(*this));
@@ -162,7 +162,7 @@ struct Layout
   // OR
   // Slice the layout and return the sublayout (Coord has an Underscore slice op)
   template <class Coord>
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   auto
   operator()(Coord const& coord) const {
     if constexpr (has_underscore<Coord>::value) {
@@ -171,12 +171,12 @@ struct Layout
       return crd2idx(coord, shape(), stride());
     }
 
-    CUTE_GCC_UNREACHABLE;
+    CUTE_RT_TM_GCC_UNREACHABLE;
   }
 
   // Convenience function for multi-dimensional coordinates
   template <class Coord0, class Coord1, class... Coords>
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   auto
   operator()(Coord0 const& c0, Coord1 const& c1, Coords const&... cs) const {
     return operator()(make_coord(c0,c1,cs...));
@@ -187,28 +187,28 @@ struct Layout
   //
 
   template <class OtherLayout>
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   auto
   compose(OtherLayout const& other) const {
     return composition(*this, other);
   }
 
   template <class... Layouts>
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   auto
   compose(Layouts const&... layouts) const {
     return composition(*this, make_tile(layouts...));
   }
 
   template <class OtherShape>
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   auto
   with_shape(OtherShape const& shape) const {
     return composition(*this, make_layout(shape));
   }
 
   template <class... Shapes>
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   auto
   with_shape(Shapes const&... shapes) const {
     return composition(*this, make_layout(make_shape(shapes...)));
@@ -219,14 +219,14 @@ struct Layout
   //
 
   template <class OtherLayout>
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   auto
   tile(OtherLayout const& other) const {
     return tiled_divide(*this, other);
   }
 
   template <class... Layouts>
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   auto
   tile(Layouts const&... layouts) const {
     return tiled_divide(*this, make_tile(layouts...));
@@ -246,8 +246,8 @@ struct Layout
   // @post crd2idx(@a result, shape(), stride()) == idx
   // @post congruent(@a result, shape())
   template <class IInt,
-            __CUTE_REQUIRES(is_integral<IInt>::value)>
-  CUTE_HOST_DEVICE constexpr
+            __CUTE_RT_TM_REQUIRES(is_integral<IInt>::value)>
+  CUTE_RT_TM_HOST_DEVICE constexpr
   auto
   get_hier_coord(IInt const& idx) const {
     return cute_rt_tm::idx2crd(idx, shape(), stride());
@@ -257,8 +257,8 @@ struct Layout
   // @post crd2idx(@a result, shape(), stride()) == idx
   // @post rank(@a result) == rank(shape()) && depth(@a result) == 1
   template <class IInt,
-            __CUTE_REQUIRES(is_integral<IInt>::value)>
-  CUTE_HOST_DEVICE constexpr
+            __CUTE_RT_TM_REQUIRES(is_integral<IInt>::value)>
+  CUTE_RT_TM_HOST_DEVICE constexpr
   auto
   get_flat_coord(IInt const& idx) const {
     return cute_rt_tm::crd2crd(this->get_hier_coord(idx), shape(), repeat<rank>(Int<1>{}));
@@ -268,8 +268,8 @@ struct Layout
   // @post crd2idx(@a result, shape(), stride()) == idx
   // @post is_integral<decltype(@a result)>::value
   template <class IInt,
-            __CUTE_REQUIRES(is_integral<IInt>::value)>
-  CUTE_HOST_DEVICE constexpr
+            __CUTE_RT_TM_REQUIRES(is_integral<IInt>::value)>
+  CUTE_RT_TM_HOST_DEVICE constexpr
   auto
   get_1d_coord(IInt const& idx) const {
     return cute_rt_tm::crd2idx(this->get_hier_coord(idx), shape());
@@ -283,7 +283,7 @@ struct Layout
   // Return the (hierarchical) ND logical coordinate corresponding to the linear index
   // @post congruent(@a result, shape())
   template <class Coord>
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   auto
   crd_2_hier_coord(Coord const& crd) const {
     return cute_rt_tm::crd2crd(crd, shape(), shape());
@@ -292,7 +292,7 @@ struct Layout
   // Return the (flat) ND logical coordinate corresponding to the linear index
   // @post rank(@a result) == rank(shape()) && depth(@a result) == 1
   template <class Coord>
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   auto
   crd_2_flat_coord(Coord const& crd) const {
     return cute_rt_tm::crd2crd(crd, shape(), product_each(shape()));
@@ -301,7 +301,7 @@ struct Layout
   // Return the generalized column-major 1D logical coordinate corresponding to the linear index
   // @post is_integral<decltype(@a result)>::value
   template <class Coord>
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   auto
   crd_2_1d_coord(Coord const& crd) const {
     //return cute_rt_tm::crd2crd(crd, shape(), product(shape()));
@@ -313,7 +313,7 @@ struct Layout
 // Equality, return a static or dynamic boolean
 template <class ShapeA, class StrideA,
           class ShapeB, class StrideB>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 operator==(Layout<ShapeA,StrideA> const& layoutA, Layout<ShapeB,StrideB> const& layoutB)
 {
@@ -330,7 +330,7 @@ struct is_layout<Layout<Shape,Stride>> : true_type {};
 //
 
 template <class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 make_layout(Shape const& shape, Stride const& stride)
 {
@@ -340,7 +340,7 @@ make_layout(Shape const& shape, Stride const& stride)
 }
 
 template <class Shape>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 make_layout(Shape const& shape)
 {
@@ -353,7 +353,7 @@ make_layout(Shape const& shape)
 //
 
 template <class Shape>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 make_layout(Shape const& shape, LayoutLeft)
 {
@@ -361,7 +361,7 @@ make_layout(Shape const& shape, LayoutLeft)
 }
 
 template <class Shape>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 make_layout(Shape const& shape, LayoutRight)
 {
@@ -374,7 +374,7 @@ make_layout(Shape const& shape, LayoutRight)
 
 // One argument overload
 template <class Shape0, class Stride0>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 make_layout(Layout<Shape0,Stride0> const& layout0)
 {
@@ -385,7 +385,7 @@ make_layout(Layout<Shape0,Stride0> const& layout0)
 // Two argument overload
 template <class Shape0, class Stride0,
           class Shape1, class Stride1>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 make_layout(Layout<Shape0,Stride0> const& layout0,
             Layout<Shape1,Stride1> const& layout1)
@@ -398,7 +398,7 @@ make_layout(Layout<Shape0,Stride0> const& layout0,
 template <class Shape0, class Stride0,
           class Shape1, class Stride1,
           class... Shapes, class... Strides>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 make_layout(Layout<Shape0,Stride0> const& layout0,
             Layout<Shape1,Stride1> const& layout1,
@@ -420,7 +420,7 @@ make_layout(Layout<Shape0,Stride0> const& layout0,
 //   make_ordered_layout(make_shape(2,3,4,5), make_step(Int<2>{}, 67, 42, Int<50>{}))
 //     -> (2,3,4,5):(_1,10,30,2)
 template <class Shape, class Order>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 make_ordered_layout(Shape const& shape, Order const& order)
 {
@@ -436,7 +436,7 @@ make_ordered_layout(Shape const& shape, Order const& order)
 //   make_layout_like(make_layout(make_shape(2,3,4,5), make_stride(Int<0>{},42,Int<1>{},Int<0>{})))
 //     -> (2,3,4,5):(_0,4,_1,_0)
 template <class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 make_layout_like(Layout<Shape,Stride> const& layout)
 {
@@ -450,7 +450,7 @@ make_layout_like(Layout<Shape,Stride> const& layout)
 // The 0th mode is commonly used for MMA_Atoms or Copy_Atoms so this
 //   generates the 0th mode with LayoutLeft (preserving stride-0s) regardless of the reference layout
 template <class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 make_fragment_like(Layout<Shape,Stride> const& layout)
 {
@@ -463,12 +463,12 @@ make_fragment_like(Layout<Shape,Stride> const& layout)
     return make_layout(layout.shape());
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 template <class Shape,
-          __CUTE_REQUIRES(is_tuple<Shape>::value || is_integral<Shape>::value)>
-CUTE_HOST_DEVICE constexpr
+          __CUTE_RT_TM_REQUIRES(is_tuple<Shape>::value || is_integral<Shape>::value)>
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 make_fragment_like(Shape const& shape)
 {
@@ -480,7 +480,7 @@ make_fragment_like(Shape const& shape)
 //
 
 template <class Shape>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 make_identity_layout(Shape const& shape)
 {
@@ -494,7 +494,7 @@ make_identity_layout(Shape const& shape)
 // Return the Is...th sublayout.
 // For Is... = <I0,I1,...,IN>, equivalent to get<IN>(...get<I1>(get<I0>(layout)))
 template <size_t... Is, class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 get(Layout<Shape,Stride> const& layout)
 {
@@ -504,7 +504,7 @@ get(Layout<Shape,Stride> const& layout)
 
 // Return a new layout with only the modes in the range [B,E)
 template <int B, int E, class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 take(Layout<Shape,Stride> const& layout)
 {
@@ -516,7 +516,7 @@ take(Layout<Shape,Stride> const& layout)
 
 // Return a new layout with only the modes Is... = <I0,I1,...,IN>
 template <int... Is, class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 select(Layout<Shape,Stride> const& layout)
 {
@@ -526,7 +526,7 @@ select(Layout<Shape,Stride> const& layout)
 
 // Return a layout with depth at most 1
 template <class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 flatten(Layout<Shape,Stride> const& layout)
 {
@@ -539,7 +539,7 @@ flatten(Layout<Shape,Stride> const& layout)
 // @pre Input layout can be folded to profile, rank(@a layout) == rank(flatten(@a target_profile))
 // @post congruent(@a result, @a target_profile)
 template <class Shape, class Stride, class TargetProfile>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 unflatten(Layout<Shape,Stride> const& layout, TargetProfile const& target_profile)
 {
@@ -553,7 +553,7 @@ unflatten(Layout<Shape,Stride> const& layout, TargetProfile const& target_profil
 
 // Return the sublayout of mode I...
 template <int... Is, class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 decltype(auto)
 layout(Layout<Shape,Stride> const& layout)
 {
@@ -563,12 +563,12 @@ layout(Layout<Shape,Stride> const& layout)
     return get<Is...>(layout);
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 // Return the shape of a mode
 template <int... Is, class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 decltype(auto)
 shape(Layout<Shape,Stride>& layout)
 {
@@ -576,7 +576,7 @@ shape(Layout<Shape,Stride>& layout)
 }
 
 template <int... Is, class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 decltype(auto)
 shape(Layout<Shape,Stride> const& layout)
 {
@@ -585,7 +585,7 @@ shape(Layout<Shape,Stride> const& layout)
 
 // Return the stride of a mode
 template <int... Is, class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 decltype(auto)
 stride(Layout<Shape,Stride>& layout)
 {
@@ -593,7 +593,7 @@ stride(Layout<Shape,Stride>& layout)
 }
 
 template <int... Is, class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 decltype(auto)
 stride(Layout<Shape,Stride> const& layout)
 {
@@ -602,7 +602,7 @@ stride(Layout<Shape,Stride> const& layout)
 
 // Return the number of elements in a mode
 template <int... Is, class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 size(Layout<Shape,Stride> const& layout)
 {
@@ -611,7 +611,7 @@ size(Layout<Shape,Stride> const& layout)
 
 // Return the number of modes
 template <int... Is, class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 rank(Layout<Shape,Stride> const& layout)
 {
@@ -620,7 +620,7 @@ rank(Layout<Shape,Stride> const& layout)
 
 // Return the depth of the layout
 template <int... Is, class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 depth(Layout<Shape,Stride> const& layout)
 {
@@ -631,7 +631,7 @@ depth(Layout<Shape,Stride> const& layout)
 // @post congruent(coprofile(@a layout), @a layout(i)) for any i
 // @return T Tuple that is congruent with the codomain of @a a.
 template <int... Is, class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 coprofile(Layout<Shape,Stride> const& layout)
 {
@@ -644,7 +644,7 @@ coprofile(Layout<Shape,Stride> const& layout)
 //           elem_less(@a sub_layout(c), C) for all c < size(@a sub_layout)
 //           where @a sub_layout = get<Is...>(layout).
 template <int... Is, class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 coshape(Layout<Shape,Stride> const& layout)
 {
@@ -659,7 +659,7 @@ coshape(Layout<Shape,Stride> const& layout)
 //           size(@a sub_layout(c)) < M for all c < size(@a sub_layout)
 //           where @a sub_layout = get<Is...>(layout).
 template <int... Is, class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 cosize(Layout<Shape,Stride> const& layout)
 {
@@ -674,7 +674,7 @@ static constexpr auto cosize_v = cosize_t<Layout>::value;
 
 // With crd2idx(coord, shape), makes sense to have crd2idx(coord, Layout) as well
 template <class Coord, class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 crd2idx(Coord const& c, Layout<Shape,Stride> const& layout)
 {
@@ -686,7 +686,7 @@ crd2idx(Coord const& c, Layout<Shape,Stride> const& layout)
 //
 
 template <class Coord, class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 slice(Coord const& c, Layout<Shape,Stride> const& layout)
 {
@@ -695,7 +695,7 @@ slice(Coord const& c, Layout<Shape,Stride> const& layout)
 }
 
 template <class Coord, class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 slice_and_offset(Coord const& c, Layout<Shape,Stride> const& layout)
 {
@@ -703,7 +703,7 @@ slice_and_offset(Coord const& c, Layout<Shape,Stride> const& layout)
 }
 
 template <class Coord, class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 dice(Coord const& c, Layout<Shape,Stride> const& layout)
 {
@@ -714,7 +714,7 @@ dice(Coord const& c, Layout<Shape,Stride> const& layout)
 // Compute a pointer offset and (potentially modified) layout from a coordinate
 // This exists so it can be overloaded for ComposedLayout
 template <class Coord, class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 domain_offset(Coord const& coord, Layout<Shape,Stride> const& layout)
 {
@@ -728,7 +728,7 @@ domain_offset(Coord const& coord, Layout<Shape,Stride> const& layout)
 namespace detail {
 
 template <class Tuple, class F, int... I>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 transform_layout(Tuple const& t, F&& f, seq<I...>)
 {
@@ -736,7 +736,7 @@ transform_layout(Tuple const& t, F&& f, seq<I...>)
 }
 
 template <class Tuple0, class Tuple1, class F, int... I, int... I0, int... I1>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 transform_layout(Tuple0 const& t0, Tuple1 const& t1, F&& f, seq<I...>, seq<I0...>, seq<I1...>)
 {
@@ -746,7 +746,7 @@ transform_layout(Tuple0 const& t0, Tuple1 const& t1, F&& f, seq<I...>, seq<I0...
 } // end namespace detail
 
 template <class Tuple, class F>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 transform_layout(Tuple const& t, F&& f)
 {
@@ -754,7 +754,7 @@ transform_layout(Tuple const& t, F&& f)
 }
 
 template <class Tuple0, class Tuple1, class F>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 transform_layout(Tuple0 const& t0, Tuple1 const& t1, F&& f)
 {
@@ -779,7 +779,7 @@ namespace detail {
 //
 // @pre OldShape and OldStride are flat
 template <int I, class OldShape, class OldStride, class NewShape, class NewStride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 bw_coalesce(OldShape const& old_shape, OldStride const& old_stride,
             NewShape const& new_shape, NewStride const& new_stride)
@@ -810,7 +810,7 @@ bw_coalesce(OldShape const& old_shape, OldStride const& old_stride,
                             prepend(new_stride, get<I>(old_stride)));
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 // cute_rt_tm::coalesce promises to not change the Layout as a function from integers to codomain.
@@ -821,7 +821,7 @@ bw_coalesce(OldShape const& old_shape, OldStride const& old_stride,
 // @post depth(@a result) <= 1
 // @post for all i, 0 <= i, @a layout(i) == @a result(i)
 template <class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 coalesce_x(Layout<Shape,Stride> const& layout)
 {
@@ -835,12 +835,12 @@ coalesce_x(Layout<Shape,Stride> const& layout)
     return detail::bw_coalesce<R-2>(flat_shape, flat_stride, get<R-1>(flat_shape), get<R-1>(flat_stride));
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 // Apply coalesce_x at the terminals of trg_profile
 template <class Shape, class Stride, class IntTuple>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 coalesce_x(Layout<Shape,Stride> const& layout, IntTuple const& trg_profile)
 {
@@ -851,7 +851,7 @@ coalesce_x(Layout<Shape,Stride> const& layout, IntTuple const& trg_profile)
     return coalesce_x(layout);
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 } // end namespace detail
@@ -862,7 +862,7 @@ coalesce_x(Layout<Shape,Stride> const& layout, IntTuple const& trg_profile)
 // @post depth(@a result) <= 1
 // @post for all i, 0 <= i < size(@a layout), @a layout(i) == @a result(i)
 template <class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 coalesce(Layout<Shape,Stride> const& layout)
 {
@@ -875,7 +875,7 @@ coalesce(Layout<Shape,Stride> const& layout)
 
 // Apply coalesce at the terminals of trg_profile
 template <class Shape, class Stride, class IntTuple>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 coalesce(Layout<Shape,Stride> const& layout, IntTuple const& trg_profile)
 {
@@ -886,14 +886,14 @@ coalesce(Layout<Shape,Stride> const& layout, IntTuple const& trg_profile)
     return coalesce(layout);
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 // Combine static and dynamic modes of a shape.
 // @post size(@a result) == size(@a shape)
 // @post depth(@a result) <= 1
 template <class Shape>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 coalesce(Shape const& shape)
 {
@@ -906,13 +906,13 @@ coalesce(Shape const& shape)
       return append(init, a);                     // Can't coalesce, so append
     }
 
-    CUTE_GCC_UNREACHABLE;
+    CUTE_RT_TM_GCC_UNREACHABLE;
   });
 }
 
 // Replace the modes in layout that have a 0-stride with a 1-size
 template <class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 filter_zeros(Layout<Shape,Stride> const& layout)
 {
@@ -921,7 +921,7 @@ filter_zeros(Layout<Shape,Stride> const& layout)
 
 // Replace the modes in layout that correspond to a 0 at the terminals of trg_profile with a 1-size
 template <class Shape, class Stride, class IntTuple>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 filter_zeros(Layout<Shape,Stride> const& layout, IntTuple const& trg_profile)
 {
@@ -931,7 +931,7 @@ filter_zeros(Layout<Shape,Stride> const& layout, IntTuple const& trg_profile)
 // Remove all of the 0-strides and 1-sizes
 // Return 1-shape if empty
 template <class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 filter(Layout<Shape,Stride> const& layout)
 {
@@ -940,7 +940,7 @@ filter(Layout<Shape,Stride> const& layout)
 
 // Apply filter at the terminals of trg_profile
 template <class Shape, class Stride, class IntTuple>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 filter(Layout<Shape,Stride> const& layout, IntTuple const& trg_profile)
 {
@@ -951,7 +951,7 @@ filter(Layout<Shape,Stride> const& layout, IntTuple const& trg_profile)
     return filter(layout);
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 //
@@ -959,7 +959,7 @@ filter(Layout<Shape,Stride> const& layout, IntTuple const& trg_profile)
 //
 
 template <int N, class ShapeA, class StrideA, class ShapeX = _1, class StrideX = _0>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 append(Layout<ShapeA,StrideA> const& layout,
        Layout<ShapeX,StrideX> const& x = {})
@@ -969,7 +969,7 @@ append(Layout<ShapeA,StrideA> const& layout,
 }
 
 template <class ShapeA, class StrideA, class ShapeX = _1, class StrideX = _0>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 append(Layout<ShapeA,StrideA> const& layout,
        Layout<ShapeX,StrideX> const& x = {})
@@ -979,7 +979,7 @@ append(Layout<ShapeA,StrideA> const& layout,
 }
 
 template <int N, class ShapeA, class StrideA, class ShapeX = _1, class StrideX = _0>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 prepend(Layout<ShapeA,StrideA> const& layout,
         Layout<ShapeX,StrideX> const& x = {})
@@ -989,7 +989,7 @@ prepend(Layout<ShapeA,StrideA> const& layout,
 }
 
 template <class ShapeA, class StrideA, class ShapeX = _1, class StrideX = _0>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 prepend(Layout<ShapeA,StrideA> const& layout,
         Layout<ShapeX,StrideX> const& x = {})
@@ -999,7 +999,7 @@ prepend(Layout<ShapeA,StrideA> const& layout,
 }
 
 template <int N, class ShapeA, class StrideA, class ShapeX, class StrideX>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 replace(Layout<ShapeA,StrideA> const& layout,
         Layout<ShapeX,StrideX> const& x)
@@ -1009,7 +1009,7 @@ replace(Layout<ShapeA,StrideA> const& layout,
 }
 
 template <int B, int E, class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 group(Layout<Shape,Stride> const& layout)
 {
@@ -1028,7 +1028,7 @@ namespace detail {
 
 template <class LShape, class LStride,
           class RShape, class RStride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 composition_impl(LShape const& lhs_shape, [[maybe_unused]] LStride const& lhs_stride,
                  RShape const& rhs_shape, RStride const& rhs_stride)
@@ -1070,11 +1070,11 @@ composition_impl(LShape const& lhs_shape, [[maybe_unused]] LStride const& lhs_st
                    [[maybe_unused]] auto curr_stride = get<curr_i>(lhs_stride);
 
                    // Strong divisibility condition -- requires composition to be statically verifiable.
-                   //CUTE_STATIC_ASSERT_V(((rest_stride % curr_shape) == Int<0>{}) or (rest_stride < curr_shape), "Stride Divisibility Condition");
+                   //CUTE_RT_TM_STATIC_ASSERT_V(((rest_stride % curr_shape) == Int<0>{}) or (rest_stride < curr_shape), "Stride Divisibility Condition");
 
                    // Weak divisibility condition -- verify the divisibility condition whenever possible
                    if constexpr (is_static<decltype(curr_shape)>::value and is_static<decltype(rest_stride)>::value) {
-                     CUTE_STATIC_ASSERT_V(((rest_stride % curr_shape) == Int<0>{}) or (rest_stride < curr_shape), "Stride Divisibility Condition");
+                     CUTE_RT_TM_STATIC_ASSERT_V(((rest_stride % curr_shape) == Int<0>{}) or (rest_stride < curr_shape), "Stride Divisibility Condition");
                    } else {
                      // DEBUG assert can cause extra registers and inappropriate compile-time/run-time failure
                      //assert((((rest_stride % curr_shape) == 0) or (rest_stride < curr_shape)) && "Stride Divisibility Condition");
@@ -1094,11 +1094,11 @@ composition_impl(LShape const& lhs_shape, [[maybe_unused]] LStride const& lhs_st
                      auto new_shape = cute_rt_tm::min(next_shape, rest_shape);
 
                      // Strong divisibility condition
-                     //CUTE_STATIC_ASSERT_V(((rest_shape % new_shape) == Int<0>{}), "Shape Divisibility Condition");
+                     //CUTE_RT_TM_STATIC_ASSERT_V(((rest_shape % new_shape) == Int<0>{}), "Shape Divisibility Condition");
 
                      // Weak divisibility condition
                      if constexpr (is_static<decltype(new_shape)>::value and is_static<decltype(rest_shape)>::value) {
-                       CUTE_STATIC_ASSERT_V(((rest_shape % new_shape) == Int<0>{}), "Shape Divisibility Condition");
+                       CUTE_RT_TM_STATIC_ASSERT_V(((rest_shape % new_shape) == Int<0>{}), "Shape Divisibility Condition");
                      } else {
                        // DEBUG assert can cause extra registers and inappropriate compile-time/run-time failure
                        //assert(((rest_shape % new_shape) == 0) && "Shape Divisibility Condition");
@@ -1110,7 +1110,7 @@ composition_impl(LShape const& lhs_shape, [[maybe_unused]] LStride const& lhs_st
                                              next_stride);
                    }
 
-                   CUTE_GCC_UNREACHABLE;
+                   CUTE_RT_TM_GCC_UNREACHABLE;
                  });
 
     if constexpr (tuple_size<decltype(result_shape)>::value == 0) {
@@ -1124,14 +1124,14 @@ composition_impl(LShape const& lhs_shape, [[maybe_unused]] LStride const& lhs_st
     }
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 } // end namespace detail
 
 template <class LShape, class LStride,
           class RShape, class RStride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 composition(Layout<LShape,LStride> const& lhs,
             Layout<RShape,RStride> const& rhs)
@@ -1141,7 +1141,7 @@ composition(Layout<LShape,LStride> const& lhs,
 }
 
 template <class LShape, class LStride, class Tiler>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 composition(Layout<LShape,LStride> const& lhs,
             Tiler                  const& rhs)
@@ -1157,7 +1157,7 @@ composition(Layout<LShape,LStride> const& lhs,
     return detail::composition_impl(flat_lhs.shape(), flat_lhs.stride(), rhs, Int<1>{});
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 //
@@ -1175,7 +1175,7 @@ namespace detail {
 
 // @pre @a layout has been filtered (flattened and no stride-0 or size-1 modes).
 template <class Shape, class Stride, class CoTarget>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 complement(Shape const& shape, Stride const& stride, CoTarget const& cotarget)
 {
@@ -1223,13 +1223,13 @@ complement(Shape const& shape, Stride const& stride, CoTarget const& cotarget)
                                 make_stride(result_stride, rest_stride)));
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 } // end namespace detail
 
 template <class Shape, class Stride, class CoTarget>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 complement(Layout<Shape,Stride> const& layout, CoTarget const& cotarget)
 {
@@ -1238,7 +1238,7 @@ complement(Layout<Shape,Stride> const& layout, CoTarget const& cotarget)
 }
 
 template <class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 complement(Layout<Shape,Stride> const& layout)
 {
@@ -1260,7 +1260,7 @@ complement(Layout<Shape,Stride> const& layout)
 //
 
 template <class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 right_inverse(Layout<Shape,Stride> const& layout)
 {
@@ -1296,13 +1296,13 @@ right_inverse(Layout<Shape,Stride> const& layout)
         return init;
       }
 
-      CUTE_GCC_UNREACHABLE;
+      CUTE_RT_TM_GCC_UNREACHABLE;
     });
 
   return coalesce(make_layout(result_shape, result_stride));
 }
 
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 right_inverse(Underscore const& _)
 {
@@ -1319,7 +1319,7 @@ right_inverse(Underscore const& _)
 //
 
 template <class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 left_inverse(Layout<Shape,Stride> const& layout)
 {
@@ -1347,20 +1347,20 @@ left_inverse(Layout<Shape,Stride> const& layout)
         auto result_shape  = get<0>(init);
         auto result_stride = get<1>(init);
 
-        CUTE_STATIC_ASSERT_V((istride % size(result_shape)) == Int<0>{}, "Left inverse divisibility condition");
+        CUTE_RT_TM_STATIC_ASSERT_V((istride % size(result_shape)) == Int<0>{}, "Left inverse divisibility condition");
 
         return make_tuple(append(result_shape,  istride / size(result_shape)),
                           append(result_stride, get<i>(preprod_shape)));
       }
 
-      CUTE_GCC_UNREACHABLE;
+      CUTE_RT_TM_GCC_UNREACHABLE;
     });
 
   return coalesce(make_layout(append(result_shape, get<decltype(back(sorted_seq))::value>(lshape)),
                               result_stride));
 }
 
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 left_inverse(Underscore const& _)
 {
@@ -1379,7 +1379,7 @@ left_inverse(Underscore const& _)
  */
 template <class ShapeA, class StrideA,
           class ShapeB, class StrideB>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 max_common_layout(Layout<ShapeA,StrideA> const& a,
                   Layout<ShapeB,StrideB> const& b)
@@ -1406,7 +1406,7 @@ max_common_layout(Layout<ShapeA,StrideA> const& a,
  */
 template <class ShapeA, class StrideA,
           class ShapeB, class StrideB>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 max_common_vector(Layout<ShapeA,StrideA> const& a,
                   Layout<ShapeB,StrideB> const& b)
@@ -1422,7 +1422,7 @@ max_common_vector(Layout<ShapeA,StrideA> const& a,
     return Int<1>{};
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 /* Return a layout that distributes ShapeB over ShapeA.
@@ -1440,13 +1440,13 @@ max_common_vector(Layout<ShapeA,StrideA> const& a,
  *   Layout dist = domain_distribute(layoutA, Int<6>{});   // (_3,_2):(_1,_15)
  *
  *   // Not guaranteed to find all 6 though...
- *   CUTE_STATIC_ASSERT_V(Int<6>{} == size(dist));
+ *   CUTE_RT_TM_STATIC_ASSERT_V(Int<6>{} == size(dist));
  *
  *   Layout result = zipped_divide(layoutA, dist);         // (_6,Rest)
  * \endcode
  */
 template <class ShapeA, class ShapeB>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 domain_distribute(ShapeA const& a, ShapeB const& b)
 {
@@ -1480,7 +1480,7 @@ domain_distribute(ShapeA const& a, ShapeB const& b)
  * @post size(@a result) == size(@a layout) / size(filter(@a layout))
  */
 template <class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 nullspace(Layout<Shape,Stride> const& layout)
 {
@@ -1491,7 +1491,7 @@ nullspace(Layout<Shape,Stride> const& layout)
                          [&](auto init, auto i){
                            if constexpr (is_constant_v<0, decltype(get<i>(flat_stride))>) { return append(init, i); }
                            else                                                           { return init;            }
-                           CUTE_GCC_UNREACHABLE;
+                           CUTE_RT_TM_GCC_UNREACHABLE;
                          });
 
   if constexpr (tuple_size<decltype(iseq)>::value == 0) {
@@ -1504,7 +1504,7 @@ nullspace(Layout<Shape,Stride> const& layout)
                        unwrap(transform(iseq, [&](auto i) { return get<i>(rstride); })));
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 //
@@ -1512,7 +1512,7 @@ nullspace(Layout<Shape,Stride> const& layout)
 //
 
 template <class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 zip(Layout<Shape,Stride> const& layout)
 {
@@ -1522,7 +1522,7 @@ zip(Layout<Shape,Stride> const& layout)
 
 template <class TShape, class TStride,
           class UShape, class UStride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 zip(Layout<TShape,TStride> const& layoutA,
     Layout<UShape,UStride> const& layoutB)
@@ -1539,7 +1539,7 @@ zip(Layout<TShape,TStride> const& layoutA,
 //
 
 template <class LShape, class LStride, class Tiler>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tile_unzip(Layout<LShape,LStride> const& layout,
            Tiler                  const& tiler)
@@ -1554,7 +1554,7 @@ tile_unzip(Layout<LShape,LStride> const& layout,
 
 template <class LShape, class LStride,
           class TShape, class TStride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 logical_divide(Layout<LShape,LStride> const& layout,
                Layout<TShape,TStride> const& tiler)
@@ -1563,7 +1563,7 @@ logical_divide(Layout<LShape,LStride> const& layout,
 }
 
 template <class LShape, class LStride, class Tiler>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 logical_divide(Layout<LShape,LStride> const& layout,
                Tiler                  const& tiler)
@@ -1577,7 +1577,7 @@ logical_divide(Layout<LShape,LStride> const& layout,
     return logical_divide(layout, make_layout(tiler));
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 // Generalization of ceil_div for Layout lhs
@@ -1589,7 +1589,7 @@ logical_divide(Layout<LShape,LStride> const& layout,
 // This does not consider compositional acceptance, so it may be the case that
 //   ceil_div produces a result while logical_divide (and friends) do not.
 template <class Target, class TShape, class TStride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 ceil_div(Target                 const& target,
          Layout<TShape,TStride> const& tiler)
@@ -1605,7 +1605,7 @@ ceil_div(Target                 const& target,
 
 template <class LShape, class LStride,
           class Tiler>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 zipped_divide(Layout<LShape,LStride> const& layout,
               Tiler                  const& tiler)
@@ -1616,7 +1616,7 @@ zipped_divide(Layout<LShape,LStride> const& layout,
 // Same as zipped_divide, but unpacks the second mode: ((BLK_A,BLK_B,...),a,b,...,x,y)
 template <class LShape, class LStride,
           class Tiler>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tiled_divide(Layout<LShape,LStride> const& layout,
              Tiler                  const& tiler)
@@ -1630,7 +1630,7 @@ tiled_divide(Layout<LShape,LStride> const& layout,
 // Same as zipped_divide, but unpacks both modes: (BLK_A,BLK_B,...,a,b,...,x,y)
 template <class LShape, class LStride,
           class Tiler>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 flat_divide(Layout<LShape,LStride> const& layout,
             Tiler                  const& tiler)
@@ -1648,7 +1648,7 @@ flat_divide(Layout<LShape,LStride> const& layout,
 
 template <class LShape, class LStride,
           class TShape, class TStride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 logical_product(Layout<LShape,LStride> const& block,
                 Layout<TShape,TStride> const& tiler)
@@ -1657,7 +1657,7 @@ logical_product(Layout<LShape,LStride> const& block,
 }
 
 template <class LShape, class LStride, class Tiler>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 logical_product(Layout<LShape,LStride> const& block,
                 Tiler                  const& tiler)
@@ -1671,7 +1671,7 @@ logical_product(Layout<LShape,LStride> const& block,
     return logical_product(block, make_layout(tiler));
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 //
@@ -1682,7 +1682,7 @@ logical_product(Layout<LShape,LStride> const& block,
 
 template <class LShape, class LStride,
           class Tiler>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 zipped_product(Layout<LShape,LStride> const& block,
                Tiler                  const& tiler)
@@ -1693,7 +1693,7 @@ zipped_product(Layout<LShape,LStride> const& block,
 // Same as zipped_product, but unpacks the second mode: ((BLK_A,BLK_B,...),a,b,...,x,y)
 template <class LShape, class LStride,
           class Tiler>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tiled_product(Layout<LShape,LStride> const& block,
               Tiler                  const& tiler)
@@ -1707,7 +1707,7 @@ tiled_product(Layout<LShape,LStride> const& block,
 // Same as zipped_product, but unpacks both modes: (BLK_A,BLK_B,...,a,b,...,x,y)
 template <class LShape, class LStride,
           class Tiler>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 flat_product(Layout<LShape,LStride> const& block,
              Tiler                  const& tiler)
@@ -1729,7 +1729,7 @@ flat_product(Layout<LShape,LStride> const& block,
 // @post rank(@a result) == cute_rt_tm::max(rank(@a block), rank(@a tiler))
 template <class TShape, class TStride,
           class UShape, class UStride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 blocked_product(Layout<TShape,TStride> const& block,
                 Layout<UShape,UStride> const& tiler)
@@ -1747,7 +1747,7 @@ blocked_product(Layout<TShape,TStride> const& block,
 // @post rank(@a result) == cute_rt_tm::max(rank(@a block), rank(@a tiler))
 template <class TShape, class TStride,
           class UShape, class UStride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 raked_product(Layout<TShape,TStride> const& block,
               Layout<UShape,UStride> const& tiler)
@@ -1773,13 +1773,13 @@ raked_product(Layout<TShape,TStride> const& block,
 // @post compatible(@a trg_shape, shape(@a result))
 template <class Shape, class Stride,
           class TrgShape, class ModeOrder = LayoutLeft>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tile_to_shape(Layout<Shape,Stride> const& block,
               TrgShape             const& trg_shape,
               ModeOrder            const& ord_shape = {})
 {
-  CUTE_STATIC_ASSERT_V(rank(block) <= rank(trg_shape), "Rank of layout must be <= rank of target shape.");
+  CUTE_RT_TM_STATIC_ASSERT_V(rank(block) <= rank(trg_shape), "Rank of layout must be <= rank of target shape.");
   constexpr int R = rank_v<TrgShape>;
 
   auto padded_block = append<R>(block);
@@ -1789,7 +1789,7 @@ tile_to_shape(Layout<Shape,Stride> const& block,
 
   // Assert proper division
   if constexpr (is_static<decltype(target_shape)>::value) {
-    CUTE_STATIC_ASSERT_V(evenly_divides(target_shape, block_shape),
+    CUTE_RT_TM_STATIC_ASSERT_V(evenly_divides(target_shape, block_shape),
                          "tile_to_shape: block shape does not divide the target shape.");
   }
 
@@ -1804,7 +1804,7 @@ tile_to_shape(Layout<Shape,Stride> const& block,
 //
 
 template <int N, class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 upcast(Shape const& shape, Stride const& stride)
 {
@@ -1822,11 +1822,11 @@ upcast(Shape const& shape, Stride const& stride)
     return make_layout(shape, safe_div(stride, Int<N>{}));
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 template <int N, class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 upcast(Layout<Shape,Stride> const& layout)
 {
@@ -1839,7 +1839,7 @@ upcast(Layout<Shape,Stride> const& layout)
 //
 
 template <int N, class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 downcast(Shape const& shape, Stride const& stride)
 {
@@ -1851,15 +1851,15 @@ downcast(Shape const& shape, Stride const& stride)
     return make_layout(shape, stride * Int<N>{});
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 template <int N, class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 downcast(Layout<Shape,Stride> const& layout)
 {
-  CUTE_STATIC_ASSERT(has_int1<Stride>::value, "Downcast requires adjacent elements");
+  CUTE_RT_TM_STATIC_ASSERT(has_int1<Stride>::value, "Downcast requires adjacent elements");
   return downcast<N>(layout.shape(), layout.stride());
 }
 
@@ -1869,7 +1869,7 @@ downcast(Layout<Shape,Stride> const& layout)
 
 template <class OldType, class NewType,
           class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 recast_layout(Layout<Shape,Stride> const& layout)
 {
@@ -1887,7 +1887,7 @@ recast_layout(Layout<Shape,Stride> const& layout)
     return downcast<scale::den>(upcast<scale::num>(layout));
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 // Determine the maximum alignment of a Layout.
@@ -1898,7 +1898,7 @@ recast_layout(Layout<Shape,Stride> const& layout)
 //   in symmetry with upcast<N> only checking against static shapes and strides and assuming all
 //   dynamic shapes and strides are large and multiples of N.
 template <class Shape, class Stride>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 max_alignment(Layout<Shape,Stride> const& layout)
 {
@@ -1915,14 +1915,14 @@ max_alignment(Layout<Shape,Stride> const& layout)
 //
 
 template <class Shape, class Stride>
-CUTE_HOST_DEVICE void print(Layout<Shape,Stride> const& layout)
+CUTE_RT_TM_HOST_DEVICE void print(Layout<Shape,Stride> const& layout)
 {
   print(layout.shape()); print(":"); print(layout.stride());
 }
 
 #if !defined(__CUDACC_RTC__)
 template <class Shape, class Stride>
-CUTE_HOST std::ostream& operator<<(std::ostream& os, Layout<Shape,Stride> const& layout)
+CUTE_RT_TM_HOST std::ostream& operator<<(std::ostream& os, Layout<Shape,Stride> const& layout)
 {
   return os << shape(layout) << ":" << stride(layout);
 }

@@ -1023,14 +1023,14 @@ struct Mma<
   /// C operand storage
   using FragmentC = Array<ElementC, Shape::kMN>;
 
-  static bool const a_row_major = platform::is_same< LayoutA, layout::RowMajor>::value;
-  static bool const b_column_major = platform::is_same< LayoutB, layout::ColumnMajor>::value;
-  static bool const c_row_major = platform::is_same< LayoutC, layout::RowMajor>::value;
-  static bool const c_column_major = platform::is_same< LayoutC, layout::ColumnMajor>::value;
+  static constexpr bool a_row_major = platform::is_same< LayoutA, layout::RowMajor>::value;
+  static constexpr bool b_column_major = platform::is_same< LayoutB, layout::ColumnMajor>::value;
+  static constexpr bool c_row_major = platform::is_same< LayoutC, layout::RowMajor>::value;
+  static constexpr bool c_column_major = platform::is_same< LayoutC, layout::ColumnMajor>::value;
 
-  static bool const m_mod2 = !(Shape::kM % 2);
-  static bool const n_mod2 = !(Shape::kN % 2);
-  static bool const k_mod2 = !(Shape::kK % 2);
+  static constexpr bool m_mod2 = !(Shape::kM % 2);
+  static constexpr bool n_mod2 = !(Shape::kN % 2);
+  static constexpr bool k_mod2 = !(Shape::kK % 2);
 
   // HFMA based MMA optimizations are of 2 types :
   // 1. Inner product 
@@ -1038,9 +1038,9 @@ struct Mma<
   // It is chosen based on LayoutC (for outer product gemm) or
   // Using LayoutA and LayoutB or shape=1x1x2K (for inner product gemms)
   // If all fails, we choose the generic MMA
-  static bool const use_outer_prod = (c_column_major && m_mod2) || (c_row_major && n_mod2);
-  static bool const use_inner_prod = (a_row_major && b_column_major && k_mod2) || (Shape::kM==1 && Shape::kN==1 && k_mod2);
-  static bool const use_optimized =  (use_outer_prod || use_inner_prod);
+  static constexpr bool use_outer_prod = (c_column_major && m_mod2) || (c_row_major && n_mod2);
+  static constexpr bool use_inner_prod = (a_row_major && b_column_major && k_mod2) || (Shape::kM==1 && Shape::kN==1 && k_mod2);
+  static constexpr bool use_optimized =  (use_outer_prod || use_inner_prod);
 
   using ArchMmaOperator = typename platform::conditional< use_optimized, 
     detail::Mma_HFMA2<Shape, LayoutA, LayoutB, LayoutC, use_outer_prod>, 
@@ -1077,13 +1077,13 @@ namespace detail {
     typename LayoutB>
   struct EnableMma_Crow_SM60 {
 
-    static bool const kIsConventionalLayout =
+    static constexpr bool kIsConventionalLayout =
       (platform::is_same<LayoutA, layout::RowMajor>::value ||
         platform::is_same<LayoutA, layout::ColumnMajor>::value) &&
       (platform::is_same<LayoutB, layout::RowMajor>::value ||
         platform::is_same<LayoutB, layout::ColumnMajor>::value);
 
-    static bool const value = kIsConventionalLayout;
+    static constexpr bool value = kIsConventionalLayout;
   };
 };
 

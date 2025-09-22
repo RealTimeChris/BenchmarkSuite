@@ -46,9 +46,9 @@ template <
   int Strided
 >
 struct PitchLinearShape {
-  static int constexpr kContiguous = Contiguous;
-  static int constexpr kStrided = Strided;
-  static int constexpr kCount = Contiguous * Strided;
+  static constexpr int kContiguous = Contiguous;
+  static constexpr int kStrided = Strided;
+  static constexpr int kCount = Contiguous * Strided;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -69,10 +69,10 @@ public:
 private:
 
   /// Rows dimension
-  static int constexpr kContiguous = 0;
+  static constexpr int kContiguous = 0;
 
   /// Columns dimension
-  static int constexpr kStrided = 1;
+  static constexpr int kStrided = 1;
 
 public:
 

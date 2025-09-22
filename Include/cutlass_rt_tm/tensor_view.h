@@ -81,7 +81,7 @@ class TensorView : public TensorRef<Element_, Layout_> {
   using Reference = Element &;
 
   /// Logical rank of tensor index space
-  static int constexpr kRank = Layout::kRank;
+  static constexpr int kRank = Layout::kRank;
 
   /// Index type
   using Index = typename Layout::Index;

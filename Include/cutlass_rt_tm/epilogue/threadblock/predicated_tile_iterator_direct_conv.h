@@ -91,8 +91,8 @@ public:
   using LongIndex = typename Layout::LongIndex;
   using TensorCoord = MatrixCoord;
 
-  static int const kElementsPerAccess = ThreadMap::kElementsPerAccess;
-  static int const kThreads = ThreadMap::kThreads;
+  static constexpr int kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static constexpr int kThreads = ThreadMap::kThreads;
 
   using ConvProblemSize = typename cutlass_rt_tm::conv::Conv2dProblemSize;
 
@@ -102,7 +102,7 @@ public:
   /// Memory access size
   using AccessType = AlignedArray<Element, kElementsPerAccess>;
 
-  static int const kLoadsPerAccess = AccessType::kElements / AccessType::kElements;
+  static constexpr int kLoadsPerAccess = AccessType::kElements / AccessType::kElements;
 
   using ThreadTileCount = MatrixShape<
     ThreadBlockOutputShape::kH / ThreadOutputShape::kH,
@@ -137,7 +137,7 @@ public:
   /// Mask object
   struct Mask {
 
-    static int const kCount = ThreadMap::Iterations::kContiguous;
+    static constexpr int kCount = ThreadMap::Iterations::kContiguous;
 
     /// Predicate state
     bool predicates[kCount];

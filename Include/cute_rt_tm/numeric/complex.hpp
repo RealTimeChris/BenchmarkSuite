@@ -30,7 +30,7 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute_rt_tm/config.hpp>    // CUTE_HOST_DEVICE
+#include <cute_rt_tm/config.hpp>    // CUTE_RT_TM_HOST_DEVICE
 
 #include <cutlass_rt_tm/complex.h>  // cutlass_rt_tm::complexm, cutlass_rt_tm::real, cutlass_rt_tm::imag, cutlass_rt_tm::is_complex
 
@@ -49,7 +49,7 @@ static constexpr auto is_complex_v = is_complex<T>::value;
 
 /// Fused multiply-add for complex numbers
 template <class D, class A, class B, class C>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 void
 fma(complex<D>      & d,
     complex<A> const& a,
@@ -64,7 +64,7 @@ fma(complex<D>      & d,
 
 /// Fused multiply-add for triplets
 template <class A, class B, class C>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 void
 fma(complex<A> const& a,
     complex<B> const& b,

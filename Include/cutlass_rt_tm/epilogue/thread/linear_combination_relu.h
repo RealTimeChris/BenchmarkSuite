@@ -83,8 +83,8 @@ public:
   using ElementAccumulator = ElementAccumulator_;
   using ElementCompute = ElementCompute_;
 
-  static int const kCount = Count;
-  static const ScaleType::Kind kScale = Scale;
+  static constexpr int kCount = Count;
+  static constexpr ScaleType::Kind kScale = Scale;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
@@ -92,9 +92,9 @@ public:
   using FragmentScaleBias = Array<ElementCompute, kCount>;
   using FragmentSource = Array<ElementOutput, kCount>;
 
-  static FloatRoundStyle const kRound = Round;
+  static constexpr FloatRoundStyle  kRound = Round;
 
-  static bool const kIsHeavy = detail::LinearCombinationReluIsHeavy();
+  static constexpr bool kIsHeavy = detail::LinearCombinationReluIsHeavy();
 
   /// Host-constructable parameters structure
   struct Params {
@@ -313,10 +313,10 @@ public:
   using ElementAccumulator = int;
   using ElementCompute = float;
 
-  static bool const kIsHeavy = detail::LinearCombinationReluIsHeavy();
+  static constexpr bool kIsHeavy = detail::LinearCombinationReluIsHeavy();
 
-  static int const kCount = Count;
-  static const ScaleType::Kind kScale = Scale;
+  static constexpr int kCount = Count;
+  static constexpr ScaleType::Kind kScale = Scale;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
@@ -324,7 +324,7 @@ public:
   using FragmentScaleBias = Array<ElementCompute, kCount>;
   using FragmentSource = Array<ElementOutput, kCount>;
 
-  static FloatRoundStyle const kRound = Round;
+  static constexpr FloatRoundStyle  kRound = Round;
 
   /// Host-constructable parameters structure
   struct Params {

@@ -75,10 +75,10 @@ struct PitchLinearStripminedThreadMap {
   using Shape = Shape_;
 
   /// Number of threads total
-  static int const kThreads = Threads;
+  static constexpr int  kThreads = Threads;
 
   /// Extract vector length from Layout
-  static int const kElementsPerAccess = ElementsPerAccess;
+  static constexpr int  kElementsPerAccess = ElementsPerAccess;
 
   /// Shape of access by each thread
   using ThreadAccessShape = layout::PitchLinearShape<kElementsPerAccess, 1>;
@@ -158,8 +158,8 @@ struct PitchLinearTilePolicyStripminedThreadContiguous
 
   using TensorCoord = layout::PitchLinearCoord;
 
-  static int const kThreads = Threads;
-  static int const kElementsPerAccess = ElementsPerAccess;
+  static constexpr int  kThreads = Threads;
+  static constexpr int  kElementsPerAccess = ElementsPerAccess;
 
   using Iterations = layout::PitchLinearShape<
                       Shape::kContiguous / (kThreads * kElementsPerAccess),
@@ -186,8 +186,8 @@ struct PitchLinearTilePolicyStripminedThreadStrided
 
   using TensorCoord = layout::PitchLinearCoord;
 
-  static int const kThreads = Threads;
-  static int const kElementsPerAccess = ElementsPerAccess;
+  static constexpr int  kThreads = Threads;
+  static constexpr int  kElementsPerAccess = ElementsPerAccess;
 
   using Iterations = layout::PitchLinearShape<
                       Shape::kContiguous / kElementsPerAccess,
@@ -227,10 +227,10 @@ struct PitchLinearWarpRakedThreadMap {
   using Shape = Shape_;
 
   /// Number of threads total
-  static int const kThreads = Threads;
+  static constexpr int  kThreads = Threads;
 
   /// Extract vector length from Layout
-  static int const kElementsPerAccess = ElementsPerAccess;
+  static constexpr int  kElementsPerAccess = ElementsPerAccess;
 
   /// Shape of access by each thread
   using ThreadAccessShape = layout::PitchLinearShape<kElementsPerAccess, 1>;
@@ -242,10 +242,10 @@ struct PitchLinearWarpRakedThreadMap {
     using WarpThreadArrangement = WarpThreadArrangement_;
 
     /// Number of threads per warp
-    static int const kWarpSize = WarpThreadArrangement::kCount;
+    static constexpr int  kWarpSize = WarpThreadArrangement::kCount;
 
     /// Number of participating warps
-    static int const kWarpCount = kThreads / kWarpSize;
+    static constexpr int  kWarpCount = kThreads / kWarpSize;
 
     static_assert(
       !(Shape::kContiguous % kElementsPerAccess),
@@ -273,12 +273,12 @@ struct PitchLinearWarpRakedThreadMap {
 
     // Divide it into the number of warps, first partitioning the strided dimension then the
     // contiguous.
-    static int const kWarpsStrided =
+    static constexpr int  kWarpsStrided =
         (WarpAccessIterations::kStrided >= kWarpCount
              ? kWarpCount
              : WarpAccessIterations::kStrided);
 
-    static int const kWarpsContiguous =
+    static constexpr int  kWarpsContiguous =
         (kWarpCount > WarpAccessIterations::kStrided
              ? kWarpCount / kWarpsStrided
              : 1);
@@ -368,12 +368,12 @@ struct PitchLinearStridedWarpRakedThreadMap {
   using Shape = Shape_;
 
   /// Number of threads total
-  static int const kThreads = Threads;
+  static constexpr int  kThreads = Threads;
 
   using WarpThreadArrangement = WarpThreadArrangement_;
 
   /// Extract vector length from Layout
-  static int const kElementsPerAccess = ElementsPerAccess;
+  static constexpr int  kElementsPerAccess = ElementsPerAccess;
 
   /// Base ThreadMap
   using BaseThreadMap = PitchLinearWarpRakedThreadMap<
@@ -393,20 +393,20 @@ struct PitchLinearStridedWarpRakedThreadMap {
 
     using WarpAccessIterations = typename BaseThreadMap::Detail::WarpAccessIterations;
 
-    static int const kWarpSize = BaseThreadMap::Detail::kWarpSize;
+    static constexpr int  kWarpSize = BaseThreadMap::Detail::kWarpSize;
 
-    static int const kWarpCount = BaseThreadMap::Detail::kWarpCount;
+    static constexpr int  kWarpCount = BaseThreadMap::Detail::kWarpCount;
 
     using ShapeInAccesses = typename BaseThreadMap::Detail::ShapeInAccesses;
 
     // Divide it into the number of warps, first partitioning the contiguous dimension then the
     // stride.
-    static int const kWarpsContiguous =
+    static constexpr int  kWarpsContiguous =
         (WarpAccessIterations::kContiguous >= kWarpCount
              ? kWarpCount
              : WarpAccessIterations::kContiguous);
 
-    static int const kWarpsStrided =
+    static constexpr int  kWarpsStrided =
         (kWarpCount > WarpAccessIterations::kContiguous
              ? kWarpCount / kWarpsContiguous
              : 1);
@@ -493,10 +493,10 @@ struct TransposePitchLinearThreadMap {
   using Shape = typename ThreadMap::Shape;
 
   /// Number of threads total
-  static int const kThreads = ThreadMap::kThreads;
+  static constexpr int  kThreads = ThreadMap::kThreads;
 
   /// Extract vector length from Layout
-  static int const kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static constexpr int  kElementsPerAccess = ThreadMap::kElementsPerAccess;
 
   /// Shape of access by each thread
   using ThreadAccessShape = layout::PitchLinearShape<kElementsPerAccess, 1>;
@@ -507,10 +507,10 @@ struct TransposePitchLinearThreadMap {
     using WarpThreadArrangement = WarpThreadArrangement_;
 
     /// Number of threads per warp
-    static int const kWarpSize = WarpThreadArrangement::kCount;
+    static constexpr int  kWarpSize = WarpThreadArrangement::kCount;
 
     /// Number of participating warps
-    static int const kWarpCount = kThreads / kWarpSize;
+    static constexpr int  kWarpCount = kThreads / kWarpSize;
 
     static_assert(!(Shape::kContiguous % kElementsPerAccess),
                   "Shape must be divisible by vector length.");
@@ -594,10 +594,10 @@ struct TransposePitchLinearThreadMapSimt {
     using Shape = typename ThreadMap::Shape;
 
     /// Number of threads total
-    static int const kThreads = ThreadMap::kThreads;
+    static constexpr int  kThreads = ThreadMap::kThreads;
 
     /// Extract vector length from Layout
-    static int const kElementsPerAccess = ThreadMap::kElementsPerAccess;
+    static constexpr int  kElementsPerAccess = ThreadMap::kElementsPerAccess;
 
     static_assert(kElementsPerAccess == 1 , "Simt transpose requires elements per access to be 1");
     ///< Iterations along each dimension (concept: PitchLinearShape)
@@ -655,10 +655,10 @@ struct PitchLinearWarpStripedThreadMap {
   using Shape = Shape_;
 
   /// Number of threads total
-  static int const kThreads = Threads;
+  static constexpr int  kThreads = Threads;
 
   /// Extract vector length from Layout
-  static int const kElementsPerAccess = ElementsPerAccess;
+  static constexpr int  kElementsPerAccess = ElementsPerAccess;
 
   /// Shape of access by each thread
   using ThreadAccessShape = layout::PitchLinearShape<kElementsPerAccess, 1>;
@@ -670,10 +670,10 @@ struct PitchLinearWarpStripedThreadMap {
     using WarpThreadArrangement = WarpThreadArrangement_;
 
     /// Number of threads per warp
-    static int const kWarpSize = WarpThreadArrangement::kCount;
+    static constexpr int  kWarpSize = WarpThreadArrangement::kCount;
 
     /// Number of participating warps
-    static int const kWarpCount = kThreads / kWarpSize;
+    static constexpr int  kWarpCount = kThreads / kWarpSize;
 
     static_assert(
       !(Shape::kContiguous % kElementsPerAccess),
@@ -693,11 +693,11 @@ struct PitchLinearWarpStripedThreadMap {
 
     // Divide it into the number of warps, first partitioning the strided dimension then the
     // contiguous.
-    static int const kWarpsStrided =
+    static constexpr int  kWarpsStrided =
       (WarpAccessIterations::kStrided >= kWarpCount
         ? kWarpCount : (kWarpCount / WarpAccessIterations::kStrided));
 
-    static int const kWarpsContiguous =
+    static constexpr int  kWarpsContiguous =
       (kWarpCount > WarpAccessIterations::kStrided ?
         WarpAccessIterations::kContiguous / kWarpsStrided : 1);
 
@@ -798,10 +798,10 @@ struct PitchLinear2DThreadTileStripminedThreadMap <Shape_, Threads, cutlass_rt_t
   //using ThreadAccessShape = ThreadTileShape;
 
   /// Number of threads total
-  static int const kThreads = Threads;
+  static constexpr int  kThreads = Threads;
 
   /// Extract length of each access from Layout
-  static int const kElementsPerAccess = ThreadAccessShape::kContiguous;
+  static constexpr int  kElementsPerAccess = ThreadAccessShape::kContiguous;
 
   static_assert(!(kElementsPerAccess % 4) , "kElementsPerAccess, needs to be multiple of 4 (32bits)");
 
@@ -880,10 +880,10 @@ struct TransposePitchLinearThreadMap2DThreadTile {
     using Shape = typename ThreadMap::Shape;
 
     /// Number of threads total
-    static int const kThreads = ThreadMap::kThreads;
+    static constexpr int  kThreads = ThreadMap::kThreads;
 
     /// Extract vector length from Layout
-    static int const kElementsPerAccess = ThreadMap::kElementsPerAccess;
+    static constexpr int  kElementsPerAccess = ThreadMap::kElementsPerAccess;
 
 
     static_assert(kElementsPerAccess > 1 , "Simt transpose requires elements per access to be 1");

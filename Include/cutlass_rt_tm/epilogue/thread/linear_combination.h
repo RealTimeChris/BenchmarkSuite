@@ -72,18 +72,19 @@ public:
   using ElementSource = ElementSource_;
   using ElementAccumulator = ElementAccumulator_;
   using ElementCompute = ElementCompute_;
+
   using ElementScalar = ElementCompute;
   using ElementC = ElementSource_;
   using ElementD = ElementOutput_;
 
-  static int const kCount = Count;
-  static const ScaleType::Kind kScale = Scale;
+  static constexpr int kCount = Count;
+  static constexpr ScaleType::Kind kScale = Scale;
   using FragmentOutput = Array<ElementOutput, kCount>;
   using FragmentSource = Array<ElementSource, kCount>;
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
   using FragmentCompute = Array<ElementCompute, kCount>;
 
-  static FloatRoundStyle const kRound = Round;
+  static constexpr FloatRoundStyle  kRound = Round;
 
   /// Host-constructable parameters structure
   struct Params 
@@ -356,8 +357,8 @@ public:
   using ElementC = ElementSource_;
   using ElementD = ElementOutput_;
 
-  static int const kCount = Count;
-  static const ScaleType::Kind kScale = ScaleType::PerChannelScaling;
+  static constexpr int kCount = Count;
+  static constexpr ScaleType::Kind kScale = ScaleType::PerChannelScaling;
   static constexpr bool IsPerChannelScalingSupported = true;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
@@ -365,7 +366,7 @@ public:
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
   using FragmentCompute = Array<ElementCompute, kCount>;
 
-  static FloatRoundStyle const kRound = Round;
+  static constexpr FloatRoundStyle  kRound = Round;
 
   /// Host-constructable parameters structure
   struct Params

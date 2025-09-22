@@ -97,11 +97,11 @@ struct SparseMma<
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
 
-  static int constexpr kSparse = 2;
+  static constexpr int kSparse = 2;
 
-  static int constexpr kMetaSizeInBits = 2;
+  static constexpr int kMetaSizeInBits = 2;
 
-  static int constexpr kMaxID2 = 1;
+  static constexpr int kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_RT_TM_HOST_DEVICE
@@ -182,11 +182,11 @@ struct SparseMma<
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
 
-  static int constexpr kSparse = 2;
+  static constexpr int kSparse = 2;
 
-  static int constexpr kMetaSizeInBits = 2;
+  static constexpr int kMetaSizeInBits = 2;
 
-  static int constexpr kMaxID2 = 1;
+  static constexpr int kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_RT_TM_HOST_DEVICE
@@ -267,11 +267,11 @@ struct SparseMma<
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
 
-  static int constexpr kSparse = 2;
+  static constexpr int kSparse = 2;
 
-  static int constexpr kMetaSizeInBits = 2;
+  static constexpr int kMetaSizeInBits = 2;
 
-  static int constexpr kMaxID2 = 1;
+  static constexpr int kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_RT_TM_HOST_DEVICE
@@ -352,11 +352,11 @@ struct SparseMma<
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
 
-  static int constexpr kSparse = 2;
+  static constexpr int kSparse = 2;
 
-  static int constexpr kMetaSizeInBits = 2;
+  static constexpr int kMetaSizeInBits = 2;
 
-  static int constexpr kMaxID2 = 1;
+  static constexpr int kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_RT_TM_HOST_DEVICE

@@ -117,7 +117,7 @@ public:
 
   using Shape = Shape_;
   using WarpMmaOperator = WarpMmaOperator_;
-  static int const kPartitionsK = PartitionsK;
+  static constexpr int kPartitionsK = PartitionsK;
   using OutputTileIterator = OutputTileIterator_;
   using AccumulatorFragmentIterator = AccumulatorFragmentIterator_;
   using WarpTileIterator = WarpTileIterator_;
@@ -131,7 +131,7 @@ public:
   using WarpCount = typename Base::WarpCount;
 
   /// Number of threads per block
-  static int const kBlockThreads = 32 * WarpCount::kCount;
+  static constexpr int kBlockThreads = 32 * WarpCount::kCount;
 
   /// Per-thread accumulator tile type
   using AccumulatorTile = typename Base::AccumulatorTile;
@@ -146,7 +146,7 @@ public:
   using ElementOutput = typename OutputTileIterator::Element;
 
   /// Output access size
-  static int const kElementsPerAccess = OutputTileIterator::kElementsPerAccess;
+  static constexpr int kElementsPerAccess = OutputTileIterator::kElementsPerAccess;
 
   /// Tensor reference to destination tensor
   using TensorRef = typename OutputTileIterator::TensorRef;
@@ -164,9 +164,9 @@ public:
   /// Vector type used by the shared output iterator
   using AccumulatorAccessType = Array<typename WarpTileIterator::Element, OutputTileIterator::kElementsPerAccess>;
 
-  static int constexpr kSmemTiles = Base::kFragmentsPerIteration > 1 ? Base::kFragmentsPerIteration : kPartitionsK;
+  static constexpr int kSmemTiles = Base::kFragmentsPerIteration > 1 ? Base::kFragmentsPerIteration : kPartitionsK;
 
-  static int constexpr kSmemPointerOffset = Base::SharedStorage::StorageShape::kCount / kSmemTiles;
+  static constexpr int kSmemPointerOffset = Base::SharedStorage::StorageShape::kCount / kSmemTiles;
 
 
 public:

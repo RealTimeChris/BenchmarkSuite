@@ -72,7 +72,7 @@ struct MmaPolicy {
   using SmemPaddingB = SmemPaddingB_;
 
   /// Number of partitions of K dimension
-  static int constexpr  kPartitionsK = PartitionsK;
+  static constexpr int  kPartitionsK = PartitionsK;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -113,11 +113,11 @@ class MmaBase {
                               Shape::kK / WarpGemm::kK>;
 
   /// Number of warp-level GEMM oeprations
-  static int constexpr  kWarpGemmIterations =
+  static constexpr int  kWarpGemmIterations =
       (WarpGemm::kK / Operator::Policy::MmaShape::kK);
 
   /// Number of stages
-  static int constexpr  kStages = Stages;
+  static constexpr int  kStages = Stages;
 
   /// Tensor reference to the A operand
   using TensorRefA = TensorRef<typename Operator::ElementA, typename Operator::LayoutA>;

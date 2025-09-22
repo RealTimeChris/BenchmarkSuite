@@ -75,7 +75,7 @@ class PredicatedTileAccessIteratorPredicates {
   using Shape = Shape_;
   using Element = Element_;
   using Layout = Layout_;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
   using AccessType = AccessType_;
 
@@ -84,22 +84,22 @@ class PredicatedTileAccessIteratorPredicates {
 
   using TensorCoord = typename Layout::TensorCoord;
 
-  static int const kAccessesPerVector = ThreadMap::kElementsPerAccess / AccessType::kElements;
+  static constexpr int kAccessesPerVector = ThreadMap::kElementsPerAccess / AccessType::kElements;
 
   static_assert(!(ThreadMap::kElementsPerAccess % AccessType::kElements),
     "Vectors implied by the thread map must be divisible by the access type.");
 
-  static int const kPredicatesPerByte = 4;
-  static int const kPredicatesPerWord = 4 * kPredicatesPerByte;
+  static constexpr int kPredicatesPerByte = 4;
+  static constexpr int kPredicatesPerWord = 4 * kPredicatesPerByte;
 
-  static int const kPredicateCount = ThreadMap::Iterations::kCount * kAccessesPerVector;
+  static constexpr int kPredicateCount = ThreadMap::Iterations::kCount * kAccessesPerVector;
 
   /// Number of 32b words containing predicates
-  static int const kPredicateByteCount =
+  static constexpr int kPredicateByteCount =
     (kPredicateCount + kPredicatesPerByte - 1) / kPredicatesPerByte;
-  static int const kPredicateWordCount = (kPredicateByteCount + 3) / 4;
+  static constexpr int kPredicateWordCount = (kPredicateByteCount + 3) / 4;
 
-  static unsigned const kPredicateMask = (1u << kPredicatesPerByte) - 1u;
+  static constexpr unsigned  kPredicateMask = (1u << kPredicatesPerByte) - 1u;
 
   static_assert(kPredicateWordCount <= 4, "Too many predicates.");
 
@@ -338,7 +338,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::PitchLinear,
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::PitchLinear;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
   using AccessType = AccessType_;
 
@@ -355,12 +355,12 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::PitchLinear,
   using UnderlyingPredicates = PredicatedTileAccessIteratorPredicates<
       Shape, Element, Layout, AdvanceRank, ThreadMap, AccessType>;
 
-  static int const kAccessesPerVector = ThreadMap::kElementsPerAccess / AccessType::kElements;
+  static constexpr int kAccessesPerVector = ThreadMap::kElementsPerAccess / AccessType::kElements;
   
   static_assert(!(ThreadMap::kElementsPerAccess % AccessType::kElements), 
     "Vectors implied by the thread map must be divisible by the access type.");
 
-  static bool constexpr Permute = !platform::is_same<PermuteLayout, layout::NoPermute>::value
+  static constexpr bool Permute = !platform::is_same<PermuteLayout, layout::NoPermute>::value
                                && !platform::is_same<PermuteLayout, layout::InversePermute<layout::NoPermute>>::value;
 
   using Mask = typename UnderlyingPredicates::Mask;
@@ -695,7 +695,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::ColumnMajor,
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::ColumnMajor;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
   using AccessType = AccessType_;
 
@@ -717,7 +717,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::ColumnMajor,
   /// Predicate vector stores mask to guard accesses
   using Mask = typename UnderlyingIterator::Mask;
 
-  static int const kAccessesPerVector = UnderlyingIterator::kAccessesPerVector;
+  static constexpr int kAccessesPerVector = UnderlyingIterator::kAccessesPerVector;
 
   /// Parameters object is precomputed state and is host-constructible
   class Params {
@@ -885,7 +885,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::RowMajor,
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::RowMajor;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
   using AccessType = AccessType_;
 
@@ -904,7 +904,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::RowMajor,
       layout::PitchLinear, (kAdvanceRank == 0 ? 1 : 0), ThreadMap, AccessType, 
       Gather, PermuteLayout>;
 
-  static int const kAccessesPerVector = UnderlyingIterator::kAccessesPerVector;
+  static constexpr int kAccessesPerVector = UnderlyingIterator::kAccessesPerVector;
 
   /// Predicate vector stores mask to guard accesses
   using Mask = typename UnderlyingIterator::Mask;
@@ -1074,7 +1074,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRankN<2>,
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::AffineRankN<2>;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
   using AccessType = AccessType_;
 
@@ -1091,7 +1091,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRankN<2>,
   using UnderlyingPredicates = PredicatedTileAccessIteratorPredicates<
       Shape, Element, layout::PitchLinear, AdvanceRank, ThreadMap, AccessType>;
 
-  static int const kAccessesPerVector = ThreadMap::kElementsPerAccess / AccessType::kElements;
+  static constexpr int kAccessesPerVector = ThreadMap::kElementsPerAccess / AccessType::kElements;
 
   static_assert(!(ThreadMap::kElementsPerAccess % AccessType::kElements),
     "Vectors implied by the thread map must be divisible by the access type.");
@@ -1382,7 +1382,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRank2ColumnMa
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::AffineRank2ColumnMajor;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
   using AccessType = AccessType_;
 
@@ -1401,7 +1401,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRank2ColumnMa
       layout::PitchLinearShape<Shape::kRow, Shape::kColumn>, Element,
       layout::AffineRankN<2>, (kAdvanceRank == 0 ? 0 : 1), ThreadMap, AccessType>;
 
-  static int const kAccessesPerVector = UnderlyingIterator::kAccessesPerVector;
+  static constexpr int kAccessesPerVector = UnderlyingIterator::kAccessesPerVector;
 
   /// Predicate vector stores mask to guard accesses
   using Mask = typename UnderlyingIterator::Mask;
@@ -1565,7 +1565,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRank2RowMajor
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::AffineRank2RowMajor;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
   using AccessType = AccessType_;
 
@@ -1584,7 +1584,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRank2RowMajor
       layout::PitchLinearShape<Shape::kColumn, Shape::kRow>, Element,
       layout::AffineRankN<2>, (kAdvanceRank == 0 ? 1 : 0), ThreadMap, AccessType>;
 
-  static int const kAccessesPerVector = UnderlyingIterator::kAccessesPerVector;
+  static constexpr int kAccessesPerVector = UnderlyingIterator::kAccessesPerVector;
 
   /// Predicate vector stores mask to guard accesses
   using Mask = typename UnderlyingIterator::Mask;
@@ -1750,9 +1750,9 @@ class PredicatedTileAccessIterator<Shape_, Element_,
 
   using Shape = Shape_;
   using Element = Element_;
-  static int const kInterleavedK = InterleavedK;
+  static constexpr int kInterleavedK = InterleavedK;
   using Layout = layout::ColumnMajorInterleaved<kInterleavedK>;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
   using AccessType = AccessType_;
 
@@ -1772,7 +1772,7 @@ class PredicatedTileAccessIterator<Shape_, Element_,
       Element, layout::PitchLinear, (kAdvanceRank == 0 ? 0 : 1), ThreadMap,
       AccessType>;
 
-  static int const kAccessesPerVector = UnderlyingIterator::kAccessesPerVector;
+  static constexpr int kAccessesPerVector = UnderlyingIterator::kAccessesPerVector;
 
   /// Predicate vector stores mask to guard accesses
   using Mask = typename UnderlyingIterator::Mask;
@@ -1941,9 +1941,9 @@ class PredicatedTileAccessIterator<Shape_, Element_,
 
   using Shape = Shape_;
   using Element = Element_;
-  static int const kInterleavedK = InterleavedK;
+  static constexpr int kInterleavedK = InterleavedK;
   using Layout = layout::RowMajorInterleaved<kInterleavedK>;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
   using AccessType = AccessType_;
 
@@ -1964,7 +1964,7 @@ class PredicatedTileAccessIterator<Shape_, Element_,
       AccessType>;
 
 
-  static int const kAccessesPerVector = UnderlyingIterator::kAccessesPerVector;
+  static constexpr int kAccessesPerVector = UnderlyingIterator::kAccessesPerVector;
 
   /// Predicate vector stores mask to guard accesses
   using Mask = typename UnderlyingIterator::Mask;

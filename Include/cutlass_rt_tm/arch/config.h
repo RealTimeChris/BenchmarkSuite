@@ -225,6 +225,22 @@
 #  define CUTLASS_RT_TM_ARCH_CLC_ENABLED
 #endif
 
+struct block_q8_0 {
+	static constexpr int kBlockSize = 32;// or whatever block size you're using
+
+	half scale;// FP16 scale factor for the block
+	int8_t quants[kBlockSize];// Quantized 8-bit values
+
+	// Dequantization method
+	CUTLASS_RT_TM_HOST_DEVICE
+	__forceinline__ void dequantize_to(float* output) const {
+		float scale_f = __half2float(scale);
+#pragma unroll
+		for (int i = 0; i < kBlockSize; ++i) {
+			output[i] = scale_f * static_cast<float>(quants[i]);
+		}
+	}
+};
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 

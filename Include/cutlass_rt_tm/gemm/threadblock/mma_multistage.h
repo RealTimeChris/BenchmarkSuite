@@ -126,38 +126,38 @@ public:
   using ArchTag = arch::Sm80;
 
   /// Complex transform on A operand
-  static ComplexTransform const kTransformA = Operator::kTransformA;
+  static constexpr ComplexTransform  kTransformA = Operator::kTransformA;
 
   /// Complex transform on B operand
-  static ComplexTransform const kTransformB = Operator::kTransformB;
+  static constexpr ComplexTransform  kTransformB = Operator::kTransformB;
 
   /// Internal structure exposed for introspection.
   struct Detail {
 
     /// Number of cp.async instructions to load one stage of operand A
-    static int constexpr  AsyncCopyIterationsPerStageA =
+    static constexpr int  AsyncCopyIterationsPerStageA =
         IteratorA::ThreadMap::Iterations::kCount;
 
     /// Number of cp.async instructions to load one stage of operand B
-    static int constexpr  AsyncCopyIterationsPerStageB =
+    static constexpr int  AsyncCopyIterationsPerStageB =
         IteratorB::ThreadMap::Iterations::kCount;
 
     /// Number of stages
-    static int constexpr  kStages = Stages;
+    static constexpr int  kStages = Stages;
 
     /// Number of cp.async instructions to load on group of operand A
-    static int constexpr  kAccessesPerGroupA =
+    static constexpr int  kAccessesPerGroupA =
         (AsyncCopyIterationsPerStageA + Base::kWarpGemmIterations - 1) / Base::kWarpGemmIterations;
 
     /// Number of cp.async instructions to load on group of operand B
-    static int constexpr  kAccessesPerGroupB =
+    static constexpr int  kAccessesPerGroupB =
         (AsyncCopyIterationsPerStageB + Base::kWarpGemmIterations - 1) / Base::kWarpGemmIterations;
 
     // Optional staged-accumulation (e.g., tf32x3 kernels) for improved numerical
     // accuracy, where each mainloop iteration first accumulates into a temporary
     // set of freshly-cleared accumulators, which are subsequently added to the
     // final accumulator set.
-    static bool const kStagedAccumulation = arch::detail::UseStagedAccumulation<Operator>::value;
+    static constexpr bool kStagedAccumulation = arch::detail::UseStagedAccumulation<Operator>::value;
   };
 
  private:

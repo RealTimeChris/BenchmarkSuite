@@ -56,7 +56,7 @@ namespace threadblock {
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Threadblock swizzling function for GEMMs
-template<uint64_t M, uint64_t N, int N_count = 1> struct GemmIdentityThreadblockSwizzle {
+template<uint64_t M, uint64_t K, int N_count = 1> struct GemmIdentityThreadblockSwizzle {
 	CUTLASS_RT_TM_HOST_DEVICE
 	GemmIdentityThreadblockSwizzle() {
 	}
@@ -64,8 +64,8 @@ template<uint64_t M, uint64_t N, int N_count = 1> struct GemmIdentityThreadblock
 	/// Returns the shape of the problem in units of logical tiles
 	/// *Gemm* problem size: gemm(M, N_count, K)
 	CUTLASS_RT_TM_HOST_DEVICE
-	static GemmCoord get_tiled_shape(GemmCoord problem_size, GemmCoord tile_size, int split_k_slices) {
-		return GemmCoord((problem_size.m() + tile_size.m() - 1) / tile_size.m(), (problem_size.n() + tile_size.n() - 1) / tile_size.n(), split_k_slices);
+	static GemmCoord get_tiled_shape(uint64_t N, GemmCoord tile_size, int split_k_slices) {
+		return GemmCoord((M + tile_size.m() - 1) / tile_size.m(), (N + tile_size.n() - 1) / tile_size.n(), split_k_slices);
 	}
 
 	/// Returns the shape of the problem in units of logical tiles
@@ -75,7 +75,7 @@ template<uint64_t M, uint64_t N, int N_count = 1> struct GemmIdentityThreadblock
 		int split_k_slices) {
 		gemm::GemmCoord implicit_gemm_problem_size = cutlass_rt_tm::conv::implicit_gemm_problem_size(conv_operator, problem_size);
 
-		return get_tiled_shape(implicit_gemm_problem_size, tile_size, split_k_slices);
+		return get_tiled_shape(implicit_gemm_problem_size.n(), tile_size, split_k_slices);
 	}
 
 	/// Returns the shape of the problem in units of logical tiles
@@ -85,7 +85,7 @@ template<uint64_t M, uint64_t N, int N_count = 1> struct GemmIdentityThreadblock
 		int split_k_slices) {
 		gemm::GemmCoord implicit_gemm_problem_size = cutlass_rt_tm::conv::implicit_gemm_problem_size(conv_operator, problem_size);
 
-		return get_tiled_shape(implicit_gemm_problem_size, tile_size, split_k_slices);
+		return get_tiled_shape(implicit_gemm_problem_size.n(), tile_size, split_k_slices);
 	}
 
 	/// Computes CUDA grid dimensions given a size in units of logical tiles
@@ -124,7 +124,7 @@ template<uint64_t M, uint64_t N, int N_count = 1> struct GemmIdentityThreadblock
 	/// Obtains the threadblock offset (in units of threadblock-scoped tiles)
 	CUTLASS_RT_TM_DEVICE
 	static GemmCoord get_tile_offset(GemmCoord tiled_shape) {
-		int const kTile = N_count;
+		int constexpr kTile = N_count;
 		int block_idx_x = RematerializeBlockIdxX();
 		int block_idx_y = RematerializeBlockIdxY();
 

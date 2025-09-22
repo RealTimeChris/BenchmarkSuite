@@ -66,51 +66,51 @@ int SmId() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 struct Sm50 {
-  static int constexpr kMinComputeCapability = 50;
+  static constexpr int kMinComputeCapability = 50;
 }; 
 struct Sm60 {
-  static int constexpr kMinComputeCapability = 60;
+  static constexpr int kMinComputeCapability = 60;
 }; 
 struct Sm61 {
-  static int constexpr kMinComputeCapability = 61;
+  static constexpr int kMinComputeCapability = 61;
 };
 struct Sm70 {
-  static int constexpr kMinComputeCapability = 70;
+  static constexpr int kMinComputeCapability = 70;
 };
 struct Sm72 {
-  static int constexpr kMinComputeCapability = 72;
+  static constexpr int kMinComputeCapability = 72;
 };
 struct Sm75 {
-  static int constexpr kMinComputeCapability = 75;
+  static constexpr int kMinComputeCapability = 75;
 };
 struct Sm80 {
-  static int constexpr kMinComputeCapability = 80; 
+  static constexpr int kMinComputeCapability = 80; 
 };
 struct Sm86 {
-  static int constexpr kMinComputeCapability = 86;
+  static constexpr int kMinComputeCapability = 86;
 };
 struct Sm89 {
-  static int constexpr kMinComputeCapability = 89;
+  static constexpr int kMinComputeCapability = 89;
 };
 struct Sm90 {
-  static int constexpr kMinComputeCapability = 90; 
+  static constexpr int kMinComputeCapability = 90; 
 };
 
 
 struct Sm100 {
-  static int constexpr kMinComputeCapability = 100; 
+  static constexpr int kMinComputeCapability = 100; 
 };
 
 struct Sm101 {
-  static int constexpr kMinComputeCapability = 101; 
+  static constexpr int kMinComputeCapability = 101; 
 };
 
 struct Sm120 {
-  static int constexpr kMinComputeCapability = 120;
+  static constexpr int kMinComputeCapability = 120;
 };
 
 struct Sm103 {
-  static int constexpr kMinComputeCapability = 103; 
+  static constexpr int kMinComputeCapability = 103; 
 };
 
 /// Triggers a breakpoint on the device

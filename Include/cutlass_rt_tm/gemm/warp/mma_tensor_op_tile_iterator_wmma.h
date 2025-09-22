@@ -109,7 +109,7 @@ class MmaTensorOpWmmaMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kA;
+  static constexpr Operand  kOperand = Operand::kA;
 
   /// Element type
   using Element = Element_;
@@ -118,7 +118,7 @@ class MmaTensorOpWmmaMultiplicandTileIterator<
   using Layout = Layout_;
 
   /// Delta between *WMMA operations
-  static int constexpr  kOpDelta = OpDelta_;
+  static constexpr int  kOpDelta = OpDelta_;
 
   /// Wmma Operator information and operation delta
   using Policy = Policy_;
@@ -356,7 +356,7 @@ class MmaTensorOpWmmaMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kB;
+  static constexpr Operand  kOperand = Operand::kB;
 
   /// Element type
   using Element = Element_;
@@ -365,7 +365,7 @@ class MmaTensorOpWmmaMultiplicandTileIterator<
   using Layout = Layout_;
 
   /// Delta between *WMMA operations
-  static int constexpr  kOpDelta = OpDelta_;
+  static constexpr int  kOpDelta = OpDelta_;
 
   /// Wmma Operator information and operation delta
   using Policy = Policy_;
@@ -624,7 +624,7 @@ class MmaTensorOpWmmaAccumulatorTileIterator
   using OpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int constexpr  kThreads = 32;
+  static constexpr int  kThreads = 32;
 
   /// Wmma Operator information and operation delta
   using Policy = Policy_;

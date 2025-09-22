@@ -69,7 +69,7 @@ protected:
                         PartitionsK>;
 
   /// Number of threads per block
-  static int const kBlockThreads = 32 * WarpCount::kCount;
+  static constexpr int  kBlockThreads = 32 * WarpCount::kCount;
 
   /// Numerical accumulation element type
   using ElementAccumulator = typename WarpMmaOperator::ElementC;
@@ -80,23 +80,23 @@ protected:
 public:
 
   /// Number of AccumulatorTile fragments per thread
-  static int const kAccumulatorFragments = AccumulatorFragmentIterator::Policy::kIterations;
+  static constexpr int  kAccumulatorFragments = AccumulatorFragmentIterator::Policy::kIterations;
 
 protected:
 
   /// Number of AccumulatorTile fragments per block output tile
-  static int const kOutputTileFragments = kBlockThreads * kAccumulatorFragments;
+  static constexpr int  kOutputTileFragments = kBlockThreads * kAccumulatorFragments;
 
   /// Block-striped transfer utility for sharing AccumulatorFragment
   using BlockStripedT = BlockStriped<kBlockThreads, AccumulatorFragment>;
 
   /// AccumulatorFragment stride in the shared workspace between different peer blocks (each thread block can share accumulators for up to two block output tiles)
-  static const int kPeerFragmentStride = kOutputTileFragments * 2;
+  static constexpr int kPeerFragmentStride = kOutputTileFragments * 2;
 
 public:
 
   /// Workspace bytes per thread block
-  static size_t const kWorkspaceBytesPerBlock =sizeof(AccumulatorFragment) * kPeerFragmentStride;
+  static constexpr size_t  kWorkspaceBytesPerBlock =sizeof(AccumulatorFragment) * kPeerFragmentStride;
 
 public:
 

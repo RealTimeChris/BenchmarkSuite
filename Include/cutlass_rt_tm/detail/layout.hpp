@@ -228,7 +228,7 @@ stride_to_layout_tag_A() {
     return layout::RowMajor{};
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 template<class StrideB>
@@ -246,7 +246,7 @@ stride_to_layout_tag_B() {
     return layout::ColumnMajor{};
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 template<class StrideC>
@@ -264,7 +264,7 @@ stride_to_layout_tag_C() {
     return layout::RowMajor{};
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 // Utilities to map Stride back on to their corresponding layout tags

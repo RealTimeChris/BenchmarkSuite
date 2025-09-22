@@ -206,23 +206,23 @@ public:
   using InstructionShape = typename ArchMmaOperator::Shape;
 
   /// Complex transform on A operand
-  static ComplexTransform const kTransformA = ComplexTransform::kNone;
+  static constexpr ComplexTransform  kTransformA = ComplexTransform::kNone;
 
   /// Complex transform on B operand
-  static ComplexTransform const kTransformB = ComplexTransform::kNone;
+  static constexpr ComplexTransform  kTransformB = ComplexTransform::kNone;
 
   /// Number of threads participating in warp-level matrix product
-  static int constexpr  kThreadCount = 32;
+  static constexpr int  kThreadCount = 32;
 
   /// Number of partitions along K dimension
-  static int constexpr  kPartitionsK = PartitionsK_;
+  static constexpr int  kPartitionsK = PartitionsK_;
 
   #if defined(__CUDA_ARCH__) && ((__CUDA_ARCH__ < 800) || (__CUDA_ARCH__ == 890)) 
-    static int constexpr  kVerticalVisit = true;
+    static constexpr int  kVerticalVisit = true;
   #elif defined(__CUDA_ARCH__) && (__CUDA_ARCH__ == 1200) 
-    static int constexpr  kVerticalVisit = true;
+    static constexpr int  kVerticalVisit = true;
   #else
-    static int constexpr  kVerticalVisit = false;
+    static constexpr int  kVerticalVisit = false;
   #endif
 
 public:

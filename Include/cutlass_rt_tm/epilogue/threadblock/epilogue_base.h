@@ -66,7 +66,7 @@ namespace threadblock {
 
 //
 // This is used for metaprogramming epilogue functors. If they define 
-// `static bool const kIsHeavy = true;`, then the epilogue functor itself is
+// `static constexpr bool kIsHeavy = true;`, then the epilogue functor itself is
 // not inlined. This results in smaller code and is advantageous if the epilogue
 // functor consists of many instructions.
 //
@@ -81,11 +81,11 @@ struct TypeSink {  typedef void type; };
 template<class T> using TypeSinkT = typename TypeSink<T>::type;
 
 template<class T, class=void> struct IsEpilogueFunctorHeavy {
-  static bool const value = false;
+  static constexpr bool value = false;
 };
 
 template<class T> struct IsEpilogueFunctorHeavy<T, TypeSinkT< decltype( T::kIsHeavy ) > > {
-  static bool const value = T::kIsHeavy;
+  static constexpr bool value = T::kIsHeavy;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -105,7 +105,7 @@ public:
 
   using Shape = Shape_;
   using WarpShape = WarpShape_;
-  static int const kPartitionsK = PartitionsK;
+  static constexpr int kPartitionsK = PartitionsK;
   using AccumulatorFragmentIterator = AccumulatorFragmentIterator_;
   using WarpTileIterator = WarpTileIterator_;
   using Padding = Padding_;
@@ -127,7 +127,7 @@ public:
   >;
 
   /// Use this to control the granularity of one epilogue 'iteration'
-  static int const kFragmentsPerIteration = FragmentsPerIteration;
+  static constexpr int kFragmentsPerIteration = FragmentsPerIteration;
 
 public:
 

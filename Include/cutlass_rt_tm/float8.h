@@ -1334,19 +1334,19 @@ struct float8_base_numeric_limits {
 private:
   using F8Type = T;
 public:
-  static bool const is_specialized = true;
-  static bool const is_signed = true;
-  static bool const is_integer = false;
-  static bool const is_exact = false;
-  static bool const has_quiet_NaN = true;
-  static bool const has_signaling_NaN = false;
-  static std::float_denorm_style const has_denorm = std::denorm_present;
-  static bool const has_denorm_loss = true;
-  static std::float_round_style const round_style = std::round_to_nearest;
-  static bool const is_iec559 = false;
-  static bool const is_bounded = true;
-  static bool const is_modulo = false;
-  static int constexpr digits = F8Type::FP8_NUM_MANTISSA_BITS;
+  static constexpr bool is_specialized = true;
+  static constexpr bool is_signed = true;
+  static constexpr bool is_integer = false;
+  static constexpr bool is_exact = false;
+  static constexpr bool has_quiet_NaN = true;
+  static constexpr bool has_signaling_NaN = false;
+  static constexpr std::float_denorm_style has_denorm = std::denorm_present;
+  static constexpr bool has_denorm_loss = true;
+  static constexpr std::float_round_style round_style = std::round_to_nearest;
+  static constexpr bool is_iec559 = false;
+  static constexpr bool is_bounded = true;
+  static constexpr bool is_modulo = false;
+  static constexpr int digits = F8Type::FP8_NUM_MANTISSA_BITS;
 
   /// Least positive value
   CUTLASS_RT_TM_HOST_DEVICE
@@ -1381,7 +1381,7 @@ public:
 template <>
 struct numeric_limits<cutlass_rt_tm::float_e4m3_t> :
     public float8_base_numeric_limits<cutlass_rt_tm::float_e4m3_t> {
-  static bool const has_infinity = false;
+  static constexpr bool has_infinity = false;
 
   /// Minimum finite value
   static cutlass_rt_tm::float_e4m3_t lowest() { return cutlass_rt_tm::float_e4m3_t::bitcast(0xfe); }
@@ -1394,7 +1394,7 @@ struct numeric_limits<cutlass_rt_tm::float_e4m3_t> :
 template <>
 struct numeric_limits<cutlass_rt_tm::float_e5m2_t>  :
     public float8_base_numeric_limits<cutlass_rt_tm::float_e5m2_t> {
-  static bool const has_infinity = true;
+  static constexpr bool has_infinity = true;
 
   /// Minimum finite value
   static cutlass_rt_tm::float_e5m2_t lowest() { return cutlass_rt_tm::float_e5m2_t::bitcast(0xfb); }
@@ -1411,20 +1411,20 @@ private:
   using type = T;
 
 public:
-  static bool const is_specialized = true;
-  static bool const is_signed = true;
-  static bool const is_integer = false;
-  static bool const is_exact = false;
-  static bool const has_quiet_NaN = true;
-  static bool const has_signaling_NaN = false;
-  static bool const has_denorm_loss = true;
-  static cutlass_rt_tm::platform::float_denorm_style const has_denorm = cutlass_rt_tm::platform::denorm_present;
-  static cutlass_rt_tm::platform::float_round_style const round_style = cutlass_rt_tm::platform::round_to_nearest;
-  static bool const is_iec559 = false;
-  static bool const is_bounded = true;
-  static bool const is_modulo = false;
-  static int constexpr digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
-  static bool const has_infinity = false;
+  static constexpr bool is_specialized = true;
+  static constexpr bool is_signed = true;
+  static constexpr bool is_integer = false;
+  static constexpr bool is_exact = false;
+  static constexpr bool has_quiet_NaN = true;
+  static constexpr bool has_signaling_NaN = false;
+  static constexpr bool has_denorm_loss = true;
+  static constexpr cutlass_rt_tm::platform::float_denorm_style has_denorm = cutlass_rt_tm::platform::denorm_present;
+  static constexpr cutlass_rt_tm::platform::float_round_style round_style  = cutlass_rt_tm::platform::round_to_nearest;
+  static constexpr bool is_iec559 = false;
+  static constexpr bool is_bounded = true;
+  static constexpr bool is_modulo = false;
+  static constexpr int digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
+  static constexpr bool has_infinity = false;
 
   /// Least positive value
   CUTLASS_RT_TM_HOST_DEVICE
@@ -1459,8 +1459,8 @@ public:
 template <>
 struct numeric_limits<cutlass_rt_tm::float_ue8m0_t> :
     public float8_exmy_numeric_limits<cutlass_rt_tm::float_ue8m0_t> {
-  static bool const has_infinity = false;
-  static bool const is_signed = false;
+  static constexpr bool has_infinity = false;
+  static constexpr bool is_signed = false;
 
   /// Minimum finite value
   static cutlass_rt_tm::float_ue8m0_t lowest() { return cutlass_rt_tm::float_ue8m0_t::bitcast(0xfe); }
@@ -1482,23 +1482,23 @@ struct float8_base_numeric_limits {
 private:
   using F8Type = T;
 public:
-  static bool const is_specialized = true;
-  static bool const is_signed = true;
-  static bool const is_integer = false;
-  static bool const is_exact = false;
-  static bool const has_quiet_NaN = true;
-  static bool const has_signaling_NaN = false;
+  static constexpr bool is_specialized = true;
+  static constexpr bool is_signed = true;
+  static constexpr bool is_integer = false;
+  static constexpr bool is_exact = false;
+  static constexpr bool has_quiet_NaN = true;
+  static constexpr bool has_signaling_NaN = false;
 #if !defined(__CUDACC_RTC__)
   static std::float_denorm_style const has_denorm = std::denorm_present;
 #endif
-  static bool const has_denorm_loss = true;
+  static constexpr bool has_denorm_loss = true;
 #if !defined(__CUDACC_RTC__)
   static std::float_round_style const round_style = std::round_to_nearest;
 #endif
-  static bool const is_iec559 = false;
-  static bool const is_bounded = true;
-  static bool const is_modulo = false;
-  static int constexpr digits = F8Type::FP8_NUM_MANTISSA_BITS;
+  static constexpr bool is_iec559 = false;
+  static constexpr bool is_bounded = true;
+  static constexpr bool is_modulo = false;
+  static constexpr int digits = F8Type::FP8_NUM_MANTISSA_BITS;
 
   /// Least positive value
   CUTLASS_RT_TM_HOST_DEVICE
@@ -1537,7 +1537,7 @@ struct numeric_limits;
 template <>
 struct numeric_limits<cutlass_rt_tm::float_e4m3_t> :
     public float8_base_numeric_limits<cutlass_rt_tm::float_e4m3_t> {
-  static bool const has_infinity = false;
+  static constexpr bool has_infinity = false;
 
   /// Minimum finite value
   static cutlass_rt_tm::float_e4m3_t lowest() { return cutlass_rt_tm::float_e4m3_t::bitcast(0xfe); }
@@ -1550,7 +1550,7 @@ struct numeric_limits<cutlass_rt_tm::float_e4m3_t> :
 template <>
 struct numeric_limits<cutlass_rt_tm::float_e5m2_t>  :
     public float8_base_numeric_limits<cutlass_rt_tm::float_e5m2_t> {
-  static bool const has_infinity = true;
+  static constexpr bool has_infinity = true;
 
   /// Minimum finite value
   static cutlass_rt_tm::float_e5m2_t lowest() { return cutlass_rt_tm::float_e5m2_t::bitcast(0xfb); }
@@ -1567,20 +1567,20 @@ private:
   using type = T;
 
 public:
-  static bool const is_specialized = true;
-  static bool const is_signed = true;
-  static bool const is_integer = false;
-  static bool const is_exact = false;
-  static bool const has_quiet_NaN = true;
-  static bool const has_signaling_NaN = false;
-  static bool const has_denorm_loss = true;
-  static cutlass_rt_tm::platform::float_denorm_style const has_denorm = cutlass_rt_tm::platform::denorm_present;
-  static cutlass_rt_tm::platform::float_round_style const round_style = cutlass_rt_tm::platform::round_to_nearest;
-  static bool const is_iec559 = false;
-  static bool const is_bounded = true;
-  static bool const is_modulo = false;
-  static int constexpr digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
-  static bool const has_infinity = false;
+  static constexpr bool is_specialized = true;
+  static constexpr bool is_signed = true;
+  static constexpr bool is_integer = false;
+  static constexpr bool is_exact = false;
+  static constexpr bool has_quiet_NaN = true;
+  static constexpr bool has_signaling_NaN = false;
+  static constexpr bool has_denorm_loss = true;
+  static constexpr cutlass_rt_tm::platform::float_denorm_style has_denorm = cutlass_rt_tm::platform::denorm_present;
+  static constexpr cutlass_rt_tm::platform::float_round_style round_style = cutlass_rt_tm::platform::round_to_nearest;
+  static constexpr bool is_iec559 = false;
+  static constexpr bool is_bounded = true;
+  static constexpr bool is_modulo = false;
+  static constexpr int digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
+  static constexpr bool has_infinity = false;
 
   /// Least positive value
   CUTLASS_RT_TM_HOST_DEVICE
@@ -1615,8 +1615,8 @@ public:
 template <>
 struct numeric_limits<cutlass_rt_tm::float_ue8m0_t> :
     public float8_exmy_numeric_limits<cutlass_rt_tm::float_ue8m0_t> {
-  static bool const has_infinity = false;
-  static bool const is_signed = false;
+  static constexpr bool has_infinity = false;
+  static constexpr bool is_signed = false;
 
   /// Minimum finite value
   static cutlass_rt_tm::float_ue8m0_t lowest() { return cutlass_rt_tm::float_ue8m0_t::bitcast(0xfe); }

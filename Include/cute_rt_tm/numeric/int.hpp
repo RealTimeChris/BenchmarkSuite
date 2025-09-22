@@ -36,7 +36,7 @@
 #include <cstdint>
 #endif
 
-#include <cute_rt_tm/config.hpp>          // CUTE_STL_NAMESPACE
+#include <cute_rt_tm/config.hpp>          // CUTE_RT_TM_STL_NAMESPACE
 
 #include <cutlass_rt_tm/numeric_types.h>  // cutlass_rt_tm::int2b_t, cutlass_rt_tm::int4b_t
 
@@ -50,10 +50,10 @@ namespace cute_rt_tm
 using int2_t = cutlass_rt_tm::int2b_t;
 using int4_t = cutlass_rt_tm::int4b_t;
 using int6_t = cutlass_rt_tm::int6b_t;
-using CUTE_STL_NAMESPACE::int8_t;
-using CUTE_STL_NAMESPACE::int16_t;
-using CUTE_STL_NAMESPACE::int32_t;
-using CUTE_STL_NAMESPACE::int64_t;
+using CUTE_RT_TM_STL_NAMESPACE::int8_t;
+using CUTE_RT_TM_STL_NAMESPACE::int16_t;
+using CUTE_RT_TM_STL_NAMESPACE::int32_t;
+using CUTE_RT_TM_STL_NAMESPACE::int64_t;
 
 template <int N> struct int_bit;
 template <> struct int_bit<  2>  { using type = int2_t; };
@@ -80,10 +80,10 @@ using uint1_t = cutlass_rt_tm::uint1b_t;
 using uint2_t = cutlass_rt_tm::uint2b_t;
 using uint4_t = cutlass_rt_tm::uint4b_t;
 using uint6_t = cutlass_rt_tm::uint6b_t;
-using CUTE_STL_NAMESPACE::uint8_t;
-using CUTE_STL_NAMESPACE::uint16_t;
-using CUTE_STL_NAMESPACE::uint32_t;
-using CUTE_STL_NAMESPACE::uint64_t;
+using CUTE_RT_TM_STL_NAMESPACE::uint8_t;
+using CUTE_RT_TM_STL_NAMESPACE::uint16_t;
+using CUTE_RT_TM_STL_NAMESPACE::uint32_t;
+using CUTE_RT_TM_STL_NAMESPACE::uint64_t;
 using cutlass_rt_tm::uint128_t;
 using cutlass_rt_tm::uint256_t;
 

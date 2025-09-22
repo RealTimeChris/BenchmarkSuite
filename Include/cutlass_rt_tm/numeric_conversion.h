@@ -75,7 +75,7 @@ struct NumericConverter {
 
   using result_type = T;
   using source_type = S;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -100,7 +100,7 @@ struct NumericConverter<int32_t, float, FloatRoundStyle::round_to_nearest> {
 
   using result_type = int32_t;
   using source_type = float;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -123,7 +123,7 @@ struct NumericConverter<int32_t, float, FloatRoundStyle::round_toward_zero> {
 
   using result_type = int32_t;
   using source_type = float;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_toward_zero;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_zero;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -152,7 +152,7 @@ struct NumericConverter<int8_t, float, FloatRoundStyle::round_to_nearest> {
 
   using result_type = int8_t;
   using source_type = float;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -182,7 +182,7 @@ struct NumericConverter<int8_t, float, FloatRoundStyle::round_toward_zero> {
 
   using result_type = int8_t;
   using source_type = float;
-  static FloatRoundStyle const round_style =  FloatRoundStyle::round_toward_zero;
+  static constexpr FloatRoundStyle  round_style =  FloatRoundStyle::round_toward_zero;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -212,7 +212,7 @@ struct NumericConverter<uint8_t, float, FloatRoundStyle::round_to_nearest> {
 
   using result_type = uint8_t;
   using source_type = float;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -242,7 +242,7 @@ struct NumericConverter<uint8_t, float, FloatRoundStyle::round_toward_zero> {
 
   using result_type = uint8_t;
   using source_type = float;
-  static FloatRoundStyle const round_style =  FloatRoundStyle::round_toward_zero;
+  static constexpr FloatRoundStyle  round_style =  FloatRoundStyle::round_toward_zero;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -278,7 +278,7 @@ struct NumericConverter<int8_t, cutlass_rt_tm::half_t, FloatRoundStyle::round_to
 
   using result_type = int8_t;
   using source_type = cutlass_rt_tm::half_t;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -373,7 +373,7 @@ struct NumericConverter<T, T, Round> {
 
   using result_type = T;
   using source_type = T;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -399,7 +399,7 @@ struct NumericConverter<float, cutlass_rt_tm::half_t, Round> {
 
   using result_type = float;
   using source_type = cutlass_rt_tm::half_t;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -421,7 +421,7 @@ struct NumericConverter<cutlass_rt_tm::half_t, float, FloatRoundStyle::round_to_
 
   using result_type = cutlass_rt_tm::half_t;
   using source_type = float;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -443,7 +443,7 @@ struct NumericConverter<cutlass_rt_tm::half_t, float, FloatRoundStyle::round_tow
 
   using result_type = cutlass_rt_tm::half_t;
   using source_type = float;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_toward_zero;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_zero;
 
   /// Round toward zero
   CUTLASS_RT_TM_HOST_DEVICE
@@ -517,7 +517,7 @@ struct NumericConverter<float, cutlass_rt_tm::bfloat16_t, Round> {
 
   using result_type = float;
   using source_type = cutlass_rt_tm::bfloat16_t;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -535,7 +535,7 @@ template <>
 struct NumericConverter<cutlass_rt_tm::bfloat16_t, float, FloatRoundStyle::round_to_nearest> {
   using result_type = cutlass_rt_tm::bfloat16_t;
   using source_type = float;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -552,7 +552,7 @@ template <>
 struct NumericConverter<cutlass_rt_tm::bfloat16_t, float, FloatRoundStyle::round_half_ulp_truncate> {
   using result_type = cutlass_rt_tm::bfloat16_t;
   using source_type = float;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_half_ulp_truncate;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_half_ulp_truncate;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -582,7 +582,7 @@ template <>
 struct NumericConverter<cutlass_rt_tm::bfloat16_t, float, FloatRoundStyle::round_toward_zero> {
   using result_type = cutlass_rt_tm::bfloat16_t;
   using source_type = float;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_toward_zero;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_zero;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -611,7 +611,7 @@ struct NumericConverter<float, cutlass_rt_tm::tfloat32_t, Round> {
 
   using result_type = float;
   using source_type = cutlass_rt_tm::tfloat32_t;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -629,7 +629,7 @@ template <>
 struct NumericConverter<cutlass_rt_tm::tfloat32_t, float, FloatRoundStyle::round_to_nearest> {
   using result_type = cutlass_rt_tm::tfloat32_t;
   using source_type = float;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -679,7 +679,7 @@ template <>
 struct NumericConverter<cutlass_rt_tm::tfloat32_t, float, FloatRoundStyle::round_half_ulp_truncate> {
   using result_type = cutlass_rt_tm::tfloat32_t;
   using source_type = float;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_half_ulp_truncate;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_half_ulp_truncate;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -698,7 +698,7 @@ template <>
 struct NumericConverter<cutlass_rt_tm::tfloat32_t, float, FloatRoundStyle::round_half_ulp_trunc_dntz> {
   using result_type = cutlass_rt_tm::tfloat32_t;
   using source_type = float;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_half_ulp_trunc_dntz;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_half_ulp_trunc_dntz;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -721,7 +721,7 @@ template <>
 struct NumericConverter<cutlass_rt_tm::tfloat32_t, float, FloatRoundStyle::round_toward_zero> {
   using result_type = cutlass_rt_tm::tfloat32_t;
   using source_type = float;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_toward_zero;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_zero;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -753,8 +753,8 @@ struct NumericConverterFastF32 {
   using source_type = float;
 
   // rounding styles for big and small part
-  static FloatRoundStyle const kRoundBig = RoundBig;
-  static FloatRoundStyle const kRoundSmall = RoundSmall;
+  static constexpr FloatRoundStyle  kRoundBig = RoundBig;
+  static constexpr FloatRoundStyle  kRoundSmall = RoundSmall;
 
   CUTLASS_RT_TM_HOST_DEVICE
     static result_type convert(source_type const & source) {
@@ -851,7 +851,7 @@ struct NumericArrayConverter {
 
   using result_type = Array<T, N>;
   using source_type = Array<S, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   static_assert(platform::is_same<Transform, cutlass_rt_tm::transform::thread::UnaryTransform::Identity>::value ||
                 platform::is_same<Transform, cutlass_rt_tm::transform::thread::UnaryTransform::Conjugate>::value,
@@ -891,7 +891,7 @@ struct NumericArrayConverter<T, T, N, Round, Transform> {
 
   using result_type = Array<T, N>;
   using source_type = Array<T, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   static_assert(platform::is_same<Transform, cutlass_rt_tm::transform::thread::UnaryTransform::Identity>::value ||
                 platform::is_same<Transform, cutlass_rt_tm::transform::thread::UnaryTransform::Conjugate>::value,
@@ -924,7 +924,7 @@ struct NumericArrayConverter<cutlass_rt_tm::half_t, float, 2, FloatRoundStyle::r
 
   using result_type = Array<cutlass_rt_tm::half_t, 2>;
   using source_type = Array<float, 2>;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -957,7 +957,7 @@ struct NumericArrayConverter<float, cutlass_rt_tm::half_t, 2, Round> {
 
   using result_type = Array<float, 2>;
   using source_type = Array<cutlass_rt_tm::half_t, 2>;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -994,7 +994,7 @@ struct NumericArrayConverter<cutlass_rt_tm::half_t, float, N, Round> {
 
   using result_type = Array<cutlass_rt_tm::half_t, N>;
   using source_type = Array<float, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -1035,7 +1035,7 @@ struct NumericArrayConverter<float, cutlass_rt_tm::half_t, N, Round> {
 
   using result_type = Array<float, N>;
   using source_type = Array<cutlass_rt_tm::half_t, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -1077,7 +1077,7 @@ struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, float, 2, FloatRoundStyl
 
   using result_type = Array<cutlass_rt_tm::bfloat16_t, 2>;
   using source_type = Array<float, 2>;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -1102,7 +1102,7 @@ struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, float, 2, FloatRoundStyl
 
   using result_type = Array<cutlass_rt_tm::bfloat16_t, 2>;
   using source_type = Array<float, 2>;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_to_nearest_satfinite;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest_satfinite;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -1132,7 +1132,7 @@ struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, float, N, Round> {
 
   using result_type = Array<cutlass_rt_tm::bfloat16_t, N>;
   using source_type = Array<float, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -1180,7 +1180,7 @@ struct NumericArrayConverter<int8_t, int, 1, Round> {
 
   using result_type = Array<int8_t, 1>;
   using source_type = Array<int, 1>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -1207,7 +1207,7 @@ struct NumericArrayConverter<int8_t, int, 2, Round> {
 
   using result_type = Array<int8_t, 2>;
   using source_type = Array<int, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -1236,7 +1236,7 @@ struct NumericArrayConverter<int8_t, int, 4, Round> {
 
   using result_type = Array<int8_t, 4>;
   using source_type = Array<int, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -1269,7 +1269,7 @@ struct NumericArrayConverter<int8_t, int, N, Round> {
 
   using result_type = Array<int8_t, N>;
   using source_type = Array<int, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -1303,7 +1303,7 @@ struct NumericArrayConverter<uint8_t, int, 1, Round> {
 
   using result_type = Array<uint8_t, 1>;
   using source_type = Array<int, 1>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -1330,7 +1330,7 @@ struct NumericArrayConverter<uint8_t, int, 2, Round> {
 
   using result_type = Array<uint8_t, 2>;
   using source_type = Array<int, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -1359,7 +1359,7 @@ struct NumericArrayConverter<uint8_t, int, 4, Round> {
 
   using result_type = Array<uint8_t, 4>;
   using source_type = Array<int, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -1392,7 +1392,7 @@ struct NumericArrayConverter<uint8_t, int, N, Round> {
 
   using result_type = Array<uint8_t, N>;
   using source_type = Array<int, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -1436,7 +1436,7 @@ struct NumericArrayConverter<float, cutlass_rt_tm::float_e4m3_t, 2, Round> {
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -1485,7 +1485,7 @@ struct NumericArrayConverter<float_e4m3_t, float, 2, Round> {
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -1529,7 +1529,7 @@ struct NumericArrayConverter<float, cutlass_rt_tm::float_e5m2_t, 2, Round> {
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -1578,7 +1578,7 @@ struct NumericArrayConverter<float_e5m2_t, float, 2, Round> {
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -1628,7 +1628,7 @@ struct NumericArrayConverter<cutlass_rt_tm::half_t, cutlass_rt_tm::float_e4m3_t,
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -1673,7 +1673,7 @@ struct NumericArrayConverter<float_e4m3_t, cutlass_rt_tm::half_t, 2, Round> {
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -1717,7 +1717,7 @@ struct NumericArrayConverter<cutlass_rt_tm::half_t, cutlass_rt_tm::float_e5m2_t,
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -1762,7 +1762,7 @@ struct NumericArrayConverter<float_e5m2_t, cutlass_rt_tm::half_t, 2, Round> {
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -1812,7 +1812,7 @@ struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, cutlass_rt_tm::float_e4m
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -1857,7 +1857,7 @@ struct NumericArrayConverter<float_e4m3_t, cutlass_rt_tm::bfloat16_t, 2, Round> 
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -1903,7 +1903,7 @@ struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, cutlass_rt_tm::float_e5m
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -1948,7 +1948,7 @@ struct NumericArrayConverter<float_e5m2_t, cutlass_rt_tm::bfloat16_t, 2, Round> 
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -1997,7 +1997,7 @@ template <
 struct NumericArrayConverterPacked4Element {
   using result_type = Array<T, 4>;
   using source_type = Array<S, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   static_assert(platform::is_same<Transform, cutlass_rt_tm::transform::thread::UnaryTransform::Identity>::value ||
                 platform::is_same<Transform, cutlass_rt_tm::transform::thread::UnaryTransform::Conjugate>::value,
@@ -2037,7 +2037,7 @@ struct NumericArrayConverterPacked4Element<float, cutlass_rt_tm::float_e4m3_t, R
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -2092,7 +2092,7 @@ struct NumericArrayConverterPacked4Element<float_e4m3_t, float, Round> {
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -2141,7 +2141,7 @@ struct NumericArrayConverterPacked4Element<float, float_ue4m3_t, Round> {
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -2196,7 +2196,7 @@ struct NumericArrayConverterPacked4Element<float_ue4m3_t, float, Round> {
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -2251,7 +2251,7 @@ struct NumericArrayConverterPacked4Element<float, float_ue8m0_t, Round> {
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
   using BfloatArr = Array<cutlass_rt_tm::bfloat16_t, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -2305,7 +2305,7 @@ struct NumericArrayConverterPacked4Element<float_ue8m0_t, float, FloatRoundStyle
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_toward_infinity;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_infinity;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -2349,7 +2349,7 @@ struct NumericArrayConverterPacked4Element<float_ue8m0_t, float, FloatRoundStyle
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_toward_zero;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_zero;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -2395,7 +2395,7 @@ struct NumericArrayConverterPacked4Element<float_ue8m0_t, float, Round> {
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_toward_infinity;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_infinity;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -2426,7 +2426,7 @@ struct NumericArrayConverterPacked4Element<cutlass_rt_tm::detail::float_e2m3_unp
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -2474,7 +2474,7 @@ struct NumericArrayConverterPacked4Element<float, cutlass_rt_tm::detail::float_e
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -2535,7 +2535,7 @@ struct NumericArrayConverterPacked4Element<cutlass_rt_tm::detail::float_e3m2_unp
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -2584,7 +2584,7 @@ struct NumericArrayConverterPacked4Element<float, cutlass_rt_tm::detail::float_e
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -2646,7 +2646,7 @@ struct NumericArrayConverterPacked4Element<float, cutlass_rt_tm::float_e5m2_t, R
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -2701,7 +2701,7 @@ struct NumericArrayConverterPacked4Element<float_e5m2_t, float, Round> {
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -2755,7 +2755,7 @@ struct NumericArrayConverterPacked4Element<cutlass_rt_tm::half_t, cutlass_rt_tm:
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -2800,7 +2800,7 @@ struct NumericArrayConverterPacked4Element<float_e4m3_t, cutlass_rt_tm::half_t, 
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -2855,7 +2855,7 @@ struct NumericArrayConverterPacked4Element<cutlass_rt_tm::half_t, cutlass_rt_tm:
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -2900,7 +2900,7 @@ struct NumericArrayConverterPacked4Element<float_e5m2_t, cutlass_rt_tm::half_t, 
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -2955,7 +2955,7 @@ struct NumericArrayConverterPacked4Element<cutlass_rt_tm::bfloat16_t, cutlass_rt
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -3003,7 +3003,7 @@ struct NumericArrayConverterPacked4Element<float_e4m3_t, cutlass_rt_tm::bfloat16
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -3055,7 +3055,7 @@ struct NumericArrayConverterPacked4Element<cutlass_rt_tm::bfloat16_t, cutlass_rt
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -3103,7 +3103,7 @@ struct NumericArrayConverterPacked4Element<float_e5m2_t, cutlass_rt_tm::bfloat16
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -3155,7 +3155,7 @@ struct NumericArrayConverterPacked4Element<float_e4m3_t, cutlass_rt_tm::float_e5
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -3186,7 +3186,7 @@ struct NumericArrayConverterPacked4Element<float_e5m2_t, cutlass_rt_tm::float_e4
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -3231,7 +3231,7 @@ struct PackedNumericArrayConverter {
   using result_type = Array<result_element, N>;
   using source_type = Array<source_element, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using packed_result_type = Array<result_element, 4>;
@@ -3347,7 +3347,7 @@ struct NumericArrayConverter<float, float_ue8m0_t, 2, Round> {
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -3395,7 +3395,7 @@ struct NumericArrayConverter<float_ue8m0_t, float, 2, FloatRoundStyle::round_tow
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_toward_infinity;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_infinity;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -3436,7 +3436,7 @@ struct NumericArrayConverter<float_ue8m0_t, float, 2, FloatRoundStyle::round_tow
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_toward_zero;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_zero;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -3478,7 +3478,7 @@ struct NumericArrayConverter<float_ue8m0_t, float, 2, Round> {
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -3515,7 +3515,7 @@ struct NumericArrayConverter<float, float_ue4m3_t, 2, Round> {
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -3564,7 +3564,7 @@ struct NumericArrayConverter<float_ue4m3_t, float, 2, Round> {
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -3694,7 +3694,7 @@ struct NumericArrayConverter<float, cutlass_rt_tm::float_e2m1_t, 8, Round> {
 
   using result_type = Array<result_element, 8>;
   using source_type = Array<source_element, 8>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const & source) {
@@ -3757,7 +3757,7 @@ struct NumericArrayConverter<float, cutlass_rt_tm::float_e2m1_t, N, Round> {
 
   using result_type = Array<float, N>;
   using source_type = Array<float_e2m1_t, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -3794,7 +3794,7 @@ struct NumericArrayConverter<float_e2m1_t, float, 2, Round> {
 
   using result_type = Array<float_e2m1_t, 2>;
   using source_type = Array<float, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -3843,7 +3843,7 @@ struct NumericArrayConverter<float_e2m1_t, float, 8, Round> {
 
   using result_type = Array<float_e2m1_t, 8>;
   using source_type = Array<float, 8>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -3895,7 +3895,7 @@ struct NumericArrayConverter<float_e2m1_t, float, 4, Round> {
 
   using result_type = Array<float_e2m1_t, 4>;
   using source_type = Array<float, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -3942,7 +3942,7 @@ struct NumericArrayConverter<float_e2m1_t, float, N, Round> {
 
   using result_type = Array<float_e2m1_t, N>;
   using source_type = Array<float, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -3980,7 +3980,7 @@ struct NumericArrayConverter<int8_t, float, 1, Round> {
 
   using result_type = Array<int8_t, 1>;
   using source_type = Array<float, 1>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -4003,7 +4003,7 @@ struct NumericArrayConverter<uint8_t, float, 1, Round> {
 
   using result_type = Array<uint8_t, 1>;
   using source_type = Array<float, 1>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -4029,7 +4029,7 @@ struct NumericArrayFP32ToIntConverter {
 
   using result_type = Array<T, N>;
   using source_type = Array<float, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   static_assert(cutlass_rt_tm::platform::numeric_limits<T>::is_integer, "the dest type has to be int.");
 
@@ -4151,7 +4151,7 @@ struct NumericArrayConverter<int4b_t, int, 8, Round> {
 
   using result_type = Array<int4b_t, 8>;
   using source_type = Array<int, 8>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -4188,7 +4188,7 @@ struct NumericArrayConverter<int4b_t, int, N, Round> {
 
   using result_type = Array<int4b_t, N>;
   using source_type = Array<int, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -4222,7 +4222,7 @@ struct NumericArrayConverter<uint4b_t, int, 8, Round> {
 
   using result_type = Array<uint4b_t, 8>;
   using source_type = Array<int, 8>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -4259,7 +4259,7 @@ struct NumericArrayConverter<uint4b_t, int, N, Round> {
 
   using result_type = Array<uint4b_t, N>;
   using source_type = Array<int, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -4386,7 +4386,7 @@ struct NumericArrayConverter<cutlass_rt_tm::half_t, cutlass_rt_tm::float_e2m1_t,
   using source_element = cutlass_rt_tm::float_e2m1_t;
   using result_type = Array<result_element, N>;
   using source_type = Array<source_element, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using result_type_packed_8 = Array<cutlass_rt_tm::half_t, 8>;
@@ -4500,7 +4500,7 @@ struct NumericArrayConverter<cutlass_rt_tm::float_e4m3_t, cutlass_rt_tm::int2b_t
   using result_type = Array<cutlass_rt_tm::float_e4m3_t, N>;
   using source_type = Array<cutlass_rt_tm::int2b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using result_type_packed_16 = Array<cutlass_rt_tm::float_e4m3_t, 16>;
@@ -4593,7 +4593,7 @@ struct NumericArrayConverter<cutlass_rt_tm::float_e4m3_t, cutlass_rt_tm::uint2b_
   using result_type = Array<cutlass_rt_tm::float_e4m3_t, N>;
   using source_type = Array<cutlass_rt_tm::uint2b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using result_type_packed_16 = Array<cutlass_rt_tm::float_e4m3_t, 16>;
@@ -4686,7 +4686,7 @@ struct NumericArrayConverter<cutlass_rt_tm::float_e5m2_t, cutlass_rt_tm::int2b_t
   using result_type = Array<cutlass_rt_tm::float_e5m2_t, N>;
   using source_type = Array<cutlass_rt_tm::int2b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using result_type_packed_16 = Array<cutlass_rt_tm::float_e5m2_t, 16>;
@@ -4779,7 +4779,7 @@ struct NumericArrayConverter<cutlass_rt_tm::float_e5m2_t, cutlass_rt_tm::uint2b_
   using result_type = Array<cutlass_rt_tm::float_e5m2_t, N>;
   using source_type = Array<cutlass_rt_tm::uint2b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using result_type_packed_16 = Array<cutlass_rt_tm::float_e5m2_t, 16>;
@@ -4877,7 +4877,7 @@ struct NumericArrayConverter<int8_t, int4b_t, N, Round> {
 
   using result_type = Array<int8_t, N>;
   using source_type = Array<int4b_t, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -4955,7 +4955,7 @@ struct NumericArrayConverter<cutlass_rt_tm::float_e4m3_t, cutlass_rt_tm::int4b_t
   using result_type = Array<cutlass_rt_tm::float_e4m3_t, N>;
   using source_type = Array<cutlass_rt_tm::int4b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using result_type_packed_8 = Array<cutlass_rt_tm::float_e4m3_t, 8>;
@@ -5062,7 +5062,7 @@ struct NumericArrayConverter<cutlass_rt_tm::float_e5m2_t, cutlass_rt_tm::int4b_t
   using result_type = Array<cutlass_rt_tm::float_e5m2_t, N>;
   using source_type = Array<cutlass_rt_tm::int4b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using result_type_packed_8 = Array<cutlass_rt_tm::float_e5m2_t, 8>;
@@ -5169,7 +5169,7 @@ struct NumericArrayConverter<cutlass_rt_tm::float_e4m3_t, cutlass_rt_tm::uint4b_
   using result_type = Array<cutlass_rt_tm::float_e4m3_t, N>;
   using source_type = Array<cutlass_rt_tm::uint4b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using result_type_packed_8 = Array<cutlass_rt_tm::float_e4m3_t, 8>;
@@ -5276,7 +5276,7 @@ struct NumericArrayConverter<float, cutlass_rt_tm::int4b_t, N, Round> {
   using result_type = Array<float, N>;
   using source_type = Array<cutlass_rt_tm::int4b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using result_type_packed_8 = Array<float, 8>;
@@ -5395,7 +5395,7 @@ template <FloatRoundStyle Round, int N>
 struct NumericArrayConverter<float, int8_t, N, Round> {
   using result_type = Array<float, N>;
   using source_type = Array<int8_t, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using result_type_packed_4 = Array<float, 4>;
@@ -5496,7 +5496,7 @@ template <FloatRoundStyle Round, int N>
 struct NumericArrayConverter<float, uint8_t, N, Round> {
   using result_type = Array<float, N>;
   using source_type = Array<uint8_t, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using result_type_packed_4 = Array<float, 4>;
@@ -5571,7 +5571,7 @@ struct NumericArrayConverter<cutlass_rt_tm::half_t, cutlass_rt_tm::int2b_t, N, R
   using result_type = Array<cutlass_rt_tm::half_t, N>;
   using source_type = Array<cutlass_rt_tm::int2b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using result_type_packed_16 = Array<cutlass_rt_tm::half_t, 16>;
@@ -5709,7 +5709,7 @@ struct NumericArrayConverter<cutlass_rt_tm::half_t, cutlass_rt_tm::uint2b_t, N, 
   using result_type = Array<cutlass_rt_tm::half_t, N>;
   using source_type = Array<cutlass_rt_tm::uint2b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using result_type_packed_16 = Array<cutlass_rt_tm::half_t, 16>;
@@ -5845,7 +5845,7 @@ struct NumericArrayConverter<cutlass_rt_tm::half_t, cutlass_rt_tm::int4b_t, N, R
   using result_type = Array<cutlass_rt_tm::half_t, N>;
   using source_type = Array<cutlass_rt_tm::int4b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using result_type_packed_8 = Array<cutlass_rt_tm::half_t, 8>;
@@ -5988,7 +5988,7 @@ struct NumericArrayConverter<cutlass_rt_tm::half_t, cutlass_rt_tm::uint4b_t, N, 
   using result_type = Array<cutlass_rt_tm::half_t, N>;
   using source_type = Array<cutlass_rt_tm::uint4b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using result_type_packed_8 = Array<cutlass_rt_tm::half_t, 8>;
@@ -6115,7 +6115,7 @@ template <FloatRoundStyle Round, int N>
 struct NumericArrayConverter<cutlass_rt_tm::half_t, int8_t, N, Round> {
   using result_type = Array<cutlass_rt_tm::half_t, N>;
   using source_type = Array<int8_t, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using result_type_packed_4 = Array<cutlass_rt_tm::half_t, 4>;
@@ -6228,7 +6228,7 @@ template <FloatRoundStyle Round, int N>
 struct NumericArrayConverter<cutlass_rt_tm::half_t, uint8_t, N, Round> {
   using result_type = Array<cutlass_rt_tm::half_t, N>;
   using source_type = Array<uint8_t, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using result_type_packed_4 = Array<cutlass_rt_tm::half_t, 4>;
@@ -6312,7 +6312,7 @@ struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, cutlass_rt_tm::int2b_t, 
   using result_type = Array<cutlass_rt_tm::bfloat16_t, N>;
   using source_type = Array<cutlass_rt_tm::int2b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using result_type_packed_16 = Array<cutlass_rt_tm::bfloat16_t, 16>;
@@ -6446,7 +6446,7 @@ struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, cutlass_rt_tm::uint2b_t,
   using result_type = Array<cutlass_rt_tm::bfloat16_t, N>;
   using source_type = Array<cutlass_rt_tm::uint2b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using result_type_packed_16 = Array<cutlass_rt_tm::bfloat16_t, 16>;
@@ -6566,7 +6566,7 @@ struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, cutlass_rt_tm::int4b_t, 
   using result_type = Array<cutlass_rt_tm::bfloat16_t, N>;
   using source_type = Array<cutlass_rt_tm::int4b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using result_type_packed_8 = Array<cutlass_rt_tm::bfloat16_t, 8>;
@@ -6690,7 +6690,7 @@ struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, cutlass_rt_tm::uint4b_t,
   using result_type = Array<cutlass_rt_tm::bfloat16_t, N>;
   using source_type = Array<cutlass_rt_tm::uint4b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using result_type_packed_8 = Array<cutlass_rt_tm::bfloat16_t, 8>;
@@ -6816,7 +6816,7 @@ template <FloatRoundStyle Round, int N>
 struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, int8_t, N, Round> {
   using result_type = Array<cutlass_rt_tm::bfloat16_t, N>;
   using source_type = Array<int8_t, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using result_type_packed_4 = Array<cutlass_rt_tm::bfloat16_t, 4>;
@@ -6879,7 +6879,7 @@ template <FloatRoundStyle Round, int N>
 struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, uint8_t, N, Round> {
   using result_type = Array<cutlass_rt_tm::bfloat16_t, N>;
   using source_type = Array<uint8_t, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using result_type_packed_4 = Array<cutlass_rt_tm::bfloat16_t, 4>;
@@ -6949,7 +6949,7 @@ template <typename T, typename S, int N,
 struct FastNumericArrayConverter {
   using result_type = Array<T, N>;
   using source_type = Array<S, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const &s) {
@@ -6967,7 +6967,7 @@ template <int N, FloatRoundStyle Round>
 struct FastNumericArrayConverter<float, int, N, Round> {
   using result_type = Array<float, N>;
   using source_type = Array<int, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const &source) {
@@ -6991,7 +6991,7 @@ template <FloatRoundStyle Round>
 struct FastNumericArrayConverter<int8_t, float, 4, Round> {
   using result_type = Array<int8_t, 4>;
   using source_type = Array<float, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const &source) {
@@ -7021,7 +7021,7 @@ struct FastNumericArrayConverter<int8_t, float, N, Round> {
 
   using result_type = Array<int8_t, N>;
   using source_type = Array<float, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_RT_TM_DEVICE
   static result_type convert(source_type const &source) {
@@ -7051,14 +7051,14 @@ struct FastNumericArrayConverter<int8_t, float, N, Round> {
 /// Defines preferred rounding mode for a pair of types
 template <typename T, typename S>
 struct PreferredRoundingMode {
-  static FloatRoundStyle const kRound = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle  kRound = FloatRoundStyle::round_to_nearest;
 };
 
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ < 900
 /// Defines preferred rounding mode for a pair of types
 template <>
 struct PreferredRoundingMode<cutlass_rt_tm::tfloat32_t, float> {
-  static FloatRoundStyle const kRound = FloatRoundStyle::round_half_ulp_truncate;
+  static constexpr FloatRoundStyle  kRound = FloatRoundStyle::round_half_ulp_truncate;
 };
 #endif
 

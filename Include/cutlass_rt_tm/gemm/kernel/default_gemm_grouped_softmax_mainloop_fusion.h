@@ -113,7 +113,7 @@ template <
     >
 struct DefaultGemmGroupedSoftmaxMainloopFusion {
   // If true, we must construct a 'transposed-and-exchanged' Mma operator.
-  static bool const kInternalTranspose = platform::is_same<LayoutC_, layout::ColumnMajor>::value;
+  static constexpr bool kInternalTranspose = platform::is_same<LayoutC_, layout::ColumnMajor>::value;
 
   using MapArguments = kernel::detail::MapArguments<
     ElementA_,

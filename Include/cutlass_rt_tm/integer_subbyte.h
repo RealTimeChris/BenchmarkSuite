@@ -263,7 +263,7 @@ public:
     };
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE static value_type const min() noexcept {
+  CUTLASS_RT_TM_HOST_DEVICE static constexpr value_type  min() noexcept {
     return lowest();
   }
 
@@ -289,7 +289,7 @@ public:
     };
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE static value_type const min() noexcept {
+  CUTLASS_RT_TM_HOST_DEVICE static constexpr value_type  min() noexcept {
     return lowest();
   }
 

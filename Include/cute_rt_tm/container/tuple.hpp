@@ -89,20 +89,20 @@ using ESO_t = ESO<is_first_empty_v<T...>, is_rest_empty_v<T...>, T...>;
 // Empty First and Empty Rest...
 template <class First, class... Rest>
 struct ESO<true, true, First, Rest...> {
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   ESO() {}
 
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   ESO(First const&, Rest const&...) {}
 };
 
 // NonEmpty First and Empty Rest...
 template <class First, class... Rest>
 struct ESO<false, true, First, Rest...> {
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   ESO() : first_{} {}
 
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   ESO(First const& first, Rest const&...) : first_{first} {}
 
   First first_;
@@ -111,10 +111,10 @@ struct ESO<false, true, First, Rest...> {
 // Empty First and NonEmpty Rest...
 template <class First, class... Rest>
 struct ESO<true, false, First, Rest...> {
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   ESO() : rest_{} {}
 
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   ESO(First const&, Rest const&... rest) : rest_{rest...} {}
 
   ESO_t<Rest...> rest_;
@@ -123,10 +123,10 @@ struct ESO<true, false, First, Rest...> {
 // NonEmpty T and NonEmpty Rest...
 template <class First, class... Rest>
 struct ESO<false, false, First, Rest...> {
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   ESO() : first_{}, rest_{} {}
 
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   ESO(First const& first, Rest const&... rest) : first_{first}, rest_{rest...} {}
 
   First first_;
@@ -135,7 +135,7 @@ struct ESO<false, false, First, Rest...> {
 
 // Get Nth value from ESO
 template <class R, size_t N, class S>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 R
 getr(S&& s) noexcept
 {
@@ -144,12 +144,12 @@ getr(S&& s) noexcept
   } else {
     return getr<R,N-1>(static_cast<S&&>(s).rest_);
   }
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 // Compilers disagree on decltype(auto), so these implementations avoid it at cost
 template <size_t N, bool F, bool R, class... T>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 cute_rt_tm::conditional_t<cute_rt_tm::is_empty<cute_rt_tm::tuple_element_t<N, cute_rt_tm::tuple<T...>>>::value,
                     cute_rt_tm::tuple_element_t<N, cute_rt_tm::tuple<T...>>,
                     cute_rt_tm::tuple_element_t<N, cute_rt_tm::tuple<T...>> const&>
@@ -160,11 +160,11 @@ getv_cr(ESO<F, R, T...> const& s) noexcept
   } else {
     return getr<cute_rt_tm::tuple_element_t<N, cute_rt_tm::tuple<T...>> const&, N>(s);
   }
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 template <size_t N, bool F, bool R, class... T>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 cute_rt_tm::conditional_t<cute_rt_tm::is_empty<cute_rt_tm::tuple_element_t<N, cute_rt_tm::tuple<T...>>>::value,
                     cute_rt_tm::tuple_element_t<N, cute_rt_tm::tuple<T...>>,
                     cute_rt_tm::tuple_element_t<N, cute_rt_tm::tuple<T...>> &>
@@ -175,11 +175,11 @@ getv_r(ESO<F, R, T...>& s) noexcept
   } else {
     return getr<cute_rt_tm::tuple_element_t<N, cute_rt_tm::tuple<T...>> &, N>(s);
   }
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 template <size_t N, bool F, bool R, class... T>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 cute_rt_tm::conditional_t<cute_rt_tm::is_empty<cute_rt_tm::tuple_element_t<N, cute_rt_tm::tuple<T...>>>::value,
                     cute_rt_tm::tuple_element_t<N, cute_rt_tm::tuple<T...>>,
                     cute_rt_tm::tuple_element_t<N, cute_rt_tm::tuple<T...>> &&>
@@ -190,7 +190,7 @@ getv_rr(ESO<F, R, T...>&& s) noexcept
   } else {
     return getr<cute_rt_tm::tuple_element_t<N, cute_rt_tm::tuple<T...>> &&, N>(static_cast<ESO<F, R, T...>&&>(s));
   }
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 } // end namespace eso
@@ -198,10 +198,10 @@ getv_rr(ESO<F, R, T...>&& s) noexcept
 template <class... T>
 struct tuple : eso::ESO_t<T...>
 {
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   tuple() {}
 
-  CUTE_HOST_DEVICE constexpr
+  CUTE_RT_TM_HOST_DEVICE constexpr
   tuple(T const&... t) : eso::ESO_t<T...>(t...) {}
 };
 
@@ -213,7 +213,7 @@ struct tuple<> {};
 //
 
 template <class... T>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 tuple<T...>
 make_tuple(T const&... t)
 {
@@ -222,7 +222,7 @@ make_tuple(T const&... t)
 
 // Returns the element in the ith position of the tuple
 template <size_t I, class... T>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 decltype(auto)
 get(tuple<T...> const& t) noexcept
 {
@@ -231,7 +231,7 @@ get(tuple<T...> const& t) noexcept
 }
 
 template <size_t I, class... T>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 decltype(auto)
 get(tuple<T...>& t) noexcept
 {
@@ -240,7 +240,7 @@ get(tuple<T...>& t) noexcept
 }
 
 template <size_t I, class... T>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 decltype(auto)
 get(tuple<T...>&& t) noexcept
 {
@@ -251,7 +251,7 @@ get(tuple<T...>&& t) noexcept
 // Returns the first position of type X (as a static integer) in the tuple
 // type's argument list.
 template <class X, class... T>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 find(tuple<T...> const&) noexcept
 {
@@ -288,7 +288,7 @@ namespace detail {
 
 template <class T0, class T1,
           size_t... I0, size_t... I1>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tuple_cat(T0 const& t0, T1 const& t1,
           index_sequence<I0...>, index_sequence<I1...>)
@@ -298,7 +298,7 @@ tuple_cat(T0 const& t0, T1 const& t1,
 
 } // end namespace detail
 
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 tuple<>
 tuple_cat()
 {
@@ -306,8 +306,8 @@ tuple_cat()
 }
 
 template <class Tuple,
-          __CUTE_REQUIRES(is_tuple<Tuple>::value)>
-CUTE_HOST_DEVICE constexpr
+          __CUTE_RT_TM_REQUIRES(is_tuple<Tuple>::value)>
+CUTE_RT_TM_HOST_DEVICE constexpr
 Tuple const&
 tuple_cat(Tuple const& t)
 {
@@ -315,7 +315,7 @@ tuple_cat(Tuple const& t)
 }
 
 template <class T0, class T1>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tuple_cat(T0 const& t0, T1 const& t1)
 {
@@ -325,7 +325,7 @@ tuple_cat(T0 const& t0, T1 const& t1)
 }
 
 template <class T0, class T1, class T2, class... Ts>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tuple_cat(T0 const& t0, T1 const& t1, T2 const& t2, Ts const&... ts)
 {
@@ -340,7 +340,7 @@ namespace detail {
 
 template <class T0, class T1,
           size_t... I0, size_t... I1>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tuple_cat(T0 const& t0, T1 const& t1,
           index_sequence<I0...>, index_sequence<I1...>)
@@ -350,7 +350,7 @@ tuple_cat(T0 const& t0, T1 const& t1,
 
 template <class T0, class T1, class T2,
           size_t... I0, size_t... I1, size_t... I2>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tuple_cat(T0 const& t0, T1 const& t1, T2 const& t2,
           index_sequence<I0...>, index_sequence<I1...>, index_sequence<I2...>)
@@ -360,7 +360,7 @@ tuple_cat(T0 const& t0, T1 const& t1, T2 const& t2,
 
 template <class T0, class T1, class T2, class T3,
           size_t... I0, size_t... I1, size_t... I2, size_t... I3>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tuple_cat(T0 const& t0, T1 const& t1, T2 const& t2, T3 const& t3,
           index_sequence<I0...>, index_sequence<I1...>, index_sequence<I2...>, index_sequence<I3...>)
@@ -370,7 +370,7 @@ tuple_cat(T0 const& t0, T1 const& t1, T2 const& t2, T3 const& t3,
 
 template <class T0, class T1, class T2, class T3, class T4,
           size_t... I0, size_t... I1, size_t... I2, size_t... I3, size_t... I4>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tuple_cat(T0 const& t0, T1 const& t1, T2 const& t2, T3 const& t3, T4 const& t4,
           index_sequence<I0...>, index_sequence<I1...>, index_sequence<I2...>, index_sequence<I3...>, index_sequence<I4...>)
@@ -388,7 +388,7 @@ struct tuple_cat_static<tuple<T0s...>, tuple<T1s...>> {
 
 } // end namespace detail
 
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 tuple<>
 tuple_cat()
 {
@@ -396,8 +396,8 @@ tuple_cat()
 }
 
 template <class Tuple,
-          __CUTE_REQUIRES(is_tuple<Tuple>::value)>
-CUTE_HOST_DEVICE constexpr
+          __CUTE_RT_TM_REQUIRES(is_tuple<Tuple>::value)>
+CUTE_RT_TM_HOST_DEVICE constexpr
 Tuple const&
 tuple_cat(Tuple const& t)
 {
@@ -405,7 +405,7 @@ tuple_cat(Tuple const& t)
 }
 
 template <class T0, class T1>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tuple_cat(T0 const& t0, T1 const& t1)
 {
@@ -418,11 +418,11 @@ tuple_cat(T0 const& t0, T1 const& t1)
                            make_index_sequence<tuple_size<T1>::value>{});
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 template <class T0, class T1, class T2>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tuple_cat(T0 const& t0, T1 const& t1, T2 const& t2)
 {
@@ -433,7 +433,7 @@ tuple_cat(T0 const& t0, T1 const& t1, T2 const& t2)
 }
 
 template <class T0, class T1, class T2, class T3>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tuple_cat(T0 const& t0, T1 const& t1, T2 const& t2, T3 const& t3)
 {
@@ -445,7 +445,7 @@ tuple_cat(T0 const& t0, T1 const& t1, T2 const& t2, T3 const& t3)
 }
 
 template <class T0, class T1, class T2, class T3, class T4>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tuple_cat(T0 const& t0, T1 const& t1, T2 const& t2, T3 const& t3, T4 const& t4)
 {
@@ -458,7 +458,7 @@ tuple_cat(T0 const& t0, T1 const& t1, T2 const& t2, T3 const& t3, T4 const& t4)
 }
 
 template <class T0, class T1, class T2, class T3, class T4, class T5, class... Ts>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tuple_cat(T0 const& t0, T1 const& t1, T2 const& t2, T3 const& t3, T4 const& t4, T5 const& t5, Ts const&... ts)
 {
@@ -501,7 +501,7 @@ struct tuple_cat_helper
 };
 
 template <class Helper, class Tuple, size_t... I>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tuple_cat(Tuple const& t, index_sequence<I...>)
 {
@@ -510,7 +510,7 @@ tuple_cat(Tuple const& t, index_sequence<I...>)
 
 template <class T0, class T1,
           size_t... I0, size_t... I1>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tuple_cat(T0 const& t0, T1 const& t1,
           index_sequence<I0...>, index_sequence<I1...>)
@@ -520,7 +520,7 @@ tuple_cat(T0 const& t0, T1 const& t1,
 
 } // end namespace detail
 
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 tuple<>
 tuple_cat()
 {
@@ -528,8 +528,8 @@ tuple_cat()
 }
 
 template <class Tuple,
-          __CUTE_REQUIRES(is_tuple<Tuple>::value)>
-CUTE_HOST_DEVICE constexpr
+          __CUTE_RT_TM_REQUIRES(is_tuple<Tuple>::value)>
+CUTE_RT_TM_HOST_DEVICE constexpr
 Tuple const&
 tuple_cat(Tuple const& t)
 {
@@ -537,7 +537,7 @@ tuple_cat(Tuple const& t)
 }
 
 template <class T0, class T1>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tuple_cat(T0 const& t0, T1 const& t1)
 {
@@ -547,7 +547,7 @@ tuple_cat(T0 const& t0, T1 const& t1)
 }
 
 template <class... Tuples>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tuple_cat(Tuples const&... ts)
 {
@@ -563,7 +563,7 @@ tuple_cat(Tuples const&... ts)
 namespace detail {
 
 template <class TupleA, class TupleB, size_t... I>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 equal_impl(TupleA const& a, TupleB const& b, index_sequence<I...>)
 {
@@ -573,8 +573,8 @@ equal_impl(TupleA const& a, TupleB const& b, index_sequence<I...>)
 } // end namespace detail
 
 template <class TupleT, class TupleU,
-          __CUTE_REQUIRES(is_tuple<TupleT>::value && is_tuple<TupleU>::value)>
-CUTE_HOST_DEVICE constexpr
+          __CUTE_RT_TM_REQUIRES(is_tuple<TupleT>::value && is_tuple<TupleU>::value)>
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 operator==(TupleT const& t, TupleU const& u)
 {
@@ -584,12 +584,12 @@ operator==(TupleT const& t, TupleU const& u)
     return cute_rt_tm::false_type{};
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 template <class TupleT, class TupleU,
-          __CUTE_REQUIRES(is_tuple<TupleT>::value ^ is_tuple<TupleU>::value)>
-CUTE_HOST_DEVICE constexpr
+          __CUTE_RT_TM_REQUIRES(is_tuple<TupleT>::value ^ is_tuple<TupleU>::value)>
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 operator==(TupleT const& t, TupleU const& u)
 {
@@ -597,8 +597,8 @@ operator==(TupleT const& t, TupleU const& u)
 }
 
 template <class TupleT, class TupleU,
-          __CUTE_REQUIRES(is_tuple<TupleT>::value && is_tuple<TupleU>::value)>
-CUTE_HOST_DEVICE constexpr
+          __CUTE_RT_TM_REQUIRES(is_tuple<TupleT>::value && is_tuple<TupleU>::value)>
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 operator!=(TupleT const& t, TupleU const& u)
 {
@@ -606,8 +606,8 @@ operator!=(TupleT const& t, TupleU const& u)
 }
 
 template <class TupleT, class TupleU,
-          __CUTE_REQUIRES(is_tuple<TupleT>::value ^ is_tuple<TupleU>::value)>
-CUTE_HOST_DEVICE constexpr
+          __CUTE_RT_TM_REQUIRES(is_tuple<TupleT>::value ^ is_tuple<TupleU>::value)>
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 operator!=(TupleT const& t, TupleU const& u)
 {
@@ -638,7 +638,7 @@ operator!=(TupleT const& t, TupleU const& u)
 namespace detail {
 
 template <class Tuple, size_t... Is>
-CUTE_HOST_DEVICE void print_tuple(Tuple const& t, index_sequence<Is...>, char s = '(', char e = ')')
+CUTE_RT_TM_HOST_DEVICE void print_tuple(Tuple const& t, index_sequence<Is...>, char s = '(', char e = ')')
 {
   using cute_rt_tm::print;
   if (sizeof...(Is) == 0) {
@@ -651,7 +651,7 @@ CUTE_HOST_DEVICE void print_tuple(Tuple const& t, index_sequence<Is...>, char s 
 
 #if !defined(__CUDACC_RTC__)
 template <class Tuple, std::size_t... Is>
-CUTE_HOST std::ostream& print_tuple_os(std::ostream& os, Tuple const& t, index_sequence<Is...>, char s = '(', char e = ')')
+CUTE_RT_TM_HOST std::ostream& print_tuple_os(std::ostream& os, Tuple const& t, index_sequence<Is...>, char s = '(', char e = ')')
 {
   if (sizeof...(Is) == 0) {
     os << s;
@@ -665,16 +665,16 @@ CUTE_HOST std::ostream& print_tuple_os(std::ostream& os, Tuple const& t, index_s
 } // end namespace detail
 
 template <class Tuple,
-          __CUTE_REQUIRES(is_tuple<Tuple>::value)>
-CUTE_HOST_DEVICE void print(Tuple const& t)
+          __CUTE_RT_TM_REQUIRES(is_tuple<Tuple>::value)>
+CUTE_RT_TM_HOST_DEVICE void print(Tuple const& t)
 {
   return detail::print_tuple(t, make_index_sequence<tuple_size<Tuple>::value>{});
 }
 
 #if !defined(__CUDACC_RTC__)
 template <class Tuple,
-          __CUTE_REQUIRES(is_tuple<Tuple>::value)>
-CUTE_HOST std::ostream& operator<<(std::ostream& os, Tuple const& t)
+          __CUTE_RT_TM_REQUIRES(is_tuple<Tuple>::value)>
+CUTE_RT_TM_HOST std::ostream& operator<<(std::ostream& os, Tuple const& t)
 {
   return detail::print_tuple_os(os, t, make_index_sequence<tuple_size<Tuple>::value>{});
 }
@@ -682,22 +682,22 @@ CUTE_HOST std::ostream& operator<<(std::ostream& os, Tuple const& t)
 
 } // end namespace cute_rt_tm
 
-namespace CUTE_STL_NAMESPACE
+namespace CUTE_RT_TM_STL_NAMESPACE
 {
 
 template <class... T>
 struct tuple_size<cute_rt_tm::tuple<T...>>
-    : CUTE_STL_NAMESPACE::integral_constant<size_t, sizeof...(T)>
+    : CUTE_RT_TM_STL_NAMESPACE::integral_constant<size_t, sizeof...(T)>
 {};
 
 template <size_t I, class... T>
 struct tuple_element<I, cute_rt_tm::tuple<T...>>
-    : CUTE_STL_NAMESPACE::tuple_element<I, CUTE_STL_NAMESPACE::tuple<T...>>
+    : CUTE_RT_TM_STL_NAMESPACE::tuple_element<I, CUTE_RT_TM_STL_NAMESPACE::tuple<T...>>
 {};
 
-} // end namespace CUTE_STL_NAMESPACE
+} // end namespace CUTE_RT_TM_STL_NAMESPACE
 
-#ifdef CUTE_STL_NAMESPACE_IS_CUDA_STD
+#ifdef CUTE_RT_TM_STL_NAMESPACE_IS_CUDA_STD
 namespace std
 {
 
@@ -711,13 +711,13 @@ struct tuple_element;
 
 template <class... T>
 struct tuple_size<cute_rt_tm::tuple<T...>>
-    : CUTE_STL_NAMESPACE::integral_constant<size_t, sizeof...(T)>
+    : CUTE_RT_TM_STL_NAMESPACE::integral_constant<size_t, sizeof...(T)>
 {};
 
 template <size_t I, class... T>
 struct tuple_element<I, cute_rt_tm::tuple<T...>>
-    : CUTE_STL_NAMESPACE::tuple_element<I, CUTE_STL_NAMESPACE::tuple<T...>>
+    : CUTE_RT_TM_STL_NAMESPACE::tuple_element<I, CUTE_RT_TM_STL_NAMESPACE::tuple<T...>>
 {};
 
 } // end namespace std
-#endif // CUTE_STL_NAMESPACE_IS_CUDA_STD
+#endif // CUTE_RT_TM_STL_NAMESPACE_IS_CUDA_STD

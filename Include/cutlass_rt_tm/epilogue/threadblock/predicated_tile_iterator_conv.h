@@ -84,13 +84,13 @@ public:
 
   using Element = Element_;
 
-  static int const kRank = Rank;
+  static constexpr int kRank = Rank;
   using Layout = typename platform::conditional<kRank == 4,
                                        layout::TensorNHWC,
                                        layout::TensorNDHWC>::type;
 
   using Stride = typename Layout::Stride;
-  static int const kStrideRank = Layout::kStrideRank;
+  static constexpr int kStrideRank = Layout::kStrideRank;
 
   using TensorRef = TensorRef<Element, Layout>;
   using ConstTensorRef = typename TensorRef::ConstTensorRef;
@@ -100,11 +100,11 @@ public:
   using LongIndex = typename MappedLayout::LongIndex;
   using TensorCoord = typename MappedLayout::TensorCoord;
 
-  static int const kElementsPerAccess = ThreadMap::kElementsPerAccess;
-  static int const kThreads = ThreadMap::kThreads;
-  static int const kIterations = ThreadMap::Count::kTile;
+  static constexpr int kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static constexpr int kThreads = ThreadMap::kThreads;
+  static constexpr int kIterations = ThreadMap::Count::kTile;
 
-  static bool constexpr PermuteD = !layout::is_trivial_permute<PermuteDLayout>;
+  static constexpr bool PermuteD = !layout::is_trivial_permute<PermuteDLayout>;
 
   static_assert( ThreadMap::Iterations::kRow > 0,"ThreadMap::Iterations::kRow must be > 0");
   static_assert( ThreadMap::Iterations::kGroup > 0,"ThreadMap::Iterations::kGroup must be > 0");
@@ -176,7 +176,7 @@ public:
   /// Mask object
   struct Mask {
 
-    static int const kCount = ThreadMap::Iterations::kColumn;
+    static constexpr int kCount = ThreadMap::Iterations::kColumn;
 
     /// Predicate state
     bool predicates[kCount];

@@ -114,10 +114,10 @@ public:
   using ArchTag = arch::Sm70;
 
   /// Complex transform on A operand
-  static ComplexTransform const kTransformA = Operator::kTransformA;
+  static constexpr ComplexTransform  kTransformA = Operator::kTransformA;
 
   /// Complex transform on B operand
-  static ComplexTransform const kTransformB = Operator::kTransformB;
+  static constexpr ComplexTransform  kTransformB = Operator::kTransformB;
 
   // staticaly assert kStages for MmaSingleStage is 1 (single stage mma pipeline)
   static_assert((Base::kStages==1), "MmaSingleStage requires kStages set to value 1");

@@ -51,10 +51,10 @@ template <int Contiguous, int Strided>
 class PitchLinear {
 public:
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;

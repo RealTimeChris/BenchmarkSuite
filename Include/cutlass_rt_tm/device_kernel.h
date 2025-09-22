@@ -80,7 +80,6 @@ void Kernel(typename Operator::Params params) {
       reinterpret_cast<typename Operator::SharedStorage *>(SharedStorageBase);
 
   Operator op;
-
   op(params, *shared_storage);
 }
 
