@@ -36,51 +36,51 @@
 #if defined(__clang__) && defined(__CUDA__)
   //  __cvta_generic_to_shared was added in Clang 14: https://reviews.llvm.org/D111665
   #if __clang_major__ >= 14
-    #define CUTE_CLANG_SUPPORTS_CVTA_GENERIC_TO_SHARED 1
+    #define CUTE_RT_TM_CLANG_SUPPORTS_CVTA_GENERIC_TO_SHARED 1
   #endif
 
   // __nvvm_get_smem_pointer added in Clang 14: https://reviews.llvm.org/D111665
   // ... but will not work on Windows until Clang 15: https://reviews.llvm.org/D122897
   #if (!defined(_WIN32) && __clang_major__ >= 14) || __clang_major__ >= 15
-    #define CUTE_CLANG_SUPPORTS_NVVM_GET_SMEM_POINTER 1
+    #define CUTE_RT_TM_CLANG_SUPPORTS_NVVM_GET_SMEM_POINTER 1
   #endif
 #endif
 
 #if defined(__NVCC__) || defined(__CUDACC_RTC__)
   // __cvta_generic_to_shared added in CUDA 11+
   #if __CUDACC_VER_MAJOR__ >= 11
-    #define CUTE_NVCC_SUPPORTS_CVTA_GENERIC_TO_SHARED 1
+    #define CUTE_RT_TM_NVCC_SUPPORTS_CVTA_GENERIC_TO_SHARED 1
   #endif
 
   // __nvvm_get_smem_pointer added in CUDA 10.2
   #if __CUDACC_VER_MAJOR__ == 10 && __CUDACC_VER_MINOR__ >= 2
-    #define CUTE_NVCC_SUPPORTS_NVVM_GET_SMEM_POINTER 1
+    #define CUTE_RT_TM_NVCC_SUPPORTS_NVVM_GET_SMEM_POINTER 1
   #endif
 #endif
 
-#if CUTE_NVCC_SUPPORTS_CVTA_GENERIC_TO_SHARED || CUTE_CLANG_SUPPORTS_CVTA_GENERIC_TO_SHARED
-  #define CUTE_CVTA_GENERIC_TO_SHARED_SUPPORTED 1
+#if CUTE_RT_TM_NVCC_SUPPORTS_CVTA_GENERIC_TO_SHARED || CUTE_RT_TM_CLANG_SUPPORTS_CVTA_GENERIC_TO_SHARED
+  #define CUTE_RT_TM_CVTA_GENERIC_TO_SHARED_SUPPORTED 1
 #endif
 
-#if !defined(CUTE_CVTA_GENERIC_TO_SHARED_ACTIVATED) && CUTE_CVTA_GENERIC_TO_SHARED_SUPPORTED && defined(__CUDA_ARCH__)
-  #define CUTE_CVTA_GENERIC_TO_SHARED_ACTIVATED 1
+#if !defined(CUTE_RT_TM_CVTA_GENERIC_TO_SHARED_ACTIVATED) && CUTE_RT_TM_CVTA_GENERIC_TO_SHARED_SUPPORTED && defined(__CUDA_ARCH__)
+  #define CUTE_RT_TM_CVTA_GENERIC_TO_SHARED_ACTIVATED 1
 #endif
 
-#if CUTE_NVCC_SUPPORTS_NVVM_GET_SMEM_POINTER || CUTE_CLANG_SUPPORTS_NVVM_GET_SMEM_POINTER
-  #define CUTE_NVVM_GET_SMEM_POINTER_SUPPORTED 1
+#if CUTE_RT_TM_NVCC_SUPPORTS_NVVM_GET_SMEM_POINTER || CUTE_RT_TM_CLANG_SUPPORTS_NVVM_GET_SMEM_POINTER
+  #define CUTE_RT_TM_NVVM_GET_SMEM_POINTER_SUPPORTED 1
 #endif
 
-#if !defined(CUTE_NVVM_GET_SMEM_POINTER_ACTIVATED) && CUTE_NVVM_GET_SMEM_POINTER_SUPPORTED && defined(__CUDA_ARCH__)
-  #define CUTE_NVVM_GET_SMEM_POINTER_ACTIVATED 1
+#if !defined(CUTE_RT_TM_NVVM_GET_SMEM_POINTER_ACTIVATED) && CUTE_RT_TM_NVVM_GET_SMEM_POINTER_SUPPORTED && defined(__CUDA_ARCH__)
+  #define CUTE_RT_TM_NVVM_GET_SMEM_POINTER_ACTIVATED 1
 #endif
 
 // Clang 14+ provides a declaration of __nvvm_get_smem_pointer, so we only need
 // to provide one for NVCC
-#if CUTE_NVCC_SUPPORTS_NVVM_GET_SMEM_POINTER
+#if CUTE_RT_TM_NVCC_SUPPORTS_NVVM_GET_SMEM_POINTER
   extern "C" {
   // This NVVM intrinsic is subject to change in future versions of CUDA.
   // Clients should not call it directly.
-  CUTE_DEVICE uint32_t __nvvm_get_smem_pointer(void*);
+  CUTE_RT_TM_DEVICE uint32_t __nvvm_get_smem_pointer(void*);
   }
 #endif
 
@@ -88,13 +88,13 @@ namespace cute_rt_tm
 {
 
 /// CUTE helper to cast SMEM pointer to unsigned
-CUTE_HOST_DEVICE
+CUTE_RT_TM_HOST_DEVICE
 uint32_t
 cast_smem_ptr_to_uint(void const* const ptr)
 {
 // We prefer to use the new CVTA intrinsics if they are available, otherwise we will fall back to
 // the previous internal intrinsics if they are available.
-#if CUTE_CVTA_GENERIC_TO_SHARED_ACTIVATED
+#if CUTE_RT_TM_CVTA_GENERIC_TO_SHARED_ACTIVATED
   //
   // This NVVM intrinsic converts an address in shared memory to a plain
   // unsigned integer. This is necessary to pass to shared memory instructions
@@ -107,7 +107,7 @@ cast_smem_ptr_to_uint(void const* const ptr)
   /// CUTE helper to get SMEM pointer
   return static_cast<uint32_t>(__cvta_generic_to_shared(ptr));
 
-#elif CUTE_NVVM_GET_SMEM_POINTER_ACTIVATED
+#elif CUTE_RT_TM_NVVM_GET_SMEM_POINTER_ACTIVATED
 
   return __nvvm_get_smem_pointer(ptr);
 
@@ -140,7 +140,7 @@ namespace detail {
 template <class MmaOp>
 struct CallFMA {
   template <class... Args>
-  CUTE_HOST_DEVICE constexpr void
+  CUTE_RT_TM_HOST_DEVICE constexpr void
   operator()(Args&&... args) const {
     return MmaOp::fma(static_cast<Args&&>(args)...);
   }
@@ -153,7 +153,7 @@ struct CallFMA {
 template <class CopyOp>
 struct CallCOPY {
   template <class... Args>
-  CUTE_HOST_DEVICE constexpr void
+  CUTE_RT_TM_HOST_DEVICE constexpr void
   operator()(Args&&... args) const {
     return CopyOp::copy(static_cast<Args&&>(args)...);
   }
@@ -165,7 +165,7 @@ struct CallCOPY {
 
 template <class Fn,
           class PtrA, int... I>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 void
 explode(Fn fn,
         PtrA&& a, int_sequence<I...>)
@@ -176,7 +176,7 @@ explode(Fn fn,
 template <class Fn,
           class PtrS, int... Is,
           class PtrD, int... Id>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 void
 explode(Fn fn,
         PtrS&& s, int_sequence<Is...>,
@@ -189,7 +189,7 @@ template <class Fn,
           class PtrA, int... Ia,
           class PtrB, int... Ib,
           class PtrC, int... Ic>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 void
 explode(Fn fn,
         PtrA&& a, int_sequence<Ia...>,
@@ -204,7 +204,7 @@ template <class Fn,
           class PtrA, int... Ia,
           class PtrB, int... Ib,
           class PtrC, int... Ic>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 void
 explode(Fn fn,
         PtrD&& d, int_sequence<Id...>,
@@ -221,7 +221,7 @@ template <class Fn,
           class PtrB, int... Ib,
           class PtrC, int... Ic,
           class PtrE, int... Ie>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 void
 explode(Fn fn,
         PtrD&& d, int_sequence<Id...>,
@@ -240,7 +240,7 @@ template <class Fn,
           class PtrC, int... Ic,
           class PtrE, int... Ie,
           class PtrF, int... If>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 void
 explode(Fn fn,
         PtrD&& d, int_sequence<Id...>,
@@ -261,7 +261,7 @@ template <class Fn,
           class PtrE, int... Ie,
           class PtrF, int... If,
           class PtrG, int... Ig>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 void
 explode(Fn fn,
         PtrD&& d, int_sequence<Id...>,
@@ -281,7 +281,7 @@ explode(Fn fn,
 
 template <class Fn,
           class TupleA, int... I>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 void
 explode_tuple(Fn fn,
               TupleA&& a, int_sequence<I...>)
@@ -292,7 +292,7 @@ explode_tuple(Fn fn,
 template <class Fn,
           class TupleA, int... Ia,
           class TupleB, int... Ib>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 void
 explode_tuple(Fn fn,
               TupleA&& a, int_sequence<Ia...>,
@@ -305,7 +305,7 @@ template <class Fn,
           class TupleA, int... Ia,
           class TupleB, int... Ib,
           class TupleC, int... Ic>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 void
 explode_tuple(Fn fn,
               TupleA&& a, int_sequence<Ia...>,

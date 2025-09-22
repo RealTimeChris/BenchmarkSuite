@@ -30,7 +30,7 @@
  **************************************************************************************************/
 #pragma once
 
-#include "cutlass_rt_tm/numeric_types.h"
+#include "nihilus_gemm/numeric_types.h"
 
 #if !defined(__CUDACC_RTC__)
 #include <cuda.h>
@@ -40,7 +40,7 @@
 #include <cute_rt_tm/config.hpp>
 
 #include <cute_rt_tm/arch/util.hpp>   // cute_rt_tm::cast_smem_ptr_to_uint
-#include <cute_rt_tm/arch/config.hpp> // CUTE_ARCH_TMA_SMxx_ENABLED
+#include <cute_rt_tm/arch/config.hpp> // CUTE_RT_TM_ARCH_TMA_SMxx_ENABLED
 #include <cute_rt_tm/arch/copy.hpp>
 #include <cute_rt_tm/arch/copy_sm90.hpp>
 
@@ -59,12 +59,12 @@ namespace cute_rt_tm
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Initialize barrier present in shared memory
-CUTE_HOST_DEVICE
+CUTE_RT_TM_HOST_DEVICE
 void
 initialize_barrier(uint64_t& smem_barrier,                 // 64 bits user-manged barrier in smem
                    int thread_count = 1)                   // Thread count expected to arrive/wait on this barrier
 {
-#if defined(CUTE_ARCH_TMA_SM90_ENABLED)
+#if defined(CUTE_RT_TM_ARCH_TMA_SM90_ENABLED)
   uint32_t smem_int_ptr = cast_smem_ptr_to_uint(&smem_barrier);
   asm volatile ("mbarrier.init.shared::cta.b64 [%0], %1;\n"
     :: "r"(smem_int_ptr),
@@ -73,12 +73,12 @@ initialize_barrier(uint64_t& smem_barrier,                 // 64 bits user-mange
 }
 
 // Set the number of bytes transfered per transaction and perform an arrive operation as well
-CUTE_HOST_DEVICE
+CUTE_RT_TM_HOST_DEVICE
 void
 set_barrier_transaction_bytes(uint64_t& smem_barrier,      // 64 bits user-manged barrier in smem
                               uint32_t bytes)              // Number of bytes transfered by per TMA transaction
 {
-#if defined(CUTE_ARCH_TMA_SM90_ENABLED)
+#if defined(CUTE_RT_TM_ARCH_TMA_SM90_ENABLED)
   uint32_t smem_int_ptr = cast_smem_ptr_to_uint(&smem_barrier);
   asm volatile ("mbarrier.arrive.expect_tx.shared::cta.b64 _, [%0], %1;\n"
     :: "r"(smem_int_ptr),
@@ -87,12 +87,12 @@ set_barrier_transaction_bytes(uint64_t& smem_barrier,      // 64 bits user-mange
 }
 
 // Barrier wait
-CUTE_HOST_DEVICE
+CUTE_RT_TM_HOST_DEVICE
 void
 wait_barrier(uint64_t& smem_barrier,                       // 64 bits user-manged barrier in smem
              int phase_bit)                                // Current phase bit the barrier waiting to flip
 {
-#if defined(CUTE_ARCH_TMA_SM90_ENABLED)
+#if defined(CUTE_RT_TM_ARCH_TMA_SM90_ENABLED)
   uint32_t smem_int_ptr = cast_smem_ptr_to_uint(&smem_barrier);
   asm volatile(
     "{\n"
@@ -110,11 +110,11 @@ wait_barrier(uint64_t& smem_barrier,                       // 64 bits user-mange
 }
 
 // Barrier arrive
-CUTE_HOST_DEVICE
+CUTE_RT_TM_HOST_DEVICE
 void
 arrive_barrier(uint64_t& smem_barrier)                      // 64 bits user-manged barrier in smem
 {
-#if defined(CUTE_ARCH_TMA_SM90_ENABLED)
+#if defined(CUTE_RT_TM_ARCH_TMA_SM90_ENABLED)
   uint32_t smem_int_ptr = cast_smem_ptr_to_uint(&smem_barrier);
   asm volatile(
     "{\n"
@@ -152,7 +152,7 @@ enum class OOBFill : uint8_t {
   CONSTANT = 1,
 };
 
-CUTE_HOST_DEVICE char const* to_string(OOBFill const& t) {
+CUTE_RT_TM_HOST_DEVICE char const* to_string(OOBFill const& t) {
   switch (t) {
     case OOBFill::ZERO:     return "ZERO";
     case OOBFill::CONSTANT: return "CONSTANT";
@@ -167,7 +167,7 @@ enum class L2Promotion : uint8_t {
   B256 = 3,
 };
 
-CUTE_HOST_DEVICE char const* to_string(L2Promotion const& t) {
+CUTE_RT_TM_HOST_DEVICE char const* to_string(L2Promotion const& t) {
   switch (t) {
     case L2Promotion::DISABLE: return "DISABLE";
     case L2Promotion::B64:     return "B64";
@@ -299,11 +299,11 @@ to_CUtensorMapL2promotion(L2Promotion const& t) {
 /// Initiates a TensorMap Prefetch
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CUTE_HOST_DEVICE
+CUTE_RT_TM_HOST_DEVICE
 void
 prefetch_tma_descriptor(TmaDescriptor const* desc_ptr)
 {
-#if defined(CUTE_ARCH_TMA_SM90_ENABLED)
+#if defined(CUTE_RT_TM_ARCH_TMA_SM90_ENABLED)
   uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
   // Prefetch TMA Descriptor using generic addressing (i.e. no specific state space: const or param)
   asm volatile (
@@ -312,7 +312,7 @@ prefetch_tma_descriptor(TmaDescriptor const* desc_ptr)
     : "l"(gmem_int_desc)
     : "memory");
 #else
-  CUTE_INVALID_CONTROL_PATH("Trying to use TMA Descriptor Prefetch without CUTE_ARCH_TMA_SM90_ENABLED.");
+  CUTE_RT_TM_INVALID_CONTROL_PATH("Trying to use TMA Descriptor Prefetch without CUTE_RT_TM_ARCH_TMA_SM90_ENABLED.");
 #endif
 }
 
@@ -321,47 +321,47 @@ prefetch_tma_descriptor(TmaDescriptor const* desc_ptr)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Replace tensor pointer directly in GMEM
-CUTE_HOST_DEVICE
+CUTE_RT_TM_HOST_DEVICE
 void
 tma_descriptor_replace_addr_in_global_mem(TmaDescriptor const* desc_ptr,
                                           void const* const new_tensor_ptr)
 {
-#if defined(CUTE_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED)
+#if defined(CUTE_RT_TM_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED)
   uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
   uint64_t const new_desc_addr = reinterpret_cast<uint64_t>(new_tensor_ptr);
   asm volatile (
     "tensormap.replace.tile.global_address.global.b1024.b64 [%0], %1;"
     :: "l"(gmem_int_desc), "l"(new_desc_addr));
 #else
-  CUTE_INVALID_CONTROL_PATH("Using TMA Descriptor modification without CUTE_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED and CUDA 12.3");
+  CUTE_RT_TM_INVALID_CONTROL_PATH("Using TMA Descriptor modification without CUTE_RT_TM_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED and CUDA 12.3");
 #endif
 }
 
 // Replace tensor pointer by bringing the tensormap from GMEM into the shared memory
-CUTE_HOST_DEVICE
+CUTE_RT_TM_HOST_DEVICE
 void
 tma_descriptor_replace_addr_in_shared_mem(TmaDescriptor& smem_desc,
                                           void const* const new_tensor_ptr)
 {
-#if defined(CUTE_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED)
+#if defined(CUTE_RT_TM_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED)
   uint32_t smem_int_desc = cast_smem_ptr_to_uint(&smem_desc);
   uint64_t const new_desc_addr = reinterpret_cast<uint64_t>(new_tensor_ptr);
   asm volatile (
     "tensormap.replace.tile.global_address.shared::cta.b1024.b64 [%0], %1;"
     :: "r"(smem_int_desc), "l"(new_desc_addr));
 #else
-  CUTE_INVALID_CONTROL_PATH("Using TMA Descriptor modification without CUTE_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED and CUDA 12.3");
+  CUTE_RT_TM_INVALID_CONTROL_PATH("Using TMA Descriptor modification without CUTE_RT_TM_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED and CUDA 12.3");
 #endif
 }
 
 // Replace tensor dims and strides for GEMMs by bringing the tensormap from GMEM into the shared memory
-CUTE_HOST_DEVICE
+CUTE_RT_TM_HOST_DEVICE
 void
 tma_descriptor_replace_dims_strides_in_shared_mem(TmaDescriptor                 & smem_desc,
                                                   cute_rt_tm::array<uint32_t, 5> const& prob_shape,
                                                   cute_rt_tm::array<uint64_t, 5> const& prob_stride)
 {
-#if defined(CUTE_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED)
+#if defined(CUTE_RT_TM_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED)
   uint32_t smem_int_desc = cast_smem_ptr_to_uint(&smem_desc);
   uint64_t const smem_int64_desc = 0;
   asm volatile (
@@ -412,7 +412,7 @@ tma_descriptor_replace_dims_strides_in_shared_mem(TmaDescriptor                 
     :: "l"(smem_int64_desc), "l"(prob_stride[4] >> 4));
   #endif
 #else
-  CUTE_INVALID_CONTROL_PATH("Using TMA Descriptor modification without CUTE_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED and CUDA 12.3");
+  CUTE_RT_TM_INVALID_CONTROL_PATH("Using TMA Descriptor modification without CUTE_RT_TM_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED and CUDA 12.3");
 #endif
 }
 
@@ -420,18 +420,18 @@ tma_descriptor_replace_dims_strides_in_shared_mem(TmaDescriptor                 
 /// Perform a fused copy and fence operation (needed when modifying tensormap in shared memory)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CUTE_HOST_DEVICE
+CUTE_RT_TM_HOST_DEVICE
 void
 tma_descriptor_cp_fence_release(TmaDescriptor const* gmem_desc_ptr, TmaDescriptor& smem_desc)
 {
-#if defined(CUTE_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED)
+#if defined(CUTE_RT_TM_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED)
   uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(gmem_desc_ptr);
   uint32_t smem_int_desc = cast_smem_ptr_to_uint(&smem_desc);
   asm volatile (
     "tensormap.cp_fenceproxy.global.shared::cta.tensormap::generic.release.gpu.sync.aligned [%0], [%1], 128;"
     :: "l"(gmem_int_desc), "r"(smem_int_desc));
 #else
-  CUTE_INVALID_CONTROL_PATH("Using TMA Descriptor modification without CUTE_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED and CUDA 12.3");
+  CUTE_RT_TM_INVALID_CONTROL_PATH("Using TMA Descriptor modification without CUTE_RT_TM_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED and CUDA 12.3");
 #endif
 }
 
@@ -439,14 +439,14 @@ tma_descriptor_cp_fence_release(TmaDescriptor const* gmem_desc_ptr, TmaDescripto
 /// Perform a release fence operation (needed when modifying tensormap directly in GMEM)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CUTE_HOST_DEVICE
+CUTE_RT_TM_HOST_DEVICE
 void
 tma_descriptor_fence_release()
 {
-#if defined(CUTE_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED)
+#if defined(CUTE_RT_TM_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED)
   asm volatile ("fence.proxy.tensormap::generic.release.gpu;");
 #else
-  CUTE_INVALID_CONTROL_PATH("Using TMA Descriptor modification without CUTE_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED and CUDA 12.3");
+  CUTE_RT_TM_INVALID_CONTROL_PATH("Using TMA Descriptor modification without CUTE_RT_TM_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED and CUDA 12.3");
 #endif
 }
 
@@ -454,11 +454,11 @@ tma_descriptor_fence_release()
 /// Perform a acquire fence operation
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CUTE_HOST_DEVICE
+CUTE_RT_TM_HOST_DEVICE
 void
 tma_descriptor_fence_acquire(TmaDescriptor const* desc_ptr)
 {
-#if defined(CUTE_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED)
+#if defined(CUTE_RT_TM_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED)
   uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
   asm volatile (
     "fence.proxy.tensormap::generic.acquire.gpu [%0], 128;"
@@ -466,7 +466,7 @@ tma_descriptor_fence_acquire(TmaDescriptor const* desc_ptr)
     : "l"(gmem_int_desc)
     : "memory");
 #else
-  CUTE_INVALID_CONTROL_PATH("Using TMA Descriptor modification without CUTE_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED and CUDA 12.3");
+  CUTE_RT_TM_INVALID_CONTROL_PATH("Using TMA Descriptor modification without CUTE_RT_TM_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED and CUDA 12.3");
 #endif
 }
 

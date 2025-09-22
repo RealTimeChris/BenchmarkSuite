@@ -30,8 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute_rt_tm/config.hpp>      // CUTE_HOST_DEVICE
-#include <cute_rt_tm/arch/config.hpp> // CUTE_ARCH_TMA_SMxx_ENABLED
+#include <cute_rt_tm/config.hpp>      // CUTE_RT_TM_HOST_DEVICE
+#include <cute_rt_tm/arch/config.hpp> // CUTE_RT_TM_ARCH_TMA_SMxx_ENABLED
 #include <cute_rt_tm/arch/copy.hpp>
 
 namespace cute_rt_tm
@@ -42,17 +42,17 @@ struct SM90_U32x1_STSM_N
   using SRegisters = uint32_t[1];
   using DRegisters = uint128_t[1];
 
-  CUTE_HOST_DEVICE static void
+  CUTE_RT_TM_HOST_DEVICE static void
   copy(uint32_t const& src,
        uint128_t     & smem_dst)
   {
-#if defined(CUTE_ARCH_STSM_SM90_ENABLED)
+#if defined(CUTE_RT_TM_ARCH_STSM_SM90_ENABLED)
     uint32_t smem_int_ptr = cast_smem_ptr_to_uint(&smem_dst);
     asm volatile ("stmatrix.sync.aligned.x1.m8n8.shared.b16 [%0], {%1};\n"
         :: "r"(smem_int_ptr),
            "r"(src));
 #else
-    CUTE_INVALID_CONTROL_PATH("Trying to use stmatrix without CUTE_ARCH_STSM_SM90_ENABLED.");
+    CUTE_RT_TM_INVALID_CONTROL_PATH("Trying to use stmatrix without CUTE_RT_TM_ARCH_STSM_SM90_ENABLED.");
 #endif
   }
 };
@@ -62,17 +62,17 @@ struct SM90_U32x2_STSM_N
   using SRegisters = uint32_t[2];
   using DRegisters = uint128_t[1];
 
-  CUTE_HOST_DEVICE static void
+  CUTE_RT_TM_HOST_DEVICE static void
   copy(uint32_t const& src0, uint32_t const& src1,
        uint128_t& smem_dst)
   {
-#if defined(CUTE_ARCH_STSM_SM90_ENABLED)
+#if defined(CUTE_RT_TM_ARCH_STSM_SM90_ENABLED)
     uint32_t smem_int_ptr = cast_smem_ptr_to_uint(&smem_dst);
     asm volatile ("stmatrix.sync.aligned.x2.m8n8.shared.b16 [%0], {%1, %2};\n"
         :: "r"(smem_int_ptr),
            "r"(src0), "r"(src1));
 #else
-    CUTE_INVALID_CONTROL_PATH("Trying to use stmatrix without CUTE_ARCH_STSM_SM90_ENABLED.");
+    CUTE_RT_TM_INVALID_CONTROL_PATH("Trying to use stmatrix without CUTE_RT_TM_ARCH_STSM_SM90_ENABLED.");
 #endif
   }
 };
@@ -82,17 +82,17 @@ struct SM90_U32x4_STSM_N
   using SRegisters = uint32_t[4];
   using DRegisters = uint128_t[1];
 
-  CUTE_HOST_DEVICE static void
+  CUTE_RT_TM_HOST_DEVICE static void
   copy(uint32_t const& src0, uint32_t const& src1, uint32_t const& src2, uint32_t const& src3,
        uint128_t& smem_dst)
   {
-#if defined(CUTE_ARCH_STSM_SM90_ENABLED)
+#if defined(CUTE_RT_TM_ARCH_STSM_SM90_ENABLED)
     uint32_t smem_int_ptr = cast_smem_ptr_to_uint(&smem_dst);
     asm volatile ("stmatrix.sync.aligned.x4.m8n8.shared.b16 [%0], {%1, %2, %3, %4};\n"
         :: "r"(smem_int_ptr),
           "r"(src0), "r"(src1), "r"(src2), "r"(src3));
 #else
-    CUTE_INVALID_CONTROL_PATH("Trying to use stmatrix without CUTE_ARCH_STSM_SM90_ENABLED.");
+    CUTE_RT_TM_INVALID_CONTROL_PATH("Trying to use stmatrix without CUTE_RT_TM_ARCH_STSM_SM90_ENABLED.");
 #endif
   }
 };
@@ -102,17 +102,17 @@ struct SM90_U16x2_STSM_T
   using SRegisters = uint32_t[1];
   using DRegisters = uint128_t[1];
 
-  CUTE_HOST_DEVICE static void
+  CUTE_RT_TM_HOST_DEVICE static void
   copy(uint32_t const& src,
        uint128_t& smem_dst)
   {
-#if defined(CUTE_ARCH_STSM_SM90_ENABLED)
+#if defined(CUTE_RT_TM_ARCH_STSM_SM90_ENABLED)
     uint32_t smem_int_ptr = cast_smem_ptr_to_uint(&smem_dst);
     asm volatile ("stmatrix.sync.aligned.x1.trans.m8n8.shared.b16 [%0], {%1};\n"
         :: "r"(smem_int_ptr),
            "r"(src));
 #else
-    CUTE_INVALID_CONTROL_PATH("Trying to use stmatrix without CUTE_ARCH_STSM_SM90_ENABLED.");
+    CUTE_RT_TM_INVALID_CONTROL_PATH("Trying to use stmatrix without CUTE_RT_TM_ARCH_STSM_SM90_ENABLED.");
 #endif
   }
 };
@@ -122,17 +122,17 @@ struct SM90_U16x4_STSM_T
   using SRegisters = uint32_t[2];
   using DRegisters = uint128_t[1];
 
-  CUTE_HOST_DEVICE static void
+  CUTE_RT_TM_HOST_DEVICE static void
   copy(uint32_t const& src0, uint32_t const& src1,
        uint128_t& smem_dst)
   {
-#if defined(CUTE_ARCH_STSM_SM90_ENABLED)
+#if defined(CUTE_RT_TM_ARCH_STSM_SM90_ENABLED)
     uint32_t smem_int_ptr = cast_smem_ptr_to_uint(&smem_dst);
     asm volatile ("stmatrix.sync.aligned.x2.trans.m8n8.shared.b16 [%0], {%1, %2};\n"
         :: "r"(smem_int_ptr),
            "r"(src0), "r"(src1));
 #else
-    CUTE_INVALID_CONTROL_PATH("Trying to use stmatrix without CUTE_ARCH_STSM_SM90_ENABLED.");
+    CUTE_RT_TM_INVALID_CONTROL_PATH("Trying to use stmatrix without CUTE_RT_TM_ARCH_STSM_SM90_ENABLED.");
 #endif
   }
 };
@@ -142,17 +142,17 @@ struct SM90_U16x8_STSM_T
   using SRegisters = uint32_t[4];
   using DRegisters = uint128_t[1];
 
-  CUTE_HOST_DEVICE static void
+  CUTE_RT_TM_HOST_DEVICE static void
   copy(uint32_t const& src0, uint32_t const& src1, uint32_t const& src2, uint32_t const& src3,
        uint128_t& smem_dst)
   {
-#if defined(CUTE_ARCH_STSM_SM90_ENABLED)
+#if defined(CUTE_RT_TM_ARCH_STSM_SM90_ENABLED)
     uint32_t smem_int_ptr = cast_smem_ptr_to_uint(&smem_dst);
     asm volatile ("stmatrix.sync.aligned.x4.trans.m8n8.shared.b16 [%0], {%1, %2, %3, %4};\n"
         :: "r"(smem_int_ptr),
           "r"(src0), "r"(src1), "r"(src2), "r"(src3));
 #else
-    CUTE_INVALID_CONTROL_PATH("Trying to use stmatrix without CUTE_ARCH_STSM_SM90_ENABLED.");
+    CUTE_RT_TM_INVALID_CONTROL_PATH("Trying to use stmatrix without CUTE_RT_TM_ARCH_STSM_SM90_ENABLED.");
 #endif
   }
 };
@@ -162,7 +162,7 @@ struct SM90_U16x8_STSM_T
 //
 
 template <class T>
-CUTE_HOST_DEVICE
+CUTE_RT_TM_HOST_DEVICE
 void
 copy_stsm(T const* const rmem_ptr,
           uint128_t* const smem_ptr)
@@ -185,7 +185,7 @@ copy_stsm(T const* const rmem_ptr,
 }
 
 template <class T>
-CUTE_HOST_DEVICE
+CUTE_RT_TM_HOST_DEVICE
 void
 copy_stsm_trans(T const* const rmem_ptr,
                 uint128_t* const smem_ptr)

@@ -68,7 +68,7 @@ namespace cute_rt_tm
 namespace detail {
 
 template <class T, class F, int... I>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 apply(T&& t, F&& f, seq<I...>)
 {
@@ -78,7 +78,7 @@ apply(T&& t, F&& f, seq<I...>)
 } // end namespace detail
 
 template <class T, class F>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 apply(T&& t, F&& f)
 {
@@ -93,7 +93,7 @@ apply(T&& t, F&& f)
 namespace detail {
 
 template <class T, class F, class G, int... I>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tapply(T&& t, F&& f, G&& g, seq<I...>)
 {
@@ -101,7 +101,7 @@ tapply(T&& t, F&& f, G&& g, seq<I...>)
 }
 
 template <class T0, class T1, class F, class G, int... I>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tapply(T0&& t0, T1&& t1, F&& f, G&& g, seq<I...>)
 {
@@ -110,7 +110,7 @@ tapply(T0&& t0, T1&& t1, F&& f, G&& g, seq<I...>)
 }
 
 template <class T0, class T1, class T2, class F, class G, int... I>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tapply(T0&& t0, T1&& t1, T2&& t2, F&& f, G&& g, seq<I...>)
 {
@@ -122,7 +122,7 @@ tapply(T0&& t0, T1&& t1, T2&& t2, F&& f, G&& g, seq<I...>)
 } // end namespace detail
 
 template <class T, class F, class G>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 transform_apply(T&& t, F&& f, G&& g)
 {
@@ -132,11 +132,11 @@ transform_apply(T&& t, F&& f, G&& g)
     return g(f(static_cast<T&&>(t)));
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 template <class T0, class T1, class F, class G>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 transform_apply(T0&& t0, T1&& t1, F&& f, G&& g)
 {
@@ -146,11 +146,11 @@ transform_apply(T0&& t0, T1&& t1, F&& f, G&& g)
     return g(f(static_cast<T0&&>(t0), static_cast<T1&&>(t1)));
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 template <class T0, class T1, class T2, class F, class G>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 transform_apply(T0&& t0, T1&& t1, T2&& t2, F&& f, G&& g)
 {
@@ -160,7 +160,7 @@ transform_apply(T0&& t0, T1&& t1, T2&& t2, F&& f, G&& g)
     return g(f(static_cast<T0&&>(t0), static_cast<T1&&>(t1), static_cast<T2&&>(t2)));
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 //
@@ -169,7 +169,7 @@ transform_apply(T0&& t0, T1&& t1, T2&& t2, F&& f, G&& g)
 //
 
 template <class T, class F>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 void
 for_each(T&& t, F&& f)
 {
@@ -179,11 +179,11 @@ for_each(T&& t, F&& f)
     return f(static_cast<T&&>(t));
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 template <class T, class F>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 for_each_leaf(T&& t, F&& f)
 {
@@ -193,7 +193,7 @@ for_each_leaf(T&& t, F&& f)
     return f(static_cast<T&&>(t));
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 //
@@ -202,7 +202,7 @@ for_each_leaf(T&& t, F&& f)
 //
 
 template <class T, class F>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 transform(T const& t, F&& f)
 {
@@ -212,11 +212,11 @@ transform(T const& t, F&& f)
     return f(t);
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 template <class T0, class T1, class F>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 transform(T0 const& t0, T1 const& t1, F&& f)
 {
@@ -227,11 +227,11 @@ transform(T0 const& t0, T1 const& t1, F&& f)
     return f(t0, t1);
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 template <class T0, class T1, class T2, class F>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 transform(T0 const& t0, T1 const& t1, T2 const& t2, F&& f)
 {
@@ -243,11 +243,11 @@ transform(T0 const& t0, T1 const& t1, T2 const& t2, F&& f)
     return f(t0, t1, t2);
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 template <class T, class F>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 transform_leaf(T const& t, F&& f)
 {
@@ -257,11 +257,11 @@ transform_leaf(T const& t, F&& f)
     return f(t);
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 template <class T0, class T1, class F>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 transform_leaf(T0 const& t0, T1 const& t1, F&& f)
 {
@@ -271,7 +271,7 @@ transform_leaf(T0 const& t0, T1 const& t1, F&& f)
     return f(t0, t1);
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 //
@@ -279,7 +279,7 @@ transform_leaf(T0 const& t0, T1 const& t1, F&& f)
 //
 
 template <class T, class F>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 find_if(T const& t, F&& f)
 {
@@ -289,11 +289,11 @@ find_if(T const& t, F&& f)
     return cute_rt_tm::C<decltype(f(t))::value ? 0 : 1>{};
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 template <class T, class X>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 find(T const& t, X const& x)
 {
@@ -301,7 +301,7 @@ find(T const& t, X const& x)
 }
 
 template <class T, class F>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 any_of(T const& t, F&& f)
 {
@@ -311,11 +311,11 @@ any_of(T const& t, F&& f)
     return f(t);
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 template <class T, class F>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 all_of(T const& t, F&& f)
 {
@@ -325,11 +325,11 @@ all_of(T const& t, F&& f)
     return f(t);
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 template <class T, class F>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 none_of(T const& t, F&& f)
 {
@@ -342,7 +342,7 @@ none_of(T const& t, F&& f)
 //
 
 template <class T, class F>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 filter_tuple(T const& t, F&& f)
 {
@@ -350,7 +350,7 @@ filter_tuple(T const& t, F&& f)
 }
 
 template <class T0, class T1, class F>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 filter_tuple(T0 const& t0, T1 const& t1, F&& f)
 {
@@ -358,7 +358,7 @@ filter_tuple(T0 const& t0, T1 const& t1, F&& f)
 }
 
 template <class T0, class T1, class T2, class F>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 filter_tuple(T0 const& t0, T1 const& t1, T2 const& t2, F&& f)
 {
@@ -375,7 +375,7 @@ namespace detail {
 template <class Fn, class Val>
 struct FoldAdaptor {
   template <class X>
-  CUTE_HOST_DEVICE constexpr auto operator|(X&& x) {
+  CUTE_RT_TM_HOST_DEVICE constexpr auto operator|(X&& x) {
     auto r = fn_(val_, static_cast<X&&>(x));
     return FoldAdaptor<Fn, decltype(r)>{fn_, r};
   }
@@ -384,7 +384,7 @@ struct FoldAdaptor {
 };
 
 template <class T, class V, class F, int... Is>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 fold(T&& t, V const& v, F&& f, seq<Is...>)
 {
@@ -394,7 +394,7 @@ fold(T&& t, V const& v, F&& f, seq<Is...>)
 } // end namespace detail
 
 template <class T, class V, class F>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 fold(T&& t, V const& v, F&& f)
 {
@@ -404,11 +404,11 @@ fold(T&& t, V const& v, F&& f)
     return f(v, static_cast<T&&>(t));
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 template <class T, class F>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 fold_first(T&& t, F&& f)
 {
@@ -418,7 +418,7 @@ fold_first(T&& t, F&& f)
     return t;
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 //
@@ -427,7 +427,7 @@ fold_first(T&& t, F&& f)
 
 // Get the first non-tuple element in a hierarchical tuple
 template <class T>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 decltype(auto)
 front(T&& t)
 {
@@ -437,12 +437,12 @@ front(T&& t)
     return static_cast<T&&>(t);
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 // Get the last non-tuple element in a hierarchical tuple
 template <class T>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 decltype(auto)
 back(T&& t)
 {
@@ -460,12 +460,12 @@ back(T&& t)
     return static_cast<T&&>(t);
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 // Takes the elements in the range [B,E)
 template <int B, int E, class T>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 take(T const& t)
 {
@@ -482,12 +482,12 @@ take(T const& t)
     static_assert(B <= E);
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 // Select tuple elements with given indices.
 template <int... I, class T>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 select(T const& t)
 {
@@ -496,7 +496,7 @@ select(T const& t)
 
 // Wrap non-tuples into rank-1 tuples or forward
 template <class T>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 wrap(T const& t)
 {
@@ -506,12 +506,12 @@ wrap(T const& t)
     return cute_rt_tm::make_tuple(t);
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 // Unwrap rank-1 tuples until we're left with a rank>1 tuple or a non-tuple
 template <class T>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 unwrap(T const& t)
 {
@@ -525,7 +525,7 @@ unwrap(T const& t)
     return t;
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 //
@@ -541,7 +541,7 @@ struct is_flat<tuple<Ts...>> : bool_constant<(true && ... && (not is_tuple<Ts>::
 // Flatten a hierarchical tuple to a tuple of depth one
 //   and wrap non-tuples into a rank-1 tuple.
 template <class T>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 flatten_to_tuple(T const& t)
 {
@@ -555,13 +555,13 @@ flatten_to_tuple(T const& t)
     return cute_rt_tm::make_tuple(t);
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 // Flatten a hierarchical tuple to a tuple of depth one
 //   and leave non-tuple untouched.
 template <class T>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 flatten(T const& t)
 {
@@ -575,13 +575,13 @@ flatten(T const& t)
     return t;
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 namespace detail {
 
 template <class FlatTuple, class TargetProfile>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 unflatten_impl(FlatTuple const& flat_tuple, TargetProfile const& target_profile)
 {
@@ -595,7 +595,7 @@ unflatten_impl(FlatTuple const& flat_tuple, TargetProfile const& target_profile)
     return cute_rt_tm::make_tuple(get<0>(flat_tuple), take<1, decltype(rank(flat_tuple))::value>(flat_tuple));
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 }  // end namespace detail
@@ -606,12 +606,12 @@ unflatten_impl(FlatTuple const& flat_tuple, TargetProfile const& target_profile)
 // @post congruent(@a result, @a target_profile)
 // @post flatten(@a result) == @a flat_tuple
 template <class FlatTuple, class TargetProfile>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 unflatten(FlatTuple const& flat_tuple, TargetProfile const& target_profile)
 {
   auto [unflatten_tuple, flat_remainder] = detail::unflatten_impl(flat_tuple, target_profile);
-  CUTE_STATIC_ASSERT_V(rank(flat_remainder) == Int<0>{});
+  CUTE_RT_TM_STATIC_ASSERT_V(rank(flat_remainder) == Int<0>{});
   return unflatten_tuple;
 }
 
@@ -623,7 +623,7 @@ namespace detail {
 
 // Shortcut around cute_rt_tm::tuple_cat for common insert/remove/repeat cases
 template <class T, class X, int... I, int... J, int... K>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 construct(T const& t, X const& x, seq<I...>, seq<J...>, seq<K...>)
 {
@@ -634,7 +634,7 @@ construct(T const& t, X const& x, seq<I...>, seq<J...>, seq<K...>)
 
 // Insert x into the Nth position of the tuple
 template <int N, class T, class X>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 insert(T const& t, X const& x)
 {
@@ -643,7 +643,7 @@ insert(T const& t, X const& x)
 
 // Remove the Nth element of the tuple
 template <int N, class T>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 remove(T const& t)
 {
@@ -652,7 +652,7 @@ remove(T const& t)
 
 // Replace the Nth element of the tuple with x
 template <int N, class T, class X>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 replace(T const& t, X const& x)
 {
@@ -663,12 +663,12 @@ replace(T const& t, X const& x)
     return x;
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 // Replace the first element of the tuple with x
 template <class T, class X>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 replace_front(T const& t, X const& x)
 {
@@ -678,12 +678,12 @@ replace_front(T const& t, X const& x)
     return x;
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 // Replace the last element of the tuple with x
 template <class T, class X>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 replace_back(T const& t, X const& x)
 {
@@ -693,7 +693,7 @@ replace_back(T const& t, X const& x)
     return x;
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 //
@@ -701,7 +701,7 @@ replace_back(T const& t, X const& x)
 //
 
 template <int N, class X>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 tuple_repeat(X const& x)
 {
@@ -713,7 +713,7 @@ tuple_repeat(X const& x)
 //
 
 template <int N, class X>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 repeat(X const& x)
 {
@@ -723,7 +723,7 @@ repeat(X const& x)
     return detail::construct(0, x, seq<>{}, make_seq<N>{}, seq<>{});
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 //
@@ -731,7 +731,7 @@ repeat(X const& x)
 //
 
 template <class T, class X>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 repeat_like(T const& t, X const& x)
 {
@@ -741,14 +741,14 @@ repeat_like(T const& t, X const& x)
     return x;
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 // Group the elements [B,E) of a T into a single element
 // e.g. group<2,4>(T<_1,_2,_3,_4,_5,_6>{})
 //              => T<_1,_2,T<_3,_4>,_5,_6>{}
 template <int B, int E, class T>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 group(T const& t)
 {
@@ -768,7 +768,7 @@ group(T const& t)
     static_assert(B <= E);
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 //
@@ -776,7 +776,7 @@ group(T const& t)
 //
 
 template <int N, class T, class X>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 append(T const& a, X const& x)
 {
@@ -795,11 +795,11 @@ append(T const& a, X const& x)
     }
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 template <class T, class X>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 append(T const& a, X const& x)
 {
@@ -809,11 +809,11 @@ append(T const& a, X const& x)
     return cute_rt_tm::make_tuple(a, x);
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 template <int N, class T, class X>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 prepend(T const& a, X const& x)
 {
@@ -833,11 +833,11 @@ prepend(T const& a, X const& x)
     }
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 template <class T, class X>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 prepend(T const& a, X const& x)
 {
@@ -847,7 +847,7 @@ prepend(T const& a, X const& x)
     return cute_rt_tm::make_tuple(x, a);
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 //
@@ -857,7 +857,7 @@ prepend(T const& a, X const& x)
 namespace detail {
 
 template <class T, class V, class F, int I, int... Is>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 iscan(T const& t, V const& v, F&& f, seq<I,Is...>)
 {
@@ -880,13 +880,13 @@ iscan(T const& t, V const& v, F&& f, seq<I,Is...>)
     return iscan(t_next, v_next, f, seq<Is...>{});
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 } // end namespace detail
 
 template <class T, class V, class F>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 iscan(T const& t, V const& v, F&& f)
 {
@@ -900,7 +900,7 @@ iscan(T const& t, V const& v, F&& f)
 namespace detail {
 
 template <class T, class V, class F, int I, int... Is>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 escan(T const& t, V const& v, F&& f, seq<I,Is...>)
 {
@@ -925,13 +925,13 @@ escan(T const& t, V const& v, F&& f, seq<I,Is...>)
     return escan(t_next, v_next, f, seq<Is...>{});
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 } // end namespace detail
 
 template <class T, class V, class F>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 escan(T const& t, V const& v, F&& f)
 {
@@ -948,7 +948,7 @@ escan(T const& t, V const& v, F&& f)
 namespace detail {
 
 template <int J, class... Ts>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 zip_(Ts const&... ts)
 {
@@ -956,7 +956,7 @@ zip_(Ts const&... ts)
 }
 
 template <class T, int... Is, int... Js>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 zip(T const& t, seq<Is...>, seq<Js...>)
 {
@@ -967,7 +967,7 @@ zip(T const& t, seq<Is...>, seq<Js...>)
 } // end namespace detail
 
 template <class T>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 zip(T const& t)
 {
@@ -981,12 +981,12 @@ zip(T const& t)
     return t;
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 // Convenient to pass them in separately
 template <class T0, class T1, class... Ts>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 zip(T0 const& t0, T1 const& t1, Ts const&... ts)
 {
@@ -1003,7 +1003,7 @@ zip(T0 const& t0, T1 const& t1, Ts const&... ts)
 namespace detail {
 
 template <class T, class TG, int... Is, int... Js>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 zip2_by(T const& t, TG const& guide, seq<Is...>, seq<Js...>)
 {
@@ -1018,7 +1018,7 @@ zip2_by(T const& t, TG const& guide, seq<Is...>, seq<Js...>)
 } // end namespace detail
 
 template <class T, class TG>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 zip2_by(T const& t, TG const& guide)
 {
@@ -1034,12 +1034,12 @@ zip2_by(T const& t, TG const& guide)
     return t;
   }
 
-  CUTE_GCC_UNREACHABLE;
+  CUTE_RT_TM_GCC_UNREACHABLE;
 }
 
 /// @return A tuple of the elements of @c t in reverse order.
 template <class T>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 reverse(T const& t)
 {

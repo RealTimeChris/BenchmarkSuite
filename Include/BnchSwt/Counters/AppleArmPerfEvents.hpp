@@ -294,7 +294,7 @@ namespace bnch_swt::internal {
 		"I/O", "buffer too small", "current system unknown", "database path invalid", "database not found", "database architecture unsupported", "database version unsupported",
 		"database corrupt", "event not found", "conflicting events", "all counters must be forced", "event unavailable", "check errno" };
 
-	static const char* kpep_config_error_desc(int32_t code) {
+	static constexpr char* kpep_config_error_desc(int32_t code) {
 		if (0 <= code && static_cast<uint64_t>(code) < static_cast<uint64_t>(kpep_config_error_code::KPEP_CONFIG_ERROR_MAX)) {
 			return kpep_config_error_names[static_cast<uint64_t>(code)];
 		}
@@ -358,7 +358,7 @@ namespace bnch_swt::internal {
 			#name, reinterpret_cast<void**>(&name) \
 		}
 
-	static const std::array<lib_symbol, 34> lib_symbols_kperf{
+	static constexpr std::array<lib_symbol, 34> lib_symbols_kperf{
 		lib_symbol_def(kpc_pmu_version),
 		lib_symbol_def(kpc_cpu_string),
 		lib_symbol_def(kpc_set_counting),
@@ -395,7 +395,7 @@ namespace bnch_swt::internal {
 		lib_symbol_def(kperf_tick_frequency),
 	};
 
-	static const std::array<lib_symbol, 23> lib_symbols_kperfdata{
+	static constexpr std::array<lib_symbol, 23> lib_symbols_kperfdata{
 		lib_symbol_def(kpep_config_create),
 		lib_symbol_def(kpep_config_free),
 		lib_symbol_def(kpep_config_add_event),
@@ -652,7 +652,7 @@ namespace bnch_swt::internal {
 	static std::array<size_t, KPC_MAX_COUNTERS> counter_map{ 0 };
 	static std::array<uint64_t, KPC_MAX_COUNTERS> counters_0{ 0 };
 	static std::array<uint64_t, KPC_MAX_COUNTERS> counters_1{ 0 };
-	static const size_t ev_count = sizeof(profile_events) / sizeof(profile_events[0]);
+	static constexpr size_t ev_count = sizeof(profile_events) / sizeof(profile_events[0]);
 
 	static bool setup_performance_counters() {
 		static bool init   = false;

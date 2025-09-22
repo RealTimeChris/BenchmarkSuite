@@ -1,6 +1,7 @@
 #include <BnchSwt/BenchmarkSuite.hpp>
 #include <cuda_runtime.h>
 #include <cuda_fp16.h>
+#include "nihilus_gemm/arch/config.h"
 
 static constexpr uint64_t total_iterations{ 2 };
 static constexpr uint64_t measured_iterations{ 2 };
@@ -89,11 +90,6 @@ struct cuda_buffer {
 };
 
 using q8_quant = int8_t;
-
-struct block_q8_0 {
-	q8_quant quants[32]{};
-	uint16_t scale{};
-};
 
 inline static uint16_t fp32_to_fp16(float f) {
 	return static_cast<uint16_t>(_mm_extract_epi16(_mm_cvtps_ph(_mm_set_ss(f), _MM_FROUND_TO_NEAREST_INT), 0));
@@ -318,28 +314,28 @@ template<uint64_t M, uint64_t K> struct cuda_mul_mat_01_prep {
 
 		if (current_index > 0) {
 			auto& previous_outputs = outputs[current_index - 1];
-			cudaError_t err		   = cudaMemcpy(previous_outputs.data(), d_outputs, outputs_C_size, cudaMemcpyDeviceToHost);
-			if (err != cudaSuccess) {
-				std::cerr << "Failed to copy previous outputs from device: " + std::string(cudaGetErrorString(err)) << std::endl;
+			cudaError_t status		   = cudaMemcpy(previous_outputs.data(), d_outputs, outputs_C_size, cudaMemcpyDeviceToHost);
+			if (status != cudaSuccess) {
+				std::cerr << "Failed to copy previous outputs from device: " + std::string(cudaGetErrorString(status)) << std::endl;
 			}
 		}
 
 		const auto& current_blocks = blocks[current_index];
 		const auto& current_floats = floats[current_index];
 
-		cudaError_t err = cudaMemcpy(A_ptr_raw, current_blocks.data(), blocks_size, cudaMemcpyHostToDevice);
-		if (err != cudaSuccess) {
-			std::cerr << "Failed to copy blocks to device: " + std::string(cudaGetErrorString(err)) << std::endl;
+		cudaError_t status = cudaMemcpy(A_ptr_raw, current_blocks.data(), blocks_size, cudaMemcpyHostToDevice);
+		if (status != cudaSuccess) {
+			std::cerr << "Failed to copy blocks to device: " + std::string(cudaGetErrorString(status)) << std::endl;
 		}
 
-		err = cudaMemcpy(d_floats, current_floats.data(), floats_B_size, cudaMemcpyHostToDevice);
-		if (err != cudaSuccess) {
-			std::cerr << "Failed to copy floats to device: " + std::string(cudaGetErrorString(err)) << std::endl;
+		status = cudaMemcpy(d_floats, current_floats.data(), floats_B_size, cudaMemcpyHostToDevice);
+		if (status != cudaSuccess) {
+			std::cerr << "Failed to copy floats to device: " + std::string(cudaGetErrorString(status)) << std::endl;
 		}
 
-		err = cudaMemset(d_outputs, 0, outputs_C_size);
-		if (err != cudaSuccess) {
-			std::cerr << "Failed to zero output buffer: " + std::string(cudaGetErrorString(err)) << std::endl;
+		status = cudaMemset(d_outputs, 0, outputs_C_size);
+		if (status != cudaSuccess) {
+			std::cerr << "Failed to zero output buffer: " + std::string(cudaGetErrorString(status)) << std::endl;
 		}
 
 		return 0;
@@ -363,153 +359,28 @@ template<uint64_t M, uint64_t K> struct cuda_mul_mat_01_prep {
 
 		if (current_index > 0) {
 			auto& previous_outputs = outputs[current_index - 1];
-			cudaError_t err		   = cudaMemcpy(previous_outputs.data(), d_outputs, outputs_C_size, cudaMemcpyDeviceToHost);
-			if (err != cudaSuccess) {
-				std::cerr << "Failed to copy previous outputs from device: " + std::string(cudaGetErrorString(err)) << std::endl;
+			cudaError_t status		   = cudaMemcpy(previous_outputs.data(), d_outputs, outputs_C_size, cudaMemcpyDeviceToHost);
+			if (status != cudaSuccess) {
+				std::cerr << "Failed to copy previous outputs from device: " + std::string(cudaGetErrorString(status)) << std::endl;
 			}
 		}
 
 		const auto& current_floats_A = floats_A[current_index];
 		const auto& current_floats_B = floats_B[current_index];
 
-		cudaError_t err = cudaMemcpy(d_floats_A, current_floats_A.data(), floats_A_size, cudaMemcpyHostToDevice);
-		if (err != cudaSuccess) {
-			std::cerr << "Failed to copy Matrix A floats to device: " + std::string(cudaGetErrorString(err)) << std::endl;
+		cudaError_t status = cudaMemcpy(d_floats_A, current_floats_A.data(), floats_A_size, cudaMemcpyHostToDevice);
+		if (status != cudaSuccess) {
+			std::cerr << "Failed to copy Matrix A floats to device: " + std::string(cudaGetErrorString(status)) << std::endl;
 		}
 
-		err = cudaMemcpy(d_floats_B, current_floats_B.data(), floats_B_size, cudaMemcpyHostToDevice);
-		if (err != cudaSuccess) {
-			std::cerr << "Failed to copy Matrix B floats to device: " + std::string(cudaGetErrorString(err)) << std::endl;
+		status = cudaMemcpy(d_floats_B, current_floats_B.data(), floats_B_size, cudaMemcpyHostToDevice);
+		if (status != cudaSuccess) {
+			std::cerr << "Failed to copy Matrix B floats to device: " + std::string(cudaGetErrorString(status)) << std::endl;
 		}
 
-		// Optional: Zero output buffer (uncomment if needed)
-		// err = cudaMemset(d_outputs, 0, outputs_C_size);
-		// if (err != cudaSuccess) {
-		//     std::cerr << "Failed to zero output buffer: " + std::string(cudaGetErrorString(err)) << std::endl;
-		// }
-
-		return 0;
-	}
-};
-
-template<uint64_t M, uint64_t K> struct cuda_mul_mat_01_prep_transposed {
-	BNCH_SWT_INLINE static void transpose_blocks_to_column_major(const std::vector<block_q8_0>& src_blocks, std::vector<block_q8_0>& dst_blocks, uint64_t rows, uint64_t cols) {
-		constexpr uint64_t elements_per_block = 32;
-		const uint64_t blocks_per_row		  = (cols + elements_per_block - 1) / elements_per_block;
-		const uint64_t blocks_per_col		  = (rows + elements_per_block - 1) / elements_per_block;
-
-		dst_blocks.resize(src_blocks.size());
-
-		for (uint64_t block_row = 0; block_row < blocks_per_col; ++block_row) {
-			for (uint64_t block_col = 0; block_col < blocks_per_row; ++block_col) {
-				uint64_t src_idx = block_row * blocks_per_row + block_col;
-				uint64_t dst_idx = block_col * blocks_per_col + block_row;
-				if (src_idx < src_blocks.size() && dst_idx < dst_blocks.size()) {
-					dst_blocks[dst_idx] = src_blocks[src_idx];
-				}
-			}
-		}
-	}
-
-	BNCH_SWT_INLINE static void transpose_floats_to_column_major(const std::vector<float>& src, std::vector<float>& dst, uint64_t rows, uint64_t cols) {
-		dst.resize(src.size());
-		for (uint64_t i = 0; i < rows; ++i) {
-			for (uint64_t j = 0; j < cols; ++j) {
-				dst[j * rows + i] = src[i * cols + j];
-			}
-		}
-	}
-
-	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats, std::vector<std::vector<block_q8_0>>& blocks,
-		std::vector<std::vector<float>>& outputs, uint64_t N) {
-		constexpr uint64_t total_blocks_A = ((M * K) + 32 - 1) / 32;
-		constexpr uint64_t blocks_size	  = total_blocks_A * sizeof(block_q8_0);
-		const uint64_t floats_B_size	  = (K * N) * sizeof(float);
-		const uint64_t outputs_C_size	  = (M * N) * sizeof(float);
-		uint64_t offset					  = 0;
-		block_q8_0* A_ptr_raw			  = reinterpret_cast<block_q8_0*>(static_cast<uint8_t*>(buffer.data()) + offset);
-		offset							  = round_up_to_multiple<64>(offset + blocks_size);
-
-		float* d_floats = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-		offset			= round_up_to_multiple<64>(offset + floats_B_size);
-
-		float* d_outputs = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-
-		if (current_index > 0) {
-			auto& previous_outputs = outputs[current_index - 1];
-			cudaError_t err		   = cudaMemcpy(previous_outputs.data(), d_outputs, outputs_C_size, cudaMemcpyDeviceToHost);
-			if (err != cudaSuccess) {
-				std::cerr << "Failed to copy previous outputs from device: " + std::string(cudaGetErrorString(err)) << std::endl;
-			}
-		}
-
-		const auto& current_blocks = blocks[current_index];
-		const auto& current_floats = floats[current_index];
-
-		std::vector<block_q8_0> transposed_blocks;
-		std::vector<float> transposed_floats;
-
-		transpose_blocks_to_column_major(current_blocks, transposed_blocks, M, K);
-		transpose_floats_to_column_major(current_floats, transposed_floats, K, N);
-
-		cudaError_t err = cudaMemcpy(A_ptr_raw, transposed_blocks.data(), blocks_size, cudaMemcpyHostToDevice);
-		if (err != cudaSuccess) {
-			std::cerr << "Failed to copy blocks to device: " + std::string(cudaGetErrorString(err)) << std::endl;
-		}
-
-		err = cudaMemcpy(d_floats, transposed_floats.data(), floats_B_size, cudaMemcpyHostToDevice);
-		if (err != cudaSuccess) {
-			std::cerr << "Failed to copy floats to device: " + std::string(cudaGetErrorString(err)) << std::endl;
-		}
-
-		err = cudaMemset(d_outputs, 0, outputs_C_size);
-		if (err != cudaSuccess) {
-			std::cerr << "Failed to zero output buffer: " + std::string(cudaGetErrorString(err)) << std::endl;
-		}
-
-		return 0;
-	}
-
-	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats_A, std::vector<std::vector<float>>& floats_B,
-		std::vector<std::vector<float>>& outputs, uint64_t N) {
-		const uint64_t floats_A_size  = (M * K) * sizeof(float);
-		const uint64_t floats_B_size  = (K * N) * sizeof(float);
-		const uint64_t outputs_C_size = (M * N) * sizeof(float);
-
-		uint64_t offset = 0;
-
-		float* d_floats_A = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-		offset			  = round_up_to_multiple<64>(offset + floats_A_size);
-
-		float* d_floats_B = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-		offset			  = round_up_to_multiple<64>(offset + floats_B_size);
-
-		float* d_outputs = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-
-		if (current_index > 0) {
-			auto& previous_outputs = outputs[current_index - 1];
-			cudaError_t err		   = cudaMemcpy(previous_outputs.data(), d_outputs, outputs_C_size, cudaMemcpyDeviceToHost);
-			if (err != cudaSuccess) {
-				std::cerr << "Failed to copy previous outputs from device: " + std::string(cudaGetErrorString(err)) << std::endl;
-			}
-		}
-
-		const auto& current_floats_A = floats_A[current_index];
-		const auto& current_floats_B = floats_B[current_index];
-
-		std::vector<float> transposed_A, transposed_B;
-
-		transpose_floats_to_column_major(current_floats_A, transposed_A, M, K);
-		transpose_floats_to_column_major(current_floats_B, transposed_B, K, N);
-
-		cudaError_t err = cudaMemcpy(d_floats_A, transposed_A.data(), floats_A_size, cudaMemcpyHostToDevice);
-		if (err != cudaSuccess) {
-			std::cerr << "Failed to copy Matrix A floats to device: " + std::string(cudaGetErrorString(err)) << std::endl;
-		}
-
-		err = cudaMemcpy(d_floats_B, transposed_B.data(), floats_B_size, cudaMemcpyHostToDevice);
-		if (err != cudaSuccess) {
-			std::cerr << "Failed to copy Matrix B floats to device: " + std::string(cudaGetErrorString(err)) << std::endl;
+		status = cudaMemset(d_outputs, 0, outputs_C_size);
+		if (status != cudaSuccess) {
+			std::cerr << "Failed to zero output buffer: " + std::string(cudaGetErrorString(status)) << std::endl;
 		}
 
 		return 0;
@@ -634,14 +505,14 @@ template<uint64_t M, uint64_t K> struct ggml_cuda_mul_mat {
 
 		ggml_cuda_mul_mat_kernel<M, K><<<gridDim, blockDim>>>(d_floats, A_ptr_raw, d_outputs, N);
 
-		cudaError_t err = cudaGetLastError();
-		if (err != cudaSuccess) {
-			std::cerr << "GGML CUDA kernel launch failed: " + std::string(cudaGetErrorString(err)) << std::endl;
+		cudaError_t status = cudaGetLastError();
+		if (status != cudaSuccess) {
+			std::cerr << "GGML CUDA kernel launch failed: " + std::string(cudaGetErrorString(status)) << std::endl;
 		}
 
-		err = cudaDeviceSynchronize();
-		if (err != cudaSuccess) {
-			std::cerr << "GGML CUDA kernel execution failed: " + std::string(cudaGetErrorString(err)) << std::endl;
+		status = cudaDeviceSynchronize();
+		if (status != cudaSuccess) {
+			std::cerr << "GGML CUDA kernel execution failed: " + std::string(cudaGetErrorString(status)) << std::endl;
 		}
 
 		++current_index;
@@ -689,142 +560,14 @@ template<uint64_t M, uint64_t K> struct ggml_cuda_mul_mat {
 
 		ggml_cuda_mul_mat_float_kernel<M, K><<<gridDim, blockDim>>>(d_floats_A, d_floats_B, d_outputs, N);
 
-		cudaError_t err = cudaGetLastError();
-		if (err != cudaSuccess) {
-			std::cerr << "GGML CUDA float kernel launch failed: " + std::string(cudaGetErrorString(err)) << std::endl;
+		cudaError_t status = cudaGetLastError();
+		if (status != cudaSuccess) {
+			std::cerr << "GGML CUDA float kernel launch failed: " + std::string(cudaGetErrorString(status)) << std::endl;
 		}
 
-		err = cudaDeviceSynchronize();
-		if (err != cudaSuccess) {
-			std::cerr << "GGML CUDA float kernel execution failed: " + std::string(cudaGetErrorString(err)) << std::endl;
-		}
-
-		++current_index;
-		return current_outputs.size() * sizeof(float);
-	}
-};
-
-#include <cublas_v2.h>
-#include <cublasLt.h>
-#include <cuda_runtime.h>
-#include <cuda_fp16.h>
-
-__global__ void cutlass_dequantize_q8_vectorized_kernel(const block_q8_0* input_blocks, float* output, uint64_t total_elements) {
-	const uint64_t idx	  = blockIdx.x * blockDim.x + threadIdx.x;
-	const uint64_t stride = blockDim.x * gridDim.x;
-
-	for (uint64_t i = idx; i < total_elements; i += stride) {
-		const uint64_t block_idx	 = i / 32;
-		const uint64_t elem_in_block = i % 32;
-
-		const block_q8_0& block = input_blocks[block_idx];
-		const float scale		= __half2float(*reinterpret_cast<const __half*>(&block.scale));
-		output[i]				= scale * static_cast<float>(block.quants[elem_in_block]);
-	}
-}
-
-template<uint64_t M, uint64_t K> struct cublas_mul_mat {
-	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats, std::vector<std::vector<block_q8_0>>& blocks,
-		std::vector<std::vector<float>>& outputs, uint64_t N) {
-		auto& current_outputs = outputs[current_index];
-
-		static constexpr uint64_t total_blocks_A = ((M * K) + 32 - 1) / 32;
-		static constexpr uint64_t blocks_size	 = total_blocks_A * sizeof(block_q8_0);
-		const uint64_t floats_A_size			 = (M * K) * sizeof(float);
-		const uint64_t floats_B_size			 = (K * N) * sizeof(float);
-		const uint64_t outputs_C_size			 = (M * N) * sizeof(float);
-
-		uint64_t offset				   = 0;
-		const block_q8_0* A_blocks_raw = reinterpret_cast<const block_q8_0*>(static_cast<uint8_t*>(buffer.data()) + offset);
-		offset						   = round_up_to_multiple<64>(offset + blocks_size);
-
-		float* d_floats_A = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-		offset			  = round_up_to_multiple<64>(offset + floats_A_size);
-
-		const float* d_floats_B = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-		offset					= round_up_to_multiple<64>(offset + floats_B_size);
-
-		float* d_outputs = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-
-		const uint64_t total_elements_A	 = M * K;
-		const uint64_t threads_per_block = 256;
-		const uint64_t blocks_needed	 = (total_elements_A + threads_per_block - 1) / threads_per_block;
-
-		cutlass_dequantize_q8_vectorized_kernel<<<blocks_needed, threads_per_block>>>(A_blocks_raw, d_floats_A, total_elements_A);
-
-		cudaError_t err = cudaDeviceSynchronize();
-		if (err != cudaSuccess) {
-			std::cerr << "Dequantization kernel execution failed: " + std::string(cudaGetErrorString(err)) << std::endl;
-		}
-
-		cublasHandle_t handle;
-		cublasStatus_t status = cublasCreate(&handle);
-		if (status != CUBLAS_STATUS_SUCCESS) {
-			std::cerr << "cuBLAS initialization failed: " << status << std::endl;
-			return 0;
-		}
-
-		const float alpha = 1.0f;
-		const float beta  = 0.0f;
-
-		status = cublasSgemm(handle, CUBLAS_OP_T, CUBLAS_OP_T, static_cast<int>(N), static_cast<int>(M), static_cast<int>(K), &alpha, d_floats_B, static_cast<int>(K), d_floats_A,
-			static_cast<int>(M), &beta, d_outputs, static_cast<int>(N));
-
-		if (status != CUBLAS_STATUS_SUCCESS) {
-			std::cerr << "cuBLAS SGEMM failed: " << status << std::endl;
-		}
-
-		cublasDestroy(handle);
-
-		err = cudaDeviceSynchronize();
-		if (err != cudaSuccess) {
-			std::cerr << "CUDA synchronization failed: " + std::string(cudaGetErrorString(err)) << std::endl;
-		}
-
-		++current_index;
-		return current_outputs.size() * sizeof(float);
-	}
-
-	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats_A, std::vector<std::vector<float>>& floats_B,
-		std::vector<std::vector<float>>& outputs, uint64_t N) {
-		auto& current_outputs = outputs[current_index];
-
-		const uint64_t floats_A_size  = (M * K) * sizeof(float);
-		const uint64_t floats_B_size  = (K * N) * sizeof(float);
-		const uint64_t outputs_C_size = (M * N) * sizeof(float);
-
-		uint64_t offset = 0;
-
-		const float* d_floats_A = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-		offset					= round_up_to_multiple<64>(offset + floats_A_size);
-
-		const float* d_floats_B = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-		offset					= round_up_to_multiple<64>(offset + floats_B_size);
-
-		float* d_outputs = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-
-		cublasHandle_t handle;
-		cublasStatus_t status = cublasCreate(&handle);
-		if (status != CUBLAS_STATUS_SUCCESS) {
-			std::cerr << "cuBLAS initialization failed: " << status << std::endl;
-			return 0;
-		}
-
-		const float alpha = 1.0f;
-		const float beta  = 0.0f;
-
-		status = cublasSgemm(handle, CUBLAS_OP_T, CUBLAS_OP_T, static_cast<int>(N), static_cast<int>(M), static_cast<int>(K), &alpha, d_floats_B, static_cast<int>(K), d_floats_A,
-			static_cast<int>(M), &beta, d_outputs, static_cast<int>(N));
-
-		if (status != CUBLAS_STATUS_SUCCESS) {
-			std::cerr << "cuBLAS SGEMM failed: " << status << std::endl;
-		}
-
-		cublasDestroy(handle);
-
-		cudaError_t err = cudaDeviceSynchronize();
-		if (err != cudaSuccess) {
-			std::cerr << "CUDA synchronization failed: " + std::string(cudaGetErrorString(err)) << std::endl;
+		status = cudaDeviceSynchronize();
+		if (status != cudaSuccess) {
+			std::cerr << "GGML CUDA float kernel execution failed: " + std::string(cudaGetErrorString(status)) << std::endl;
 		}
 
 		++current_index;
@@ -859,11 +602,6 @@ enum class mul_mat_types {
 	ffn_up,
 	ffn_out,
 };
-
-#include <cublas_v2.h>
-#include <cublasLt.h>
-#include <cuda_runtime.h>
-#include <cuda_fp16.h>
 
 template<typename value_type> using base_type = std::remove_cvref_t<value_type>;
 
@@ -1539,7 +1277,8 @@ template<uint64_t M, uint64_t K, typename traits> __launch_bounds__(256, 2) __gl
 	store_output_tile<traits>(C, accumulator, M, N, block_row, block_col, warp_row, warp_col);
 }
 
-using mul_mat_1_to_128	 = cuda_kernel_traits<32, 64, 16, 16, 32, 4, 4>;
+using mul_mat_1_to_32	 = cuda_kernel_traits<128, 64, 16, 8, 32, 2, 4>;
+using mul_mat_33_to_128	 = cuda_kernel_traits<32, 64, 16, 16, 32, 4, 4>;
 using mul_mat_129_to_512 = cuda_kernel_traits<128, 64, 32, 32, 32, 8, 4>;
 
 template<uint64_t M, uint64_t K, typename traits>
@@ -1732,7 +1471,7 @@ template<typename traits> __device__ __forceinline__ void store_output_tile_floa
 }
 
 template<uint64_t M, uint64_t K> __launch_bounds__(256, 2) __global__ void rt_tm_gemm_float_kernel(const float* A, const float* B, float* C, uint64_t N) {
-	using traits = mul_mat_1_to_128;
+	using traits = mul_mat_33_to_128;
 
 	constexpr uint64_t block_m	= traits::block_tile_m;
 	constexpr uint64_t block_n	= traits::block_tile_n;
@@ -1787,15 +1526,14 @@ template<uint64_t M, uint64_t K> __launch_bounds__(256, 2) __global__ void rt_tm
 	store_output_tile_float<traits>(C, accumulator, M, N, block_row, block_col, warp_row, warp_col);
 }
 
-#include <cutlass_rt_tm/gemm/device/gemm.h>
-#include <cutlass_rt_tm/cuda_host_adapter.hpp>
+#include <nihilus_gemm/gemm/device/gemm.h>
 
 using element_a = float;
 using element_b = float;
 using element_c = float;
-using layout_a	= cutlass_rt_tm::layout::RowMajor;
-using layout_b	= cutlass_rt_tm::layout::RowMajor;
-using layout_c	= cutlass_rt_tm::layout::RowMajor;
+using layout_a	= nihilus_gemm::layout::RowMajor;
+using layout_b	= nihilus_gemm::layout::RowMajor;
+using layout_c	= nihilus_gemm::layout::RowMajor;
 
 __global__ void dequantize_a_matrix_kernel(const block_q8_0* input_blocks, float* output, uint64_t total_elements) {
 	const uint64_t idx	  = blockIdx.x * blockDim.x + threadIdx.x;
@@ -1811,7 +1549,7 @@ __global__ void dequantize_a_matrix_kernel(const block_q8_0* input_blocks, float
 	}
 }
 
-template<uint64_t M, uint64_t K> struct nihilus_gemm {
+template<uint64_t M, uint64_t K> struct nihilus_gemm_mul_mat {
 	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats, std::vector<std::vector<block_q8_0>>& blocks,
 		std::vector<std::vector<float>>& outputs, uint64_t N) {
 		static constexpr uint64_t total_blocks_A = ((M * K) + 32 - 1) >> 5;
@@ -1831,42 +1569,56 @@ template<uint64_t M, uint64_t K> struct nihilus_gemm {
 		offset		 = round_up_to_multiple<64>(offset + outputs_C_size);
 
 		float* A_ptr = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-		cudaError_t dequant_err;
+		cudaError_t status;
 
 		if (N <= 256) {
-			using policy = mul_mat_1_to_128;
+			using policy = mul_mat_33_to_128;
 			dim3 block(policy::threads_per_block);
 			dim3 grid((N + policy::block_tile_n - 1) / policy::block_tile_n, (M + policy::block_tile_m - 1) / policy::block_tile_m);
 			rt_tm_gemm_kernel<M, K, policy><<<grid, block>>>(A_ptr_raw, B_ptr, C_ptr, N);
+
+			status = cudaDeviceSynchronize();
+			if (status != cudaSuccess) {
+				std::cerr << "cudaDeviceSynchronize failed: " << cudaGetErrorString(status) << std::endl;
+			}
 		} else {
+
+			using element_a = float;
+			using element_b = float;
+			using element_c = float;
+			using layout_a	= nihilus_gemm::layout::RowMajor;
+			using layout_b	= nihilus_gemm::layout::RowMajor;
+			using layout_c	= nihilus_gemm::layout::RowMajor;
 			constexpr uint64_t total_elements_A = M * K;
 			const dim3 dequant_grid((total_blocks_A + 1023) / 1024);
 			const dim3 dequant_block(1024);
 			dequantize_a_matrix_kernel<<<dequant_grid, dequant_block>>>(A_ptr_raw, A_ptr, total_elements_A);
 
-			dequant_err = cudaGetLastError();
-			if (dequant_err != cudaSuccess) {
-				std::cerr << "Dequantization kernel failed: " << cudaGetErrorString(dequant_err) << std::endl;
+			status = cudaGetLastError();
+			if (status != cudaSuccess) {
+				std::cerr << "Dequantization kernel failed: " << cudaGetErrorString(status) << std::endl;
 			}
 
-			cudaDeviceSynchronize();
+			status = cudaDeviceSynchronize();
+			if (status != cudaSuccess) {
+				std::cerr << "cudaDeviceSynchronize failed: " << cudaGetErrorString(status) << std::endl;
+			}
 
-			using index_type		= cutlass_rt_tm::gemm::GemmCoord::Index;
-			using nihilus_gemm_type = cutlass_rt_tm::gemm::device::Gemm<M, K, element_a, layout_a, element_b, layout_b, element_c, layout_c, element_c>;
+			using index_type		= nihilus_gemm::gemm::GemmCoord::Index;
+			using nihilus_gemm_type = nihilus_gemm::gemm::device::Gemm<M, K, element_a, layout_a, element_b, layout_b, element_c, layout_c, element_c>;
 			nihilus_gemm_type gemm_op;
-			cutlass_rt_tm::Status status = gemm_op({ { static_cast<index_type>(M), static_cast<index_type>(N), static_cast<index_type>(K) }, { A_ptr, static_cast<index_type>(K) },
-				{ B_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
+			nihilus_gemm::Status status = gemm_op({ N, { A_ptr, static_cast<index_type>(K) }, { B_ptr, static_cast<index_type>(N) },
+				{ C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
 
-			if (status != cutlass_rt_tm::Status::kSuccess) {
-				std::cerr << "CUTLASS GEMM failed: " << cutlass_rt_tm::cutlass_rt_tmGetStatusString(status) << std::endl;
+			if (status != nihilus_gemm::Status::kSuccess) {
+				std::cerr << "Nihilus Gemm failed: " << nihilus_gemm::cutlass_rt_tmGetStatusString(status) << std::endl;
+			}
+			auto status_new = cudaDeviceSynchronize();
+			if (status_new != cudaSuccess) {
+				std::cerr << "cudaDeviceSynchronize failed: " << cudaGetErrorString(status_new) << std::endl;
 			}
 		}
 
-		dequant_err = cudaDeviceSynchronize();
-		if (dequant_err != cudaSuccess) {
-			std::cerr << "cudaDeviceSynchronize failed: " << cudaGetErrorString(dequant_err) << std::endl;
-		}
-
 		++current_index;
 		return outputs[current_index - 1].size() * sizeof(float);
 	}
@@ -1886,138 +1638,39 @@ template<uint64_t M, uint64_t K> struct nihilus_gemm {
 		offset			   = round_up_to_multiple<64>(offset + floats_B_size);
 
 		float* C_ptr = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-		using index_type		= cutlass_rt_tm::gemm::GemmCoord::Index;
-		using nihilus_gemm_type = cutlass_rt_tm::gemm::device::Gemm<M, K, element_a, layout_a, element_b, layout_b, element_c, layout_c, element_c>;
-		nihilus_gemm_type gemm_op;
-		cutlass_rt_tm::Status status = gemm_op({ { static_cast<index_type>(M), static_cast<index_type>(N), static_cast<index_type>(K) }, { A_ptr, static_cast<index_type>(K) },
-			{ B_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
+		using index_type		= nihilus_gemm::gemm::GemmCoord::Index;
+		using nihilus_gemm_type = nihilus_gemm::gemm::device::Gemm<M, K, element_a, layout_a, element_b, layout_b, element_c, layout_c, element_c>;
+		if (N <= 256) {
+			using policy = mul_mat_1_to_32;
+			dim3 block(policy::threads_per_block);
+			dim3 grid((N + policy::block_tile_n - 1) / policy::block_tile_n, (M + policy::block_tile_m - 1) / policy::block_tile_m);
+			rt_tm_gemm_float_kernel<M, K><<<grid, block>>>(A_ptr, B_ptr, C_ptr, N);
 
-		if (status != cutlass_rt_tm::Status::kSuccess) {
-			std::cerr << "CUTLASS GEMM failed: " << cutlass_rt_tm::cutlass_rt_tmGetStatusString(status) << std::endl;
-		}
+			auto status = cudaDeviceSynchronize();
+			if (status != cudaSuccess) {
+				std::cerr << "cudaDeviceSynchronize failed: " << cudaGetErrorString(status) << std::endl;
+			}
+		} else {
+			using element_a						= float;
+			using element_b						= float;
+			using element_c						= float;
+			using layout_a						= nihilus_gemm::layout::RowMajor;
+			using layout_b						= nihilus_gemm::layout::RowMajor;
+			using layout_c						= nihilus_gemm::layout::RowMajor;
 
-		cudaError_t err = cudaGetLastError();
-		if (err != cudaSuccess) {
-			std::cerr << "❌ CUDA error after CUTLASS: " << cudaGetErrorString(err) << std::endl;
-		}
+			using index_type		= nihilus_gemm::gemm::GemmCoord::Index;
+			using nihilus_gemm_type = nihilus_gemm::gemm::device::Gemm<M, K, element_a, layout_a, element_b, layout_b, element_c, layout_c, element_c>;
+			nihilus_gemm_type gemm_op;
+			nihilus_gemm::Status status = gemm_op({ N, { A_ptr, static_cast<index_type>(K) }, { B_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) },
+				{ C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
 
-		err = cudaDeviceSynchronize();
-		if (err != cudaSuccess) {
-			std::cerr << "❌ CUDA synchronization failed: " << cudaGetErrorString(err) << std::endl;
-		}
-
-		++current_index;
-		return outputs[current_index - 1].size() * sizeof(float);
-	}
-};
-
-#include <cutlass/gemm/device/gemm.h>
-#include <cutlass/cuda_host_adapter.hpp>
-
-using cutless_element_a = float;
-using cutless_element_b = float;
-using cutless_element_c = float;
-using cutless_layout_a	= cutlass::layout::RowMajor;
-using cutless_layout_b	= cutlass::layout::RowMajor;
-using cutless_layout_c	= cutlass::layout::RowMajor;
-
-using Cutlass_Gemm = cutlass::gemm::device::Gemm<cutless_element_a, cutless_layout_a, cutless_element_b, cutless_layout_b, cutless_element_c, cutless_layout_c, cutless_element_c>;
-
-template<uint64_t M, uint64_t K> struct cutlass_baseline_gemm {
-	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats, std::vector<std::vector<block_q8_0>>& blocks,
-		std::vector<std::vector<float>>& outputs, uint64_t N) {
-		static constexpr uint64_t total_blocks_A = ((M * K) + 32 - 1) >> 5;
-		static constexpr uint64_t blocks_size	 = total_blocks_A * sizeof(block_q8_0);
-		const uint64_t floats_B_size			 = (K * N) * sizeof(float);
-		const uint64_t outputs_C_size			 = (M * N) * sizeof(float);
-		static constexpr uint64_t dequant_A_size = (M * K) * sizeof(float);
-
-		uint64_t offset				= 0;
-		const block_q8_0* A_ptr_raw = reinterpret_cast<const block_q8_0*>(static_cast<uint8_t*>(buffer.data()) + offset);
-		offset						= round_up_to_multiple<64>(offset + blocks_size);
-
-		const float* B_ptr = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-		offset			   = round_up_to_multiple<64>(offset + floats_B_size);
-
-		float* C_ptr = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-		offset		 = round_up_to_multiple<64>(offset + outputs_C_size);
-
-		float* A_ptr = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-
-		constexpr uint64_t total_elements_A = M * K;
-		const dim3 dequant_grid((total_elements_A + 1023) / 1024);
-		const dim3 dequant_block(1024);
-
-		cutlass_dequantize_q8_vectorized_kernel<<<dequant_grid, dequant_block>>>(A_ptr_raw, A_ptr, total_elements_A);
-
-		cudaError_t dequant_err = cudaGetLastError();
-		if (dequant_err != cudaSuccess) {
-			std::cerr << "Dequantization kernel failed: " << cudaGetErrorString(dequant_err) << std::endl;
-		}
-
-		cudaDeviceSynchronize();
-
-		dequant_err = cudaGetLastError();
-		if (dequant_err != cudaSuccess) {
-			std::cerr << "cudaDeviceSynchronize failed: " << cudaGetErrorString(dequant_err) << std::endl;
-		}
-
-		using index_type = cutlass::gemm::GemmCoord::Index;
-		Cutlass_Gemm gemm_op;
-		cutlass::Status status = gemm_op({ { static_cast<index_type>(M), static_cast<index_type>(N), static_cast<index_type>(K) }, { A_ptr, static_cast<index_type>(K) },
-			{ B_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
-
-		if (status != cutlass::Status::kSuccess) {
-			std::cerr << "CUTLASS GEMM failed: " << cutlass::cutlassGetStatusString(status) << std::endl;
-		}
-
-		cudaError_t err = cudaGetLastError();
-		if (err != cudaSuccess) {
-			std::cerr << "❌ CUDA error after CUTLASS: " << cudaGetErrorString(err) << std::endl;
-		}
-
-		err = cudaDeviceSynchronize();
-		if (err != cudaSuccess) {
-			std::cerr << "❌ CUDA synchronization failed: " << cudaGetErrorString(err) << std::endl;
-		}
-
-		++current_index;
-		return outputs[current_index - 1].size() * sizeof(float);
-	}
-
-	BNCH_SWT_INLINE static uint64_t impl(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<float>>& floats_A, std::vector<std::vector<float>>& floats_B,
-		std::vector<std::vector<float>>& outputs, uint64_t N) {
-		const uint64_t floats_A_size  = (M * K) * sizeof(float);
-		const uint64_t floats_B_size  = (K * N) * sizeof(float);
-		const uint64_t outputs_C_size = (M * N) * sizeof(float);
-
-		uint64_t offset = 0;
-
-		const float* A_ptr = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-		offset			   = round_up_to_multiple<64>(offset + floats_A_size);
-
-		const float* B_ptr = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-		offset			   = round_up_to_multiple<64>(offset + floats_B_size);
-
-		float* C_ptr = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-
-		using index_type = cutlass::gemm::GemmCoord::Index;
-		Cutlass_Gemm gemm_op;
-		cutlass::Status status = gemm_op({ { static_cast<index_type>(M), static_cast<index_type>(N), static_cast<index_type>(K) }, { A_ptr, static_cast<index_type>(K) },
-			{ B_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
-
-		if (status != cutlass::Status::kSuccess) {
-			std::cerr << "CUTLASS GEMM failed: " << cutlass::cutlassGetStatusString(status) << std::endl;
-		}
-
-		cudaError_t err = cudaGetLastError();
-		if (err != cudaSuccess) {
-			std::cerr << "❌ CUDA error after CUTLASS: " << cudaGetErrorString(err) << std::endl;
-		}
-
-		err = cudaDeviceSynchronize();
-		if (err != cudaSuccess) {
-			std::cerr << "❌ CUDA synchronization failed: " << cudaGetErrorString(err) << std::endl;
+			if (status != nihilus_gemm::Status::kSuccess) {
+				std::cerr << "Nihilus Gemm failed: " << nihilus_gemm::cutlass_rt_tmGetStatusString(status) << std::endl;
+			}
+			auto status_new = cudaDeviceSynchronize();
+			if (status_new != cudaSuccess) {
+				std::cerr << "cudaDeviceSynchronize failed: " << cudaGetErrorString(status_new) << std::endl;
+			}
 		}
 
 		++current_index;
@@ -2066,14 +1719,11 @@ template<uint64_t M, uint64_t K, uint64_t matB_dim_00, uint64_t N> BNCH_SWT_INLI
 	std::vector<std::vector<block_q8_0>> blocks{ generate_values_final(generate_blocks_final(block_floats)) };
 	std::vector<std::vector<float>> outputs01{};
 	std::vector<std::vector<float>> outputs02{};
-	std::vector<std::vector<float>> outputs03{};
 	outputs01.resize(total_iterations);
 	outputs02.resize(total_iterations);
-	outputs03.resize(total_iterations);
 	for (uint64_t x = 0; x < total_iterations; ++x) {
 		outputs01[x].resize(total_elements_C);
 		outputs02[x].resize(total_elements_C);
-		outputs03[x].resize(total_elements_C);
 	}
 
 	static constexpr bnch_swt::string_literal stage_name{ "(Q8_0 * F32) mul_mat: [" + bnch_swt::internal::toStringLiteral<M>() + "x" + bnch_swt::internal::toStringLiteral<K>() +
@@ -2101,17 +1751,12 @@ template<uint64_t M, uint64_t K, uint64_t matB_dim_00, uint64_t N> BNCH_SWT_INLI
 		ggml_cuda_mul_mat<M, K>>(buffer, current_index, floats, blocks, outputs01, N);
 	current_index = 0;
 
-	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"cutlass_baseline_gemm", cuda_mul_mat_01_prep<M, K>,
-		cutlass_baseline_gemm<M, K>>(buffer, current_index, floats, blocks, outputs02, N);
-	current_index = 0;
-
 	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"nihilus_gemm", cuda_mul_mat_01_prep<M, K>,
-		nihilus_gemm<M, K>>(buffer, current_index, floats, blocks, outputs03, N);
+		nihilus_gemm_mul_mat<M, K>>(buffer, current_index, floats, blocks, outputs02, N);
 	current_index = 0;
 
 	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::printResults();
-	compare_outputs<"cutlass_baseline_gemm Incorrect Value">(outputs01, outputs02);
-	compare_outputs<"nihilus_gemm Incorrect Value">(outputs01, outputs03);
+	compare_outputs<"nihilus_gemm_mul_mat Incorrect Value">(outputs01, outputs02);
 };
 
 template<uint64_t M, uint64_t K, uint64_t matB_dim_00, uint64_t N> BNCH_SWT_INLINE void test_function_floats() {
@@ -2122,20 +1767,11 @@ template<uint64_t M, uint64_t K, uint64_t matB_dim_00, uint64_t N> BNCH_SWT_INLI
 	std::vector<std::vector<float>> floats_b{ generate_values_final(generate_floats_final<total_iterations, K, N>()) };
 	std::vector<std::vector<float>> outputs01{};
 	std::vector<std::vector<float>> outputs02{};
-	std::vector<std::vector<float>> outputs03{};
-	std::vector<std::vector<float>> outputs04{};
-	std::vector<std::vector<float>> outputs05{};
 	outputs01.resize(total_iterations);
 	outputs02.resize(total_iterations);
-	outputs03.resize(total_iterations);
-	outputs04.resize(total_iterations);
-	outputs05.resize(total_iterations);
 	for (uint64_t x = 0; x < total_iterations; ++x) {
 		outputs01[x].resize(total_elements_C);
 		outputs02[x].resize(total_elements_C);
-		outputs03[x].resize(total_elements_C);
-		outputs04[x].resize(total_elements_C);
-		outputs05[x].resize(total_elements_C);
 	}
 
 	static constexpr bnch_swt::string_literal stage_name{ "(F32 * F32) mul_mat: [" + bnch_swt::internal::toStringLiteral<M>() + "x" + bnch_swt::internal::toStringLiteral<K>() +
@@ -2159,22 +1795,13 @@ template<uint64_t M, uint64_t K, uint64_t matB_dim_00, uint64_t N> BNCH_SWT_INLI
 		ggml_cuda_mul_mat<M, K>>(buffer, current_index, floats_a, floats_b, outputs01, N);
 	current_index = 0;
 
-	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"nihilus_gemm", cuda_mul_mat_01_prep<M, K>, nihilus_gemm<M, K>>(
-		buffer, current_index, floats_a, floats_b, outputs04, N);
-	current_index = 0;
-
-	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"cutlass_baseline_gemm", cuda_mul_mat_01_prep<M, K>,
-		cutlass_baseline_gemm<M, K>>(buffer, current_index, floats_a, floats_b, outputs02, N);
-	current_index = 0;
-
-	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"nvcuda_cublas_mul_mat_simple",
-		cuda_mul_mat_01_prep_transposed<M, K>, cublas_mul_mat<M, K>>(buffer, current_index, floats_a, floats_b, outputs03, N);
+	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"nihilus_gemm", cuda_mul_mat_01_prep<M, K>,
+		nihilus_gemm_mul_mat<M, K>>(
+		buffer, current_index, floats_a, floats_b, outputs02, N);
 	current_index = 0;
 
 	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::printResults();
-	compare_outputs<"cutlass_baseline_gemm Incorrect Value">(outputs01, outputs02);
-	compare_outputs<"nvcuda_cublas_mul_mat_simple Incorrect Value">(outputs01, outputs03);
-	compare_outputs<"nihilus_gemm Incorrect Value">(outputs01, outputs04);
+	compare_outputs<"nihilus_gemm_mul_mat Incorrect Value">(outputs01, outputs02);
 };
 
 int32_t main() {

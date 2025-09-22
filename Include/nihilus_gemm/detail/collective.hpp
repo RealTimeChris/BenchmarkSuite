@@ -1,0 +1,191 @@
+/***************************************************************************************************
+ * Copyright (c) 2023 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
+ * contributors may be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ **************************************************************************************************/
+#pragma once
+
+#include "cute_rt_tm/container/tuple.hpp"
+#include "cute_rt_tm/layout.hpp" // cute_rt_tm::size(shape)
+#include "cute_rt_tm/arch/mma_sm100_desc.hpp" // cute_rt_tm::UMMA::MXF4Format, cute_rt_tm::UMMA::MXF8F6F4Format 
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace nihilus_gemm::gemm::collective {
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace detail {
+
+template <size_t I, class Tuple>
+struct deduce_mixed_width_dtype {
+static_assert(I >= 0u && I <= 2u, "Valid indices are 0, 1, and 2, which represent Operand, Scale, and Bias, respectively.");
+
+private:
+  using underlying_tuple = cute_rt_tm::conditional_t<cute_rt_tm::is_tuple<Tuple>::value, Tuple, cute_rt_tm::tuple<Tuple>>;
+  static constexpr size_t valid_index = cute_rt_tm::min(I, cute_rt_tm::tuple_size_v<underlying_tuple> - 1);
+
+public:
+  using type = cute_rt_tm::conditional_t<(I < cute_rt_tm::tuple_size_v<underlying_tuple>), 
+                                    cute_rt_tm::tuple_element_t<valid_index, underlying_tuple>,
+                                    void>;
+};
+
+template <size_t I, class Tuple>
+using deduce_mixed_width_dtype_t = typename deduce_mixed_width_dtype<I, Tuple>::type;
+
+
+
+template <class Element>
+CUTLASS_RT_TM_HOST_DEVICE
+static constexpr bool
+is_sm10x_runtime_f8f6f4() {
+  return (cute_rt_tm::is_same_v<Element, nihilus_gemm::type_erased_dynamic_float8_t> ||
+          cute_rt_tm::is_same_v<Element, nihilus_gemm::type_erased_dynamic_float6_t> ||
+          cute_rt_tm::is_same_v<Element, nihilus_gemm::type_erased_dynamic_float4_t>);
+}
+
+template <class ElementA, class ElementB>
+CUTLASS_RT_TM_HOST_DEVICE
+static constexpr bool
+is_sm10x_f8f6f4_inputs() {
+   return ( 
+            
+            cute_rt_tm::is_same_v<ElementA, cute_rt_tm::type_erased_dynamic_float8_t> || 
+            cute_rt_tm::is_same_v<ElementA, cute_rt_tm::type_erased_dynamic_float6_t> ||
+            cute_rt_tm::is_same_v<ElementA, cute_rt_tm::type_erased_dynamic_float4_t> ||
+            
+            cute_rt_tm::is_same_v<ElementA, cute_rt_tm::float_e4m3_t> ||
+            cute_rt_tm::is_same_v<ElementA, cute_rt_tm::float_e5m2_t> 
+            || cute_rt_tm::is_same_v<ElementA, cute_rt_tm::float_e3m2_t> ||
+            cute_rt_tm::is_same_v<ElementA, cute_rt_tm::float_e2m3_t> ||
+            cute_rt_tm::is_same_v<ElementA, cute_rt_tm::float_e2m1_t>
+            
+          ) &&
+          ( 
+            
+            cute_rt_tm::is_same_v<ElementB, cute_rt_tm::type_erased_dynamic_float8_t> ||
+            cute_rt_tm::is_same_v<ElementB, cute_rt_tm::type_erased_dynamic_float6_t> ||
+            cute_rt_tm::is_same_v<ElementB, cute_rt_tm::type_erased_dynamic_float4_t> ||
+            
+            cute_rt_tm::is_same_v<ElementB, cute_rt_tm::float_e4m3_t> ||
+            cute_rt_tm::is_same_v<ElementB, cute_rt_tm::float_e5m2_t> 
+            || cute_rt_tm::is_same_v<ElementB, cute_rt_tm::float_e3m2_t> ||
+            cute_rt_tm::is_same_v<ElementB, cute_rt_tm::float_e2m3_t> ||
+            cute_rt_tm::is_same_v<ElementB, cute_rt_tm::float_e2m1_t>
+            
+          );
+}
+
+template <class TiledMma, class ElementA, class ElementB>
+CUTLASS_RT_TM_HOST_DEVICE
+static constexpr bool
+is_sm100_mma_f8f6f4() {
+  return (cute_rt_tm::size<2>(typename TiledMma::Shape_MNK{}) == 32) && is_sm10x_f8f6f4_inputs<ElementA, ElementB>();
+}
+
+template <class Element>
+CUTLASS_RT_TM_HOST_DEVICE
+static constexpr bool
+is_sm10x_f8f6f4_element() {
+  return (cute_rt_tm::is_same_v<Element, cute_rt_tm::float_e4m3_t> 
+          || cute_rt_tm::is_same_v<Element, cute_rt_tm::float_e5m2_t> 
+          || cute_rt_tm::is_same_v<Element, cute_rt_tm::float_e3m2_t>
+          || cute_rt_tm::is_same_v<Element, cute_rt_tm::float_e2m3_t>
+          || cute_rt_tm::is_same_v<Element, cute_rt_tm::float_e2m1_t>
+          
+        );
+}
+
+
+template <class Element>
+CUTLASS_RT_TM_HOST_DEVICE
+static constexpr bool
+is_sm10x_f4_element() {
+  return (cute_rt_tm::is_same_v<Element, cute_rt_tm::float_e2m1_t> 
+  );
+}
+
+template <class ElementType>
+CUTLASS_RT_TM_HOST_DEVICE
+static constexpr bool
+is_sm10x_mxf8f6f4_input() {
+          // ElementType must be F8, F6, or F4
+   return ( cute_rt_tm::is_same_v<ElementType, nihilus_gemm::type_erased_dynamic_float8_t> ||
+            cute_rt_tm::is_same_v<ElementType, nihilus_gemm::detail::type_erased_dynamic_float6_unpacksmem_t> ||
+            cute_rt_tm::is_same_v<ElementType, nihilus_gemm::detail::type_erased_dynamic_float4_unpacksmem_t> ||
+            cute_rt_tm::is_same_v<ElementType, nihilus_gemm::float_e4m3_t> ||
+            cute_rt_tm::is_same_v<ElementType, nihilus_gemm::float_e5m2_t> ||
+            cute_rt_tm::is_same_v<ElementType, nihilus_gemm::detail::float_e2m3_unpacksmem_t> ||
+            cute_rt_tm::is_same_v<ElementType, nihilus_gemm::detail::float_e3m2_unpacksmem_t> ||
+            cute_rt_tm::is_same_v<ElementType, nihilus_gemm::detail::float_e2m1_unpacksmem_t>);
+}
+
+template <class ElementType>
+CUTLASS_RT_TM_HOST_DEVICE
+static constexpr bool
+is_sm10x_mxf4nvf4_input() {
+          // ElementType must be F4
+   return ( cute_rt_tm::is_same_v<ElementType, cute_rt_tm::type_erased_dynamic_float4_t> ||
+            cute_rt_tm::is_same_v<ElementType, cute_rt_tm::float_e2m1_t> 
+          );
+}
+
+template <class ElementType, bool IsRuntimeDataType>
+struct sm10x_block_scale_runtime_input_t {
+  static constexpr bool IsF8F6F4MmaInput = is_sm10x_mxf8f6f4_input<ElementType>();
+  static constexpr bool IsF4MmaInput = is_sm10x_mxf4nvf4_input<ElementType>();
+
+  using Type = cute_rt_tm::conditional_t<IsRuntimeDataType && IsF8F6F4MmaInput, 
+                                   cute_rt_tm::UMMA::MXF8F6F4Format, 
+               cute_rt_tm::conditional_t<IsRuntimeDataType && IsF4MmaInput, 
+                                   cute_rt_tm::UMMA::MXF4Format, 
+                                   void*
+                                   >
+                                  >;
+};
+
+
+template <class TiledMma, class ElementA, class ElementB>
+CUTLASS_RT_TM_HOST_DEVICE
+static constexpr bool
+is_sm120_f8f6f4() {
+  return (cute_rt_tm::size<2>(typename TiledMma::Shape_MNK{}) == 32) && is_sm10x_f8f6f4_inputs<ElementA, ElementB>();
+}
+
+template <class TiledMma, class ElementA, class ElementB>
+CUTLASS_RT_TM_HOST_DEVICE
+static constexpr bool
+is_sm100_sparse_f8f6f4() {
+  return (cute_rt_tm::size<2>(typename TiledMma::Shape_MNK{}) == 64) && is_sm10x_f8f6f4_inputs<ElementA, ElementB>();
+}
+
+} // namespace detail
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+} // namespace nihilus_gemm::gemm::collective

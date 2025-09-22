@@ -30,10 +30,10 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute_rt_tm/config.hpp>                     // CUTE_HOST_DEVICE
+#include <cute_rt_tm/config.hpp>                     // CUTE_RT_TM_HOST_DEVICE
 #include <cute_rt_tm/numeric/integral_constant.hpp>  // cute_rt_tm::false_type, cute_rt_tm::true_type
 #include <cute_rt_tm/numeric/math.hpp>               // cute_rt_tm::signum
-#include <cute_rt_tm/util/type_traits.hpp>           // __CUTE_REQUIRES
+#include <cute_rt_tm/util/type_traits.hpp>           // __CUTE_RT_TM_REQUIRES
 
 namespace cute_rt_tm
 {
@@ -70,28 +70,28 @@ template <auto n, auto d>
 struct is_ratio<R<n,d>> : true_type {};
 
 template <auto a, auto b>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 typename R<a,b>::type
 ratio(C<a>, C<b>) {
   return {};
 }
 
 template <auto a, auto b, auto c>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 typename R<a*c,b>::type
 ratio(C<a>, R<b,c>) {
   return {};
 }
 
 template <auto a, auto b, auto c>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 typename R<b,a*c>::type
 ratio(R<b,c>, C<a>) {
   return {};
 }
 
 template <auto a, auto b, auto c, auto d>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 typename R<a*d,b*c>::type
 ratio(R<a,b>, R<c,d>) {
   return {};
@@ -102,28 +102,28 @@ ratio(R<a,b>, R<c,d>) {
 //
 
 template <auto a, auto b>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 R<a,b>
 nratio(C<a>, C<b>) {
   return {};
 }
 
 template <auto a, auto b, auto c>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 R<a*c,b>
 nratio(C<a>, R<b,c>) {
   return {};
 }
 
 template <auto a, auto b, auto c>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 R<b,a*c>
 nratio(R<b,c>, C<a>) {
   return {};
 }
 
 template <auto a, auto b, auto c, auto d>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 R<a*d,b*c>
 nratio(R<a,b>, R<c,d>) {
   return {};
@@ -134,21 +134,21 @@ nratio(R<a,b>, R<c,d>) {
 //
 
 template <auto a, auto b, auto x, auto y>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 typename R<a*x,b*y>::type
 operator*(R<a,b>, R<x,y>) {
   return {};
 }
 
 template <auto a, auto b, auto c>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 typename R<a*c,b>::type
 operator*(R<a,b>, C<c>) {
   return {};
 }
 
 template <auto c, auto a, auto b>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 typename R<a*c,b>::type
 operator*(C<c>, R<a,b>) {
   return {};
@@ -156,8 +156,8 @@ operator*(C<c>, R<a,b>) {
 
 // Product with dynamic type needs to produce an integer...
 template <class C, auto a, auto b,
-          __CUTE_REQUIRES(cute_rt_tm::is_std_integral<C>::value)>
-CUTE_HOST_DEVICE constexpr
+          __CUTE_RT_TM_REQUIRES(cute_rt_tm::is_std_integral<C>::value)>
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 operator*(C const& c, R<a,b>) {
   return c * R<a,b>::num / R<a,b>::den;
@@ -165,36 +165,36 @@ operator*(C const& c, R<a,b>) {
 
 // Product with dynamic type needs to produce an integer...
 template <auto a, auto b, class C,
-          __CUTE_REQUIRES(cute_rt_tm::is_std_integral<C>::value)>
-CUTE_HOST_DEVICE constexpr
+          __CUTE_RT_TM_REQUIRES(cute_rt_tm::is_std_integral<C>::value)>
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 operator*(R<a,b>, C const& c) {
   return c * R<a,b>::num / R<a,b>::den;
 }
 
 template <class C, auto a, auto b>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 operator/(C const& c, R<a,b>) {
   return c * R<b,a>{};
 }
 
 template <auto a, auto b, auto x, auto y>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 typename R<a*y+b*x, b*y>::type
 operator+(R<a,b>, R<x,y>) {
   return {};
 }
 
 template <auto a, auto b, auto c>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 typename R<a+c*b,b>::type
 operator+(R<a,b>, C<c>) {
   return {};
 }
 
 template <auto c, auto a, auto b>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 typename R<a+c*b,b>::type
 operator+(C<c>, R<a,b>) {
   return {};
@@ -205,42 +205,42 @@ operator+(C<c>, R<a,b>) {
 /////////////////
 
 template <auto a, auto b, auto x, auto y>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 bool_constant<R<a,b>::num == R<x,y>::num && R<a,b>::den == R<x,y>::den>
 operator==(R<a,b>, R<x,y>) {
   return {};
 }
 
 template <auto a, auto b, auto c>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 bool_constant<R<a,b>::num == c && R<a,b>::den == 1>
 operator==(R<a,b>, C<c>) {
   return {};
 }
 
 template <auto c, auto a, auto b>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 bool_constant<R<a,b>::num == c && R<a,b>::den == 1>
 operator==(C<c>, R<a,b>) {
   return {};
 }
 
 template <auto a, auto b, auto x, auto y>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 bool_constant<R<a,b>::num * R<x,y>::den < R<x,y>::num * R<a,b>::den>
 operator<(R<a,b>, R<x,y>) {
   return {};
 }
 
 template <auto a, auto b, auto c>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 bool_constant<R<a,b>::num < c * R<a,b>::den>
 operator<(R<a,b>, C<c>) {
   return {};
 }
 
 template <auto c, auto x, auto y>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 bool_constant<c * R<x,y>::den < R<x,y>::num>
 operator<(C<c>, R<x,y>) {
   return {};
@@ -251,35 +251,35 @@ operator<(C<c>, R<x,y>) {
 ///////////////////////
 
 template <auto a, auto b, auto x, auto y>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 typename R<gcd(a*y,b*x),b*x>::type
 gcd(R<a,b>, R<x,y>) {
   return {};
 }
 
 template <auto a, auto b, auto c>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 typename R<gcd(a,b*c),b*c>::type
 gcd(R<a,b>, C<c>) {
   return {};
 }
 
 template <auto c, auto a, auto b>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 typename R<gcd(a,b*c),b*c>::type
 gcd(C<c>, R<a,b>) {
   return {};
 }
 
 template <auto a, auto b>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 typename R<abs(a),abs(b)>::type
 abs(R<a,b>) {
   return {};
 }
 
 template <auto a, auto b>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 int32_t
 log_2(R<a,b>) {
   static_assert(R<a,b>::num > 0);
@@ -289,7 +289,7 @@ log_2(R<a,b>) {
 
 // @return A non-reduced ratio cute_rt_tm::R of the Trait0::value / Trait1::value
 template <class Trait0, class Trait1>
-CUTE_HOST_DEVICE constexpr
+CUTE_RT_TM_HOST_DEVICE constexpr
 auto
 trait_ratio(Trait0, Trait1) {
   return nratio(static_value<Trait0>(), static_value<Trait1>());
@@ -300,13 +300,13 @@ trait_ratio(Trait0, Trait1) {
 //
 
 template <auto a, auto b>
-CUTE_HOST_DEVICE void print(R<a,b>) {
+CUTE_RT_TM_HOST_DEVICE void print(R<a,b>) {
   print(C<a>{}); print("/"); print(C<b>{});
 }
 
 #if !defined(__CUDACC_RTC__)
 template <auto a, auto b>
-CUTE_HOST std::ostream& operator<<(std::ostream& os, R<a,b>) {
+CUTE_RT_TM_HOST std::ostream& operator<<(std::ostream& os, R<a,b>) {
   return os << "_" << C<a>{} << "/" << C<b>{};
 }
 #endif

@@ -29,16 +29,16 @@
  *
  **************************************************************************************************/
 #pragma once
-#include "cutlass_rt_tm/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 #if defined(__CUDACC_RTC__)
 #include CUDA_STD_HEADER(cstdint)
 #else
 #include <cstdint>
 #endif
 
-#include <cute_rt_tm/config.hpp>          // CUTE_STL_NAMESPACE
+#include <cute_rt_tm/config.hpp>          // CUTE_RT_TM_STL_NAMESPACE
 
-#include <cutlass_rt_tm/numeric_types.h>  // cutlass_rt_tm::int2b_t, cutlass_rt_tm::int4b_t
+#include <nihilus_gemm/numeric_types.h>  // nihilus_gemm::int2b_t, nihilus_gemm::int4b_t
 
 namespace cute_rt_tm
 {
@@ -47,13 +47,13 @@ namespace cute_rt_tm
 // Signed integers
 //
 
-using int2_t = cutlass_rt_tm::int2b_t;
-using int4_t = cutlass_rt_tm::int4b_t;
-using int6_t = cutlass_rt_tm::int6b_t;
-using CUTE_STL_NAMESPACE::int8_t;
-using CUTE_STL_NAMESPACE::int16_t;
-using CUTE_STL_NAMESPACE::int32_t;
-using CUTE_STL_NAMESPACE::int64_t;
+using int2_t = nihilus_gemm::int2b_t;
+using int4_t = nihilus_gemm::int4b_t;
+using int6_t = nihilus_gemm::int6b_t;
+using CUTE_RT_TM_STL_NAMESPACE::int8_t;
+using CUTE_RT_TM_STL_NAMESPACE::int16_t;
+using CUTE_RT_TM_STL_NAMESPACE::int32_t;
+using CUTE_RT_TM_STL_NAMESPACE::int64_t;
 
 template <int N> struct int_bit;
 template <> struct int_bit<  2>  { using type = int2_t; };
@@ -76,16 +76,16 @@ using int_byte_t = typename int_byte<N>::type;
 // Unsigned integers
 //
 
-using uint1_t = cutlass_rt_tm::uint1b_t;
-using uint2_t = cutlass_rt_tm::uint2b_t;
-using uint4_t = cutlass_rt_tm::uint4b_t;
-using uint6_t = cutlass_rt_tm::uint6b_t;
-using CUTE_STL_NAMESPACE::uint8_t;
-using CUTE_STL_NAMESPACE::uint16_t;
-using CUTE_STL_NAMESPACE::uint32_t;
-using CUTE_STL_NAMESPACE::uint64_t;
-using cutlass_rt_tm::uint128_t;
-using cutlass_rt_tm::uint256_t;
+using uint1_t = nihilus_gemm::uint1b_t;
+using uint2_t = nihilus_gemm::uint2b_t;
+using uint4_t = nihilus_gemm::uint4b_t;
+using uint6_t = nihilus_gemm::uint6b_t;
+using CUTE_RT_TM_STL_NAMESPACE::uint8_t;
+using CUTE_RT_TM_STL_NAMESPACE::uint16_t;
+using CUTE_RT_TM_STL_NAMESPACE::uint32_t;
+using CUTE_RT_TM_STL_NAMESPACE::uint64_t;
+using nihilus_gemm::uint128_t;
+using nihilus_gemm::uint256_t;
 
 template <int N> struct uint_bit;
 template <> struct uint_bit<  1> { using type = uint1_t; };
@@ -96,8 +96,8 @@ template <> struct uint_bit<  8> { using type = uint8_t;  };
 template <> struct uint_bit< 16> { using type = uint16_t; };
 template <> struct uint_bit< 32> { using type = uint32_t; };
 template <> struct uint_bit< 64> { using type = uint64_t; };
-template <> struct uint_bit<128> { using type = cutlass_rt_tm::uint128_t; };
-template <> struct uint_bit<256> { using type = cutlass_rt_tm::uint256_t; };
+template <> struct uint_bit<128> { using type = nihilus_gemm::uint128_t; };
+template <> struct uint_bit<256> { using type = nihilus_gemm::uint256_t; };
 
 template <int N>
 using uint_bit_t = typename uint_bit<N>::type;

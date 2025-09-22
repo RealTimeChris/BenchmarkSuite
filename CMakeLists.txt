@@ -1,6 +1,7 @@
 ﻿cmake_minimum_required(VERSION 3.18)
 set(CMAKE_CUDA_ARCHITECTURES 120)
 set(CUTLASS_NVCC_ARCHS "120" CACHE STRING "CUDA architectures")
+set(CUTLASS_RT_TM_NVCC_ARCHS "120" CACHE STRING "CUDA architectures")
 # Or if you want multiple: set(CUTLASS_NVCC_ARCHS "89;120" CACHE STRING "CUDA architectures")
 
 # Disable the library build to avoid this mess
@@ -18,15 +19,15 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/CMake;")
 
 file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Include/benchmarksuite/*.hpp")
 
-include(FetchContent)
+#include(FetchContent)
 
-FetchContent_Declare(
-  cutlass
-  GIT_REPOSITORY https://github.com/notanothergaydude/cutlass.git
-  GIT_TAG main
-  GIT_SHALLOW TRUE
-)
-FetchContent_MakeAvailable(cutlass)
+#FetchContent_Declare(
+  #cutlass
+  #GIT_REPOSITORY https://github.com/notanothergaydude/cutlass.git
+  #GIT_TAG main
+  #GIT_SHALLOW TRUE
+#)
+#FetchContent_MakeAvailable(cutlass)
 
 add_library("${PROJECT_NAME}" INTERFACE "${HEADERS}")
 

@@ -30,7 +30,7 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute_rt_tm/config.hpp>            // CUTE_HOST_DEVICE, CUTE_STL_NAMESPACE
+#include <cute_rt_tm/config.hpp>            // CUTE_RT_TM_HOST_DEVICE, CUTE_RT_TM_STL_NAMESPACE
 #include <cute_rt_tm/util/type_traits.hpp>
 
 namespace cute_rt_tm
@@ -43,8 +43,8 @@ struct type_list {};
 //   Get an instance of the Ith type in the pack T...
 //   Requires tuple_element_t<I,type_list<T...>> to have std::is_default_constructible
 template <size_t I, class... T>
-CUTE_HOST_DEVICE constexpr
-CUTE_STL_NAMESPACE::tuple_element_t<I, type_list<T...>>
+CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TM_STL_NAMESPACE::tuple_element_t<I, type_list<T...>>
 get(type_list<T...> const&) noexcept {
   return {};
 }
@@ -52,7 +52,7 @@ get(type_list<T...> const&) noexcept {
 // Find the index of the first true in the pack B...
 template <bool... B>
 struct find_true {
-  CUTE_HOST_DEVICE static constexpr size_t find() {
+  CUTE_RT_TM_HOST_DEVICE static constexpr size_t find() {
     size_t i = 0;
     (void) ((B ? true : (++i, false)) || ...);
     return i;
@@ -66,8 +66,8 @@ static constexpr size_t find_true_v = find_true<B...>::value;
 // find<X> for type_list<T...>
 //   Finds the first position of type X (as a static integer) in the T... pack
 template <class X, class... T>
-CUTE_HOST_DEVICE constexpr
-CUTE_STL_NAMESPACE::integral_constant<size_t, find_true_v<cute_rt_tm::is_same_v<X,T>...>>
+CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TM_STL_NAMESPACE::integral_constant<size_t, find_true_v<cute_rt_tm::is_same_v<X,T>...>>
 find(type_list<T...> const&) noexcept {
   return {};
 }
@@ -77,29 +77,29 @@ find(type_list<T...> const&) noexcept {
 //
 // Specialize tuple-related functionality for cute_rt_tm::type_list
 //
-#include "cutlass_rt_tm/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 #if defined(__CUDACC_RTC__)
 #include CUDA_STD_HEADER(tuple)
 #else
 #include <tuple>
 #endif
 
-namespace CUTE_STL_NAMESPACE
+namespace CUTE_RT_TM_STL_NAMESPACE
 {
 
 template <class... T>
 struct tuple_size<cute_rt_tm::type_list<T...>>
-    : CUTE_STL_NAMESPACE::integral_constant<size_t, sizeof...(T)>
+    : CUTE_RT_TM_STL_NAMESPACE::integral_constant<size_t, sizeof...(T)>
 {};
 
 template <size_t I, class... T>
 struct tuple_element<I, cute_rt_tm::type_list<T...>>
-    : CUTE_STL_NAMESPACE::tuple_element<I, CUTE_STL_NAMESPACE::tuple<T...>>
+    : CUTE_RT_TM_STL_NAMESPACE::tuple_element<I, CUTE_RT_TM_STL_NAMESPACE::tuple<T...>>
 {};
 
 } // end namespace std
 
-#ifdef CUTE_STL_NAMESPACE_IS_CUDA_STD
+#ifdef CUTE_RT_TM_STL_NAMESPACE_IS_CUDA_STD
 namespace std
 {
 
@@ -113,13 +113,13 @@ struct tuple_element;
 
 template <class... T>
 struct tuple_size<cute_rt_tm::type_list<T...>>
-    : CUTE_STL_NAMESPACE::integral_constant<size_t, sizeof...(T)>
+    : CUTE_RT_TM_STL_NAMESPACE::integral_constant<size_t, sizeof...(T)>
 {};
 
 template <size_t I, class... T>
 struct tuple_element<I, cute_rt_tm::type_list<T...>>
-    : CUTE_STL_NAMESPACE::tuple_element<I, CUTE_STL_NAMESPACE::tuple<T...>>
+    : CUTE_RT_TM_STL_NAMESPACE::tuple_element<I, CUTE_RT_TM_STL_NAMESPACE::tuple<T...>>
 {};
 
 } // end namespace std
-#endif // CUTE_STL_NAMESPACE_IS_CUDA_STD
+#endif // CUTE_RT_TM_STL_NAMESPACE_IS_CUDA_STD
