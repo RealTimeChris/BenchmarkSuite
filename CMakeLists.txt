@@ -27,7 +27,6 @@ FetchContent_Declare(
   GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(cutlass)
-message("DIRECTORY:  ${cutlass_rt_tm_SOURCE_DIR}")
 
 add_library("${PROJECT_NAME}" INTERFACE "${HEADERS}")
 
@@ -59,6 +58,7 @@ set(BNCH_SWT_COMPILE_OPTIONS
     "$<$<CXX_COMPILER_ID:GNU>:-O3;;-funroll-loops;-finline-functions;-fomit-frame-pointer;-fno-math-errno;-ftemplate-depth=2000;-fconstexpr-depth=2000;-fconstexpr-ops-limit=100000000;-fconstexpr-loop-limit=1000000;-falign-functions=32;-falign-loops=32;-fprefetch-loop-arrays;-ftree-vectorize;-fstrict-aliasing;-ffunction-sections;-fdata-sections;-fvisibility=hidden;-fvisibility-inlines-hidden;-fno-keep-inline-functions;-fno-ident;-fmerge-all-constants;-fno-stack-protector;-fno-rtti;-fgcse-after-reload;-ftree-loop-distribute-patterns;-fpredictive-commoning;-funswitch-loops;-ftree-loop-vectorize;-ftree-slp-vectorize;-Wall;-Wextra;-Wpedantic;-Wnon-virtual-dtor;-Wlogical-op;-Wduplicated-cond;-Wduplicated-branches;-Wnull-dereference;-Wdouble-promotion>"#;-Werror>"
     "$<$<CXX_COMPILER_ID:MSVC>:/Ob3;/Ot;/Oy;/GT;/GL;/fp:precise;/Qpar;/constexpr:depth2048;/constexpr:backtrace0;/constexpr:steps2000000;/GS-;/Gy;/Gw;/Zc:inline;/Zc:throwingNew;/W4;/permissive-;/Zc:__cplusplus;/wd4820;/wd4324;/wd5002;/Zc:alignedNew;/Zc:auto;/Zc:forScope;/Zc:implicitNoexcept;/Zc:noexceptTypes;/Zc:referenceBinding;/Zc:rvalueCast;/Zc:sizedDealloc;/Zc:strictStrings;/Zc:ternary;/Zc:wchar_t>"#;/WX>"\
     "$<$<AND:$<CXX_COMPILER_ID:Clang>,$<PLATFORM_ID:Linux>>:-fno-plt;-fno-semantic-interposition>"
+	"--expt-relaxed-constexpr"
     "${BNCH_SWT_SIMD_FLAGS}"
 )
 
@@ -117,12 +117,6 @@ install(
 	"${CMAKE_CURRENT_BINARY_DIR}/${CONFIG_FILE_NAME}"
 	"${CMAKE_CURRENT_BINARY_DIR}/${VERSION_FILE_NAME}"
 	DESTINATION "share/benchmarksuite"
-)
-
-install(
-	DIRECTORY
-	"${CMAKE_CURRENT_SOURCE_DIR}/Include/"
-	DESTINATION "include"
 )
 
 if ("${BENCH_TYPE}" STREQUAL "BENCHMARK")
