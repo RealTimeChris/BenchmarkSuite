@@ -30,15 +30,15 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute/config.hpp>
+#include <cute_rt_tm/config.hpp>
 
-#include <cute/container/tuple.hpp>
-#include <cute/numeric/integral_constant.hpp>
-#include <cute/algorithm/functional.hpp>
-#include <cute/algorithm/tuple_algorithms.hpp>
-#include <cute/util/type_traits.hpp>
+#include <cute_rt_tm/container/tuple.hpp>
+#include <cute_rt_tm/numeric/integral_constant.hpp>
+#include <cute_rt_tm/algorithm/functional.hpp>
+#include <cute_rt_tm/algorithm/tuple_algorithms.hpp>
+#include <cute_rt_tm/util/type_traits.hpp>
 
-namespace cute
+namespace cute_rt_tm
 {
 
 template <class... T>
@@ -90,7 +90,7 @@ template <class... T, class... U>
 CUTE_HOST_DEVICE constexpr
 auto
 operator+(ArithmeticTuple<T...> const& t, ArithmeticTuple<U...> const& u) {
-  constexpr int R = cute::max(int(sizeof...(T)), int(sizeof...(U)));
+  constexpr int R = cute_rt_tm::max(int(sizeof...(T)), int(sizeof...(U)));
   return transform_apply(append<R>(t,Int<0>{}), append<R>(u,Int<0>{}), plus{}, [](auto const&... a){ return make_arithmetic_tuple(a...); });
 }
 
@@ -113,7 +113,7 @@ template <class... T, class... U>
 CUTE_HOST_DEVICE constexpr
 auto
 operator-(ArithmeticTuple<T...> const& t, ArithmeticTuple<U...> const& u) {
-  constexpr int R = cute::max(int(sizeof...(T)), int(sizeof...(U)));
+  constexpr int R = cute_rt_tm::max(int(sizeof...(T)), int(sizeof...(U)));
   return transform_apply(append<R>(t,Int<0>{}), append<R>(u,Int<0>{}), minus{}, [](auto const&... a){ return make_arithmetic_tuple(a...); });
 }
 
@@ -491,19 +491,19 @@ CUTE_HOST std::ostream& operator<<(std::ostream& os, ScaledBasis<T,Ns...> const&
 }
 #endif
 
-} // end namespace cute
+} // end namespace cute_rt_tm
 
 
 namespace CUTE_STL_NAMESPACE
 {
 
 template <class... T>
-struct tuple_size<cute::ArithmeticTuple<T...>>
+struct tuple_size<cute_rt_tm::ArithmeticTuple<T...>>
   : CUTE_STL_NAMESPACE::integral_constant<size_t, sizeof...(T)>
 {};
 
 template <size_t I, class... T>
-struct tuple_element<I, cute::ArithmeticTuple<T...>>
+struct tuple_element<I, cute_rt_tm::ArithmeticTuple<T...>>
   : CUTE_STL_NAMESPACE::tuple_element<I, CUTE_STL_NAMESPACE::tuple<T...>>
 {};
 
@@ -522,12 +522,12 @@ struct tuple_element;
 #endif
 
 template <class... T>
-struct tuple_size<cute::ArithmeticTuple<T...>>
+struct tuple_size<cute_rt_tm::ArithmeticTuple<T...>>
   : CUTE_STL_NAMESPACE::integral_constant<size_t, sizeof...(T)>
 {};
 
 template <size_t I, class... T>
-struct tuple_element<I, cute::ArithmeticTuple<T...>>
+struct tuple_element<I, cute_rt_tm::ArithmeticTuple<T...>>
   : CUTE_STL_NAMESPACE::tuple_element<I, CUTE_STL_NAMESPACE::tuple<T...>>
 {};
 

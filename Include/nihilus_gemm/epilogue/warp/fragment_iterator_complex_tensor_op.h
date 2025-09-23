@@ -43,14 +43,14 @@
 
 #pragma once
 
-#include "cutlass/array.h"
-#include "cutlass/layout/matrix.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/layout/matrix.h"
 
-#include "cutlass/epilogue/warp/tensor_op_policy.h"
+#include "nihilus_gemm/epilogue/warp/tensor_op_policy.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace warp {
 
@@ -92,10 +92,10 @@ public:
     complex<OperatorElementC>, 
     Policy::OperatorCount::kColumn * Policy::kElementsPerAccess>;
 
-  static int const kRealIndex = 0;
+  static constexpr int  kRealIndex = 0;
 
   /// Offset into the accumulator fragment
-  static int const kImaginaryIndex = 
+  static constexpr int  kImaginaryIndex = 
     OperatorFragmentC::kElements * Policy::OperatorCount::kRow * Policy::OperatorCount::kColumn;
 
   /// This is the complete warp-level accumulator tile.
@@ -105,7 +105,7 @@ public:
   using OutputAccumulatorTile = Array<complex<OperatorElementC>, kImaginaryIndex>;
 
   /// Number of times this iterator can be incremented
-  static int const kIterations = Policy::kIterations;
+  static constexpr int  kIterations = Policy::kIterations;
 
 private:
 
@@ -182,6 +182,6 @@ public:
 
 } // namespace warp
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -34,13 +34,13 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/array.h"
-#include "cutlass/half.h"
-#include "cutlass/functional.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/half.h"
+#include "nihilus_gemm/functional.h"
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace reduction {
 namespace thread {
 

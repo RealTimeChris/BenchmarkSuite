@@ -40,16 +40,16 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/tensor_ref.h"
-#include "cutlass/layout/matrix.h"
-#include "cutlass/layout/pitch_linear.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/tensor_ref.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/layout/pitch_linear.h"
 
-#include "cutlass/transform/threadblock/regular_tile_iterator.h"
+#include "nihilus_gemm/transform/threadblock/regular_tile_iterator.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace transform {
 namespace threadblock {
 
@@ -79,9 +79,9 @@ public:
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::PitchLinear;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int  kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
-  static int const kAlignment = Alignment;
+  static constexpr int  kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -271,9 +271,9 @@ public:
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::RowMajorInterleaved<4>;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int  kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
-  static int const kAlignment = Alignment;
+  static constexpr int  kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -393,9 +393,9 @@ public:
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::ColumnMajorInterleaved<4>;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int  kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
-  static int const kAlignment = Alignment;
+  static constexpr int  kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -505,5 +505,5 @@ public:
 
 } // namespace threadblock
 } // namespace transform
-} // namespace cutlass
+} // namespace nihilus_gemm
 

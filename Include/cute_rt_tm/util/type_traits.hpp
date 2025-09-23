@@ -29,7 +29,7 @@
  *
  **************************************************************************************************/
 #pragma once
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 #if defined(__CUDACC_RTC__)
 #include CUDA_STD_HEADER(type_traits)
 #include CUDA_STD_HEADER(utility)
@@ -44,18 +44,18 @@
 #include <limits>       // numeric_limits
 #endif
 
-#include <cute/config.hpp> // CUTE_STL_NAMESPACE
+#include <cute_rt_tm/config.hpp> // CUTE_STL_NAMESPACE
 
-namespace cute
+namespace cute_rt_tm
 {
   using CUTE_STL_NAMESPACE::enable_if;
   using CUTE_STL_NAMESPACE::enable_if_t;
 }
 
-#define __CUTE_REQUIRES(...)   typename cute::enable_if<(__VA_ARGS__)>::type* = nullptr
-#define __CUTE_REQUIRES_V(...) typename cute::enable_if<decltype((__VA_ARGS__))::value>::type* = nullptr
+#define __CUTE_REQUIRES(...)   typename cute_rt_tm::enable_if<(__VA_ARGS__)>::type* = nullptr
+#define __CUTE_REQUIRES_V(...) typename cute_rt_tm::enable_if<decltype((__VA_ARGS__))::value>::type* = nullptr
 
-namespace cute
+namespace cute_rt_tm
 {
 
 // <type_traits>
@@ -79,7 +79,7 @@ using CUTE_STL_NAMESPACE::is_const_v;
 using CUTE_STL_NAMESPACE::is_volatile;
 using CUTE_STL_NAMESPACE::is_volatile_v;
 
-// Defined in cute/numeric/integral_constant.hpp
+// Defined in cute_rt_tm/numeric/integral_constant.hpp
 // using CUTE_STL_NAMESPACE::true_type;
 // using CUTE_STL_NAMESPACE::false_type;
 
@@ -234,10 +234,10 @@ inline constexpr bool dependent_false = false;
 // tuple_size, tuple_element
 //
 // @brief CuTe-local tuple-traits to prevent conflicts with other libraries.
-// For cute:: types, we specialize std::tuple-traits, which is explicitly allowed.
-//   cute::tuple, cute::array, cute::array_subbyte, etc
+// For cute_rt_tm:: types, we specialize std::tuple-traits, which is explicitly allowed.
+//   cute_rt_tm::tuple, cute_rt_tm::array, cute_rt_tm::array_subbyte, etc
 // But CuTe wants to treat some external types as tuples as well. For those,
-// we specialize cute::tuple-traits to avoid polluting external traits.
+// we specialize cute_rt_tm::tuple-traits to avoid polluting external traits.
 //   dim3, uint3, etc
 
 template <class T, class = void>
@@ -319,4 +319,4 @@ struct is_any_of {
 template <class T, class... Us>
 inline constexpr bool is_any_of_v = is_any_of<T, Us...>::value;
 
-} // end namespace cute
+} // end namespace cute_rt_tm

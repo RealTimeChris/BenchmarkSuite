@@ -36,15 +36,15 @@
 
 #pragma once
 
-#include "cutlass/arch/wmma.h"
-#include "cutlass/matrix_shape.h"
-#include "cutlass/layout/matrix.h"
+#include "nihilus_gemm/arch/wmma.h"
+#include "nihilus_gemm/matrix_shape.h"
+#include "nihilus_gemm/layout/matrix.h"
 
 #if defined(CUTLASS_ARCH_WMMA_ENABLED)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace warp {
 
@@ -76,16 +76,16 @@ struct WmmaTensorOpPolicy<WarpShape, OperatorShape, layout::RowMajor> {
   //
   // Hard-coded constants regarding Tensor Operations
   //
-  static int const kElementsPerAccess = 2;
-  static int const kRowsPerIteration = OperatorShape::kM;
-  static int const kWmmaFragmentsPerAccess = 1;
+  static constexpr int  kElementsPerAccess = 2;
+  static constexpr int  kRowsPerIteration = OperatorShape::kM;
+  static constexpr int  kWmmaFragmentsPerAccess = 1;
 
   //
   // Derived quantities
   //
 
   // Number of externally visible iterations
-  static int const kIterations = OperatorCount::kRow;
+  static constexpr int  kIterations = OperatorCount::kRow;
 
 };
 
@@ -93,7 +93,7 @@ struct WmmaTensorOpPolicy<WarpShape, OperatorShape, layout::RowMajor> {
 
 } // namespace warp
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////
 

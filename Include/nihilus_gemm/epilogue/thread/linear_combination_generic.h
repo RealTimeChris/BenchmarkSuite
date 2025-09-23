@@ -34,16 +34,16 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/array.h"
-#include "cutlass/functional.h"
-#include "cutlass/numeric_conversion.h"
-#include "cutlass/epilogue/thread/scale_type.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/functional.h"
+#include "nihilus_gemm/numeric_conversion.h"
+#include "nihilus_gemm/epilogue/thread/scale_type.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace thread {
 
@@ -117,16 +117,16 @@ public:
   using ElementAccumulator = ElementAccumulator_;
   using ElementCompute = ElementCompute_;
 
-  static bool const kIsHeavy = IsHeavy;
-  static int const kCount = Count;
-  static const ScaleType::Kind kScale = Scale;
+  static constexpr bool  kIsHeavy = IsHeavy;
+  static constexpr int  kCount = Count;
+  static constexpr ScaleType::Kind kScale = Scale;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
   using FragmentSource = Array<ElementOutput, kCount>;
   using FragmentCompute = Array<ElementCompute, kCount>;
 
-  static FloatRoundStyle const kRound = Round;
+  static constexpr FloatRoundStyle  kRound = Round;
 
   /// Host-constructable parameters structure
   struct Params
@@ -262,4 +262,4 @@ public:
 
 } // namespace thread
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm

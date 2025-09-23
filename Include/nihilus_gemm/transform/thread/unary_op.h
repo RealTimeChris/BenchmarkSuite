@@ -30,10 +30,10 @@
  **************************************************************************************************/
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/complex.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/complex.h"
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace transform {
 namespace thread {
 

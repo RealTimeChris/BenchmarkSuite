@@ -34,29 +34,29 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 
-#include "cutlass/array.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/tensor_ref.h"
-#include "cutlass/matrix_shape.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/tensor_ref.h"
+#include "nihilus_gemm/matrix_shape.h"
 
-#include "cutlass/arch/memory_sm75.h"
-#include "cutlass/gemm/gemm.h"
+#include "nihilus_gemm/arch/memory_sm75.h"
+#include "nihilus_gemm/gemm/gemm.h"
 
-#include "cutlass/layout/matrix.h"
-#include "cutlass/layout/tensor.h"
-#include "cutlass/layout/pitch_linear.h"
-#include "cutlass/layout/tensor_op_multiplicand_sm80.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/layout/tensor.h"
+#include "nihilus_gemm/layout/pitch_linear.h"
+#include "nihilus_gemm/layout/tensor_op_multiplicand_sm80.h"
 
-#include "cutlass/platform/platform.h"
-#include "cutlass/fast_math.h"
+#include "nihilus_gemm/platform/platform.h"
+#include "nihilus_gemm/fast_math.h"
 
-#include "cutlass/gemm/warp/mma_tensor_op_tile_iterator.h"
+#include "nihilus_gemm/gemm/warp/mma_tensor_op_tile_iterator.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace gemm {
 namespace warp {
 
@@ -83,7 +83,7 @@ template <
     int PartitionsK_>
 class MmaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
-    cutlass::layout::TensorOpMultiplicandCongruous64b,
+    nihilus_gemm::layout::TensorOpMultiplicandCongruous64b,
     InstructionShape_, OpDelta_, 32, PartitionsK_> {
  public:
 
@@ -91,7 +91,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand  kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
     "MmaTensorOpMultiplicandIterator may only be instantiated for A or B operands to warp-level Mma.");
@@ -104,19 +104,19 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// Layout of source tile
-  using Layout = cutlass::layout::TensorOpMultiplicandCongruous64b;
+  using Layout = nihilus_gemm::layout::TensorOpMultiplicandCongruous64b;
 
   /// Shape of one matrix product operation (concept: GemmShape)
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int  kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int  kThreads = 32;
 
   /// Number of partitions along K dimension
-  static int const kPartitionsK = PartitionsK_;
+  static constexpr int  kPartitionsK = PartitionsK_;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -134,7 +134,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using TensorCoord = typename TensorRef::TensorCoord;
 
   /// Load two elements per access
-  static int const kElementsPerAccess = 2;
+  static constexpr int  kElementsPerAccess = 2;
 
   /// Policy defining internal details of tile iterator
   struct Policy {
@@ -386,7 +386,7 @@ template <
     int PartitionsK_>
 class MmaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
-    cutlass::layout::RowMajorTensorOpMultiplicandCongruous64b,
+    nihilus_gemm::layout::RowMajorTensorOpMultiplicandCongruous64b,
     InstructionShape_, OpDelta_, 32, PartitionsK_> {
  public:
 
@@ -394,7 +394,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand  kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
     "MmaTensorOpMultiplicandIterator may only be instantiated for A or B operands to warp-level Mma.");
@@ -403,16 +403,16 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// Layout of source tile
-  using Layout = cutlass::layout::RowMajorTensorOpMultiplicandCongruous64b;
+  using Layout = nihilus_gemm::layout::RowMajorTensorOpMultiplicandCongruous64b;
 
   /// Shape of one matrix product operation (concept: MatrixShape)
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int  kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int  kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -612,7 +612,7 @@ template <
     int PartitionsK_>
 class MmaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
-    cutlass::layout::ColumnMajorTensorOpMultiplicandCongruous64b,
+    nihilus_gemm::layout::ColumnMajorTensorOpMultiplicandCongruous64b,
     InstructionShape_, OpDelta_, 32, PartitionsK_> {
  public:
 
@@ -620,7 +620,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand  kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
     "MmaTensorOpMultiplicandIterator may only be instantiated for A or B operands to warp-level Mma.");
@@ -629,16 +629,16 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// Layout of source tile
-  using Layout = cutlass::layout::ColumnMajorTensorOpMultiplicandCongruous64b;
+  using Layout = nihilus_gemm::layout::ColumnMajorTensorOpMultiplicandCongruous64b;
 
   /// Shape of one matrix product operation (concept: MatrixShape)
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int  kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int  kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -838,7 +838,7 @@ template <
     int PartitionsK_>
 class MmaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
-    cutlass::layout::TensorOpMultiplicand64bCrosswise,
+    nihilus_gemm::layout::TensorOpMultiplicand64bCrosswise,
     InstructionShape_, OpDelta_, 32, PartitionsK_> {
  public:
 
@@ -846,7 +846,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand  kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
     "MmaTensorOpMultiplicandIterator may only be instantiated for A or B operands to warp-level Mma.");
@@ -859,19 +859,19 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// Layout of source tile
-  using Layout = cutlass::layout::TensorOpMultiplicand64bCrosswise;
+  using Layout = nihilus_gemm::layout::TensorOpMultiplicand64bCrosswise;
 
   /// Shape of one matrix product operation (concept: GemmShape)
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int  kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int  kThreads = 32;
 
   /// Number of partitions along K dimension
-  static int const kPartitionsK = PartitionsK_;
+  static constexpr int  kPartitionsK = PartitionsK_;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -889,7 +889,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using TensorCoord = typename TensorRef::TensorCoord;
 
   /// Load two elements per access
-  static int const kElementsPerAccess = 2;
+  static constexpr int  kElementsPerAccess = 2;
 
   /// Policy defining internal details of tile iterator
   struct Policy {
@@ -1161,7 +1161,7 @@ template <
     int PartitionsK_>
 class MmaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
-    cutlass::layout::RowMajorTensorOpMultiplicand64bCrosswise,
+    nihilus_gemm::layout::RowMajorTensorOpMultiplicand64bCrosswise,
     InstructionShape_, OpDelta_, 32, PartitionsK_> {
  public:
 
@@ -1169,7 +1169,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand  kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
     "MmaTensorOpMultiplicandIterator may only be instantiated for A or B operands to warp-level Mma.");
@@ -1178,16 +1178,16 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// Layout of source tile
-  using Layout = cutlass::layout::RowMajorTensorOpMultiplicand64bCrosswise;
+  using Layout = nihilus_gemm::layout::RowMajorTensorOpMultiplicand64bCrosswise;
 
   /// Shape of one matrix product operation (concept: MatrixShape)
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int  kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int  kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -1392,7 +1392,7 @@ template <
     int PartitionsK_>
 class MmaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
-    cutlass::layout::ColumnMajorTensorOpMultiplicand64bCrosswise,
+    nihilus_gemm::layout::ColumnMajorTensorOpMultiplicand64bCrosswise,
     InstructionShape_, OpDelta_, 32, PartitionsK_> {
  public:
 
@@ -1400,7 +1400,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand  kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
     "MmaTensorOpMultiplicandIterator may only be instantiated for A or B operands to warp-level Mma.");
@@ -1409,16 +1409,16 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// Layout of source tile
-  using Layout = cutlass::layout::ColumnMajorTensorOpMultiplicand64bCrosswise;
+  using Layout = nihilus_gemm::layout::ColumnMajorTensorOpMultiplicand64bCrosswise;
 
   /// Shape of one matrix product operation (concept: MatrixShape)
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int  kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int  kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -1631,7 +1631,7 @@ class MmaTensorOpMultiplicandTileIteratorCanonical {
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand  kOperand = Operand_;
 
   /// Basic check
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
@@ -1647,10 +1647,10 @@ class MmaTensorOpMultiplicandTileIteratorCanonical {
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int  kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int  kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -1665,15 +1665,15 @@ class MmaTensorOpMultiplicandTileIteratorCanonical {
   using TensorCoord = typename TensorRef::TensorCoord;
 
   /// Number of elements accessed per Shared Memory load
-  static int const kElementsPerAccess = 
+  static constexpr int  kElementsPerAccess = 
     (sizeof_bits<Element>::value >= 32 ? 1 : 32 / sizeof_bits<Element>::value);
 
 private:
 
-  static int const kWarpShapeOuter = 
+  static constexpr int  kWarpShapeOuter = 
     (kOperand == Operand::kA ? Shape::kRow : Shape::kColumn);
 
-  static int const kWarpShapeInner =
+  static constexpr int  kWarpShapeInner =
     (kOperand == Operand::kA ? Shape::kColumn : Shape::kRow);
 
   
@@ -1994,7 +1994,7 @@ template <
     int PartitionsK_>
 class MmaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
-    cutlass::layout::ColumnMajor,
+    nihilus_gemm::layout::ColumnMajor,
     InstructionShape_, OpDelta_, 32, PartitionsK_> {
  public:
 
@@ -2002,7 +2002,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand  kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
     "MmaTensorOpMultiplicandIterator may only be instantiated for A or B operands to warp-level Mma.");
@@ -2011,16 +2011,16 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// Layout of source tile
-  using Layout = cutlass::layout::ColumnMajor;
+  using Layout = nihilus_gemm::layout::ColumnMajor;
 
   /// Shape of one matrix product operation (concept: MatrixShape)
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int  kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int  kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -2221,7 +2221,7 @@ template <
     int PartitionsK_>
 class MmaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
-    cutlass::layout::RowMajor,
+    nihilus_gemm::layout::RowMajor,
     InstructionShape_, OpDelta_, 32, PartitionsK_> {
  public:
 
@@ -2229,7 +2229,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand  kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
     "MmaTensorOpMultiplicandIterator may only be instantiated for A or B operands to warp-level Mma.");
@@ -2238,16 +2238,16 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// Layout of source tile
-  using Layout = cutlass::layout::RowMajor;
+  using Layout = nihilus_gemm::layout::RowMajor;
 
   /// Shape of one matrix product operation (concept: MatrixShape)
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int  kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int  kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -2435,6 +2435,6 @@ public:
 
 } // namespace warp
 } // namespace gemm
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////

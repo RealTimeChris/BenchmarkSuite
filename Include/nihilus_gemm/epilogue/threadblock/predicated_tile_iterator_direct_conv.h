@@ -38,24 +38,24 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/array.h"
-#include "cutlass/layout/matrix.h"
-#include "cutlass/layout/tensor.h"
-#include "cutlass/layout/permute.h"
-#include "cutlass/matrix_shape.h"
-#include "cutlass/tensor_ref.h"
-#include "cutlass/transform/pitch_linear_thread_map.h"
-#include "cutlass/epilogue/threadblock/output_tile_thread_map.h"
-#include "cutlass/arch/arch.h"
-#include "cutlass/arch/memory.h"
-#include "cutlass/epilogue/threadblock/predicated_tile_iterator_params.h"
-#include "cutlass/conv/conv2d_problem_size.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/layout/tensor.h"
+#include "nihilus_gemm/layout/permute.h"
+#include "nihilus_gemm/matrix_shape.h"
+#include "nihilus_gemm/tensor_ref.h"
+#include "nihilus_gemm/transform/pitch_linear_thread_map.h"
+#include "nihilus_gemm/epilogue/threadblock/output_tile_thread_map.h"
+#include "nihilus_gemm/arch/arch.h"
+#include "nihilus_gemm/arch/memory.h"
+#include "nihilus_gemm/epilogue/threadblock/predicated_tile_iterator_params.h"
+#include "nihilus_gemm/conv/conv2d_problem_size.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -71,8 +71,8 @@ namespace threadblock {
 template <
   typename ThreadMap_,       ///< Thread map (conept: PitchLinearThreadMap)
   typename Element_,         ///< Element data type
-  typename ThreadOutputShape_ = cutlass::conv::TensorNHWCShape<1, 1, 1, 1>,
-  typename ThreadBlockOutputShape_ = cutlass::conv::TensorNHWCShape<1, 1, 1, 1>
+  typename ThreadOutputShape_ = nihilus_gemm::conv::TensorNHWCShape<1, 1, 1, 1>,
+  typename ThreadBlockOutputShape_ = nihilus_gemm::conv::TensorNHWCShape<1, 1, 1, 1>
 >
 class PredicatedTileIteratorDirectConv {
 public:
@@ -91,10 +91,10 @@ public:
   using LongIndex = typename Layout::LongIndex;
   using TensorCoord = MatrixCoord;
 
-  static int const kElementsPerAccess = ThreadMap::kElementsPerAccess;
-  static int const kThreads = ThreadMap::kThreads;
+  static constexpr int  kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static constexpr int  kThreads = ThreadMap::kThreads;
 
-  using ConvProblemSize = typename cutlass::conv::Conv2dProblemSize;
+  using ConvProblemSize = typename nihilus_gemm::conv::Conv2dProblemSize;
 
   /// Fragment object
   using Fragment = Array<Element, ThreadMap::Iterations::kCount * kElementsPerAccess>;
@@ -102,7 +102,7 @@ public:
   /// Memory access size
   using AccessType = AlignedArray<Element, kElementsPerAccess>;
 
-  static int const kLoadsPerAccess = AccessType::kElements / AccessType::kElements;
+  static constexpr int  kLoadsPerAccess = AccessType::kElements / AccessType::kElements;
 
   using ThreadTileCount = MatrixShape<
     ThreadBlockOutputShape::kH / ThreadOutputShape::kH,
@@ -121,7 +121,7 @@ public:
     Params() { }
 
     CUTLASS_HOST_DEVICE
-    Params(Layout const &layout, cutlass::conv::Conv2dProblemSize const &problem_size): 
+    Params(Layout const &layout, nihilus_gemm::conv::Conv2dProblemSize const &problem_size): 
       PredicatedTileIteratorDirect2dConvParams(
         layout.stride(0) * int(sizeof(AccessType)) / kElementsPerAccess,
         problem_size,
@@ -137,7 +137,7 @@ public:
   /// Mask object
   struct Mask {
 
-    static int const kCount = ThreadMap::Iterations::kContiguous;
+    static constexpr int  kCount = ThreadMap::Iterations::kContiguous;
 
     /// Predicate state
     bool predicates[kCount];
@@ -319,7 +319,7 @@ public:
 
         bool guard = row_guard && mask_.predicates[c];
 
-        cutlass::arch::global_load<AccessType, sizeof(AccessType)>(
+        nihilus_gemm::arch::global_load<AccessType, sizeof(AccessType)>(
             frag_ptr[frag_base_idx], (void *)&memory_pointer[0], guard);
       }
     }
@@ -365,7 +365,7 @@ public:
 
         bool guard = row_guard && mask_.predicates[c];
 
-        cutlass::arch::global_store<AccessType, sizeof(AccessType)>(
+        nihilus_gemm::arch::global_store<AccessType, sizeof(AccessType)>(
             frag_ptr[frag_base_idx], (void *)&memory_pointer[0], guard);
       }
     }
@@ -440,6 +440,6 @@ public:
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////

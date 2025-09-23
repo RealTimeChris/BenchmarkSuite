@@ -33,17 +33,17 @@
 */
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/coord.h"
-#include "cutlass/gemm_coord.h"
-#include "cutlass/layout/matrix.h"
-#include "cutlass/gemm/gemm_enumerated_types.h"
-#include "cute/layout.hpp"
-#include "cutlass/detail/layout.hpp"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/coord.h"
+#include "nihilus_gemm/gemm_coord.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/gemm/gemm_enumerated_types.h"
+#include "cute_rt_tm/layout.hpp"
+#include "nihilus_gemm/detail/layout.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace gemm {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -56,28 +56,28 @@ enum class ScalingKind {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using cutlass::detail::TagToStrideA;
-using cutlass::detail::TagToStrideB;
-using cutlass::detail::TagToStrideC;
-using cutlass::detail::TagToStrideA_t;
-using cutlass::detail::TagToStrideB_t;
-using cutlass::detail::TagToStrideC_t;
+using nihilus_gemm::detail::TagToStrideA;
+using nihilus_gemm::detail::TagToStrideB;
+using nihilus_gemm::detail::TagToStrideC;
+using nihilus_gemm::detail::TagToStrideA_t;
+using nihilus_gemm::detail::TagToStrideB_t;
+using nihilus_gemm::detail::TagToStrideC_t;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace detail {
 
-using cutlass::detail::StrideToLayoutTagA;
-using cutlass::detail::StrideToLayoutTagB;
-using cutlass::detail::StrideToLayoutTagC;
-using cutlass::detail::StrideToLayoutTagA_t;
-using cutlass::detail::StrideToLayoutTagB_t;
-using cutlass::detail::StrideToLayoutTagC_t;
+using nihilus_gemm::detail::StrideToLayoutTagA;
+using nihilus_gemm::detail::StrideToLayoutTagB;
+using nihilus_gemm::detail::StrideToLayoutTagC;
+using nihilus_gemm::detail::StrideToLayoutTagA_t;
+using nihilus_gemm::detail::StrideToLayoutTagB_t;
+using nihilus_gemm::detail::StrideToLayoutTagC_t;
 
 template<int ModeIndex, class Stride>
 constexpr bool
 is_major(Stride = {}) {
-  return ::cutlass::detail::is_major<ModeIndex>(Stride{});
+  return ::nihilus_gemm::detail::is_major<ModeIndex>(Stride{});
 }
 
 template<class Stride>
@@ -122,11 +122,11 @@ is_k_major_B() {
 // The following two metafunctions are used to detect whether a `kernel::Gemm` or `kernel::GemmUniversal`
 // is implementing the CUTLASS 3.x API or not, by checking if the problem shape type is aliased within or not.
 template <class GemmKernel, class = void>
-struct IsCutlass3GemmKernel : cute::false_type { };
+struct IsCutlass3GemmKernel : cute_rt_tm::false_type { };
 
 template <typename GemmKernel>
-struct IsCutlass3GemmKernel<GemmKernel, cute::void_t<typename GemmKernel::ProblemShape>>
-    : cute::true_type { };
+struct IsCutlass3GemmKernel<GemmKernel, cute_rt_tm::void_t<typename GemmKernel::ProblemShape>>
+    : cute_rt_tm::true_type { };
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -135,6 +135,6 @@ struct IsCutlass3GemmKernel<GemmKernel, cute::void_t<typename GemmKernel::Proble
 ///////////////////////////////////////////////////////////////////////////////
 
 } // namespace gemm
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -35,19 +35,19 @@
 #pragma once
 
 
-#include "cutlass/aligned_buffer.h"
-#include "cutlass/arch/memory.h"
-#include "cutlass/array.h"
-#include "cutlass/cutlass.h"
-#include "cutlass/gemm/gemm.h"
-#include "cutlass/matrix_shape.h"
-#include "cutlass/numeric_types.h"
+#include "nihilus_gemm/aligned_buffer.h"
+#include "nihilus_gemm/arch/memory.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/gemm/gemm.h"
+#include "nihilus_gemm/matrix_shape.h"
+#include "nihilus_gemm/numeric_types.h"
 
-#include "cutlass/gemm/threadblock/mma_base.h"
+#include "nihilus_gemm/gemm/threadblock/mma_base.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace gemm {
 namespace threadblock {
 
@@ -66,7 +66,7 @@ template <
     /// (concept: WriteableTileIterator | RandomAccessTileIterator)
     typename SmemIteratorA_,
     /// Cache operation for operand A
-    cutlass::arch::CacheOperation::Kind CacheOpA,
+    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
     /// Iterates over tiles of B operand in global memory
     //  (concept: ReadableTileIterator | ForwardTileIterator |
     //  MaskedTileIterator)
@@ -75,7 +75,7 @@ template <
     /// (concept: WriteableTileIterator | RandomAccessTileIterator)
     typename SmemIteratorB_,
     /// Cache operation for operand B
-    cutlass::arch::CacheOperation::Kind CacheOpB,
+    nihilus_gemm::arch::CacheOperation::Kind CacheOpB,
     /// Data type of accumulator matrix
     typename ElementC_,
     /// Data type of accumulator matrix
@@ -109,8 +109,8 @@ public:
   using SmemIteratorA = SmemIteratorA_;
   using SmemIteratorB = SmemIteratorB_;
 
-  static cutlass::arch::CacheOperation::Kind const kCacheOpA = CacheOpA;
-  static cutlass::arch::CacheOperation::Kind const kCacheOpB = CacheOpB;
+  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = CacheOpA;
+  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = CacheOpB;
 
   //
   // Dependent types
@@ -126,38 +126,38 @@ public:
   using ArchTag = arch::Sm80;
 
   /// Complex transform on A operand
-  static ComplexTransform const kTransformA = Operator::kTransformA;
+  static constexpr ComplexTransform  kTransformA = Operator::kTransformA;
 
   /// Complex transform on B operand
-  static ComplexTransform const kTransformB = Operator::kTransformB;
+  static constexpr ComplexTransform  kTransformB = Operator::kTransformB;
 
   /// Internal structure exposed for introspection.
   struct Detail {
 
     /// Number of cp.async instructions to load one stage of operand A
-    static int const AsyncCopyIterationsPerStageA =
+    static constexpr int  AsyncCopyIterationsPerStageA =
         IteratorA::ThreadMap::Iterations::kCount;
 
     /// Number of cp.async instructions to load one stage of operand B
-    static int const AsyncCopyIterationsPerStageB =
+    static constexpr int  AsyncCopyIterationsPerStageB =
         IteratorB::ThreadMap::Iterations::kCount;
 
     /// Number of stages
-    static int const kStages = Stages;
+    static constexpr int  kStages = Stages;
 
     /// Number of cp.async instructions to load on group of operand A
-    static int const kAccessesPerGroupA =
+    static constexpr int  kAccessesPerGroupA =
         (AsyncCopyIterationsPerStageA + Base::kWarpGemmIterations - 1) / Base::kWarpGemmIterations;
 
     /// Number of cp.async instructions to load on group of operand B
-    static int const kAccessesPerGroupB =
+    static constexpr int  kAccessesPerGroupB =
         (AsyncCopyIterationsPerStageB + Base::kWarpGemmIterations - 1) / Base::kWarpGemmIterations;
 
     // Optional staged-accumulation (e.g., tf32x3 kernels) for improved numerical
     // accuracy, where each mainloop iteration first accumulates into a temporary
     // set of freshly-cleared accumulators, which are subsequently added to the
     // final accumulator set.
-    static bool const kStagedAccumulation = arch::detail::UseStagedAccumulation<Operator>::value;
+    static constexpr bool  kStagedAccumulation = arch::detail::UseStagedAccumulation<Operator>::value;
   };
 
  private:
@@ -308,10 +308,10 @@ public:
           auto gmem_ptr = iterator_A.get();
 
           if (SharedMemoryClear == SharedMemoryClearOption::kZfill) {
-            cutlass::arch::cp_async_zfill<kSrcBytes, kCacheOpA>(
+            nihilus_gemm::arch::cp_async_zfill<kSrcBytes, kCacheOpA>(
                 dst_ptr + v, gmem_ptr, iterator_A.valid());
           } else {
-            cutlass::arch::cp_async<kSrcBytes, kCacheOpA>(
+            nihilus_gemm::arch::cp_async<kSrcBytes, kCacheOpA>(
                 dst_ptr + v, gmem_ptr, iterator_A.valid());
           }
 
@@ -343,10 +343,10 @@ public:
           auto gmem_ptr = iterator_B.get();
 
           if (SharedMemoryClear == SharedMemoryClearOption::kZfill) {
-            cutlass::arch::cp_async_zfill<kSrcBytes, kCacheOpB>(
+            nihilus_gemm::arch::cp_async_zfill<kSrcBytes, kCacheOpB>(
                 dst_ptr + v, gmem_ptr, iterator_B.valid());
           } else {
-            cutlass::arch::cp_async<kSrcBytes, kCacheOpB>(
+            nihilus_gemm::arch::cp_async<kSrcBytes, kCacheOpB>(
                 dst_ptr + v, gmem_ptr, iterator_B.valid());
           }
 
@@ -392,7 +392,7 @@ public:
 
           int src_bytes = (iterator_A.valid() ? kSrcBytes : 0);
 
-          cutlass::arch::cp_async_zfill<kSrcBytes, kCacheOpA>(
+          nihilus_gemm::arch::cp_async_zfill<kSrcBytes, kCacheOpA>(
               dst_ptr + v, iterator_A.get(), iterator_A.valid());
 
           ++iterator_A;
@@ -418,7 +418,7 @@ public:
               IteratorB::ThreadMap::kElementsPerAccess /
               IteratorB::kAccessesPerVector / 8;
 
-          cutlass::arch::cp_async_zfill<kSrcBytes, kCacheOpB>(
+          nihilus_gemm::arch::cp_async_zfill<kSrcBytes, kCacheOpB>(
               dst_ptr + v, iterator_B.get(), iterator_B.valid());
 
           ++iterator_B;
@@ -431,7 +431,7 @@ public:
       advance_smem_write_stage(iterator_A, iterator_B);
 
       // Defines the boundary of a stage of cp.async.
-      cutlass::arch::cp_async_fence();
+      nihilus_gemm::arch::cp_async_fence();
     }
 
     // Optionally clear the remaining stages of SMEM. This is a functional requirement for
@@ -486,7 +486,7 @@ public:
   void gmem_wait()
   {
     // Wait until we have at least one committed global fetch stage. (#uncommitted = Base::kStages - 1 - #committed)
-    cutlass::arch::cp_async_wait<Base::kStages - 2>();
+    nihilus_gemm::arch::cp_async_wait<Base::kStages - 2>();
     __syncthreads();
   }
 
@@ -577,7 +577,7 @@ public:
           group_start_iteration_B);
 
         // Inserts a memory fence between stages of cp.async instructions.
-        cutlass::arch::cp_async_fence();
+        nihilus_gemm::arch::cp_async_fence();
 
         // Wait until we have at least one completed global fetch stage
         gmem_wait();
@@ -661,8 +661,8 @@ public:
     }
 
     // Commit and drain all pending and predicated cp.async pnz from the GEMM mainloop
-    cutlass::arch::cp_async_fence();
-    cutlass::arch::cp_async_wait<0>();
+    nihilus_gemm::arch::cp_async_fence();
+    nihilus_gemm::arch::cp_async_wait<0>();
     __syncthreads();
 
   }
@@ -688,7 +688,7 @@ public:
     smem_read_stage_idx_++;
 
     // Then wrap back two full stages (one for the tile advancing we just did, and one to catch the write iterators)
-    static const int kStageIters = Policy::kPartitionsK * Base::kWarpGemmIterations;
+    static constexpr int kStageIters = Policy::kPartitionsK * Base::kWarpGemmIterations;
     if (smem_read_stage_idx_ > 1)
     {
       this->warp_tile_iterator_A_.add_tile_offset({0, (-2 * kStageIters)});
@@ -735,7 +735,7 @@ public:
 
 }  // namespace threadblock
 }  // namespace gemm
-}  // namespace cutlass
+}  // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 

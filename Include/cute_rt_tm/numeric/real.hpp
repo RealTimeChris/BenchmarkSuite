@@ -30,9 +30,9 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute/config.hpp>
+#include <cute_rt_tm/config.hpp>
 
-namespace cute
+namespace cute_rt_tm
 {
 
 /// Generic add
@@ -71,4 +71,4 @@ fma(A const& a, B const& b, C& c)
   return fma(c, a, b, c);
 }
 
-} // end namespace cute
+} // end namespace cute_rt_tm

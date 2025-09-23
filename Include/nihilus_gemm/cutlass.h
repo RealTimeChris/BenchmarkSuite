@@ -35,7 +35,7 @@
 
 #pragma once
 
-#include "cutlass/detail/helper_macros.hpp"
+#include "nihilus_gemm/detail/helper_macros.hpp"
 
 #if (__CUDACC_VER_MAJOR__ >= 13)
   #define CUDA_STD_HEADER(header) <cccl/cuda/std/header>
@@ -45,7 +45,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 /// Status code returned by CUTLASS operations
 enum class Status {
@@ -63,33 +63,33 @@ enum class Status {
   kInvalid                     ///< Status is unspecified.
 };
 
-/// Convert cutlass status to status strings
+/// Convert nihilus_gemm status to status strings
 CUTLASS_HOST_DEVICE
-static char const* cutlassGetStatusString(cutlass::Status status) {
+static constexpr const char * cutlassGetStatusString(nihilus_gemm::Status status) {
   switch (status) {
-    case cutlass::Status::kSuccess:
+    case nihilus_gemm::Status::kSuccess:
       return "Success";
-    case cutlass::Status::kErrorMisalignedOperand:
+    case nihilus_gemm::Status::kErrorMisalignedOperand:
       return "Error Misaligned Operand";
-    case cutlass::Status::kErrorInvalidDataType:
+    case nihilus_gemm::Status::kErrorInvalidDataType:
       return "Error Invalid Data Type";
-    case cutlass::Status::kErrorInvalidLayout:
+    case nihilus_gemm::Status::kErrorInvalidLayout:
       return "Error Invalid Layout";
-    case cutlass::Status::kErrorInvalidProblem:
+    case nihilus_gemm::Status::kErrorInvalidProblem:
       return "Error Invalid Problem";
-    case cutlass::Status::kErrorNotSupported:
+    case nihilus_gemm::Status::kErrorNotSupported:
       return "Error Not Supported";
-    case cutlass::Status::kErrorWorkspaceNull:
+    case nihilus_gemm::Status::kErrorWorkspaceNull:
       return "Error Workspace Null";
-    case cutlass::Status::kErrorInternal:
+    case nihilus_gemm::Status::kErrorInternal:
       return "Error Internal";
-    case cutlass::Status::kErrorInsufficientDriver:
+    case nihilus_gemm::Status::kErrorInsufficientDriver:
       return "Error Insufficient Driver";
-    case cutlass::Status::kErrorArchMismatch:
+    case nihilus_gemm::Status::kErrorArchMismatch:
       return "Error Architecture Mismatch";
-    case cutlass::Status::kErrorMemoryAllocation:
+    case nihilus_gemm::Status::kErrorMemoryAllocation:
       return "Error Memory Allocation failed";
-    case cutlass::Status::kInvalid: break;
+    case nihilus_gemm::Status::kInvalid: break;
   }
 
   return "Invalid status";
@@ -97,12 +97,12 @@ static char const* cutlassGetStatusString(cutlass::Status status) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static const int NumThreadsPerWarp = 32;
-static const int NumThreadsPerWarpGroup = 128;
-static const int NumWarpsPerWarpGroup = NumThreadsPerWarpGroup / NumThreadsPerWarp;
-static const int NumThreadsPerHalfWarp = NumThreadsPerWarp / 2;
-static const int NumThreadsPerQuad = 4;
-static const int NumThreadsPerQuadPair = NumThreadsPerQuad * 2;
+static constexpr int NumThreadsPerWarp = 32;
+static constexpr int NumThreadsPerWarpGroup = 128;
+static constexpr int NumWarpsPerWarpGroup = NumThreadsPerWarpGroup / NumThreadsPerWarp;
+static constexpr int NumThreadsPerHalfWarp = NumThreadsPerWarp / 2;
+static constexpr int NumThreadsPerQuad = 4;
+static constexpr int NumThreadsPerQuadPair = NumThreadsPerQuad * 2;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -160,6 +160,6 @@ int canonical_warp_group_idx() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-}  // namespace cutlass
+}  // namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

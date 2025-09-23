@@ -30,10 +30,10 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute/config.hpp>            // CUTE_HOST_DEVICE, CUTE_STL_NAMESPACE
-#include <cute/util/type_traits.hpp>
+#include <cute_rt_tm/config.hpp>            // CUTE_HOST_DEVICE, CUTE_STL_NAMESPACE
+#include <cute_rt_tm/util/type_traits.hpp>
 
-namespace cute
+namespace cute_rt_tm
 {
 
 template <class... T>
@@ -67,17 +67,17 @@ static constexpr size_t find_true_v = find_true<B...>::value;
 //   Finds the first position of type X (as a static integer) in the T... pack
 template <class X, class... T>
 CUTE_HOST_DEVICE constexpr
-CUTE_STL_NAMESPACE::integral_constant<size_t, find_true_v<cute::is_same_v<X,T>...>>
+CUTE_STL_NAMESPACE::integral_constant<size_t, find_true_v<cute_rt_tm::is_same_v<X,T>...>>
 find(type_list<T...> const&) noexcept {
   return {};
 }
 
-} // end namespace cute
+} // end namespace cute_rt_tm
 
 //
-// Specialize tuple-related functionality for cute::type_list
+// Specialize tuple-related functionality for cute_rt_tm::type_list
 //
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 #if defined(__CUDACC_RTC__)
 #include CUDA_STD_HEADER(tuple)
 #else
@@ -88,12 +88,12 @@ namespace CUTE_STL_NAMESPACE
 {
 
 template <class... T>
-struct tuple_size<cute::type_list<T...>>
+struct tuple_size<cute_rt_tm::type_list<T...>>
     : CUTE_STL_NAMESPACE::integral_constant<size_t, sizeof...(T)>
 {};
 
 template <size_t I, class... T>
-struct tuple_element<I, cute::type_list<T...>>
+struct tuple_element<I, cute_rt_tm::type_list<T...>>
     : CUTE_STL_NAMESPACE::tuple_element<I, CUTE_STL_NAMESPACE::tuple<T...>>
 {};
 
@@ -112,12 +112,12 @@ struct tuple_element;
 #endif
 
 template <class... T>
-struct tuple_size<cute::type_list<T...>>
+struct tuple_size<cute_rt_tm::type_list<T...>>
     : CUTE_STL_NAMESPACE::integral_constant<size_t, sizeof...(T)>
 {};
 
 template <size_t I, class... T>
-struct tuple_element<I, cute::type_list<T...>>
+struct tuple_element<I, cute_rt_tm::type_list<T...>>
     : CUTE_STL_NAMESPACE::tuple_element<I, CUTE_STL_NAMESPACE::tuple<T...>>
 {};
 

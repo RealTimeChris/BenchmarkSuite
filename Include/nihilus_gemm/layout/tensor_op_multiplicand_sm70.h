@@ -34,14 +34,14 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/coord.h"
-#include "cutlass/layout/pitch_linear.h"
-#include "cutlass/matrix_coord.h" // cutlass::MatrixCoord
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/coord.h"
+#include "nihilus_gemm/layout/pitch_linear.h"
+#include "nihilus_gemm/matrix_coord.h" // nihilus_gemm::MatrixCoord
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace layout {
 
 // template <
@@ -67,10 +67,10 @@ template <int ElementSize>
 struct VoltaTensorOpMultiplicandCongruous {
 
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int  kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int  kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -89,7 +89,7 @@ struct VoltaTensorOpMultiplicandCongruous {
   //
 
   /// This layout is optimized for 128b accesses
-  static int const kAccessSize = 128;
+  static constexpr int  kAccessSize = 128;
 
   /// Fundamental tile shape in units of vectors
   using TileShape = PitchLinearShape<8, 4>;
@@ -101,8 +101,8 @@ struct VoltaTensorOpMultiplicandCongruous {
   // Static constants
   //
 
-  static int const kElementSize = ElementSize;
-  static int const kElementsPerAccess = kAccessSize / kElementSize;
+  static constexpr int  kElementSize = ElementSize;
+  static constexpr int  kElementsPerAccess = kAccessSize / kElementSize;
   
   using PartitionCount = PitchLinearShape<
     TileShape::kContiguous / PartitionShape::kContiguous,
@@ -198,10 +198,10 @@ template <int ElementSize>
 struct ColumnMajorVoltaTensorOpMultiplicandCongruous {
 
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int  kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int  kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -222,7 +222,7 @@ struct ColumnMajorVoltaTensorOpMultiplicandCongruous {
   using Base = VoltaTensorOpMultiplicandCongruous<ElementSize>;
 
   /// This layout is optimized for 128b accesses
-  static int const kAccessSize = Base::kAccessSize;
+  static constexpr int  kAccessSize = Base::kAccessSize;
   using TileShape = typename Base::TileShape;
   using PartitionShape = typename Base::PartitionShape;
 
@@ -230,8 +230,8 @@ struct ColumnMajorVoltaTensorOpMultiplicandCongruous {
   // Static constants
   //
 
-  static int const kElementSize = Base::kElementSize;
-  static int const kElementsPerAccess = Base::kElementsPerAccess;
+  static constexpr int  kElementSize = Base::kElementSize;
+  static constexpr int  kElementsPerAccess = Base::kElementsPerAccess;
   using PartitionCount =  typename Base::PartitionCount;
   using AccessCount = typename Base::AccessCount;
 
@@ -300,10 +300,10 @@ template <int ElementSize>
 struct RowMajorVoltaTensorOpMultiplicandCongruous {
 
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int  kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int  kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -324,7 +324,7 @@ struct RowMajorVoltaTensorOpMultiplicandCongruous {
   using Base = VoltaTensorOpMultiplicandCongruous<ElementSize>;
 
   /// This layout is optimized for 128b accesses
-  static int const kAccessSize = Base::kAccessSize;
+  static constexpr int  kAccessSize = Base::kAccessSize;
   using TileShape = typename Base::TileShape;
   using PartitionShape = typename Base::PartitionShape;
 
@@ -332,8 +332,8 @@ struct RowMajorVoltaTensorOpMultiplicandCongruous {
   // Static constants
   //
 
-  static int const kElementSize = Base::kElementSize;
-  static int const kElementsPerAccess = Base::kElementsPerAccess;
+  static constexpr int  kElementSize = Base::kElementSize;
+  static constexpr int  kElementsPerAccess = Base::kElementsPerAccess;
   using PartitionCount =  typename Base::PartitionCount;
   using AccessCount = typename Base::AccessCount;
 
@@ -403,10 +403,10 @@ public:
 template <int ElementSize>
 struct VoltaTensorOpMultiplicandBCongruous {
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int  kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int  kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -425,7 +425,7 @@ struct VoltaTensorOpMultiplicandBCongruous {
   //
 
   /// This layout is optimized for 128b accesses
-  static int const kAccessSize = 128;
+  static constexpr int  kAccessSize = 128;
 
   /// Fundamental tile shape in units of vectors
   using TileShape = PitchLinearShape<8, 4>;
@@ -437,8 +437,8 @@ struct VoltaTensorOpMultiplicandBCongruous {
   // Static constants
   //
 
-  static int const kElementSize = ElementSize;
-  static int const kElementsPerAccess = kAccessSize / kElementSize;
+  static constexpr int  kElementSize = ElementSize;
+  static constexpr int  kElementsPerAccess = kAccessSize / kElementSize;
   
   using PartitionCount = PitchLinearShape<
     TileShape::kContiguous / PartitionShape::kContiguous,
@@ -535,10 +535,10 @@ template <int ElementSize>
 struct ColumnMajorVoltaTensorOpMultiplicandBCongruous {
 
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int  kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int  kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -559,7 +559,7 @@ struct ColumnMajorVoltaTensorOpMultiplicandBCongruous {
   using Base = VoltaTensorOpMultiplicandBCongruous<ElementSize>;
 
   /// This layout is optimized for 128b accesses
-  static int const kAccessSize = Base::kAccessSize;
+  static constexpr int  kAccessSize = Base::kAccessSize;
   using TileShape = typename Base::TileShape;
   using PartitionShape = typename Base::PartitionShape;
 
@@ -567,8 +567,8 @@ struct ColumnMajorVoltaTensorOpMultiplicandBCongruous {
   // Static constants
   //
 
-  static int const kElementSize = Base::kElementSize;
-  static int const kElementsPerAccess = Base::kElementsPerAccess;
+  static constexpr int  kElementSize = Base::kElementSize;
+  static constexpr int  kElementsPerAccess = Base::kElementsPerAccess;
   using PartitionCount =  typename Base::PartitionCount;
   using AccessCount = typename Base::AccessCount;
 
@@ -637,10 +637,10 @@ template <int ElementSize>
 struct RowMajorVoltaTensorOpMultiplicandBCongruous {
 
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int  kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int  kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -661,7 +661,7 @@ struct RowMajorVoltaTensorOpMultiplicandBCongruous {
   using Base = VoltaTensorOpMultiplicandBCongruous<ElementSize>;
 
   /// This layout is optimized for 128b accesses
-  static int const kAccessSize = Base::kAccessSize;
+  static constexpr int  kAccessSize = Base::kAccessSize;
   using TileShape = typename Base::TileShape;
   using PartitionShape = typename Base::PartitionShape;
 
@@ -669,8 +669,8 @@ struct RowMajorVoltaTensorOpMultiplicandBCongruous {
   // Static constants
   //
 
-  static int const kElementSize = Base::kElementSize;
-  static int const kElementsPerAccess = Base::kElementsPerAccess;
+  static constexpr int  kElementSize = Base::kElementSize;
+  static constexpr int  kElementsPerAccess = Base::kElementsPerAccess;
   using PartitionCount =  typename Base::PartitionCount;
   using AccessCount = typename Base::AccessCount;
 
@@ -739,10 +739,10 @@ public:
 template <int ElementSize, int KBlock>
 struct VoltaTensorOpMultiplicandCrosswise {
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int  kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int  kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -761,15 +761,15 @@ struct VoltaTensorOpMultiplicandCrosswise {
   //
 
   /// This layout is optimized for 64b accesses
-  static int const kAccessSize = 64;
+  static constexpr int  kAccessSize = 64;
 
   //
   // Static constants
   //
 
-  static int const kElementSize = ElementSize;
-  static int const kElementsPerAccess = kAccessSize / kElementSize;
-  static int const kKBlock = KBlock;
+  static constexpr int  kElementSize = ElementSize;
+  static constexpr int  kElementsPerAccess = kAccessSize / kElementSize;
+  static constexpr int  kKBlock = KBlock;
 
  private:
   //
@@ -854,10 +854,10 @@ struct VoltaTensorOpMultiplicandCrosswise {
 template <int ElementSize, int KBlock>
 struct ColumnMajorVoltaTensorOpMultiplicandCrosswise {
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int  kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int  kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -878,14 +878,14 @@ struct ColumnMajorVoltaTensorOpMultiplicandCrosswise {
   using Base = VoltaTensorOpMultiplicandCrosswise<ElementSize, KBlock>;
 
   /// This layout is optimized for 64b accesses
-  static int const kAccessSize = Base::kAccessSize;
+  static constexpr int  kAccessSize = Base::kAccessSize;
 
   //
   // Static constants
   //
 
-  static int const kElementSize = Base::kElementSize;
-  static int const kElementsPerAccess = Base::kElementsPerAccess;
+  static constexpr int  kElementSize = Base::kElementSize;
+  static constexpr int  kElementsPerAccess = Base::kElementsPerAccess;
 
  private:
   //
@@ -949,10 +949,10 @@ struct ColumnMajorVoltaTensorOpMultiplicandCrosswise {
 template <int ElementSize, int KBlock>
 struct RowMajorVoltaTensorOpMultiplicandCrosswise {
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int  kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int  kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -973,14 +973,14 @@ struct RowMajorVoltaTensorOpMultiplicandCrosswise {
   using Base = VoltaTensorOpMultiplicandCrosswise<ElementSize, KBlock>;
 
   /// This layout is optimized for 64b accesses
-  static int const kAccessSize = Base::kAccessSize;
+  static constexpr int  kAccessSize = Base::kAccessSize;
 
   //
   // Static constants
   //
 
-  static int const kElementSize = Base::kElementSize;
-  static int const kElementsPerAccess = Base::kElementsPerAccess;
+  static constexpr int  kElementSize = Base::kElementSize;
+  static constexpr int  kElementsPerAccess = Base::kElementsPerAccess;
 
  private:
   //
@@ -1040,6 +1040,6 @@ struct RowMajorVoltaTensorOpMultiplicandCrosswise {
 };
 
 } // namespace layout
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

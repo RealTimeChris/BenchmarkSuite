@@ -34,20 +34,20 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/array.h"
-#include "cutlass/aligned_buffer.h"
-#include "cutlass/numeric_conversion.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/aligned_buffer.h"
+#include "nihilus_gemm/numeric_conversion.h"
 
-#include "cutlass/numeric_types.h"
-#include "cutlass/matrix_shape.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/matrix_shape.h"
 
-#include "cutlass/gemm/gemm.h"
-#include "cutlass/gemm/threadblock/mma_base.h"
+#include "nihilus_gemm/gemm/gemm.h"
+#include "nihilus_gemm/gemm/threadblock/mma_base.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace gemm {
 namespace threadblock {
 
@@ -128,10 +128,10 @@ public:
   using ArchTag = typename Policy::Operator::ArchTag;
 
   /// Complex transform on A operand
-  static ComplexTransform const kTransformA = Operator::kTransformA;
+  static constexpr ComplexTransform  kTransformA = Operator::kTransformA;
 
   /// Complex transform on B operand
-  static ComplexTransform const kTransformB = Operator::kTransformB;
+  static constexpr ComplexTransform  kTransformB = Operator::kTransformB;
 
   // staticaly assert kStages for MmaPipelined is two (Double-buffered pipeline)
   static_assert((Base::kStages==2), "MmaPipelined requires kStages set to value 2");
@@ -434,6 +434,6 @@ public:
 
 } // namespace threadblock
 } // namespace gemm
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

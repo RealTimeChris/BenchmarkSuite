@@ -37,9 +37,9 @@
 
 #include <cuda_runtime_api.h>
 
-#include <cute/config.hpp>
+#include <cute_rt_tm/config.hpp>
 
-namespace cute
+namespace cute_rt_tm
 {
 
 /******************************************************************************
@@ -161,4 +161,4 @@ block0()
   return block(0);
 }
 
-}  // end namespace cute
+}  // end namespace cute_rt_tm

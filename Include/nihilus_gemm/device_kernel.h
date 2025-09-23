@@ -34,9 +34,9 @@
 
 #pragma once
 
-#include <cutlass/detail/helper_macros.hpp> // CUTLASS_HOST_DEVICE
-#include <cutlass/arch/synclog.hpp>  // cutlass::arch::synclog_*
-#include <cutlass/platform/platform.h> // uint64_t
+#include <nihilus_gemm/detail/helper_macros.hpp> // CUTLASS_HOST_DEVICE
+#include <nihilus_gemm/arch/synclog.hpp>  // nihilus_gemm::arch::synclog_*
+#include <nihilus_gemm/platform/platform.h> // uint64_t
 
 // __grid_constant__ was introduced in CUDA 11.7.
 #if ((__CUDACC_VER_MAJOR__ >= 12) || ((__CUDACC_VER_MAJOR__ == 11) && (__CUDACC_VER_MINOR__ >= 7))) && !CUTLASS_CLANG_CUDA
@@ -58,7 +58,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 template <typename T>   struct Type2Type  {  using type=T;                    };
 // using the simple type to replace the complex type to reduce this symbol size
@@ -82,7 +82,7 @@ void Kernel(typename Operator::Params params) {
   Operator op;
 
   op(params, *shared_storage);
-  cutlass::arch::synclog_print();
+  nihilus_gemm::arch::synclog_print();
 }
 
 
@@ -97,7 +97,7 @@ void Kernel2(typename Operator::Params params) {
       reinterpret_cast<typename Operator::SharedStorage *>(SharedStorageBase);
 
   Operator::invoke(params, *shared_storage);
-  cutlass::arch::synclog_print();
+  nihilus_gemm::arch::synclog_print();
 
 }
 
@@ -121,9 +121,9 @@ void device_kernel(CUTLASS_GRID_CONSTANT typename Operator::Params const params)
   extern __shared__ char smem[];
   Operator op;
   op(params, smem);
-  cutlass::arch::synclog_print();
+  nihilus_gemm::arch::synclog_print();
 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-} /// namespace cutlass
+} /// namespace nihilus_gemm

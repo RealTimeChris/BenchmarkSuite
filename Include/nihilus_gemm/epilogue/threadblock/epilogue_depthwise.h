@@ -38,17 +38,17 @@
 
 #pragma once
 
-#include "cutlass/array.h"
-#include "cutlass/cutlass.h"
-#include "cutlass/epilogue/thread/conversion_op.h"
-#include "cutlass/epilogue/thread/linear_combination.h"
-#include "cutlass/epilogue/thread/reduction_op.h"
-#include "cutlass/gemm/gemm.h"
-#include "cutlass/numeric_types.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/epilogue/thread/conversion_op.h"
+#include "nihilus_gemm/epilogue/thread/linear_combination.h"
+#include "nihilus_gemm/epilogue/thread/reduction_op.h"
+#include "nihilus_gemm/gemm/gemm.h"
+#include "nihilus_gemm/numeric_types.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace threadblock {
 
@@ -95,13 +95,13 @@ class EpilogueDepthwise {
   using ElementOutput = typename OutputTileIterator::Element;
 
   /// Output access size
-  static int const kElementsPerAccess = OutputTileIterator::kElementsPerAccess;
+  static constexpr int  kElementsPerAccess = OutputTileIterator::kElementsPerAccess;
 
   /// Tensor reference to destination tensor
   using TensorRef = typename OutputTileIterator::TensorRef;
 
   /// Tensor reference to sync tensor
-  using SyncTensorRef = typename cutlass::TensorRef<int, cutlass::layout::PackedVectorLayout>;
+  using SyncTensorRef = typename nihilus_gemm::TensorRef<int, nihilus_gemm::layout::PackedVectorLayout>;
 
   /// Const tensor reference to source tensor
   using ConstTensorRef = typename OutputTileIterator::ConstTensorRef;
@@ -330,6 +330,6 @@ class EpilogueDepthwise {
 
 }  // namespace threadblock
 }  // namespace epilogue
-}  // namespace cutlass
+}  // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

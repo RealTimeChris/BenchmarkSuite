@@ -36,17 +36,17 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/array.h"
-#include "cutlass/layout/matrix.h"
-#include "cutlass/matrix_shape.h"
-#include "cutlass/tensor_ref.h"
-#include "cutlass/fast_math.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/matrix_shape.h"
+#include "nihilus_gemm/tensor_ref.h"
+#include "nihilus_gemm/fast_math.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace threadblock {
 
@@ -61,13 +61,13 @@ template <
   int Tile
 >
 struct OutputTileShape {
-  static int const kColumn = Column;
-  static int const kRow = Row;
-  static int const kGroup = Group;
-  static int const kCluster = Cluster;
-  static int const kTile = Tile;
+  static constexpr int  kColumn = Column;
+  static constexpr int  kRow = Row;
+  static constexpr int  kGroup = Group;
+  static constexpr int  kCluster = Cluster;
+  static constexpr int  kTile = Tile;
 
-  static int const kCount = kColumn * kRow * kGroup * kCluster * kTile;
+  static constexpr int  kCount = kColumn * kRow * kGroup * kCluster * kTile;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -137,10 +137,10 @@ struct OutputTileThreadMap : public OutputTileThreadMapHelpers<Iterations_, Delt
   using ThreadMap = ThreadMap_;
 
   /// Number of threads participating in the operation
-  static int const kThreads = ThreadMap::kThreads;
+  static constexpr int  kThreads = ThreadMap::kThreads;
 
   /// Number of scalar elements per access
-  static int const kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static constexpr int  kElementsPerAccess = ThreadMap::kElementsPerAccess;
 
   /// Shape of the tile
   using Shape = Shape_;
@@ -198,19 +198,19 @@ template <
   int ElementSize
 >
 struct RowArrangement<Shape, WarpsRemaining, ElementsPerAccess, ElementSize, false> {
-  static int const kWarpSize = 32;
-  static int const kElementsPerAccess = ElementsPerAccess;
-  static int const kElementSize = ElementSize;
+  static constexpr int  kWarpSize = 32;
+  static constexpr int  kElementsPerAccess = ElementsPerAccess;
+  static constexpr int  kElementSize = ElementSize;
 
-  static int const kIterationsRow = 1;
-  static int const kDeltaRow = 1;
-  static int const kIterationsColumn = Shape::kColumn / kElementsPerAccess / kWarpSize;
-  static int const kDeltaColumn = kWarpSize * kElementsPerAccess;
+  static constexpr int  kIterationsRow = 1;
+  static constexpr int  kDeltaRow = 1;
+  static constexpr int  kIterationsColumn = Shape::kColumn / kElementsPerAccess / kWarpSize;
+  static constexpr int  kDeltaColumn = kWarpSize * kElementsPerAccess;
 
-  static int const kAccessWidth = kWarpSize;
-  static int const kAccessRows = 1;
-  static int const kWarpPartitionsRow = 1;
-  static int const kWarpPartitionsColumn = WarpsRemaining;
+  static constexpr int  kAccessWidth = kWarpSize;
+  static constexpr int  kAccessRows = 1;
+  static constexpr int  kWarpPartitionsRow = 1;
+  static constexpr int  kWarpPartitionsColumn = WarpsRemaining;
 };
 
 /// RowArrangement in which each warp's access is a 2D tiled arrangement.
@@ -222,23 +222,23 @@ template <
 >
 struct RowArrangement<Shape, WarpsRemaining, ElementsPerAccess, ElementSize, true> {
 
-  static int const kMemoryAccessSize = 256; // Preferred access size
-  static int const kWarpSize = 32;
+  static constexpr int  kMemoryAccessSize = 256; // Preferred access size
+  static constexpr int  kWarpSize = 32;
 
-  static int const kElementsPerAccess = ElementsPerAccess;
-  static int const kElementSize = ElementSize;
+  static constexpr int  kElementsPerAccess = ElementsPerAccess;
+  static constexpr int  kElementSize = ElementSize;
 
   struct Detail {
-    static int const kShapeRow = Shape::kRow / WarpsRemaining;
-    static int const kShapeWidth = Shape::kColumn / kElementsPerAccess;
+    static constexpr int  kShapeRow = Shape::kRow / WarpsRemaining;
+    static constexpr int  kShapeWidth = Shape::kColumn / kElementsPerAccess;
 
-    static int const kTargetMemoryAccessWidth = 
+    static constexpr int  kTargetMemoryAccessWidth = 
       kMemoryAccessSize / (kElementsPerAccess * kElementSize / 8);
 
-    static int const kTargetAccessRows = kWarpSize / kTargetMemoryAccessWidth;
+    static constexpr int  kTargetAccessRows = kWarpSize / kTargetMemoryAccessWidth;
   };
 
-  static int const kAccessWidth = 
+  static constexpr int  kAccessWidth = 
     (Detail::kTargetAccessRows > Detail::kShapeRow ?
       kWarpSize / Detail::kShapeRow
       : const_min(
@@ -246,23 +246,23 @@ struct RowArrangement<Shape, WarpsRemaining, ElementsPerAccess, ElementSize, tru
         const_min(kWarpSize, kMemoryAccessSize / (kElementsPerAccess * kElementSize / 8))
         ));
 
-  static int const kAccessRows =
+  static constexpr int  kAccessRows =
     (Detail::kTargetAccessRows > Detail::kShapeRow ?
       Detail::kShapeRow
       : const_min(Shape::kRow, kWarpSize / kAccessWidth));
 
-  static int const kIterationsRow = Detail::kShapeRow / kAccessRows;
-  static int const kDeltaRow = kAccessRows;
+  static constexpr int  kIterationsRow = Detail::kShapeRow / kAccessRows;
+  static constexpr int  kDeltaRow = kAccessRows;
 
-  static int const kIterationsColumn = Detail::kShapeWidth / kAccessWidth;
-  static int const kDeltaColumn = kAccessWidth * kElementsPerAccess;
+  static constexpr int  kIterationsColumn = Detail::kShapeWidth / kAccessWidth;
+  static constexpr int  kDeltaColumn = kAccessWidth * kElementsPerAccess;
 
   static_assert( kAccessWidth * kElementsPerAccess <= Shape::kColumn, "Accessing too many elements per access");
   static_assert( kIterationsColumn > 0, "Iteration Count Column must be > 0" );
   static_assert( kIterationsRow > 0, "Iteration Count Row must be > 0" );
 
-  static int const kWarpPartitionsRow = 1;
-  static int const kWarpPartitionsColumn = 1;
+  static constexpr int  kWarpPartitionsRow = 1;
+  static constexpr int  kWarpPartitionsColumn = 1;
 };
 
 }
@@ -288,12 +288,12 @@ struct OutputTileOptimalThreadMap {
   using Shape = Shape_;
   using Count = Count_;
 
-  static int const kWarpSize = 32;
-  static int const kThreads = Threads;
-  static int const kWarpCount = kThreads / kWarpSize;
+  static constexpr int  kWarpSize = 32;
+  static constexpr int  kThreads = Threads;
+  static constexpr int  kWarpCount = kThreads / kWarpSize;
 
-  static int const kElementsPerAccess = ElementsPerAccess;
-  static int const kElementSize = ElementSize;
+  static constexpr int  kElementsPerAccess = ElementsPerAccess;
+  static constexpr int  kElementSize = ElementSize;
 
   //
   // Metaprogram computation
@@ -302,51 +302,51 @@ struct OutputTileOptimalThreadMap {
   struct Detail {
 
     // Clusters
-    static int const kIterationsCluster = 
+    static constexpr int  kIterationsCluster = 
       ((Shape::kCluster > kWarpCount) ?
         Shape::kCluster / kWarpCount
         : 1);
 
-    static int const kDeltaCluster =
+    static constexpr int  kDeltaCluster =
       ((Shape::kCluster > kWarpCount) ?
         Shape::kRow * Count::kRow * Shape::kGroup * Count::kGroup * Shape::kCluster / kIterationsCluster
         : 1);
 
-    static int const kCompactedDeltaCluster =
+    static constexpr int  kCompactedDeltaCluster =
       ((Shape::kCluster > kWarpCount) ?
         Shape::kRow * Shape::kGroup * Shape::kCluster / kIterationsCluster
         : 1);
 
-    static int const kWarpPartitionsCluster =
+    static constexpr int  kWarpPartitionsCluster =
       ((Shape::kCluster > kWarpCount) ?
         kWarpCount
         : kWarpCount / Shape::kCluster);
 
-    static int const kWarpsRemainingForGroups =
+    static constexpr int  kWarpsRemainingForGroups =
       ((Shape::kCluster > kWarpCount) ? 1 : kWarpCount / Shape::kCluster);
 
     // Groups
-    static int const kIterationsGroup =
+    static constexpr int  kIterationsGroup =
       ((Shape::kGroup > kWarpsRemainingForGroups) ?
         Shape::kGroup / kWarpsRemainingForGroups
         : 1);
 
-    static int const kDeltaGroup =
+    static constexpr int  kDeltaGroup =
       ((Shape::kGroup > kWarpsRemainingForGroups) ?
         Shape::kRow * Count::kRow * Shape::kGroup / kIterationsGroup
         : 1);
 
-    static int const kCompactedDeltaGroup =
+    static constexpr int  kCompactedDeltaGroup =
       ((Shape::kGroup > kWarpsRemainingForGroups) ?
         Shape::kRow * Shape::kGroup / kIterationsGroup
         : 1);
 
-    static int const kWarpPartitionsGroup =
+    static constexpr int  kWarpPartitionsGroup =
       ((Shape::kGroup > kWarpsRemainingForGroups) ?
         1
         : kWarpsRemainingForGroups / Shape::kGroup);
 
-    static int const kWarpsRemainingForRows =
+    static constexpr int  kWarpsRemainingForRows =
       ((Shape::kGroup > kWarpsRemainingForGroups) ?
         1
         : kWarpsRemainingForGroups / Shape::kGroup);
@@ -368,8 +368,8 @@ struct OutputTileOptimalThreadMap {
       kWarpPartitionsCluster,
       1>;
 
-    static int const kAccessWidth = RowArrangement::kAccessWidth;
-    static int const kAccessRows = RowArrangement::kAccessRows;
+    static constexpr int  kAccessWidth = RowArrangement::kAccessWidth;
+    static constexpr int  kAccessRows = RowArrangement::kAccessRows;
   };
 
   //
@@ -456,10 +456,10 @@ struct OutputTileOptimalThreadMap {
       1>;
 
     /// Number of elements within each vector access
-    static int const kElementsPerAccess = ElementsPerAccess;
+    static constexpr int  kElementsPerAccess = ElementsPerAccess;
 
     /// Number  of threads
-    static int const kThreads = Threads;
+    static constexpr int  kThreads = Threads;
 
     /// Function to compute each thread's initial offset
     CUTLASS_HOST_DEVICE
@@ -513,12 +513,12 @@ template <typename WarpCount_, typename Iterations_, int Threads,
 struct InterleavedOutputTileThreadMap {
   using WarpCount = WarpCount_;
 
-  static int const kWarpSize = 32;
-  static int const kThreads = Threads;
-  static int const kWarpCount = kThreads / kWarpSize;
+  static constexpr int  kWarpSize = 32;
+  static constexpr int  kThreads = Threads;
+  static constexpr int  kWarpCount = kThreads / kWarpSize;
 
-  static int const kElementsPerAccess = ElementsPerAccess;
-  static int const kElementSize = ElementSize;
+  static constexpr int  kElementsPerAccess = ElementsPerAccess;
+  static constexpr int  kElementSize = ElementSize;
 
   //
   // Metaprogram computation
@@ -574,12 +574,12 @@ template <typename WarpCount_, typename Iterations_, int Threads,
 struct InterleavedConvOutputTileThreadMap {
   using WarpCount = WarpCount_;
 
-  static int const kWarpSize = 32;
-  static int const kThreads = Threads;
-  static int const kWarpCount = kThreads / kWarpSize;
+  static constexpr int  kWarpSize = 32;
+  static constexpr int  kThreads = Threads;
+  static constexpr int  kWarpCount = kThreads / kWarpSize;
 
-  static int const kElementsPerAccess = ElementsPerAccess;
-  static int const kElementSize = ElementSize;
+  static constexpr int  kElementsPerAccess = ElementsPerAccess;
+  static constexpr int  kElementSize = ElementSize;
 
   //
   // Metaprogram computation
@@ -625,4 +625,4 @@ struct InterleavedConvOutputTileThreadMap {
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm

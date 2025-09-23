@@ -34,16 +34,16 @@
 */
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/functional.h"
-#include "cutlass/array.h"
-#include "cutlass/real.h"
-#include "cutlass/coord.h"
-#include "cutlass/matrix.h"
-#include "cutlass/fast_math.h"
-#include "cutlass/layout/vector.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/functional.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/real.h"
+#include "nihilus_gemm/coord.h"
+#include "nihilus_gemm/matrix.h"
+#include "nihilus_gemm/fast_math.h"
+#include "nihilus_gemm/layout/vector.h"
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -55,10 +55,10 @@ class Quaternion : public Array<Element_, 4> {
 public:
 
   /// Logical rank of tensor index space
-  static int const kRank = 1;
+  static constexpr int  kRank = 1;
 
   /// Number of elements
-  static int const kExtent = 4;
+  static constexpr int  kExtent = 4;
 
   /// Base class is a four-element array
   using Base = Array<Element_, kExtent>;
@@ -73,16 +73,16 @@ public:
   using Index = int;
 
   /// Quaternion storage - imaginary part
-  static int const kX = 0;
+  static constexpr int  kX = 0;
 
   /// Quaternion storage - imaginary part
-  static int const kY = 1;
+  static constexpr int  kY = 1;
 
   /// Quaternion storage - imaginary part
-  static int const kZ = 2;
+  static constexpr int  kZ = 2;
 
   /// Quaternion storage - real part
-  static int const kW = 3;
+  static constexpr int  kW = 3;
 
 public:
 
@@ -643,7 +643,7 @@ struct RealType< Quaternion<T> > {
   using Type = T;
 
   /// Number of elements
-  static int const kExtent = Quaternion<T>::kExtent;
+  static constexpr int  kExtent = Quaternion<T>::kExtent;
 
 CUTLASS_HOST_DEVICE
   static Quaternion<T> from_real(double x) {
@@ -658,20 +658,20 @@ CUTLASS_HOST_DEVICE
 
 template <>
 CUTLASS_HOST_DEVICE
-cutlass::Quaternion<half_t> from_real<cutlass::Quaternion<half_t> >(double r) {
-  return cutlass::Quaternion<half_t>(half_t(r));
+nihilus_gemm::Quaternion<half_t> from_real<nihilus_gemm::Quaternion<half_t> >(double r) {
+  return nihilus_gemm::Quaternion<half_t>(half_t(r));
 }
 
 template <>
 CUTLASS_HOST_DEVICE
-cutlass::Quaternion<float> from_real<cutlass::Quaternion<float> >(double r) {
-  return cutlass::Quaternion<float>(float(r));
+nihilus_gemm::Quaternion<float> from_real<nihilus_gemm::Quaternion<float> >(double r) {
+  return nihilus_gemm::Quaternion<float>(float(r));
 }
 
 template <>
 CUTLASS_HOST_DEVICE
-cutlass::Quaternion<double> from_real<cutlass::Quaternion<double> >(double r) {
-  return cutlass::Quaternion<double>(r);
+nihilus_gemm::Quaternion<double> from_real<nihilus_gemm::Quaternion<double> >(double r) {
+  return nihilus_gemm::Quaternion<double>(r);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -740,13 +740,13 @@ struct multiply_add<Quaternion<T>, Quaternion<T>, Quaternion<T>> {
     w += -a.y() * b.y();
     w += -a.z() * b.z();
 
-    return cutlass::make_Quaternion(x, y, z, w);
+    return nihilus_gemm::make_Quaternion(x, y, z, w);
   }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 

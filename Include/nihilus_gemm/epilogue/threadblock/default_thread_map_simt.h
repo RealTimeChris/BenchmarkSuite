@@ -35,12 +35,12 @@
 
 #pragma once
 
-#include "cutlass/epilogue/threadblock/predicated_tile_iterator.h"
-#include "cutlass/gemm/gemm.h"
+#include "nihilus_gemm/epilogue/threadblock/predicated_tile_iterator.h"
+#include "nihilus_gemm/gemm/gemm.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace threadblock {
 
@@ -60,9 +60,9 @@ struct DefaultThreadMapSimt {
   using ThreadblockShape = ThreadblockShape_;
   using WarpShape = WarpShape_;
   using MmaSimtPolicy = MmaSimtPolicy_;
-  static int const kPartitionsK = PartitionsK;
+  static constexpr int  kPartitionsK = PartitionsK;
   using Element = Element_;
-  static int const kElementsPerAccess = ElementsPerAccess;
+  static constexpr int  kElementsPerAccess = ElementsPerAccess;
 
   //
   // Definitions
@@ -70,7 +70,7 @@ struct DefaultThreadMapSimt {
 
   struct Detail {
 
-    static int const kWarpSize = 32;
+    static constexpr int  kWarpSize = 32;
 
     static_assert(
       !(ThreadblockShape::kM % WarpShape::kM) &&
@@ -84,14 +84,14 @@ struct DefaultThreadMapSimt {
     >;
 
     /// Computes number of thread-level matrix multiplies are needed to span a warp
-    static int const kGroupCount =
+    static constexpr int  kGroupCount =
       WarpShape::kM / (MmaSimtPolicy::WarpShape::kRow * MmaSimtPolicy::LaneMmaShape::kM);
 
     /// Number of participating threads
-    static int const kThreads = WarpCount::kCount * kWarpSize;
+    static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
 
     /// Number of iterations
-    static int const kIterations = MmaSimtPolicy::LaneMmaShape::kM * kGroupCount;
+    static constexpr int  kIterations = MmaSimtPolicy::LaneMmaShape::kM * kGroupCount;
   };
 
   //
@@ -122,6 +122,6 @@ struct DefaultThreadMapSimt {
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

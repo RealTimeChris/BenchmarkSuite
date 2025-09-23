@@ -36,7 +36,7 @@
     data storage and is therefore lightweight and may be embedded in larger tensor objects or
     memory structures.
 
-    See cutlass/tensor_ref.h for more details about the mapping of the logical tensor index space to
+    See nihilus_gemm/tensor_ref.h for more details about the mapping of the logical tensor index space to
     linear memory.
 */
 
@@ -46,10 +46,10 @@
 #include <cmath>
 #endif
 
-#include "cutlass/cutlass.h"
-#include "cutlass/tensor_ref.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/tensor_ref.h"
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -63,7 +63,7 @@ class TensorView : public TensorRef<Element_, Layout_> {
  public:
 
   /// Base tensor reference
-  using Base = cutlass::TensorRef<Element_, Layout_>;
+  using Base = nihilus_gemm::TensorRef<Element_, Layout_>;
 
   /// Mapping function from logical coordinate to internal n-D array
   using Layout = Layout_;
@@ -81,7 +81,7 @@ class TensorView : public TensorRef<Element_, Layout_> {
   using Reference = Element &;
 
   /// Logical rank of tensor index space
-  static int const kRank = Layout::kRank;
+  static constexpr int  kRank = Layout::kRank;
 
   /// Index type
   using Index = typename Layout::Index;
@@ -294,4 +294,4 @@ CUTLASS_HOST_DEVICE TensorView<Element, Layout> make_TensorView(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-}  // namespace cutlass
+}  // namespace nihilus_gemm

@@ -34,16 +34,16 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/tensor_ref.h"
-#include "cutlass/layout/matrix.h"
-#include "cutlass/arch/mma.h"
-#include "cutlass/gemm/gemm.h"
-#include "cutlass/gemm/thread/mma.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/tensor_ref.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/arch/mma.h"
+#include "nihilus_gemm/gemm/gemm.h"
+#include "nihilus_gemm/gemm/thread/mma.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace gemm {
 namespace thread {
 
@@ -112,9 +112,9 @@ struct MmaGeneric {
     ElementC, LayoutC,
     Operator>;
 
-  static bool const kMultipleOf2 = ((Shape::kM % 2 == 0) && (Shape::kN % 2 == 0));
+  static constexpr bool  kMultipleOf2 = ((Shape::kM % 2 == 0) && (Shape::kN % 2 == 0));
 
-  static bool const kAllFp32 = platform::is_same<ElementA, float>::value &&
+  static constexpr bool  kAllFp32 = platform::is_same<ElementA, float>::value &&
       platform::is_same<ElementB, float>::value &&
       platform::is_same<ElementC, float>::value;
   //
@@ -535,6 +535,6 @@ struct Mma<
 
 } // namespace thread
 } // namespace gemm
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

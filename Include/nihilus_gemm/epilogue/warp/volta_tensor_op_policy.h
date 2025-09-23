@@ -36,13 +36,13 @@
 
 #pragma once
 
-#include "cutlass/matrix_shape.h"
-#include "cutlass/layout/matrix.h"
-#include "cutlass/gemm/gemm.h"
+#include "nihilus_gemm/matrix_shape.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/gemm/gemm.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace warp {
 
@@ -86,21 +86,21 @@ struct VoltaTensorOpPolicy<WarpShape_, gemm::GemmShape<32, 32, 4>, half_t, layou
   >;
 
   /// Number of accumulator elements owned by each thread per Mma
-  static int const kElementsPerMma = 8;
-  static int const kRowsPerIteration = 16;
+  static constexpr int  kElementsPerMma = 8;
+  static constexpr int  kRowsPerIteration = 16;
 
   //
   // Hard-coded constants regarding Tensor Operations
   //
 
   /// Number of accumulator elements stored per memory instruction to shared memory
-  static int const kElementsPerAccess = 4;
+  static constexpr int  kElementsPerAccess = 4;
   
   /// Number of accesses performed per interleaved tile
-  static int const kAccessesPerInterleavedTile = 4;
+  static constexpr int  kAccessesPerInterleavedTile = 4;
 
   /// Total number of iterations needed to cover the entire tile
-  static int const kIterations = TileIterations::kRow * 2;
+  static constexpr int  kIterations = TileIterations::kRow * 2;
 
   //
   // Derived types
@@ -149,24 +149,24 @@ struct VoltaTensorOpPolicy<WarpShape_, gemm::GemmShape<32, 32, 4>, float, layout
   >;
 
   /// Number of accumulator elements owned by each thread per Mma
-  static int const kElementsPerMma = 8;
-  static int const kRowsPerIteration = 16;
+  static constexpr int  kElementsPerMma = 8;
+  static constexpr int  kRowsPerIteration = 16;
 
   //
   // Hard-coded constants regarding Tensor Operations
   //
 
   /// Number of accumulator elements stored per memory instruction to shared memory
-  static int const kElementsPerAccess = 2;
+  static constexpr int  kElementsPerAccess = 2;
   
   /// Number of accesses performed per interleaved tile
-  static int const kAccessesPerInterleavedTile = 8;
+  static constexpr int  kAccessesPerInterleavedTile = 8;
 
   /// Number of rows per interleaved tile
-  static int const kRowsPerMmaTile = 2;
+  static constexpr int  kRowsPerMmaTile = 2;
 
   /// Total number of iterations needed to cover the entire tile
-  static int const kIterations = TileIterations::kRow * MmaIterations::kRow;
+  static constexpr int  kIterations = TileIterations::kRow * MmaIterations::kRow;
 
   //
   // Derived types
@@ -190,6 +190,6 @@ struct VoltaTensorOpPolicy<WarpShape_, gemm::GemmShape<32, 32, 4>, float, layout
 
 } // namespace warp
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

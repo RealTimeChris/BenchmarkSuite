@@ -42,12 +42,12 @@
 
 #pragma once
 
-#include "cutlass/arch/memory.h"
-#include "cutlass/transform/threadblock/predicated_tile_access_iterator.h"
+#include "nihilus_gemm/arch/memory.h"
+#include "nihilus_gemm/transform/threadblock/predicated_tile_access_iterator.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace transform {
 namespace threadblock {
 
@@ -164,7 +164,7 @@ class PredicatedTileIterator<Shape_, Element_, layout::PitchLinear, AdvanceRank,
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::PitchLinear;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int  kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
 
   using Index = typename Layout::Index;
@@ -185,10 +185,10 @@ class PredicatedTileIterator<Shape_, Element_, layout::PitchLinear, AdvanceRank,
       PredicatedTileAccessIterator<Shape, Element, Layout, kAdvanceRank,
                                    ThreadMap, AccessType, Gather, PermuteLayout>;
 
-  static int const kAccessesPerVector = TileAccessIterator::kAccessesPerVector;
+  static constexpr int  kAccessesPerVector = TileAccessIterator::kAccessesPerVector;
 
   /// Fragment object to be loaded or stored
-  using Fragment = cutlass::Array<Element, ThreadMap::Iterations::kCount *
+  using Fragment = nihilus_gemm::Array<Element, ThreadMap::Iterations::kCount *
                                                ThreadMap::kElementsPerAccess>;
 
   /// Predicate vector stores mask to guard accesses
@@ -341,7 +341,7 @@ class PredicatedTileIterator<Shape_, Element_, layout::PitchLinear, AdvanceRank,
 
           AccessType const *access_ptr = reinterpret_cast<AccessType const *>(byte_ptr);
 
-          cutlass::arch::global_load<AccessType,
+          nihilus_gemm::arch::global_load<AccessType,
                                      sizeof(AccessType)
                                     >(
               frag_ptr[idx], access_ptr, address_iterator_.valid());
@@ -423,7 +423,7 @@ public:
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::ColumnMajor;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int  kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
 
   using Index = typename Layout::Index;
@@ -450,7 +450,7 @@ public:
   using AccessType = typename UnderlyingIterator::AccessType;
 
   /// Fragment object to be loaded or stored
-  using Fragment = cutlass::Array<Element, ThreadMap::Iterations::kCount * ThreadMap::kElementsPerAccess>;
+  using Fragment = nihilus_gemm::Array<Element, ThreadMap::Iterations::kCount * ThreadMap::kElementsPerAccess>;
 
   /// Predicate vector stores mask to guard accesses
   using Mask = typename UnderlyingIterator::Mask;
@@ -641,7 +641,7 @@ public:
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::RowMajor;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int  kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
 
   using Index = typename Layout::Index;
@@ -668,7 +668,7 @@ public:
   using AccessType = typename UnderlyingIterator::AccessType;
 
   /// Fragment object to be loaded or stored
-  using Fragment = cutlass::Array<Element, ThreadMap::Iterations::kCount * ThreadMap::kElementsPerAccess>;
+  using Fragment = nihilus_gemm::Array<Element, ThreadMap::Iterations::kCount * ThreadMap::kElementsPerAccess>;
 
   /// Predicate vector stores mask to guard accesses
   using Mask = typename UnderlyingIterator::Mask;
@@ -851,7 +851,7 @@ class PredicatedTileIterator<Shape_, Element_, layout::AffineRankN<2>, AdvanceRa
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::AffineRankN<2>;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int  kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
 
   using Index = typename Layout::Index;
@@ -872,10 +872,10 @@ class PredicatedTileIterator<Shape_, Element_, layout::AffineRankN<2>, AdvanceRa
       PredicatedTileAccessIterator<Shape, Element, Layout, kAdvanceRank,
                                    ThreadMap, AccessType>;
 
-  static int const kAccessesPerVector = TileAccessIterator::kAccessesPerVector;
+  static constexpr int  kAccessesPerVector = TileAccessIterator::kAccessesPerVector;
 
   /// Fragment object to be loaded or stored
-  using Fragment = cutlass::Array<Element, ThreadMap::Iterations::kCount *
+  using Fragment = nihilus_gemm::Array<Element, ThreadMap::Iterations::kCount *
                                                ThreadMap::kElementsPerAccess>;
 
   /// Predicate vector stores mask to guard accesses
@@ -1023,7 +1023,7 @@ class PredicatedTileIterator<Shape_, Element_, layout::AffineRankN<2>, AdvanceRa
 
           AccessType const *access_ptr = reinterpret_cast<AccessType const *>(byte_ptr);
 
-          cutlass::arch::global_load<AccessType,
+          nihilus_gemm::arch::global_load<AccessType,
                                      sizeof(AccessType)
                                     >(
               frag_ptr[idx], access_ptr, address_iterator_.valid());
@@ -1102,7 +1102,7 @@ public:
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::AffineRank2ColumnMajor;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int  kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
 
   using Index = typename Layout::Index;
@@ -1128,7 +1128,7 @@ public:
   using AccessType = typename UnderlyingIterator::AccessType;
 
   /// Fragment object to be loaded or stored
-  using Fragment = cutlass::Array<Element, ThreadMap::Iterations::kCount * ThreadMap::kElementsPerAccess>;
+  using Fragment = nihilus_gemm::Array<Element, ThreadMap::Iterations::kCount * ThreadMap::kElementsPerAccess>;
 
   /// Predicate vector stores mask to guard accesses
   using Mask = typename UnderlyingIterator::Mask;
@@ -1310,7 +1310,7 @@ public:
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::AffineRank2RowMajor;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int  kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
 
   using Index = typename Layout::Index;
@@ -1336,7 +1336,7 @@ public:
   using AccessType = typename UnderlyingIterator::AccessType;
 
   /// Fragment object to be loaded or stored
-  using Fragment = cutlass::Array<Element, ThreadMap::Iterations::kCount * ThreadMap::kElementsPerAccess>;
+  using Fragment = nihilus_gemm::Array<Element, ThreadMap::Iterations::kCount * ThreadMap::kElementsPerAccess>;
 
   /// Predicate vector stores mask to guard accesses
   using Mask = typename UnderlyingIterator::Mask;
@@ -1516,9 +1516,9 @@ class PredicatedTileIterator<Shape_, Element_,
 
   using Shape = Shape_;
   using Element = Element_;
-  static int const kInterleavedK = InterleavedK;
+  static constexpr int  kInterleavedK = InterleavedK;
   using Layout = layout::ColumnMajorInterleaved<kInterleavedK>;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int  kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
 
   using Index = typename Layout::Index;
@@ -1540,7 +1540,7 @@ class PredicatedTileIterator<Shape_, Element_,
   using AccessType = typename UnderlyingIterator::AccessType;
 
   /// Fragment object to be loaded or stored
-  using Fragment = cutlass::Array<Element, ThreadMap::Iterations::kCount *
+  using Fragment = nihilus_gemm::Array<Element, ThreadMap::Iterations::kCount *
                                                ThreadMap::kElementsPerAccess>;
 
   /// Predicate vector stores mask to guard accesses
@@ -1709,9 +1709,9 @@ class PredicatedTileIterator<Shape_, Element_,
 
   using Shape = Shape_;
   using Element = Element_;
-  static int const kInterleavedK = InterleavedK;
+  static constexpr int  kInterleavedK = InterleavedK;
   using Layout = layout::RowMajorInterleaved<kInterleavedK>;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int  kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
 
   using Index = typename Layout::Index;
@@ -1733,7 +1733,7 @@ class PredicatedTileIterator<Shape_, Element_,
   using AccessType = typename UnderlyingIterator::AccessType;
 
   /// Fragment object to be loaded or stored
-  using Fragment = cutlass::Array<Element, ThreadMap::Iterations::kCount *
+  using Fragment = nihilus_gemm::Array<Element, ThreadMap::Iterations::kCount *
                                                ThreadMap::kElementsPerAccess>;
 
   /// Predicate vector stores mask to guard accesses
@@ -1882,6 +1882,6 @@ class PredicatedTileIterator<Shape_, Element_,
 
 } // namespace threadblock
 } // namespace transform
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -37,7 +37,7 @@
 #pragma once
 
 
-#include "cutlass/arch/config.h"
+#include "nihilus_gemm/arch/config.h"
 
 
 // FP8 types are available starting CUDA 11.8+
@@ -79,7 +79,7 @@
 
 #if defined(__CUDACC_RTC__)
 
-#include "cutlass/floating_point_nvrtc.h"
+#include "nihilus_gemm/floating_point_nvrtc.h"
 
 #else
 //
@@ -96,16 +96,16 @@
 #endif
 #include <cuda_fp16.h>
 
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 
-#include "cutlass/exmy_base.h"
+#include "nihilus_gemm/exmy_base.h"
 
-#include "cute/util/type_traits.hpp"
+#include "cute_rt_tm/util/type_traits.hpp"
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -1064,8 +1064,8 @@ float_e5m2_t operator--(float_e5m2_t & lhs, int) {
 //   has_NaN: true
 //   has_denorm: true
 //   Exponent bias (exp_bias): 7
-struct float_ue4m3_t : public float_exmy_base<cutlass::detail::FpEncoding::UE4M3, float_ue4m3_t> {
-  using Base = float_exmy_base<cutlass::detail::FpEncoding::UE4M3, float_ue4m3_t>;
+struct float_ue4m3_t : public float_exmy_base<nihilus_gemm::detail::FpEncoding::UE4M3, float_ue4m3_t> {
+  using Base = float_exmy_base<nihilus_gemm::detail::FpEncoding::UE4M3, float_ue4m3_t>;
 
   float_ue4m3_t() = default;
 
@@ -1126,7 +1126,7 @@ struct float_ue4m3_t : public float_exmy_base<cutlass::detail::FpEncoding::UE4M3
 /// Defines the size of an element in bits - specialized for float_ue4m3_t
 template <>
 struct sizeof_bits<float_ue4m3_t> {
-  static constexpr int value = sizeof_bits<float_exmy_base<cutlass::detail::FpEncoding::UE4M3, float_ue4m3_t>>::value;
+  static constexpr int value = sizeof_bits<float_exmy_base<nihilus_gemm::detail::FpEncoding::UE4M3, float_ue4m3_t>>::value;
 };
 
 
@@ -1144,8 +1144,8 @@ struct sizeof_bits<float_ue4m3_t> {
 //   has_denorm: true
 //   Exponent bias (exp_bias): 8
 
-struct float_ue8m0_t : public float_exmy_base<cutlass::detail::FpEncoding::UE8M0, float_ue8m0_t> {
-  using Base = float_exmy_base<cutlass::detail::FpEncoding::UE8M0, float_ue8m0_t>;
+struct float_ue8m0_t : public float_exmy_base<nihilus_gemm::detail::FpEncoding::UE8M0, float_ue8m0_t> {
+  using Base = float_exmy_base<nihilus_gemm::detail::FpEncoding::UE8M0, float_ue8m0_t>;
   using FP32Bits = typename Base::FP32BitRepresentation;
 
   float_ue8m0_t() = default;
@@ -1162,7 +1162,7 @@ struct float_ue8m0_t : public float_exmy_base<cutlass::detail::FpEncoding::UE8M0
     if (CUTLASS_CMATH_NAMESPACE::isnan(flt) || CUTLASS_CMATH_NAMESPACE::isinf(flt)) {
       return bitcast(0xFF);
     }
-    uint32_t flt_uint32 = cutlass::detail::copy_bits<float, uint32_t>(flt);
+    uint32_t flt_uint32 = nihilus_gemm::detail::copy_bits<float, uint32_t>(flt);
     uint8_t exp = (flt_uint32 >> 23) & 0xff;  // Extract the 8 bit exponent
     uint32_t mant = flt_uint32 & 0x7fffff;    // Extract the 23 bit mantissa
     // Do the round up
@@ -1200,17 +1200,17 @@ struct float_ue8m0_t : public float_exmy_base<cutlass::detail::FpEncoding::UE8M0
           : "r"(0), "r"(bf16x2_val), "r"(0x5410));
       return f1;
     #else
-      using FP32Bits = cutlass::detail::FpBitRepresentation<uint32_t, 32, 8, 23, cutlass::detail::NanInfEncoding::IEEE_754>;
+      using FP32Bits = nihilus_gemm::detail::FpBitRepresentation<uint32_t, 32, 8, 23, nihilus_gemm::detail::NanInfEncoding::IEEE_754>;
       if (x.storage == 0x00) {
-        return cutlass::detail::copy_bits<FP32Bits::Storage, float>(0x00400000);
+        return nihilus_gemm::detail::copy_bits<FP32Bits::Storage, float>(0x00400000);
       }
       else if (x.storage == 0xFF) {
-        return cutlass::detail::copy_bits<FP32Bits::Storage, float>(0x7fffffff);
+        return nihilus_gemm::detail::copy_bits<FP32Bits::Storage, float>(0x7fffffff);
       }
       else {
         auto f8 = static_cast<FP32Bits::Storage>(x.storage);
         FP32Bits::Storage f = (f8 << FP32Bits::NUM_MANTISSA_BITS);
-        return cutlass::detail::copy_bits<FP32Bits::Storage, float>(f);
+        return nihilus_gemm::detail::copy_bits<FP32Bits::Storage, float>(f);
       }
     #endif
   }
@@ -1245,7 +1245,7 @@ struct float_ue8m0_t : public float_exmy_base<cutlass::detail::FpEncoding::UE8M0
 /// Defines the size of an element in bits - specialized for float_ue8m0_t
 template <>
 struct sizeof_bits<float_ue8m0_t> {
-  static constexpr int value = sizeof_bits<float_exmy_base<cutlass::detail::FpEncoding::UE8M0, float_ue8m0_t>>::value;
+  static constexpr int value = sizeof_bits<float_exmy_base<nihilus_gemm::detail::FpEncoding::UE8M0, float_ue8m0_t>>::value;
 };
 
 
@@ -1281,15 +1281,15 @@ float_e5m2_t::float_e5m2_t(float_e4m3_t x) {
 
 union type_erased_dynamic_float8_t {
   uint8_t data;
-  cutlass::float_e5m2_t e5m2;
-  cutlass::float_e4m3_t e4m3;
+  nihilus_gemm::float_e5m2_t e5m2;
+  nihilus_gemm::float_e4m3_t e4m3;
   CUTLASS_HOST_DEVICE
-  explicit operator cutlass::float_e5m2_t() const {
+  explicit operator nihilus_gemm::float_e5m2_t() const {
     return e5m2;
   }
 
   CUTLASS_HOST_DEVICE
-  explicit operator cutlass::float_e4m3_t() const {
+  explicit operator nihilus_gemm::float_e4m3_t() const {
     return e4m3;
   }
 
@@ -1304,11 +1304,11 @@ union type_erased_dynamic_float8_t {
 
 template <class F8Type>
 struct mx_float8_t {
-  static_assert(cute::is_same_v<F8Type,cutlass::float_e5m2_t>
-                || cute::is_same_v<F8Type,cutlass::float_e4m3_t>
-                || cute::is_same_v<F8Type,type_erased_dynamic_float8_t>
+  static_assert(cute_rt_tm::is_same_v<F8Type,nihilus_gemm::float_e5m2_t>
+                || cute_rt_tm::is_same_v<F8Type,nihilus_gemm::float_e4m3_t>
+                || cute_rt_tm::is_same_v<F8Type,type_erased_dynamic_float8_t>
                 , "Only float_e5m2_t, float_e4m3_t can have scale factors for MXFP8");
-  using ScaleFactorType = cutlass::float_ue8m0_t;
+  using ScaleFactorType = nihilus_gemm::float_ue8m0_t;
   using DataType = F8Type;
 };
 
@@ -1317,7 +1317,7 @@ using type_erased_dynamic_mx_float8_t = mx_float8_t<type_erased_dynamic_float8_t
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -1334,19 +1334,19 @@ struct float8_base_numeric_limits {
 private:
   using F8Type = T;
 public:
-  static bool const is_specialized = true;
-  static bool const is_signed = true;
-  static bool const is_integer = false;
-  static bool const is_exact = false;
-  static bool const has_quiet_NaN = true;
-  static bool const has_signaling_NaN = false;
+  static constexpr bool  is_specialized = true;
+  static constexpr bool  is_signed = true;
+  static constexpr bool  is_integer = false;
+  static constexpr bool  is_exact = false;
+  static constexpr bool  has_quiet_NaN = true;
+  static constexpr bool  has_signaling_NaN = false;
   static std::float_denorm_style const has_denorm = std::denorm_present;
-  static bool const has_denorm_loss = true;
+  static constexpr bool  has_denorm_loss = true;
   static std::float_round_style const round_style = std::round_to_nearest;
-  static bool const is_iec559 = false;
-  static bool const is_bounded = true;
-  static bool const is_modulo = false;
-  static int const digits = F8Type::FP8_NUM_MANTISSA_BITS;
+  static constexpr bool  is_iec559 = false;
+  static constexpr bool  is_bounded = true;
+  static constexpr bool  is_modulo = false;
+  static constexpr int  digits = F8Type::FP8_NUM_MANTISSA_BITS;
 
   /// Least positive value
   CUTLASS_HOST_DEVICE
@@ -1379,28 +1379,28 @@ public:
 
 /// Numeric limits for float_e4m3_t
 template <>
-struct numeric_limits<cutlass::float_e4m3_t> :
-    public float8_base_numeric_limits<cutlass::float_e4m3_t> {
-  static bool const has_infinity = false;
+struct numeric_limits<nihilus_gemm::float_e4m3_t> :
+    public float8_base_numeric_limits<nihilus_gemm::float_e4m3_t> {
+  static constexpr bool  has_infinity = false;
 
   /// Minimum finite value
-  static cutlass::float_e4m3_t lowest() { return cutlass::float_e4m3_t::bitcast(0xfe); }
+  static nihilus_gemm::float_e4m3_t lowest() { return nihilus_gemm::float_e4m3_t::bitcast(0xfe); }
 
   /// Machine epsilon, that is, the difference between 1.0 and the next representable value
-  static cutlass::float_e4m3_t epsilon() { return cutlass::float_e4m3_t::bitcast(0x20); }
+  static nihilus_gemm::float_e4m3_t epsilon() { return nihilus_gemm::float_e4m3_t::bitcast(0x20); }
 };
 
 /// Numeric limits for float_e5m2_t
 template <>
-struct numeric_limits<cutlass::float_e5m2_t>  :
-    public float8_base_numeric_limits<cutlass::float_e5m2_t> {
-  static bool const has_infinity = true;
+struct numeric_limits<nihilus_gemm::float_e5m2_t>  :
+    public float8_base_numeric_limits<nihilus_gemm::float_e5m2_t> {
+  static constexpr bool  has_infinity = true;
 
   /// Minimum finite value
-  static cutlass::float_e5m2_t lowest() { return cutlass::float_e5m2_t::bitcast(0xfb); }
+  static nihilus_gemm::float_e5m2_t lowest() { return nihilus_gemm::float_e5m2_t::bitcast(0xfb); }
 
   /// Machine epsilon, that is, the difference between 1.0 and the next representable value
-  static cutlass::float_e5m2_t epsilon() { return cutlass::float_e5m2_t::bitcast(0x34); }
+  static nihilus_gemm::float_e5m2_t epsilon() { return nihilus_gemm::float_e5m2_t::bitcast(0x34); }
 };
 
 
@@ -1411,20 +1411,20 @@ private:
   using type = T;
 
 public:
-  static bool const is_specialized = true;
-  static bool const is_signed = true;
-  static bool const is_integer = false;
-  static bool const is_exact = false;
-  static bool const has_quiet_NaN = true;
-  static bool const has_signaling_NaN = false;
-  static bool const has_denorm_loss = true;
-  static cutlass::platform::float_denorm_style const has_denorm = cutlass::platform::denorm_present;
-  static cutlass::platform::float_round_style const round_style = cutlass::platform::round_to_nearest;
-  static bool const is_iec559 = false;
-  static bool const is_bounded = true;
-  static bool const is_modulo = false;
-  static int const digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
-  static bool const has_infinity = false;
+  static constexpr bool  is_specialized = true;
+  static constexpr bool  is_signed = true;
+  static constexpr bool  is_integer = false;
+  static constexpr bool  is_exact = false;
+  static constexpr bool  has_quiet_NaN = true;
+  static constexpr bool  has_signaling_NaN = false;
+  static constexpr bool  has_denorm_loss = true;
+  static nihilus_gemm::platform::float_denorm_style const has_denorm = nihilus_gemm::platform::denorm_present;
+  static nihilus_gemm::platform::float_round_style const round_style = nihilus_gemm::platform::round_to_nearest;
+  static constexpr bool  is_iec559 = false;
+  static constexpr bool  is_bounded = true;
+  static constexpr bool  is_modulo = false;
+  static constexpr int  digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
+  static constexpr bool  has_infinity = false;
 
   /// Least positive value
   CUTLASS_HOST_DEVICE
@@ -1457,23 +1457,23 @@ public:
 
 /// Numeric limits for float_ue8m0_t
 template <>
-struct numeric_limits<cutlass::float_ue8m0_t> :
-    public float8_exmy_numeric_limits<cutlass::float_ue8m0_t> {
-  static bool const has_infinity = false;
-  static bool const is_signed = false;
+struct numeric_limits<nihilus_gemm::float_ue8m0_t> :
+    public float8_exmy_numeric_limits<nihilus_gemm::float_ue8m0_t> {
+  static constexpr bool  has_infinity = false;
+  static constexpr bool  is_signed = false;
 
   /// Minimum finite value
-  static cutlass::float_ue8m0_t lowest() { return cutlass::float_ue8m0_t::bitcast(0xfe); }
+  static nihilus_gemm::float_ue8m0_t lowest() { return nihilus_gemm::float_ue8m0_t::bitcast(0xfe); }
 
   /// Machine epsilon, that is, the difference between 1.0 and the next representable value (2^0)
-  static cutlass::float_ue8m0_t epsilon() { return cutlass::float_ue8m0_t::bitcast(0x7f); }
+  static nihilus_gemm::float_ue8m0_t epsilon() { return nihilus_gemm::float_ue8m0_t::bitcast(0x7f); }
 };
 
 
 }  // namespace std
 #endif
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace platform {
 
 /// Numeric limits common to all float8 types
@@ -1482,23 +1482,23 @@ struct float8_base_numeric_limits {
 private:
   using F8Type = T;
 public:
-  static bool const is_specialized = true;
-  static bool const is_signed = true;
-  static bool const is_integer = false;
-  static bool const is_exact = false;
-  static bool const has_quiet_NaN = true;
-  static bool const has_signaling_NaN = false;
+  static constexpr bool  is_specialized = true;
+  static constexpr bool  is_signed = true;
+  static constexpr bool  is_integer = false;
+  static constexpr bool  is_exact = false;
+  static constexpr bool  has_quiet_NaN = true;
+  static constexpr bool  has_signaling_NaN = false;
 #if !defined(__CUDACC_RTC__)
   static std::float_denorm_style const has_denorm = std::denorm_present;
 #endif
-  static bool const has_denorm_loss = true;
+  static constexpr bool  has_denorm_loss = true;
 #if !defined(__CUDACC_RTC__)
   static std::float_round_style const round_style = std::round_to_nearest;
 #endif
-  static bool const is_iec559 = false;
-  static bool const is_bounded = true;
-  static bool const is_modulo = false;
-  static int const digits = F8Type::FP8_NUM_MANTISSA_BITS;
+  static constexpr bool  is_iec559 = false;
+  static constexpr bool  is_bounded = true;
+  static constexpr bool  is_modulo = false;
+  static constexpr int  digits = F8Type::FP8_NUM_MANTISSA_BITS;
 
   /// Least positive value
   CUTLASS_HOST_DEVICE
@@ -1535,28 +1535,28 @@ struct numeric_limits;
 
 /// Numeric limits for float_e4m3_t
 template <>
-struct numeric_limits<cutlass::float_e4m3_t> :
-    public float8_base_numeric_limits<cutlass::float_e4m3_t> {
-  static bool const has_infinity = false;
+struct numeric_limits<nihilus_gemm::float_e4m3_t> :
+    public float8_base_numeric_limits<nihilus_gemm::float_e4m3_t> {
+  static constexpr bool  has_infinity = false;
 
   /// Minimum finite value
-  static cutlass::float_e4m3_t lowest() { return cutlass::float_e4m3_t::bitcast(0xfe); }
+  static nihilus_gemm::float_e4m3_t lowest() { return nihilus_gemm::float_e4m3_t::bitcast(0xfe); }
 
   /// Machine epsilon, that is, the difference between 1.0 and the next representable value
-  static cutlass::float_e4m3_t epsilon() { return cutlass::float_e4m3_t::bitcast(0x20); }
+  static nihilus_gemm::float_e4m3_t epsilon() { return nihilus_gemm::float_e4m3_t::bitcast(0x20); }
 };
 
 /// Numeric limits for float_e5m2_t
 template <>
-struct numeric_limits<cutlass::float_e5m2_t>  :
-    public float8_base_numeric_limits<cutlass::float_e5m2_t> {
-  static bool const has_infinity = true;
+struct numeric_limits<nihilus_gemm::float_e5m2_t>  :
+    public float8_base_numeric_limits<nihilus_gemm::float_e5m2_t> {
+  static constexpr bool  has_infinity = true;
 
   /// Minimum finite value
-  static cutlass::float_e5m2_t lowest() { return cutlass::float_e5m2_t::bitcast(0xfb); }
+  static nihilus_gemm::float_e5m2_t lowest() { return nihilus_gemm::float_e5m2_t::bitcast(0xfb); }
 
   /// Machine epsilon, that is, the difference between 1.0 and the next representable value
-  static cutlass::float_e5m2_t epsilon() { return cutlass::float_e5m2_t::bitcast(0x34); }
+  static nihilus_gemm::float_e5m2_t epsilon() { return nihilus_gemm::float_e5m2_t::bitcast(0x34); }
 };
 
 
@@ -1567,20 +1567,20 @@ private:
   using type = T;
 
 public:
-  static bool const is_specialized = true;
-  static bool const is_signed = true;
-  static bool const is_integer = false;
-  static bool const is_exact = false;
-  static bool const has_quiet_NaN = true;
-  static bool const has_signaling_NaN = false;
-  static bool const has_denorm_loss = true;
-  static cutlass::platform::float_denorm_style const has_denorm = cutlass::platform::denorm_present;
-  static cutlass::platform::float_round_style const round_style = cutlass::platform::round_to_nearest;
-  static bool const is_iec559 = false;
-  static bool const is_bounded = true;
-  static bool const is_modulo = false;
-  static int const digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
-  static bool const has_infinity = false;
+  static constexpr bool  is_specialized = true;
+  static constexpr bool  is_signed = true;
+  static constexpr bool  is_integer = false;
+  static constexpr bool  is_exact = false;
+  static constexpr bool  has_quiet_NaN = true;
+  static constexpr bool  has_signaling_NaN = false;
+  static constexpr bool  has_denorm_loss = true;
+  static nihilus_gemm::platform::float_denorm_style const has_denorm = nihilus_gemm::platform::denorm_present;
+  static nihilus_gemm::platform::float_round_style const round_style = nihilus_gemm::platform::round_to_nearest;
+  static constexpr bool  is_iec559 = false;
+  static constexpr bool  is_bounded = true;
+  static constexpr bool  is_modulo = false;
+  static constexpr int  digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
+  static constexpr bool  has_infinity = false;
 
   /// Least positive value
   CUTLASS_HOST_DEVICE
@@ -1613,22 +1613,22 @@ public:
 
 /// Numeric limits for float_ue8m0_t
 template <>
-struct numeric_limits<cutlass::float_ue8m0_t> :
-    public float8_exmy_numeric_limits<cutlass::float_ue8m0_t> {
-  static bool const has_infinity = false;
-  static bool const is_signed = false;
+struct numeric_limits<nihilus_gemm::float_ue8m0_t> :
+    public float8_exmy_numeric_limits<nihilus_gemm::float_ue8m0_t> {
+  static constexpr bool  has_infinity = false;
+  static constexpr bool  is_signed = false;
 
   /// Minimum finite value
-  static cutlass::float_ue8m0_t lowest() { return cutlass::float_ue8m0_t::bitcast(0xfe); }
+  static nihilus_gemm::float_ue8m0_t lowest() { return nihilus_gemm::float_ue8m0_t::bitcast(0xfe); }
 
   /// Machine epsilon, that is, the difference between 1.0 and the next representable value (2^0)
-  static cutlass::float_ue8m0_t epsilon() { return cutlass::float_ue8m0_t::bitcast(0x7f); }
+  static nihilus_gemm::float_ue8m0_t epsilon() { return nihilus_gemm::float_ue8m0_t::bitcast(0x7f); }
 };
 
 
 }  // namespace platform
 
-}  // namespace cutlass
+}  // namespace nihilus_gemm
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1637,48 +1637,48 @@ struct numeric_limits<cutlass::float_ue8m0_t> :
 //
 
 CUTLASS_HOST_DEVICE
-cutlass::float_e4m3_t operator "" _fe4m3(long double x) {
-  return cutlass::float_e4m3_t(float(x));
+nihilus_gemm::float_e4m3_t operator "" _fe4m3(long double x) {
+  return nihilus_gemm::float_e4m3_t(float(x));
 }
 
 CUTLASS_HOST_DEVICE
-cutlass::float_e4m3_t operator "" _fe4m3(unsigned long long int x) {
-  return cutlass::float_e4m3_t(int(x));
-}
-
-
-CUTLASS_HOST_DEVICE
-cutlass::float_ue4m3_t operator "" _fue4m3(long double x) {
-  return cutlass::float_ue4m3_t(float(x));
-}
-
-CUTLASS_HOST_DEVICE
-cutlass::float_ue4m3_t operator "" _fue4m3(unsigned long long int x) {
-  return cutlass::float_ue4m3_t(int(x));
+nihilus_gemm::float_e4m3_t operator "" _fe4m3(unsigned long long int x) {
+  return nihilus_gemm::float_e4m3_t(int(x));
 }
 
 
 CUTLASS_HOST_DEVICE
-cutlass::float_e5m2_t operator "" _fe5m2(long double x) {
-  return cutlass::float_e5m2_t(float(x));
+nihilus_gemm::float_ue4m3_t operator "" _fue4m3(long double x) {
+  return nihilus_gemm::float_ue4m3_t(float(x));
 }
 
 CUTLASS_HOST_DEVICE
-cutlass::float_e5m2_t operator "" _fe5m2(unsigned long long int x) {
-  return cutlass::float_e5m2_t(int(x));
+nihilus_gemm::float_ue4m3_t operator "" _fue4m3(unsigned long long int x) {
+  return nihilus_gemm::float_ue4m3_t(int(x));
 }
 
 
 CUTLASS_HOST_DEVICE
-cutlass::float_ue8m0_t operator "" _fue8m0(long double x)
+nihilus_gemm::float_e5m2_t operator "" _fe5m2(long double x) {
+  return nihilus_gemm::float_e5m2_t(float(x));
+}
+
+CUTLASS_HOST_DEVICE
+nihilus_gemm::float_e5m2_t operator "" _fe5m2(unsigned long long int x) {
+  return nihilus_gemm::float_e5m2_t(int(x));
+}
+
+
+CUTLASS_HOST_DEVICE
+nihilus_gemm::float_ue8m0_t operator "" _fue8m0(long double x)
 {
-  return cutlass::float_ue8m0_t(float(x));
+  return nihilus_gemm::float_ue8m0_t(float(x));
 }
 
 CUTLASS_HOST_DEVICE
-cutlass::float_ue8m0_t operator "" _fue8m0(unsigned long long int x)
+nihilus_gemm::float_ue8m0_t operator "" _fue8m0(unsigned long long int x)
 {
-  return cutlass::float_ue8m0_t(int(x));
+  return nihilus_gemm::float_ue8m0_t(int(x));
 }
 
 

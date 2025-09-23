@@ -30,11 +30,11 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute/numeric/math.hpp>      // cute::max, etc
-#include <cute/util/print.hpp>        // cute::print
-#include <cute/util/type_traits.hpp>  // __CUTE_REQUIRES, cute::is_std_integral
+#include <cute_rt_tm/numeric/math.hpp>      // cute_rt_tm::max, etc
+#include <cute_rt_tm/util/print.hpp>        // cute_rt_tm::print
+#include <cute_rt_tm/util/type_traits.hpp>  // __CUTE_REQUIRES, cute_rt_tm::is_std_integral
 
-namespace cute
+namespace cute_rt_tm
 {
 
 // A constant value: short name and type-deduction for fast compilation
@@ -72,8 +72,8 @@ struct integral_constant : C<v> {
 // Traits
 //
 
-// Use cute::is_std_integral<T> to match built-in integral types (int, int64_t, unsigned, etc)
-// Use cute::is_integral<T> to match both built-in integral types AND static integral types.
+// Use cute_rt_tm::is_std_integral<T> to match built-in integral types (int, int64_t, unsigned, etc)
+// Use cute_rt_tm::is_integral<T> to match both built-in integral types AND static integral types.
 template <class T>
 struct is_integral : bool_constant<is_std_integral<T>::value> {};
 template <auto v>
@@ -85,7 +85,7 @@ constexpr bool is_integral_v = is_integral<T>::value;
 
 // Register FastDivmod as integral type
 template<>
-struct is_integral<cutlass::FastDivmod> : true_type {};
+struct is_integral<nihilus_gemm::FastDivmod> : true_type {};
 
 // is_static detects if an (abstract) value is defined completely by its type (no members)
 template <class T>
@@ -482,7 +482,7 @@ static_value()
 template <auto Value>
 CUTE_HOST_DEVICE void print(C<Value>) {
   printf("_");
-  ::cute::print(Value);
+  ::cute_rt_tm::print(Value);
 }
 
 #if !defined(__CUDACC_RTC__)
@@ -509,18 +509,18 @@ constexpr uint64_t parse_int_digits(uint64_t result, int digit, Ts... digits)
 } // end namespace detail
 
 
-// This user-defined literal operator allows cute::constant written as literals. For example,
+// This user-defined literal operator allows cute_rt_tm::constant written as literals. For example,
 //
 //    auto var = 32_c;
 //
-//  var has type cute::constant<int,32>.
+//  var has type cute_rt_tm::constant<int,32>.
 //
 template <char... digits>
-constexpr cute::constant<int,detail::parse_int_digits(0, (digits - '0')...)> operator "" _c()
+constexpr cute_rt_tm::constant<int,detail::parse_int_digits(0, (digits - '0')...)> operator "" _c()
 {
   static_assert((('0' <= digits && digits <= '9') && ...),
                 "Expected 0 <= digit <= 9 for each digit of the integer.");
   return {};
 }
 
-} // end namespace cute
+} // end namespace cute_rt_tm

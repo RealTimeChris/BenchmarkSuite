@@ -31,12 +31,12 @@
 
 #pragma once
 
-#include <cute/config.hpp>                     // CUTE_HOST_DEVICE
-#include <cute/pointer_base.hpp>               // cute::iter_adaptor
-#include <cute/numeric/integral_constant.hpp>  // cute::false_type, cute::true_type
-#include <cute/numeric/integral_ratio.hpp>     // cute::ratio
+#include <cute_rt_tm/config.hpp>                     // CUTE_HOST_DEVICE
+#include <cute_rt_tm/pointer_base.hpp>               // cute_rt_tm::iter_adaptor
+#include <cute_rt_tm/numeric/integral_constant.hpp>  // cute_rt_tm::false_type, cute_rt_tm::true_type
+#include <cute_rt_tm/numeric/integral_ratio.hpp>     // cute_rt_tm::ratio
 
-namespace cute
+namespace cute_rt_tm
 {
 
 // A data type that holds one physical element meant to represent Sparsity number of logical elements
@@ -85,7 +85,7 @@ struct sizeof_bits<sparse_elem<S,T>> {
 
   // Interesting experiment that allows any sparsity level to be used by potentially presenting
   // an integral_ratio rather than size_t. This is valid in most integer expressions as well.
-  static constexpr auto value = cute::ratio(cute::Int<cute::sizeof_bits_v<T>>{}, cute::Int<S>{});
+  static constexpr auto value = cute_rt_tm::ratio(cute_rt_tm::Int<cute_rt_tm::sizeof_bits_v<T>>{}, cute_rt_tm::Int<S>{});
 };
 
 //
@@ -169,4 +169,4 @@ CUTE_HOST std::ostream& operator<<(std::ostream& os, sparse_ptr<S,Iter> ptr)
 }
 #endif
 
-} // end namespace cute
+} // end namespace cute_rt_tm

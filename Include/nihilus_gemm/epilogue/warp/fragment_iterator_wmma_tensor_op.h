@@ -43,14 +43,14 @@
 
 #pragma once
 
-#include "cutlass/wmma_array.h"
-#include "cutlass/layout/matrix.h"
+#include "nihilus_gemm/wmma_array.h"
+#include "nihilus_gemm/layout/matrix.h"
 
-#include "cutlass/epilogue/warp/wmma_tensor_op_policy.h"
+#include "nihilus_gemm/epilogue/warp/wmma_tensor_op_policy.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace warp {
 
@@ -152,7 +152,7 @@ public:
 
 } // namespace warp
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////
 

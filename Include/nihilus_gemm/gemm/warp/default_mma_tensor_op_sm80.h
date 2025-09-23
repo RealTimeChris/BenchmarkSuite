@@ -34,17 +34,17 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/arch/mma.h"
-#include "cutlass/gemm/warp/mma_tensor_op.h"
-#include "cutlass/gemm/warp/mma_mixed_input_tensor_op.h"
-#include "cutlass/gemm/warp/mma_tensor_op_fast_f32.h"
-#include "cutlass/gemm/warp/default_mma_tensor_op.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/arch/mma.h"
+#include "nihilus_gemm/gemm/warp/mma_tensor_op.h"
+#include "nihilus_gemm/gemm/warp/mma_mixed_input_tensor_op.h"
+#include "nihilus_gemm/gemm/warp/mma_tensor_op_fast_f32.h"
+#include "nihilus_gemm/gemm/warp/default_mma_tensor_op.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace gemm {
 namespace warp {
 
@@ -75,19 +75,19 @@ struct DefaultMmaTensorOp<
   PartitionsK, AccumulatorsInRowMajor> {
 
   // Uses BF16 internally
-  using Policy = cutlass::gemm::warp::MmaTensorOpPolicy<
-      cutlass::arch::Mma<
+  using Policy = nihilus_gemm::gemm::warp::MmaTensorOpPolicy<
+      nihilus_gemm::arch::Mma<
         GemmShape<16, 8, 8>, 
         32, 
-        bfloat16_t, cutlass::layout::RowMajor, 
-        bfloat16_t, cutlass::layout::ColumnMajor,
-        float, cutlass::layout::RowMajor, 
+        bfloat16_t, nihilus_gemm::layout::RowMajor, 
+        bfloat16_t, nihilus_gemm::layout::ColumnMajor,
+        float, nihilus_gemm::layout::RowMajor, 
         arch::OpMultiplyAdd
       >,
-      cutlass::MatrixShape<1, 1> >;
+      nihilus_gemm::MatrixShape<1, 1> >;
 
   // Define the warp-level tensor op
-  using Type = cutlass::gemm::warp::MmaTensorOp<
+  using Type = nihilus_gemm::gemm::warp::MmaTensorOp<
       WarpShape_, float, LayoutA, float, LayoutB, float, LayoutC,
       Policy, PartitionsK, AccumulatorsInRowMajor>;
 };
@@ -119,19 +119,19 @@ struct DefaultMmaTensorOp<
   PartitionsK, AccumulatorsInRowMajor> {
 
   // Uses F16 internally
-  using Policy = cutlass::gemm::warp::MmaTensorOpPolicy<
-      cutlass::arch::Mma<
+  using Policy = nihilus_gemm::gemm::warp::MmaTensorOpPolicy<
+      nihilus_gemm::arch::Mma<
         GemmShape<16, 8, 8>, 
         32, 
-        half_t, cutlass::layout::RowMajor, 
-        half_t, cutlass::layout::ColumnMajor,
-        float, cutlass::layout::RowMajor, 
+        half_t, nihilus_gemm::layout::RowMajor, 
+        half_t, nihilus_gemm::layout::ColumnMajor,
+        float, nihilus_gemm::layout::RowMajor, 
         arch::OpMultiplyAdd
       >,
-      cutlass::MatrixShape<1, 1> >;
+      nihilus_gemm::MatrixShape<1, 1> >;
 
   // Define the warp-level tensor op
-  using Type = cutlass::gemm::warp::MmaTensorOp<
+  using Type = nihilus_gemm::gemm::warp::MmaTensorOp<
       WarpShape_, float, LayoutA, float, LayoutB, float, LayoutC,
       Policy, PartitionsK, AccumulatorsInRowMajor>;
 };
@@ -164,19 +164,19 @@ struct DefaultMmaTensorOp<
   arch::OpMultiplyAdd, PartitionsK, AccumulatorsInRowMajor> {
 
   // Uses TF32 internally
-  using Policy = cutlass::gemm::warp::MmaTensorOpPolicy<
-      cutlass::arch::Mma<
+  using Policy = nihilus_gemm::gemm::warp::MmaTensorOpPolicy<
+      nihilus_gemm::arch::Mma<
         InstructionShape_, 
         32, 
-        tfloat32_t, cutlass::layout::RowMajor, 
-        tfloat32_t, cutlass::layout::ColumnMajor,
-        float, cutlass::layout::RowMajor, 
+        tfloat32_t, nihilus_gemm::layout::RowMajor, 
+        tfloat32_t, nihilus_gemm::layout::ColumnMajor,
+        float, nihilus_gemm::layout::RowMajor, 
         arch::OpMultiplyAdd
       >,
-      cutlass::MatrixShape<1, 1> >;
+      nihilus_gemm::MatrixShape<1, 1> >;
 
   // Define the warp-level tensor op
-  using Type = cutlass::gemm::warp::MmaTensorOp<
+  using Type = nihilus_gemm::gemm::warp::MmaTensorOp<
       WarpShape_, float, LayoutA, float, LayoutB, float, LayoutC,
       Policy, PartitionsK, AccumulatorsInRowMajor>;
 };
@@ -209,19 +209,19 @@ struct DefaultMmaTensorOp<
   arch::OpMultiplyAddFastF32, PartitionsK, AccumulatorsInRowMajor> {
 
   // Uses TF32 internally
-  using Policy = cutlass::gemm::warp::MmaTensorOpPolicy<
-      cutlass::arch::Mma<
+  using Policy = nihilus_gemm::gemm::warp::MmaTensorOpPolicy<
+      nihilus_gemm::arch::Mma<
         InstructionShape_, 
         32, 
-        cutlass::tfloat32_t, cutlass::layout::RowMajor, 
-        cutlass::tfloat32_t, cutlass::layout::ColumnMajor,
-        float, cutlass::layout::RowMajor, 
+        nihilus_gemm::tfloat32_t, nihilus_gemm::layout::RowMajor, 
+        nihilus_gemm::tfloat32_t, nihilus_gemm::layout::ColumnMajor,
+        float, nihilus_gemm::layout::RowMajor, 
         arch::OpMultiplyAdd
       >,
-      cutlass::MatrixShape<1, 1> >;
+      nihilus_gemm::MatrixShape<1, 1> >;
 
   // Define the warp-level tensor op
-  using Type = cutlass::gemm::warp::MmaTensorOpFastF32<
+  using Type = nihilus_gemm::gemm::warp::MmaTensorOpFastF32<
       WarpShape_, float, LayoutA, float, LayoutB, float, LayoutC,
       Policy, PartitionsK, AccumulatorsInRowMajor>;
 };
@@ -277,19 +277,19 @@ struct DefaultMmaTensorOp<
   using MmaElementC = ElementC;
 
   // Uses
-  using Policy = cutlass::gemm::warp::MmaTensorOpPolicy<
-      cutlass::arch::Mma<
+  using Policy = nihilus_gemm::gemm::warp::MmaTensorOpPolicy<
+      nihilus_gemm::arch::Mma<
         GemmShape<16, 8, 16>,
         32,
-        ElementAMma, cutlass::layout::RowMajor,
-        ElementBMma, cutlass::layout::ColumnMajor,
-        MmaElementC, cutlass::layout::RowMajor,
+        ElementAMma, nihilus_gemm::layout::RowMajor,
+        ElementBMma, nihilus_gemm::layout::ColumnMajor,
+        MmaElementC, nihilus_gemm::layout::RowMajor,
         arch::OpMultiplyAdd
       >,
-      cutlass::MatrixShape<1, 1> >;
+      nihilus_gemm::MatrixShape<1, 1> >;
 
   // Define the warp-level tensor op
-  using Type = cutlass::gemm::warp::MmaMixedInputTensorOp<
+  using Type = nihilus_gemm::gemm::warp::MmaMixedInputTensorOp<
       WarpShape_, ElementA, LayoutA, ElementB, LayoutB, ElementC, LayoutC,
       Policy, PartitionsK, AccumulatorsInRowMajor>;
 };
@@ -345,19 +345,19 @@ struct DefaultMmaTensorOp<
   using MmaElementC = ElementC;
 
   // Uses
-  using Policy = cutlass::gemm::warp::MmaTensorOpPolicy<
-      cutlass::arch::Mma<
+  using Policy = nihilus_gemm::gemm::warp::MmaTensorOpPolicy<
+      nihilus_gemm::arch::Mma<
         GemmShape<16, 8, 32>,
         32,
-        MmaElementA, cutlass::layout::RowMajor,
-        MmaElementB, cutlass::layout::ColumnMajor,
-        MmaElementC, cutlass::layout::RowMajor,
+        MmaElementA, nihilus_gemm::layout::RowMajor,
+        MmaElementB, nihilus_gemm::layout::ColumnMajor,
+        MmaElementC, nihilus_gemm::layout::RowMajor,
         arch::OpMultiplyAddSaturate
       >,
-      cutlass::MatrixShape<1, 1> >;
+      nihilus_gemm::MatrixShape<1, 1> >;
 
   // Define the warp-level tensor op
-  using Type = cutlass::gemm::warp::MmaMixedInputTensorOp<
+  using Type = nihilus_gemm::gemm::warp::MmaMixedInputTensorOp<
       WarpShape_, ElementA, LayoutA, ElementB, LayoutB, ElementC, LayoutC,
       Policy, PartitionsK, AccumulatorsInRowMajor>;
 };
@@ -366,10 +366,10 @@ struct DefaultMmaTensorOp<
 
 } // namespace warp
 } // namespace gemm
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "cutlass/gemm/warp/mma_complex_tensor_op_tile_iterator_sm80.h"
+#include "nihilus_gemm/gemm/warp/mma_complex_tensor_op_tile_iterator_sm80.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

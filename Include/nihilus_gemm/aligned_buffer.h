@@ -35,14 +35,14 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/array.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/array.h"
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Modifies semantics of cutlass::Array<> to provide guaranteed alignment. 
+/// Modifies semantics of nihilus_gemm::Array<> to provide guaranteed alignment. 
 template <
   typename T,
   int N,
@@ -54,13 +54,13 @@ struct AlignedBuffer {
   using Storage = uint8_t;
 
   /// Number of logical elements held in buffer
-  static int const kCount = N;
+  static constexpr int  kCount = N;
 
   /// Alignment requirement in bytes
-  static int const kAlign = Align;
+  static constexpr int  kAlign = Align;
 
   /// Number of storage elements
-  static int const kBytes = 
+  static constexpr int  kBytes = 
     (sizeof_bits<T>::value * N + 7) / 8;
 
 private:
@@ -125,5 +125,5 @@ public:
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cutlass
+} // namespace nihilus_gemm
 

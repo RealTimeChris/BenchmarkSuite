@@ -34,15 +34,15 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/array.h"
-#include "cutlass/functional.h"
-#include "cutlass/numeric_conversion.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/functional.h"
+#include "nihilus_gemm/numeric_conversion.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace thread {
 
@@ -62,17 +62,17 @@ public:
   using ElementOutput = ElementOutput_;
   using ElementAccumulator = ElementAccumulator_;
   using ElementCompute = ElementAccumulator_;
-  using ElementD = ElementOutput;                     // for use with cute::collective::DefaultEpilogue
+  using ElementD = ElementOutput;                     // for use with cute_rt_tm::collective::DefaultEpilogue
 
-  static int const kCount = Count;
+  static constexpr int  kCount = Count;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
   using ComputeFragment = FragmentAccumulator;
 
-  static FloatRoundStyle const kRound = Round;
+  static constexpr FloatRoundStyle  kRound = Round;
 
-  static bool const kIsHeavy = false;
+  static constexpr bool  kIsHeavy = false;
 
   /// Host-constructable parameters structure
   struct Params {
@@ -126,7 +126,7 @@ public:
   }
 
   //
-  // Specializations for scalar (for use with cute::collective::DefaultEpilogue)
+  // Specializations for scalar (for use with cute_rt_tm::collective::DefaultEpilogue)
   //
   CUTLASS_HOST_DEVICE
   ElementD operator()(ElementAccumulator const accumulator, ElementAccumulator const source) const {
@@ -145,4 +145,4 @@ public:
 
 } // namespace thread
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm

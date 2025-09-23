@@ -33,21 +33,21 @@
 */
 
 #pragma once
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 #include CUDA_STD_HEADER(cassert)
 
-#include "cutlass/arch/wmma.h"
+#include "nihilus_gemm/arch/wmma.h"
 
 #if defined(CUTLASS_ARCH_WMMA_ENABLED)
 // CUDA Toolkit includes for nvcuda::wmma needed for binarized matrix multiply.
 #include <mma.h>
-#include "cutlass/wmma_array.h"
+#include "nihilus_gemm/wmma_array.h"
 #endif
 
 // CUTLASS includes
-#include "cutlass/arch/mma.h"
-#include "cutlass/layout/matrix.h"
-#include "cutlass/numeric_types.h"
+#include "nihilus_gemm/arch/mma.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/numeric_types.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -62,7 +62,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace arch {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -786,4 +786,4 @@ struct Mma<
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace arch
-} // namespace cutlass
+} // namespace nihilus_gemm

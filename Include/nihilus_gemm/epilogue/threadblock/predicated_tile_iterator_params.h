@@ -34,16 +34,16 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 
-#include "cutlass/layout/pitch_linear.h"
-#include "cutlass/layout/matrix.h"
+#include "nihilus_gemm/layout/pitch_linear.h"
+#include "nihilus_gemm/layout/matrix.h"
 
-#include "cutlass/conv/conv2d_problem_size.h"
+#include "nihilus_gemm/conv/conv2d_problem_size.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace threadblock {
 
@@ -277,7 +277,7 @@ struct PredicatedTileIteratorDirect2dConvParams{
 
   CUTLASS_HOST_DEVICE
   Status initialize(LongIndex stride_,
-                    cutlass::conv::Conv2dProblemSize const &problem_size,
+                    nihilus_gemm::conv::Conv2dProblemSize const &problem_size,
                     MatrixCoord threadblock_output_shape) {
     stride = stride_; // The stride per row of output tensor (bytes)
     stride_n = problem_size.P * problem_size.Q;
@@ -294,13 +294,13 @@ struct PredicatedTileIteratorDirect2dConvParams{
 
       CUTLASS_ASSERT(threadblock_output_shape.row() != 0);
       const auto row_denom = threadblock_output_shape.row() != 0 ?
-        threadblock_output_shape.row() : cutlass::MatrixCoord::Index(1);
+        threadblock_output_shape.row() : nihilus_gemm::MatrixCoord::Index(1);
       int tiles_p =
           (problem_size.P + (threadblock_output_shape.row() - 1)) / row_denom;
 
       CUTLASS_ASSERT(threadblock_output_shape.column() != 0);
       const auto col_denom = threadblock_output_shape.column() != 0 ?
-        threadblock_output_shape.column() : cutlass::MatrixCoord::Index(1);
+        threadblock_output_shape.column() : nihilus_gemm::MatrixCoord::Index(1);
       int tiles_q = (problem_size.Q + (threadblock_output_shape.column() - 1)) /
                     col_denom;
 
@@ -314,7 +314,7 @@ struct PredicatedTileIteratorDirect2dConvParams{
   CUTLASS_HOST_DEVICE
   Status initialize(
       Index stride_,
-      cutlass::conv::Conv2dProblemSize const &problem_size = cutlass::conv::Conv2dProblemSize(),
+      nihilus_gemm::conv::Conv2dProblemSize const &problem_size = nihilus_gemm::conv::Conv2dProblemSize(),
       MatrixCoord threadblock_output_shape = MatrixCoord()) {
     return initialize(LongIndex(stride_), problem_size, threadblock_output_shape);
   }
@@ -324,14 +324,14 @@ struct PredicatedTileIteratorDirect2dConvParams{
 
   CUTLASS_HOST_DEVICE
   PredicatedTileIteratorDirect2dConvParams(Index stride,
-                               cutlass::conv::Conv2dProblemSize const &problem_size,
+                               nihilus_gemm::conv::Conv2dProblemSize const &problem_size,
                                MatrixCoord threadblock_output_shape) {
     initialize(stride, problem_size, threadblock_output_shape);
   }
 
   CUTLASS_HOST_DEVICE
   PredicatedTileIteratorDirect2dConvParams(LongIndex stride,
-                               cutlass::conv::Conv2dProblemSize const &problem_size,
+                               nihilus_gemm::conv::Conv2dProblemSize const &problem_size,
                                MatrixCoord threadblock_output_shape) {
     initialize(stride, problem_size, threadblock_output_shape);
   }
@@ -478,6 +478,6 @@ struct MakePredicatedTileIteratorDesc <
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////

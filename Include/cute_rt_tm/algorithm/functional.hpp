@@ -30,13 +30,13 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute/config.hpp>          // CUTE_HOST_DEVICE
-#include <cute/numeric/math.hpp>    // cute::max, cute::min
-#include <cute/numeric/complex.hpp> // cute::conj
+#include <cute_rt_tm/config.hpp>          // CUTE_HOST_DEVICE
+#include <cute_rt_tm/numeric/math.hpp>    // cute_rt_tm::max, cute_rt_tm::min
+#include <cute_rt_tm/numeric/complex.hpp> // cute_rt_tm::conj
 
 /** C++14 <functional> extensions */
 
-namespace cute {
+namespace cute_rt_tm {
 
 /**************/
 /** Identity **/
@@ -102,7 +102,7 @@ CUTE_RIGHT_UNARY_OP(post_increment, ++);
 CUTE_RIGHT_UNARY_OP(post_decrement, --);
 
 CUTE_NAMED_UNARY_OP(abs_fn,           abs);
-CUTE_NAMED_UNARY_OP(conjugate, cute::conj);
+CUTE_NAMED_UNARY_OP(conjugate, cute_rt_tm::conj);
 
 #undef CUTE_LEFT_UNARY_OP
 #undef CUTE_RIGHT_UNARY_OP
@@ -186,8 +186,8 @@ CUTE_BINARY_OP(less,                 <);
 CUTE_BINARY_OP(greater_equal,       >=);
 CUTE_BINARY_OP(less_equal,          <=);
 
-CUTE_NAMED_BINARY_OP(max_fn, cute::max);
-CUTE_NAMED_BINARY_OP(min_fn, cute::min);
+CUTE_NAMED_BINARY_OP(max_fn, cute_rt_tm::max);
+CUTE_NAMED_BINARY_OP(min_fn, cute_rt_tm::min);
 
 #undef CUTE_BINARY_OP
 #undef CUTE_NAMED_BINARY_OP
@@ -287,4 +287,4 @@ bind(Fn const& fn, Arg const& arg) {
   return bound_fn<Fn,Arg>{fn, arg};
 }
 
-} // end namespace cute
+} // end namespace cute_rt_tm

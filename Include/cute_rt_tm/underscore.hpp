@@ -30,11 +30,11 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute/config.hpp>                     // CUTE_INLINE_CONSTANT, CUTE_HOST_DEVICE
-#include <cute/container/tuple.hpp>            // cute::is_tuple
-#include <cute/numeric/integral_constant.hpp>  // cute::false_type, cute::true_type
+#include <cute_rt_tm/config.hpp>                     // CUTE_INLINE_CONSTANT, CUTE_HOST_DEVICE
+#include <cute_rt_tm/container/tuple.hpp>            // cute_rt_tm::is_tuple
+#include <cute_rt_tm/numeric/integral_constant.hpp>  // cute_rt_tm::false_type, cute_rt_tm::true_type
 
-namespace cute
+namespace cute_rt_tm
 {
 
 // For slicing
@@ -106,9 +106,9 @@ lift_slice(A const& a, B const& b)
     static_assert(tuple_size<A>::value == tuple_size<B>::value, "Mismatched Ranks");
     return filter_tuple(a, b, [](auto const& x, auto const& y) { return lift_slice(x,y); });
   } else if constexpr (is_underscore<A>::value) {
-    return cute::tuple<B>{b};
+    return cute_rt_tm::tuple<B>{b};
   } else {
-    return cute::tuple<>{};
+    return cute_rt_tm::tuple<>{};
   }
 
   CUTE_GCC_UNREACHABLE;
@@ -128,7 +128,7 @@ slice(A const& a, B const& b)
   } else if constexpr (is_underscore<A>::value) {
     return b;
   } else {
-    return cute::tuple<>{};
+    return cute_rt_tm::tuple<>{};
   }
 
   CUTE_GCC_UNREACHABLE;
@@ -149,9 +149,9 @@ lift_dice(A const& a, B const& b)
     static_assert(tuple_size<A>::value == tuple_size<B>::value, "Mismatched Ranks");
     return filter_tuple(a, b, [](auto const& x, auto const& y) { return lift_dice(x,y); });
   } else if constexpr (is_underscore<A>::value) {
-    return cute::tuple<>{};
+    return cute_rt_tm::tuple<>{};
   } else {
-    return cute::tuple<B>{b};
+    return cute_rt_tm::tuple<B>{b};
   }
 
   CUTE_GCC_UNREACHABLE;
@@ -169,7 +169,7 @@ dice(A const& a, B const& b)
     static_assert(tuple_size<A>::value == tuple_size<B>::value, "Mismatched Ranks");
     return filter_tuple(a, b, [](auto const& x, auto const& y) { return detail::lift_dice(x,y); });
   } else if constexpr (is_underscore<A>::value) {
-    return cute::tuple<>{};
+    return cute_rt_tm::tuple<>{};
   } else {
     return b;
   }
@@ -191,4 +191,4 @@ CUTE_HOST std::ostream& operator<<(std::ostream& os, Underscore const&) {
 }
 #endif
 
-} // end namespace cute
+} // end namespace cute_rt_tm

@@ -35,16 +35,16 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 
-#include "cutlass/gemm/gemm.h"
-#include "cutlass/matrix_coord.h"
-#include "cutlass/semaphore.h"
-#include "cutlass/arch/arch.h"
+#include "nihilus_gemm/gemm/gemm.h"
+#include "nihilus_gemm/matrix_coord.h"
+#include "nihilus_gemm/semaphore.h"
+#include "nihilus_gemm/arch/arch.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace gemm {
 namespace kernel {
 
@@ -62,16 +62,16 @@ struct Gemm {
   using Epilogue = Epilogue_;
   using OutputOp = typename Epilogue::OutputOp;
   using ThreadblockSwizzle = ThreadblockSwizzle_;
-  static bool const kSplitKSerial = SplitKSerial;
+  static constexpr bool  kSplitKSerial = SplitKSerial;
 
   /// Warp count (concept: GemmShape)
   using WarpCount = typename Mma::WarpCount;
-  static int const kThreadCount = 32 * WarpCount::kCount;
+  static constexpr int  kThreadCount = 32 * WarpCount::kCount;
 
   /// Parameters structure
   struct Params {
-    cutlass::gemm::GemmCoord problem_size;
-    cutlass::gemm::GemmCoord grid_tiled_shape;
+    nihilus_gemm::gemm::GemmCoord problem_size;
+    nihilus_gemm::gemm::GemmCoord grid_tiled_shape;
     int swizzle_log_tile;
     typename Mma::IteratorA::Params params_A;
     typename Mma::IteratorA::TensorRef ref_A;
@@ -98,8 +98,8 @@ struct Gemm {
 
     CUTLASS_HOST_DEVICE
     Params(
-      cutlass::gemm::GemmCoord const & problem_size,
-      cutlass::gemm::GemmCoord const & grid_tiled_shape,
+      nihilus_gemm::gemm::GemmCoord const & problem_size,
+      nihilus_gemm::gemm::GemmCoord const & grid_tiled_shape,
       typename Mma::IteratorA::TensorRef ref_A,
       typename Mma::IteratorB::TensorRef ref_B,
       typename Epilogue::OutputTileIterator::TensorRef ref_C,
@@ -151,27 +151,27 @@ struct Gemm {
   /// Determines whether kernel satisfies alignment
   CUTLASS_HOST_DEVICE
   static Status can_implement(
-    cutlass::gemm::GemmCoord const & problem_size,
+    nihilus_gemm::gemm::GemmCoord const & problem_size,
     typename Mma::IteratorA::TensorRef ref_A,
     typename Mma::IteratorB::TensorRef ref_B,
     typename Epilogue::OutputTileIterator::TensorRef ref_C,
     typename Epilogue::OutputTileIterator::TensorRef ref_D) {
 
-    static int const kAlignmentA = (platform::is_same<typename Mma::IteratorA::Layout,
+    static constexpr int  kAlignmentA = (platform::is_same<typename Mma::IteratorA::Layout,
                                                       layout::ColumnMajorInterleaved<32>>::value)
                                    ? 32
                                    : (platform::is_same<typename Mma::IteratorA::Layout,
                                                         layout::ColumnMajorInterleaved<64>>::value)
                                      ? 64
                                      : Mma::IteratorA::AccessType::kElements;
-    static int const kAlignmentB =  (platform::is_same<typename Mma::IteratorB::Layout,
+    static constexpr int  kAlignmentB =  (platform::is_same<typename Mma::IteratorB::Layout,
                                                        layout::RowMajorInterleaved<32>>::value)
                                    ? 32
                                    : (platform::is_same<typename Mma::IteratorB::Layout,
                                                         layout::RowMajorInterleaved<64>>::value)
                                      ? 64
                                      : Mma::IteratorB::AccessType::kElements;
-    static int const kAlignmentC = (platform::is_same<typename Epilogue::OutputTileIterator::Layout,
+    static constexpr int  kAlignmentC = (platform::is_same<typename Epilogue::OutputTileIterator::Layout,
                                                       layout::ColumnMajorInterleaved<32>>::value)
                                    ? 32
                                    : (platform::is_same<typename Epilogue::OutputTileIterator::Layout,
@@ -205,7 +205,7 @@ struct Gemm {
     // Compute threadblock location
     ThreadblockSwizzle threadblock_swizzle;
 
-    cutlass::gemm::GemmCoord threadblock_tile_offset =
+    nihilus_gemm::gemm::GemmCoord threadblock_tile_offset =
         threadblock_swizzle.get_tile_offset(params.swizzle_log_tile);
 
     // Early exit if CTA is out of range
@@ -216,12 +216,12 @@ struct Gemm {
     }
 
     // Compute initial location in logical coordinates
-    cutlass::MatrixCoord tb_offset_A{
+    nihilus_gemm::MatrixCoord tb_offset_A{
       threadblock_tile_offset.m() * Mma::Shape::kM,
       threadblock_tile_offset.k() * params.gemm_k_size,
     };
 
-    cutlass::MatrixCoord tb_offset_B{
+    nihilus_gemm::MatrixCoord tb_offset_B{
       threadblock_tile_offset.k() * params.gemm_k_size,
       threadblock_tile_offset.n() * Mma::Shape::kN
     };
@@ -376,5 +376,5 @@ struct Gemm {
 
 } // namespace kernel
 } // namespace gemm
-} // namespace cutlass
+} // namespace nihilus_gemm
 

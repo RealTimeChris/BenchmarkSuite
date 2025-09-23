@@ -34,12 +34,12 @@
 #pragma once
 
 
-#include "cutlass/cutlass.h"
-#include "cutlass/coord.h"
-#include "cutlass/platform/platform.h"
-#include "cutlass/subbyte_reference.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/coord.h"
+#include "nihilus_gemm/platform/platform.h"
+#include "nihilus_gemm/subbyte_reference.h"
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -51,10 +51,10 @@ template <int Rank>
 class IdentityTensorLayout {
 public:
   /// Logical rank of tensor
-  static int const kRank = Rank;
+  static constexpr int  kRank = Rank;
 
   /// Rank of stride vector
-  static int const kStrideRank = Rank;
+  static constexpr int  kStrideRank = Rank;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -119,7 +119,7 @@ public:
 
   Examples:
 
-  (These examples use helpers for matrix layouts defined in cutlass/layout/matrix.h)
+  (These examples use helpers for matrix layouts defined in nihilus_gemm/layout/matrix.h)
 
   1. Column-major matrix may be represented as a rank=2 tensor:
 
@@ -165,7 +165,7 @@ class TensorRef {
     >::type;
 
   /// Logical rank of tensor index space
-  static int const kRank = Layout::kRank;
+  static constexpr int  kRank = Layout::kRank;
 
   /// Index type
   using Index = typename Layout::Index;
@@ -416,4 +416,4 @@ bool TensorRef_aligned(TensorRef<Element, Layout> const &ref, int alignment) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cutlass
+} // namespace nihilus_gemm

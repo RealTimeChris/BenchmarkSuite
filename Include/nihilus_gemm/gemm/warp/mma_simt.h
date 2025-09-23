@@ -34,21 +34,21 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/array.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/matrix_shape.h"
-#include "cutlass/gemm/gemm.h"
-#include "cutlass/gemm/warp/mma.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/matrix_shape.h"
+#include "nihilus_gemm/gemm/gemm.h"
+#include "nihilus_gemm/gemm/warp/mma.h"
 
-#include "cutlass/gemm/thread/mma.h"
+#include "nihilus_gemm/gemm/thread/mma.h"
 
-#include "cutlass/gemm/warp/mma_simt_tile_iterator.h"
-#include "cutlass/gemm/warp/mma_simt_policy.h"
+#include "nihilus_gemm/gemm/warp/mma_simt_tile_iterator.h"
+#include "nihilus_gemm/gemm/warp/mma_simt_policy.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace gemm {
 namespace warp {
 
@@ -114,10 +114,10 @@ public:
   using ArchTag = arch::Sm50;
 
   /// Complex transform on A operand
-  static ComplexTransform const kTransformA = TransformA;
+  static constexpr ComplexTransform  kTransformA = TransformA;
 
   /// Complex transform on B operand
-  static ComplexTransform const kTransformB = TransformB;
+  static constexpr ComplexTransform  kTransformB = TransformB;
 
   /// Layout of threads
   using ThreadLayoutA = typename platform::conditional< platform::is_same< layout::ColumnMajorInterleaved<4>, LayoutA >::value,
@@ -260,4 +260,4 @@ public:
 
 } // namespace warp
 } // namespace gemm
-} // namespace cutlass
+} // namespace nihilus_gemm

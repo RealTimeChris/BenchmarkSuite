@@ -35,21 +35,21 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/array.h"
-#include "cutlass/tensor_ref.h"
-#include "cutlass/matrix_shape.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/tensor_ref.h"
+#include "nihilus_gemm/matrix_shape.h"
 
-#include "cutlass/arch/memory_sm75.h"
+#include "nihilus_gemm/arch/memory_sm75.h"
 
-#include "cutlass/layout/matrix.h"
+#include "nihilus_gemm/layout/matrix.h"
 
-#include "cutlass/gemm/gemm.h"
-#include "cutlass/gemm/warp/mma_simt_policy.h"
+#include "nihilus_gemm/gemm/gemm.h"
+#include "nihilus_gemm/gemm/warp/mma_simt_policy.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace gemm {
 namespace warp {
 
@@ -102,7 +102,7 @@ public:
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kA;
+  static constexpr Operand  kOperand = Operand::kA;
 
   /// Element type
   using Element = Element_;
@@ -158,7 +158,7 @@ public:
 private:
 
   /// Internal reference
-  cutlass::TensorRef<Array<Element, Policy::LaneMmaShape::kM>, layout::ColumnMajor> ref_;
+  nihilus_gemm::TensorRef<Array<Element, Policy::LaneMmaShape::kM>, layout::ColumnMajor> ref_;
 
 public:
   
@@ -312,7 +312,7 @@ public:
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kA;
+  static constexpr Operand  kOperand = Operand::kA;
 
   /// Element type
   using Element = Element_;
@@ -368,7 +368,7 @@ public:
 private:
 
   /// Internal reference
-  cutlass::TensorRef<Element, layout::RowMajor> ref_;
+  nihilus_gemm::TensorRef<Element, layout::RowMajor> ref_;
 
   /// Extent of tensor
   MatrixCoord extent_;
@@ -565,7 +565,7 @@ public:
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kB;
+  static constexpr Operand  kOperand = Operand::kB;
 
   /// Element type
   using Element = Element_;
@@ -621,7 +621,7 @@ public:
 protected:
 
   /// Internal reference
-  cutlass::TensorRef<Array<Element, Policy::LaneMmaShape::kN>, layout::RowMajor> ref_;
+  nihilus_gemm::TensorRef<Array<Element, Policy::LaneMmaShape::kN>, layout::RowMajor> ref_;
 
 public:
   
@@ -775,7 +775,7 @@ public:
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kB;
+  static constexpr Operand  kOperand = Operand::kB;
 
   /// Element type
   using Element = Element_;
@@ -831,7 +831,7 @@ public:
 private:
 
   /// Internal reference
-  cutlass::TensorRef<Element, layout::ColumnMajor> ref_;
+  nihilus_gemm::TensorRef<Element, layout::ColumnMajor> ref_;
 
   /// Extent of tensor
   MatrixCoord extent_;
@@ -1022,7 +1022,7 @@ public:
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kC;
+  static constexpr Operand  kOperand = Operand::kC;
 
   /// Element type
   using Element = Element_;
@@ -1234,7 +1234,7 @@ public:
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kC;
+  static constexpr Operand  kOperand = Operand::kC;
 
   /// Element type
   using Element = Element_;
@@ -1453,7 +1453,7 @@ public:
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kA;
+  static constexpr Operand  kOperand = Operand::kA;
 
   /// Element type
   using Element = Element_;
@@ -1477,13 +1477,13 @@ public:
   using TensorCoord = typename TensorRef::TensorCoord;
 
   /// Iterleave factor
-  static const int kInterleave = 4;
+  static constexpr int kInterleave = 4;
   
   /// Number of partitions along K dimension
-  static const int kPartitionsK = PartitionsK;
+  static constexpr int kPartitionsK = PartitionsK;
 
   /// Number of KGroups per kPartition
-  static const int kGroupPerTile = PartitionGroupSize / Shape::kColumn;
+  static constexpr int kGroupPerTile = PartitionGroupSize / Shape::kColumn;
 
   //
   // Derived quantities
@@ -1518,7 +1518,7 @@ public:
 private:
 
   /// Internal reference
-  cutlass::TensorRef<Array<Element, Policy::LaneMmaShape::kMK>, layout::ColumnMajorInterleaved<4>> ref_;
+  nihilus_gemm::TensorRef<Array<Element, Policy::LaneMmaShape::kMK>, layout::ColumnMajorInterleaved<4>> ref_;
 
   /// group index within tile
   int k_group_idx_;
@@ -1679,7 +1679,7 @@ public:
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kB;
+  static constexpr Operand  kOperand = Operand::kB;
 
   /// Element type
   using Element = Element_;
@@ -1703,13 +1703,13 @@ public:
   using TensorCoord = typename TensorRef::TensorCoord;
 
   /// Interleave factor
-  static const int kInterleave = 4;
+  static constexpr int kInterleave = 4;
 
   /// Number of partitions along K dimension
-  static const int kPartitionsK = PartitionsK;
+  static constexpr int kPartitionsK = PartitionsK;
 
   /// Number of KGroups per kPartition
-  static const int kGroupPerTile = PartitionGroupSize / Shape::kRow;
+  static constexpr int kGroupPerTile = PartitionGroupSize / Shape::kRow;
 
   //
   // Derived quantities
@@ -1745,7 +1745,7 @@ public:
 private:
 
   /// Internal reference
-  cutlass::TensorRef<Array<Element, Policy::LaneMmaShape::kKN>, layout::RowMajorInterleaved<4>> ref_;
+  nihilus_gemm::TensorRef<Array<Element, Policy::LaneMmaShape::kKN>, layout::RowMajorInterleaved<4>> ref_;
 
   /// group index within tile
   int k_group_idx_;
@@ -1887,4 +1887,4 @@ public:
 
 } // namespace warp
 } // namespace gemm
-} // namespace cutlass
+} // namespace nihilus_gemm

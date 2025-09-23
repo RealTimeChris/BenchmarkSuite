@@ -39,22 +39,22 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/array.h"
-#include "cutlass/layout/matrix.h"
-#include "cutlass/layout/tensor.h"
-#include "cutlass/matrix_shape.h"
-#include "cutlass/tensor_ref.h"
-#include "cutlass/transform/pitch_linear_thread_map.h"
-#include "cutlass/epilogue/threadblock/output_tile_thread_map.h"
-#include "cutlass/arch/arch.h"
-#include "cutlass/arch/memory.h"
-#include "cutlass/epilogue/threadblock/predicated_tile_iterator_params.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/layout/tensor.h"
+#include "nihilus_gemm/matrix_shape.h"
+#include "nihilus_gemm/tensor_ref.h"
+#include "nihilus_gemm/transform/pitch_linear_thread_map.h"
+#include "nihilus_gemm/epilogue/threadblock/output_tile_thread_map.h"
+#include "nihilus_gemm/arch/arch.h"
+#include "nihilus_gemm/arch/memory.h"
+#include "nihilus_gemm/epilogue/threadblock/predicated_tile_iterator_params.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -91,9 +91,9 @@ public:
   using LongIndex = typename Layout::LongIndex;
   using TensorCoord = typename Layout::TensorCoord;
 
-  static int const kElementsPerAccess = ThreadMap::kElementsPerAccess;
-  static int const kThreads = ThreadMap::kThreads;
-  static int const kIterations = ThreadMap::Count::kTile;
+  static constexpr int  kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static constexpr int  kThreads = ThreadMap::kThreads;
+  static constexpr int  kIterations = ThreadMap::Count::kTile;
 
   static_assert( ThreadMap::Iterations::kRow > 0,"ThreadMap::Iterations::kRow must be > 0");
   static_assert( ThreadMap::Iterations::kGroup > 0,"ThreadMap::Iterations::kGroup must be > 0");
@@ -103,7 +103,7 @@ public:
     "Layout rank must be even. This assumes the first half of the modes correspond to the 'row' "
     "and the second half of the modes correspond to the 'column'");
 
-  static bool const kBigEndian = false;
+  static constexpr bool  kBigEndian = false;
 
   /// Fragment object
   using Fragment = Array<
@@ -210,7 +210,7 @@ public:
   /// Mask object
   struct Mask {
 
-    static int const kCount = ThreadMap::Iterations::kColumn;
+    static constexpr int  kCount = ThreadMap::Iterations::kColumn;
 
     /// Predicate state
     bool predicates[kCount];
@@ -432,7 +432,7 @@ public:
               ((thread_start_column_ + ThreadMap::Delta::kColumn * column) < extent_col_);
             }
 
-            cutlass::arch::global_load<
+            nihilus_gemm::arch::global_load<
               AccessType, 
               sizeof(AccessType)
             >(
@@ -528,7 +528,7 @@ public:
               guard = (coord_m < extent_row_) && ((thread_start_column_ + ThreadMap::Delta::kColumn * column) < extent_col_);
             }
 
-            cutlass::arch::global_store<AccessType, sizeof(AccessType)>(
+            nihilus_gemm::arch::global_store<AccessType, sizeof(AccessType)>(
                 frag_ptr[frag_row_idx * ThreadMap::Iterations::kColumn + column],
                 (void *)(byte_pointer + offset_modes_m + offset_modes_n + byte_offset),
                 guard);
@@ -610,6 +610,6 @@ public:
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////

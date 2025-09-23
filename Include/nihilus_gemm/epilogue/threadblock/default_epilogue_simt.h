@@ -38,46 +38,46 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/array.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/array.h"
 
-#include "cutlass/arch/mma.h"
+#include "nihilus_gemm/arch/mma.h"
 
-#include "cutlass/gemm/gemm.h"
-#include "cutlass/gemm/warp/mma.h"
+#include "nihilus_gemm/gemm/gemm.h"
+#include "nihilus_gemm/gemm/warp/mma.h"
 
-#include "cutlass/epilogue/thread/linear_combination.h"
-#include "cutlass/epilogue/thread/linear_combination_clamp.h"
-#include "cutlass/epilogue/thread/linear_combination_relu.h"
-#include "cutlass/epilogue/thread/linear_combination_gelu.h"
-#include "cutlass/epilogue/thread/linear_combination_sigmoid.h"
-#include "cutlass/epilogue/thread/linear_combination_planar_complex.h"
-#include "cutlass/epilogue/thread/conversion_op.h"
-#include "cutlass/epilogue/thread/reduction_op.h"
+#include "nihilus_gemm/epilogue/thread/linear_combination.h"
+#include "nihilus_gemm/epilogue/thread/linear_combination_clamp.h"
+#include "nihilus_gemm/epilogue/thread/linear_combination_relu.h"
+#include "nihilus_gemm/epilogue/thread/linear_combination_gelu.h"
+#include "nihilus_gemm/epilogue/thread/linear_combination_sigmoid.h"
+#include "nihilus_gemm/epilogue/thread/linear_combination_planar_complex.h"
+#include "nihilus_gemm/epilogue/thread/conversion_op.h"
+#include "nihilus_gemm/epilogue/thread/reduction_op.h"
 
-#include "cutlass/transform/threadblock/regular_tile_iterator_pitch_linear.h"
+#include "nihilus_gemm/transform/threadblock/regular_tile_iterator_pitch_linear.h"
 
-#include "cutlass/epilogue/warp/fragment_iterator_simt.h"
-#include "cutlass/epilogue/warp/tile_iterator_simt.h"
-#include "cutlass/epilogue/threadblock/default_thread_map_simt.h"
-#include "cutlass/transform/pitch_linear_thread_map.h"
+#include "nihilus_gemm/epilogue/warp/fragment_iterator_simt.h"
+#include "nihilus_gemm/epilogue/warp/tile_iterator_simt.h"
+#include "nihilus_gemm/epilogue/threadblock/default_thread_map_simt.h"
+#include "nihilus_gemm/transform/pitch_linear_thread_map.h"
 
-#include "cutlass/epilogue/threadblock/predicated_tile_iterator.h"
-#include "cutlass/epilogue/threadblock/predicated_tile_iterator_conv.h"
-#include "cutlass/epilogue/threadblock/predicated_tile_iterator_strided_dgrad.h"
-#include "cutlass/epilogue/threadblock/predicated_tile_iterator_affine.h"
-#include "cutlass/epilogue/threadblock/predicated_tile_iterator_direct_conv.h" 
-#include "cutlass/epilogue/threadblock/shared_load_iterator.h"
-#include "cutlass/epilogue/threadblock/shared_load_iterator_pitch_linear.h"
-#include "cutlass/epilogue/threadblock/epilogue.h"
-#include "cutlass/epilogue/threadblock/epilogue_depthwise.h"
+#include "nihilus_gemm/epilogue/threadblock/predicated_tile_iterator.h"
+#include "nihilus_gemm/epilogue/threadblock/predicated_tile_iterator_conv.h"
+#include "nihilus_gemm/epilogue/threadblock/predicated_tile_iterator_strided_dgrad.h"
+#include "nihilus_gemm/epilogue/threadblock/predicated_tile_iterator_affine.h"
+#include "nihilus_gemm/epilogue/threadblock/predicated_tile_iterator_direct_conv.h" 
+#include "nihilus_gemm/epilogue/threadblock/shared_load_iterator.h"
+#include "nihilus_gemm/epilogue/threadblock/shared_load_iterator_pitch_linear.h"
+#include "nihilus_gemm/epilogue/threadblock/epilogue.h"
+#include "nihilus_gemm/epilogue/threadblock/epilogue_depthwise.h"
 
-#include "cutlass/layout/permute.h"
+#include "nihilus_gemm/layout/permute.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace threadblock {
 
@@ -99,20 +99,20 @@ struct DefaultEpilogueSimt {
   using Shape = Shape_;
   using WarpMmaSimt = WarpMmaSimt_;
   using OutputOp = OutputOp_;
-  static int const kElementsPerAccess = ElementsPerAccess;
-  static const int kPartitionsK = Shape::kK / WarpMmaSimt::Shape::kK;
+  static constexpr int  kElementsPerAccess = ElementsPerAccess;
+  static constexpr int kPartitionsK = Shape::kK / WarpMmaSimt::Shape::kK;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using LayoutC = typename WarpMmaSimt::LayoutC;
   using ElementAccumulator = typename WarpMmaSimt::ElementC;
   static conv::StrideSupport const kStrideSupport = StrideSupport;
-  static int const kRank = Rank;
+  static constexpr int  kRank = Rank;
 
   //
   // Thread map
   //
 
-  using OutputTileThreadMap = typename cutlass::epilogue::threadblock::DefaultThreadMapSimt<
+  using OutputTileThreadMap = typename nihilus_gemm::epilogue::threadblock::DefaultThreadMapSimt<
     Shape,
     typename WarpMmaSimt::Shape,
     typename WarpMmaSimt::Policy,
@@ -121,9 +121,9 @@ struct DefaultEpilogueSimt {
     kElementsPerAccess
   >::Type;
 
-  static bool const UseCUDAStore = platform::is_same<ElementOutput, double>::value;
+  static constexpr bool  UseCUDAStore = platform::is_same<ElementOutput, double>::value;
 
-  using PackedOutputTileIterator = cutlass::epilogue::threadblock::PredicatedTileIterator<
+  using PackedOutputTileIterator = nihilus_gemm::epilogue::threadblock::PredicatedTileIterator<
     OutputTileThreadMap,
     ElementOutput,
     ScatterD,
@@ -131,7 +131,7 @@ struct DefaultEpilogueSimt {
     UseCUDAStore
   >;
 
-  using StridedOutputTileIterator = cutlass::epilogue::threadblock::PredicatedTileIteratorConv<
+  using StridedOutputTileIterator = nihilus_gemm::epilogue::threadblock::PredicatedTileIteratorConv<
     OutputTileThreadMap,
     ElementOutput,
     ScatterD,
@@ -140,18 +140,18 @@ struct DefaultEpilogueSimt {
     kRank
   >;
 
-  using OutputTileIterator = typename platform::conditional<StrideSupport == cutlass::conv::StrideSupport::kUnity,
+  using OutputTileIterator = typename platform::conditional<StrideSupport == nihilus_gemm::conv::StrideSupport::kUnity,
                                                             PackedOutputTileIterator,
                                                             StridedOutputTileIterator>::type;
 
-  using AccumulatorFragmentIterator = cutlass::epilogue::warp::FragmentIteratorSimt<
+  using AccumulatorFragmentIterator = nihilus_gemm::epilogue::warp::FragmentIteratorSimt<
     typename WarpMmaSimt::Shape,
     typename WarpMmaSimt::ThreadMma,
     layout::RowMajor,
     typename WarpMmaSimt::Policy
   >;
 
-  using WarpTileIterator = cutlass::epilogue::warp::TileIteratorSimt<
+  using WarpTileIterator = nihilus_gemm::epilogue::warp::TileIteratorSimt<
     typename WarpMmaSimt::Shape,
     typename WarpMmaSimt::ThreadMma,
     ElementAccumulator,
@@ -159,7 +159,7 @@ struct DefaultEpilogueSimt {
     typename WarpMmaSimt::Policy
   >;
 
-  using SharedLoadIterator = cutlass::epilogue::threadblock::SharedLoadIterator<
+  using SharedLoadIterator = nihilus_gemm::epilogue::threadblock::SharedLoadIterator<
     typename OutputTileThreadMap::CompactedThreadMap,
     ElementAccumulator
   >;
@@ -170,7 +170,7 @@ struct DefaultEpilogueSimt {
   //
   // Define the epilogue
   //
-  using Epilogue = cutlass::epilogue::threadblock::Epilogue<
+  using Epilogue = nihilus_gemm::epilogue::threadblock::Epilogue<
     Shape,
     WarpMmaSimt,
     kPartitionsK,
@@ -197,8 +197,8 @@ struct DefaultEpilogueSimtStridedDgrad {
   using Shape = Shape_;
   using WarpMmaSimt = WarpMmaSimt_;
   using OutputOp = OutputOp_;
-  static int const kElementsPerAccess = ElementsPerAccess;
-  static const int kPartitionsK = Shape::kK / WarpMmaSimt::Shape::kK;
+  static constexpr int  kElementsPerAccess = ElementsPerAccess;
+  static constexpr int kPartitionsK = Shape::kK / WarpMmaSimt::Shape::kK;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using LayoutC = typename WarpMmaSimt::LayoutC;
@@ -208,7 +208,7 @@ struct DefaultEpilogueSimtStridedDgrad {
   // Thread map
   //
 
-  using OutputTileThreadMap = typename cutlass::epilogue::threadblock::DefaultThreadMapSimt<
+  using OutputTileThreadMap = typename nihilus_gemm::epilogue::threadblock::DefaultThreadMapSimt<
     Shape,
     typename WarpMmaSimt::Shape,
     typename WarpMmaSimt::Policy,
@@ -217,19 +217,19 @@ struct DefaultEpilogueSimtStridedDgrad {
     kElementsPerAccess
   >::Type;
 
-  using OutputTileIterator = cutlass::epilogue::threadblock::PredicatedTileIteratorStridedDgrad<
+  using OutputTileIterator = nihilus_gemm::epilogue::threadblock::PredicatedTileIteratorStridedDgrad<
     OutputTileThreadMap,
     ElementOutput
   >;
 
-  using AccumulatorFragmentIterator = cutlass::epilogue::warp::FragmentIteratorSimt<
+  using AccumulatorFragmentIterator = nihilus_gemm::epilogue::warp::FragmentIteratorSimt<
     typename WarpMmaSimt::Shape,
     typename WarpMmaSimt::ThreadMma,
     layout::RowMajor,
     typename WarpMmaSimt::Policy
   >;
 
-  using WarpTileIterator = cutlass::epilogue::warp::TileIteratorSimt<
+  using WarpTileIterator = nihilus_gemm::epilogue::warp::TileIteratorSimt<
     typename WarpMmaSimt::Shape,
     typename WarpMmaSimt::ThreadMma,
     ElementAccumulator,
@@ -237,7 +237,7 @@ struct DefaultEpilogueSimtStridedDgrad {
     typename WarpMmaSimt::Policy
   >;
 
-  using SharedLoadIterator = cutlass::epilogue::threadblock::SharedLoadIterator<
+  using SharedLoadIterator = nihilus_gemm::epilogue::threadblock::SharedLoadIterator<
     typename OutputTileThreadMap::CompactedThreadMap,
     ElementAccumulator
   >;
@@ -248,7 +248,7 @@ struct DefaultEpilogueSimtStridedDgrad {
   //
   // Define the epilogue
   //
-  using Epilogue = cutlass::epilogue::threadblock::Epilogue<
+  using Epilogue = nihilus_gemm::epilogue::threadblock::Epilogue<
     Shape,
     WarpMmaSimt,
     kPartitionsK,
@@ -276,8 +276,8 @@ struct DefaultEpilogueSimtAffineRankN {
   using Shape = Shape_;
   using WarpMmaSimt = WarpMmaSimt_;
   using OutputOp = OutputOp_;
-  static int const kElementsPerAccess = ElementsPerAccess;
-  static const int kPartitionsK = Shape::kK / WarpMmaSimt::Shape::kK;
+  static constexpr int  kElementsPerAccess = ElementsPerAccess;
+  static constexpr int kPartitionsK = Shape::kK / WarpMmaSimt::Shape::kK;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using LayoutC = typename WarpMmaSimt::LayoutC;
@@ -287,7 +287,7 @@ struct DefaultEpilogueSimtAffineRankN {
   // Thread map
   //
 
-  using OutputTileThreadMap = typename cutlass::epilogue::threadblock::DefaultThreadMapSimt<
+  using OutputTileThreadMap = typename nihilus_gemm::epilogue::threadblock::DefaultThreadMapSimt<
     Shape,
     typename WarpMmaSimt::Shape,
     typename WarpMmaSimt::Policy,
@@ -296,20 +296,20 @@ struct DefaultEpilogueSimtAffineRankN {
     kElementsPerAccess
   >::Type;
 
-  using OutputTileIterator = cutlass::epilogue::threadblock::PredicatedTileIteratorAffineRankN<
+  using OutputTileIterator = nihilus_gemm::epilogue::threadblock::PredicatedTileIteratorAffineRankN<
     OutputTileThreadMap,
     ElementOutput,
     Rank
   >;
 
-  using AccumulatorFragmentIterator = cutlass::epilogue::warp::FragmentIteratorSimt<
+  using AccumulatorFragmentIterator = nihilus_gemm::epilogue::warp::FragmentIteratorSimt<
     typename WarpMmaSimt::Shape,
     typename WarpMmaSimt::ThreadMma,
     layout::RowMajor,
     typename WarpMmaSimt::Policy
   >;
 
-  using WarpTileIterator = cutlass::epilogue::warp::TileIteratorSimt<
+  using WarpTileIterator = nihilus_gemm::epilogue::warp::TileIteratorSimt<
     typename WarpMmaSimt::Shape,
     typename WarpMmaSimt::ThreadMma,
     ElementAccumulator,
@@ -317,7 +317,7 @@ struct DefaultEpilogueSimtAffineRankN {
     typename WarpMmaSimt::Policy
   >;
 
-  using SharedLoadIterator = cutlass::epilogue::threadblock::SharedLoadIterator<
+  using SharedLoadIterator = nihilus_gemm::epilogue::threadblock::SharedLoadIterator<
     typename OutputTileThreadMap::CompactedThreadMap,
     ElementAccumulator
   >;
@@ -328,7 +328,7 @@ struct DefaultEpilogueSimtAffineRankN {
   //
   // Define the epilogue
   //
-  using Epilogue = cutlass::epilogue::threadblock::Epilogue<
+  using Epilogue = nihilus_gemm::epilogue::threadblock::Epilogue<
     Shape,
     WarpMmaSimt,
     kPartitionsK,
@@ -349,8 +349,8 @@ template <typename Shape_,        // ThreadBlock Shape
           typename WarpMmaSimt_,  // mma_depthwise_simt
           typename OutputOp_,
           int ElementsPerAccess_,
-          typename ThreadOutputShape_ = cutlass::conv::TensorNHWCShape<1, 1, 1, 1>,
-          typename ThreadBlockOutputShape_ = cutlass::conv::TensorNHWCShape<1, 1, 1, 1> >
+          typename ThreadOutputShape_ = nihilus_gemm::conv::TensorNHWCShape<1, 1, 1, 1>,
+          typename ThreadBlockOutputShape_ = nihilus_gemm::conv::TensorNHWCShape<1, 1, 1, 1> >
 struct DefaultDirectConvEpilogueSimt {
   using Shape = Shape_;
   using WarpMmaSimt = WarpMmaSimt_;
@@ -358,7 +358,7 @@ struct DefaultDirectConvEpilogueSimt {
   using OutputOp = OutputOp_;
   using ThreadOutputShape = ThreadOutputShape_;
   using ThreadBlockOutputShape = ThreadBlockOutputShape_;
-  static int const kElementsPerAccess = ElementsPerAccess_;
+  static constexpr int  kElementsPerAccess = ElementsPerAccess_;
 
 
   using ElementOutput = typename OutputOp::ElementOutput;
@@ -371,36 +371,36 @@ struct DefaultDirectConvEpilogueSimt {
     Shape::kN / WarpShape::kN
   >;
 
-  static int const kWarpSize = cutlass::gemm::warp::WarpSize<arch::OpClassSimt>::value;
+  static constexpr int  kWarpSize = nihilus_gemm::gemm::warp::WarpSize<arch::OpClassSimt>::value;
 
-  static int const kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
 
   //
   // Thread map
   //
   
-  using OutputTileThreadMap = cutlass::transform::PitchLinearStripminedThreadMap<
+  using OutputTileThreadMap = nihilus_gemm::transform::PitchLinearStripminedThreadMap<
     layout::PitchLinearShape<ThreadBlockOutputShape::kC, ThreadBlockOutputShape::kNHW>,
     kThreads,
     kElementsPerAccess
   >;
 
 
-  using OutputTileIterator = cutlass::epilogue::threadblock::PredicatedTileIteratorDirectConv<
+  using OutputTileIterator = nihilus_gemm::epilogue::threadblock::PredicatedTileIteratorDirectConv<
     OutputTileThreadMap,
     ElementOutput,
     ThreadOutputShape,
     ThreadBlockOutputShape 
   >;
 
-  using AccumulatorFragmentIterator = cutlass::epilogue::warp::FragmentIteratorSimt<
+  using AccumulatorFragmentIterator = nihilus_gemm::epilogue::warp::FragmentIteratorSimt<
     typename WarpMmaSimt::Shape,
     typename WarpMmaSimt::ThreadMma,
     layout::RowMajor,
     typename WarpMmaSimt::Policy
   >;
   
-  using WarpTileIterator = cutlass::epilogue::warp::TileIteratorSimtDirect2dConv<
+  using WarpTileIterator = nihilus_gemm::epilogue::warp::TileIteratorSimtDirect2dConv<
     typename WarpMmaSimt::Shape,
     ThreadOutputShape,
     ThreadBlockOutputShape,
@@ -410,7 +410,7 @@ struct DefaultDirectConvEpilogueSimt {
     typename WarpMmaSimt::Policy
   >;
 
-  using SharedLoadIterator = cutlass::epilogue::threadblock::SharedLoadIteratorPitchLinear<
+  using SharedLoadIterator = nihilus_gemm::epilogue::threadblock::SharedLoadIteratorPitchLinear<
     OutputTileThreadMap,
     ElementAccumulator
   >;
@@ -420,7 +420,7 @@ struct DefaultDirectConvEpilogueSimt {
   //
   // Define the epilogue
   //
-  using Epilogue = cutlass::epilogue::threadblock::EpilogueDepthwise<
+  using Epilogue = nihilus_gemm::epilogue::threadblock::EpilogueDepthwise<
     Shape,
     ThreadOutputShape,
     ThreadBlockOutputShape,
@@ -438,6 +438,6 @@ struct DefaultDirectConvEpilogueSimt {
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

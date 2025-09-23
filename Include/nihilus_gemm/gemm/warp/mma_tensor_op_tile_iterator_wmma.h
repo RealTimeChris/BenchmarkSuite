@@ -35,30 +35,30 @@
 #pragma once
 
 
-#include "cutlass/cutlass.h"
-#include "cutlass/arch/wmma.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/arch/wmma.h"
 
 #if defined(CUTLASS_ARCH_WMMA_ENABLED)
 
-#include "cutlass/wmma_array.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/tensor_ref.h"
-#include "cutlass/matrix_shape.h"
+#include "nihilus_gemm/wmma_array.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/tensor_ref.h"
+#include "nihilus_gemm/matrix_shape.h"
 
-#include "cutlass/arch/memory_sm75.h"
-#include "cutlass/gemm/gemm.h"
+#include "nihilus_gemm/arch/memory_sm75.h"
+#include "nihilus_gemm/gemm/gemm.h"
 
-#include "cutlass/layout/matrix.h"
-#include "cutlass/layout/tensor.h"
-#include "cutlass/layout/pitch_linear.h"
-#include "cutlass/layout/tensor_op_multiplicand_sm75.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/layout/tensor.h"
+#include "nihilus_gemm/layout/pitch_linear.h"
+#include "nihilus_gemm/layout/tensor_op_multiplicand_sm75.h"
 
-#include "cutlass/platform/platform.h"
-#include "cutlass/fast_math.h"
+#include "nihilus_gemm/platform/platform.h"
+#include "nihilus_gemm/fast_math.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace gemm {
 namespace warp {
 
@@ -109,7 +109,7 @@ class MmaTensorOpWmmaMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kA;
+  static constexpr Operand  kOperand = Operand::kA;
 
   /// Element type
   using Element = Element_;
@@ -118,7 +118,7 @@ class MmaTensorOpWmmaMultiplicandTileIterator<
   using Layout = Layout_;
 
   /// Delta between *WMMA operations
-  static int const kOpDelta = OpDelta_;
+  static constexpr int  kOpDelta = OpDelta_;
 
   /// Wmma Operator information and operation delta
   using Policy = Policy_;
@@ -148,8 +148,8 @@ class MmaTensorOpWmmaMultiplicandTileIterator<
     Policy::Operator::Shape::kK
   >;
 
-  /// Map cutlass dataype to nvcuda::wmma datatype
-  using WmmaDataType = typename cutlass::arch::CutlassToWmmaDataType<Element>::Type;
+  /// Map nihilus_gemm dataype to nvcuda::wmma datatype
+  using WmmaDataType = typename nihilus_gemm::arch::CutlassToWmmaDataType<Element>::Type;
 
   /// Shape of individual WMMA load / stores for operand A
   using Iterations = MatrixShape<
@@ -170,8 +170,8 @@ class MmaTensorOpWmmaMultiplicandTileIterator<
 
   /// Supported memory layouts
   static_assert(
-    platform::is_same<cutlass::layout::RowMajor, Layout>::value ||
-    platform::is_same<cutlass::layout::ColumnMajor, Layout>::value,
+    platform::is_same<nihilus_gemm::layout::RowMajor, Layout>::value ||
+    platform::is_same<nihilus_gemm::layout::ColumnMajor, Layout>::value,
     "Supported list of memory layouts for WMMA are: RowMajor, ColumnMajor");
 
   /// Not working on this feature at the moment.
@@ -356,7 +356,7 @@ class MmaTensorOpWmmaMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kB;
+  static constexpr Operand  kOperand = Operand::kB;
 
   /// Element type
   using Element = Element_;
@@ -365,7 +365,7 @@ class MmaTensorOpWmmaMultiplicandTileIterator<
   using Layout = Layout_;
 
   /// Delta between *WMMA operations
-  static int const kOpDelta = OpDelta_;
+  static constexpr int  kOpDelta = OpDelta_;
 
   /// Wmma Operator information and operation delta
   using Policy = Policy_;
@@ -396,8 +396,8 @@ class MmaTensorOpWmmaMultiplicandTileIterator<
     Policy::Operator::Shape::kN
   >;
 
-  /// Map cutlass dataype to nvcuda::wmma datatype
-  using WmmaDataType = typename cutlass::arch::CutlassToWmmaDataType<Element>::Type;
+  /// Map nihilus_gemm dataype to nvcuda::wmma datatype
+  using WmmaDataType = typename nihilus_gemm::arch::CutlassToWmmaDataType<Element>::Type;
 
   /// Shape of individual WMMA load / stores for operand B
   using Iterations = MatrixShape<
@@ -418,8 +418,8 @@ class MmaTensorOpWmmaMultiplicandTileIterator<
 
   /// Supported memory layouts
   static_assert(
-    platform::is_same<cutlass::layout::RowMajor, Layout>::value ||
-    platform::is_same<cutlass::layout::ColumnMajor, Layout>::value,
+    platform::is_same<nihilus_gemm::layout::RowMajor, Layout>::value ||
+    platform::is_same<nihilus_gemm::layout::ColumnMajor, Layout>::value,
     "Supported list of memory layouts for WMMA are: RowMajor, ColumnMajor");
 
   /// Not working on this feature at the moment.
@@ -624,7 +624,7 @@ class MmaTensorOpWmmaAccumulatorTileIterator
   using OpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int  kThreads = 32;
 
   /// Wmma Operator information and operation delta
   using Policy = Policy_;
@@ -651,11 +651,11 @@ class MmaTensorOpWmmaAccumulatorTileIterator
     Policy::Operator::Shape::kN
   >;
   
-  /// Map cutlass dataype to nvcuda::wmma datatype
-  using WmmaDataType = typename cutlass::arch::CutlassToWmmaDataType<Element>::Type;
+  /// Map nihilus_gemm dataype to nvcuda::wmma datatype
+  using WmmaDataType = typename nihilus_gemm::arch::CutlassToWmmaDataType<Element>::Type;
 
-  /// Map cutlass::layout to nvuda::wmma::layout_t enum
-  static nvcuda::wmma::layout_t const WmmaLayout = cutlass::arch::CutlassToWmmaLayout<Layout>::value;
+  /// Map nihilus_gemm::layout to nvuda::wmma::layout_t enum
+  static nvcuda::wmma::layout_t const WmmaLayout = nihilus_gemm::arch::CutlassToWmmaLayout<Layout>::value;
 
   /// Shape of individual WMMA load / stores for accumulator
   using Iterations = MatrixShape<
@@ -671,14 +671,14 @@ class MmaTensorOpWmmaAccumulatorTileIterator
   /////////////////////////////////////////////////////////////////////////////////////////////////////
   /// Supported layouts
   static_assert(
-    platform::is_same<cutlass::layout::RowMajor, Layout>::value ||
-    platform::is_same<cutlass::layout::ColumnMajor, Layout>::value,
+    platform::is_same<nihilus_gemm::layout::RowMajor, Layout>::value ||
+    platform::is_same<nihilus_gemm::layout::ColumnMajor, Layout>::value,
     "Supported list of memory layouts for WMMA are: RowMajor, ColumnMajor");
 
 private:
   
   /// Internal reference
-  cutlass::TensorRef<Element, Layout> ref_;
+  nihilus_gemm::TensorRef<Element, Layout> ref_;
 
 public:
   
@@ -796,7 +796,7 @@ public:
 
 } // namespace warp
 } // namespace gemm
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////
 

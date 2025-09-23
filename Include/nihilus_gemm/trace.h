@@ -45,7 +45,7 @@
 
 #if CUTLASS_DEBUG_TRACE_LEVEL
 #include <iostream>
-#include "cutlass/core_io.h"
+#include "nihilus_gemm/core_io.h"
 #if defined(__CUDA_ARCH__)
 #define CUTLASS_TRACE_HOST(x)
 #else

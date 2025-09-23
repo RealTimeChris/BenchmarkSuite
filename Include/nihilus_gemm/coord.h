@@ -33,14 +33,14 @@
 */
 
 #pragma once
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 #if defined(__CUDACC_RTC__)
 #include CUDA_STD_HEADER(cstdint)
 #else
 #include <cstdint>
 #endif
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -59,7 +59,7 @@ public:
   //
 
   /// Number of elements in Coord
-  static int const kRank = Rank_;
+  static constexpr int  kRank = Rank_;
 
   /// Index type used to store elements
   using Index = Index_;
@@ -359,11 +359,11 @@ public:
   }
 };
 
-} // namespace cutlass 
+} // namespace nihilus_gemm 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 
 /// Scalar multiplication
@@ -474,5 +474,5 @@ Coord<N, T>make_Coord_with_padding(T _0) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-}  // namespace cutlass
+}  // namespace nihilus_gemm
 

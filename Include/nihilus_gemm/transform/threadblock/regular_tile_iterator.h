@@ -34,12 +34,12 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/numeric_types.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace transform {
 namespace threadblock {
 
@@ -59,4 +59,4 @@ class RegularTileIterator;
 
 } // namespace threadblock
 } // namespace transform
-} // namespace cutlass
+} // namespace nihilus_gemm

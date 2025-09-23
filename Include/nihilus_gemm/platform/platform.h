@@ -98,7 +98,7 @@
 //-----------------------------------------------------------------------------
 // Dependencies
 //-----------------------------------------------------------------------------
-#include <cutlass/cutlass.h>
+#include <nihilus_gemm/cutlass.h>
 #if defined(__CUDACC_RTC__)
 #include CUDA_STD_HEADER(type_traits)
 #include CUDA_STD_HEADER(utility)
@@ -210,7 +210,7 @@
 /******************************************************************************
  * Re-implementations
  ******************************************************************************/
-namespace cutlass {
+namespace nihilus_gemm {
 namespace platform {
 
 //-----------------------------------------------------------------------------
@@ -396,7 +396,7 @@ struct is_base_of_helper {
 
   CUTLASS_HOST_DEVICE static no check(BaseT*, int);
 
-  static const bool value = sizeof(check(dummy<BaseT, DerivedT>(), int())) == sizeof(yes);
+  static constexpr bool value = sizeof(check(dummy<BaseT, DerivedT>(), int())) == sizeof(yes);
 };
 
 /// std::is_base_of
@@ -950,4 +950,4 @@ using CUTLASS_STL_NAMESPACE::denorm_absent;
 using CUTLASS_STL_NAMESPACE::denorm_present;
 
 }  // namespace platform
-}  // namespace cutlass
+}  // namespace nihilus_gemm

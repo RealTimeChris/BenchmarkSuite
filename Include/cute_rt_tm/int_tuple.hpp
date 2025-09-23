@@ -30,25 +30,25 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute/config.hpp>                      // CUTE_HOST_DEVICE
-#include <cute/container/array.hpp>             // cute::array
-#include <cute/container/tuple.hpp>             // cute::is_tuple
-#include <cute/numeric/integral_constant.hpp>   // cute::Int
-#include <cute/numeric/integer_sequence.hpp>    // cute::seq
-#include <cute/algorithm/tuple_algorithms.hpp>  // cute::transform
+#include <cute_rt_tm/config.hpp>                      // CUTE_HOST_DEVICE
+#include <cute_rt_tm/container/array.hpp>             // cute_rt_tm::array
+#include <cute_rt_tm/container/tuple.hpp>             // cute_rt_tm::is_tuple
+#include <cute_rt_tm/numeric/integral_constant.hpp>   // cute_rt_tm::Int
+#include <cute_rt_tm/numeric/integer_sequence.hpp>    // cute_rt_tm::seq
+#include <cute_rt_tm/algorithm/tuple_algorithms.hpp>  // cute_rt_tm::transform
 
 /** IntTuple is an integer or a tuple of IntTuples.
  * This file holds utilities for working with IntTuples,
  * but does not hold a concrete concept or class of IntTuple.
  */
 
-namespace cute
+namespace cute_rt_tm
 {
 
 // Implementation of get<0>(Integral).
 //   Even though is_tuple<Integral> is false and tuple_size<Integral> doesn't compile,
 //   CuTe defines rank(Integral) as 1, so it's useful for get<0>(Integral) to return its input
-template <size_t I, class T, __CUTE_REQUIRES(cute::is_integral<cute::remove_cvref_t<T>>::value)>
+template <size_t I, class T, __CUTE_REQUIRES(cute_rt_tm::is_integral<cute_rt_tm::remove_cvref_t<T>>::value)>
 CUTE_HOST_DEVICE constexpr
 decltype(auto)
 get(T&& t) noexcept
@@ -136,11 +136,11 @@ auto
 max(T0 const& t0, Ts const&... ts)
 {
   if constexpr (is_tuple<T0>::value) {
-    return cute::max(cute::apply(t0, [](auto const&... a){ return cute::max(a...); }), ts...);
+    return cute_rt_tm::max(cute_rt_tm::apply(t0, [](auto const&... a){ return cute_rt_tm::max(a...); }), ts...);
   } else if constexpr (sizeof...(Ts) == 0) {
     return t0;
   } else {
-    return cute::max(t0, cute::max(ts...));
+    return cute_rt_tm::max(t0, cute_rt_tm::max(ts...));
   }
 
   CUTE_GCC_UNREACHABLE;
@@ -156,11 +156,11 @@ auto
 min(T0 const& t0, Ts const&... ts)
 {
   if constexpr (is_tuple<T0>::value) {
-    return cute::min(cute::apply(t0, [](auto const&... a){ return cute::min(a...); }), ts...);
+    return cute_rt_tm::min(cute_rt_tm::apply(t0, [](auto const&... a){ return cute_rt_tm::min(a...); }), ts...);
   } else if constexpr (sizeof...(Ts) == 0) {
     return t0;
   } else {
-    return cute::min(t0, cute::min(ts...));
+    return cute_rt_tm::min(t0, cute_rt_tm::min(ts...));
   }
 
   CUTE_GCC_UNREACHABLE;
@@ -176,11 +176,11 @@ auto
 gcd(T0 const& t0, Ts const&... ts)
 {
   if constexpr (is_tuple<T0>::value) {
-    return cute::gcd(cute::apply(t0, [](auto const&... a){ return cute::gcd(a...); }), ts...);
+    return cute_rt_tm::gcd(cute_rt_tm::apply(t0, [](auto const&... a){ return cute_rt_tm::gcd(a...); }), ts...);
   } else if constexpr (sizeof...(Ts) == 0) {
     return t0;
   } else {
-    return cute::gcd(t0, cute::gcd(ts...));
+    return cute_rt_tm::gcd(t0, cute_rt_tm::gcd(ts...));
   }
 
   CUTE_GCC_UNREACHABLE;
@@ -197,7 +197,7 @@ depth(IntTuple const& t)
 {
   if constexpr (sizeof...(Is) == 0) {
     if constexpr (is_tuple<IntTuple>::value) {
-      return Int<1>{} + cute::apply(t, [](auto const&... v){ return cute::max(depth(v)...); });
+      return Int<1>{} + cute_rt_tm::apply(t, [](auto const&... v){ return cute_rt_tm::max(depth(v)...); });
     } else {
       return Int<0>{};
     }
@@ -230,9 +230,9 @@ struct Product
       if constexpr (tuple_size<IntTuple>::value == 0) {
         return Int<1>{};
       } else {
-        return cute::transform_apply(a, Product{}, multiplies_unary_lfold{});
+        return cute_rt_tm::transform_apply(a, Product{}, multiplies_unary_lfold{});
       }
-    } else if constexpr (cute::is_integral<IntTuple>::value) {
+    } else if constexpr (cute_rt_tm::is_integral<IntTuple>::value) {
       return a;
     }
 
@@ -288,7 +288,7 @@ auto
 sum(IntTuple const& a)
 {
   if constexpr (is_tuple<IntTuple>::value) {
-    return cute::apply(a, [](auto const&... v){ return (Int<0>{} + ... + sum(v)); });
+    return cute_rt_tm::apply(a, [](auto const&... v){ return (Int<0>{} + ... + sum(v)); });
   } else {
     return a;
   }
@@ -331,9 +331,9 @@ ceil_div(IntTupleA const& a, IntTupleB const& b)
       constexpr int R = tuple_size<IntTupleA>::value;        // Missing ranks in TupleB are implicitly 1
       return transform(a, append<R>(b,Int<1>{}), [](auto const& x, auto const& y) { return ceil_div(x,y); });
     } else {                                     // tuple int
-      auto [result, rest] = fold(a, cute::make_tuple(cute::make_tuple(), b),
+      auto [result, rest] = fold(a, cute_rt_tm::make_tuple(cute_rt_tm::make_tuple(), b),
         [] (auto const& init, auto const& ai) {
-          return cute::make_tuple(append(get<0>(init), ceil_div(ai, get<1>(init))), ceil_div(get<1>(init), ai));
+          return cute_rt_tm::make_tuple(append(get<0>(init), ceil_div(ai, get<1>(init))), ceil_div(get<1>(init), ai));
         });
       return result;
     }
@@ -390,9 +390,9 @@ shape_div(IntTupleA const& a, IntTupleB const& b)
       static_assert(tuple_size<IntTupleA>::value == tuple_size<IntTupleB>::value, "Mismatched ranks");
       return transform(a, b, [](auto const& x, auto const& y) { return shape_div(x,y); });
     } else {                                     // tuple int
-      auto [result, rest] = fold(a, cute::make_tuple(cute::make_tuple(), b),
+      auto [result, rest] = fold(a, cute_rt_tm::make_tuple(cute_rt_tm::make_tuple(), b),
         [] (auto const& init, auto const& ai) {
-          return cute::make_tuple(append(get<0>(init), shape_div(ai, get<1>(init))), shape_div(get<1>(init), ai));
+          return cute_rt_tm::make_tuple(append(get<0>(init), shape_div(ai, get<1>(init))), shape_div(get<1>(init), ai));
         });
       return result;
     }
@@ -567,7 +567,7 @@ namespace detail {
 
 // Some compilers fail to constexpr evaluate quick_sort
 // template <class T, size_t N>
-// constexpr cute::array<T,N> quick_sort(cute::array<T,N> a, int lo = 0, int hi = N-1) {
+// constexpr cute_rt_tm::array<T,N> quick_sort(cute_rt_tm::array<T,N> a, int lo = 0, int hi = N-1) {
 //   if (hi <= lo) return;
 //   int p = lo;
 //   for (int i = lo; i < hi; ++i) {
@@ -583,7 +583,7 @@ namespace detail {
 // }
 
 template <class T, size_t N>
-constexpr cute::array<T,N> exchange_sort(cute::array<T,N> a) {
+constexpr cute_rt_tm::array<T,N> exchange_sort(cute_rt_tm::array<T,N> a) {
   for (size_t i = 0; i < N; ++i) {
     for (size_t j = i+1; j < N; ++j) {
       if (a[j] < a[i]) {
@@ -594,14 +594,14 @@ constexpr cute::array<T,N> exchange_sort(cute::array<T,N> a) {
   return a;
 }
 
-template <class V, class I = cute::make_int_sequence<cute::tuple_size_v<V>>>
+template <class V, class I = cute_rt_tm::make_int_sequence<cute_rt_tm::tuple_size_v<V>>>
 struct Sort : Sort<to_seq_t<V>, to_seq_t<I>> {};
 
 template <int... Vs, int... Is>
 struct Sort<seq<Vs...>, seq<Is...>> {
   static_assert(sizeof...(Vs) == sizeof...(Is));
-  static constexpr cute::array<int,sizeof...(Is)> orig_array = {Vs...};
-  static constexpr cute::array<int,sizeof...(Is)> sort_array = exchange_sort(orig_array);
+  static constexpr cute_rt_tm::array<int,sizeof...(Is)> orig_array = {Vs...};
+  static constexpr cute_rt_tm::array<int,sizeof...(Is)> sort_array = exchange_sort(orig_array);
   using type = seq<sort_array[Is]...>;
 };
 
@@ -610,15 +610,15 @@ struct kvpair {
   constexpr bool operator<(kvpair const& o) const { return key < o.key; };
 };
 
-template <class K, class V, class I = cute::make_int_sequence<cute::tuple_size_v<K>>>
+template <class K, class V, class I = cute_rt_tm::make_int_sequence<cute_rt_tm::tuple_size_v<K>>>
 struct SortByKey : SortByKey<to_seq_t<K>, to_seq_t<V>, to_seq_t<I>> {};
 
 template <int... Ks, int... Vs, int... Is>
 struct SortByKey<seq<Ks...>, seq<Vs...>, seq<Is...>> {
   static_assert(sizeof...(Ks) == sizeof...(Vs));
   static_assert(sizeof...(Ks) == sizeof...(Is));
-  static constexpr cute::array<kvpair,sizeof...(Is)> orig_array = {kvpair{Ks,Vs}...};
-  static constexpr cute::array<kvpair,sizeof...(Is)> sort_array = exchange_sort(orig_array);
+  static constexpr cute_rt_tm::array<kvpair,sizeof...(Is)> orig_array = {kvpair{Ks,Vs}...};
+  static constexpr cute_rt_tm::array<kvpair,sizeof...(Is)> sort_array = exchange_sort(orig_array);
   using key_type = seq<sort_array[Is].key...>;
   using val_type = seq<sort_array[Is].val...>;
 };
@@ -631,7 +631,7 @@ struct SortByKey<seq<Ks...>, seq<Vs...>, seq<Is...>> {
 
 /** Make an IntTuple of rank N from an Indexable array.
  * Access elements up to a dynamic index n, then use init (requires compatible types)
- * Consider cute::take<B,E> if all indexing is known to be valid
+ * Consider cute_rt_tm::take<B,E> if all indexing is known to be valid
  * \code
  *   std::vector<int> a = {6,3,4};
  *   auto tup = make_int_tuple<5>(a, a.size(), 0)            // (6,3,4,0,0)
@@ -655,7 +655,7 @@ make_int_tuple(Indexable const& t, int n, T const& init)
 /** Fill the dynamic values of a Tuple with values from another Tuple
  * \code
  *   auto params = make_tuple(6,3,4);
- *   cute::tuple<Int<1>, cute::tuple<int, int, Int<3>>, int, Int<2>> result;
+ *   cute_rt_tm::tuple<Int<1>, cute_rt_tm::tuple<int, int, Int<3>>, int, Int<2>> result;
  *   fill_int_tuple_from(result, params);                    // (_1,(6,3,_3),4,_2)
  * \endcode
  */
@@ -681,7 +681,7 @@ fill_int_tuple_from(Tuple& result, TupleV const& vals)
 
 /** Make a "Tuple" by filling in the dynamic values in order from the arguments
  * \code
- *   using result_t = cute::tuple<Int<1>, cute::tuple<int, int, Int<3>>, int, Int<2>>;
+ *   using result_t = cute_rt_tm::tuple<Int<1>, cute_rt_tm::tuple<int, int, Int<3>>, int, Int<2>>;
  *   auto result = make_int_tuple_from<result_t>(6,3,4);     // (_1,(6,3,_3),4,_2)
  * \endcode
  */
@@ -691,14 +691,14 @@ Tuple
 make_int_tuple_from(Ts const&... ts)
 {
   Tuple result = Tuple{};
-  fill_int_tuple_from(result, cute::make_tuple(ts...));
+  fill_int_tuple_from(result, cute_rt_tm::make_tuple(ts...));
   return result;
 }
 
 /** Convert a tuple to a flat homogeneous array of type T
  * \code
- *   auto tup = cute::make_tuple(Int<1>{}, cute::make_tuple(6,3,Int<3>{}),4,Int<2>{});
- *   cute::array<uint64_t,6> result = to_array<uint64_t>(tup);   // [1,6,3,3,4,2]
+ *   auto tup = cute_rt_tm::make_tuple(Int<1>{}, cute_rt_tm::make_tuple(6,3,Int<3>{}),4,Int<2>{});
+ *   cute_rt_tm::array<uint64_t,6> result = to_array<uint64_t>(tup);   // [1,6,3,3,4,2]
  * \endcode
  */
 template <class T = int64_t, class IntTuple>
@@ -708,7 +708,7 @@ to_array(IntTuple const& t)
 {
   auto flat_t = flatten_to_tuple(t);
   constexpr int N = tuple_size<decltype(flat_t)>::value;
-  cute::array<T,N> result;
+  cute_rt_tm::array<T,N> result;
   for_each(make_seq<N>{}, [&] (auto i) { result[i] = get<i>(flat_t); });
   return result;
 }
@@ -725,7 +725,7 @@ to_array(IntTuple const& t)
 //  -- colexicographical comparison [reverse, reflected, revref] : Correct for coords in ColMajor Layout
 //  -- element-wise comparison [any,all]                         :
 // This can be very confusing. To avoid errors in selecting the appropriate
-//   comparison, op<|op<=|op>|op>= are *not* implemented for cute::tuple.
+//   comparison, op<|op<=|op>|op>= are *not* implemented for cute_rt_tm::tuple.
 //
 // When actually desiring to order coordinates, the user should map them to
 //   their indices within the Layout they came from:
@@ -757,9 +757,9 @@ auto
 lex_less_impl(TupleA const& a, TupleB const& b)
 {
   if constexpr (I == tuple_size<TupleB>::value) {
-    return cute::false_type{};    // Terminal: TupleB is exhausted
+    return cute_rt_tm::false_type{};    // Terminal: TupleB is exhausted
   } else if constexpr (I == tuple_size<TupleA>::value) {
-    return cute::true_type{};     // Terminal: TupleA is exhausted, TupleB is not exhausted
+    return cute_rt_tm::true_type{};     // Terminal: TupleA is exhausted, TupleB is not exhausted
   } else {
     return lex_less(get<I>(a), get<I>(b)) || (get<I>(a) == get<I>(b) && lex_less_impl<I+1>(a,b));
   }
@@ -773,9 +773,9 @@ auto
 colex_less_impl(TupleA const& a, TupleB const& b)
 {
   if constexpr (I == tuple_size<TupleB>::value) {
-    return cute::false_type{};    // Terminal: TupleB is exhausted
+    return cute_rt_tm::false_type{};    // Terminal: TupleB is exhausted
   } else if constexpr (I == tuple_size<TupleA>::value) {
-    return cute::true_type{};     // Terminal: TupleA is exhausted, TupleB is not exhausted
+    return cute_rt_tm::true_type{};     // Terminal: TupleA is exhausted, TupleB is not exhausted
   } else {
     constexpr size_t A = tuple_size<TupleA>::value - 1 - I;
     constexpr size_t B = tuple_size<TupleB>::value - 1 - I;
@@ -791,9 +791,9 @@ auto
 elem_less_impl(TupleA const& a, TupleB const& b)
 {
   if constexpr (I == tuple_size<TupleA>::value) {
-    return cute::true_type{};     // Terminal: TupleA is exhausted
+    return cute_rt_tm::true_type{};     // Terminal: TupleA is exhausted
   } else if constexpr (I == tuple_size<TupleB>::value) {
-    return cute::false_type{};    // Terminal: TupleA is not exhausted, TupleB is exhausted
+    return cute_rt_tm::false_type{};    // Terminal: TupleA is not exhausted, TupleB is exhausted
   } else {
     return elem_less(get<I>(a), get<I>(b)) && elem_less_impl<I+1>(a,b);
   }
@@ -914,4 +914,4 @@ elem_geq(T const& t, U const& u) {
   return !elem_less(t, u);
 }
 
-} // end namespace cute
+} // end namespace cute_rt_tm

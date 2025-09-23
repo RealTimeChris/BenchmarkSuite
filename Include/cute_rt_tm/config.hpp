@@ -59,7 +59,7 @@
 #endif // CUTE_UNROLL
 
 #if defined(__CUDA_ARCH__) || defined(_NVHPC_CUDA)
-#  define CUTE_INLINE_CONSTANT                 static const __device__
+#  define CUTE_INLINE_CONSTANT                 static constexpr __device__
 #else
 #  define CUTE_INLINE_CONSTANT                 static constexpr
 #endif
@@ -156,4 +156,4 @@
 // Debugging utilities
 //
 
-#include <cute/util/debug.hpp>
+#include <cute_rt_tm/util/debug.hpp>

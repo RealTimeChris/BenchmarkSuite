@@ -30,12 +30,12 @@
  **************************************************************************************************/
 #pragma once
 
-#include "cute/container/tuple.hpp"
-#include "cute/layout.hpp" // cute::size(shape)
-#include "cute/arch/mma_sm100_desc.hpp" // cute::UMMA::MXF4Format, cute::UMMA::MXF8F6F4Format 
+#include "cute_rt_tm/container/tuple.hpp"
+#include "cute_rt_tm/layout.hpp" // cute_rt_tm::size(shape)
+#include "cute_rt_tm/arch/mma_sm100_desc.hpp" // cute_rt_tm::UMMA::MXF4Format, cute_rt_tm::UMMA::MXF8F6F4Format 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass::gemm::collective {
+namespace nihilus_gemm::gemm::collective {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -46,12 +46,12 @@ struct deduce_mixed_width_dtype {
 static_assert(I >= 0u && I <= 2u, "Valid indices are 0, 1, and 2, which represent Operand, Scale, and Bias, respectively.");
 
 private:
-  using underlying_tuple = cute::conditional_t<cute::is_tuple<Tuple>::value, Tuple, cute::tuple<Tuple>>;
-  static constexpr size_t valid_index = cute::min(I, cute::tuple_size_v<underlying_tuple> - 1);
+  using underlying_tuple = cute_rt_tm::conditional_t<cute_rt_tm::is_tuple<Tuple>::value, Tuple, cute_rt_tm::tuple<Tuple>>;
+  static constexpr size_t valid_index = cute_rt_tm::min(I, cute_rt_tm::tuple_size_v<underlying_tuple> - 1);
 
 public:
-  using type = cute::conditional_t<(I < cute::tuple_size_v<underlying_tuple>), 
-                                    cute::tuple_element_t<valid_index, underlying_tuple>,
+  using type = cute_rt_tm::conditional_t<(I < cute_rt_tm::tuple_size_v<underlying_tuple>), 
+                                    cute_rt_tm::tuple_element_t<valid_index, underlying_tuple>,
                                     void>;
 };
 
@@ -64,9 +64,9 @@ template <class Element>
 CUTLASS_HOST_DEVICE
 static constexpr bool
 is_sm10x_runtime_f8f6f4() {
-  return (cute::is_same_v<Element, cutlass::type_erased_dynamic_float8_t> ||
-          cute::is_same_v<Element, cutlass::type_erased_dynamic_float6_t> ||
-          cute::is_same_v<Element, cutlass::type_erased_dynamic_float4_t>);
+  return (cute_rt_tm::is_same_v<Element, nihilus_gemm::type_erased_dynamic_float8_t> ||
+          cute_rt_tm::is_same_v<Element, nihilus_gemm::type_erased_dynamic_float6_t> ||
+          cute_rt_tm::is_same_v<Element, nihilus_gemm::type_erased_dynamic_float4_t>);
 }
 
 template <class ElementA, class ElementB>
@@ -75,28 +75,28 @@ static constexpr bool
 is_sm10x_f8f6f4_inputs() {
    return ( 
             
-            cute::is_same_v<ElementA, cute::type_erased_dynamic_float8_t> || 
-            cute::is_same_v<ElementA, cute::type_erased_dynamic_float6_t> ||
-            cute::is_same_v<ElementA, cute::type_erased_dynamic_float4_t> ||
+            cute_rt_tm::is_same_v<ElementA, cute_rt_tm::type_erased_dynamic_float8_t> || 
+            cute_rt_tm::is_same_v<ElementA, cute_rt_tm::type_erased_dynamic_float6_t> ||
+            cute_rt_tm::is_same_v<ElementA, cute_rt_tm::type_erased_dynamic_float4_t> ||
             
-            cute::is_same_v<ElementA, cute::float_e4m3_t> ||
-            cute::is_same_v<ElementA, cute::float_e5m2_t> 
-            || cute::is_same_v<ElementA, cute::float_e3m2_t> ||
-            cute::is_same_v<ElementA, cute::float_e2m3_t> ||
-            cute::is_same_v<ElementA, cute::float_e2m1_t>
+            cute_rt_tm::is_same_v<ElementA, cute_rt_tm::float_e4m3_t> ||
+            cute_rt_tm::is_same_v<ElementA, cute_rt_tm::float_e5m2_t> 
+            || cute_rt_tm::is_same_v<ElementA, cute_rt_tm::float_e3m2_t> ||
+            cute_rt_tm::is_same_v<ElementA, cute_rt_tm::float_e2m3_t> ||
+            cute_rt_tm::is_same_v<ElementA, cute_rt_tm::float_e2m1_t>
             
           ) &&
           ( 
             
-            cute::is_same_v<ElementB, cute::type_erased_dynamic_float8_t> ||
-            cute::is_same_v<ElementB, cute::type_erased_dynamic_float6_t> ||
-            cute::is_same_v<ElementB, cute::type_erased_dynamic_float4_t> ||
+            cute_rt_tm::is_same_v<ElementB, cute_rt_tm::type_erased_dynamic_float8_t> ||
+            cute_rt_tm::is_same_v<ElementB, cute_rt_tm::type_erased_dynamic_float6_t> ||
+            cute_rt_tm::is_same_v<ElementB, cute_rt_tm::type_erased_dynamic_float4_t> ||
             
-            cute::is_same_v<ElementB, cute::float_e4m3_t> ||
-            cute::is_same_v<ElementB, cute::float_e5m2_t> 
-            || cute::is_same_v<ElementB, cute::float_e3m2_t> ||
-            cute::is_same_v<ElementB, cute::float_e2m3_t> ||
-            cute::is_same_v<ElementB, cute::float_e2m1_t>
+            cute_rt_tm::is_same_v<ElementB, cute_rt_tm::float_e4m3_t> ||
+            cute_rt_tm::is_same_v<ElementB, cute_rt_tm::float_e5m2_t> 
+            || cute_rt_tm::is_same_v<ElementB, cute_rt_tm::float_e3m2_t> ||
+            cute_rt_tm::is_same_v<ElementB, cute_rt_tm::float_e2m3_t> ||
+            cute_rt_tm::is_same_v<ElementB, cute_rt_tm::float_e2m1_t>
             
           );
 }
@@ -105,18 +105,18 @@ template <class TiledMma, class ElementA, class ElementB>
 CUTLASS_HOST_DEVICE
 static constexpr bool
 is_sm100_mma_f8f6f4() {
-  return (cute::size<2>(typename TiledMma::Shape_MNK{}) == 32) && is_sm10x_f8f6f4_inputs<ElementA, ElementB>();
+  return (cute_rt_tm::size<2>(typename TiledMma::Shape_MNK{}) == 32) && is_sm10x_f8f6f4_inputs<ElementA, ElementB>();
 }
 
 template <class Element>
 CUTLASS_HOST_DEVICE
 static constexpr bool
 is_sm10x_f8f6f4_element() {
-  return (cute::is_same_v<Element, cute::float_e4m3_t> 
-          || cute::is_same_v<Element, cute::float_e5m2_t> 
-          || cute::is_same_v<Element, cute::float_e3m2_t>
-          || cute::is_same_v<Element, cute::float_e2m3_t>
-          || cute::is_same_v<Element, cute::float_e2m1_t>
+  return (cute_rt_tm::is_same_v<Element, cute_rt_tm::float_e4m3_t> 
+          || cute_rt_tm::is_same_v<Element, cute_rt_tm::float_e5m2_t> 
+          || cute_rt_tm::is_same_v<Element, cute_rt_tm::float_e3m2_t>
+          || cute_rt_tm::is_same_v<Element, cute_rt_tm::float_e2m3_t>
+          || cute_rt_tm::is_same_v<Element, cute_rt_tm::float_e2m1_t>
           
         );
 }
@@ -126,7 +126,7 @@ template <class Element>
 CUTLASS_HOST_DEVICE
 static constexpr bool
 is_sm10x_f4_element() {
-  return (cute::is_same_v<Element, cute::float_e2m1_t> 
+  return (cute_rt_tm::is_same_v<Element, cute_rt_tm::float_e2m1_t> 
   );
 }
 
@@ -135,14 +135,14 @@ CUTLASS_HOST_DEVICE
 static constexpr bool
 is_sm10x_mxf8f6f4_input() {
           // ElementType must be F8, F6, or F4
-   return ( cute::is_same_v<ElementType, cutlass::type_erased_dynamic_float8_t> ||
-            cute::is_same_v<ElementType, cutlass::detail::type_erased_dynamic_float6_unpacksmem_t> ||
-            cute::is_same_v<ElementType, cutlass::detail::type_erased_dynamic_float4_unpacksmem_t> ||
-            cute::is_same_v<ElementType, cutlass::float_e4m3_t> ||
-            cute::is_same_v<ElementType, cutlass::float_e5m2_t> ||
-            cute::is_same_v<ElementType, cutlass::detail::float_e2m3_unpacksmem_t> ||
-            cute::is_same_v<ElementType, cutlass::detail::float_e3m2_unpacksmem_t> ||
-            cute::is_same_v<ElementType, cutlass::detail::float_e2m1_unpacksmem_t>);
+   return ( cute_rt_tm::is_same_v<ElementType, nihilus_gemm::type_erased_dynamic_float8_t> ||
+            cute_rt_tm::is_same_v<ElementType, nihilus_gemm::detail::type_erased_dynamic_float6_unpacksmem_t> ||
+            cute_rt_tm::is_same_v<ElementType, nihilus_gemm::detail::type_erased_dynamic_float4_unpacksmem_t> ||
+            cute_rt_tm::is_same_v<ElementType, nihilus_gemm::float_e4m3_t> ||
+            cute_rt_tm::is_same_v<ElementType, nihilus_gemm::float_e5m2_t> ||
+            cute_rt_tm::is_same_v<ElementType, nihilus_gemm::detail::float_e2m3_unpacksmem_t> ||
+            cute_rt_tm::is_same_v<ElementType, nihilus_gemm::detail::float_e3m2_unpacksmem_t> ||
+            cute_rt_tm::is_same_v<ElementType, nihilus_gemm::detail::float_e2m1_unpacksmem_t>);
 }
 
 template <class ElementType>
@@ -150,8 +150,8 @@ CUTLASS_HOST_DEVICE
 static constexpr bool
 is_sm10x_mxf4nvf4_input() {
           // ElementType must be F4
-   return ( cute::is_same_v<ElementType, cute::type_erased_dynamic_float4_t> ||
-            cute::is_same_v<ElementType, cute::float_e2m1_t> 
+   return ( cute_rt_tm::is_same_v<ElementType, cute_rt_tm::type_erased_dynamic_float4_t> ||
+            cute_rt_tm::is_same_v<ElementType, cute_rt_tm::float_e2m1_t> 
           );
 }
 
@@ -160,10 +160,10 @@ struct sm10x_block_scale_runtime_input_t {
   static constexpr bool IsF8F6F4MmaInput = is_sm10x_mxf8f6f4_input<ElementType>();
   static constexpr bool IsF4MmaInput = is_sm10x_mxf4nvf4_input<ElementType>();
 
-  using Type = cute::conditional_t<IsRuntimeDataType && IsF8F6F4MmaInput, 
-                                   cute::UMMA::MXF8F6F4Format, 
-               cute::conditional_t<IsRuntimeDataType && IsF4MmaInput, 
-                                   cute::UMMA::MXF4Format, 
+  using Type = cute_rt_tm::conditional_t<IsRuntimeDataType && IsF8F6F4MmaInput, 
+                                   cute_rt_tm::UMMA::MXF8F6F4Format, 
+               cute_rt_tm::conditional_t<IsRuntimeDataType && IsF4MmaInput, 
+                                   cute_rt_tm::UMMA::MXF4Format, 
                                    void*
                                    >
                                   >;
@@ -174,18 +174,18 @@ template <class TiledMma, class ElementA, class ElementB>
 CUTLASS_HOST_DEVICE
 static constexpr bool
 is_sm120_f8f6f4() {
-  return (cute::size<2>(typename TiledMma::Shape_MNK{}) == 32) && is_sm10x_f8f6f4_inputs<ElementA, ElementB>();
+  return (cute_rt_tm::size<2>(typename TiledMma::Shape_MNK{}) == 32) && is_sm10x_f8f6f4_inputs<ElementA, ElementB>();
 }
 
 template <class TiledMma, class ElementA, class ElementB>
 CUTLASS_HOST_DEVICE
 static constexpr bool
 is_sm100_sparse_f8f6f4() {
-  return (cute::size<2>(typename TiledMma::Shape_MNK{}) == 64) && is_sm10x_f8f6f4_inputs<ElementA, ElementB>();
+  return (cute_rt_tm::size<2>(typename TiledMma::Shape_MNK{}) == 64) && is_sm10x_f8f6f4_inputs<ElementA, ElementB>();
 }
 
 } // namespace detail
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cutlass::gemm::collective
+} // namespace nihilus_gemm::gemm::collective

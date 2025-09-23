@@ -35,29 +35,29 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/arch/wmma.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/arch/wmma.h"
 
 #if defined(CUTLASS_ARCH_WMMA_ENABLED)
 
-#include "cutlass/wmma_array.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/matrix_shape.h"
+#include "nihilus_gemm/wmma_array.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/matrix_shape.h"
 
-#include "cutlass/arch/memory_sm75.h"
-#include "cutlass/arch/mma_sm75.h"
-#include "cutlass/arch/mma_sm80.h"
+#include "nihilus_gemm/arch/memory_sm75.h"
+#include "nihilus_gemm/arch/mma_sm75.h"
+#include "nihilus_gemm/arch/mma_sm80.h"
 
-#include "cutlass/gemm/gemm.h"
-#include "cutlass/gemm/warp/mma.h"
+#include "nihilus_gemm/gemm/gemm.h"
+#include "nihilus_gemm/gemm/warp/mma.h"
 
-#include "cutlass/gemm/warp/mma_tensor_op_policy.h"
+#include "nihilus_gemm/gemm/warp/mma_tensor_op_policy.h"
 
-#include "cutlass/gemm/warp/mma_tensor_op_tile_iterator_wmma.h"
+#include "nihilus_gemm/gemm/warp/mma_tensor_op_tile_iterator_wmma.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace gemm {
 namespace warp {
 
@@ -125,19 +125,19 @@ public:
   using ArchTag = typename Policy::Operator::ArchTag;
 
   /// Complex transform on A operand
-  static ComplexTransform const kTransformA = ComplexTransform::kNone;
+  static constexpr ComplexTransform  kTransformA = ComplexTransform::kNone;
 
   /// Complex transform on B operand
-  static ComplexTransform const kTransformB = ComplexTransform::kNone;
+  static constexpr ComplexTransform  kTransformB = ComplexTransform::kNone;
 
   /// Indicates class of matrix operator
   using OperatorClass = arch::OpClassWmmaTensorOp;
 
   /// Number of threads participating in warp-level matrix product
-  static int const kThreadCount = 32;
+  static constexpr int  kThreadCount = 32;
 
   /// Number of partitions along K dimension
-  static int const kPartitionsK = PartitionsK_;
+  static constexpr int  kPartitionsK = PartitionsK_;
 
 public:
 
@@ -180,7 +180,7 @@ private:
 
 public:
 
-  /// Underlying matrix multiply operator (concept: cutlass::arch::Wmma)
+  /// Underlying matrix multiply operator (concept: nihilus_gemm::arch::Wmma)
   typename Policy::Operator wmma;
 
 public:
@@ -217,7 +217,7 @@ public:
 
 } // namespace warp
 } // namespace gemm
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 #endif // if defined(CUTLASS_ARCH_WMMA_ENABLED)
 

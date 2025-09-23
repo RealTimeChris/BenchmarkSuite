@@ -30,12 +30,12 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute/config.hpp>
+#include <cute_rt_tm/config.hpp>
 
-#include <cute/numeric/integral_constant.hpp>
-#include <cute/util/type_traits.hpp>
+#include <cute_rt_tm/numeric/integral_constant.hpp>
+#include <cute_rt_tm/util/type_traits.hpp>
 
-namespace cute
+namespace cute_rt_tm
 {
 
 template <class T, size_t N>
@@ -369,15 +369,15 @@ void swap(array<T,N>& a, array<T,N>& b)
   a.swap(b);
 }
 
-/// @return A cute::array of the elements of @c t in reverse order.
+/// @return A cute_rt_tm::array of the elements of @c t in reverse order.
 template <class T, size_t N>
 CUTE_HOST_DEVICE constexpr
-cute::array<T,N> reverse(cute::array<T,N> const& t)
+cute_rt_tm::array<T,N> reverse(cute_rt_tm::array<T,N> const& t)
 {
   if constexpr (N == 0u) {
     return t;
   } else {
-    cute::array<T,N> t_r{};
+    cute_rt_tm::array<T,N> t_r{};
     for (size_t k = 0; k < N; ++k) {
       t_r[k] = t[N - k - 1];
     }
@@ -385,20 +385,20 @@ cute::array<T,N> reverse(cute::array<T,N> const& t)
   }
 }
 
-} // end cute
+} // end cute_rt_tm
 
 
 //
-// Specialize tuple-related functionality for cute::array
+// Specialize tuple-related functionality for cute_rt_tm::array
 //
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 #if defined(__CUDACC_RTC__)
 #include CUDA_STD_HEADER(tuple)
 #else
 #include <tuple>
 #endif
 
-namespace cute
+namespace cute_rt_tm
 {
 
 template <size_t I, class T, size_t N>
@@ -422,21 +422,21 @@ CUTE_HOST_DEVICE constexpr
 T&& get(array<T,N>&& a)
 {
   static_assert(I < N, "Index out of range");
-  return cute::move(a[I]);
+  return cute_rt_tm::move(a[I]);
 }
 
-} // end namespace cute
+} // end namespace cute_rt_tm
 
 namespace CUTE_STL_NAMESPACE
 {
 
 template <class T, size_t N>
-struct tuple_size<cute::array<T,N>>
+struct tuple_size<cute_rt_tm::array<T,N>>
     : CUTE_STL_NAMESPACE::integral_constant<size_t, N>
 {};
 
 template <size_t I, class T, size_t N>
-struct tuple_element<I, cute::array<T,N>>
+struct tuple_element<I, cute_rt_tm::array<T,N>>
 {
   using type = T;
 };
@@ -456,12 +456,12 @@ struct tuple_element;
 #endif
 
 template <class T, size_t N>
-struct tuple_size<cute::array<T,N>>
+struct tuple_size<cute_rt_tm::array<T,N>>
     : CUTE_STL_NAMESPACE::integral_constant<size_t, N>
 {};
 
 template <size_t I, class T, size_t N>
-struct tuple_element<I, cute::array<T,N>>
+struct tuple_element<I, cute_rt_tm::array<T,N>>
 {
   using type = T;
 };

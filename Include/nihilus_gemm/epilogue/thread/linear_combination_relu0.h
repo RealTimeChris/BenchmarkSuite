@@ -37,18 +37,18 @@
 
 #pragma once
 
-#include "cutlass/half.h"
-#include "cutlass/cutlass.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/array.h"
-#include "cutlass/functional.h"
-#include "cutlass/numeric_conversion.h"
-#include "cutlass/epilogue/thread/activation.h"
-#include "cutlass/epilogue/thread/scale_type.h"
+#include "nihilus_gemm/half.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/functional.h"
+#include "nihilus_gemm/numeric_conversion.h"
+#include "nihilus_gemm/epilogue/thread/activation.h"
+#include "nihilus_gemm/epilogue/thread/scale_type.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace thread {
 
@@ -86,8 +86,8 @@ public:
   using ElementAccumulator = ElementAccumulator_;
   using ElementCompute = ElementCompute_;
 
-  static int const kCount = Count;
-  static const ScaleType::Kind kScale = Scale;
+  static constexpr int  kCount = Count;
+  static constexpr ScaleType::Kind kScale = Scale;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
@@ -95,9 +95,9 @@ public:
   using FragmentScaleBias = Array<ElementCompute, kCount>;
   using FragmentSource = Array<ElementOutput, kCount>;
 
-  static FloatRoundStyle const kRound = Round;
+  static constexpr FloatRoundStyle  kRound = Round;
 
-  static bool const kIsHeavy = detail::LinearCombinationRelu0IsHeavy();
+  static constexpr bool  kIsHeavy = detail::LinearCombinationRelu0IsHeavy();
 
   /// Host-constructable parameters structure
   struct Params {
@@ -300,10 +300,10 @@ public:
   using ElementAccumulator = int;
   using ElementCompute = float;
 
-  static bool const kIsHeavy = detail::LinearCombinationRelu0IsHeavy();
+  static constexpr bool  kIsHeavy = detail::LinearCombinationRelu0IsHeavy();
 
-  static int const kCount = Count;
-  static const ScaleType::Kind kScale = Scale;
+  static constexpr int  kCount = Count;
+  static constexpr ScaleType::Kind kScale = Scale;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
@@ -311,7 +311,7 @@ public:
   using FragmentScaleBias = Array<ElementCompute, kCount>;
   using FragmentSource = Array<ElementOutput, kCount>;
 
-  static FloatRoundStyle const kRound = Round;
+  static constexpr FloatRoundStyle  kRound = Round;
 
   /// Host-constructable parameters structure
   struct Params {
@@ -418,7 +418,7 @@ public:
     // Compute threshold optionally
     intermediate = relu(intermediate);
 
-    if (cutlass::platform::numeric_limits<ElementOutput>::is_integer) {
+    if (nihilus_gemm::platform::numeric_limits<ElementOutput>::is_integer) {
       // Convert floats back to INT
       FragmentAccumulator scaled_accumulator;
 
@@ -463,7 +463,7 @@ public:
     // Compute threshold optionally
     intermediate = relu(intermediate);
 
-    if (cutlass::platform::numeric_limits<ElementOutput>::is_integer) {
+    if (nihilus_gemm::platform::numeric_limits<ElementOutput>::is_integer) {
       // Convert floats back to INT
       FragmentAccumulator scaled_accumulator;
 
@@ -511,7 +511,7 @@ public:
     // Compute threshold optionally
     intermediate = relu(intermediate);
 
-    if (cutlass::platform::numeric_limits<ElementOutput>::is_integer) {
+    if (nihilus_gemm::platform::numeric_limits<ElementOutput>::is_integer) {
       // Convert floats back to INT
       FragmentAccumulator scaled_accumulator;
 
@@ -538,6 +538,6 @@ public:
 
 } // namespace thread
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

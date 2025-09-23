@@ -34,13 +34,13 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/epilogue/thread/activation.h"
-#include "cutlass/epilogue/thread/linear_combination_generic.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/epilogue/thread/activation.h"
+#include "nihilus_gemm/epilogue/thread/linear_combination_generic.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace thread {
 
@@ -66,4 +66,4 @@ using LinearCombinationHardSwish = LinearCombinationGeneric<HardSwish, ElementOu
 
 } // namespace thread
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm

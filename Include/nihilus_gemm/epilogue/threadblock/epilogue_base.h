@@ -37,28 +37,28 @@
 */
 
 #pragma once
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 #if !defined(__CUDACC_RTC__)
 #include <type_traits>
 #include <utility>
 #endif
 #include CUDA_STD_HEADER(cassert)
 
-#include "cutlass/matrix_shape.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/array.h"
-#include "cutlass/layout/vector.h"
-#include "cutlass/layout/tensor.h"
-#include "cutlass/tensor_coord.h"
-#include "cutlass/aligned_buffer.h"
+#include "nihilus_gemm/matrix_shape.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/layout/vector.h"
+#include "nihilus_gemm/layout/tensor.h"
+#include "nihilus_gemm/tensor_coord.h"
+#include "nihilus_gemm/aligned_buffer.h"
 
-#include "cutlass/gemm/gemm.h"
+#include "nihilus_gemm/gemm/gemm.h"
 
-#include "cutlass/transform/pitch_linear_thread_map.h"
+#include "nihilus_gemm/transform/pitch_linear_thread_map.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace threadblock {
 
@@ -66,7 +66,7 @@ namespace threadblock {
 
 //
 // This is used for metaprogramming epilogue functors. If they define 
-// `static bool const kIsHeavy = true;`, then the epilogue functor itself is
+// `static constexpr bool  kIsHeavy = true;`, then the epilogue functor itself is
 // not inlined. This results in smaller code and is advantageous if the epilogue
 // functor consists of many instructions.
 //
@@ -81,11 +81,11 @@ struct TypeSink {  typedef void type; };
 template<class T> using TypeSinkT = typename TypeSink<T>::type;
 
 template<class T, class=void> struct IsEpilogueFunctorHeavy {
-  static bool const value = false;
+  static constexpr bool  value = false;
 };
 
 template<class T> struct IsEpilogueFunctorHeavy<T, TypeSinkT< decltype( T::kIsHeavy ) > > {
-  static bool const value = T::kIsHeavy;
+  static constexpr bool  value = T::kIsHeavy;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -105,7 +105,7 @@ public:
 
   using Shape = Shape_;
   using WarpShape = WarpShape_;
-  static int const kPartitionsK = PartitionsK;
+  static constexpr int  kPartitionsK = PartitionsK;
   using AccumulatorFragmentIterator = AccumulatorFragmentIterator_;
   using WarpTileIterator = WarpTileIterator_;
   using Padding = Padding_;
@@ -127,7 +127,7 @@ public:
   >;
 
   /// Use this to control the granularity of one epilogue 'iteration'
-  static int const kFragmentsPerIteration = FragmentsPerIteration;
+  static constexpr int  kFragmentsPerIteration = FragmentsPerIteration;
 
 public:
 
@@ -229,6 +229,6 @@ public:
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////

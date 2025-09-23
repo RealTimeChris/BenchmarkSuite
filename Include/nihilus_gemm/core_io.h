@@ -29,25 +29,25 @@
  *
  **************************************************************************************************/
 /*! \file
-    \brief Helpers for printing cutlass/core objects
+    \brief Helpers for printing nihilus_gemm/core objects
 */
 #pragma once
 
 #include <iostream>
 #include <typeinfo>
 
-#include "cutlass/array.h"
-#include "cutlass/coord.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/matrix.h"
-#include "cutlass/quaternion.h"
-#include "cutlass/matrix_shape.h"
-#include "cutlass/layout/pitch_linear.h"
-#include "cutlass/tensor_view.h"
-#include "cutlass/gemm/gemm_enumerated_types.h"
-#include "cutlass/conv/convolution.h"
-#include "cutlass/conv/conv2d_problem_size.h"
-#include "cutlass/conv/conv3d_problem_size.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/coord.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/matrix.h"
+#include "nihilus_gemm/quaternion.h"
+#include "nihilus_gemm/matrix_shape.h"
+#include "nihilus_gemm/layout/pitch_linear.h"
+#include "nihilus_gemm/tensor_view.h"
+#include "nihilus_gemm/gemm/gemm_enumerated_types.h"
+#include "nihilus_gemm/conv/convolution.h"
+#include "nihilus_gemm/conv/conv2d_problem_size.h"
+#include "nihilus_gemm/conv/conv3d_problem_size.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -63,10 +63,10 @@ inline std::ostream &operator<<(std::ostream &out, cudaError_t error) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-//                    stream operators for cutlass namespace                                     //
+//                    stream operators for nihilus_gemm namespace                                     //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename Element, int Rank>
@@ -91,7 +91,7 @@ inline
 std::istream & operator>>(std::istream &stream, half_t &x) {
   float tmp;
   stream >> tmp;
-  x = static_cast<cutlass::half_t>(tmp);
+  x = static_cast<nihilus_gemm::half_t>(tmp);
   return stream;
 }
 
@@ -193,9 +193,9 @@ inline std::ostream &operator<<(std::ostream &out, ScalarIO<uint8_t> const &scal
 template <int Row, int Column>
 inline
 std::ostream & operator<<(std::ostream &out, MatrixShape<Row, Column> const &matrix_shape) {
-  out << "cutlass::MatrixShape::(kRow, kColumn) {"
-    << cutlass::MatrixShape<Row,Column>::kRow <<","
-    << cutlass::MatrixShape<Row,Column>::kColumn <<"}";
+  out << "nihilus_gemm::MatrixShape::(kRow, kColumn) {"
+    << nihilus_gemm::MatrixShape<Row,Column>::kRow <<","
+    << nihilus_gemm::MatrixShape<Row,Column>::kColumn <<"}";
   return out;
 }
 
@@ -239,7 +239,7 @@ std::ostream &operator<<(std::ostream &out, Quaternion<T> const &rhs) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-//                         stream operators for cutlass::gemm namespace                          //
+//                         stream operators for nihilus_gemm::gemm namespace                          //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 namespace gemm {
 
@@ -247,17 +247,17 @@ namespace gemm {
 template <int M, int N, int K>
 inline
 std::ostream & operator<<(std::ostream &out, GemmShape<M,N,K> const &gemm_shape) {
-  out << "cutlass::gemm::GemmShape::(kM, kN, kK) {"
-    << cutlass::gemm::GemmShape<M,N,K>::kM <<","
-    << cutlass::gemm::GemmShape<M,N,K>::kN <<","
-    << cutlass::gemm::GemmShape<M,N,K>::kK << "}";
+  out << "nihilus_gemm::gemm::GemmShape::(kM, kN, kK) {"
+    << nihilus_gemm::gemm::GemmShape<M,N,K>::kM <<","
+    << nihilus_gemm::gemm::GemmShape<M,N,K>::kN <<","
+    << nihilus_gemm::gemm::GemmShape<M,N,K>::kK << "}";
   return out;
 }
 
 /// Default printing to ostream for GemmCoord
 inline
 std::ostream & operator<<(std::ostream &out, GemmCoord const &gemm_coord) {
-  out << "cutlass::gemm::GemmCoord {"
+  out << "nihilus_gemm::gemm::GemmCoord {"
     << gemm_coord.m() <<","
     << gemm_coord.n() <<","
     << gemm_coord.k() << "}";
@@ -269,16 +269,16 @@ std::ostream & operator<<(std::ostream &out, GemmCoord const &gemm_coord) {
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-//                       stream operators for cutlass namespace                          //
+//                       stream operators for nihilus_gemm namespace                          //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Default printing to ostream for PitchLinearShape
 template < int Contiguous, int Strided>
 inline
 std::ostream & operator<<(std::ostream &out, PitchLinearShape<Contiguous, Strided> const &pitch_linear_shape) {
-  out << "cutlass::PitchLinearShape:(kContiguous, kStrided) {"
-    << cutlass::layout::PitchLinearShape<Contiguous,Strided>::kContiguous <<","
-    << cutlass::layout::PitchLinearShape<Contiguous,Strided>::kStrided <<"}";
+  out << "nihilus_gemm::PitchLinearShape:(kContiguous, kStrided) {"
+    << nihilus_gemm::layout::PitchLinearShape<Contiguous,Strided>::kContiguous <<","
+    << nihilus_gemm::layout::PitchLinearShape<Contiguous,Strided>::kStrided <<"}";
   return out;
 }
 
@@ -286,7 +286,7 @@ std::ostream & operator<<(std::ostream &out, PitchLinearShape<Contiguous, Stride
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-//                         stream operators for cutlass::conv namespace                          //
+//                         stream operators for nihilus_gemm::conv namespace                          //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 namespace conv {
 /// Default printing to ostream for Conv2dProblemSize
@@ -324,5 +324,5 @@ std::ostream& operator<<(std::ostream& out, Conv3dProblemSize const& problem) {
 } // namespace conv
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cutlass
+} // namespace nihilus_gemm
 ///////////////////////////////////////////////////////////////////////////////////////////////////

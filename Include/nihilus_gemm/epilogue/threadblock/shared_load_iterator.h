@@ -38,18 +38,18 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/array.h"
-#include "cutlass/layout/matrix.h"
-#include "cutlass/matrix_shape.h"
-#include "cutlass/tensor_ref.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/matrix_shape.h"
+#include "nihilus_gemm/tensor_ref.h"
 
-#include "cutlass/epilogue/threadblock/output_tile_thread_map.h"
+#include "nihilus_gemm/epilogue/threadblock/output_tile_thread_map.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace threadblock {
 
@@ -79,13 +79,13 @@ public:
   using LongIndex = typename Layout::LongIndex;
   using TensorCoord = MatrixCoord;
 
-  static int const kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static constexpr int  kElementsPerAccess = ThreadMap::kElementsPerAccess;
 
-  static int const kMinAlignment = ThreadMap_::kElementsPerAccess * sizeof_bits<Element_>::value / 8;
+  static constexpr int  kMinAlignment = ThreadMap_::kElementsPerAccess * sizeof_bits<Element_>::value / 8;
 
-  static int const kAlignment = (MaxAlignment < kMinAlignment ? MaxAlignment : kMinAlignment);
+  static constexpr int  kAlignment = (MaxAlignment < kMinAlignment ? MaxAlignment : kMinAlignment);
 
-  static int const kThreads = ThreadMap::kThreads;
+  static constexpr int  kThreads = ThreadMap::kThreads;
 
   /// Fragment object
   using Fragment = Array<
@@ -109,7 +109,7 @@ public:
     const_min(16, kAlignment)
   >;
 
-  static int const kLoadsPerAccess = AccessType::kElements / LoadType::kElements;
+  static constexpr int  kLoadsPerAccess = AccessType::kElements / LoadType::kElements;
 
 private:
 
@@ -218,6 +218,6 @@ public:
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

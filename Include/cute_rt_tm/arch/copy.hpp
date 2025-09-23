@@ -30,12 +30,12 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute/config.hpp>
+#include <cute_rt_tm/config.hpp>
 
-#include <cute/arch/util.hpp>
-#include <cute/numeric/numeric_types.hpp>
+#include <cute_rt_tm/arch/util.hpp>
+#include <cute_rt_tm/numeric/numeric_types.hpp>
 
-namespace cute
+namespace cute_rt_tm
 {
 
 //
@@ -104,4 +104,4 @@ prefetch(void const* gmem_ptr)
 #endif
 }
 
-} // end namespace cute
+} // end namespace cute_rt_tm

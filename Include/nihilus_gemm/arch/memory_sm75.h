@@ -34,13 +34,13 @@
 
 #pragma once
 
-#include "cutlass/array.h"
-#include "cutlass/detail/helper_macros.hpp"
-#include "cutlass/layout/matrix.h"
-#include "cute/arch/copy_sm75.hpp"
-#include "cute/arch/util.hpp"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/detail/helper_macros.hpp"
+#include "nihilus_gemm/layout/matrix.h"
+#include "cute_rt_tm/arch/copy_sm75.hpp"
+#include "cute_rt_tm/arch/util.hpp"
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace arch {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -61,7 +61,7 @@ CUTLASS_DEVICE void ldsm(Array<unsigned, MatrixCount> & D, void const* ptr);
 
 /// CUTLASS helper to get SMEM pointer
 CUTLASS_HOST_DEVICE unsigned cutlass_get_smem_pointer(void *ptr) {
-  return cute::cast_smem_ptr_to_uint(ptr);
+  return cute_rt_tm::cast_smem_ptr_to_uint(ptr);
 }
 
 /// CUTLASS helper to get SMEM pointer
@@ -267,4 +267,4 @@ struct shared_load_op<AccessType, 8> {
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace arch
-} // namespace cutlass
+} // namespace nihilus_gemm

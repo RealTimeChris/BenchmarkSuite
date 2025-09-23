@@ -35,13 +35,13 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/array.h"
-#include "cutlass/wmma_array.h"
-#include "cutlass/functional.h"
-#include "cutlass/complex.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/wmma_array.h"
+#include "nihilus_gemm/functional.h"
+#include "nihilus_gemm/complex.h"
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // AccessWidth
@@ -61,7 +61,7 @@ struct AccessWidth
         ((AlignBytes <= Limit) &&  (ObjectBytes % AlignBytes == 0))>
   struct Detail
   {
-      static const int value = Detail<ObjectBytes, AlignBytes * 2>::value;
+      static constexpr int value = Detail<ObjectBytes, AlignBytes * 2>::value;
   };
 
   // Base case (ObjectBytes is not an even multiple of AlignBytes)
@@ -70,11 +70,11 @@ struct AccessWidth
       int AlignBytes>         /// Template induction variable
   struct Detail<ObjectBytes, AlignBytes, false>
   {
-      static const int value = AlignBytes / 2;
+      static constexpr int value = AlignBytes / 2;
   };
 
   /// The maximal power-of-two that evenly divides the size of T
-  static const int value = Detail<
+  static constexpr int value = Detail<
     (int) sizeof(T),
     1>::value;
 };
@@ -96,7 +96,7 @@ struct alignas(TransferBytes) StripedAccessType : public T
 
 
 /// ReinterpretCast type for striping a trivially-copyable type in global memory
-/// (Specialization for cutlass::Array<T>.  Striping granularity is a multiple of T.)
+/// (Specialization for nihilus_gemm::Array<T>.  Striping granularity is a multiple of T.)
 template <
     typename T,           /// Array element type
     int N,                /// Number of elements in array
@@ -115,7 +115,7 @@ struct StripedAccessType<
 #if defined(CUTLASS_ARCH_WMMA_ENABLED)
 
 /// ReinterpretCast type for striping a trivially-copyable type in global memory
-/// (Specialization for cutlass::WmmaFragmentArray<T>.  Striping granularity is a multiple of T.)
+/// (Specialization for nihilus_gemm::WmmaFragmentArray<T>.  Striping granularity is a multiple of T.)
 template<
     typename Use,
     int m,
@@ -150,7 +150,7 @@ template <
 struct BlockStriped
 {
   /// Number of striped accesses
-  static const int kStripes = int(sizeof(ArrayT) / sizeof(AccessT));
+  static constexpr int kStripes = int(sizeof(ArrayT) / sizeof(AccessT));
   static_assert(kStripes > 0, "AccessT type must be smaller than or equal to ArrayT type");
 
   /// Load
@@ -220,7 +220,7 @@ struct BlockStripedReduce :
   CUTLASS_DEVICE
   static void reduce(ArrayT *ptr, const ArrayT &data, int thread_idx)
   {
-    cutlass::atomic_add<ElementT> reduce;
+    nihilus_gemm::atomic_add<ElementT> reduce;
     ElementT *access_output = reinterpret_cast<ElementT*>(ptr);
     const ElementT *access_data = reinterpret_cast<const ElementT*>(&data);
 
@@ -250,7 +250,7 @@ struct BlockStripedReduce<BlockThreads, ArrayT, half_t> :
   CUTLASS_DEVICE
   static void reduce(ArrayT *ptr, const ArrayT &data, int thread_idx)
   {
-    cutlass::atomic_add<half2> reduce;
+    nihilus_gemm::atomic_add<half2> reduce;
     half2 *access_output = reinterpret_cast<half2*>(ptr);
     const half2 *access_data = reinterpret_cast<const half2*>(&data);
 
@@ -263,5 +263,5 @@ struct BlockStripedReduce<BlockThreads, ArrayT, half_t> :
 };
 
 
-} // namespace cutlass
+} // namespace nihilus_gemm
 

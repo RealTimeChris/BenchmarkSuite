@@ -35,29 +35,29 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/array.h"
-#include "cutlass/platform/platform.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/platform/platform.h"
 
-#include "cutlass/numeric_conversion.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/matrix_shape.h"
+#include "nihilus_gemm/numeric_conversion.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/matrix_shape.h"
 
-#include "cutlass/arch/memory_sm75.h"
-#include "cutlass/arch/mma_sm75.h" 
-#include "cutlass/arch/mma_sm80.h"
+#include "nihilus_gemm/arch/memory_sm75.h"
+#include "nihilus_gemm/arch/mma_sm75.h" 
+#include "nihilus_gemm/arch/mma_sm80.h"
 
-#include "cutlass/gemm/gemm.h"
-#include "cutlass/gemm/warp/mma.h"
+#include "nihilus_gemm/gemm/gemm.h"
+#include "nihilus_gemm/gemm/warp/mma.h"
 
-#include "cutlass/gemm/warp/mma_tensor_op_policy.h"
+#include "nihilus_gemm/gemm/warp/mma_tensor_op_policy.h"
 
-#include "cutlass/gemm/warp/mma_tensor_op_tile_iterator.h"
-#include "cutlass/gemm/warp/mma_tensor_op_tile_iterator_sm80.h"
+#include "nihilus_gemm/gemm/warp/mma_tensor_op_tile_iterator.h"
+#include "nihilus_gemm/gemm/warp/mma_tensor_op_tile_iterator_sm80.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace gemm {
 namespace warp {
 
@@ -88,10 +88,10 @@ struct FragmentShuffler {
   using ElementMma = ElementMma_;
   using ElementLoad = ElementLoad_;
 
-  static int const kNumMmaInstructions = NumMmaInstructions;
-  static int const kNumElementsInWarpFragment = NumElementsInWarpFragment;
-  static int const kNumElementsInMmaFragment = NumElementsInMmaFragment;
-  static Operand const kOperand = Operand_;
+  static constexpr int  kNumMmaInstructions = NumMmaInstructions;
+  static constexpr int  kNumElementsInWarpFragment = NumElementsInWarpFragment;
+  static constexpr int  kNumElementsInMmaFragment = NumElementsInMmaFragment;
+  static constexpr Operand  kOperand = Operand_;
 
   using WarpFragment = Array<ElementLoad, kNumElementsInWarpFragment>;
   using MmaFragment = Array<ElementLoad, kNumElementsInMmaFragment>;
@@ -129,16 +129,16 @@ public:
   using ElementMma = ElementMma_;
   using ElementLoad = ElementLoad_;
 
-  static int const kNumMmaInstructions = NumMmaInstructions;
-  static int const kNumElementsInWarpFragment = NumElementsInWarpFragment;
-  static int const kNumElementsInMmaFragment = NumElementsInMmaFragment;
-  static Operand const kOperand = Operand::kA;
+  static constexpr int  kNumMmaInstructions = NumMmaInstructions;
+  static constexpr int  kNumElementsInWarpFragment = NumElementsInWarpFragment;
+  static constexpr int  kNumElementsInMmaFragment = NumElementsInMmaFragment;
+  static constexpr Operand  kOperand = Operand::kA;
 
   using WarpFragment = Array<ElementLoad, kNumElementsInWarpFragment>;
   using MmaFragment = Array<ElementLoad, kNumElementsInMmaFragment>;
 
-  static uint32_t const kSelectBytesEvenThread = 0x5410;
-  static uint32_t const kSelectBytesOddThread = 0x7632;
+  static constexpr uint32_t  kSelectBytesEvenThread = 0x5410;
+  static constexpr uint32_t  kSelectBytesOddThread = 0x7632;
 
 private:
   int delta_up_;
@@ -149,7 +149,7 @@ private:
 public:
   CUTLASS_DEVICE
   FragmentShuffler() {
-    int lane_id = cutlass::arch::LaneId();
+    int lane_id = nihilus_gemm::arch::LaneId();
     delta_up_ = (lane_id & 1) + ((lane_id & 2) >> 1);
     delta_down_ = 2 - delta_up_;
     odd_even_lane_id_ = static_cast<int>(lane_id & 1);
@@ -213,16 +213,16 @@ public:
   using ElementMma = ElementMma_;
   using ElementLoad = ElementLoad_;
 
-  static int const kNumMmaInstructions = NumMmaInstructions;
-  static int const kNumElementsInWarpFragment = NumElementsInWarpFragment;
-  static int const kNumElementsInMmaFragment = NumElementsInMmaFragment;
-  static Operand const kOperand = Operand::kB;
+  static constexpr int  kNumMmaInstructions = NumMmaInstructions;
+  static constexpr int  kNumElementsInWarpFragment = NumElementsInWarpFragment;
+  static constexpr int  kNumElementsInMmaFragment = NumElementsInMmaFragment;
+  static constexpr Operand  kOperand = Operand::kB;
 
   using WarpFragment = Array<ElementLoad, kNumElementsInWarpFragment>;
   using MmaFragment = Array<ElementLoad, kNumElementsInMmaFragment>;
 
-  static uint32_t const kSelectBytesEvenThread = 0x5410;
-  static uint32_t const kSelectBytesOddThread = 0x7632;
+  static constexpr uint32_t  kSelectBytesEvenThread = 0x5410;
+  static constexpr uint32_t  kSelectBytesOddThread = 0x7632;
 
 private:
   int delta_up_;
@@ -233,7 +233,7 @@ private:
 public:
   CUTLASS_DEVICE
   FragmentShuffler() {
-    int lane_id = cutlass::arch::LaneId();
+    int lane_id = nihilus_gemm::arch::LaneId();
     delta_up_ = (lane_id & 1) + ((lane_id & 2) >> 1);
     delta_down_ = 2 - delta_up_;
     odd_even_lane_id_ = static_cast<int>(lane_id & 1);
@@ -397,19 +397,19 @@ public:
   using InstructionShape = typename ArchMmaOperator::Shape;
 
   /// Complex transform on A operand
-  static ComplexTransform const kTransformA = ComplexTransform::kNone;
+  static constexpr ComplexTransform  kTransformA = ComplexTransform::kNone;
 
   /// Complex transform on B operand
-  static ComplexTransform const kTransformB = ComplexTransform::kNone;
+  static constexpr ComplexTransform  kTransformB = ComplexTransform::kNone;
 
   /// Number of threads participating in warp-level matrix product
-  static int const kThreadCount = 32;
+  static constexpr int  kThreadCount = 32;
 
   /// Number of partitions along K dimension
-  static int const kPartitionsK = PartitionsK_;
+  static constexpr int  kPartitionsK = PartitionsK_;
 
   /// 
-  // static int const kLoadShapeK = InstructionShape::kK * 
+  // static constexpr int  kLoadShapeK = InstructionShape::kK * 
   //  (sizeof_bits<ElementAMma>::value / sizeof_bits<ElementB>::value);
 
 public:
@@ -561,6 +561,6 @@ public:
 
 } // namespace warp
 } // namespace gemm
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

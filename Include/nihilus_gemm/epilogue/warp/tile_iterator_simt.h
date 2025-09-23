@@ -34,17 +34,17 @@
 
 #pragma once
 
-#include "cutlass/array.h"
-#include "cutlass/layout/matrix.h"
-#include "cutlass/layout/pitch_linear.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/layout/pitch_linear.h"
 
-#include "cutlass/epilogue/warp/simt_policy.h"
+#include "nihilus_gemm/epilogue/warp/simt_policy.h"
 
 #define CUTLASS_SIMT_EPILOGUE_USE_SCALAR_STORES 1
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace warp {
 
@@ -101,7 +101,7 @@ public:
     Policy::kAccumulatorElementCount>;
 
   /// Number of times this iterator can be incremented
-  static int const kIterations = Policy::kIterations;
+  static constexpr int  kIterations = Policy::kIterations;
 
   /// Padding quantity
   using Padding = MatrixShape<
@@ -283,7 +283,7 @@ class TileIteratorSimtDirectConv {
   using AccumulatorTile = Array<typename Operator::ElementC, Policy::kAccumulatorElementCount>;
 
   /// Number of times this iterator can be incremented
-  static int const kIterations = Policy::kIterations;
+  static constexpr int  kIterations = Policy::kIterations;
 
   /// Padding quantity
   using Padding = MatrixShape<0,
@@ -575,7 +575,7 @@ public:
     Policy::kAccumulatorElementCount>;
 
   /// Number of times this iterator can be incremented
-  static int const kIterations = Policy::kIterations;
+  static constexpr int  kIterations = Policy::kIterations;
 
   /// Padding quantity
   using Padding = MatrixShape<
@@ -780,6 +780,6 @@ public:
 
 } // namespace warp
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

@@ -31,9 +31,9 @@
 
 #pragma once
 
-#include "cutlass/coord.h"
+#include "nihilus_gemm/coord.h"
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace gemm {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -48,16 +48,16 @@ template <
   int K = 1
 >
 struct GemmShape {
-  static int const kM = M;
-  static int const kN = N;
-  static int const kK = K;
+  static constexpr int  kM = M;
+  static constexpr int  kN = N;
+  static constexpr int  kK = K;
 
-  static int const kMN = M * N;
-  static int const kMK = M * K;
-  static int const kKN = N * K;
-  static int const kMNK = M * N * K;
+  static constexpr int  kMN = M * N;
+  static constexpr int  kMK = M * K;
+  static constexpr int  kKN = N * K;
+  static constexpr int  kMNK = M * N * K;
 
-  static int const kCount = kMNK;
+  static constexpr int  kCount = kMNK;
 
   //
   // Static member functions
@@ -92,13 +92,13 @@ struct GemmCoord : public Coord<3, int> {
   typedef Coord<3, Index> Base;
 
   /// GEMM M dimension - rows of the output C matrix
-  static int const kM = 0;
+  static constexpr int  kM = 0;
 
   /// GEMM N dimension - columns of the output C matrix
-  static int const kN = 1;
+  static constexpr int  kN = 1;
 
   /// GEMM K dimension - inner dimension of the GEMM problem
-  static int const kK = 2;
+  static constexpr int  kK = 2;
 
   //
   // Methods
@@ -258,16 +258,16 @@ struct BatchedGemmCoord : public Coord<4, int> {
   typedef Coord<4, Index> Base;
 
   /// GEMM M dimension - rows of the output C matrix
-  static int const kM = 0;
+  static constexpr int  kM = 0;
 
   /// GEMM N dimension - columns of the output C matrix
-  static int const kN = 1;
+  static constexpr int  kN = 1;
 
   /// GEMM K dimension - inner dimension of the GEMM problem
-  static int const kK = 2;
+  static constexpr int  kK = 2;
 
   /// GEMM Batch dimension - inner dimension of the GEMM problem
-  static int const kBatch = 3;
+  static constexpr int  kBatch = 3;
 
   //
   // Methods
@@ -389,6 +389,6 @@ struct BatchedGemmCoord : public Coord<4, int> {
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace gemm
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

@@ -38,25 +38,25 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/array.h"
-#include "cutlass/layout/vector.h"
-#include "cutlass/layout/tensor.h"
-#include "cutlass/tensor_coord.h"
-#include "cutlass/aligned_buffer.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/layout/vector.h"
+#include "nihilus_gemm/layout/tensor.h"
+#include "nihilus_gemm/tensor_coord.h"
+#include "nihilus_gemm/aligned_buffer.h"
 
-#include "cutlass/gemm/gemm.h"
+#include "nihilus_gemm/gemm/gemm.h"
 
-#include "cutlass/transform/pitch_linear_thread_map.h"
-#include "cutlass/transform/threadblock/regular_tile_iterator.h"
+#include "nihilus_gemm/transform/pitch_linear_thread_map.h"
+#include "nihilus_gemm/transform/threadblock/regular_tile_iterator.h"
 
-#include "cutlass/epilogue/threadblock/epilogue_base_streamk.h"
-#include "cutlass/epilogue/threadblock/predicated_tile_iterator.h"
+#include "nihilus_gemm/epilogue/threadblock/epilogue_base_streamk.h"
+#include "nihilus_gemm/epilogue/threadblock/predicated_tile_iterator.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace threadblock {
 
@@ -95,7 +95,7 @@ public:
 
   using Shape = Shape_;
   using WarpMmaOperator = WarpMmaOperator_;
-  static int const kPartitionsK = PartitionsK;
+  static constexpr int  kPartitionsK = PartitionsK;
   using AccumulatorFragmentIterator = AccumulatorFragmentIterator_;
   using OutputTileIterator = OutputTileIterator_;
   using OutputOp = OutputOp_;
@@ -113,14 +113,14 @@ public:
   using ElementOutput = typename OutputTileIterator::Element;
 
   /// Output access size
-  static int const kElementsPerAccess = OutputTileIterator::kElementsPerAccess;
+  static constexpr int  kElementsPerAccess = OutputTileIterator::kElementsPerAccess;
 
   /// Tensor reference to destination tensor
   using TensorRef = typename OutputTileIterator::TensorRef;
 
   /// Tensor reference to sync tensor
   using SyncTensorRef =
-      typename cutlass::TensorRef<int, cutlass::layout::PackedVectorLayout>;
+      typename nihilus_gemm::TensorRef<int, nihilus_gemm::layout::PackedVectorLayout>;
 
   /// Const tensor reference to source tensor
   using ConstTensorRef = typename OutputTileIterator::ConstTensorRef;
@@ -402,6 +402,6 @@ public:
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////

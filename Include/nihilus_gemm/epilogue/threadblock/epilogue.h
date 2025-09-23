@@ -38,29 +38,29 @@
 */
 
 #pragma once
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 #include CUDA_STD_HEADER(cassert)
 
-#include "cutlass/numeric_types.h"
-#include "cutlass/array.h"
-#include "cutlass/layout/vector.h"
-#include "cutlass/layout/tensor.h"
-#include "cutlass/tensor_coord.h"
-#include "cutlass/aligned_buffer.h"
-#include "cutlass/functional.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/layout/vector.h"
+#include "nihilus_gemm/layout/tensor.h"
+#include "nihilus_gemm/tensor_coord.h"
+#include "nihilus_gemm/aligned_buffer.h"
+#include "nihilus_gemm/functional.h"
 
-#include "cutlass/gemm/gemm.h"
+#include "nihilus_gemm/gemm/gemm.h"
 
-#include "cutlass/transform/pitch_linear_thread_map.h"
-#include "cutlass/transform/threadblock/regular_tile_iterator.h"
+#include "nihilus_gemm/transform/pitch_linear_thread_map.h"
+#include "nihilus_gemm/transform/threadblock/regular_tile_iterator.h"
 
-#include "cutlass/epilogue/threadblock/epilogue_base.h"
-#include "cutlass/epilogue/threadblock/epilogue_base_streamk.h"
-#include "cutlass/epilogue/threadblock/predicated_tile_iterator.h"
+#include "nihilus_gemm/epilogue/threadblock/epilogue_base.h"
+#include "nihilus_gemm/epilogue/threadblock/epilogue_base_streamk.h"
+#include "nihilus_gemm/epilogue/threadblock/predicated_tile_iterator.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace threadblock {
 
@@ -117,7 +117,7 @@ public:
 
   using Shape = Shape_;
   using WarpMmaOperator = WarpMmaOperator_;
-  static int const kPartitionsK = PartitionsK;
+  static constexpr int  kPartitionsK = PartitionsK;
   using OutputTileIterator = OutputTileIterator_;
   using AccumulatorFragmentIterator = AccumulatorFragmentIterator_;
   using WarpTileIterator = WarpTileIterator_;
@@ -131,7 +131,7 @@ public:
   using WarpCount = typename Base::WarpCount;
 
   /// Number of threads per block
-  static int const kBlockThreads = 32 * WarpCount::kCount;
+  static constexpr int  kBlockThreads = 32 * WarpCount::kCount;
 
   /// Per-thread accumulator tile type
   using AccumulatorTile = typename Base::AccumulatorTile;
@@ -146,13 +146,13 @@ public:
   using ElementOutput = typename OutputTileIterator::Element;
 
   /// Output access size
-  static int const kElementsPerAccess = OutputTileIterator::kElementsPerAccess;
+  static constexpr int  kElementsPerAccess = OutputTileIterator::kElementsPerAccess;
 
   /// Tensor reference to destination tensor
   using TensorRef = typename OutputTileIterator::TensorRef;
 
   /// Tensor reference to sync tensor
-  using SyncTensorRef = typename cutlass::TensorRef<int, cutlass::layout::PackedVectorLayout>;
+  using SyncTensorRef = typename nihilus_gemm::TensorRef<int, nihilus_gemm::layout::PackedVectorLayout>;
 
   /// Const tensor reference to source tensor
   using ConstTensorRef = typename OutputTileIterator::ConstTensorRef;
@@ -431,7 +431,7 @@ public:
   struct acc2smem;
 
   template <size_t... Seq>
-  struct acc2smem<cutlass::index_sequence<Seq...>> {
+  struct acc2smem<nihilus_gemm::index_sequence<Seq...>> {
     template<int Advance>
     CUTLASS_DEVICE
     static void helper(AccumulatorFragmentIterator accum_fragment_iterator,
@@ -493,7 +493,7 @@ public:
 
       __syncthreads();
 
-      acc2smem<cutlass::make_index_sequence<OutputTileIterator::kIterations>>::push(
+      acc2smem<nihilus_gemm::make_index_sequence<OutputTileIterator::kIterations>>::push(
         iter, accum_fragment_iterator, this->warp_tile_iterator_);
 
       __syncthreads();
@@ -543,6 +543,6 @@ public:
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////

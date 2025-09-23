@@ -37,23 +37,23 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/array.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/array.h"
 
-#include "cutlass/numeric_types.h"
-#include "cutlass/matrix_shape.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/matrix_shape.h"
 
-#include "cutlass/arch/mma.h"
+#include "nihilus_gemm/arch/mma.h"
 
-#include "cutlass/gemm/gemm.h"
-#include "cutlass/gemm/warp/mma.h"
+#include "nihilus_gemm/gemm/gemm.h"
+#include "nihilus_gemm/gemm/warp/mma.h"
 
-#include "cutlass/gemm/warp/mma_tensor_op_policy.h"
-#include "cutlass/gemm/warp/mma_tensor_op_tile_iterator_sm70.h"
+#include "nihilus_gemm/gemm/warp/mma_tensor_op_policy.h"
+#include "nihilus_gemm/gemm/warp/mma_tensor_op_tile_iterator_sm70.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace gemm {
 namespace warp {
 
@@ -122,13 +122,13 @@ public:
   using InstructionShape = typename ArchMmaOperator::Shape;
 
   /// Complex transform on A operand
-  static ComplexTransform const kTransformA = ComplexTransform::kNone;
+  static constexpr ComplexTransform  kTransformA = ComplexTransform::kNone;
 
   /// Complex transform on B operand
-  static ComplexTransform const kTransformB = ComplexTransform::kNone;
+  static constexpr ComplexTransform  kTransformB = ComplexTransform::kNone;
 
   /// Number of threads participating in warp-level matrix product
-  static int const kThreadCount = 32;
+  static constexpr int  kThreadCount = 32;
 
   /// interleaved 32x32 tiles
   using InterleavedTileShape = GemmShape<32, 32, 4>;
@@ -277,4 +277,4 @@ public:
 
 } // namespace warp
 } // namespace gemm
-} // namespace cutlass
+} // namespace nihilus_gemm

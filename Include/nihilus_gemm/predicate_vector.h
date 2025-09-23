@@ -33,7 +33,7 @@
       of boolean predicates.
 */
 #pragma once
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 #if defined(__CUDACC_RTC__)
 #include CUDA_STD_HEADER(cstdint)
 #else
@@ -42,9 +42,9 @@
 
 #include CUDA_STD_HEADER(cassert)
 
-#include "cutlass/platform/platform.h"
+#include "nihilus_gemm/platform/platform.h"
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -542,4 +542,4 @@ struct PredicateVector {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-}  // namespace cutlass
+}  // namespace nihilus_gemm

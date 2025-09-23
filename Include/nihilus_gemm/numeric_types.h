@@ -34,21 +34,21 @@
 */
 #pragma once
 
-#include "cute/util/type_traits.hpp"
+#include "cute_rt_tm/util/type_traits.hpp"
 
-#include "cutlass/numeric_size.h"
-#include "cutlass/integer_subbyte.h"
-#include "cutlass/half.h"
-#include "cutlass/bfloat16.h"
-#include "cutlass/tfloat32.h"
-#include "cutlass/float8.h"
-#include "cutlass/uint128.h"
-#include "cutlass/uint256.h"
-#include "cutlass/exmy_base.h"
-#include "cutlass/float_subbyte.h"
+#include "nihilus_gemm/numeric_size.h"
+#include "nihilus_gemm/integer_subbyte.h"
+#include "nihilus_gemm/half.h"
+#include "nihilus_gemm/bfloat16.h"
+#include "nihilus_gemm/tfloat32.h"
+#include "nihilus_gemm/float8.h"
+#include "nihilus_gemm/uint128.h"
+#include "nihilus_gemm/uint256.h"
+#include "nihilus_gemm/exmy_base.h"
+#include "nihilus_gemm/float_subbyte.h"
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -106,7 +106,7 @@ struct get_unpacked_element_type {
 
 } // namespace detail
 
-}  // namespace cutlass
+}  // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 

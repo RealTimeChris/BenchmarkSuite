@@ -35,7 +35,7 @@
 
 #pragma once
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace transform {
 namespace thread {
 
@@ -50,10 +50,10 @@ template <
 template <int ElementCount_>
 struct Transpose<ElementCount_, layout::PitchLinearShape<4,4> , int8_t> {
 
-    static const int kElementCount = ElementCount_;
+    static constexpr int kElementCount = ElementCount_;
     using TransposeShape = layout::PitchLinearShape<4,4>;
     using Element = int8_t;
-    using Fragment = cutlass::Array<Element, kElementCount>;
+    using Fragment = nihilus_gemm::Array<Element, kElementCount>;
 
     static_assert(!(kElementCount % TransposeShape::kCount), "Shape needs to be multiple of 16 elements to do a 4x4 transpose");
 
@@ -104,4 +104,4 @@ struct Transpose<ElementCount_, layout::PitchLinearShape<4,4> , int8_t> {
 
 }  // namespace thread
 }  // namespace layout
-}  // namespace cutlass
+}  // namespace nihilus_gemm

@@ -37,14 +37,14 @@
 */
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/numeric_size.h"
-#include "cutlass/platform/platform.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_size.h"
+#include "nihilus_gemm/platform/platform.h"
 
 // #define CUTLASS_DEBUG_TRACE_LEVEL 2
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
  // Helper functions
 namespace detail {
 
@@ -54,9 +54,9 @@ Dst copy_bits(Src src)
 {
   Dst dst;
   static_assert(sizeof(Src) <= sizeof(Dst), "Dst type should be at least the same size as Src type");
-  static_assert(cutlass::platform::is_trivially_copyable<Dst>::value, "Dst type should be trivially copyable");
-  static_assert(cutlass::platform::is_trivially_copyable<
-    /*cutlass::platform::remove_cvref_t< */ Dst /* > */ >::value, "Dst type should be trivially copyable");
+  static_assert(nihilus_gemm::platform::is_trivially_copyable<Dst>::value, "Dst type should be trivially copyable");
+  static_assert(nihilus_gemm::platform::is_trivially_copyable<
+    /*nihilus_gemm::platform::remove_cvref_t< */ Dst /* > */ >::value, "Dst type should be trivially copyable");
   memcpy(&dst, &src, sizeof(src));
   return dst;
 }
@@ -92,7 +92,7 @@ enum class FpEncoding
 template<uint32_t NumExpBits, uint32_t NumMantissaBits>
 constexpr int exponent_bias_cxx17() {
   if CUTLASS_CONSTEXPR_IF_CXX17 (NumExpBits == 0) {
-    static_assert(NumMantissaBits <= static_cast<uint32_t>(cutlass::platform::numeric_limits<int32_t>::max()));
+    static_assert(NumMantissaBits <= static_cast<uint32_t>(nihilus_gemm::platform::numeric_limits<int32_t>::max()));
     return -1 * static_cast<int>(NumMantissaBits);
   }
   else {
@@ -401,7 +401,7 @@ public:
   using Storage = StorageType;
 
 #if (CUTLASS_CXX17_OR_LATER)
-  static_assert(cutlass::platform::is_unsigned_v<Storage>, "Use an unsigned integer for StorageType");
+  static_assert(nihilus_gemm::platform::is_unsigned_v<Storage>, "Use an unsigned integer for StorageType");
 #endif
   static constexpr bool IS_SIGNED = IsSigned;
   // Canonical NaN is always represented as exponent=11...11 and mantissa=11...11, if it exists
@@ -684,7 +684,7 @@ private:
 
     using SrcT = typename SrcFpBits::Storage;
     using DstT = typename DstFpBits::Storage;
-    using LargeStorage = typename cutlass::platform::conditional<(sizeof(SrcT) > sizeof(DstT)), SrcT, DstT>::type;
+    using LargeStorage = typename nihilus_gemm::platform::conditional<(sizeof(SrcT) > sizeof(DstT)), SrcT, DstT>::type;
 
     LargeStorage src_sign_bit = src_encoding.sign_bit(src_val);
 
@@ -854,33 +854,33 @@ private:
 template<FpEncoding FpExMyCode>
 CUTLASS_CONSTEXPR_IF_CXX17 auto fp_encoding_selector() {
   if CUTLASS_CONSTEXPR_IF_CXX17      (FpExMyCode == FpEncoding::E11M52) { // double
-    return cutlass::detail::FpBitRepresentation<uint64_t, 64, 11, 52, cutlass::detail::NanInfEncoding::IEEE_754>{};
+    return nihilus_gemm::detail::FpBitRepresentation<uint64_t, 64, 11, 52, nihilus_gemm::detail::NanInfEncoding::IEEE_754>{};
   }
   else if CUTLASS_CONSTEXPR_IF_CXX17 (FpExMyCode == FpEncoding::E8M23)  { // float
-    return cutlass::detail::FpBitRepresentation<uint32_t, 32, 8, 23, cutlass::detail::NanInfEncoding::IEEE_754>{};
+    return nihilus_gemm::detail::FpBitRepresentation<uint32_t, 32, 8, 23, nihilus_gemm::detail::NanInfEncoding::IEEE_754>{};
   }
   else if CUTLASS_CONSTEXPR_IF_CXX17 (FpExMyCode == FpEncoding::E5M2)   {   // FP8
-    return cutlass::detail::FpBitRepresentation<uint8_t, 8, 5, 2, cutlass::detail::NanInfEncoding::IEEE_754>{};
+    return nihilus_gemm::detail::FpBitRepresentation<uint8_t, 8, 5, 2, nihilus_gemm::detail::NanInfEncoding::IEEE_754>{};
   }
   else if CUTLASS_CONSTEXPR_IF_CXX17 (FpExMyCode == FpEncoding::E4M3)   {   // FP8
-    return cutlass::detail::FpBitRepresentation<uint8_t, 8, 4, 3, cutlass::detail::NanInfEncoding::CANONICAL_ONLY>{};
+    return nihilus_gemm::detail::FpBitRepresentation<uint8_t, 8, 4, 3, nihilus_gemm::detail::NanInfEncoding::CANONICAL_ONLY>{};
   }
   
   else if CUTLASS_CONSTEXPR_IF_CXX17 (FpExMyCode == FpEncoding::UE4M3)   {   // FP8
-    return cutlass::detail::FpBitRepresentation<uint8_t, 8, 4, 3, cutlass::detail::NanInfEncoding::CANONICAL_ONLY, false>{};
+    return nihilus_gemm::detail::FpBitRepresentation<uint8_t, 8, 4, 3, nihilus_gemm::detail::NanInfEncoding::CANONICAL_ONLY, false>{};
   }
   
   else if CUTLASS_CONSTEXPR_IF_CXX17 (FpExMyCode == FpEncoding::UE8M0)   {   // FP8
-    return cutlass::detail::FpBitRepresentation<uint8_t, 8, 8, 0, cutlass::detail::NanInfEncoding::CANONICAL_ONLY, false>{};
+    return nihilus_gemm::detail::FpBitRepresentation<uint8_t, 8, 8, 0, nihilus_gemm::detail::NanInfEncoding::CANONICAL_ONLY, false>{};
   }
   else if CUTLASS_CONSTEXPR_IF_CXX17 (FpExMyCode == FpEncoding::E3M2)   {   // FP6
-    return cutlass::detail::FpBitRepresentation<uint8_t, 6, 3, 2, cutlass::detail::NanInfEncoding::NONE>{};
+    return nihilus_gemm::detail::FpBitRepresentation<uint8_t, 6, 3, 2, nihilus_gemm::detail::NanInfEncoding::NONE>{};
   }
   else if CUTLASS_CONSTEXPR_IF_CXX17 (FpExMyCode == FpEncoding::E2M3)   {   // FP6
-    return cutlass::detail::FpBitRepresentation<uint8_t, 6, 2, 3, cutlass::detail::NanInfEncoding::NONE>{};
+    return nihilus_gemm::detail::FpBitRepresentation<uint8_t, 6, 2, 3, nihilus_gemm::detail::NanInfEncoding::NONE>{};
   }
   else if CUTLASS_CONSTEXPR_IF_CXX17 (FpExMyCode == FpEncoding::E2M1)   {   // FP4
-    return cutlass::detail::FpBitRepresentation<uint8_t, 4, 2, 1, cutlass::detail::NanInfEncoding::NONE>{};
+    return nihilus_gemm::detail::FpBitRepresentation<uint8_t, 4, 2, 1, nihilus_gemm::detail::NanInfEncoding::NONE>{};
   }
   CUTLASS_GCC_UNREACHABLE;
 }
@@ -895,38 +895,38 @@ template <FpEncoding FpExMyCode> struct FpEncodingSelector {
 };
 
 template <> struct FpEncodingSelector<FpEncoding::E11M52> {
-  using type = cutlass::detail::FpBitRepresentation<uint64_t, 64, 11, 52, cutlass::detail::NanInfEncoding::IEEE_754>;
+  using type = nihilus_gemm::detail::FpBitRepresentation<uint64_t, 64, 11, 52, nihilus_gemm::detail::NanInfEncoding::IEEE_754>;
 };
 
 template <> struct FpEncodingSelector<FpEncoding::E8M23> {
-  using type = cutlass::detail::FpBitRepresentation<uint32_t, 32, 8, 23, cutlass::detail::NanInfEncoding::IEEE_754>;
+  using type = nihilus_gemm::detail::FpBitRepresentation<uint32_t, 32, 8, 23, nihilus_gemm::detail::NanInfEncoding::IEEE_754>;
 };
 template <> struct FpEncodingSelector<FpEncoding::E5M2> {
-  using type = cutlass::detail::FpBitRepresentation<uint8_t, 8, 5, 2, cutlass::detail::NanInfEncoding::IEEE_754>;
+  using type = nihilus_gemm::detail::FpBitRepresentation<uint8_t, 8, 5, 2, nihilus_gemm::detail::NanInfEncoding::IEEE_754>;
 };
 
 template <> struct FpEncodingSelector<FpEncoding::E4M3> {
-  using type = cutlass::detail::FpBitRepresentation<uint8_t, 8, 4, 3, cutlass::detail::NanInfEncoding::CANONICAL_ONLY>;
+  using type = nihilus_gemm::detail::FpBitRepresentation<uint8_t, 8, 4, 3, nihilus_gemm::detail::NanInfEncoding::CANONICAL_ONLY>;
 };
 
 template <> struct FpEncodingSelector<FpEncoding::UE4M3> {
-  using type = cutlass::detail::FpBitRepresentation<uint8_t, 8, 4, 3, cutlass::detail::NanInfEncoding::CANONICAL_ONLY, false>;
+  using type = nihilus_gemm::detail::FpBitRepresentation<uint8_t, 8, 4, 3, nihilus_gemm::detail::NanInfEncoding::CANONICAL_ONLY, false>;
 };
 
 template <> struct FpEncodingSelector<FpEncoding::UE8M0> {
-  using type = cutlass::detail::FpBitRepresentation<uint8_t, 8, 8, 0, cutlass::detail::NanInfEncoding::CANONICAL_ONLY, false>;
+  using type = nihilus_gemm::detail::FpBitRepresentation<uint8_t, 8, 8, 0, nihilus_gemm::detail::NanInfEncoding::CANONICAL_ONLY, false>;
 };
 
 template <> struct FpEncodingSelector<FpEncoding::E3M2> {
-  using type = cutlass::detail::FpBitRepresentation<uint8_t, 6, 3, 2, cutlass::detail::NanInfEncoding::NONE>;
+  using type = nihilus_gemm::detail::FpBitRepresentation<uint8_t, 6, 3, 2, nihilus_gemm::detail::NanInfEncoding::NONE>;
 };
 
 template <> struct FpEncodingSelector<FpEncoding::E2M3> {
-  using type = cutlass::detail::FpBitRepresentation<uint8_t, 6, 2, 3, cutlass::detail::NanInfEncoding::NONE>;
+  using type = nihilus_gemm::detail::FpBitRepresentation<uint8_t, 6, 2, 3, nihilus_gemm::detail::NanInfEncoding::NONE>;
 };
 
 template <> struct FpEncodingSelector<FpEncoding::E2M1> {
-  using type = cutlass::detail::FpBitRepresentation<uint8_t, 4, 2, 1, cutlass::detail::NanInfEncoding::NONE>;
+  using type = nihilus_gemm::detail::FpBitRepresentation<uint8_t, 4, 2, 1, nihilus_gemm::detail::NanInfEncoding::NONE>;
 };
 #endif
 
@@ -947,9 +947,9 @@ struct float_exmy_base
 
   using FP32BitRepresentation =
     #if (CUTLASS_CXX17_OR_LATER)
-      decltype(cutlass::detail::fp_encoding_selector<cutlass::detail::FpEncoding::E8M23>())
+      decltype(nihilus_gemm::detail::fp_encoding_selector<nihilus_gemm::detail::FpEncoding::E8M23>())
     #else
-      typename detail::FpEncodingSelector<cutlass::detail::FpEncoding::E8M23>::type
+      typename detail::FpEncodingSelector<nihilus_gemm::detail::FpEncoding::E8M23>::type
     #endif
       ;
 
@@ -1212,11 +1212,11 @@ struct float_exmy_base
 
 template <detail::FpEncoding T, class Derived>
 CUTLASS_HOST_DEVICE
-cutlass::float_exmy_base<T, Derived> abs(cutlass::float_exmy_base<T, Derived> const& h) {
-  using BitRepresentation = typename cutlass::float_exmy_base<T, Derived>::BitRepresentation;
-  using Storage = typename cutlass::float_exmy_base<T, Derived>::Storage;
+nihilus_gemm::float_exmy_base<T, Derived> abs(nihilus_gemm::float_exmy_base<T, Derived> const& h) {
+  using BitRepresentation = typename nihilus_gemm::float_exmy_base<T, Derived>::BitRepresentation;
+  using Storage = typename nihilus_gemm::float_exmy_base<T, Derived>::Storage;
   return BitRepresentation::IS_SIGNED ?
-      cutlass::float_exmy_base<T, Derived>(Storage(h.raw() & Storage((1<<BitRepresentation::SIGN_SHIFT) - 1))) :
-      cutlass::float_exmy_base<T, Derived>(h.raw());
+      nihilus_gemm::float_exmy_base<T, Derived>(Storage(h.raw() & Storage((1<<BitRepresentation::SIGN_SHIFT) - 1))) :
+      nihilus_gemm::float_exmy_base<T, Derived>(h.raw());
 }
-} // namespace cutlass
+} // namespace nihilus_gemm

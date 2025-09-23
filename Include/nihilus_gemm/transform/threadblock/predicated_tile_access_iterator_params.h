@@ -34,15 +34,15 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/array.h"
-#include "cutlass/detail/helper_macros.hpp"
-#include "cutlass/layout/matrix.h"
-#include "cutlass/layout/pitch_linear.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/detail/helper_macros.hpp"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/layout/pitch_linear.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace transform {
 namespace threadblock {
 
@@ -126,7 +126,7 @@ template <
 struct MakePredicatedTileAccessIteratorDesc <
     Shape, Element, layout::ColumnMajor, AdvanceRank, ThreadMap> {
 
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int  kAdvanceRank = AdvanceRank;
 
   using UnderlyingMakeOperator = MakePredicatedTileAccessIteratorDesc<
       layout::PitchLinearShape<Shape::kRow, Shape::kColumn>, Element,
@@ -148,7 +148,7 @@ template <
 struct MakePredicatedTileAccessIteratorDesc <
     Shape, Element, layout::RowMajor, AdvanceRank, ThreadMap> {
 
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int  kAdvanceRank = AdvanceRank;
 
   using UnderlyingMakeOperator = MakePredicatedTileAccessIteratorDesc<
       layout::PitchLinearShape<Shape::kColumn, Shape::kRow>, Element,
@@ -170,8 +170,8 @@ template <
 struct MakePredicatedTileAccessIteratorDesc <
     Shape, Element, layout::ColumnMajorInterleaved<InterleavedK>, AdvanceRank, ThreadMap> {
 
-  static int const kAdvanceRank = AdvanceRank;
-  static int const kInterleavedK = InterleavedK;
+  static constexpr int  kAdvanceRank = AdvanceRank;
+  static constexpr int  kInterleavedK = InterleavedK;
 
   using UnderlyingMakeOperator = MakePredicatedTileAccessIteratorDesc<
       layout::PitchLinearShape<Shape::kRow * kInterleavedK, Shape::kColumn / kInterleavedK>, Element,
@@ -193,8 +193,8 @@ template <
 struct MakePredicatedTileAccessIteratorDesc <
     Shape, Element, layout::RowMajorInterleaved<InterleavedK>, AdvanceRank, ThreadMap> {
 
-  static int const kAdvanceRank = AdvanceRank;
-  static int const kInterleavedK = InterleavedK;
+  static constexpr int  kAdvanceRank = AdvanceRank;
+  static constexpr int  kInterleavedK = InterleavedK;
 
   using UnderlyingMakeOperator = MakePredicatedTileAccessIteratorDesc<
       layout::PitchLinearShape<Shape::kColumn * kInterleavedK, Shape::kRow / kInterleavedK>, Element,
@@ -285,6 +285,6 @@ struct PredicatedTileAccessIteratorParams {
 
 }  // namespace threadblock
 }  // namespace transform
-}  // namespace cutlass
+}  // namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////

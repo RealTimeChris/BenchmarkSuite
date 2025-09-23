@@ -38,23 +38,23 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/array.h"
-#include "cutlass/layout/matrix.h"
-#include "cutlass/layout/tensor.h"
-#include "cutlass/matrix_shape.h"
-#include "cutlass/tensor_ref.h"
-#include "cutlass/transform/pitch_linear_thread_map.h"
-#include "cutlass/epilogue/threadblock/output_tile_thread_map.h"
-#include "cutlass/arch/arch.h"
-#include "cutlass/arch/memory.h"
-#include "cutlass/conv/conv2d_problem_size.h"
-#include "cutlass/epilogue/threadblock/predicated_tile_iterator_params.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/layout/tensor.h"
+#include "nihilus_gemm/matrix_shape.h"
+#include "nihilus_gemm/tensor_ref.h"
+#include "nihilus_gemm/transform/pitch_linear_thread_map.h"
+#include "nihilus_gemm/epilogue/threadblock/output_tile_thread_map.h"
+#include "nihilus_gemm/arch/arch.h"
+#include "nihilus_gemm/arch/memory.h"
+#include "nihilus_gemm/conv/conv2d_problem_size.h"
+#include "nihilus_gemm/epilogue/threadblock/predicated_tile_iterator_params.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -86,9 +86,9 @@ public:
   using LongIndex = typename Layout::LongIndex;
   using TensorCoord = MatrixCoord;
 
-  static int const kElementsPerAccess = ThreadMap::kElementsPerAccess;
-  static int const kThreads = ThreadMap::kThreads;
-  static int const kIterations = ThreadMap::Count::kTile;
+  static constexpr int  kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static constexpr int  kThreads = ThreadMap::kThreads;
+  static constexpr int  kIterations = ThreadMap::Count::kTile;
 
   static_assert( ThreadMap::Iterations::kRow > 0,"ThreadMap::Iterations::kRow must be > 0");
   static_assert( ThreadMap::Iterations::kGroup > 0,"ThreadMap::Iterations::kGroup must be > 0");
@@ -114,14 +114,14 @@ public:
   struct Params : PredicatedTileIteratorParams {
 
     /// Convolution problem size
-    cutlass::conv::Conv2dProblemSize problem_size;
+    nihilus_gemm::conv::Conv2dProblemSize problem_size;
     int tiled_rows_per_filter;
 
     CUTLASS_HOST_DEVICE
     Params() { }
 
     CUTLASS_HOST_DEVICE
-    Params(Layout const &layout, cutlass::conv::Conv2dProblemSize problem_size_, int threadblock_row): 
+    Params(Layout const &layout, nihilus_gemm::conv::Conv2dProblemSize problem_size_, int threadblock_row): 
       problem_size(problem_size_), 
       PredicatedTileIteratorParams(
         layout.stride(0) * int(sizeof(AccessType)) / kElementsPerAccess,
@@ -138,7 +138,7 @@ public:
   /// Mask object
   struct Mask {
 
-    static int const kCount = ThreadMap::Iterations::kColumn;
+    static constexpr int  kCount = ThreadMap::Iterations::kColumn;
 
     /// Predicate state
     bool predicates[kCount];
@@ -240,7 +240,7 @@ public:
     int r = start_r;
     int s = start_s;
 
-    if (params_.problem_size.mode == cutlass::conv::Mode::kConvolution) {
+    if (params_.problem_size.mode == nihilus_gemm::conv::Mode::kConvolution) {
       r = (params_.problem_size.R - 1 - r);
       s = (params_.problem_size.S - 1 - s);
     }
@@ -331,7 +331,7 @@ public:
 
             bool guard = row_guard && mask_.predicates[column];
 
-            cutlass::arch::global_load<
+            nihilus_gemm::arch::global_load<
               AccessType, 
               sizeof(AccessType)
             >(
@@ -398,7 +398,7 @@ public:
 
             bool guard = row_guard && mask_.predicates[column];
 
-            cutlass::arch::global_store<AccessType, sizeof(AccessType) >(
+            nihilus_gemm::arch::global_store<AccessType, sizeof(AccessType) >(
                 frag_ptr[frag_row_idx * ThreadMap::Iterations::kColumn + column],
                 (void *)(byte_pointer + row_byte_offset + column_byte_offset + byte_offset),
                 guard);            
@@ -474,6 +474,6 @@ public:
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////

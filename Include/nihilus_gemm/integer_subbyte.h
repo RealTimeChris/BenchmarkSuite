@@ -35,17 +35,17 @@
 */
 
 #pragma once
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 #if defined(__CUDACC_RTC__)
 #include CUDA_STD_HEADER(cstdint)
 #else
 #include <cstdint>
 #endif
 
-#include "cutlass/numeric_size.h"
-#include "cutlass/platform/platform.h"
+#include "nihilus_gemm/numeric_size.h"
+#include "nihilus_gemm/platform/platform.h"
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 template <int Bits, bool Signed = true>
 struct integer_subbyte {
@@ -55,7 +55,7 @@ struct integer_subbyte {
 
   // "External type"; the integer type for which
   // integer_subbyte has a conversion-to operator
-  using xint_t = typename cutlass::platform::conditional<Signed, int, unsigned>::type;
+  using xint_t = typename nihilus_gemm::platform::conditional<Signed, int, unsigned>::type;
 
   // Bitmask for truncation from larger integers
   static constexpr Storage bits_mask_ = Storage(Storage(-1) >> (8 - Bits));
@@ -71,7 +71,7 @@ struct integer_subbyte {
   // Implicit conversion is DEPRECATED.
   // Please use one of the two explicit constructors below.
   template<class T,
-    class Enable = cutlass::platform::enable_if_t<cutlass::platform::is_convertible_v<T, int>>
+    class Enable = nihilus_gemm::platform::enable_if_t<nihilus_gemm::platform::is_convertible_v<T, int>>
   >
 #if !defined(CUTLASS_EXTRA_WARNINGS)
   [[deprecated("Implicit conversion is deprecated; please use explicit construction instead")]]
@@ -246,9 +246,9 @@ struct numeric_limits;
 
 // Specialization for signed integer_subbyte
 template<int NumBits>
-struct numeric_limits<cutlass::integer_subbyte<NumBits, true>> {
+struct numeric_limits<nihilus_gemm::integer_subbyte<NumBits, true>> {
 private:
-  using value_type = cutlass::integer_subbyte<NumBits, true>;
+  using value_type = nihilus_gemm::integer_subbyte<NumBits, true>;
 
 public:
   CUTLASS_HOST_DEVICE static value_type lowest() noexcept {
@@ -263,7 +263,7 @@ public:
     };
   }
 
-  CUTLASS_HOST_DEVICE static value_type const min() noexcept {
+  CUTLASS_HOST_DEVICE static constexpr value_type  min() noexcept {
     return lowest();
   }
 
@@ -274,9 +274,9 @@ public:
 
 // Specialization for unsigned integer_subbyte
 template<int NumBits>
-struct numeric_limits<cutlass::integer_subbyte<NumBits, false>> {
+struct numeric_limits<nihilus_gemm::integer_subbyte<NumBits, false>> {
 private:
-  using value_type = cutlass::integer_subbyte<NumBits, false>;
+  using value_type = nihilus_gemm::integer_subbyte<NumBits, false>;
 
 public:
   CUTLASS_HOST_DEVICE static value_type lowest() noexcept {
@@ -289,7 +289,7 @@ public:
     };
   }
 
-  CUTLASS_HOST_DEVICE static value_type const min() noexcept {
+  CUTLASS_HOST_DEVICE static constexpr value_type  min() noexcept {
     return lowest();
   }
 
@@ -298,4 +298,4 @@ public:
 };
 
 } // namespace platform
-} // namespace cutlass
+} // namespace nihilus_gemm

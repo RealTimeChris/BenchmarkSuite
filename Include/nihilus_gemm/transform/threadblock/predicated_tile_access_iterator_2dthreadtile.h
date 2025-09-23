@@ -43,22 +43,22 @@
 
 #pragma once
 
-#include "cutlass/array.h"
-#include "cutlass/coord.h"
-#include "cutlass/cutlass.h"
-#include "cutlass/layout/matrix.h"
-#include "cutlass/layout/pitch_linear.h"
-#include "cutlass/matrix_shape.h"
-#include "cutlass/predicate_vector.h"
-#include "cutlass/tensor_ref.h"
-#include "cutlass/tensor_view.h"
-#include "cutlass/transform/threadblock/predicated_tile_access_iterator_params.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/coord.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/layout/pitch_linear.h"
+#include "nihilus_gemm/matrix_shape.h"
+#include "nihilus_gemm/predicate_vector.h"
+#include "nihilus_gemm/tensor_ref.h"
+#include "nihilus_gemm/tensor_view.h"
+#include "nihilus_gemm/transform/threadblock/predicated_tile_access_iterator_params.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace transform {
 namespace threadblock {
 
@@ -87,7 +87,7 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::PitchLi
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::PitchLinear;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int  kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
   using AccessType = AccessType_;
 
@@ -102,14 +102,14 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::PitchLi
   using Pointer = Element *;
   using NonConstPointer = typename platform::remove_const<Element>::type *;
 
-  static int const kPredicatesPerByte = 4;
-  static int const kPredicatesPerWord = 4 * kPredicatesPerByte;
+  static constexpr int  kPredicatesPerByte = 4;
+  static constexpr int  kPredicatesPerWord = 4 * kPredicatesPerByte;
 
   /// Number of 32b words containing predicates
-  static int const kPredicateByteCount = (ThreadMap::Iterations::kCount * ThreadMap::ThreadAccessShape::kStrided + kPredicatesPerByte - 1) / kPredicatesPerByte;
-  static int const kPredicateWordCount = (kPredicateByteCount + 3) / 4;
+  static constexpr int  kPredicateByteCount = (ThreadMap::Iterations::kCount * ThreadMap::ThreadAccessShape::kStrided + kPredicatesPerByte - 1) / kPredicatesPerByte;
+  static constexpr int  kPredicateWordCount = (kPredicateByteCount + 3) / 4;
 
-  static unsigned const kPredicateMask = (1u << kPredicatesPerByte) - 1u;
+  static constexpr unsigned  kPredicateMask = (1u << kPredicatesPerByte) - 1u;
 
   static_assert(kPredicateWordCount <= 4, "Too many predicates.");
 
@@ -487,7 +487,7 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::ColumnM
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::ColumnMajor;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int  kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
   using AccessType = AccessType_;
 
@@ -666,7 +666,7 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::RowMajo
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::RowMajor;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int  kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
   using AccessType = AccessType_;
 
@@ -829,6 +829,6 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::RowMajo
 
 }  // namespace threadblock
 }  // namespace transform
-}  // namespace cutlass
+}  // namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////

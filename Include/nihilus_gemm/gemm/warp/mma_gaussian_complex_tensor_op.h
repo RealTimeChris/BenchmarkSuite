@@ -35,29 +35,29 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 
-#include "cutlass/array.h"
-#include "cutlass/complex.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/matrix_shape.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/complex.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/matrix_shape.h"
 
-#include "cutlass/arch/memory_sm75.h"
-#include "cutlass/arch/mma_sm75.h"
-#include "cutlass/arch/mma_sm80.h"
+#include "nihilus_gemm/arch/memory_sm75.h"
+#include "nihilus_gemm/arch/mma_sm75.h"
+#include "nihilus_gemm/arch/mma_sm80.h"
 
-#include "cutlass/gemm/gemm.h"
-#include "cutlass/gemm/warp/mma.h"
+#include "nihilus_gemm/gemm/gemm.h"
+#include "nihilus_gemm/gemm/warp/mma.h"
 
-#include "cutlass/gemm/warp/mma_tensor_op_policy.h"
-#include "cutlass/gemm/warp/mma_tensor_op.h"
+#include "nihilus_gemm/gemm/warp/mma_tensor_op_policy.h"
+#include "nihilus_gemm/gemm/warp/mma_tensor_op.h"
 
-#include "cutlass/gemm/warp/mma_tensor_op_tile_iterator.h"
-#include "cutlass/gemm/warp/mma_gaussian_complex_tensor_op_tile_iterator_sm80.h"
+#include "nihilus_gemm/gemm/warp/mma_tensor_op_tile_iterator.h"
+#include "nihilus_gemm/gemm/warp/mma_gaussian_complex_tensor_op_tile_iterator_sm80.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace gemm {
 namespace warp {
 
@@ -168,14 +168,14 @@ public:
   using MathOperator = arch::OpMultiplyAddGaussianComplex;
   
   /// Complex transform on A operand
-  static ComplexTransform const kTransformA = TransformA;
+  static constexpr ComplexTransform  kTransformA = TransformA;
 
   /// Complex transform on B operand
-  static ComplexTransform const kTransformB = TransformB;
+  static constexpr ComplexTransform  kTransformB = TransformB;
 
 
   /// Number of threads participating in warp-level matrix product
-  static int const kThreadCount = 32;
+  static constexpr int  kThreadCount = 32;
 
 public:
 
@@ -433,14 +433,14 @@ public:
   using MathOperator = arch::OpMultiplyAddGaussianComplex;
   
   /// Complex transform on A operand
-  static ComplexTransform const kTransformA = TransformA;
+  static constexpr ComplexTransform  kTransformA = TransformA;
 
   /// Complex transform on B operand
-  static ComplexTransform const kTransformB = TransformB;
+  static constexpr ComplexTransform  kTransformB = TransformB;
 
 
   /// Number of threads participating in warp-level matrix product
-  static int const kThreadCount = 32;
+  static constexpr int  kThreadCount = 32;
 
 public:
 
@@ -637,6 +637,6 @@ public:
 
 } // namespace warp
 } // namespace gemm
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

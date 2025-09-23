@@ -33,10 +33,10 @@
 */
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/coord.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/coord.h"
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -58,10 +58,10 @@ public:
 private:
 
   /// Rows dimension
-  static int const kRow = 0;
+  static constexpr int  kRow = 0;
 
   /// Columns dimension
-  static int const kColumn = 1;
+  static constexpr int  kColumn = 1;
 
 public:
 
@@ -161,4 +161,4 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cutlass
+} // namespace nihilus_gemm

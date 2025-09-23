@@ -47,15 +47,15 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/tensor_coord.h"
-#include "cutlass/fast_math.h"
-#include "cutlass/gemm/gemm_enumerated_types.h"
-#include "cutlass/matrix_coord.h"
-#include "cutlass/conv/convolution.h"
-#include "cutlass/functional.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/tensor_coord.h"
+#include "nihilus_gemm/fast_math.h"
+#include "nihilus_gemm/gemm/gemm_enumerated_types.h"
+#include "nihilus_gemm/matrix_coord.h"
+#include "nihilus_gemm/conv/convolution.h"
+#include "nihilus_gemm/functional.h"
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace conv {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -130,17 +130,17 @@ public:
     dilation_h(dilation_h), dilation_w(dilation_w), 
     mode(mode), split_k_slices(split_k_slices), groups (groups) { }
 
-  /// Constructs convolution problem size from cutlass Tensor4DCoord and MatrixCoord 
+  /// Constructs convolution problem size from nihilus_gemm Tensor4DCoord and MatrixCoord 
   // set user-defined output size and sets P and Q (include all data members in ctor)
   CUTLASS_HOST_DEVICE
   Conv2dProblemSize(
-    cutlass::Tensor4DCoord input_size,    // NHWC
-    cutlass::Tensor4DCoord filter_size,   // KRSC
-    cutlass::Tensor4DCoord padding,       // pad_h, _, pad_w, _
-    cutlass::MatrixCoord stride,          // stride_h, stride_w
-    cutlass::MatrixCoord dilation,        // dilation_h, dilation_w
-    cutlass::Tensor4DCoord output_size,   // NPQK
-    cutlass::conv::Mode mode = cutlass::conv::Mode::kCrossCorrelation,
+    nihilus_gemm::Tensor4DCoord input_size,    // NHWC
+    nihilus_gemm::Tensor4DCoord filter_size,   // KRSC
+    nihilus_gemm::Tensor4DCoord padding,       // pad_h, _, pad_w, _
+    nihilus_gemm::MatrixCoord stride,          // stride_h, stride_w
+    nihilus_gemm::MatrixCoord dilation,        // dilation_h, dilation_w
+    nihilus_gemm::Tensor4DCoord output_size,   // NPQK
+    nihilus_gemm::conv::Mode mode = nihilus_gemm::conv::Mode::kCrossCorrelation,
     int split_k_slices = 1,
     int groups = 1
   ):
@@ -152,16 +152,16 @@ public:
     dilation_h(dilation.row()), dilation_w(dilation.column()),
     mode(mode), split_k_slices(split_k_slices), groups(groups) {}
 
-  /// Constructs convolution problem size from cutlass Tensor4DCoord and MatrixCoord 
+  /// Constructs convolution problem size from nihilus_gemm Tensor4DCoord and MatrixCoord 
   // computes output size and sets P and Q (skip output from ctor arguments)
   CUTLASS_HOST_DEVICE  
   Conv2dProblemSize(
-    cutlass::Tensor4DCoord input_size,   // NHWC
-    cutlass::Tensor4DCoord filter_size,  // KRSC
-    cutlass::Tensor4DCoord padding,      // pad_h, upper_pad_h, pad_w, upper_pad_w
-    cutlass::MatrixCoord stride,         // stride_h, stride_w
-    cutlass::MatrixCoord dilation,       // dilation_h, dilation_w
-    cutlass::conv::Mode mode = cutlass::conv::Mode::kCrossCorrelation,
+    nihilus_gemm::Tensor4DCoord input_size,   // NHWC
+    nihilus_gemm::Tensor4DCoord filter_size,  // KRSC
+    nihilus_gemm::Tensor4DCoord padding,      // pad_h, upper_pad_h, pad_w, upper_pad_w
+    nihilus_gemm::MatrixCoord stride,         // stride_h, stride_w
+    nihilus_gemm::MatrixCoord dilation,       // dilation_h, dilation_w
+    nihilus_gemm::conv::Mode mode = nihilus_gemm::conv::Mode::kCrossCorrelation,
     int split_k_slices = 1,
     int groups = 1
   ):
@@ -176,14 +176,14 @@ public:
       Q = ((W + pad_w + padding[3] - S * dilation_w) / stride_w) + 1;
     }
 
-  /// Constructs convolution problem size from cutlass Tensor4DCoord and MatrixCoord 
+  /// Constructs convolution problem size from nihilus_gemm Tensor4DCoord and MatrixCoord 
   // set user-defined output size and sets P and Q (skip padding, striding, and dilation)
   CUTLASS_HOST_DEVICE
   Conv2dProblemSize(
-    cutlass::Tensor4DCoord input_size,    // NHWC
-    cutlass::Tensor4DCoord filter_size,   // KRSC
-    cutlass::Tensor4DCoord output_size,   // NPQK
-    cutlass::conv::Mode mode = cutlass::conv::Mode::kCrossCorrelation,
+    nihilus_gemm::Tensor4DCoord input_size,    // NHWC
+    nihilus_gemm::Tensor4DCoord filter_size,   // KRSC
+    nihilus_gemm::Tensor4DCoord output_size,   // NPQK
+    nihilus_gemm::conv::Mode mode = nihilus_gemm::conv::Mode::kCrossCorrelation,
     int split_k_slices = 1,
     int groups = 1
   ):
@@ -196,7 +196,7 @@ public:
 
   // Reset covolution mode in the problem
   CUTLASS_HOST_DEVICE
-  Conv2dProblemSize reset_mode(cutlass::conv::Mode mode_) {
+  Conv2dProblemSize reset_mode(nihilus_gemm::conv::Mode mode_) {
     Conv2dProblemSize tmp(*this);
     tmp.mode = mode_; 
     return tmp; 
@@ -231,24 +231,24 @@ public:
 
   /// Returns activation extent as Tensor4DCoord
   CUTLASS_HOST_DEVICE
-  cutlass::Tensor4DCoord activation_extent() const {
+  nihilus_gemm::Tensor4DCoord activation_extent() const {
 
-    return cutlass::Tensor4DCoord ({N, H, W, C});
+    return nihilus_gemm::Tensor4DCoord ({N, H, W, C});
   }
 
   /// Returns filter extent as Tensor4DCoord
   CUTLASS_HOST_DEVICE
-  cutlass::Tensor4DCoord filter_extent(bool is_deconv = false) const {
+  nihilus_gemm::Tensor4DCoord filter_extent(bool is_deconv = false) const {
 
-    return is_deconv ? cutlass::Tensor4DCoord ({C, R, S, K / groups})
-        : cutlass::Tensor4DCoord ({K, R, S, C / groups});
+    return is_deconv ? nihilus_gemm::Tensor4DCoord ({C, R, S, K / groups})
+        : nihilus_gemm::Tensor4DCoord ({K, R, S, C / groups});
   }
 
   /// Returns output extent as Tensor4DCoord
   CUTLASS_HOST_DEVICE
-  cutlass::Tensor4DCoord output_extent() const {
+  nihilus_gemm::Tensor4DCoord output_extent() const {
 
-    return cutlass::Tensor4DCoord ({N, P, Q, K});
+    return nihilus_gemm::Tensor4DCoord ({N, P, Q, K});
   }
 
   /// Returns activation size in number of elements
@@ -278,23 +278,23 @@ public:
 
   /// Returns padding as Tensor4DCoord
   CUTLASS_HOST_DEVICE
-  cutlass::Tensor4DCoord padding() const {
+  nihilus_gemm::Tensor4DCoord padding() const {
 
-    return cutlass::Tensor4DCoord ({pad_h, pad_h, pad_w, pad_w});
+    return nihilus_gemm::Tensor4DCoord ({pad_h, pad_h, pad_w, pad_w});
   }
 
   /// Returns stride as MatrixCoord
   CUTLASS_HOST_DEVICE
-  cutlass::MatrixCoord stride() const {
+  nihilus_gemm::MatrixCoord stride() const {
 
-    return cutlass::MatrixCoord ({stride_h, stride_w});
+    return nihilus_gemm::MatrixCoord ({stride_h, stride_w});
   }
 
   /// Returns dilation as MatrixCoord
   CUTLASS_HOST_DEVICE
-  cutlass::MatrixCoord dilation() const {
+  nihilus_gemm::MatrixCoord dilation() const {
 
-    return cutlass::MatrixCoord ({dilation_h, dilation_w});
+    return nihilus_gemm::MatrixCoord ({dilation_h, dilation_w});
   }
 
   /////////////////////////////////////////////////////////////////
@@ -325,7 +325,7 @@ public:
 
 /// Determine the problem size of the implicit GEMM operation
 CUTLASS_HOST_DEVICE
-cutlass::gemm::GemmCoord implicit_gemm_problem_size(
+nihilus_gemm::gemm::GemmCoord implicit_gemm_problem_size(
   Operator conv_operator, 
   Conv2dProblemSize const &problem_size) {
   // Compute problem size
@@ -520,47 +520,47 @@ int implicit_gemm_k_iterations_per_channel(
 ////////////////////////////////////////////////////////////////////////////////
 /// Returns ImplicitGemm tensor A extent as Tensor4DCoord
 CUTLASS_HOST_DEVICE
-cutlass::Tensor4DCoord implicit_gemm_tensor_a_extent(
+nihilus_gemm::Tensor4DCoord implicit_gemm_tensor_a_extent(
   Operator conv_operator,
   Conv2dProblemSize const &problem_size) {
   switch (conv_operator) {
-    case cutlass::conv::Operator::kFprop: return problem_size.activation_extent();
-    case cutlass::conv::Operator::kDeconv:
-    case cutlass::conv::Operator::kDgrad: return problem_size.output_extent();
-    case cutlass::conv::Operator::kWgrad: return problem_size.output_extent();
+    case nihilus_gemm::conv::Operator::kFprop: return problem_size.activation_extent();
+    case nihilus_gemm::conv::Operator::kDeconv:
+    case nihilus_gemm::conv::Operator::kDgrad: return problem_size.output_extent();
+    case nihilus_gemm::conv::Operator::kWgrad: return problem_size.output_extent();
     default : break;
   }
-  return cutlass::Tensor4DCoord();
+  return nihilus_gemm::Tensor4DCoord();
 }
 
 /// Returns ImplicitGemm tensor B extent as Tensor4DCoord
 CUTLASS_HOST_DEVICE
-cutlass::Tensor4DCoord implicit_gemm_tensor_b_extent(
+nihilus_gemm::Tensor4DCoord implicit_gemm_tensor_b_extent(
   Operator conv_operator,
   Conv2dProblemSize const &problem_size) {
   switch (conv_operator) {
-    case cutlass::conv::Operator::kFprop: return problem_size.filter_extent();
-    case cutlass::conv::Operator::kDeconv: return problem_size.filter_extent(true);
-    case cutlass::conv::Operator::kDgrad: return problem_size.filter_extent();
-    case cutlass::conv::Operator::kWgrad: return problem_size.activation_extent();
+    case nihilus_gemm::conv::Operator::kFprop: return problem_size.filter_extent();
+    case nihilus_gemm::conv::Operator::kDeconv: return problem_size.filter_extent(true);
+    case nihilus_gemm::conv::Operator::kDgrad: return problem_size.filter_extent();
+    case nihilus_gemm::conv::Operator::kWgrad: return problem_size.activation_extent();
     default : break;
   }
-  return cutlass::Tensor4DCoord();
+  return nihilus_gemm::Tensor4DCoord();
 }
 
 /// Returns ImplicitGemm tensor C extent as Tensor4DCoord
 CUTLASS_HOST_DEVICE
-cutlass::Tensor4DCoord implicit_gemm_tensor_c_extent(
+nihilus_gemm::Tensor4DCoord implicit_gemm_tensor_c_extent(
   Operator conv_operator,
   Conv2dProblemSize const &problem_size) {
   switch (conv_operator) {
-    case cutlass::conv::Operator::kFprop: return problem_size.output_extent();
-    case cutlass::conv::Operator::kDeconv:
-    case cutlass::conv::Operator::kDgrad: return problem_size.activation_extent();
-    case cutlass::conv::Operator::kWgrad: return problem_size.filter_extent();
+    case nihilus_gemm::conv::Operator::kFprop: return problem_size.output_extent();
+    case nihilus_gemm::conv::Operator::kDeconv:
+    case nihilus_gemm::conv::Operator::kDgrad: return problem_size.activation_extent();
+    case nihilus_gemm::conv::Operator::kWgrad: return problem_size.filter_extent();
     default : break;
   }
-  return cutlass::Tensor4DCoord();
+  return nihilus_gemm::Tensor4DCoord();
 }
 
 /// Returns ImplicitGemm tensor A size in number of elements
@@ -569,10 +569,10 @@ int64_t implicit_gemm_tensor_a_size(
   Operator conv_operator,
   Conv2dProblemSize const &problem_size) {
   switch (conv_operator) {
-    case cutlass::conv::Operator::kFprop: return problem_size.activation_size();
-    case cutlass::conv::Operator::kDeconv:
-    case cutlass::conv::Operator::kDgrad: return problem_size.output_size();
-    case cutlass::conv::Operator::kWgrad: return problem_size.output_size();
+    case nihilus_gemm::conv::Operator::kFprop: return problem_size.activation_size();
+    case nihilus_gemm::conv::Operator::kDeconv:
+    case nihilus_gemm::conv::Operator::kDgrad: return problem_size.output_size();
+    case nihilus_gemm::conv::Operator::kWgrad: return problem_size.output_size();
     default : break;
   }
   return 0;
@@ -584,10 +584,10 @@ int64_t implicit_gemm_tensor_b_size(
   Operator conv_operator,
   Conv2dProblemSize const &problem_size) {
   switch (conv_operator) {
-    case cutlass::conv::Operator::kFprop: return problem_size.filter_size();
-    case cutlass::conv::Operator::kDeconv:
-    case cutlass::conv::Operator::kDgrad: return problem_size.filter_size();
-    case cutlass::conv::Operator::kWgrad: return problem_size.activation_size();
+    case nihilus_gemm::conv::Operator::kFprop: return problem_size.filter_size();
+    case nihilus_gemm::conv::Operator::kDeconv:
+    case nihilus_gemm::conv::Operator::kDgrad: return problem_size.filter_size();
+    case nihilus_gemm::conv::Operator::kWgrad: return problem_size.activation_size();
     default : break;
   }
   return 0;
@@ -599,10 +599,10 @@ int64_t implicit_gemm_tensor_c_size(
   Operator conv_operator,
   Conv2dProblemSize const &problem_size) {
   switch (conv_operator) {
-    case cutlass::conv::Operator::kFprop: return problem_size.output_size();
-    case cutlass::conv::Operator::kDeconv:
-    case cutlass::conv::Operator::kDgrad: return problem_size.activation_size();
-    case cutlass::conv::Operator::kWgrad: return problem_size.filter_size();
+    case nihilus_gemm::conv::Operator::kFprop: return problem_size.output_size();
+    case nihilus_gemm::conv::Operator::kDeconv:
+    case nihilus_gemm::conv::Operator::kDgrad: return problem_size.activation_size();
+    case nihilus_gemm::conv::Operator::kWgrad: return problem_size.filter_size();
     default : break;
   }
   return 0;
@@ -653,6 +653,6 @@ void strided_dgrad_starting_coords(
 }
 
 } // namespace conv
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

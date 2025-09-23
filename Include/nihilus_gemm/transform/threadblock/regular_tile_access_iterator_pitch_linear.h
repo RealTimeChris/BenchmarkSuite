@@ -35,19 +35,19 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/array.h"
-#include "cutlass/layout/pitch_linear.h"
-#include "cutlass/layout/matrix.h"
-#include "cutlass/matrix_coord.h"
-#include "cutlass/matrix_shape.h"
-#include "cutlass/tensor_ref.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/layout/pitch_linear.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/matrix_coord.h"
+#include "nihilus_gemm/matrix_shape.h"
+#include "nihilus_gemm/tensor_ref.h"
 
-#include "cutlass/transform/threadblock/regular_tile_access_iterator.h"
+#include "nihilus_gemm/transform/threadblock/regular_tile_access_iterator.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace transform {
 namespace threadblock {
 
@@ -75,8 +75,8 @@ class RegularTileAccessIterator<
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::PitchLinear;
-  static int const kAdvanceRank = AdvanceRank;
-  static int const kAlignment = Alignment;
+  static constexpr int  kAdvanceRank = AdvanceRank;
+  static constexpr int  kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -230,8 +230,8 @@ class RegularTileAccessIterator<
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::ColumnMajor;
-  static int const kAdvanceRank = AdvanceRank;
-  static int const kAlignment = Alignment;
+  static constexpr int  kAdvanceRank = AdvanceRank;
+  static constexpr int  kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -327,8 +327,8 @@ class RegularTileAccessIterator<
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::RowMajor;
-  static int const kAdvanceRank = AdvanceRank;
-  static int const kAlignment = Alignment;
+  static constexpr int  kAdvanceRank = AdvanceRank;
+  static constexpr int  kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -403,6 +403,6 @@ class RegularTileAccessIterator<
 
 }  // namespace threadblock
 }  // namespace transform
-}  // namespace cutlass
+}  // namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////

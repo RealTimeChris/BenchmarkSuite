@@ -34,25 +34,25 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/fast_math.h"
-#include "cutlass/layout/matrix.h"
-#include "cutlass/platform/platform.h"
-#include "cutlass/gemm/gemm_enumerated_types.h"
-#include "cutlass/conv/conv2d_problem_size.h"
-#include "cutlass/conv/conv3d_problem_size.h"
-#include "cutlass/gemm/threadblock/index_remat.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/fast_math.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/platform/platform.h"
+#include "nihilus_gemm/gemm/gemm_enumerated_types.h"
+#include "nihilus_gemm/conv/conv2d_problem_size.h"
+#include "nihilus_gemm/conv/conv3d_problem_size.h"
+#include "nihilus_gemm/gemm/threadblock/index_remat.h"
 
 #if !defined(__CUDACC_RTC__)
 #include <iostream>
-#include "cutlass/core_io.h"
-#include "cutlass/trace.h"
+#include "nihilus_gemm/core_io.h"
+#include "nihilus_gemm/trace.h"
 #endif
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace gemm {
 namespace threadblock {
 
@@ -84,7 +84,7 @@ struct ThreadblockSwizzleStreamK {
                 //       SK-blocks per SK-tile)
   };
 
-  static ReductionStrategy const kReductionStrategy = kMixed;
+  static constexpr ReductionStrategy  kReductionStrategy = kMixed;
 
 
   //
@@ -95,20 +95,20 @@ struct ThreadblockSwizzleStreamK {
   static float constexpr kDpEfficiencyThreshold = 0.92f;
 
   /// Minimum number of MAC-iterations per streamk block
-  static int const kMinItersPerSkBlock = 2;
+  static constexpr int  kMinItersPerSkBlock = 2;
 
   /// Height in CTAs of a grid rasterization cohort
-  static int const kCohortCtasM = 8;
+  static constexpr int  kCohortCtasM = 8;
 
   /// Width in CTAs of a grid rasterization cohort
-  static int const kCohortCtasN = 4;
+  static constexpr int  kCohortCtasN = 4;
 
   /// Number of CTAs per cohort
-  static int const kCtasPerCohort = kCohortCtasN * kCohortCtasM;
+  static constexpr int  kCtasPerCohort = kCohortCtasN * kCohortCtasM;
 
   /// Cost-equivalent number of SM-iterations for fixup I/O
-  static int const kFixupStartupIterEquiv = 10;
-  static int const kFixupPeerIterEquiv = 3;
+  static constexpr int  kFixupStartupIterEquiv = 10;
+  static constexpr int  kFixupPeerIterEquiv = 3;
 
 
   //
@@ -546,7 +546,7 @@ struct ThreadblockSwizzleStreamK {
 
     dp_blocks = dp_tiles;
 
-    cutlass::gemm::GemmCoord tiled_cohort_shape(
+    nihilus_gemm::gemm::GemmCoord tiled_cohort_shape(
         (tiled_shape.m() + kCohortCtasM - 1) / kCohortCtasM,
         (tiled_shape.n() + kCohortCtasN - 1) / kCohortCtasN,
         tiled_shape.k());
@@ -797,5 +797,5 @@ struct ThreadblockSwizzleStreamK {
 
 } // namespace threadblock
 } // namespace gemm
-} // namespace cutlass
+} // namespace nihilus_gemm
 

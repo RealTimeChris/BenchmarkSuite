@@ -33,15 +33,15 @@
 */
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/integer_subbyte.h"
-#include "cutlass/fast_math.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/integer_subbyte.h"
+#include "nihilus_gemm/fast_math.h"
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 namespace detail {
-// This is an implementation detail of cutlass::SubbyteReference and.
-// cutlass::HostTensor.  For a given logical element type Element,
+// This is an implementation detail of nihilus_gemm::SubbyteReference and.
+// nihilus_gemm::HostTensor.  For a given logical element type Element,
 // and its corresponding storage (physical) element type StorageUnit,
 // it computes quantities that help with managing allocations.
 //
@@ -61,7 +61,7 @@ namespace detail {
 template<class Element, class StorageUnit>
 struct StorageContainerCalculator {
   // kContainerTypeNumBits: The number of bits needed for ContainerType
-  static constexpr int kContainerTypeNumBits   = (sizeof_bits<Element>::value < 8) ? cutlass::lcm_cxx11(sizeof_bits<Element>::value, sizeof_bits<StorageUnit>::value) : sizeof_bits<Element>::value;
+  static constexpr int kContainerTypeNumBits   = (sizeof_bits<Element>::value < 8) ? nihilus_gemm::lcm_cxx11(sizeof_bits<Element>::value, sizeof_bits<StorageUnit>::value) : sizeof_bits<Element>::value;
   static_assert(kContainerTypeNumBits % sizeof_bits<Element>::value == 0, "The bits of ContainerType should be divisible by the element's number of bits");
   // kContainerTypeNumLogicalElements: The number of logical Element instance(s) that can be stored per ContainerType instance
   static constexpr int kContainerTypeNumLogicalElements = kContainerTypeNumBits / sizeof_bits<Element>::value;
@@ -433,11 +433,11 @@ public:
   Element get() const {
     uint8_t const* byte_ptr = reinterpret_cast<uint8_t const*>(ptr_);
     // Convert offset in elements to offset in bytes
-    constexpr int elements_per_byte = cutlass::sizeof_bits<uint8_t>::value / cutlass::sizeof_bits<Element>::value;
+    constexpr int elements_per_byte = nihilus_gemm::sizeof_bits<uint8_t>::value / nihilus_gemm::sizeof_bits<Element>::value;
     byte_ptr += offset_ / elements_per_byte;
     // Offset of element within a byte
     int byte_offset = offset_ % elements_per_byte;
-    uint8_t item = uint8_t((*byte_ptr >> (byte_offset * cutlass::sizeof_bits<Element>::value)) & kMask);
+    uint8_t item = uint8_t((*byte_ptr >> (byte_offset * nihilus_gemm::sizeof_bits<Element>::value)) & kMask);
     return reinterpret_cast<Element const &>(item);
   }
 
@@ -446,8 +446,8 @@ public:
   SubbyteReference & set(Element const &x) {
 
     Storage item        = (reinterpret_cast<Storage const &>(x) & kMask);
-    Storage kUpdateMask = Storage(~(kMask << (offset_ * cutlass::sizeof_bits<Element>::value)));
-    Storage new_bits    = Storage(item << (offset_ * cutlass::sizeof_bits<Element>::value));
+    Storage kUpdateMask = Storage(~(kMask << (offset_ * nihilus_gemm::sizeof_bits<Element>::value)));
+    Storage new_bits    = Storage(item << (offset_ * nihilus_gemm::sizeof_bits<Element>::value));
 
 #if defined(__CUDA_ARCH__)
 
@@ -666,10 +666,10 @@ public:
 
   using StorageUnit = Storage_;
 private:
-  using StorageContainerCalculator = cutlass::detail::StorageContainerCalculator<Element, StorageUnit>;
+  using StorageContainerCalculator = nihilus_gemm::detail::StorageContainerCalculator<Element, StorageUnit>;
 public:
-  static int const kBitsStoredVec = StorageContainerCalculator::kContainerTypeNumBits; 
-  static int const kNumStorageUnitPerStoredVec = StorageContainerCalculator::kContainerTypeNumStorageUnit;
+  static constexpr int  kBitsStoredVec = StorageContainerCalculator::kContainerTypeNumBits; 
+  static constexpr int  kNumStorageUnitPerStoredVec = StorageContainerCalculator::kContainerTypeNumStorageUnit;
 
   using StorageVec = StorageUnit[kNumStorageUnitPerStoredVec];
   using StorageVecPointer = StorageVec *;
@@ -1041,8 +1041,8 @@ public:
   ///   Type element may be stored across 2 storage units, so need a storage vector to hold integer
   ///   number of objects of type Element.
   using StorageUnit = Storage_;
-  static int const kBitsStoredVec = cutlass::lcm_cxx11(sizeof_bits<Element>::value, sizeof_bits<StorageUnit>::value); 
-  static int const kNumStorageUnitPerStoredVec = kBitsStoredVec / sizeof_bits<StorageUnit>::value;
+  static constexpr int  kBitsStoredVec = nihilus_gemm::lcm_cxx11(sizeof_bits<Element>::value, sizeof_bits<StorageUnit>::value); 
+  static constexpr int  kNumStorageUnitPerStoredVec = kBitsStoredVec / sizeof_bits<StorageUnit>::value;
 
   using StorageVec = StorageUnit[kNumStorageUnitPerStoredVec];
   using StorageVecPointer = StorageVec const *;
@@ -1327,7 +1327,7 @@ template <typename Element>
 struct ReferenceFactory<Element, false> {
 
   ///! Number of elements per storage vector
-  static int const kElementsPerVector = 1;
+  static constexpr int  kElementsPerVector = 1;
 
   CUTLASS_HOST_DEVICE
   static Element &get(Element *ptr, int64_t offset) {
@@ -1335,7 +1335,7 @@ struct ReferenceFactory<Element, false> {
   }
 
   CUTLASS_HOST_DEVICE
-  static Element const &get(Element const *ptr, int64_t offset) {
+  static constexpr const Element  &get(Element const *ptr, int64_t offset) {
     return ptr[offset];
   }
 
@@ -1345,7 +1345,7 @@ struct ReferenceFactory<Element, false> {
   }
 
   CUTLASS_HOST_DEVICE
-  static Element const *add_pointer_offset(Element const *ptr, int64_t offset) {
+  static constexpr Element  *add_pointer_offset(Element const *ptr, int64_t offset) {
     return ptr + offset;
   }
 };
@@ -1378,11 +1378,11 @@ struct ReferenceFactory<Element, true> {
   /// Helper to add an offset in number of elements, assuming this offset is divisible
   /// by the vector size.
   CUTLASS_HOST_DEVICE
-  static Element const *add_pointer_offset(Element const *ptr, int64_t offset_in_elements) {
+  static constexpr Element  *add_pointer_offset(Element const *ptr, int64_t offset_in_elements) {
     return &ConstSubbyteReference<Element>(ptr, offset_in_elements);
   }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cutlass
+} // namespace nihilus_gemm

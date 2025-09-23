@@ -33,12 +33,12 @@
 */
 
 #pragma once
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 #include CUDA_STD_HEADER(cassert)
-#include "cutlass/layout/matrix.h"
+#include "nihilus_gemm/layout/matrix.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-namespace cutlass {
+namespace nihilus_gemm {
 namespace arch {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -60,7 +60,7 @@ struct Wmma<
   LayoutB_,                                 ///< LayoutB
   int32_t,                                  ///< ElementC
   LayoutC_,                                 ///< LayoutC
-  cutlass::arch::OpMultiplyAdd              ///< Operator (multiply-add, xor.popc)
+  nihilus_gemm::arch::OpMultiplyAdd              ///< Operator (multiply-add, xor.popc)
 > {
 #if defined(CUTLASS_ARCH_WMMA_SM72_ENABLED)
   using Shape = Shape_;
@@ -70,14 +70,14 @@ struct Wmma<
   using LayoutB = LayoutB_;
   using ElementC = int32_t;
   using LayoutC = LayoutC_;
-  using Operator = cutlass::arch::OpMultiplyAdd;
+  using Operator = nihilus_gemm::arch::OpMultiplyAdd;
   using ArchTag = arch::Sm72;
 
   // check supported wmma shape for the given multiplicand data types
   static_assert(
-    platform::is_same<cutlass::gemm::GemmShape<16, 16, 16>, Shape>::value ||
-    platform::is_same<cutlass::gemm::GemmShape< 8, 32, 16>, Shape>::value ||
-    platform::is_same<cutlass::gemm::GemmShape<32,  8, 16>, Shape>::value,
+    platform::is_same<nihilus_gemm::gemm::GemmShape<16, 16, 16>, Shape>::value ||
+    platform::is_same<nihilus_gemm::gemm::GemmShape< 8, 32, 16>, Shape>::value ||
+    platform::is_same<nihilus_gemm::gemm::GemmShape<32,  8, 16>, Shape>::value,
     "Supported list of wmma operator shape for s8 multiplicands are: 16x16x16, 8x32x16, and 32x8x16");
 
 
@@ -141,7 +141,7 @@ struct Wmma<
   LayoutB_,                                 ///< LayoutB
   int32_t,                                  ///< ElementC
   LayoutC_,                                 ///< LayoutC
-  cutlass::arch::OpMultiplyAdd              ///< Operator (multiply-add, xor.popc)
+  nihilus_gemm::arch::OpMultiplyAdd              ///< Operator (multiply-add, xor.popc)
 > {
 #if defined(CUTLASS_ARCH_WMMA_SM72_ENABLED)
   using Shape = Shape_;
@@ -151,14 +151,14 @@ struct Wmma<
   using LayoutB = LayoutB_;
   using ElementC = int32_t;
   using LayoutC = LayoutC_;
-  using Operator = cutlass::arch::OpMultiplyAdd;
+  using Operator = nihilus_gemm::arch::OpMultiplyAdd;
   using ArchTag = arch::Sm72;
 
   // check supported wmma shape for the given multiplicand data types
   static_assert(
-    platform::is_same<cutlass::gemm::GemmShape<16, 16, 16>, Shape>::value ||
-    platform::is_same<cutlass::gemm::GemmShape< 8, 32, 16>, Shape>::value ||
-    platform::is_same<cutlass::gemm::GemmShape<32,  8, 16>, Shape>::value,
+    platform::is_same<nihilus_gemm::gemm::GemmShape<16, 16, 16>, Shape>::value ||
+    platform::is_same<nihilus_gemm::gemm::GemmShape< 8, 32, 16>, Shape>::value ||
+    platform::is_same<nihilus_gemm::gemm::GemmShape<32,  8, 16>, Shape>::value,
     "Supported list of wmma operator shape for u8 multiplicands are: 16x16x16, 8x32x16, and 32x8x16");
 
   // Wmma Fragment
@@ -203,4 +203,4 @@ struct Wmma<
 };
 
 } // namespace arch
-} // namespace cutlass
+} // namespace nihilus_gemm

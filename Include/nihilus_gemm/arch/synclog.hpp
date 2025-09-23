@@ -34,8 +34,8 @@
 
 #pragma once
 
-#include "cutlass/detail/helper_macros.hpp"
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/detail/helper_macros.hpp"
+#include "nihilus_gemm/cutlass.h"
 #if defined(__CUDACC_RTC__)
 #include CUDA_STD_HEADER(cstdint)
 #else
@@ -47,7 +47,7 @@
 #include <vector>
 #endif
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace arch {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1251,7 +1251,7 @@ void synclog_print() {
 #if defined(CUTLASS_ENABLE_SYNCLOG)
 #undef __syncthreads
 #define __syncthreads() do {\
-  cutlass::arch::synclog_emit_syncthreads(__LINE__);\
+  nihilus_gemm::arch::synclog_emit_syncthreads(__LINE__);\
   __syncthreads();\
 } while (0)
 #endif // defined(CUTLASS_ENABLE_SYNCLOG)
@@ -1259,7 +1259,7 @@ void synclog_print() {
 #if defined(CUTLASS_ENABLE_SYNCLOG)
 #undef __syncwarp
 #define __syncwarp(...) do {\
-  cutlass::arch::synclog_emit_syncwarp(__LINE__);\
+  nihilus_gemm::arch::synclog_emit_syncwarp(__LINE__);\
   __syncwarp(__VA_ARGS__);\
 } while (0)
 #endif // defined(CUTLASS_ENABLE_SYNCLOG)
@@ -1268,4 +1268,4 @@ void synclog_print() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace arch
-} // namespace cutlass
+} // namespace nihilus_gemm

@@ -30,9 +30,9 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute/config.hpp>                     // CUTE_HOST_DEVICE, CUTE_GCC_UNREACHABLE
-#include <cute/layout.hpp>                     // cute::tuple
-#include <cute/numeric/integral_constant.hpp>  // cute::true_type, cute::false_type, cute::Int
+#include <cute_rt_tm/config.hpp>                     // CUTE_HOST_DEVICE, CUTE_GCC_UNREACHABLE
+#include <cute_rt_tm/layout.hpp>                     // cute_rt_tm::tuple
+#include <cute_rt_tm/numeric/integral_constant.hpp>  // cute_rt_tm::true_type, cute_rt_tm::false_type, cute_rt_tm::Int
 
 /* This implements a ComposedLayout of the form
  *   LayoutA o Offset o LayoutB
@@ -46,18 +46,18 @@
  * as LayoutB defines the domain.
  */
 
-namespace cute
+namespace cute_rt_tm
 {
 
 // A Layout of non-trivially composable functions: F o I o L
 template <class LayoutA, class Offset, class LayoutB>
-struct ComposedLayout : private cute::tuple<LayoutA, Offset, LayoutB>  // EBO for static layouts
+struct ComposedLayout : private cute_rt_tm::tuple<LayoutA, Offset, LayoutB>  // EBO for static layouts
 {
   CUTE_HOST_DEVICE constexpr
   ComposedLayout(LayoutA const& layoutA = {},
                  Offset  const& offset  = {},
                  LayoutB const& layoutB = {})
-      : cute::tuple<LayoutA, Offset, LayoutB>(layoutA, offset, layoutB)
+      : cute_rt_tm::tuple<LayoutA, Offset, LayoutB>(layoutA, offset, layoutB)
   {}
 
   //
@@ -69,19 +69,19 @@ struct ComposedLayout : private cute::tuple<LayoutA, Offset, LayoutB>  // EBO fo
   CUTE_HOST_DEVICE constexpr
   decltype(auto)
   layout_a() const {
-    return get<0>(static_cast<cute::tuple<LayoutA, Offset, LayoutB> const&>(*this));
+    return get<0>(static_cast<cute_rt_tm::tuple<LayoutA, Offset, LayoutB> const&>(*this));
   }
 
   CUTE_HOST_DEVICE constexpr
   decltype(auto)
   offset() const {
-    return get<1>(static_cast<cute::tuple<LayoutA, Offset, LayoutB> const&>(*this));
+    return get<1>(static_cast<cute_rt_tm::tuple<LayoutA, Offset, LayoutB> const&>(*this));
   }
 
   CUTE_HOST_DEVICE constexpr
   decltype(auto)
   layout_b() const {
-    return get<2>(static_cast<cute::tuple<LayoutA, Offset, LayoutB> const&>(*this));
+    return get<2>(static_cast<cute_rt_tm::tuple<LayoutA, Offset, LayoutB> const&>(*this));
   }
 
   CUTE_HOST_DEVICE constexpr
@@ -330,7 +330,7 @@ auto
 slice_and_offset(Coord const& coord, ComposedLayout<A,O,B> const& layout)
 {
   auto [slice, offset] = slice_and_offset(coord, layout.layout_b());
-  return cute::make_tuple(ComposedLayout{layout.layout_a(), layout.offset() + offset, slice}, Int<0>{});
+  return cute_rt_tm::make_tuple(ComposedLayout{layout.layout_a(), layout.offset() + offset, slice}, Int<0>{});
 }
 
 template <class Coord, class A, class O, class B>
@@ -348,7 +348,7 @@ CUTE_HOST_DEVICE constexpr
 auto
 domain_offset(Coord const& coord, ComposedLayout<A,O,B> const& layout)
 {
-  return cute::make_tuple(ComposedLayout{layout.layout_a(), layout.offset() + layout.layout_b()(coord), layout.layout_b()}, Int<0>{});
+  return cute_rt_tm::make_tuple(ComposedLayout{layout.layout_a(), layout.offset() + layout.layout_b()(coord), layout.layout_b()}, Int<0>{});
 }
 
 //
@@ -658,4 +658,4 @@ CUTE_HOST std::ostream& operator<<(std::ostream& os, ComposedLayout<A,O,B> const
 }
 #endif
 
-} // end namespace cute
+} // end namespace cute_rt_tm

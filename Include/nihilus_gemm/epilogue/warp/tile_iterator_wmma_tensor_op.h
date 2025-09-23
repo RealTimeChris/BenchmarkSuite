@@ -34,17 +34,17 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/wmma_array.h"
-#include "cutlass/layout/matrix.h"
-#include "cutlass/layout/pitch_linear.h"
-#include "cutlass/tensor_ref.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/wmma_array.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/layout/pitch_linear.h"
+#include "nihilus_gemm/tensor_ref.h"
 
-#include "cutlass/epilogue/warp/wmma_tensor_op_policy.h"
+#include "nihilus_gemm/epilogue/warp/wmma_tensor_op_policy.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace warp {
 
@@ -79,7 +79,7 @@ public:
   // Derived types
   //
   using WmmaDataType = typename OperatorFragment::element_type;
-  using Element = typename cutlass::arch::WmmaToCutlassDataType<WmmaDataType>::Type; ///< Data Type of element stored in nvcuda::wmma::frament         
+  using Element = typename nihilus_gemm::arch::WmmaToCutlassDataType<WmmaDataType>::Type; ///< Data Type of element stored in nvcuda::wmma::frament         
   using TensorRef = TensorRef<Element, Layout>;                                      ///< Tensor Reference object
   using TensorCoord = MatrixCoord;                                                   ///< Logical coordinate in referenced tensor
   using Index = typename TensorRef::Index;
@@ -217,7 +217,7 @@ public:
 
 } // namespace warp
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 

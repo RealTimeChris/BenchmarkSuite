@@ -32,12 +32,12 @@
     \brief Matrix multiply
 */
 #pragma once
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 #include CUDA_STD_HEADER(cassert)
 
 #include "mma.h"
-#include "cutlass/layout/matrix.h"
-#include "cutlass/numeric_types.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/numeric_types.h"
 
 #if ((__CUDACC_VER_MAJOR__ > 10) || (__CUDACC_VER_MAJOR__ == 10 && __CUDACC_VER_MINOR__ >= 1))
 #define CUTLASS_ARCH_MMA_SM70_SUPPORTED
@@ -53,7 +53,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace arch {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -658,4 +658,4 @@ struct Mma<
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace arch
-} // namespace cutlass
+} // namespace nihilus_gemm

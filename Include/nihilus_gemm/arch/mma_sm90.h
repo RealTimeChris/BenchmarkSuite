@@ -33,17 +33,17 @@
 */
 
 #pragma once
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 #include CUDA_STD_HEADER(cassert)
 
 #include "mma.h"
-#include "cutlass/layout/matrix.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/arch/config.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/arch/config.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace arch {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -235,7 +235,7 @@ struct Mma<
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace arch
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 

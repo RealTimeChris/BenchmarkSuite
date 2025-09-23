@@ -34,16 +34,16 @@
 
 #pragma once
 
-#include "cutlass/array.h"
-#include "cutlass/tensor_ref.h"
-#include "cutlass/layout/matrix.h"
-#include "cutlass/layout/pitch_linear.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/tensor_ref.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/layout/pitch_linear.h"
 
-#include "cutlass/epilogue/warp/tensor_op_policy.h"
+#include "nihilus_gemm/epilogue/warp/tensor_op_policy.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace warp {
 
@@ -97,14 +97,14 @@ public:
   //using AccumulatorTile = typename Operator::FragmentC;
 
   /// Number of times this iterator can be incremented
-  static int const kIterations = Policy::kIterations;
+  static constexpr int  kIterations = Policy::kIterations;
 
   /// Number of times this iterator can be incremented
   using TileIterations = typename Policy::TileIterations;
 
   // Internal constants
   struct Detail {
-    static int const kLanesInQuad = 4;
+    static constexpr int  kLanesInQuad = 4;
   };
 
   /// Padding quantity
@@ -286,7 +286,7 @@ public:
 
   // Internal constants
   struct Detail {
-    static int const kLanesInQuad = 4;
+    static constexpr int  kLanesInQuad = 4;
   };
 
   /// Padding quantity
@@ -457,8 +457,8 @@ public:
 
   using Policy = TensorOpPolicy<WarpShape, OperatorShape, Layout>;
 
-  static int const kAccessSize = 1;
-  static int const kAccessCount = Policy::kElementsPerAccess / kAccessSize;
+  static constexpr int  kAccessSize = 1;
+  static constexpr int  kAccessCount = Policy::kElementsPerAccess / kAccessSize;
 
   /// Shape of the tile in memory
   using Shape = MatrixShape<
@@ -475,11 +475,11 @@ public:
   //using AccumulatorTile = typename Operator::FragmentC;
 
   /// Number of times this iterator can be incremented
-  static int const kIterations = Policy::kIterations;
+  static constexpr int  kIterations = Policy::kIterations;
 
   // Internal constants
   struct Detail {
-    static int const kLanesInQuad = 4;
+    static constexpr int  kLanesInQuad = 4;
   };
 
   /// Padding quantity
@@ -666,6 +666,6 @@ public:
 
 } // namespace warp
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

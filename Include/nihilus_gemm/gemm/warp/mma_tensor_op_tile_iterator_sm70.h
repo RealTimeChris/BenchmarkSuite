@@ -34,24 +34,24 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 
-#include "cutlass/array.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/tensor_ref.h"
-#include "cutlass/matrix_shape.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/tensor_ref.h"
+#include "nihilus_gemm/matrix_shape.h"
 
-#include "cutlass/gemm/gemm.h"
+#include "nihilus_gemm/gemm/gemm.h"
 
-#include "cutlass/layout/matrix.h"
-#include "cutlass/layout/pitch_linear.h"
-#include "cutlass/layout/tensor_op_multiplicand_sm70.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/layout/pitch_linear.h"
+#include "nihilus_gemm/layout/tensor_op_multiplicand_sm70.h"
 
-#include "cutlass/platform/platform.h"
+#include "nihilus_gemm/platform/platform.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace gemm {
 namespace warp {
 
@@ -94,7 +94,7 @@ template <
     int OpDelta_>
 class MmaVoltaTensorOpMultiplicandTileIterator<
     Shape_, Operand::kA, Element_,
-    cutlass::layout::VoltaTensorOpMultiplicandCongruous<
+    nihilus_gemm::layout::VoltaTensorOpMultiplicandCongruous<
         sizeof_bits<Element_>::value>,
     InstructionShape_, OpDelta_, 32> {
  public:
@@ -103,22 +103,22 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kA;
+  static constexpr Operand  kOperand = Operand::kA;
 
   /// Element type
   using Element = Element_;
 
   /// Layout of source tile
-  using Layout = cutlass::layout::VoltaTensorOpMultiplicandCongruous<sizeof_bits<Element_>::value>;
+  using Layout = nihilus_gemm::layout::VoltaTensorOpMultiplicandCongruous<sizeof_bits<Element_>::value>;
 
   /// Shape of one matrix product operation (concept: GemmShape)
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int  kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int  kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -161,7 +161,7 @@ private:
     "Alternative arrangements not supported at present.");
 
   /// Number of internal pointers needed to reference shared memory
-  static int const kPointerCount = 2;
+  static constexpr int  kPointerCount = 2;
 
   /// Pointer type used for accesses
   using AccessType = AlignedArray<Element, Layout::kElementsPerAccess>;
@@ -409,7 +409,7 @@ template <
 
 class MmaVoltaTensorOpMultiplicandTileIterator<
     Shape_, Operand::kB, Element_,
-    cutlass::layout::VoltaTensorOpMultiplicandBCongruous<
+    nihilus_gemm::layout::VoltaTensorOpMultiplicandBCongruous<
         sizeof_bits<Element_>::value>,
     InstructionShape_, OpDelta_, 32> {
  public:
@@ -418,22 +418,22 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kB;
+  static constexpr Operand  kOperand = Operand::kB;
 
     /// Element type
   using Element = Element_;
 
   /// Layout of source tile
-  using Layout = cutlass::layout::VoltaTensorOpMultiplicandBCongruous<sizeof_bits<Element_>::value>;
+  using Layout = nihilus_gemm::layout::VoltaTensorOpMultiplicandBCongruous<sizeof_bits<Element_>::value>;
 
   /// Shape of one matrix product operation (concept: GemmShape)
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int  kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int  kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -697,7 +697,7 @@ template <
     int OpDelta_>
 class MmaVoltaTensorOpMultiplicandTileIterator<
     Shape_, Operand::kA, Element_,
-    cutlass::layout::ColumnMajorVoltaTensorOpMultiplicandCongruous<
+    nihilus_gemm::layout::ColumnMajorVoltaTensorOpMultiplicandCongruous<
         sizeof_bits<Element_>::value>,
     InstructionShape_, OpDelta_, 32> {
  public:
@@ -706,22 +706,22 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kA;
+  static constexpr Operand  kOperand = Operand::kA;
 
   /// Element type
   using Element = Element_;
 
   /// Layout of source tile
-  using Layout = cutlass::layout::ColumnMajorVoltaTensorOpMultiplicandCongruous<sizeof_bits<Element_>::value>;
+  using Layout = nihilus_gemm::layout::ColumnMajorVoltaTensorOpMultiplicandCongruous<sizeof_bits<Element_>::value>;
 
   /// Shape of one matrix product operation (concept: MatrixShape)
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int  kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int  kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -916,7 +916,7 @@ template <
     int OpDelta_>
 class MmaVoltaTensorOpMultiplicandTileIterator<
     Shape_, Operand::kB, Element_,
-    cutlass::layout::RowMajorVoltaTensorOpMultiplicandBCongruous<
+    nihilus_gemm::layout::RowMajorVoltaTensorOpMultiplicandBCongruous<
         sizeof_bits<Element_>::value>,
     InstructionShape_, OpDelta_, 32> {
  public:
@@ -925,7 +925,7 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kB;
+  static constexpr Operand  kOperand = Operand::kB;
 
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
     "MmaTensorOpMultiplicandIterator may only be instantiated for A or B operands to warp-level Mma.");
@@ -934,16 +934,16 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// Layout of source tile
-  using Layout = cutlass::layout::RowMajorVoltaTensorOpMultiplicandBCongruous<sizeof_bits<Element_>::value>;
+  using Layout = nihilus_gemm::layout::RowMajorVoltaTensorOpMultiplicandBCongruous<sizeof_bits<Element_>::value>;
 
   /// Shape of one matrix product operation (concept: MatrixShape)
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int  kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int  kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -1147,7 +1147,7 @@ class MmaVoltaTensorOpAccumulatorTileIterator {
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kC;
+  static constexpr Operand  kOperand = Operand::kC;
 
   /// Element type
   using Element = Element_;
@@ -1162,7 +1162,7 @@ class MmaVoltaTensorOpAccumulatorTileIterator {
   using OpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int  kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -1202,13 +1202,13 @@ class MmaVoltaTensorOpAccumulatorTileIterator {
 private:
 
   // Assume accumulator tile is multipile interleaved 32x32 tile.
-  static int const kElementsPerPartial = 4;
+  static constexpr int  kElementsPerPartial = 4;
   using EleShapePerPatial = typename platform::conditional<
                               platform::is_same<Element, float>::value,
                               MatrixShape<2, 2>,
                               MatrixShape<1, 4> >::type;
-  static int const kElementsPerMma = 8;
-  static int const kAccumulatorPatials = 2;
+  static constexpr int  kElementsPerMma = 8;
+  static constexpr int  kAccumulatorPatials = 2;
   using QuadShapePerPatialMma = MatrixShape<4, 4>;
 
 public:
@@ -1489,7 +1489,7 @@ template <
     int KBlock>
 class MmaVoltaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
-    cutlass::layout::VoltaTensorOpMultiplicandCrosswise<
+    nihilus_gemm::layout::VoltaTensorOpMultiplicandCrosswise<
         sizeof_bits<Element_>::value, KBlock>,
     InstructionShape_, OpDelta_, 32> {
  public:
@@ -1497,7 +1497,7 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand  kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand == Operand::kB,
                 "MmaVoltaTensorOpMultiplicandIterator may only be instantiated for "
@@ -1507,10 +1507,10 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// KBlock size
-  static int const kKBlock = KBlock;
+  static constexpr int  kKBlock = KBlock;
 
   /// Layout of source tile
-  using Layout = cutlass::layout::VoltaTensorOpMultiplicandCrosswise<
+  using Layout = nihilus_gemm::layout::VoltaTensorOpMultiplicandCrosswise<
       sizeof_bits<Element_>::value, kKBlock>;
 
   /// Shape of one matrix product operation (concept: GemmShape)
@@ -1518,10 +1518,10 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
 
   /// Delta between *MMA operations (in units of *MMA operations, concept:
   /// MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int  kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int  kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -1548,10 +1548,10 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
     using LdsIterations = layout::PitchLinearShape<1, Shape::kStrided / 32>;
 
     /// Using LDS.128
-    static int const kElementsPerAccess = 8;
+    static constexpr int  kElementsPerAccess = 8;
 
     /// Contiguous elements per line
-    static int const kContiguousElementsPerLine = 4;
+    static constexpr int  kContiguousElementsPerLine = 4;
   };
 
  private:
@@ -1820,7 +1820,7 @@ template <
     int KBlock>
 class MmaVoltaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
-    cutlass::layout::ColumnMajorVoltaTensorOpMultiplicandCrosswise<
+    nihilus_gemm::layout::ColumnMajorVoltaTensorOpMultiplicandCrosswise<
         sizeof_bits<Element_>::value, KBlock>,
     InstructionShape_, OpDelta_, 32> {
  public:
@@ -1828,7 +1828,7 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand  kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand == Operand::kB,
                 "MmaTensorOpMultiplicandIterator may only be instantiated for "
@@ -1838,11 +1838,11 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// KBlock size
-  static int const kKBlock = KBlock;
+  static constexpr int  kKBlock = KBlock;
 
 
   /// Layout of source tile
-  using Layout = cutlass::layout::ColumnMajorVoltaTensorOpMultiplicandCrosswise<
+  using Layout = nihilus_gemm::layout::ColumnMajorVoltaTensorOpMultiplicandCrosswise<
       sizeof_bits<Element_>::value, kKBlock>;
 
   /// Shape of one matrix product operation (concept: MatrixShape)
@@ -1850,10 +1850,10 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
 
   /// Delta between *MMA operations (in units of *MMA operations, concept:
   /// MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int  kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int  kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -2047,7 +2047,7 @@ template <
     int KBlock>
 class MmaVoltaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
-    cutlass::layout::RowMajorVoltaTensorOpMultiplicandCrosswise<
+    nihilus_gemm::layout::RowMajorVoltaTensorOpMultiplicandCrosswise<
         sizeof_bits<Element_>::value, KBlock>,
     InstructionShape_, OpDelta_, 32> {
  public:
@@ -2055,7 +2055,7 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand  kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand == Operand::kB,
                 "MmaTensorOpMultiplicandIterator may only be instantiated for "
@@ -2065,10 +2065,10 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// KBlock size
-  static int const kKBlock = KBlock;
+  static constexpr int  kKBlock = KBlock;
 
   /// Layout of source tile
-  using Layout = cutlass::layout::RowMajorVoltaTensorOpMultiplicandCrosswise<
+  using Layout = nihilus_gemm::layout::RowMajorVoltaTensorOpMultiplicandCrosswise<
       sizeof_bits<Element_>::value, kKBlock>;
 
   /// Shape of one matrix product operation (concept: MatrixShape)
@@ -2076,10 +2076,10 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
 
   /// Delta between *MMA operations (in units of *MMA operations, concept:
   /// MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int  kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int  kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -2276,7 +2276,7 @@ class MmaVoltaTensorOpMultiplicandTileIteratorCanonicalInner {
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand  kOperand = Operand_;
 
   /// Basic check
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
@@ -2292,10 +2292,10 @@ class MmaVoltaTensorOpMultiplicandTileIteratorCanonicalInner {
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int  kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int  kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -2310,13 +2310,13 @@ class MmaVoltaTensorOpMultiplicandTileIteratorCanonicalInner {
   using TensorCoord = typename TensorRef::TensorCoord;
 
   /// Number of elements accessed per Shared Memory load
-  static int const kElementsPerAccess = 4;
+  static constexpr int  kElementsPerAccess = 4;
 
 private:
 
-  static int const kInterleavedTileRows = 32;
-  static int const kInterleavedTileColumns = 32;
-  static int const kInstructionsPerTile = 2;
+  static constexpr int  kInterleavedTileRows = 32;
+  static constexpr int  kInterleavedTileColumns = 32;
+  static constexpr int  kInstructionsPerTile = 2;
   
   /// Rounded up instruction counts
   using TileCount = MatrixShape<
@@ -2627,7 +2627,7 @@ class MmaVoltaTensorOpMultiplicandTileIteratorCanonicalOuter {
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand  kOperand = Operand_;
 
   /// Basic check
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
@@ -2643,10 +2643,10 @@ class MmaVoltaTensorOpMultiplicandTileIteratorCanonicalOuter {
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int  kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int  kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -2661,13 +2661,13 @@ class MmaVoltaTensorOpMultiplicandTileIteratorCanonicalOuter {
   using TensorCoord = typename TensorRef::TensorCoord;
 
   /// Number of elements accessed per Shared Memory load
-  static int const kElementsPerAccess = 4;
+  static constexpr int  kElementsPerAccess = 4;
 
 private:
 
-  static int const kInterleavedTileRows = 32;
-  static int const kInterleavedTileColumns = 32;
-  static int const kInstructionsPerTile = 2;
+  static constexpr int  kInterleavedTileRows = 32;
+  static constexpr int  kInterleavedTileColumns = 32;
+  static constexpr int  kInstructionsPerTile = 2;
   
   /// Rounded up instruction counts
   using TileCount = MatrixShape<
@@ -2967,16 +2967,16 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   Shape_, 
   Operand::kA, 
   Element_,
-  cutlass::layout::RowMajor,
+  nihilus_gemm::layout::RowMajor,
   InstructionShape_, 
   OpDelta_,
   32
 > : public MmaVoltaTensorOpMultiplicandTileIteratorCanonicalInner<
-  Shape_, Operand::kA, Element_, cutlass::layout::RowMajor, InstructionShape_, OpDelta_> {
+  Shape_, Operand::kA, Element_, nihilus_gemm::layout::RowMajor, InstructionShape_, OpDelta_> {
 
 public:
   using Base = MmaVoltaTensorOpMultiplicandTileIteratorCanonicalInner<
-  Shape_, Operand::kA, Element_, cutlass::layout::RowMajor, InstructionShape_, OpDelta_> ;
+  Shape_, Operand::kA, Element_, nihilus_gemm::layout::RowMajor, InstructionShape_, OpDelta_> ;
 
   using TensorRef = typename Base::TensorRef;
 
@@ -3003,16 +3003,16 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   Shape_, 
   Operand::kA, 
   Element_,
-  cutlass::layout::ColumnMajor,
+  nihilus_gemm::layout::ColumnMajor,
   InstructionShape_, 
   OpDelta_,
   32
 > : public MmaVoltaTensorOpMultiplicandTileIteratorCanonicalOuter<
-  Shape_, Operand::kA, Element_, cutlass::layout::ColumnMajor, InstructionShape_, OpDelta_> {
+  Shape_, Operand::kA, Element_, nihilus_gemm::layout::ColumnMajor, InstructionShape_, OpDelta_> {
 
 public:
   using Base = MmaVoltaTensorOpMultiplicandTileIteratorCanonicalOuter<
-  Shape_, Operand::kA, Element_, cutlass::layout::ColumnMajor, InstructionShape_, OpDelta_> ;
+  Shape_, Operand::kA, Element_, nihilus_gemm::layout::ColumnMajor, InstructionShape_, OpDelta_> ;
 
   using TensorRef = typename Base::TensorRef;
 
@@ -3037,14 +3037,14 @@ template <
     int OpDelta_>
 class MmaVoltaTensorOpMultiplicandTileIterator<
     Shape_, Operand::kB, Element_,
-    cutlass::layout::ColumnMajor,
+    nihilus_gemm::layout::ColumnMajor,
     InstructionShape_, OpDelta_, 32
 > : public MmaVoltaTensorOpMultiplicandTileIteratorCanonicalInner<
-  Shape_, Operand::kB, Element_, cutlass::layout::ColumnMajor, InstructionShape_, OpDelta_> {
+  Shape_, Operand::kB, Element_, nihilus_gemm::layout::ColumnMajor, InstructionShape_, OpDelta_> {
 
 public:
   using Base = MmaVoltaTensorOpMultiplicandTileIteratorCanonicalInner<
-  Shape_, Operand::kB, Element_, cutlass::layout::ColumnMajor, InstructionShape_, OpDelta_>;
+  Shape_, Operand::kB, Element_, nihilus_gemm::layout::ColumnMajor, InstructionShape_, OpDelta_>;
 
   using TensorRef = typename Base::TensorRef;
 
@@ -3068,14 +3068,14 @@ template <
     int OpDelta_>
 class MmaVoltaTensorOpMultiplicandTileIterator<
     Shape_, Operand::kB, Element_,
-    cutlass::layout::RowMajor,
+    nihilus_gemm::layout::RowMajor,
     InstructionShape_, OpDelta_, 32
 > : public MmaVoltaTensorOpMultiplicandTileIteratorCanonicalOuter<
-  Shape_, Operand::kB, Element_, cutlass::layout::RowMajor, InstructionShape_, OpDelta_> {
+  Shape_, Operand::kB, Element_, nihilus_gemm::layout::RowMajor, InstructionShape_, OpDelta_> {
 
 public:
   using Base = MmaVoltaTensorOpMultiplicandTileIteratorCanonicalOuter<
-  Shape_, Operand::kB, Element_, cutlass::layout::RowMajor, InstructionShape_, OpDelta_>;
+  Shape_, Operand::kB, Element_, nihilus_gemm::layout::RowMajor, InstructionShape_, OpDelta_>;
 
   using TensorRef = typename Base::TensorRef;
 
@@ -3091,6 +3091,6 @@ public:
 
 } // namespace warp
 } // namespace gemm
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

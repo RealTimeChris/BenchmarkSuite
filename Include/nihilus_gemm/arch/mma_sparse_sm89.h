@@ -34,12 +34,12 @@
 */
 
 #pragma once
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 #include CUDA_STD_HEADER(cassert)
 
 #include "mma.h"
-#include "cutlass/layout/matrix.h"
-#include "cutlass/numeric_types.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/numeric_types.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -55,7 +55,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace arch {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -65,9 +65,9 @@ template <typename Operator_>
 struct SparseMma<
   gemm::GemmShape<16,8,64>,
   32,
-  cutlass::float_e4m3_t,
+  nihilus_gemm::float_e4m3_t,
   layout::RowMajor,
-  cutlass::float_e4m3_t,
+  nihilus_gemm::float_e4m3_t,
   layout::ColumnMajor,
   float,
   layout::RowMajor,
@@ -80,11 +80,11 @@ struct SparseMma<
 
   using Shape = gemm::GemmShape<16,8,64>;
 
-  using ElementA = cutlass::float_e4m3_t;
+  using ElementA = nihilus_gemm::float_e4m3_t;
   using LayoutA = layout::RowMajor;
   using FragmentA = Array<ElementA, 16>;
 
-  using ElementB = cutlass::float_e4m3_t;
+  using ElementB = nihilus_gemm::float_e4m3_t;
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<ElementB, 16>;
 
@@ -97,11 +97,11 @@ struct SparseMma<
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
 
-  static int const kSparse = 2;
+  static constexpr int  kSparse = 2;
 
-  static int const kMetaSizeInBits = 2;
+  static constexpr int  kMetaSizeInBits = 2;
 
-  static int const kMaxID2 = 1;
+  static constexpr int  kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_HOST_DEVICE
@@ -150,9 +150,9 @@ template <typename Operator_>
 struct SparseMma<
   gemm::GemmShape<16,8,64>,
   32,
-  cutlass::float_e4m3_t,
+  nihilus_gemm::float_e4m3_t,
   layout::RowMajor,
-  cutlass::float_e5m2_t,
+  nihilus_gemm::float_e5m2_t,
   layout::ColumnMajor,
   float,
   layout::RowMajor,
@@ -165,11 +165,11 @@ struct SparseMma<
 
   using Shape = gemm::GemmShape<16,8,64>;
 
-  using ElementA = cutlass::float_e4m3_t;
+  using ElementA = nihilus_gemm::float_e4m3_t;
   using LayoutA = layout::RowMajor;
   using FragmentA = Array<ElementA, 16>;
 
-  using ElementB = cutlass::float_e5m2_t;
+  using ElementB = nihilus_gemm::float_e5m2_t;
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<ElementB, 16>;
 
@@ -182,11 +182,11 @@ struct SparseMma<
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
 
-  static int const kSparse = 2;
+  static constexpr int  kSparse = 2;
 
-  static int const kMetaSizeInBits = 2;
+  static constexpr int  kMetaSizeInBits = 2;
 
-  static int const kMaxID2 = 1;
+  static constexpr int  kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_HOST_DEVICE
@@ -235,9 +235,9 @@ template <typename Operator_>
 struct SparseMma<
   gemm::GemmShape<16,8,64>,
   32,
-  cutlass::float_e5m2_t,
+  nihilus_gemm::float_e5m2_t,
   layout::RowMajor,
-  cutlass::float_e4m3_t,
+  nihilus_gemm::float_e4m3_t,
   layout::ColumnMajor,
   float,
   layout::RowMajor,
@@ -250,11 +250,11 @@ struct SparseMma<
 
   using Shape = gemm::GemmShape<16,8,64>;
 
-  using ElementA = cutlass::float_e5m2_t;
+  using ElementA = nihilus_gemm::float_e5m2_t;
   using LayoutA = layout::RowMajor;
   using FragmentA = Array<ElementA, 16>;
 
-  using ElementB = cutlass::float_e4m3_t;
+  using ElementB = nihilus_gemm::float_e4m3_t;
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<ElementB, 16>;
 
@@ -267,11 +267,11 @@ struct SparseMma<
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
 
-  static int const kSparse = 2;
+  static constexpr int  kSparse = 2;
 
-  static int const kMetaSizeInBits = 2;
+  static constexpr int  kMetaSizeInBits = 2;
 
-  static int const kMaxID2 = 1;
+  static constexpr int  kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_HOST_DEVICE
@@ -320,9 +320,9 @@ template <typename Operator_>
 struct SparseMma<
   gemm::GemmShape<16,8,64>,
   32,
-  cutlass::float_e5m2_t,
+  nihilus_gemm::float_e5m2_t,
   layout::RowMajor,
-  cutlass::float_e5m2_t,
+  nihilus_gemm::float_e5m2_t,
   layout::ColumnMajor,
   float,
   layout::RowMajor,
@@ -335,11 +335,11 @@ struct SparseMma<
 
   using Shape = gemm::GemmShape<16,8,64>;
 
-  using ElementA = cutlass::float_e5m2_t;
+  using ElementA = nihilus_gemm::float_e5m2_t;
   using LayoutA = layout::RowMajor;
   using FragmentA = Array<ElementA, 16>;
 
-  using ElementB = cutlass::float_e5m2_t;
+  using ElementB = nihilus_gemm::float_e5m2_t;
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<ElementB, 16>;
 
@@ -352,11 +352,11 @@ struct SparseMma<
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
 
-  static int const kSparse = 2;
+  static constexpr int  kSparse = 2;
 
-  static int const kMetaSizeInBits = 2;
+  static constexpr int  kMetaSizeInBits = 2;
 
-  static int const kMaxID2 = 1;
+  static constexpr int  kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_HOST_DEVICE
@@ -401,6 +401,6 @@ struct SparseMma<
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace arch
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

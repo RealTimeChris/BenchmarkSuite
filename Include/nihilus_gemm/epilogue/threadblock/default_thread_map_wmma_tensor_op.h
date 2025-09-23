@@ -35,13 +35,13 @@
 
 #pragma once
 
-#include "cutlass/epilogue/threadblock/predicated_tile_iterator.h"
-#include "cutlass/gemm/gemm.h"
-#include "cutlass/layout/pitch_linear.h"
+#include "nihilus_gemm/epilogue/threadblock/predicated_tile_iterator.h"
+#include "nihilus_gemm/gemm/gemm.h"
+#include "nihilus_gemm/layout/pitch_linear.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace threadblock {
 
@@ -61,9 +61,9 @@ struct DefaultThreadMapWmmaTensorOp {
   using ThreadblockShape = ThreadblockShape_;
   using WarpShape = WarpShape_;
   using InstructionShape = InstructionShape_;
-  static int const kPartitionsK = PartitionsK;
+  static constexpr int  kPartitionsK = PartitionsK;
   using Element = Element_;
-  static int const kElementsPerAccess = ElementsPerAccess;
+  static constexpr int  kElementsPerAccess = ElementsPerAccess;
 
   //
   // Definitions
@@ -72,8 +72,8 @@ struct DefaultThreadMapWmmaTensorOp {
   struct Detail {
 
     /// Wmma Tensor Operations fundamentally perform operations on InstructionShape::kM rows
-    static int const kTensorOpRows = InstructionShape::kM;
-    static int const kWarpSize = 32;
+    static constexpr int  kTensorOpRows = InstructionShape::kM;
+    static constexpr int  kWarpSize = 32;
 
     static_assert(
       !(ThreadblockShape::kM % WarpShape::kM) &&
@@ -87,7 +87,7 @@ struct DefaultThreadMapWmmaTensorOp {
     >;
 
     /// Number of participating threads
-    static int const kThreads = WarpCount::kCount * kWarpSize;
+    static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
   };
 
   //
@@ -108,6 +108,6 @@ struct DefaultThreadMapWmmaTensorOp {
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////

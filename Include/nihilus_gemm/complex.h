@@ -34,25 +34,25 @@
 #include <cuComplex.h>
 
 #include <cuda_fp16.h>
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 #if defined(__CUDACC_RTC__)
 #include CUDA_STD_HEADER(cstdint)
 #else
 #include <cstdint>
 #endif
-#include "cutlass/functional.h"
-#include "cutlass/platform/platform.h"
-#include "cutlass/real.h"
+#include "nihilus_gemm/functional.h"
+#include "nihilus_gemm/platform/platform.h"
+#include "nihilus_gemm/real.h"
 
-#include "cutlass/numeric_types.h"
+#include "nihilus_gemm/numeric_types.h"
 
-#include "cutlass/fast_math.h"
+#include "nihilus_gemm/fast_math.h"
 
 #if !defined(__CUDACC_RTC__)
 #include <iosfwd>
 #endif
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 /// Enumeraed type describing a transformation on a complex value.
@@ -69,13 +69,13 @@ struct InvertComplexTransform;
 /// Invert ComplexTransform from kNone to kConjugate
 template <>
 struct InvertComplexTransform<ComplexTransform::kNone> {
-  static ComplexTransform const transform = ComplexTransform::kConjugate;
+  static constexpr ComplexTransform  transform = ComplexTransform::kConjugate;
 };
 
 /// Invert ComplexTransform from kConjugate to kNone
 template <>
 struct InvertComplexTransform<ComplexTransform::kConjugate> {
-  static ComplexTransform const transform = ComplexTransform::kNone;
+  static constexpr ComplexTransform  transform = ComplexTransform::kNone;
 };
 /////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -206,7 +206,7 @@ class complex
   template <typename OtherT>
   CUTLASS_DEVICE void red(complex<OtherT> *ptr) const {
     static_assert(platform::is_same<T, OtherT>::value, "Component type must match");
-    cutlass::atomic_add<T> reduce;
+    nihilus_gemm::atomic_add<T> reduce;
     reduce(&ptr->_real, _real);
     reduce(&ptr->_imag, _imag);
   }
@@ -216,7 +216,7 @@ class complex
     static_assert(platform::is_same<T, half_t>::value, "Component type must match");
     half2 *h2_ptr = reinterpret_cast<half2*>(ptr);
     half2 h2_data = reinterpret_cast<half2&>(*this);
-    cutlass::atomic_add<half2> reduce;
+    nihilus_gemm::atomic_add<half2> reduce;
     reduce(h2_ptr, h2_data);
   }
 
@@ -339,7 +339,7 @@ CUTLASS_HOST_DEVICE complex<T> conj(complex<T> const& z) {
 //
 
 // Nonmember real and imag need to work for non-complex numbers too.
-// That means cutlass::complex, std::complex, cuda::std::complex, and
+// That means nihilus_gemm::complex, std::complex, cuda::std::complex, and
 // any user-defined complex number type that looks like std::complex.
 // It's reasonable to assume that a "complex number type" has
 // zero-argument real() and imag() member functions returning
@@ -351,17 +351,17 @@ namespace detail {
 
 template <typename T, typename Enable = void>
 struct has_zero_argument_real_member_function :
-  cutlass::platform::false_type
+  nihilus_gemm::platform::false_type
 {};
 
 template <typename T>
 struct has_zero_argument_real_member_function<T,
-  cutlass::platform::enable_if_t<
-    ! cutlass::platform::is_void_v<
-      decltype(cutlass::platform::declval<T>().real())
+  nihilus_gemm::platform::enable_if_t<
+    ! nihilus_gemm::platform::is_void_v<
+      decltype(nihilus_gemm::platform::declval<T>().real())
     >
   >
-> : cutlass::platform::true_type
+> : nihilus_gemm::platform::true_type
 {};
 
 template <typename T>
@@ -370,17 +370,17 @@ constexpr bool has_zero_argument_real_member_function_v =
 
 template <typename T, typename Enable = void>
 struct has_zero_argument_imag_member_function :
-  cutlass::platform::false_type
+  nihilus_gemm::platform::false_type
 {};
 
 template <typename T>
 struct has_zero_argument_imag_member_function<T,
-  cutlass::platform::enable_if_t<
-    ! cutlass::platform::is_void_v<
-      decltype(cutlass::platform::declval<T>().imag())
+  nihilus_gemm::platform::enable_if_t<
+    ! nihilus_gemm::platform::is_void_v<
+      decltype(nihilus_gemm::platform::declval<T>().imag())
     >
   >
-> : cutlass::platform::true_type
+> : nihilus_gemm::platform::true_type
 {};
 
 template <typename T>
@@ -454,7 +454,7 @@ CUTLASS_HOST_DEVICE double abs(complex<double> const &z) {
 
 template <typename T>
 CUTLASS_HOST_DEVICE T abs(complex<T> const &z) {
-  // cutlass::complex permits all kinds of T, including types that
+  // nihilus_gemm::complex permits all kinds of T, including types that
   // don't have NaN.  For a generic floating-point type with Inf
   // and/or NaN, LAPACK's DLAPY2 algorithm would make sense, as it
   // would handle issues like avoiding unwarranted overflow if
@@ -464,7 +464,7 @@ CUTLASS_HOST_DEVICE T abs(complex<T> const &z) {
   //
   // Use the "swap two-step" idiom so that argument-dependent lookup
   // can find any CUTLASS-specific overloads.
-  using cutlass::sqrt;
+  using nihilus_gemm::sqrt;
   return sqrt(z.real() * z.real() + z.imag() * z.imag());
 }
 
@@ -508,22 +508,22 @@ CUTLASS_HOST_DEVICE R norm_accumulate(complex<T> const &z, R const &accumulator)
 namespace detail {
   
 template<class T>
-CUTLASS_HOST_DEVICE T conj_impl(T const& z, cutlass::platform::true_type) {
+CUTLASS_HOST_DEVICE T conj_impl(T const& z, nihilus_gemm::platform::true_type) {
   return conj(z);
 }
 
 template<class T>
-CUTLASS_HOST_DEVICE T conj_impl(T const& z, cutlass::platform::false_type) {
+CUTLASS_HOST_DEVICE T conj_impl(T const& z, nihilus_gemm::platform::false_type) {
   return z;
 }
 
 template<class T>
 CUTLASS_HOST_DEVICE T conj_impl(T const& z) {
   constexpr bool use_unqualified_conj =
-    ! cutlass::platform::is_arithmetic_v<T> &&
+    ! nihilus_gemm::platform::is_arithmetic_v<T> &&
     ! detail::has_cutlass_conj_v<T> &&
     detail::has_unqualified_conj_v<T>;
-  return conj_impl(z, cutlass::platform::bool_constant<use_unqualified_conj>{});
+  return conj_impl(z, nihilus_gemm::platform::bool_constant<use_unqualified_conj>{});
 }
   
 } // namespace detail
@@ -532,25 +532,25 @@ CUTLASS_HOST_DEVICE T conj_impl(T const& z) {
 //
 // This MUST be a function and not a function object, because it may
 // be common practice for downstream types to define specifically
-// cutlass::conj overloads, instead of overloads in their namespace.
+// nihilus_gemm::conj overloads, instead of overloads in their namespace.
 //
 // As a result of this being a function and not a function object,
-// CUTLASS code needs to declare "using cutlass::conj;" in scope and
+// CUTLASS code needs to declare "using nihilus_gemm::conj;" in scope and
 // then call this function unqualified, just like std::swap.
 //
-// If an overload already exists for cutlass::conj(T), that overload
+// If an overload already exists for nihilus_gemm::conj(T), that overload
 // will be called instead of this one.  Otherwise:
 //
 // 1. for arithmetic types, return z;
 //
 // 2. for types where (namespace-unqualified) conj(z) is well formed
-//    and cutlass::conj(z) is NOT well formed, return conj(z); and,
+//    and nihilus_gemm::conj(z) is NOT well formed, return conj(z); and,
 //
 // 3. for everything else, return z.
 //
 // Regarding (1), the C++ Standard Library makes std::conj always
 // return std::complex, even for (noncomplex) arithmetic types.
-// cutlass::conj(T t) needs to return type T.  This follows the
+// nihilus_gemm::conj(T t) needs to return type T.  This follows the
 // convention of linear algebra software like the BLAS, where
 // "conjugate transpose" means the same thing as "transpose" for a
 // matrix of noncomplex numbers.
@@ -558,7 +558,7 @@ CUTLASS_HOST_DEVICE T conj_impl(T const& z) {
 // Case (2) covers std::complex, cuda::std::complex, and non-Standard
 // (including user-defined) complex number types (for which "conj(z)"
 // is findable via argument-dependent lookup, but does not live in the
-// cutlass namespace).  It excludes cutlass::conj(z) in order to
+// nihilus_gemm namespace).  It excludes nihilus_gemm::conj(z) in order to
 // prevent infinite recursion.
 //
 // Case (3) covers non-Standard non-complex number types.
@@ -633,7 +633,7 @@ struct RealType< complex<T> >
   using Type = T;
 
   /// Number of elements
-  static int const kExtent = 2;
+  static constexpr int  kExtent = 2;
 
   CUTLASS_HOST_DEVICE
   static complex<T> from_real(double x) {
@@ -645,32 +645,32 @@ struct RealType< complex<T> >
 
 template <>
 CUTLASS_HOST_DEVICE
-cutlass::complex<half_t> from_real<cutlass::complex<half_t> >(double r) {
-  return cutlass::complex<half_t>(half_t(r));
+nihilus_gemm::complex<half_t> from_real<nihilus_gemm::complex<half_t> >(double r) {
+  return nihilus_gemm::complex<half_t>(half_t(r));
 }
 
 template <>
 CUTLASS_HOST_DEVICE
-cutlass::complex<float> from_real<cutlass::complex<float> >(double r) {
-  return cutlass::complex<float>(float(r));
+nihilus_gemm::complex<float> from_real<nihilus_gemm::complex<float> >(double r) {
+  return nihilus_gemm::complex<float>(float(r));
 }
 
 template <>
 CUTLASS_HOST_DEVICE
-cutlass::complex<double> from_real<cutlass::complex<double> >(double r) {
-  return cutlass::complex<double>(r);
+nihilus_gemm::complex<double> from_real<nihilus_gemm::complex<double> >(double r) {
+  return nihilus_gemm::complex<double>(r);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
 struct is_complex {
-  static bool const value = false;
+  static constexpr bool  value = false;
 };
 
 template <typename T>
 struct is_complex<complex<T>> {
-  static bool const value = true;
+  static constexpr bool  value = true;
 };
 
 
@@ -767,7 +767,7 @@ struct conjugate<complex<T>>  {
   complex<T> operator()(complex<T> const &a) const {
     // Invoke the complex<T> overload specifically, rather than
     // wasting the compiler's effort on overload resolution.
-    return cutlass::conj(a);
+    return nihilus_gemm::conj(a);
   }
 };
 
@@ -816,6 +816,6 @@ struct atomic_add<complex<T>> {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-}  // namespace cutlass
+}  // namespace nihilus_gemm
 
 //////////////////////////////////////////////////////////////////////////////////////////////////

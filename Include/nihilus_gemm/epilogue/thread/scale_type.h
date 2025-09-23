@@ -34,11 +34,11 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace thread {
 
@@ -63,4 +63,4 @@ struct ScaleType {
 
 } // namespace thread
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm

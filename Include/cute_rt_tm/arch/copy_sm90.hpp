@@ -30,11 +30,11 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute/config.hpp>      // CUTE_HOST_DEVICE
-#include <cute/arch/config.hpp> // CUTE_ARCH_TMA_SMxx_ENABLED
-#include <cute/arch/copy.hpp>
+#include <cute_rt_tm/config.hpp>      // CUTE_HOST_DEVICE
+#include <cute_rt_tm/arch/config.hpp> // CUTE_ARCH_TMA_SMxx_ENABLED
+#include <cute_rt_tm/arch/copy.hpp>
 
-namespace cute
+namespace cute_rt_tm
 {
 
 struct SM90_U32x1_STSM_N
@@ -209,11 +209,11 @@ copy_stsm_trans(T const* const rmem_ptr,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // end namespace cute
+} // end namespace cute_rt_tm
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include <cute/arch/copy_sm90_desc.hpp>
-#include <cute/arch/copy_sm90_tma.hpp>
+#include <cute_rt_tm/arch/copy_sm90_desc.hpp>
+#include <cute_rt_tm/arch/copy_sm90_tma.hpp>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

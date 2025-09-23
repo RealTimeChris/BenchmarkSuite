@@ -34,17 +34,17 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/array.h"
-#include "cutlass/functional.h"
-#include "cutlass/numeric_conversion.h"
-#include "cutlass/epilogue/thread/scale_type.h"
-#include "cutlass/epilogue/thread/linear_combination_params.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/functional.h"
+#include "nihilus_gemm/numeric_conversion.h"
+#include "nihilus_gemm/epilogue/thread/scale_type.h"
+#include "nihilus_gemm/epilogue/thread/linear_combination_params.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace thread {
 
@@ -76,14 +76,14 @@ public:
   using ElementC = ElementSource_;
   using ElementD = ElementOutput_;
 
-  static int const kCount = Count;
-  static const ScaleType::Kind kScale = Scale;
+  static constexpr int  kCount = Count;
+  static constexpr ScaleType::Kind kScale = Scale;
   using FragmentOutput = Array<ElementOutput, kCount>;
   using FragmentSource = Array<ElementSource, kCount>;
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
   using FragmentCompute = Array<ElementCompute, kCount>;
 
-  static FloatRoundStyle const kRound = Round;
+  static constexpr FloatRoundStyle  kRound = Round;
 
   /// Host-constructable parameters structure
   struct Params 
@@ -275,7 +275,7 @@ public:
   }
 
   //
-  // Specializations for scalar (for use with cute::collective::DefaultEpilogue)
+  // Specializations for scalar (for use with cute_rt_tm::collective::DefaultEpilogue)
   //
   CUTLASS_HOST_DEVICE
   ElementD operator()(ElementAccumulator const accumulator, ElementC const source) const {
@@ -356,8 +356,8 @@ public:
   using ElementC = ElementSource_;
   using ElementD = ElementOutput_;
 
-  static int const kCount = Count;
-  static const ScaleType::Kind kScale = ScaleType::PerChannelScaling;
+  static constexpr int  kCount = Count;
+  static constexpr ScaleType::Kind kScale = ScaleType::PerChannelScaling;
   static constexpr bool IsPerChannelScalingSupported = true;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
@@ -365,7 +365,7 @@ public:
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
   using FragmentCompute = Array<ElementCompute, kCount>;
 
-  static FloatRoundStyle const kRound = Round;
+  static constexpr FloatRoundStyle  kRound = Round;
 
   /// Host-constructable parameters structure
   struct Params
@@ -522,6 +522,6 @@ public:
 
 } // namespace thread
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

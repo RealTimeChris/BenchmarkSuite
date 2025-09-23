@@ -34,12 +34,12 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/array.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/array.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -54,7 +54,7 @@ struct ArrayPlanarComplex {
   static constexpr size_t kElements = N;
 
   /// Underlying Fragment of real-valued elemenets
-  using ArrayReal = cutlass::Array<Element, N>;
+  using ArrayReal = nihilus_gemm::Array<Element, N>;
 
 public:
   /// Fragment of real-valued elements representing the real part
@@ -84,6 +84,6 @@ make_ArrayPlanarComplex(Array<Element, N> const &real, Array<Element, N> const &
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

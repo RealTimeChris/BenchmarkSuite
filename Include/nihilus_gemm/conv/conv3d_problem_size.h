@@ -47,10 +47,10 @@
 
 #pragma once
 
-#include "cutlass/conv/convolution.h"
-#include "cutlass/conv/conv2d_problem_size.h"
+#include "nihilus_gemm/conv/convolution.h"
+#include "nihilus_gemm/conv/conv2d_problem_size.h"
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace conv {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -144,17 +144,17 @@ public:
     D(D), T(T), Z(Z), 
     pad_d(pad_d), stride_d(stride_d), dilation_d(dilation_d) { }
 
-  /// Constructs convolution problem size from cutlass Tensor5DCoord and Coord3D 
+  /// Constructs convolution problem size from nihilus_gemm Tensor5DCoord and Coord3D 
   // set *user-defined* output size and sets Z, P, and Q (include all data members in ctor)
   CUTLASS_HOST_DEVICE
   Conv3dProblemSize(
-    cutlass::Tensor5DCoord input_size,    // NDHWC
-    cutlass::Tensor5DCoord filter_size,   // KTRSC
+    nihilus_gemm::Tensor5DCoord input_size,    // NDHWC
+    nihilus_gemm::Tensor5DCoord filter_size,   // KTRSC
     Coord3D padding,                      // pad_d, pad_h, pad_w
     Coord3D stride,                       // stride_d, stride_h, stride_w
     Coord3D dilation,                     // dilation_d, dilation_h, dilation_w
-    cutlass::Tensor5DCoord output_size,   // NZPQK
-    cutlass::conv::Mode mode = cutlass::conv::Mode::kCrossCorrelation,
+    nihilus_gemm::Tensor5DCoord output_size,   // NZPQK
+    nihilus_gemm::conv::Mode mode = nihilus_gemm::conv::Mode::kCrossCorrelation,
     int split_k_slices = 1,
     int groups = 1
   ):
@@ -169,16 +169,16 @@ public:
     D(input_size.d()), T(filter_size.d()), Z(output_size.d()),
     pad_d(padding[0]), stride_d(stride[0]), dilation_d(dilation[0]) { }
 
-  /// Constructs convolution problem size from cutlass Tensor5DCoord and Coord3D 
+  /// Constructs convolution problem size from nihilus_gemm Tensor5DCoord and Coord3D 
   // *computes* output size and sets Z, P and Q (include all data members in ctor)
   CUTLASS_HOST_DEVICE
   Conv3dProblemSize(
-    cutlass::Tensor5DCoord input_size,    // NDHWC
-    cutlass::Tensor5DCoord filter_size,   // KTRSC
+    nihilus_gemm::Tensor5DCoord input_size,    // NDHWC
+    nihilus_gemm::Tensor5DCoord filter_size,   // KTRSC
     Coord3D padding,                      // pad_d, pad_h, pad_w
     Coord3D stride,                       // stride_d, stride_h, stride_w
     Coord3D dilation,                     // dilation_d, dilation_h, dilation_w
-    cutlass::conv::Mode mode = cutlass::conv::Mode::kCrossCorrelation,
+    nihilus_gemm::conv::Mode mode = nihilus_gemm::conv::Mode::kCrossCorrelation,
     int split_k_slices = 1,
     int groups = 1
   ):
@@ -196,16 +196,16 @@ public:
       Z = ((D + pad_d * 2 - T * dilation_d) / stride_d) + 1;
     }
 
-  /// Constructs convolution problem size from cutlass Tensor5DCoord, Coord3D
+  /// Constructs convolution problem size from nihilus_gemm Tensor5DCoord, Coord3D
   // *computes* output size and sets Z, P and Q (include all data members in ctor)
   CUTLASS_HOST_DEVICE
   Conv3dProblemSize(
-    cutlass::Tensor5DCoord input_size,    // NDHWC
-    cutlass::Tensor5DCoord filter_size,   // KTRSC
+    nihilus_gemm::Tensor5DCoord input_size,    // NDHWC
+    nihilus_gemm::Tensor5DCoord filter_size,   // KTRSC
     CUTLASS_STL_NAMESPACE::tuple<Coord3D, Coord3D> padding, // Coord3D {pad_d, pad_h, pad_w} & Coord3D {far pad_d, pad_h, pad_w} to calculate o/p/q
     Coord3D stride,                       // stride_d, stride_h, stride_w
     Coord3D dilation,                     // dilation_d, dilation_h, dilation_w
-    cutlass::conv::Mode mode = cutlass::conv::Mode::kCrossCorrelation,
+    nihilus_gemm::conv::Mode mode = nihilus_gemm::conv::Mode::kCrossCorrelation,
     int split_k_slices = 1,
     int groups = 1
   ):
@@ -245,7 +245,7 @@ public:
 
   // Reset covolution mode in the problem
   CUTLASS_HOST_DEVICE
-  Conv3dProblemSize reset_mode(cutlass::conv::Mode mode_) {
+  Conv3dProblemSize reset_mode(nihilus_gemm::conv::Mode mode_) {
     Conv3dProblemSize tmp(*this);
     tmp.mode = mode_; 
     return tmp; 
@@ -261,24 +261,24 @@ public:
   
   /// Returns activation extent as Tensor5DCoord
   CUTLASS_HOST_DEVICE
-  cutlass::Tensor5DCoord activation_extent() const {
+  nihilus_gemm::Tensor5DCoord activation_extent() const {
 
-    return cutlass::Tensor5DCoord ({N, D, H, W, C});
+    return nihilus_gemm::Tensor5DCoord ({N, D, H, W, C});
   }
 
   /// Returns filter extent as Tensor5DCoord
   CUTLASS_HOST_DEVICE
-  cutlass::Tensor5DCoord filter_extent(bool is_deconv = false) const {
+  nihilus_gemm::Tensor5DCoord filter_extent(bool is_deconv = false) const {
 
-    return is_deconv ? cutlass::Tensor5DCoord ({C, T, R, S, K})
-        : cutlass::Tensor5DCoord ({K, T, R, S, C});
+    return is_deconv ? nihilus_gemm::Tensor5DCoord ({C, T, R, S, K})
+        : nihilus_gemm::Tensor5DCoord ({K, T, R, S, C});
   }
 
   /// Returns output extent as Tensor5DCoord
   CUTLASS_HOST_DEVICE
-  cutlass::Tensor5DCoord output_extent() const {
+  nihilus_gemm::Tensor5DCoord output_extent() const {
 
-    return cutlass::Tensor5DCoord ({N, Z, P, Q, K});
+    return nihilus_gemm::Tensor5DCoord ({N, Z, P, Q, K});
   }
 
   /// Returns activation size in number of elements
@@ -338,7 +338,7 @@ public:
 
 /// Determine the problem size of the implicit GEMM operation
 CUTLASS_HOST_DEVICE
-cutlass::gemm::GemmCoord implicit_gemm_problem_size(
+nihilus_gemm::gemm::GemmCoord implicit_gemm_problem_size(
   Operator conv_operator, 
   Conv3dProblemSize const &problem_size) {
   // Compute problem size
@@ -425,47 +425,47 @@ int implicit_gemm_k_iterations(
 ////////////////////////////////////////////////////////////////////////////////
 /// Returns ImplicitGemm tensor A extent as Tensor5DCoord
 CUTLASS_HOST_DEVICE
-cutlass::Tensor5DCoord implicit_gemm_tensor_a_extent(
+nihilus_gemm::Tensor5DCoord implicit_gemm_tensor_a_extent(
   Operator conv_operator,
   Conv3dProblemSize const &problem_size) {
   switch (conv_operator) {
-    case cutlass::conv::Operator::kFprop: return problem_size.activation_extent();
-    case cutlass::conv::Operator::kDeconv:
-    case cutlass::conv::Operator::kDgrad: return problem_size.output_extent();
-    case cutlass::conv::Operator::kWgrad: return problem_size.output_extent();
+    case nihilus_gemm::conv::Operator::kFprop: return problem_size.activation_extent();
+    case nihilus_gemm::conv::Operator::kDeconv:
+    case nihilus_gemm::conv::Operator::kDgrad: return problem_size.output_extent();
+    case nihilus_gemm::conv::Operator::kWgrad: return problem_size.output_extent();
     default : break;
   }
-  return cutlass::Tensor5DCoord();
+  return nihilus_gemm::Tensor5DCoord();
 }
 
 /// Returns ImplicitGemm tensor B extent as Tensor5DCoord
 CUTLASS_HOST_DEVICE
-cutlass::Tensor5DCoord implicit_gemm_tensor_b_extent(
+nihilus_gemm::Tensor5DCoord implicit_gemm_tensor_b_extent(
   Operator conv_operator,
   Conv3dProblemSize const &problem_size) {
   switch (conv_operator) {
-    case cutlass::conv::Operator::kFprop: return problem_size.filter_extent();
-    case cutlass::conv::Operator::kDeconv: return problem_size.filter_extent(true);
-    case cutlass::conv::Operator::kDgrad: return problem_size.filter_extent();
-    case cutlass::conv::Operator::kWgrad: return problem_size.activation_extent();
+    case nihilus_gemm::conv::Operator::kFprop: return problem_size.filter_extent();
+    case nihilus_gemm::conv::Operator::kDeconv: return problem_size.filter_extent(true);
+    case nihilus_gemm::conv::Operator::kDgrad: return problem_size.filter_extent();
+    case nihilus_gemm::conv::Operator::kWgrad: return problem_size.activation_extent();
     default : break;
   }
-  return cutlass::Tensor5DCoord();
+  return nihilus_gemm::Tensor5DCoord();
 }
 
 /// Returns ImplicitGemm tensor C extent as Tensor5DCoord
 CUTLASS_HOST_DEVICE
-cutlass::Tensor5DCoord implicit_gemm_tensor_c_extent(
+nihilus_gemm::Tensor5DCoord implicit_gemm_tensor_c_extent(
   Operator conv_operator,
   Conv3dProblemSize const &problem_size) {
   switch (conv_operator) {
-    case cutlass::conv::Operator::kFprop: return problem_size.output_extent();
-    case cutlass::conv::Operator::kDeconv:
-    case cutlass::conv::Operator::kDgrad: return problem_size.activation_extent();
-    case cutlass::conv::Operator::kWgrad: return problem_size.filter_extent();
+    case nihilus_gemm::conv::Operator::kFprop: return problem_size.output_extent();
+    case nihilus_gemm::conv::Operator::kDeconv:
+    case nihilus_gemm::conv::Operator::kDgrad: return problem_size.activation_extent();
+    case nihilus_gemm::conv::Operator::kWgrad: return problem_size.filter_extent();
     default : break;
   }
-  return cutlass::Tensor5DCoord();
+  return nihilus_gemm::Tensor5DCoord();
 }
 
 /// Returns ImplicitGemm tensor A size in number of elements
@@ -474,10 +474,10 @@ int64_t implicit_gemm_tensor_a_size(
   Operator conv_operator,
   Conv3dProblemSize const &problem_size) {
   switch (conv_operator) {
-    case cutlass::conv::Operator::kFprop: return problem_size.activation_size();
-    case cutlass::conv::Operator::kDeconv:
-    case cutlass::conv::Operator::kDgrad: return problem_size.output_size();
-    case cutlass::conv::Operator::kWgrad: return problem_size.output_size();
+    case nihilus_gemm::conv::Operator::kFprop: return problem_size.activation_size();
+    case nihilus_gemm::conv::Operator::kDeconv:
+    case nihilus_gemm::conv::Operator::kDgrad: return problem_size.output_size();
+    case nihilus_gemm::conv::Operator::kWgrad: return problem_size.output_size();
     default : break;
   }
   return 0;
@@ -489,10 +489,10 @@ int64_t implicit_gemm_tensor_b_size(
   Operator conv_operator,
   Conv3dProblemSize const &problem_size) {
   switch (conv_operator) {
-    case cutlass::conv::Operator::kFprop: return problem_size.filter_size();
-    case cutlass::conv::Operator::kDeconv:
-    case cutlass::conv::Operator::kDgrad: return problem_size.filter_size();
-    case cutlass::conv::Operator::kWgrad: return problem_size.activation_size();
+    case nihilus_gemm::conv::Operator::kFprop: return problem_size.filter_size();
+    case nihilus_gemm::conv::Operator::kDeconv:
+    case nihilus_gemm::conv::Operator::kDgrad: return problem_size.filter_size();
+    case nihilus_gemm::conv::Operator::kWgrad: return problem_size.activation_size();
     default : break;
   }
   return 0;
@@ -504,16 +504,16 @@ int64_t implicit_gemm_tensor_c_size(
   Operator conv_operator,
   Conv3dProblemSize const &problem_size) {
   switch (conv_operator) {
-    case cutlass::conv::Operator::kFprop: return problem_size.output_size();
-    case cutlass::conv::Operator::kDeconv:
-    case cutlass::conv::Operator::kDgrad: return problem_size.activation_size();
-    case cutlass::conv::Operator::kWgrad: return problem_size.filter_size();
+    case nihilus_gemm::conv::Operator::kFprop: return problem_size.output_size();
+    case nihilus_gemm::conv::Operator::kDeconv:
+    case nihilus_gemm::conv::Operator::kDgrad: return problem_size.activation_size();
+    case nihilus_gemm::conv::Operator::kWgrad: return problem_size.filter_size();
     default : break;
   }
   return 0;
 }
 
 } // namespace conv
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

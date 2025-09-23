@@ -30,26 +30,26 @@
  **************************************************************************************************/
 #pragma once
 
-#include "cutlass/numeric_types.h"
+#include "nihilus_gemm/numeric_types.h"
 
 #if !defined(__CUDACC_RTC__)
 #include <cuda.h>
 #include <cinttypes>
 #endif
 
-#include <cute/config.hpp>
+#include <cute_rt_tm/config.hpp>
 
-#include <cute/arch/util.hpp>   // cute::cast_smem_ptr_to_uint
-#include <cute/arch/config.hpp> // CUTE_ARCH_TMA_SMxx_ENABLED
-#include <cute/arch/copy.hpp>
-#include <cute/arch/copy_sm90.hpp>
+#include <cute_rt_tm/arch/util.hpp>   // cute_rt_tm::cast_smem_ptr_to_uint
+#include <cute_rt_tm/arch/config.hpp> // CUTE_ARCH_TMA_SMxx_ENABLED
+#include <cute_rt_tm/arch/copy.hpp>
+#include <cute_rt_tm/arch/copy_sm90.hpp>
 
-#include <cute/container/alignment.hpp>
-#include <cute/container/bit_field.hpp>
-#include <cute/container/array.hpp>
-#include <cute/numeric/numeric_types.hpp>
+#include <cute_rt_tm/container/alignment.hpp>
+#include <cute_rt_tm/container/bit_field.hpp>
+#include <cute_rt_tm/container/array.hpp>
+#include <cute_rt_tm/numeric/numeric_types.hpp>
 
-namespace cute
+namespace cute_rt_tm
 {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -358,8 +358,8 @@ tma_descriptor_replace_addr_in_shared_mem(TmaDescriptor& smem_desc,
 CUTE_HOST_DEVICE
 void
 tma_descriptor_replace_dims_strides_in_shared_mem(TmaDescriptor                 & smem_desc,
-                                                  cute::array<uint32_t, 5> const& prob_shape,
-                                                  cute::array<uint64_t, 5> const& prob_stride)
+                                                  cute_rt_tm::array<uint32_t, 5> const& prob_shape,
+                                                  cute_rt_tm::array<uint64_t, 5> const& prob_stride)
 {
 #if defined(CUTE_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED)
   uint32_t smem_int_desc = cast_smem_ptr_to_uint(&smem_desc);
@@ -472,4 +472,4 @@ tma_descriptor_fence_acquire(TmaDescriptor const* desc_ptr)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-} // end namespace cute
+} // end namespace cute_rt_tm

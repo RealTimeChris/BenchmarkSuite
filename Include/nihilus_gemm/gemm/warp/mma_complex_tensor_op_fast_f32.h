@@ -36,31 +36,31 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 
-#include "cutlass/array.h"
-#include "cutlass/complex.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/matrix_shape.h"
-#include "cutlass/functional.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/complex.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/matrix_shape.h"
+#include "nihilus_gemm/functional.h"
 
-#include "cutlass/arch/memory_sm75.h"
-#include "cutlass/arch/mma_sm75.h"
-#include "cutlass/arch/mma_sm80.h"
+#include "nihilus_gemm/arch/memory_sm75.h"
+#include "nihilus_gemm/arch/mma_sm75.h"
+#include "nihilus_gemm/arch/mma_sm80.h"
 
-#include "cutlass/gemm/gemm.h"
-#include "cutlass/gemm/warp/mma.h"
+#include "nihilus_gemm/gemm/gemm.h"
+#include "nihilus_gemm/gemm/warp/mma.h"
 
-#include "cutlass/gemm/warp/mma_tensor_op_policy.h"
-#include "cutlass/gemm/warp/mma_tensor_op.h"
+#include "nihilus_gemm/gemm/warp/mma_tensor_op_policy.h"
+#include "nihilus_gemm/gemm/warp/mma_tensor_op.h"
 
-#include "cutlass/gemm/warp/mma_tensor_op_tile_iterator.h"
-#include "cutlass/gemm/warp/mma_tensor_op_tile_iterator_sm80.h"
-#include "cutlass/gemm/warp/mma_complex_tensor_op_tile_iterator_sm80.h"
+#include "nihilus_gemm/gemm/warp/mma_tensor_op_tile_iterator.h"
+#include "nihilus_gemm/gemm/warp/mma_tensor_op_tile_iterator_sm80.h"
+#include "nihilus_gemm/gemm/warp/mma_complex_tensor_op_tile_iterator_sm80.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace gemm {
 namespace warp {
 
@@ -111,10 +111,10 @@ struct UnpackComplexConvertAndPackForMmaFastF32 <
   //
   // Type definitions
   //
-  static Operand const kOperand = Operand::kA;
-  static ComplexTransform const kTransform = Transform_;
-  static FloatRoundStyle const kRoundBig = RoundBig_;
-  static FloatRoundStyle const kRoundSmall = RoundSmall_;
+  static constexpr Operand  kOperand = Operand::kA;
+  static constexpr ComplexTransform  kTransform = Transform_;
+  static constexpr FloatRoundStyle  kRoundBig = RoundBig_;
+  static constexpr FloatRoundStyle  kRoundSmall = RoundSmall_;
 
   // Data type of elements in the destination fragment
   using MmaElement = typename DestinationFragment::Element;
@@ -124,14 +124,14 @@ struct UnpackComplexConvertAndPackForMmaFastF32 <
 
   // Operand layout parameters
   using SourceFragmentLayout = layout::ColumnMajor;
-  static int const kLdm = MmaIterations::kRow * MmaOperandShape::kRow;
+  static constexpr int  kLdm = MmaIterations::kRow * MmaOperandShape::kRow;
 
   // BigSmall Fragment holding two TF32 elements (big, small) for every float
   using BigSmallFragment = Array<MmaElement, 2>;
 
   /// Index in fargments for the big and small part
-  static int const kBigIndex = 0;
-  static int const kSmallIndex = 1;
+  static constexpr int  kBigIndex = 0;
+  static constexpr int  kSmallIndex = 1;
 
   /// Ctor
   CUTLASS_DEVICE
@@ -201,10 +201,10 @@ struct UnpackComplexConvertAndPackForMmaFastF32 <
   //
   // Type definitions
   //
-  static Operand const kOperand = Operand::kB;
-  static ComplexTransform const kTransform = Transform_;
-  static FloatRoundStyle const kRoundBig = RoundBig_;
-  static FloatRoundStyle const kRoundSmall = RoundSmall_;
+  static constexpr Operand  kOperand = Operand::kB;
+  static constexpr ComplexTransform  kTransform = Transform_;
+  static constexpr FloatRoundStyle  kRoundBig = RoundBig_;
+  static constexpr FloatRoundStyle  kRoundSmall = RoundSmall_;
 
   // Data type of elements in the destination fragment
   using MmaElement = typename DestinationFragment::Element;
@@ -214,14 +214,14 @@ struct UnpackComplexConvertAndPackForMmaFastF32 <
 
   // Operand layout parameters
   using SourceFragmentLayout = layout::RowMajor;
-  static int const kLdm = MmaIterations::kColumn * MmaOperandShape::kColumn;
+  static constexpr int  kLdm = MmaIterations::kColumn * MmaOperandShape::kColumn;
 
   // BigSmall Fragment holding two TF32 elements (big, small) for every float
   using BigSmallFragment = Array<MmaElement, 2>;
 
   /// Index in fargments for the big and small part
-  static int const kBigIndex = 0;
-  static int const kSmallIndex = 1;
+  static constexpr int  kBigIndex = 0;
+  static constexpr int  kSmallIndex = 1;
 
   /// Ctor
   CUTLASS_DEVICE
@@ -385,13 +385,13 @@ public:
   using MathOperator = arch::OpMultiplyAddComplexFastF32;
   
   /// Complex transform on A operand
-  static ComplexTransform const kTransformA = TransformA;
+  static constexpr ComplexTransform  kTransformA = TransformA;
 
   /// Complex transform on B operand
-  static ComplexTransform const kTransformB = TransformB;
+  static constexpr ComplexTransform  kTransformB = TransformB;
 
   /// Number of threads participating in warp-level matrix product
-  static int const kThreadCount = 32;
+  static constexpr int  kThreadCount = 32;
 
 
   /// Tune F32 to TF32 big small conversion for complex<float> operation
@@ -407,8 +407,8 @@ public:
   >;
 
   /// Index in fargments for the big and small part
-  static int const kBigIndex = 0;
-  static int const kSmallIndex = 1;
+  static constexpr int  kBigIndex = 0;
+  static constexpr int  kSmallIndex = 1;
 
 public:
 
@@ -496,7 +496,7 @@ public:
   using InstMmaOperandB = typename ArchMmaOperator::FragmentB;
   using MmaOperandC = typename ArchMmaOperator::FragmentC;
 
-  static_assert(platform::is_same<cutlass::gemm::GemmShape<16, 8, 8>, typename ArchMmaOperator::Shape>::value, 
+  static_assert(platform::is_same<nihilus_gemm::gemm::GemmShape<16, 8, 8>, typename ArchMmaOperator::Shape>::value, 
     "This implementation only supports mma.m16n8k8 math instructions.");
 
   static_assert(InstMmaOperandA::kElements == 4, 
@@ -658,6 +658,6 @@ public:
 
 } // namespace warp
 } // namespace gemm
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

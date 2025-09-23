@@ -35,12 +35,12 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/complex.h"
-#include "cutlass/arch/memory.h"
-#include "cutlass/arch/memory_sm75.h"
-#include "cutlass/arch/cache_operation.h"
-#include "cutlass/arch/synclog.hpp"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/complex.h"
+#include "nihilus_gemm/arch/memory.h"
+#include "nihilus_gemm/arch/memory_sm75.h"
+#include "nihilus_gemm/arch/cache_operation.h"
+#include "nihilus_gemm/arch/synclog.hpp"
 
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
   #define CUDA_CP_ASYNC_ACTIVATED 1
@@ -48,7 +48,7 @@
   #define CUDA_CP_ASYNC_ACTIVATED 0
 #endif
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace arch {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -100,8 +100,8 @@ template <
    bool IsHermitianData = false>
 struct cp_async_diag;
 
-static const uint32_t OOB_NAN_F16 = 0x7eff;
-static const uint32_t OOB_NAN_F16x2 = ((OOB_NAN_F16 << 16) | OOB_NAN_F16);
+static constexpr uint32_t OOB_NAN_F16 = 0x7eff;
+static constexpr uint32_t OOB_NAN_F16x2 = ((OOB_NAN_F16 << 16) | OOB_NAN_F16);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -188,7 +188,7 @@ struct cp_async_zfill<SizeInBytes, CacheOperation::Always> {
 /// Partial specialization
 template <>
 struct cp_async_nan<16, CacheOperation::Always> {
-  static int const kSizeInBytes = 16;
+  static constexpr int  kSizeInBytes = 16;
 
   /// Copy with nan fill
   CUTLASS_DEVICE
@@ -327,7 +327,7 @@ struct cp_async<SizeInBytes, CacheOperation::Global> {
         "cp.async only supports CacheOperation::Global when access size is 16B.");
 
       unsigned smem_int_ptr = cutlass_get_smem_pointer(smem_ptr);
-      cutlass::arch::synclog_emit_cp_async(__LINE__, smem_int_ptr, global_ptr, pred_guard, SizeInBytes);
+      nihilus_gemm::arch::synclog_emit_cp_async(__LINE__, smem_int_ptr, global_ptr, pred_guard, SizeInBytes);
 
       asm volatile(
           "{\n"
@@ -367,7 +367,7 @@ struct cp_async_zfill<SizeInBytes, CacheOperation::Global> {
 
       unsigned smem_int_ptr = cutlass_get_smem_pointer(smem_ptr);
       int src_in_bytes = (pred_guard ? SizeInBytes : 0);
-      cutlass::arch::synclog_emit_cp_async_zfill(__LINE__, smem_int_ptr, global_ptr, pred_guard, SizeInBytes);
+      nihilus_gemm::arch::synclog_emit_cp_async_zfill(__LINE__, smem_int_ptr, global_ptr, pred_guard, SizeInBytes);
 
       asm volatile(
 #if CUTLASS_ENABLE_L2_PREFETCH
@@ -395,7 +395,7 @@ struct cp_async_zfill<SizeInBytes, CacheOperation::Global> {
 /// Partial specialization
 template <>
 struct cp_async_nan<16, CacheOperation::Global> {
-  static int const kSizeInBytes = 16;
+  static constexpr int  kSizeInBytes = 16;
 
   /// Copy with nan fill
   CUTLASS_DEVICE
@@ -406,7 +406,7 @@ struct cp_async_nan<16, CacheOperation::Global> {
                                                  OOB_NAN_F16x2, OOB_NAN_F16x2};
 
       unsigned smem_int_ptr = cutlass_get_smem_pointer(smem_ptr);
-      cutlass::arch::synclog_emit_cp_async_nan(__LINE__, smem_int_ptr, global_ptr, pred_guard);
+      nihilus_gemm::arch::synclog_emit_cp_async_nan(__LINE__, smem_int_ptr, global_ptr, pred_guard);
 
       asm volatile(
           "{\n"
@@ -441,7 +441,7 @@ CUTLASS_DEVICE
 void cp_async_fence() {
   #if CUDA_CP_ASYNC_ACTIVATED
   asm volatile("cp.async.commit_group;\n" ::);
-  cutlass::arch::synclog_emit_cp_async_fence(__LINE__);
+  nihilus_gemm::arch::synclog_emit_cp_async_fence(__LINE__);
   #endif
 }
 
@@ -452,7 +452,7 @@ template <int N>
 CUTLASS_DEVICE void cp_async_wait() {
   #if CUDA_CP_ASYNC_ACTIVATED
   asm volatile("cp.async.wait_group %0;\n" ::"n"(N));
-  cutlass::arch::synclog_emit_cp_async_wait(__LINE__, N);
+  nihilus_gemm::arch::synclog_emit_cp_async_wait(__LINE__, N);
   #endif
 }
 
@@ -461,13 +461,13 @@ template <>
 CUTLASS_DEVICE void cp_async_wait<0>() {
   #if CUDA_CP_ASYNC_ACTIVATED
   asm volatile("cp.async.wait_all;\n" ::);
-  cutlass::arch::synclog_emit_cp_async_wait_all(__LINE__);
+  nihilus_gemm::arch::synclog_emit_cp_async_wait_all(__LINE__);
   #endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 }  // namespace arch
-}  // namespace cutlass
+}  // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

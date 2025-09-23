@@ -30,7 +30,7 @@
  **************************************************************************************************/
 
 #pragma once
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 #if defined(__CUDACC_RTC__)
 #include CUDA_STD_HEADER(cstdint)
 #else
@@ -41,17 +41,17 @@
 #if !defined(__QNX__)
 #include CUDA_STD_HEADER(utility)
 #endif
-#include "cutlass/array.h"
-#include "cutlass/uint128.h"
-#include "cutlass/coord.h"
-#include "cutlass/half.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/uint128.h"
+#include "nihilus_gemm/coord.h"
+#include "nihilus_gemm/half.h"
 
 /**
  * \file
  * \brief Math utilities
  */
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 #if !defined(__QNX__)
@@ -88,7 +88,7 @@ CUTLASS_HOST_DEVICE LongIndex dot(
  */
 template <int N>
 struct is_pow2 {
-  static bool const value = ((N & (N - 1)) == 0);
+  static constexpr bool  value = ((N & (N - 1)) == 0);
 };
 
 /**
@@ -168,9 +168,9 @@ CUTLASS_HOST_DEVICE
 CUTLASS_CONSTEXPR_IF_CXX17
 value_t gcd(value_t a, value_t b) {
   for (;;) {
-    if (a == value_t{0}) return cutlass::abs_for_integer(b);
+    if (a == value_t{0}) return nihilus_gemm::abs_for_integer(b);
     b %= a;
-    if (b == value_t{0}) return cutlass::abs_for_integer(a);
+    if (b == value_t{0}) return nihilus_gemm::abs_for_integer(a);
     a %= b;
   }
 }
@@ -182,8 +182,8 @@ template <typename value_t>
 CUTLASS_HOST_DEVICE
 CUTLASS_CONSTEXPR_IF_CXX17
 value_t lcm(value_t a, value_t b) {
-  value_t temp = cutlass::gcd(a, b);
-  return (temp != value_t{0}) ? value_t(cutlass::abs_for_integer(a) / temp * cutlass::abs_for_integer(b)) : value_t{};
+  value_t temp = nihilus_gemm::gcd(a, b);
+  return (temp != value_t{0}) ? value_t(nihilus_gemm::abs_for_integer(a) / temp * nihilus_gemm::abs_for_integer(b)) : value_t{};
 }
 
 /**
@@ -193,7 +193,7 @@ template <typename value_t>
 CUTLASS_HOST_DEVICE
 CUTLASS_CONSTEXPR_IF_CXX17
 value_t gcd_cxx11(value_t a, value_t b) {
-  return (a == value_t{0} || b == value_t{0}) ? cutlass::abs_for_integer(a | b) : cutlass::gcd_cxx11(b, a % b);
+  return (a == value_t{0} || b == value_t{0}) ? nihilus_gemm::abs_for_integer(a | b) : nihilus_gemm::gcd_cxx11(b, a % b);
 }
 
 /**
@@ -203,8 +203,8 @@ template <typename value_t>
 CUTLASS_HOST_DEVICE
 CUTLASS_CONSTEXPR_IF_CXX17
 value_t lcm_cxx11(value_t a, value_t b) {
-  return cutlass::gcd_cxx11(a, b) ? (cutlass::abs_for_integer(a) / cutlass::gcd_cxx11(a, b) *
-                                    cutlass::abs_for_integer(b))
+  return nihilus_gemm::gcd_cxx11(a, b) ? (nihilus_gemm::abs_for_integer(a) / nihilus_gemm::gcd_cxx11(a, b) *
+                                    nihilus_gemm::abs_for_integer(b))
                                   : value_t{};
 }
 
@@ -741,12 +741,12 @@ CUTLASS_HOST_DEVICE int64_t OffsetBytes(int64_t index, int64_t element_sizeof_bi
 
 template <int A, int B>
 struct Min {
-  static int const kValue = (A < B) ? A : B;
+  static constexpr int  kValue = (A < B) ? A : B;
 };
 
 template <int A, int B>
 struct Max {
-  static int const kValue = (A > B) ? A : B;
+  static constexpr int  kValue = (A > B) ? A : B;
 };
 
 CUTLASS_HOST_DEVICE
@@ -1079,7 +1079,7 @@ T absolute_value(T x) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-}  // namespace cutlass
+}  // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 

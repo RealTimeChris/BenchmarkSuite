@@ -30,11 +30,11 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute/config.hpp>
-#include <cute/util/type_traits.hpp>
-#include <cute/numeric/integral_constant.hpp>
+#include <cute_rt_tm/config.hpp>
+#include <cute_rt_tm/util/type_traits.hpp>
+#include <cute_rt_tm/numeric/integral_constant.hpp>
 
-namespace cute
+namespace cute_rt_tm
 {
 
 using CUTE_STL_NAMESPACE::integer_sequence;
@@ -150,19 +150,19 @@ template <class T>
 using to_seq_t = typename to_seq<T>::type;
 
 //
-// Specialize cute::tuple-traits for std::integer_sequence
+// Specialize cute_rt_tm::tuple-traits for std::integer_sequence
 //
 
 template <class T, T... Ints>
 struct tuple_size<integer_sequence<T, Ints...>>
-    : cute::integral_constant<size_t, sizeof...(Ints)>
+    : cute_rt_tm::integral_constant<size_t, sizeof...(Ints)>
 {};
 
 template <size_t I, class T, T... Is>
 struct tuple_element<I, integer_sequence<T, Is...>>
 {
   constexpr static T idx[sizeof...(Is)] = {Is...};
-  using type = cute::integral_constant<T, idx[I]>;
+  using type = cute_rt_tm::integral_constant<T, idx[I]>;
 };
 
 template <size_t I, class T, T... Ints>
@@ -173,4 +173,4 @@ get(integer_sequence<T, Ints...>) {
   return {};
 }
 
-} // end namespace cute
+} // end namespace cute_rt_tm

@@ -35,15 +35,15 @@
 
 #pragma once
 
-#include "cutlass/arch/wmma.h"
+#include "nihilus_gemm/arch/wmma.h"
 
 #if defined(CUTLASS_ARCH_WMMA_ENABLED)
 
-#include "cutlass/cutlass.h"
-#include "cutlass/array.h"
-#include "cutlass/functional.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/functional.h"
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -54,7 +54,7 @@ template <
   /// Number of elements in the array
   int N,
   /// Whether the element type of T is half_t or __half
-  bool IsHalfType = (platform::is_same<typename T::element_type, cutlass::half_t>::value ||
+  bool IsHalfType = (platform::is_same<typename T::element_type, nihilus_gemm::half_t>::value ||
                      platform::is_same<typename T::element_type, __half>::value)
 >
 class WmmaFragmentArray: public Array<T, N, true> {
@@ -125,7 +125,7 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

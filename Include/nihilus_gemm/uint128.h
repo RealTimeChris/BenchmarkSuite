@@ -33,7 +33,7 @@
   \brief Defines an unsigned 128b integer with several operators to support 64-bit integer division.
 */
 #pragma once
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 #if defined(__CUDACC_RTC__)
 #include CUDA_STD_HEADER(cstdint)
 #else
@@ -60,7 +60,7 @@
 #endif
 #endif
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 ///! Unsigned 128b integer type
 struct alignas(16) uint128_t
@@ -264,6 +264,6 @@ struct alignas(16) uint128_t
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

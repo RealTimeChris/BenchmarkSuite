@@ -35,29 +35,29 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/array.h"
-#include "cutlass/platform/platform.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/platform/platform.h"
 
-#include "cutlass/numeric_conversion.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/matrix_shape.h"
+#include "nihilus_gemm/numeric_conversion.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/matrix_shape.h"
 
-#include "cutlass/arch/memory_sm75.h"
-#include "cutlass/arch/mma_sm75.h" 
-#include "cutlass/arch/mma_sm80.h"
+#include "nihilus_gemm/arch/memory_sm75.h"
+#include "nihilus_gemm/arch/mma_sm75.h" 
+#include "nihilus_gemm/arch/mma_sm80.h"
 
-#include "cutlass/gemm/gemm.h"
-#include "cutlass/gemm/warp/mma.h"
+#include "nihilus_gemm/gemm/gemm.h"
+#include "nihilus_gemm/gemm/warp/mma.h"
 
-#include "cutlass/gemm/warp/mma_tensor_op_policy.h"
+#include "nihilus_gemm/gemm/warp/mma_tensor_op_policy.h"
 
-#include "cutlass/gemm/warp/mma_tensor_op_tile_iterator.h"
-#include "cutlass/gemm/warp/mma_tensor_op_tile_iterator_sm80.h"
+#include "nihilus_gemm/gemm/warp/mma_tensor_op_tile_iterator.h"
+#include "nihilus_gemm/gemm/warp/mma_tensor_op_tile_iterator_sm80.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace gemm {
 namespace warp {
 
@@ -206,23 +206,23 @@ public:
   using InstructionShape = typename ArchMmaOperator::Shape;
 
   /// Complex transform on A operand
-  static ComplexTransform const kTransformA = ComplexTransform::kNone;
+  static constexpr ComplexTransform  kTransformA = ComplexTransform::kNone;
 
   /// Complex transform on B operand
-  static ComplexTransform const kTransformB = ComplexTransform::kNone;
+  static constexpr ComplexTransform  kTransformB = ComplexTransform::kNone;
 
   /// Number of threads participating in warp-level matrix product
-  static int const kThreadCount = 32;
+  static constexpr int  kThreadCount = 32;
 
   /// Number of partitions along K dimension
-  static int const kPartitionsK = PartitionsK_;
+  static constexpr int  kPartitionsK = PartitionsK_;
 
   #if defined(__CUDA_ARCH__) && ((__CUDA_ARCH__ < 800) || (__CUDA_ARCH__ == 890)) 
-    static int const kVerticalVisit = true;
+    static constexpr int  kVerticalVisit = true;
   #elif defined(__CUDA_ARCH__) && (__CUDA_ARCH__ == 1200) 
-    static int const kVerticalVisit = true;
+    static constexpr int  kVerticalVisit = true;
   #else
-    static int const kVerticalVisit = false;
+    static constexpr int  kVerticalVisit = false;
   #endif
 
 public:
@@ -408,10 +408,10 @@ public:
 
 } // namespace warp
 } // namespace gemm
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "cutlass/gemm/warp/mma_tensor_op_fast_f32.h"
+#include "nihilus_gemm/gemm/warp/mma_tensor_op_fast_f32.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

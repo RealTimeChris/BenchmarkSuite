@@ -34,13 +34,13 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/matrix_shape.h"
-#include "cutlass/gemm/gemm.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/matrix_shape.h"
+#include "nihilus_gemm/gemm/gemm.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace gemm {
 namespace warp {
 
@@ -62,4 +62,4 @@ struct MmaTensorOpPolicy {
 
 } // namespace warp
 } // namespace gemm
-} // namespace cutlass
+} // namespace nihilus_gemm

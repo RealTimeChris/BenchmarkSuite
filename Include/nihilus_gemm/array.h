@@ -34,11 +34,11 @@
 */
 
 #pragma once
-#include "cutlass/cutlass.h"
-#include "cutlass/functional.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/platform/platform.h"
-namespace cutlass {
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/functional.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/platform/platform.h"
+namespace nihilus_gemm {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -2851,10 +2851,10 @@ public:
 
 };
 
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "cutlass/array_subbyte.h"
+#include "nihilus_gemm/array_subbyte.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

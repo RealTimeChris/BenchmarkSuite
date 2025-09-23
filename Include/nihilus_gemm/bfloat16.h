@@ -37,7 +37,7 @@
 #pragma once
 
 #if defined(__CUDACC_RTC__)
-#include "cutlass/floating_point_nvrtc.h"
+#include "nihilus_gemm/floating_point_nvrtc.h"
 #else
 #include <cmath>
 #include <limits>
@@ -46,10 +46,10 @@
 #endif
 
 #include <cuda_bf16.h>
-#include "cutlass/cutlass.h"
-#include "cutlass/platform/platform.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/platform/platform.h"
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -82,7 +82,7 @@ private:
   template<class T>
   CUTLASS_HOST_DEVICE
   explicit bfloat16_t(from_32_bit_integer_t, T x) {
-    static_assert(cutlass::platform::is_integral<T>::value && sizeof(T) == 4, "Requires 32-bit integer");
+    static_assert(nihilus_gemm::platform::is_integral<T>::value && sizeof(T) == 4, "Requires 32-bit integer");
 
     float flt = static_cast<float>(x);
     uint32_t bits;
@@ -229,43 +229,43 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 CUTLASS_HOST_DEVICE
-bool signbit(cutlass::bfloat16_t const& h) {
+bool signbit(nihilus_gemm::bfloat16_t const& h) {
   return h.signbit();
 }
 
 CUTLASS_HOST_DEVICE
-cutlass::bfloat16_t abs(cutlass::bfloat16_t const& h) {
-  return cutlass::bfloat16_t::bitcast(h.raw() & 0x7fff);
+nihilus_gemm::bfloat16_t abs(nihilus_gemm::bfloat16_t const& h) {
+  return nihilus_gemm::bfloat16_t::bitcast(h.raw() & 0x7fff);
 }
 
 CUTLASS_HOST_DEVICE
-bool isnan(cutlass::bfloat16_t const& h) {
+bool isnan(nihilus_gemm::bfloat16_t const& h) {
   return (h.exponent_biased() == 0x0ff) && h.mantissa();
 }
 
 CUTLASS_HOST_DEVICE
-bool isfinite(cutlass::bfloat16_t const& h) {
+bool isfinite(nihilus_gemm::bfloat16_t const& h) {
   return (h.exponent_biased() != 0x0ff);
 }
 
 CUTLASS_HOST_DEVICE
-cutlass::bfloat16_t nan_bf16(const char*) {
+nihilus_gemm::bfloat16_t nan_bf16(const char*) {
   // NVIDIA canonical NaN
-  return cutlass::bfloat16_t::bitcast(0x7fff);
+  return nihilus_gemm::bfloat16_t::bitcast(0x7fff);
 }
 
 CUTLASS_HOST_DEVICE
-bool isinf(cutlass::bfloat16_t const& h) {
+bool isinf(nihilus_gemm::bfloat16_t const& h) {
   return (h.exponent_biased() == 0x0ff) && !h.mantissa();
 }
 
 CUTLASS_HOST_DEVICE
-bool isnormal(cutlass::bfloat16_t const& h) {
+bool isnormal(nihilus_gemm::bfloat16_t const& h) {
   return h.exponent_biased() && h.exponent_biased() != 0x0ff;
 }
 
 CUTLASS_HOST_DEVICE
-int fpclassify(cutlass::bfloat16_t const& h) {
+int fpclassify(nihilus_gemm::bfloat16_t const& h) {
   int exp = h.exponent_biased();
   int mantissa = h.mantissa();
   if (exp == 0x0ff) {
@@ -288,11 +288,11 @@ int fpclassify(cutlass::bfloat16_t const& h) {
 }
 
 CUTLASS_HOST_DEVICE
-cutlass::bfloat16_t sqrt(cutlass::bfloat16_t const& h) {
+nihilus_gemm::bfloat16_t sqrt(nihilus_gemm::bfloat16_t const& h) {
 #if defined(__CUDACC_RTC__)
-  return cutlass::bfloat16_t(sqrtf(float(h)));
+  return nihilus_gemm::bfloat16_t(sqrtf(float(h)));
 #else
-  return cutlass::bfloat16_t(std::sqrt(float(h)));
+  return nihilus_gemm::bfloat16_t(std::sqrt(float(h)));
 #endif
 }
 
@@ -319,7 +319,7 @@ bfloat16_t copysign(bfloat16_t const& a, bfloat16_t const& b) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -332,62 +332,62 @@ namespace std {
 
 /// Numeric limits
 template <>
-struct numeric_limits<cutlass::bfloat16_t> {
-  static bool const is_specialized = true;
-  static bool const is_signed = true;
-  static bool const is_integer = false;
-  static bool const is_exact = false;
-  static bool const has_infinity = true;
-  static bool const has_quiet_NaN = true;
-  static bool const has_signaling_NaN = false;
+struct numeric_limits<nihilus_gemm::bfloat16_t> {
+  static constexpr bool  is_specialized = true;
+  static constexpr bool  is_signed = true;
+  static constexpr bool  is_integer = false;
+  static constexpr bool  is_exact = false;
+  static constexpr bool  has_infinity = true;
+  static constexpr bool  has_quiet_NaN = true;
+  static constexpr bool  has_signaling_NaN = false;
   static std::float_denorm_style const has_denorm = std::denorm_present;
-  static bool const has_denorm_loss = true;
+  static constexpr bool  has_denorm_loss = true;
   static std::float_round_style const round_style = std::round_to_nearest;
-  static bool const is_iec559 = false;
-  static bool const is_bounded = true;
-  static bool const is_modulo = false;
-  static int const digits = 7;
+  static constexpr bool  is_iec559 = false;
+  static constexpr bool  is_bounded = true;
+  static constexpr bool  is_modulo = false;
+  static constexpr int  digits = 7;
 
   /// Least positive value
   CUTLASS_HOST_DEVICE
-  static cutlass::bfloat16_t min() { return cutlass::bfloat16_t::bitcast(0x01); }
+  static nihilus_gemm::bfloat16_t min() { return nihilus_gemm::bfloat16_t::bitcast(0x01); }
 
   /// Minimum finite value
   CUTLASS_HOST_DEVICE
-  static cutlass::bfloat16_t lowest() { return cutlass::bfloat16_t::bitcast(0xff7f); }
+  static nihilus_gemm::bfloat16_t lowest() { return nihilus_gemm::bfloat16_t::bitcast(0xff7f); }
 
   /// Maximum finite value
   CUTLASS_HOST_DEVICE
-  static cutlass::bfloat16_t max() { return cutlass::bfloat16_t::bitcast(0x7f7f); }
+  static nihilus_gemm::bfloat16_t max() { return nihilus_gemm::bfloat16_t::bitcast(0x7f7f); }
 
   /// Returns smallest finite value
   CUTLASS_HOST_DEVICE
-  static cutlass::bfloat16_t epsilon() { return cutlass::bfloat16_t::bitcast(0x3c00); }
+  static nihilus_gemm::bfloat16_t epsilon() { return nihilus_gemm::bfloat16_t::bitcast(0x3c00); }
   /// Returns smallest finite value
   CUTLASS_HOST_DEVICE
-  static cutlass::bfloat16_t round_error() { return cutlass::bfloat16_t(0.5f); }
+  static nihilus_gemm::bfloat16_t round_error() { return nihilus_gemm::bfloat16_t(0.5f); }
 
   /// Returns smallest finite value
   CUTLASS_HOST_DEVICE
-  static cutlass::bfloat16_t infinity() { return cutlass::bfloat16_t::bitcast(0x7f80); }
+  static nihilus_gemm::bfloat16_t infinity() { return nihilus_gemm::bfloat16_t::bitcast(0x7f80); }
 
   /// Returns smallest finite value
   CUTLASS_HOST_DEVICE
-  static cutlass::bfloat16_t quiet_NaN() { return cutlass::bfloat16_t::bitcast(0x7fff); }
+  static nihilus_gemm::bfloat16_t quiet_NaN() { return nihilus_gemm::bfloat16_t::bitcast(0x7fff); }
 
   /// Returns smallest finite value
   CUTLASS_HOST_DEVICE
-  static cutlass::bfloat16_t signaling_NaN() { return cutlass::bfloat16_t::bitcast(0x7fff); }
+  static nihilus_gemm::bfloat16_t signaling_NaN() { return nihilus_gemm::bfloat16_t::bitcast(0x7fff); }
 
   /// Returns smallest finite value
   CUTLASS_HOST_DEVICE
-  static cutlass::bfloat16_t denorm_min() { return cutlass::bfloat16_t::bitcast(0x1); }
+  static nihilus_gemm::bfloat16_t denorm_min() { return nihilus_gemm::bfloat16_t::bitcast(0x1); }
 };
 
 } // namespace std
 #endif
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace platform {
 
 /// Forward Declaration
@@ -396,64 +396,64 @@ struct numeric_limits;
 
 /// Numeric limits
 template <>
-struct numeric_limits<cutlass::bfloat16_t> {
-  static bool const is_specialized = true;
-  static bool const is_signed = true;
-  static bool const is_integer = false;
-  static bool const is_exact = false;
-  static bool const has_infinity = true;
-  static bool const has_quiet_NaN = true;
-  static bool const has_signaling_NaN = false;
+struct numeric_limits<nihilus_gemm::bfloat16_t> {
+  static constexpr bool  is_specialized = true;
+  static constexpr bool  is_signed = true;
+  static constexpr bool  is_integer = false;
+  static constexpr bool  is_exact = false;
+  static constexpr bool  has_infinity = true;
+  static constexpr bool  has_quiet_NaN = true;
+  static constexpr bool  has_signaling_NaN = false;
 #if !defined(__CUDACC_RTC__)
   static std::float_denorm_style const has_denorm = std::denorm_present;
 #endif
-  static bool const has_denorm_loss = true;
+  static constexpr bool  has_denorm_loss = true;
 #if !defined(__CUDACC_RTC__)
   static std::float_round_style const round_style = std::round_to_nearest;
 #endif
-  static bool const is_iec559 = false;
-  static bool const is_bounded = true;
-  static bool const is_modulo = false;
-  static int const digits = 7;
+  static constexpr bool  is_iec559 = false;
+  static constexpr bool  is_bounded = true;
+  static constexpr bool  is_modulo = false;
+  static constexpr int  digits = 7;
 
   /// Least positive value
   CUTLASS_HOST_DEVICE
-  static cutlass::bfloat16_t min() { return cutlass::bfloat16_t::bitcast(0x01); }
+  static nihilus_gemm::bfloat16_t min() { return nihilus_gemm::bfloat16_t::bitcast(0x01); }
 
   /// Minimum finite value
   CUTLASS_HOST_DEVICE
-  static cutlass::bfloat16_t lowest() { return cutlass::bfloat16_t::bitcast(0xff7f); }
+  static nihilus_gemm::bfloat16_t lowest() { return nihilus_gemm::bfloat16_t::bitcast(0xff7f); }
 
   /// Maximum finite value
   CUTLASS_HOST_DEVICE
-  static cutlass::bfloat16_t max() { return cutlass::bfloat16_t::bitcast(0x7f7f); }
+  static nihilus_gemm::bfloat16_t max() { return nihilus_gemm::bfloat16_t::bitcast(0x7f7f); }
 
   /// Returns smallest finite value
   CUTLASS_HOST_DEVICE
-  static cutlass::bfloat16_t epsilon() { return cutlass::bfloat16_t::bitcast(0x3c00); }
+  static nihilus_gemm::bfloat16_t epsilon() { return nihilus_gemm::bfloat16_t::bitcast(0x3c00); }
   /// Returns smallest finite value
   CUTLASS_HOST_DEVICE
-  static cutlass::bfloat16_t round_error() { return cutlass::bfloat16_t(0.5f); }
+  static nihilus_gemm::bfloat16_t round_error() { return nihilus_gemm::bfloat16_t(0.5f); }
 
   /// Returns smallest finite value
   CUTLASS_HOST_DEVICE
-  static cutlass::bfloat16_t infinity() { return cutlass::bfloat16_t::bitcast(0x7f80); }
+  static nihilus_gemm::bfloat16_t infinity() { return nihilus_gemm::bfloat16_t::bitcast(0x7f80); }
 
   /// Returns smallest finite value
   CUTLASS_HOST_DEVICE
-  static cutlass::bfloat16_t quiet_NaN() { return cutlass::bfloat16_t::bitcast(0x7fff); }
+  static nihilus_gemm::bfloat16_t quiet_NaN() { return nihilus_gemm::bfloat16_t::bitcast(0x7fff); }
 
   /// Returns smallest finite value
   CUTLASS_HOST_DEVICE
-  static cutlass::bfloat16_t signaling_NaN() { return cutlass::bfloat16_t::bitcast(0x7fff); }
+  static nihilus_gemm::bfloat16_t signaling_NaN() { return nihilus_gemm::bfloat16_t::bitcast(0x7fff); }
 
   /// Returns smallest finite value
   CUTLASS_HOST_DEVICE
-  static cutlass::bfloat16_t denorm_min() { return cutlass::bfloat16_t::bitcast(0x1); }
+  static nihilus_gemm::bfloat16_t denorm_min() { return nihilus_gemm::bfloat16_t::bitcast(0x1); }
 };
 
 } // namespace platform
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -461,7 +461,7 @@ struct numeric_limits<cutlass::bfloat16_t> {
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -656,7 +656,7 @@ bfloat16_t operator--(bfloat16_t & lhs, int) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -665,13 +665,13 @@ bfloat16_t operator--(bfloat16_t & lhs, int) {
 //
 
 CUTLASS_HOST_DEVICE
-cutlass::bfloat16_t operator "" _bf16(long double x) {
-  return cutlass::bfloat16_t(float(x));
+nihilus_gemm::bfloat16_t operator "" _bf16(long double x) {
+  return nihilus_gemm::bfloat16_t(float(x));
 }
 
 CUTLASS_HOST_DEVICE
-cutlass::bfloat16_t operator "" _bf16(unsigned long long int x) {
-  return cutlass::bfloat16_t(int(x));
+nihilus_gemm::bfloat16_t operator "" _bf16(unsigned long long int x) {
+  return nihilus_gemm::bfloat16_t(int(x));
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

@@ -30,12 +30,12 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute/config.hpp>                     // CUTE_HOST_DEVICE
-#include <cute/numeric/numeric_types.hpp>      // cute::sizeof_bits
-#include <cute/numeric/integral_constant.hpp>  // Int<0>
-#include <cute/util/type_traits.hpp>           // cute::declval, cute::void_t, etc
+#include <cute_rt_tm/config.hpp>                     // CUTE_HOST_DEVICE
+#include <cute_rt_tm/numeric/numeric_types.hpp>      // cute_rt_tm::sizeof_bits
+#include <cute_rt_tm/numeric/integral_constant.hpp>  // Int<0>
+#include <cute_rt_tm/util/type_traits.hpp>           // cute_rt_tm::declval, cute_rt_tm::void_t, etc
 
-namespace cute
+namespace cute_rt_tm
 {
 
 //
@@ -328,4 +328,4 @@ CUTE_HOST std::ostream& operator<<(std::ostream& os, transform_iter<Fn,Iterator>
 }
 #endif // !defined(__CUDACC_RTC__)
 
-} // end namespace cute
+} // end namespace cute_rt_tm

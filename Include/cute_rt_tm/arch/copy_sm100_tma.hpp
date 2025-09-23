@@ -33,13 +33,13 @@
 
 #pragma once
 
-#include <cute/arch/config.hpp>
+#include <cute_rt_tm/arch/config.hpp>
 
-#include <cute/arch/copy.hpp>
-#include <cute/arch/copy_sm90.hpp>
-#include "cutlass/arch/synclog.hpp"
+#include <cute_rt_tm/arch/copy.hpp>
+#include <cute_rt_tm/arch/copy_sm90.hpp>
+#include "nihilus_gemm/arch/synclog.hpp"
 
-namespace cute
+namespace cute_rt_tm
 {
 
 constexpr uint32_t Sm100MmaPeerBitMask = 0xFEFFFFFF;
@@ -663,4 +663,4 @@ struct SM100_TMA_2SM_LOAD_IM2COL_MULTICAST
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-} // end namespace cute
+} // end namespace cute_rt_tm

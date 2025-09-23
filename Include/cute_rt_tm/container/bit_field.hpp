@@ -35,11 +35,11 @@
 
 #pragma once
 
-#include <cute/config.hpp>                  // CUTE_HOST_DEVICE
-#include <cute/numeric/numeric_types.hpp>   // uint_bit_t
-#include <cute/util/type_traits.hpp>        // cute::is_same
+#include <cute_rt_tm/config.hpp>                  // CUTE_HOST_DEVICE
+#include <cute_rt_tm/numeric/numeric_types.hpp>   // uint_bit_t
+#include <cute_rt_tm/util/type_traits.hpp>        // cute_rt_tm::is_same
 
-namespace cute
+namespace cute_rt_tm
 {
 
 class dummy_type {};
@@ -53,12 +53,12 @@ struct bit_field
   static constexpr uint32_t value_type_bits = (NumBits <=  8) ?  8 :
                                               (NumBits <= 16) ? 16 :
                                               (NumBits <= 32) ? 32 : 64;
-  using value_type   = cute::uint_bit_t<value_type_bits>;
+  using value_type   = cute_rt_tm::uint_bit_t<value_type_bits>;
   // storage_type: Use the smallest storage_type that avoids boundary crossing
   static constexpr uint32_t storage_type_bits = (BitStart /  8 == (BitStart + NumBits - 1) /  8) ?  8 :
                                                 (BitStart / 16 == (BitStart + NumBits - 1) / 16) ? 16 :
                                                 (BitStart / 32 == (BitStart + NumBits - 1) / 32) ? 32 : 64;
-  using storage_type = cute::uint_bit_t<storage_type_bits>;
+  using storage_type = cute_rt_tm::uint_bit_t<storage_type_bits>;
 
   static_assert(sizeof(OtherValueType) == sizeof(value_type) || is_same<OtherValueType,dummy_type>::value,
                 "sizeof(OtherValueType) must be same as sizeof(value_type).");
@@ -130,4 +130,4 @@ public:
   }
 };
 
-} // end namespace cute
+} // end namespace cute_rt_tm

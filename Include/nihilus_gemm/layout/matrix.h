@@ -35,17 +35,17 @@
     data to describe strides between elements.
 
     Layout functions must implement all members in the public interface of IdentityTensorLayout<>
-    defined in cutlass/tensor_ref.h.
+    defined in nihilus_gemm/tensor_ref.h.
 */
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/fast_math.h"
-#include "cutlass/matrix_coord.h"
-#include "cutlass/pitch_linear_coord.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/fast_math.h"
+#include "nihilus_gemm/matrix_coord.h"
+#include "nihilus_gemm/pitch_linear_coord.h"
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace layout {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -58,10 +58,10 @@ namespace layout {
 class RowMajor {
 public:
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int  kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int  kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -150,10 +150,10 @@ public:
 class ColumnMajor {
 public:
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int  kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int  kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -245,10 +245,10 @@ template <int Interleave>
 struct RowMajorInterleaved {
   
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int  kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int  kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -263,7 +263,7 @@ struct RowMajorInterleaved {
   using Stride = Coord<kStrideRank, LongIndex>;
 
   /// Size of interleaved columns
-  static int const kInterleave = Interleave;
+  static constexpr int  kInterleave = Interleave;
 
 private:
   //
@@ -351,10 +351,10 @@ template <int Interleave>
 struct ColumnMajorInterleaved {
   
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int  kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int  kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -369,7 +369,7 @@ struct ColumnMajorInterleaved {
   using Stride = Coord<kStrideRank, LongIndex>;
 
   /// Size of interleaved columns
-  static int const kInterleave = Interleave;
+  static constexpr int  kInterleave = Interleave;
 
 private:
   //
@@ -463,10 +463,10 @@ enum class Matrix {
 struct ContiguousMatrix {
 
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int  kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int  kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -590,10 +590,10 @@ template <int Rank>
 struct AffineRankN {
 
   /// Logical rank of tensor
-  static int const kRank = Rank;
+  static constexpr int  kRank = Rank;
 
   /// Rank of stride vector
-  static int const kStrideRank = kRank;
+  static constexpr int  kStrideRank = kRank;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -730,10 +730,10 @@ public:
 struct AffineRank2ColumnMajor {
 
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int  kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 2;
+  static constexpr int  kStrideRank = 2;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -838,10 +838,10 @@ public:
 struct AffineRank2RowMajor {
 
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int  kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 2;
+  static constexpr int  kStrideRank = 2;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -950,39 +950,39 @@ public:
 template <typename Affine2Layout>
   struct Affine2Layout_Factory {
   CUTLASS_HOST_DEVICE
-  static Affine2Layout layout_factory(cutlass::Coord<2> const &extent, typename Affine2Layout::Stride stride_factor) {
+  static Affine2Layout layout_factory(nihilus_gemm::Coord<2> const &extent, typename Affine2Layout::Stride stride_factor) {
     return Affine2Layout::packed(extent);
   }
 };
 
 template <>
-struct Affine2Layout_Factory<cutlass::layout::AffineRank2ColumnMajor> {
+struct Affine2Layout_Factory<nihilus_gemm::layout::AffineRank2ColumnMajor> {
 CUTLASS_HOST_DEVICE
-static cutlass::layout::AffineRank2ColumnMajor layout_factory(
-  cutlass::Coord<2> const &extent,
-  typename cutlass::layout::AffineRank2ColumnMajor::Stride stride_factor) {
-    return cutlass::layout::AffineRank2ColumnMajor({ stride_factor[0], stride_factor[0] * stride_factor[1] * extent[0] });
+static nihilus_gemm::layout::AffineRank2ColumnMajor layout_factory(
+  nihilus_gemm::Coord<2> const &extent,
+  typename nihilus_gemm::layout::AffineRank2ColumnMajor::Stride stride_factor) {
+    return nihilus_gemm::layout::AffineRank2ColumnMajor({ stride_factor[0], stride_factor[0] * stride_factor[1] * extent[0] });
   }
 };
 
 template <>
-struct Affine2Layout_Factory<cutlass::layout::AffineRank2RowMajor> {
+struct Affine2Layout_Factory<nihilus_gemm::layout::AffineRank2RowMajor> {
 CUTLASS_HOST_DEVICE
-static cutlass::layout::AffineRank2RowMajor layout_factory(
-  cutlass::Coord<2> const &extent,
-  typename cutlass::layout::AffineRank2RowMajor::Stride stride_factor) {
-    return cutlass::layout::AffineRank2RowMajor({ stride_factor[0] * stride_factor[1] * extent[1], stride_factor[1] });
+static nihilus_gemm::layout::AffineRank2RowMajor layout_factory(
+  nihilus_gemm::Coord<2> const &extent,
+  typename nihilus_gemm::layout::AffineRank2RowMajor::Stride stride_factor) {
+    return nihilus_gemm::layout::AffineRank2RowMajor({ stride_factor[0] * stride_factor[1] * extent[1], stride_factor[1] });
   }
 };
 
-// The base layout cutlass::layout::AffineRankN<2> is similar to AffineRank2ColumnMajor
+// The base layout nihilus_gemm::layout::AffineRankN<2> is similar to AffineRank2ColumnMajor
 template <>
-struct Affine2Layout_Factory<cutlass::layout::AffineRankN<2>> {
+struct Affine2Layout_Factory<nihilus_gemm::layout::AffineRankN<2>> {
 CUTLASS_HOST_DEVICE
-static cutlass::layout::AffineRankN<2> layout_factory(
-  cutlass::Coord<2> const &extent,
-  typename cutlass::layout::AffineRankN<2>::Stride stride_factor) {
-    return cutlass::layout::AffineRankN<2>({ stride_factor[0], stride_factor[0] * stride_factor[1] * extent[0] });
+static nihilus_gemm::layout::AffineRankN<2> layout_factory(
+  nihilus_gemm::Coord<2> const &extent,
+  typename nihilus_gemm::layout::AffineRankN<2>::Stride stride_factor) {
+    return nihilus_gemm::layout::AffineRankN<2>({ stride_factor[0], stride_factor[0] * stride_factor[1] * extent[0] });
   }
 };
 
@@ -993,10 +993,10 @@ static cutlass::layout::AffineRankN<2> layout_factory(
 template <int BlockRows, int BlockColumns>
 struct ColumnMajorBlockLinear {
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int  kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int  kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -1011,10 +1011,10 @@ struct ColumnMajorBlockLinear {
   using Stride = Coord<kStrideRank, LongIndex>;
 
   /// Size of a block in rows
-  static int const kBlockRows = BlockRows;
+  static constexpr int  kBlockRows = BlockRows;
 
   /// Size of a block in columns
-  static int const kBlockColumns = BlockColumns;
+  static constexpr int  kBlockColumns = BlockColumns;
 
 private:
   //
@@ -1093,10 +1093,10 @@ public:
 template <int BlockRows, int BlockColumns>
 struct RowMajorBlockLinear {
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int  kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int  kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -1111,10 +1111,10 @@ struct RowMajorBlockLinear {
   using Stride = Coord<kStrideRank, LongIndex>;
 
   /// Size of a block in rows
-  static int const kBlockRows = BlockRows;
+  static constexpr int  kBlockRows = BlockRows;
 
   /// Size of a block in columns
-  static int const kBlockColumns = BlockColumns;
+  static constexpr int  kBlockColumns = BlockColumns;
 
 private:
   //
@@ -1192,10 +1192,10 @@ public:
 struct GeneralMatrix {
 
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int  kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 2;
+  static constexpr int  kStrideRank = 2;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -1346,4 +1346,4 @@ struct LayoutTranspose<layout::ColumnMajor> {
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace layout
-} // namespace cutlass
+} // namespace nihilus_gemm

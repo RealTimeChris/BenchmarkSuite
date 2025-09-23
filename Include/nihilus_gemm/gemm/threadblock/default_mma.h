@@ -34,29 +34,29 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/arch/arch.h"
-#include "cutlass/arch/wmma.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/arch/arch.h"
+#include "nihilus_gemm/arch/wmma.h"
 
-#include "cutlass/layout/matrix.h"
-#include "cutlass/layout/permute.h"
-#include "cutlass/transform/threadblock/predicated_tile_iterator.h"
-#include "cutlass/transform/threadblock/predicated_tile_iterator_2dthreadtile.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/layout/permute.h"
+#include "nihilus_gemm/transform/threadblock/predicated_tile_iterator.h"
+#include "nihilus_gemm/transform/threadblock/predicated_tile_iterator_2dthreadtile.h"
 
-#include "cutlass/gemm/gemm.h"
-#include "cutlass/gemm/threadblock/default_mma_core_simt.h"
-#include "cutlass/gemm/threadblock/default_mma_core_sm70.h"
-#include "cutlass/gemm/threadblock/default_mma_core_sm75.h"
-#include "cutlass/gemm/threadblock/default_mma_core_sm80.h"
+#include "nihilus_gemm/gemm/gemm.h"
+#include "nihilus_gemm/gemm/threadblock/default_mma_core_simt.h"
+#include "nihilus_gemm/gemm/threadblock/default_mma_core_sm70.h"
+#include "nihilus_gemm/gemm/threadblock/default_mma_core_sm75.h"
+#include "nihilus_gemm/gemm/threadblock/default_mma_core_sm80.h"
 
 #if defined(CUTLASS_ARCH_WMMA_ENABLED)
-#include "cutlass/gemm/threadblock/default_mma_core_wmma.h"
+#include "nihilus_gemm/gemm/threadblock/default_mma_core_wmma.h"
 #endif //CUTLASS_ARCH_WMMA_ENABLED
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace gemm {
 namespace threadblock {
 
@@ -159,27 +159,27 @@ struct DefaultMma<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB,
              "simt epilogue must be row major");
 
   // Define the MmaCore components
-  using MmaCore = typename cutlass::gemm::threadblock::DefaultMmaCore<
+  using MmaCore = typename nihilus_gemm::gemm::threadblock::DefaultMmaCore<
       ThreadblockShape, WarpShape, InstructionShape, ElementA, LayoutA,
       ElementB, LayoutB, ElementAccumulator, LayoutC,
       arch::OpClassSimt, 2, Operator>;
 
   // Define iterators over tiles from the A operand
   using IteratorA =
-      cutlass::transform::threadblock::PredicatedTileIterator<
-          cutlass::MatrixShape<MmaCore::Shape::kM, MmaCore::Shape::kK>,
+      nihilus_gemm::transform::threadblock::PredicatedTileIterator<
+          nihilus_gemm::MatrixShape<MmaCore::Shape::kM, MmaCore::Shape::kK>,
           ElementA, LayoutA, 1, typename MmaCore::IteratorThreadMapA, kAlignmentA,
           GatherA, PermuteALayout>;
 
   // Define iterators over tiles from the B operand
   using IteratorB =
-      cutlass::transform::threadblock::PredicatedTileIterator<
-          cutlass::MatrixShape<MmaCore::Shape::kK, MmaCore::Shape::kN>,
+      nihilus_gemm::transform::threadblock::PredicatedTileIterator<
+          nihilus_gemm::MatrixShape<MmaCore::Shape::kK, MmaCore::Shape::kN>,
           ElementB, LayoutB, 0, typename MmaCore::IteratorThreadMapB, kAlignmentB,
           GatherB, PermuteBLayout>;
 
   // Define the threadblock-scoped pipelined matrix multiply
-  using ThreadblockMma = cutlass::gemm::threadblock::MmaPipelined<
+  using ThreadblockMma = nihilus_gemm::gemm::threadblock::MmaPipelined<
       typename MmaCore::Shape, IteratorA, typename MmaCore::SmemIteratorA,
       IteratorB, typename MmaCore::SmemIteratorB, ElementAccumulator,
       LayoutC, typename MmaCore::MmaPolicy>;
@@ -230,27 +230,27 @@ struct DefaultMma<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB,
                   InstructionShape, 2, Operator, false, SharedMemoryClear,
                   GatherA, GatherB, PermuteALayout, PermuteBLayout> {
   // Define the MmaCore components
-  using MmaCore = typename cutlass::gemm::threadblock::DefaultMmaCore<
+  using MmaCore = typename nihilus_gemm::gemm::threadblock::DefaultMmaCore<
       ThreadblockShape, WarpShape, InstructionShape, ElementA, LayoutA,
       ElementB, LayoutB, ElementAccumulator, layout::RowMajor,
       arch::OpClassTensorOp, 2, Operator>;
 
   // Define iterators over tiles from the A operand
   using IteratorA =
-      cutlass::transform::threadblock::PredicatedTileIterator<
-          cutlass::MatrixShape<MmaCore::Shape::kM, MmaCore::Shape::kK>,
+      nihilus_gemm::transform::threadblock::PredicatedTileIterator<
+          nihilus_gemm::MatrixShape<MmaCore::Shape::kM, MmaCore::Shape::kK>,
           ElementA, LayoutA, 1, typename MmaCore::IteratorThreadMapA, kAlignmentA,
           GatherA, PermuteALayout>;
 
   // Define iterators over tiles from the B operand
   using IteratorB =
-      cutlass::transform::threadblock::PredicatedTileIterator<
-          cutlass::MatrixShape<MmaCore::Shape::kK, MmaCore::Shape::kN>,
+      nihilus_gemm::transform::threadblock::PredicatedTileIterator<
+          nihilus_gemm::MatrixShape<MmaCore::Shape::kK, MmaCore::Shape::kN>,
           ElementB, LayoutB, 0, typename MmaCore::IteratorThreadMapB, kAlignmentB,
           GatherB, PermuteBLayout>;
 
   // Define the threadblock-scoped pipelined matrix multiply
-  using ThreadblockMma = cutlass::gemm::threadblock::MmaPipelined<
+  using ThreadblockMma = nihilus_gemm::gemm::threadblock::MmaPipelined<
       typename MmaCore::Shape, IteratorA, typename MmaCore::SmemIteratorA,
       IteratorB, typename MmaCore::SmemIteratorB, ElementAccumulator,
       layout::RowMajor, typename MmaCore::MmaPolicy>;
@@ -292,27 +292,27 @@ struct DefaultMma<float, LayoutA, kAlignmentA, float, LayoutB,
                   InstructionShape, 2, Operator, false, SharedMemoryClearOption::kNone,
                   GatherA, GatherB, PermuteALayout, PermuteBLayout> {
   // Define the MmaCore components
-  using MmaCore = typename cutlass::gemm::threadblock::DefaultMmaCore<
+  using MmaCore = typename nihilus_gemm::gemm::threadblock::DefaultMmaCore<
       ThreadblockShape, WarpShape, InstructionShape, float, LayoutA, float,
       LayoutB, float, layout::RowMajor, arch::OpClassTensorOp, 2,
       arch::OpMultiplyAddFastF16>;
 
   // Define iterators over tiles from the A operand
   using IteratorA =
-      cutlass::transform::threadblock::PredicatedTileIterator<
-          cutlass::MatrixShape<MmaCore::Shape::kM, MmaCore::Shape::kK>,
+      nihilus_gemm::transform::threadblock::PredicatedTileIterator<
+          nihilus_gemm::MatrixShape<MmaCore::Shape::kM, MmaCore::Shape::kK>,
           float, LayoutA, 1, typename MmaCore::IteratorThreadMapA, kAlignmentA,
           GatherA, PermuteALayout>;
 
   // Define iterators over tiles from the B operand
   using IteratorB =
-      cutlass::transform::threadblock::PredicatedTileIterator<
-          cutlass::MatrixShape<MmaCore::Shape::kK, MmaCore::Shape::kN>,
+      nihilus_gemm::transform::threadblock::PredicatedTileIterator<
+          nihilus_gemm::MatrixShape<MmaCore::Shape::kK, MmaCore::Shape::kN>,
           float, LayoutB, 0, typename MmaCore::IteratorThreadMapB, kAlignmentB,
           GatherB, PermuteBLayout>;
 
   // Define the threadblock-scoped pipelined matrix multiply
-  using ThreadblockMma = cutlass::gemm::threadblock::MmaPipelined<
+  using ThreadblockMma = nihilus_gemm::gemm::threadblock::MmaPipelined<
       typename MmaCore::Shape, IteratorA, typename MmaCore::SmemIteratorA,
       IteratorB, typename MmaCore::SmemIteratorB, float,
       layout::RowMajor, typename MmaCore::MmaPolicy>;
@@ -357,7 +357,7 @@ struct DefaultMma<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB,
                   Operator, true, SharedMemoryClearOption::kNone, false, false,
                   layout::NoPermute, layout::NoPermute> {
   // Define the MmaCore components
-  using MmaCore = typename cutlass::gemm::threadblock::DefaultMmaCore<
+  using MmaCore = typename nihilus_gemm::gemm::threadblock::DefaultMmaCore<
       ThreadblockShape, WarpShape, InstructionShape, ElementA, LayoutA,
       ElementB, LayoutB, ElementAccumulator,
       layout::ColumnMajorInterleaved<InterleavedK>, OperatorClass, 2, Operator,
@@ -370,17 +370,17 @@ struct DefaultMma<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB,
     "Alignment must match thread data map's vector length");
 
   // Define iterators over tiles from the A operand
-  using IteratorA = cutlass::transform::threadblock::PredicatedTileIterator<
-      cutlass::MatrixShape<MmaCore::Shape::kM, MmaCore::Shape::kK>, ElementA,
+  using IteratorA = nihilus_gemm::transform::threadblock::PredicatedTileIterator<
+      nihilus_gemm::MatrixShape<MmaCore::Shape::kM, MmaCore::Shape::kK>, ElementA,
       LayoutA, 1, typename MmaCore::IteratorThreadMapA>;
 
   // Define iterators over tiles from the B operand
-  using IteratorB = cutlass::transform::threadblock::PredicatedTileIterator<
-      cutlass::MatrixShape<MmaCore::Shape::kK, MmaCore::Shape::kN>, ElementB,
+  using IteratorB = nihilus_gemm::transform::threadblock::PredicatedTileIterator<
+      nihilus_gemm::MatrixShape<MmaCore::Shape::kK, MmaCore::Shape::kN>, ElementB,
       LayoutB, 0, typename MmaCore::IteratorThreadMapB>;
 
   // Define the threadblock-scoped pipelined matrix multiply
-  using ThreadblockMma = cutlass::gemm::threadblock::MmaPipelined<
+  using ThreadblockMma = nihilus_gemm::gemm::threadblock::MmaPipelined<
       typename MmaCore::Shape, IteratorA, typename MmaCore::SmemIteratorA,
       IteratorB, typename MmaCore::SmemIteratorB, ElementAccumulator,
       layout::ColumnMajorInterleaved<InterleavedK>,
@@ -439,29 +439,29 @@ struct DefaultMma<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB,
              "simt epilogue must be row major");
 
   // Define the MmaCore components
-  using MmaCore = typename cutlass::gemm::threadblock::DefaultMmaCore<
+  using MmaCore = typename nihilus_gemm::gemm::threadblock::DefaultMmaCore<
       ThreadblockShape, WarpShape, InstructionShape, ElementA, LayoutA,
       ElementB, LayoutB, ElementAccumulator, LayoutC, arch::OpClassSimt,
       Stages, Operator>;
 
   // Define iterators over tiles from the A operand
   using ThreadMapA = typename MmaCore::IteratorThreadMapA;
-  using AccessTypeA = cutlass::Array<ElementA, kAlignmentA>;
+  using AccessTypeA = nihilus_gemm::Array<ElementA, kAlignmentA>;
   using IteratorA =
-      cutlass::transform::threadblock::PredicatedTileAccessIterator<
-          cutlass::MatrixShape<ThreadblockShape::kM, ThreadblockShape::kK>,
+      nihilus_gemm::transform::threadblock::PredicatedTileAccessIterator<
+          nihilus_gemm::MatrixShape<ThreadblockShape::kM, ThreadblockShape::kK>,
           ElementA, LayoutA, 1, ThreadMapA, AccessTypeA, GatherA, PermuteALayout>;
 
   // Define iterators over tiles from the B operand
   using ThreadMapB = typename MmaCore::IteratorThreadMapB;
-  using AccessTypeB = cutlass::Array<ElementB, kAlignmentB>;
+  using AccessTypeB = nihilus_gemm::Array<ElementB, kAlignmentB>;
   using IteratorB =
-      cutlass::transform::threadblock::PredicatedTileAccessIterator<
-          cutlass::MatrixShape<ThreadblockShape::kK, ThreadblockShape::kN>,
+      nihilus_gemm::transform::threadblock::PredicatedTileAccessIterator<
+          nihilus_gemm::MatrixShape<ThreadblockShape::kK, ThreadblockShape::kN>,
           ElementB, LayoutB, 0, ThreadMapB, AccessTypeB, GatherB, PermuteBLayout>;
 
   // Define the threadblock-scoped multistage matrix multiply
-  using ThreadblockMma = cutlass::gemm::threadblock::MmaMultistage<
+  using ThreadblockMma = nihilus_gemm::gemm::threadblock::MmaMultistage<
       typename MmaCore::Shape, IteratorA, typename MmaCore::SmemIteratorA,
       MmaCore::kCacheOpA, IteratorB, typename MmaCore::SmemIteratorB,
       MmaCore::kCacheOpB, ElementAccumulator, LayoutC,
@@ -521,40 +521,40 @@ struct DefaultMma<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB,
              || platform::is_same<LayoutC, layout::AffineRankN<2>>::value,
              "simt epilogue must be row major");
 
-  static cutlass::arch::CacheOperation::Kind const CacheOpA =
+  static nihilus_gemm::arch::CacheOperation::Kind const CacheOpA =
       ((sizeof_bits<ElementA>::value * kAlignmentA) == 128)
-          ? cutlass::arch::CacheOperation::Global
-          : cutlass::arch::CacheOperation::Always;
+          ? nihilus_gemm::arch::CacheOperation::Global
+          : nihilus_gemm::arch::CacheOperation::Always;
 
-  static cutlass::arch::CacheOperation::Kind const CacheOpB =
+  static nihilus_gemm::arch::CacheOperation::Kind const CacheOpB =
       ((sizeof_bits<ElementB>::value * kAlignmentB) == 128)
-          ? cutlass::arch::CacheOperation::Global
-          : cutlass::arch::CacheOperation::Always;
+          ? nihilus_gemm::arch::CacheOperation::Global
+          : nihilus_gemm::arch::CacheOperation::Always;
 
   // Define the MmaCore components
-  using MmaCore = typename cutlass::gemm::threadblock::DefaultMmaCore<
+  using MmaCore = typename nihilus_gemm::gemm::threadblock::DefaultMmaCore<
       ThreadblockShape, WarpShape, InstructionShape, ElementA, LayoutA,
       ElementB, LayoutB, ElementAccumulator, LayoutC, arch::OpClassTensorOp,
       Stages, Operator, false, CacheOpA, CacheOpB>;
 
   // Define iterators over tiles from the A operand
   using ThreadMapA = typename MmaCore::IteratorThreadMapA;
-  using AccessTypeA = cutlass::Array<ElementA, kAlignmentA>;
+  using AccessTypeA = nihilus_gemm::Array<ElementA, kAlignmentA>;
   using IteratorA =
-      cutlass::transform::threadblock::PredicatedTileAccessIterator<
-          cutlass::MatrixShape<ThreadblockShape::kM, ThreadblockShape::kK>,
+      nihilus_gemm::transform::threadblock::PredicatedTileAccessIterator<
+          nihilus_gemm::MatrixShape<ThreadblockShape::kM, ThreadblockShape::kK>,
           ElementA, LayoutA, 1, ThreadMapA, AccessTypeA, GatherA, PermuteALayout>;
 
   // Define iterators over tiles from the B operand
   using ThreadMapB = typename MmaCore::IteratorThreadMapB;
-  using AccessTypeB = cutlass::Array<ElementB, kAlignmentB>;
+  using AccessTypeB = nihilus_gemm::Array<ElementB, kAlignmentB>;
   using IteratorB =
-      cutlass::transform::threadblock::PredicatedTileAccessIterator<
-          cutlass::MatrixShape<ThreadblockShape::kK, ThreadblockShape::kN>,
+      nihilus_gemm::transform::threadblock::PredicatedTileAccessIterator<
+          nihilus_gemm::MatrixShape<ThreadblockShape::kK, ThreadblockShape::kN>,
           ElementB, LayoutB, 0, ThreadMapB, AccessTypeB, GatherB, PermuteBLayout>;
 
   // Define the threadblock-scoped multistage matrix multiply
-  using ThreadblockMma = cutlass::gemm::threadblock::MmaMultistage<
+  using ThreadblockMma = nihilus_gemm::gemm::threadblock::MmaMultistage<
       typename MmaCore::Shape, IteratorA, typename MmaCore::SmemIteratorA,
       MmaCore::kCacheOpA, IteratorB, typename MmaCore::SmemIteratorB,
       MmaCore::kCacheOpB, ElementAccumulator, LayoutC,
@@ -602,7 +602,7 @@ struct DefaultMma<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB,
                   Stages, Operator, true, SharedMemoryClearOption::kNone, 
                   false, false, layout::NoPermute, layout::NoPermute> {
   // Define the MmaCore components
-  using MmaCore = typename cutlass::gemm::threadblock::DefaultMmaCore<
+  using MmaCore = typename nihilus_gemm::gemm::threadblock::DefaultMmaCore<
       ThreadblockShape, WarpShape, InstructionShape, ElementA, LayoutA,
       ElementB, LayoutB, ElementAccumulator,
       layout::ColumnMajorInterleaved<InterleavedK>, OperatorClass, Stages,
@@ -610,22 +610,22 @@ struct DefaultMma<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB,
 
   // Define iterators over tiles from the A operand
   using ThreadMapA = typename MmaCore::IteratorThreadMapA;
-  using AccessTypeA = cutlass::Array<ElementA, kAlignmentA>;
+  using AccessTypeA = nihilus_gemm::Array<ElementA, kAlignmentA>;
   using IteratorA =
-      cutlass::transform::threadblock::PredicatedTileAccessIterator<
-          cutlass::MatrixShape<ThreadblockShape::kM, ThreadblockShape::kK>,
+      nihilus_gemm::transform::threadblock::PredicatedTileAccessIterator<
+          nihilus_gemm::MatrixShape<ThreadblockShape::kM, ThreadblockShape::kK>,
           ElementA, LayoutA, 1, ThreadMapA, AccessTypeA>;
 
   // Define iterators over tiles from the B operand
   using ThreadMapB = typename MmaCore::IteratorThreadMapB;
-  using AccessTypeB = cutlass::Array<ElementB, kAlignmentB>;
+  using AccessTypeB = nihilus_gemm::Array<ElementB, kAlignmentB>;
   using IteratorB =
-      cutlass::transform::threadblock::PredicatedTileAccessIterator<
-          cutlass::MatrixShape<ThreadblockShape::kK, ThreadblockShape::kN>,
+      nihilus_gemm::transform::threadblock::PredicatedTileAccessIterator<
+          nihilus_gemm::MatrixShape<ThreadblockShape::kK, ThreadblockShape::kN>,
           ElementB, LayoutB, 0, ThreadMapB, AccessTypeB>;
 
   // Define the threadblock-scoped multistage matrix multiply
-  using ThreadblockMma = cutlass::gemm::threadblock::MmaMultistage<
+  using ThreadblockMma = nihilus_gemm::gemm::threadblock::MmaMultistage<
       typename MmaCore::Shape, IteratorA, typename MmaCore::SmemIteratorA,
       MmaCore::kCacheOpA, IteratorB, typename MmaCore::SmemIteratorB,
       MmaCore::kCacheOpB, ElementAccumulator, layout::RowMajor,
@@ -664,29 +664,29 @@ struct DefaultMma<int8_t, LayoutA, kAlignmentA, int8_t, LayoutB, kAlignmentB,
   using ElementB = int8_t;
   using OperatorClass =  arch::OpClassSimt;
 
-  static const bool transposeA = platform::is_same< LayoutA, layout::ColumnMajor >::value;
-  static const bool transposeB = platform::is_same< LayoutB, layout::RowMajor >::value;
+  static constexpr bool transposeA = platform::is_same< LayoutA, layout::ColumnMajor >::value;
+  static constexpr bool transposeB = platform::is_same< LayoutB, layout::RowMajor >::value;
 
   // Define the MmaCore components
-  using MmaCore = typename cutlass::gemm::threadblock::DefaultMmaCore<
+  using MmaCore = typename nihilus_gemm::gemm::threadblock::DefaultMmaCore<
       ThreadblockShape, WarpShape, InstructionShape, ElementA, LayoutA,
       ElementB, LayoutB, ElementAccumulator, layout::RowMajor,
       OperatorClass, 2, Operator>;
 
   // Define iterators over tiles from the A operand
   using IteratorA =
-      cutlass::transform::threadblock::PredicatedTileIterator2dThreadTile<
-          cutlass::MatrixShape<MmaCore::Shape::kM, MmaCore::Shape::kK>,
+      nihilus_gemm::transform::threadblock::PredicatedTileIterator2dThreadTile<
+          nihilus_gemm::MatrixShape<MmaCore::Shape::kM, MmaCore::Shape::kK>,
           ElementA, LayoutA, 1, typename MmaCore::IteratorThreadMapA, transposeA>;
 
   // Define iterators over tiles from the B operand
   using IteratorB =
-      cutlass::transform::threadblock::PredicatedTileIterator2dThreadTile<
-          cutlass::MatrixShape<MmaCore::Shape::kK, MmaCore::Shape::kN>,
+      nihilus_gemm::transform::threadblock::PredicatedTileIterator2dThreadTile<
+          nihilus_gemm::MatrixShape<MmaCore::Shape::kK, MmaCore::Shape::kN>,
           ElementB, LayoutB, 0, typename MmaCore::IteratorThreadMapB, transposeB>;
 
   // Define the threadblock-scoped pipelined matrix multiply
-  using ThreadblockMma = cutlass::gemm::threadblock::MmaPipelined<
+  using ThreadblockMma = nihilus_gemm::gemm::threadblock::MmaPipelined<
       typename MmaCore::Shape, IteratorA, typename MmaCore::SmemIteratorA,
       IteratorB, typename MmaCore::SmemIteratorB, ElementAccumulator,
       layout::RowMajor, typename MmaCore::MmaPolicy>;
@@ -729,25 +729,25 @@ struct DefaultMma<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB,
                   InstructionShape, 2, Operator, false, SharedMemoryClearOption::kNone,
                   false, false, layout::NoPermute, layout::NoPermute> {
   // Define the MmaCore components
-  using MmaCore = typename cutlass::gemm::threadblock::DefaultMmaCore<
+  using MmaCore = typename nihilus_gemm::gemm::threadblock::DefaultMmaCore<
       ThreadblockShape, WarpShape, InstructionShape, ElementA, LayoutA,
       ElementB, LayoutB, ElementAccumulator, LayoutC,
       arch::OpClassWmmaTensorOp, 2, Operator>;
 
   // Define iterators over tiles from the A operand
   using IteratorA =
-      cutlass::transform::threadblock::PredicatedTileIterator<
-          cutlass::MatrixShape<MmaCore::Shape::kM, MmaCore::Shape::kK>,
+      nihilus_gemm::transform::threadblock::PredicatedTileIterator<
+          nihilus_gemm::MatrixShape<MmaCore::Shape::kM, MmaCore::Shape::kK>,
           ElementA, LayoutA, 1, typename MmaCore::IteratorThreadMapA, kAlignmentA>;
 
   // Define iterators over tiles from the B operand
   using IteratorB =
-      cutlass::transform::threadblock::PredicatedTileIterator<
-          cutlass::MatrixShape<MmaCore::Shape::kK, MmaCore::Shape::kN>,
+      nihilus_gemm::transform::threadblock::PredicatedTileIterator<
+          nihilus_gemm::MatrixShape<MmaCore::Shape::kK, MmaCore::Shape::kN>,
           ElementB, LayoutB, 0, typename MmaCore::IteratorThreadMapB, kAlignmentB>;
 
   // Define the threadblock-scoped pipelined matrix multiply
-  using ThreadblockMma = cutlass::gemm::threadblock::MmaPipelined<
+  using ThreadblockMma = nihilus_gemm::gemm::threadblock::MmaPipelined<
       typename MmaCore::Shape, IteratorA, typename MmaCore::SmemIteratorA,
       IteratorB, typename MmaCore::SmemIteratorB, ElementAccumulator,
       LayoutC, typename MmaCore::MmaPolicy>;
@@ -789,25 +789,25 @@ struct DefaultMma<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB,
                   InstructionShape, 1, Operator, false, SharedMemoryClearOption::kNone,
                   false, false, layout::NoPermute, layout::NoPermute> {
   // Define the MmaCore components
-  using MmaCore = typename cutlass::gemm::threadblock::DefaultMmaCore<
+  using MmaCore = typename nihilus_gemm::gemm::threadblock::DefaultMmaCore<
       ThreadblockShape, WarpShape, InstructionShape, ElementA, LayoutA,
       ElementB, LayoutB, ElementAccumulator, LayoutC,
       arch::OpClassWmmaTensorOp, 1, Operator>; 
 
   // Define iterators over tiles from the A operand
   using IteratorA =
-      cutlass::transform::threadblock::PredicatedTileIterator<
-          cutlass::MatrixShape<MmaCore::Shape::kM, MmaCore::Shape::kK>,
+      nihilus_gemm::transform::threadblock::PredicatedTileIterator<
+          nihilus_gemm::MatrixShape<MmaCore::Shape::kM, MmaCore::Shape::kK>,
           ElementA, LayoutA, 1, typename MmaCore::IteratorThreadMapA, kAlignmentA>;
 
   // Define iterators over tiles from the B operand
   using IteratorB =
-      cutlass::transform::threadblock::PredicatedTileIterator<
-          cutlass::MatrixShape<MmaCore::Shape::kK, MmaCore::Shape::kN>,
+      nihilus_gemm::transform::threadblock::PredicatedTileIterator<
+          nihilus_gemm::MatrixShape<MmaCore::Shape::kK, MmaCore::Shape::kN>,
           ElementB, LayoutB, 0, typename MmaCore::IteratorThreadMapB, kAlignmentB>;
 
   // Define the threadblock-scoped singlestage matrix multiply
-  using ThreadblockMma = cutlass::gemm::threadblock::MmaSingleStage<
+  using ThreadblockMma = nihilus_gemm::gemm::threadblock::MmaSingleStage<
       typename MmaCore::Shape, IteratorA, typename MmaCore::SmemIteratorA,
       IteratorB, typename MmaCore::SmemIteratorB, ElementAccumulator,
       LayoutC, typename MmaCore::MmaPolicy>;
@@ -818,6 +818,6 @@ struct DefaultMma<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB,
 
 } // namespace threadblock
 } // namespace gemm
-} // namespace cutlass 
+} // namespace nihilus_gemm 
 
 ////////////////////////////////////////////////////////////////////////////////

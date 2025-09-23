@@ -29,24 +29,24 @@
  *
  **************************************************************************************************/
 /*! \file
-    \brief This extends the contents of cutlass/functional.h with frequently used activation functions.
+    \brief This extends the contents of nihilus_gemm/functional.h with frequently used activation functions.
 
 */
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/numeric_conversion.h"
-#include "cutlass/constants.h"
-#include "cutlass/complex.h"
-#include "cutlass/array.h"
-#include "cutlass/half.h"
-#include "cutlass/functional.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/numeric_conversion.h"
+#include "nihilus_gemm/constants.h"
+#include "nihilus_gemm/complex.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/half.h"
+#include "nihilus_gemm/functional.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace thread {
 
@@ -58,7 +58,7 @@ struct kIsHeavy_member_or_false {
   static constexpr bool value = false;
 };
 template<class Op>
-struct kIsHeavy_member_or_false<Op, typename cutlass::platform::enable_if<Op::kIsHeavy>::type> {
+struct kIsHeavy_member_or_false<Op, typename nihilus_gemm::platform::enable_if<Op::kIsHeavy>::type> {
   static constexpr bool value = Op::kIsHeavy;
 };
 
@@ -67,7 +67,7 @@ struct kIsHeavy_member_or_false<Op, typename cutlass::platform::enable_if<Op::kI
 // Identity operator
 template <typename T>
 struct Identity {
-  static const bool kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
 
   CUTLASS_HOST_DEVICE
   T operator()(T value) const {
@@ -125,7 +125,7 @@ template <template <class> class Activation, typename T>
 struct Scale<Activation<T>> {
   using Arguments = typename Scale<T>::Arguments;
 
-  static const bool kIsHeavy = Activation<T>::kIsHeavy;
+  static constexpr bool kIsHeavy = Activation<T>::kIsHeavy;
 
   CUTLASS_HOST_DEVICE
   T operator()(T value, typename Arguments::scale_type scale) const {
@@ -143,7 +143,7 @@ struct Scale<Activation<T>> {
 /// ReLu operator - propagates NaNs
 template <typename T>
 struct ReLu {
-  static const bool kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
 
   CUTLASS_HOST_DEVICE
   T operator()(T threshold, T value) const {
@@ -167,7 +167,7 @@ using ReLU = ReLu<T>;
 
 template <typename T, int N>
 struct ReLu<Array<T, N>> {
-  static const bool kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
 
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(T const & threshold, Array<T, N> const &frag) const {
@@ -270,7 +270,7 @@ struct LowerBound<Array<T,N>> {
 template <typename T>
 struct LeakyReLU {
 
-  static const bool kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
 
   struct Arguments {
     T leaky_alpha = T(0);
@@ -291,7 +291,7 @@ struct LeakyReLU {
 template <typename T, int N>
 struct LeakyReLU<Array<T, N> > {
 
-  static const bool kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
 
   using Arguments = typename LeakyReLU<T>::Arguments;
 
@@ -365,7 +365,7 @@ struct ThresholdReLU<Array<T,N>> {
 // Tanh operator
 template <typename T>
 struct Tanh {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   T operator()(T const &value) const {
@@ -375,7 +375,7 @@ struct Tanh {
 
 template <typename T, int N>
 struct Tanh<Array<T, N> > {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &value) const {
@@ -394,7 +394,7 @@ struct Tanh<Array<T, N> > {
 template <int N>
 struct Tanh<Array<half_t, N>> {
   using T = half_t;
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& z) const {
@@ -406,7 +406,7 @@ struct Tanh<Array<half_t, N>> {
 // Sigmoid operator
 template <typename T>
 struct Sigmoid {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   T operator()(T const &value) const {
@@ -420,7 +420,7 @@ struct Sigmoid {
 
 template <typename T, int N>
 struct Sigmoid<Array<T, N>> {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& z) const {
@@ -428,16 +428,16 @@ struct Sigmoid<Array<T, N>> {
     multiplies<Array<T, N>> mul;
     multiply_add<Array<T, N>> fma;
     fast_tanh_op<Array<T, N>> tanh;
-    return fma(tanh(mul(z, cutlass::constants::half<T>())),
-               cutlass::constants::half<T>(),
-               cutlass::constants::half<T>());
+    return fma(tanh(mul(z, nihilus_gemm::constants::half<T>())),
+               nihilus_gemm::constants::half<T>(),
+               nihilus_gemm::constants::half<T>());
 #else
     plus<Array<T, N>> add;
     divides<Array<T, N>> div;
     negate<Array<T, N>> neg;
     fast_exp_op<Array<T, N>> fast_exp;
-    return div(cutlass::constants::one<T>(),
-               add(cutlass::constants::one<T>(),
+    return div(nihilus_gemm::constants::one<T>(),
+               add(nihilus_gemm::constants::one<T>(),
                    fast_exp(neg(z))));
 #endif
   }
@@ -450,7 +450,7 @@ struct Sigmoid<Array<T, N>> {
 // Reference: https://pytorch.org/docs/stable/generated/torch.nn.SiLU.html
 template <typename T>
 struct SiLu {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   T operator()(T const &value) const {
@@ -461,7 +461,7 @@ struct SiLu {
 
 template <typename T, int N>
 struct SiLu<Array<T, N>> {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &value) const {
@@ -481,7 +481,7 @@ using ScaledSiLu = Scale<SiLu<T>>;
 // Reference: https://pytorch.org/docs/stable/generated/torch.nn.Hardswish.html
 template <typename T>
 struct HardSwish {
-  static const bool kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
 
   CUTLASS_HOST_DEVICE
   T operator()(T const &x) const {
@@ -495,7 +495,7 @@ struct HardSwish {
 template <>
 struct HardSwish<float> {
   using T = float;
-  static const bool kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
   static constexpr float kOneSixth = 0.16666667f;
 
   CUTLASS_HOST_DEVICE
@@ -508,9 +508,9 @@ struct HardSwish<float> {
 };
 
 template <>
-struct HardSwish<cutlass::half_t> {
-  using T = cutlass::half_t;
-  static const bool kIsHeavy = false;
+struct HardSwish<nihilus_gemm::half_t> {
+  using T = nihilus_gemm::half_t;
+  static constexpr bool kIsHeavy = false;
   static constexpr float kOneSixth = 0.16666667f;
 
   CUTLASS_HOST_DEVICE
@@ -524,7 +524,7 @@ struct HardSwish<cutlass::half_t> {
 
 template <typename T, int N>
 struct HardSwish<Array<T, N> > {
-  static const bool kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
 
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &value) const {
@@ -543,7 +543,7 @@ struct HardSwish<Array<T, N> > {
 template <int N>
 struct HardSwish<Array<half_t, N> > {
   using T = half_t;
-  static const bool kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
   static constexpr float kOneSixth = 0.16666667f;
 
   CUTLASS_HOST_DEVICE
@@ -572,40 +572,40 @@ using ScaledHardSwish = Scale<HardSwish<T>>;
 // GELU operator
 template <typename T>
 struct GELU {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   T operator()(T const &value) const {
-    return T(cutlass::constants::half<T>() * value *
-      (cutlass::constants::one<T>() + (T)erff((float)(value * cutlass::constants::half_root_two<T>()))));
+    return T(nihilus_gemm::constants::half<T>() * value *
+      (nihilus_gemm::constants::one<T>() + (T)erff((float)(value * nihilus_gemm::constants::half_root_two<T>()))));
   }
 };
 
 template <>
 struct GELU<float> {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   float operator()(float const &value) const {
-    return cutlass::constants::half<float>() * value *
-      (cutlass::constants::one<float>() + erff(value * cutlass::constants::half_root_two<float>() ));
+    return nihilus_gemm::constants::half<float>() * value *
+      (nihilus_gemm::constants::one<float>() + erff(value * nihilus_gemm::constants::half_root_two<float>() ));
   }
 };
 
 template <>
 struct GELU<double> {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   double operator()(double const &value) const {
-    return cutlass::constants::half<double>() * value *
-      (cutlass::constants::one<double>() + erf( value * cutlass::constants::half_root_two<double>() ));
+    return nihilus_gemm::constants::half<double>() * value *
+      (nihilus_gemm::constants::one<double>() + erf( value * nihilus_gemm::constants::half_root_two<double>() ));
   }
 };
 
 template <typename T, int N>
 struct GELU<Array<T, N> > {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &value) const {
@@ -627,7 +627,7 @@ using ScaledGELU = Scale<GELU<T>>;
 // GELU operator implemented using the Taylor series approximation
 template <typename T>
 struct GELU_taylor {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   T operator()(T const &z) const {
@@ -635,14 +635,14 @@ struct GELU_taylor {
     T k0 = T(0.7978845608028654);
     T k1 = T(0.044715);
 
-    return T(cutlass::constants::half<T>() * z *
-      (cutlass::constants::one<T>() + fast_tanh(k0 * z * (cutlass::constants::one<T>() + k1 * z * z))));
+    return T(nihilus_gemm::constants::half<T>() * z *
+      (nihilus_gemm::constants::one<T>() + fast_tanh(k0 * z * (nihilus_gemm::constants::one<T>() + k1 * z * z))));
   }
 };
 
 template <>
 struct GELU_taylor <float>{
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
   using T = float;
   CUTLASS_HOST_DEVICE
   T operator()(T const &z) const {
@@ -657,14 +657,14 @@ struct GELU_taylor <float>{
     T v2 = mul(z, v1);
     T v3 = fast_tanh(v2);
     T v4 = fma(z, v3, z);
-    T v5 = mul(cutlass::constants::half<T>(), v4);
+    T v5 = mul(nihilus_gemm::constants::half<T>(), v4);
     return v5;
   }
 };
 
 template <int N>
 struct GELU_taylor<Array<half_t, N> > {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   Array<half_t, N> operator()(Array<half_t, N> const &z) const {
@@ -681,9 +681,9 @@ struct GELU_taylor<Array<half_t, N> > {
 
     fast_tanh_op<Array<half_t, N>> tanh;
 
-    Array<half_t, N> u = mul(mul(k0, z), fma(mul(k1, z), z, cutlass::constants::one<T>()));
+    Array<half_t, N> u = mul(mul(k0, z), fma(mul(k1, z), z, nihilus_gemm::constants::one<T>()));
 
-    y = mul(mul(z, cutlass::constants::half<T>()), add(cutlass::constants::one<T>(), tanh(u)));
+    y = mul(mul(z, nihilus_gemm::constants::half<T>()), add(nihilus_gemm::constants::one<T>(), tanh(u)));
 
     return y;
   }
@@ -691,7 +691,7 @@ struct GELU_taylor<Array<half_t, N> > {
 
 template <int N>
 struct GELU_taylor<Array<float, N> > {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   Array<float, N> operator()(Array<float, N> const &value) const {
@@ -708,14 +708,14 @@ struct GELU_taylor<Array<float, N> > {
     Array<float, N> v2 = mul(value, v1);
     Array<float, N> v3 = tanh(v2);
     Array<float, N> v4 = fma(value, v3, value);
-    Array<float, N> v5 = mul(cutlass::constants::half<float>(), v4);
+    Array<float, N> v5 = mul(nihilus_gemm::constants::half<float>(), v4);
     return v5;
   }
 };
 
 template <typename T, int N>
 struct GELU_taylor<Array<T, N> > {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &value) const {
@@ -738,7 +738,7 @@ using ScaledGELU_taylor = Scale<GELU_taylor<T>>;
 /// z is computed from the forward pass.
 template <typename T>
 struct dGELU {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   T operator()(T const &d_t, T const &z) const {
@@ -758,7 +758,7 @@ struct dGELU {
 
 template <typename T, int N>
 struct dGELU<Array<T, N> > {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &d_t, Array<T, N> const &z) const {
@@ -860,7 +860,7 @@ struct dReLU_Z<Array<T, N>> {
 template <typename T>
 struct ElementwiseFilter {
 
-  static const bool kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
 
   struct Arguments {
     T value_to_filter = T(-0.0);
@@ -882,7 +882,7 @@ struct ElementwiseFilter {
 template <typename T, int N>
 struct ElementwiseFilter<Array<T, N> > {
 
-  static const bool kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
 
   using Arguments = typename ElementwiseFilter<T>::Arguments;
 
@@ -909,6 +909,6 @@ struct ElementwiseFilter<Array<T, N> > {
 
 } // namespace thread
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

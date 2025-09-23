@@ -35,16 +35,16 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/array.h"
-#include "cutlass/functional.h"
-#include "cutlass/numeric_conversion.h"
-#include "cutlass/epilogue/thread/scale_type.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/functional.h"
+#include "nihilus_gemm/numeric_conversion.h"
+#include "nihilus_gemm/epilogue/thread/scale_type.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace thread {
 
@@ -83,16 +83,16 @@ public:
   using ElementAccumulator = ElementAccumulator_;
   using ElementCompute = ElementCompute_;
 
-  static int const kCount = Count;
+  static constexpr int  kCount = Count;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
   using ComputeFragment = Array<ElementCompute, kCount>;
   using FragmentSource = Array<ElementOutput, kCount>;
 
-  static FloatRoundStyle const kRound = Round;
+  static constexpr FloatRoundStyle  kRound = Round;
 
-  static bool const kIsHeavy = detail::LinearCombinationClampIsHeavy();
+  static constexpr bool  kIsHeavy = detail::LinearCombinationClampIsHeavy();
 
   /// Host-constructable parameters structure
   struct Params {
@@ -219,10 +219,10 @@ public:
 
     /// Clamping constant value
     ElementCompute const kClampMax =
-        ElementCompute(cutlass::platform::numeric_limits<ElementOutput>::max());
+        ElementCompute(nihilus_gemm::platform::numeric_limits<ElementOutput>::max());
 
     ElementCompute const kClampMin =
-        ElementCompute(cutlass::platform::numeric_limits<ElementOutput>::lowest());
+        ElementCompute(nihilus_gemm::platform::numeric_limits<ElementOutput>::lowest());
 
     intermediate = max_accumulator(intermediate, kClampMin);
     intermediate = min_accumulator(intermediate, kClampMax);
@@ -260,10 +260,10 @@ public:
 
     /// Clamping constant value
     ElementCompute const kClampMax =
-        ElementCompute(cutlass::platform::numeric_limits<ElementOutput>::max());
+        ElementCompute(nihilus_gemm::platform::numeric_limits<ElementOutput>::max());
 
     ElementCompute const kClampMin =
-        ElementCompute(cutlass::platform::numeric_limits<ElementOutput>::lowest());
+        ElementCompute(nihilus_gemm::platform::numeric_limits<ElementOutput>::lowest());
 
     intermediate = max_accumulator(intermediate, kClampMin);
     intermediate = min_accumulator(intermediate, kClampMax);
@@ -299,18 +299,18 @@ public:
   using ElementCompute = float;
 
   static_assert(
-      cutlass::platform::numeric_limits<ElementOutput>::is_integer,
+      nihilus_gemm::platform::numeric_limits<ElementOutput>::is_integer,
       "This elementwise op expects the output to be int.");
 
-  static int const kCount = Count;
+  static constexpr int  kCount = Count;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
   using ComputeFragment = Array<ElementCompute, kCount>;
 
-  static FloatRoundStyle const kRound = Round;
+  static constexpr FloatRoundStyle  kRound = Round;
 
-  static bool const kIsHeavy = detail::LinearCombinationClampIsHeavy();
+  static constexpr bool  kIsHeavy = detail::LinearCombinationClampIsHeavy();
 
   /// Host-constructable parameters structure
   struct Params {
@@ -498,18 +498,18 @@ class FastLinearCombinationClamp {
   using ElementCompute = float;
 
   static_assert(
-      cutlass::platform::numeric_limits<ElementOutput>::is_integer,
+      nihilus_gemm::platform::numeric_limits<ElementOutput>::is_integer,
       "This elementwise op expects the output to be int.");
 
-  static int const kCount = Count;
+  static constexpr int  kCount = Count;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
   using ComputeFragment = Array<ElementCompute, kCount>;
 
-  static FloatRoundStyle const kRound = Round;
+  static constexpr FloatRoundStyle  kRound = Round;
 
-  static bool const kIsHeavy = false;
+  static constexpr bool  kIsHeavy = false;
 
   /// Host-constructable parameters structure
   struct Params {
@@ -681,4 +681,4 @@ class FastLinearCombinationClamp {
 
 } // namespace thread
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm

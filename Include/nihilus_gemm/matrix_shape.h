@@ -33,10 +33,10 @@
 */
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/coord.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/coord.h"
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -46,9 +46,9 @@ template <
   int Column_      ///< columns of a matrix
 >
 struct MatrixShape {
-  static int const kRow = Row_;           ///< rows of a matrix
-  static int const kColumn = Column_;           ///< columns of a matrix
-  static int const kCount = Row_ * Column_;  ///< total number of elements in a matrix
+  static constexpr int  kRow = Row_;           ///< rows of a matrix
+  static constexpr int  kColumn = Column_;           ///< columns of a matrix
+  static constexpr int  kCount = Row_ * Column_;  ///< total number of elements in a matrix
 
   //
   // Static member functions
@@ -62,4 +62,4 @@ struct MatrixShape {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cutlass
+} // namespace nihilus_gemm

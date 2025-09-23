@@ -34,18 +34,18 @@
 
 #pragma once
 
-#include "cutlass/tensor_ref.h"
-#include "cutlass/aligned_buffer.h"
-#include "cutlass/arch/memory.h"
-#include "cutlass/array.h"
-#include "cutlass/cutlass.h"
-#include "cutlass/gemm/gemm.h"
-#include "cutlass/matrix_shape.h"
-#include "cutlass/numeric_types.h"
+#include "nihilus_gemm/tensor_ref.h"
+#include "nihilus_gemm/aligned_buffer.h"
+#include "nihilus_gemm/arch/memory.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/gemm/gemm.h"
+#include "nihilus_gemm/matrix_shape.h"
+#include "nihilus_gemm/numeric_types.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace gemm {
 namespace threadblock {
 
@@ -72,7 +72,7 @@ struct MmaPolicy {
   using SmemPaddingB = SmemPaddingB_;
 
   /// Number of partitions of K dimension
-  static int const kPartitionsK = PartitionsK;
+  static constexpr int  kPartitionsK = PartitionsK;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -113,11 +113,11 @@ class MmaBase {
                               Shape::kK / WarpGemm::kK>;
 
   /// Number of warp-level GEMM oeprations
-  static int const kWarpGemmIterations =
+  static constexpr int  kWarpGemmIterations =
       (WarpGemm::kK / Operator::Policy::MmaShape::kK);
 
   /// Number of stages
-  static int const kStages = Stages;
+  static constexpr int  kStages = Stages;
 
   /// Tensor reference to the A operand
   using TensorRefA = TensorRef<typename Operator::ElementA, typename Operator::LayoutA>;
@@ -231,6 +231,6 @@ public:
 
 }  // namespace threadblock
 }  // namespace gemm
-}  // namespace cutlass
+}  // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

@@ -30,10 +30,10 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute/config.hpp>           // CUTE_HOST_DEVICE
-#include <cute/layout.hpp>           // cute::Layout
-#include <cute/layout_composed.hpp>  // cute::ComposedLayout
-#include <cute/swizzle.hpp>          // cute::Swizzle, cute::get_swizzle primary template
+#include <cute_rt_tm/config.hpp>           // CUTE_HOST_DEVICE
+#include <cute_rt_tm/layout.hpp>           // cute_rt_tm::Layout
+#include <cute_rt_tm/layout_composed.hpp>  // cute_rt_tm::ComposedLayout
+#include <cute_rt_tm/swizzle.hpp>          // cute_rt_tm::Swizzle, cute_rt_tm::get_swizzle primary template
 
 /* Specialized functionality for a ComposedLayout of the form
  *   InvolutionFn o Offset o LayoutB
@@ -51,7 +51,7 @@
  * statically-vs-dynamically known bits in the Offset to improve the decay to static or dynamic normal layouts.
  */
 
-namespace cute
+namespace cute_rt_tm
 {
 
 //
@@ -190,7 +190,7 @@ make_swizzle_strides(true_type,
                      int_sequence<I...>)
 {
   // Below is an optimized/compressed version of:
-  //return cute::make_tuple((swizzle(offset + Z*Int<(1 << I)>{}) - swizzle(offset))...);
+  //return cute_rt_tm::make_tuple((swizzle(offset + Z*Int<(1 << I)>{}) - swizzle(offset))...);
   // with knowledge of Swizzle, I... ranges for each B bits,
   //    and the layout won't slice along z-bits that are already set
 
@@ -198,7 +198,7 @@ make_swizzle_strides(true_type,
   //   0  Z  DC
   //   1 -Z  DC
 
-  return cute::make_tuple(conditional_return((offset & (Y << Int<I>{})) == Int<0>{}, Z * Int<(1 << I)>{}, -Z * Int<(1 << I)>{})...);
+  return cute_rt_tm::make_tuple(conditional_return((offset & (Y << Int<I>{})) == Int<0>{}, Z * Int<(1 << I)>{}, -Z * Int<(1 << I)>{})...);
 }
 
 template <class IntZ, class IntY, class Offset, int... I>
@@ -211,7 +211,7 @@ make_swizzle_strides(false_type,
                      int_sequence<I...>)
 {
   // Below is an optimized/compressed version of:
-  //return cute::make_tuple((swizzle(offset + Y*Int<(1 << I)>{}) - swizzle(offset))...);
+  //return cute_rt_tm::make_tuple((swizzle(offset + Y*Int<(1 << I)>{}) - swizzle(offset))...);
   // with knowledge of Swizzle, I... ranges for each B bits,
   //    and the layout won't slice along y-bits that are already set
 
@@ -219,7 +219,7 @@ make_swizzle_strides(false_type,
   //   0 Y+Z Y-Z
   //   1 DC  DC
 
-  return cute::make_tuple(conditional_return((offset & (Z << Int<I>{})) == Int<0>{}, (Y+Z) * Int<(1 << I)>{}, (Y-Z) * Int<(1 << I)>{})...);
+  return cute_rt_tm::make_tuple(conditional_return((offset & (Z << Int<I>{})) == Int<0>{}, (Y+Z) * Int<(1 << I)>{}, (Y-Z) * Int<(1 << I)>{})...);
 }
 
 } // end namespace detail
@@ -231,7 +231,7 @@ slice_and_offset(Coord const& coord, ComposedLayout<Swizzle<B,M,S>,Offset,Layout
 {
   if constexpr (all_underscore<Coord>::value) {
     // Skip the expensive/complicated attempt to decay to a normal layout and just reshape
-    return cute::make_tuple(composition(layout.layout_a(), layout.offset(), slice(coord, layout.layout_b())), Int<0>{});
+    return cute_rt_tm::make_tuple(composition(layout.layout_a(), layout.offset(), slice(coord, layout.layout_b())), Int<0>{});
   } else {
 
     // Projections of the swizzle layout for composition
@@ -275,7 +275,7 @@ slice_and_offset(Coord const& coord, ComposedLayout<Swizzle<B,M,S>,Offset,Layout
     // Determine if any active bits collide under the swizzle for potential decay
     if constexpr (is_constant<0, decltype(not (swizzle_active_bits & ~swizzle(swizzle_active_bits)))>::value)
     { // Hits on Y AND Z, so it's not reducible
-      return cute::make_tuple(composition(swizzle, offset_only_zy, sliced_layout), offset_anti_zy);
+      return cute_rt_tm::make_tuple(composition(swizzle, offset_only_zy, sliced_layout), offset_anti_zy);
     } else
     { // Misses on Y or Z, so it's static-normal or dynamic-normal
 
@@ -290,7 +290,7 @@ slice_and_offset(Coord const& coord, ComposedLayout<Swizzle<B,M,S>,Offset,Layout
                                         make_stride(Int<       1>{},           stride_lo, Int<(1 <<      (M+B))>{},          stride_hi , Int<(1 << (M+B+abs(S)))>{}));
 
       // Decay to a normal layout with offset
-      return cute::make_tuple(composition(swizzle_layout, sliced_layout),
+      return cute_rt_tm::make_tuple(composition(swizzle_layout, sliced_layout),
                               swizzle(offset_only_zy) + offset_anti_zy);
     }
   }
@@ -419,7 +419,7 @@ upcast(Swizzle<B,M,S> const& swizzle)
   if constexpr (NewM >= 0) {
     return Swizzle<B,NewM,S>{};
   } else {
-    return Swizzle<cute::max(B+NewM,0), 0, S>{};
+    return Swizzle<cute_rt_tm::max(B+NewM,0), 0, S>{};
   }
 
   CUTE_GCC_UNREACHABLE;
@@ -510,7 +510,7 @@ max_common_vector(ComposedLayout<Swizzle<B,M,S>,Offset,LayoutB> const& a,
                   Layout<Shape,Stride>                          const& b)
 {
   // This assumes that Offset is in the YZ domain of the Swizzle...
-  return cute::min(max_common_vector(a.layout_b(), b), Int<(1 << M)>{});
+  return cute_rt_tm::min(max_common_vector(a.layout_b(), b), Int<(1 << M)>{});
 }
 
 template <class Shape, class Stride, int B, int M, int S, class Offset, class LayoutB>
@@ -537,7 +537,7 @@ max_common_vector(ComposedLayout<Swizzle<B0,M0,S0>,Offset0,LayoutB0> const& a,
   if constexpr (Swizzle<B0,M0,S0>{} == Swizzle<B1,M1,S1>{}) {
     return vec;
   } else {
-    return cute::min(vec, Int<(1 << M0)>{}, Int<(1 << M1)>{});
+    return cute_rt_tm::min(vec, Int<(1 << M0)>{}, Int<(1 << M1)>{});
   }
 
   CUTE_GCC_UNREACHABLE;
@@ -586,4 +586,4 @@ logical_product(Layout<Shape,Stride>                          const& layout,
   return composition(make_swizzle<new_active_Y,new_active_Z>(), new_layout);
 }
 
-} // end namespace cute
+} // end namespace cute_rt_tm

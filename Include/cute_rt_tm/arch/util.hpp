@@ -30,8 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute/config.hpp>
-#include <cute/numeric/integer_sequence.hpp>
+#include <cute_rt_tm/config.hpp>
+#include <cute_rt_tm/numeric/integer_sequence.hpp>
 
 #if defined(__clang__) && defined(__CUDA__)
   //  __cvta_generic_to_shared was added in Clang 14: https://reviews.llvm.org/D111665
@@ -84,7 +84,7 @@
   }
 #endif
 
-namespace cute
+namespace cute_rt_tm
 {
 
 /// CUTE helper to cast SMEM pointer to unsigned
@@ -317,4 +317,4 @@ explode_tuple(Fn fn,
 
 } // end namespace detail
 
-} // end namespace cute
+} // end namespace cute_rt_tm

@@ -33,12 +33,12 @@
 */
 
 #pragma once
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 #include CUDA_STD_HEADER(cassert)
 
 #include "mma.h"
-#include "cutlass/layout/matrix.h"
-#include "cutlass/numeric_types.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/numeric_types.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -62,7 +62,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace arch {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1033,9 +1033,9 @@ template <>
 struct Mma<
   gemm::GemmShape<16, 8, 64>,
   32,
-  cutlass::int4b_t,
+  nihilus_gemm::int4b_t,
   layout::RowMajor,
-  cutlass::int4b_t,
+  nihilus_gemm::int4b_t,
   layout::ColumnMajor,
   int,
   layout::RowMajor,
@@ -1043,13 +1043,13 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16, 8, 64>;
 
-  using ElementA = cutlass::int4b_t;
+  using ElementA = nihilus_gemm::int4b_t;
   using LayoutA = layout::RowMajor;
-  using FragmentA = Array<cutlass::int4b_t, 32>;
+  using FragmentA = Array<nihilus_gemm::int4b_t, 32>;
 
-  using ElementB = cutlass::int4b_t;
+  using ElementB = nihilus_gemm::int4b_t;
   using LayoutB = layout::ColumnMajor;
-  using FragmentB = Array<cutlass::int4b_t, 16>;
+  using FragmentB = Array<nihilus_gemm::int4b_t, 16>;
 
   using ElementC = int;
   using LayoutC = layout::RowMajor;
@@ -1097,9 +1097,9 @@ template <>
 struct Mma<
   gemm::GemmShape<16, 8, 64>,
   32,
-  cutlass::uint4b_t,
+  nihilus_gemm::uint4b_t,
   layout::RowMajor,
-  cutlass::int4b_t,
+  nihilus_gemm::int4b_t,
   layout::ColumnMajor,
   int,
   layout::RowMajor,
@@ -1107,13 +1107,13 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16, 8, 64>;
 
-  using ElementA = cutlass::uint4b_t;
+  using ElementA = nihilus_gemm::uint4b_t;
   using LayoutA = layout::RowMajor;
-  using FragmentA = Array<cutlass::uint4b_t, 32>;
+  using FragmentA = Array<nihilus_gemm::uint4b_t, 32>;
 
-  using ElementB = cutlass::int4b_t;
+  using ElementB = nihilus_gemm::int4b_t;
   using LayoutB = layout::ColumnMajor;
-  using FragmentB = Array<cutlass::int4b_t, 16>;
+  using FragmentB = Array<nihilus_gemm::int4b_t, 16>;
 
   using ElementC = int;
   using LayoutC = layout::RowMajor;
@@ -1161,9 +1161,9 @@ template <>
 struct Mma<
   gemm::GemmShape<16, 8, 64>,
   32,
-  cutlass::int4b_t,
+  nihilus_gemm::int4b_t,
   layout::RowMajor,
-  cutlass::uint4b_t,
+  nihilus_gemm::uint4b_t,
   layout::ColumnMajor,
   int,
   layout::RowMajor,
@@ -1171,13 +1171,13 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16, 8, 64>;
 
-  using ElementA = cutlass::int4b_t;
+  using ElementA = nihilus_gemm::int4b_t;
   using LayoutA = layout::RowMajor;
-  using FragmentA = Array<cutlass::int4b_t, 32>;
+  using FragmentA = Array<nihilus_gemm::int4b_t, 32>;
 
-  using ElementB = cutlass::uint4b_t;
+  using ElementB = nihilus_gemm::uint4b_t;
   using LayoutB = layout::ColumnMajor;
-  using FragmentB = Array<cutlass::uint4b_t, 16>;
+  using FragmentB = Array<nihilus_gemm::uint4b_t, 16>;
 
   using ElementC = int;
   using LayoutC = layout::RowMajor;
@@ -1225,9 +1225,9 @@ template <>
 struct Mma<
   gemm::GemmShape<16, 8, 64>,
   32,
-  cutlass::uint4b_t,
+  nihilus_gemm::uint4b_t,
   layout::RowMajor,
-  cutlass::uint4b_t,
+  nihilus_gemm::uint4b_t,
   layout::ColumnMajor,
   int,
   layout::RowMajor,
@@ -1235,13 +1235,13 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16, 8, 64>;
 
-  using ElementA = cutlass::uint4b_t;
+  using ElementA = nihilus_gemm::uint4b_t;
   using LayoutA = layout::RowMajor;
-  using FragmentA = Array<cutlass::uint4b_t, 32>;
+  using FragmentA = Array<nihilus_gemm::uint4b_t, 32>;
 
-  using ElementB = cutlass::uint4b_t;
+  using ElementB = nihilus_gemm::uint4b_t;
   using LayoutB = layout::ColumnMajor;
-  using FragmentB = Array<cutlass::uint4b_t, 16>;
+  using FragmentB = Array<nihilus_gemm::uint4b_t, 16>;
 
   using ElementC = int;
   using LayoutC = layout::RowMajor;
@@ -1295,9 +1295,9 @@ template <>
 struct Mma<
   gemm::GemmShape<16,8,256>,
   32,
-  cutlass::uint1b_t,
+  nihilus_gemm::uint1b_t,
   layout::RowMajor,
-  cutlass::uint1b_t,
+  nihilus_gemm::uint1b_t,
   layout::ColumnMajor,
   int32_t,
   layout::RowMajor,
@@ -1305,13 +1305,13 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16,8,256>;
 
-  using ElementA = cutlass::uint1b_t;
+  using ElementA = nihilus_gemm::uint1b_t;
   using LayoutA = layout::RowMajor;
-  using FragmentA = Array<cutlass::uint1b_t, 128>;
+  using FragmentA = Array<nihilus_gemm::uint1b_t, 128>;
 
-  using ElementB = cutlass::uint1b_t;
+  using ElementB = nihilus_gemm::uint1b_t;
   using LayoutB = layout::ColumnMajor;
-  using FragmentB = Array<cutlass::uint1b_t, 64>;
+  using FragmentB = Array<nihilus_gemm::uint1b_t, 64>;
 
   using ElementC = int32_t;
   using LayoutC = layout::RowMajor;
@@ -1360,9 +1360,9 @@ template <>
 struct Mma<
   gemm::GemmShape<16,8,256>,
   32,
-  cutlass::uint1b_t,
+  nihilus_gemm::uint1b_t,
   layout::RowMajor,
-  cutlass::uint1b_t,
+  nihilus_gemm::uint1b_t,
   layout::ColumnMajor,
   int,
   layout::RowMajor,
@@ -1370,13 +1370,13 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16,8,256>;
 
-  using ElementA = cutlass::uint1b_t;
+  using ElementA = nihilus_gemm::uint1b_t;
   using LayoutA = layout::RowMajor;
-  using FragmentA = Array<cutlass::uint1b_t, 128>;
+  using FragmentA = Array<nihilus_gemm::uint1b_t, 128>;
 
-  using ElementB = cutlass::uint1b_t;
+  using ElementB = nihilus_gemm::uint1b_t;
   using LayoutB = layout::ColumnMajor;
-  using FragmentB = Array<cutlass::uint1b_t, 64>;
+  using FragmentB = Array<nihilus_gemm::uint1b_t, 64>;
 
   using ElementC = int32_t;
   using LayoutC = layout::RowMajor;
@@ -1431,9 +1431,9 @@ template <>
 struct Mma<
   gemm::GemmShape<16,8,256>,
   32,
-  cutlass::uint1b_t,
+  nihilus_gemm::uint1b_t,
   layout::RowMajor,
-  cutlass::uint1b_t,
+  nihilus_gemm::uint1b_t,
   layout::ColumnMajor,
   int,
   layout::RowMajor,
@@ -1441,13 +1441,13 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16,8,256>;
 
-  using ElementA = cutlass::uint1b_t;
+  using ElementA = nihilus_gemm::uint1b_t;
   using LayoutA = layout::RowMajor;
-  using FragmentA = Array<cutlass::uint1b_t, 128>;
+  using FragmentA = Array<nihilus_gemm::uint1b_t, 128>;
 
-  using ElementB = cutlass::uint1b_t;
+  using ElementB = nihilus_gemm::uint1b_t;
   using LayoutB = layout::ColumnMajor;
-  using FragmentB = Array<cutlass::uint1b_t, 64>;
+  using FragmentB = Array<nihilus_gemm::uint1b_t, 64>;
 
   using ElementC = int;
   using LayoutC = layout::RowMajor;
@@ -1496,5 +1496,5 @@ struct Mma<
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace arch
-} // namespace cutlass
+} // namespace nihilus_gemm
 /////////////////////////////////////////////////////////////////////////////////////////////////

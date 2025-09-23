@@ -35,11 +35,11 @@
 */
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/platform/platform.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/platform/platform.h"
 #if defined(__CUDACC_RTC__)
-#include "cutlass/floating_point_nvrtc.h"
+#include "nihilus_gemm/floating_point_nvrtc.h"
 #endif
 
 #include <cuda_runtime.h>
@@ -59,7 +59,7 @@
 #  define CUTLASS_ARCH_CREDUX_ENABLED
 #endif
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -323,10 +323,10 @@ struct reciprocal_approximate <float> {
 
 
 template <>
-struct reciprocal_approximate<cutlass::float_ue8m0_t> {
+struct reciprocal_approximate<nihilus_gemm::float_ue8m0_t> {
   CUTLASS_HOST_DEVICE
-  cutlass::float_ue8m0_t operator()(cutlass::float_ue8m0_t lhs) const {
-    return cutlass::float_ue8m0_t::bitcast(static_cast<uint8_t>(static_cast<uint8_t>(254u) - lhs.storage));
+  nihilus_gemm::float_ue8m0_t operator()(nihilus_gemm::float_ue8m0_t lhs) const {
+    return nihilus_gemm::float_ue8m0_t::bitcast(static_cast<uint8_t>(static_cast<uint8_t>(254u) - lhs.storage));
   }
 };
 
@@ -405,14 +405,14 @@ template <typename T, bool PropagateNaN = false>
 struct maximum {
   CUTLASS_HOST_DEVICE
   T operator()(T const &lhs, T const &rhs) const {
-    if constexpr (PropagateNaN && cutlass::platform::is_floating_point<T>::value) {
+    if constexpr (PropagateNaN && nihilus_gemm::platform::is_floating_point<T>::value) {
       using CUTLASS_CMATH_NAMESPACE :: isnan;
 
       // Call isnan unqualified, so argument-dependent lookup (ADL)
-      // will find overloads such as cutlass::isnan(half_t).
+      // will find overloads such as nihilus_gemm::isnan(half_t).
       // Calling ::isnan or std::isnan directly would force
       // implicit conversions to float of custom number types
-      // in the cutlass namespace (e.g., cutlass::half_t).
+      // in the nihilus_gemm namespace (e.g., nihilus_gemm::half_t).
       return lhs > rhs || isnan(lhs) ? lhs : rhs;
     }
     else {
@@ -474,7 +474,7 @@ template <typename T, bool PropagateNaN = false>
 struct minimum {
   CUTLASS_HOST_DEVICE
   T operator()(T const &lhs, T const &rhs) const {
-    if constexpr (PropagateNaN && cutlass::platform::is_floating_point<T>::value) {
+    if constexpr (PropagateNaN && nihilus_gemm::platform::is_floating_point<T>::value) {
       using CUTLASS_CMATH_NAMESPACE :: isnan;
 
       return lhs < rhs || isnan(lhs) ? lhs : rhs;
@@ -598,10 +598,10 @@ struct guarded_multiply_add<half_t, half_t, half_t> {
       : "h"(*reinterpret_cast<uint16_t const*>(&a)), "h"(*reinterpret_cast<uint16_t const*>(&b)), "h"(*reinterpret_cast<uint16_t const*>(&c)));
     return result;
 #else
-    // Namespace-qualifying isnan as cutlass::isnan saves the compiler
+    // Namespace-qualifying isnan as nihilus_gemm::isnan saves the compiler
     // the trouble of argument-dependent lookup.  Calling std::isnan or
     // ::isnan here would result in unwanted implicit conversion to float.
-    if (cutlass::isnan(a) || cutlass::isnan(b)) {
+    if (nihilus_gemm::isnan(a) || nihilus_gemm::isnan(b)) {
       return half_t(0);
     }
     return a * b + c;
@@ -635,7 +635,7 @@ struct guarded_multiply_add_relu0<half_t, half_t, half_t> {
       : "h"(*reinterpret_cast<uint16_t const*>(&a)), "h"(*reinterpret_cast<uint16_t const*>(&b)), "h"(*reinterpret_cast<uint16_t const*>(&c)));
     return result;
 #else
-    if (cutlass::isnan(a) || cutlass::isnan(b)) {
+    if (nihilus_gemm::isnan(a) || nihilus_gemm::isnan(b)) {
       return half_t(0);
     }
     maximum<half_t> mx;
@@ -717,14 +717,14 @@ namespace detail {
 // If so, then CUTLASS assumes that conj(t) returns
 // the complex conjugate of t.
 template <typename T, typename Enable = void>
-struct has_unqualified_conj : cutlass::platform::false_type
+struct has_unqualified_conj : nihilus_gemm::platform::false_type
 {};
 
 template<typename T>
 struct has_unqualified_conj<
     T,
-    decltype(static_cast<void>(conj(cutlass::platform::declval<T>())), void())
-  > : cutlass::platform::true_type
+    decltype(static_cast<void>(conj(nihilus_gemm::platform::declval<T>())), void())
+  > : nihilus_gemm::platform::true_type
 {};
 
 template <typename T>
@@ -738,18 +738,18 @@ CUTLASS_HOST_DEVICE T conj(T const& z);
 
 namespace detail {
 
-// Whether cutlass::conj(t) for t of type T is well-formed.
-// If so, then CUTLASS assumes that cutlass::conj(t)
+// Whether nihilus_gemm::conj(t) for t of type T is well-formed.
+// If so, then CUTLASS assumes that nihilus_gemm::conj(t)
 // returns the complex conjugate of t.
 template <typename T, typename Enable = void>
-struct has_cutlass_conj : cutlass::platform::false_type
+struct has_cutlass_conj : nihilus_gemm::platform::false_type
 {};
 
 template<typename T>
 struct has_cutlass_conj<
     T,
-    decltype(cutlass::conj(cutlass::platform::declval<T>()), void())
-  > : cutlass::platform::true_type
+    decltype(nihilus_gemm::conj(nihilus_gemm::platform::declval<T>()), void())
+  > : nihilus_gemm::platform::true_type
 {};
 
 template <typename T>
@@ -764,21 +764,21 @@ constexpr bool has_cutlass_conj_v = has_cutlass_conj<T>::value;
 // 1. for arithmetic types, return z;
 //
 // 2. for types where either (namespace-unqualified) conj(z) or
-//    cutlass::conj(z) is well formed, declare "using cutlass::conj;"
+//    nihilus_gemm::conj(z) is well formed, declare "using nihilus_gemm::conj;"
 //    and return conj(z); and
 //
 // 3. for everything else, return z.
 //
 // Regarding (1), the C++ Standard Library makes std::conj always
 // return std::complex, even for (noncomplex) arithmetic types.
-// cutlass::conj(T t) needs to return type T.  This follows the
+// nihilus_gemm::conj(T t) needs to return type T.  This follows the
 // convention of linear algebra software like the BLAS, where
 // "conjugate transpose" means the same thing as "transpose" for a
 // matrix of noncomplex numbers.
 //
 // Case (2) covers std::complex, cuda::std::complex, and non-Standard
 // (including user-defined) complex number types (for which "conj(z)"
-// is findable via argument-dependent lookup).  cutlass::conj has a
+// is findable via argument-dependent lookup).  nihilus_gemm::conj has a
 // totally generic overload, but a more type-specific overload in any
 // namespace will take precedence.
 //
@@ -792,11 +792,11 @@ template <typename T>
 struct conjugate {
   CUTLASS_HOST_DEVICE
   T operator()(T const& z) const {
-    if constexpr (cutlass::platform::is_arithmetic_v<T>) {
+    if constexpr (nihilus_gemm::platform::is_arithmetic_v<T>) {
       return z;
     }
     else if constexpr (detail::has_unqualified_conj_v<T> || detail::has_cutlass_conj_v<T>) {
-      using cutlass::conj;
+      using nihilus_gemm::conj;
       return conj(z);
     }
     else {
@@ -1005,9 +1005,9 @@ struct redux_abs_max_nan_propagation_sync_warp <float>{
     asm volatile("redux.sync.max.abs.NaN.f32 %0, %1, 0xffffffff;\n" : "=f"(result) : "f"(lhs));
     return result;
 #elif defined(__CUDA_ARCH__)
-    cutlass::maximum<float, /*PropagateNaN*/true> max_op;
+    nihilus_gemm::maximum<float, /*PropagateNaN*/true> max_op;
     int shuffle_width = 32;
-    float abs_max = cutlass::absolute_value_op<float>{}(lhs);
+    float abs_max = nihilus_gemm::absolute_value_op<float>{}(lhs);
     CUTLASS_PRAGMA_UNROLL
     for(int offset = shuffle_width / 2; offset > 0; offset /= 2) {
       float value = __shfl_down_sync(0xffffffff, abs_max, offset, shuffle_width);
@@ -1035,15 +1035,15 @@ struct redux_abs_max_nan_propagation_sync_warp_t0t15_t16t31<float>{
     int half_warp_idx = threadIdx.x / (NumThreadsPerWarp / 2);
     bool first_half_threads = (half_warp_idx % 2) == 0;
     float value0 =  first_half_threads ? max : 0;
-    float v0 = cutlass::redux_abs_max_nan_propagation_sync_warp<float>{}(value0);
+    float v0 = nihilus_gemm::redux_abs_max_nan_propagation_sync_warp<float>{}(value0);
 
     float value1 = !first_half_threads ? max : 0;
-    float v1 = cutlass::redux_abs_max_nan_propagation_sync_warp<float>{}(value1);
+    float v1 = nihilus_gemm::redux_abs_max_nan_propagation_sync_warp<float>{}(value1);
     return first_half_threads ? v0: v1;
     
 #elif defined(__CUDA_ARCH__)
-    float abs_max = cutlass::absolute_value_op<float>{}(max);
-    cutlass::maximum<float, /*PropagateNaN*/true> max_op;
+    float abs_max = nihilus_gemm::absolute_value_op<float>{}(max);
+    nihilus_gemm::maximum<float, /*PropagateNaN*/true> max_op;
     constexpr int shuffle_width = 16;
     CUTLASS_PRAGMA_UNROLL
     for(int offset = shuffle_width/2; offset > 0; offset /= 2) {
@@ -1101,6 +1101,6 @@ struct plus<nvcuda::wmma::fragment<Use, m, n, k, T, Layout>>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

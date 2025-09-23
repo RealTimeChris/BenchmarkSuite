@@ -38,37 +38,37 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/array.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/array.h"
 
-#include "cutlass/gemm/gemm.h"
+#include "nihilus_gemm/gemm/gemm.h"
 
-#include "cutlass/epilogue/thread/linear_combination.h"
-#include "cutlass/epilogue/thread/linear_combination_clamp.h"
-#include "cutlass/epilogue/thread/linear_combination_relu.h"
-#include "cutlass/epilogue/thread/linear_combination_gelu.h"
-#include "cutlass/epilogue/thread/linear_combination_sigmoid.h"
-#include "cutlass/epilogue/thread/linear_combination_planar_complex.h"
+#include "nihilus_gemm/epilogue/thread/linear_combination.h"
+#include "nihilus_gemm/epilogue/thread/linear_combination_clamp.h"
+#include "nihilus_gemm/epilogue/thread/linear_combination_relu.h"
+#include "nihilus_gemm/epilogue/thread/linear_combination_gelu.h"
+#include "nihilus_gemm/epilogue/thread/linear_combination_sigmoid.h"
+#include "nihilus_gemm/epilogue/thread/linear_combination_planar_complex.h"
 
-#include "cutlass/epilogue/thread/conversion_op.h"
-#include "cutlass/epilogue/thread/reduction_op.h"
+#include "nihilus_gemm/epilogue/thread/conversion_op.h"
+#include "nihilus_gemm/epilogue/thread/reduction_op.h"
 
-#include "cutlass/transform/threadblock/regular_tile_iterator_pitch_linear.h"
+#include "nihilus_gemm/transform/threadblock/regular_tile_iterator_pitch_linear.h"
 
-#include "cutlass/epilogue/warp/fragment_iterator_wmma_tensor_op.h"
-#include "cutlass/epilogue/warp/tile_iterator_wmma_tensor_op.h"
-#include "cutlass/epilogue/threadblock/default_thread_map_wmma_tensor_op.h"
-#include "cutlass/epilogue/threadblock/predicated_tile_iterator.h"
-#include "cutlass/epilogue/threadblock/shared_load_iterator.h"
+#include "nihilus_gemm/epilogue/warp/fragment_iterator_wmma_tensor_op.h"
+#include "nihilus_gemm/epilogue/warp/tile_iterator_wmma_tensor_op.h"
+#include "nihilus_gemm/epilogue/threadblock/default_thread_map_wmma_tensor_op.h"
+#include "nihilus_gemm/epilogue/threadblock/predicated_tile_iterator.h"
+#include "nihilus_gemm/epilogue/threadblock/shared_load_iterator.h"
 
-#include "cutlass/epilogue/threadblock/epilogue.h"
+#include "nihilus_gemm/epilogue/threadblock/epilogue.h"
 
-#include "cutlass/layout/permute.h"
+#include "nihilus_gemm/layout/permute.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace threadblock {
 
@@ -88,9 +88,9 @@ struct DefaultEpilogueWmmaTensorOp {
 
   using Shape = Shape_;
   using WarpMmaTensorOp = WarpMmaTensorOp_;
-  static int const kPartitionsK = PartitionsK;
+  static constexpr int  kPartitionsK = PartitionsK;
   using OutputOp = OutputOp_;
-  static int const kElementsPerAccess = ElementsPerAccess;
+  static constexpr int  kElementsPerAccess = ElementsPerAccess;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using LayoutC = typename WarpMmaTensorOp::LayoutC;
@@ -100,7 +100,7 @@ struct DefaultEpilogueWmmaTensorOp {
   // Thread map
   //
 
-  using OutputTileThreadMap = typename cutlass::epilogue::threadblock::DefaultThreadMapWmmaTensorOp<
+  using OutputTileThreadMap = typename nihilus_gemm::epilogue::threadblock::DefaultThreadMapWmmaTensorOp<
     Shape,
     typename WarpMmaTensorOp::Shape,
     typename WarpMmaTensorOp::Policy::Operator::Shape,
@@ -109,14 +109,14 @@ struct DefaultEpilogueWmmaTensorOp {
     kElementsPerAccess
   >::Type;
 
-  using OutputTileIterator = cutlass::epilogue::threadblock::PredicatedTileIterator<
+  using OutputTileIterator = nihilus_gemm::epilogue::threadblock::PredicatedTileIterator<
     OutputTileThreadMap,
     ElementOutput,
     ScatterD,
     PermuteDLayout
   >;
 
-  using AccumulatorFragmentIterator = cutlass::epilogue::warp::FragmentIteratorWmmaTensorOp<
+  using AccumulatorFragmentIterator = nihilus_gemm::epilogue::warp::FragmentIteratorWmmaTensorOp<
     typename WarpMmaTensorOp::Shape,
     typename WarpMmaTensorOp::Policy::Operator::Shape,
     typename WarpMmaTensorOp::Policy::Operator::ElementC,
@@ -124,14 +124,14 @@ struct DefaultEpilogueWmmaTensorOp {
     LayoutC
   >;
 
-  using WarpTileIterator = cutlass::epilogue::warp::TileIteratorWmmaTensorOp<
+  using WarpTileIterator = nihilus_gemm::epilogue::warp::TileIteratorWmmaTensorOp<
     typename WarpMmaTensorOp::Shape,
     typename WarpMmaTensorOp::Policy::Operator::Shape,
     typename WarpMmaTensorOp::Policy::Operator::FragmentC,
     LayoutC
   >;
 
-  using SharedLoadIterator = cutlass::epilogue::threadblock::SharedLoadIterator<
+  using SharedLoadIterator = nihilus_gemm::epilogue::threadblock::SharedLoadIterator<
     typename OutputTileThreadMap::CompactedThreadMap,
     ElementAccumulator
   >;
@@ -142,7 +142,7 @@ struct DefaultEpilogueWmmaTensorOp {
   //
   // Define the epilogue
   //
-  using Epilogue = cutlass::epilogue::threadblock::Epilogue<
+  using Epilogue = nihilus_gemm::epilogue::threadblock::Epilogue<
     Shape,
     WarpMmaTensorOp,
     kPartitionsK,
@@ -160,6 +160,6 @@ struct DefaultEpilogueWmmaTensorOp {
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////

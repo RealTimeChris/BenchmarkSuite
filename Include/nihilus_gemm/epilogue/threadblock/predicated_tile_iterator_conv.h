@@ -38,25 +38,25 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/array.h"
-#include "cutlass/layout/matrix.h"
-#include "cutlass/layout/tensor.h"
-#include "cutlass/layout/permute.h"
-#include "cutlass/matrix_shape.h"
-#include "cutlass/tensor_ref.h"
-#include "cutlass/transform/pitch_linear_thread_map.h"
-#include "cutlass/epilogue/threadblock/output_tile_thread_map.h"
-#include "cutlass/arch/arch.h"
-#include "cutlass/arch/memory.h"
-#include "cutlass/epilogue/threadblock/predicated_tile_iterator_params.h"
-#include "cutlass/conv/conv2d_problem_size.h"
-#include "cutlass/conv/conv3d_problem_size.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/layout/tensor.h"
+#include "nihilus_gemm/layout/permute.h"
+#include "nihilus_gemm/matrix_shape.h"
+#include "nihilus_gemm/tensor_ref.h"
+#include "nihilus_gemm/transform/pitch_linear_thread_map.h"
+#include "nihilus_gemm/epilogue/threadblock/output_tile_thread_map.h"
+#include "nihilus_gemm/arch/arch.h"
+#include "nihilus_gemm/arch/memory.h"
+#include "nihilus_gemm/epilogue/threadblock/predicated_tile_iterator_params.h"
+#include "nihilus_gemm/conv/conv2d_problem_size.h"
+#include "nihilus_gemm/conv/conv3d_problem_size.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -84,13 +84,13 @@ public:
 
   using Element = Element_;
 
-  static int const kRank = Rank;
+  static constexpr int  kRank = Rank;
   using Layout = typename platform::conditional<kRank == 4,
                                        layout::TensorNHWC,
                                        layout::TensorNDHWC>::type;
 
   using Stride = typename Layout::Stride;
-  static int const kStrideRank = Layout::kStrideRank;
+  static constexpr int  kStrideRank = Layout::kStrideRank;
 
   using TensorRef = TensorRef<Element, Layout>;
   using ConstTensorRef = typename TensorRef::ConstTensorRef;
@@ -100,9 +100,9 @@ public:
   using LongIndex = typename MappedLayout::LongIndex;
   using TensorCoord = typename MappedLayout::TensorCoord;
 
-  static int const kElementsPerAccess = ThreadMap::kElementsPerAccess;
-  static int const kThreads = ThreadMap::kThreads;
-  static int const kIterations = ThreadMap::Count::kTile;
+  static constexpr int  kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static constexpr int  kThreads = ThreadMap::kThreads;
+  static constexpr int  kIterations = ThreadMap::Count::kTile;
 
   static bool constexpr PermuteD = !layout::is_trivial_permute<PermuteDLayout>;
 
@@ -138,7 +138,7 @@ public:
     Params() { }
 
     CUTLASS_HOST_DEVICE
-    Params(Layout const &layout, cutlass::Tensor4DCoord const &tensor_extent):
+    Params(Layout const &layout, nihilus_gemm::Tensor4DCoord const &tensor_extent):
       PredicatedTileIteratorParams(
         layout.stride()[0] * int(sizeof(AccessType)) / kElementsPerAccess,
         make_OutputTileThreadMapDesc<ThreadMap>()
@@ -153,7 +153,7 @@ public:
     }
 
     CUTLASS_HOST_DEVICE
-    Params(Layout const &layout, cutlass::Tensor5DCoord const &tensor_extent):
+    Params(Layout const &layout, nihilus_gemm::Tensor5DCoord const &tensor_extent):
       PredicatedTileIteratorParams(
         layout.stride()[0] * int(sizeof(AccessType)) / kElementsPerAccess,
         make_OutputTileThreadMapDesc<ThreadMap>()
@@ -176,7 +176,7 @@ public:
   /// Mask object
   struct Mask {
 
-    static int const kCount = ThreadMap::Iterations::kColumn;
+    static constexpr int  kCount = ThreadMap::Iterations::kColumn;
 
     /// Predicate state
     bool predicates[kCount];
@@ -339,7 +339,7 @@ public:
 
             bool guard = row_guard && mask_.predicates[column];
 
-            cutlass::arch::global_load<
+            nihilus_gemm::arch::global_load<
               AccessType,
               sizeof(AccessType)
             >(
@@ -402,7 +402,7 @@ public:
                     frag_ptr[frag_row_idx * ThreadMap::Iterations::kColumn + column];
               }
             } else {
-              cutlass::arch::global_store<AccessType, sizeof(AccessType)>(
+              nihilus_gemm::arch::global_store<AccessType, sizeof(AccessType)>(
                   frag_ptr[frag_row_idx * ThreadMap::Iterations::kColumn + column],
                   (void *)&memory_pointer[tensor_offset / kElementsPerAccess],
                   guard);
@@ -557,6 +557,6 @@ public:
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////

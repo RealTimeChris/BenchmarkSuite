@@ -38,15 +38,15 @@
     computation lies in operator() with private member variables  {col_permute_, row_permute_ and stride_} as new addresses after permute op.
 */
 #pragma once
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 #include CUDA_STD_HEADER(cassert)
-#include "cutlass/fast_math.h"
-#include "cutlass/layout/pitch_linear.h"
-#include "cutlass/layout/matrix.h"
-#include "cutlass/coord.h"
-#include "cutlass/tensor_coord.h"
+#include "nihilus_gemm/fast_math.h"
+#include "nihilus_gemm/layout/pitch_linear.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/coord.h"
+#include "nihilus_gemm/tensor_coord.h"
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace layout {
 
 // template<PermuteTag, typename Layout, bool Inverse>
@@ -65,7 +65,7 @@ struct InversePermute
   // Try to give a reasonable error message to the user
   static_assert(!platform::is_same<Permute, Permute>::value, // aka always_false<T>
                 "To apply permutation to a GEMM input operand (A or B), an inverse permutation for the desired "
-                "permute class must be defined and enabled by specializing cutlass::layout::InversePermute trait.");
+                "permute class must be defined and enabled by specializing nihilus_gemm::layout::InversePermute trait.");
 };
 
 class PermuteBase {
@@ -107,7 +107,7 @@ struct InversePermute<NoPermute> {
 
 /// Helper trait to detect if permute operation is a noop
 template<typename Permute>
-inline bool constexpr is_trivial_permute = platform::is_same<Permute, cutlass::layout::NoPermute>::value;
+inline bool constexpr is_trivial_permute = platform::is_same<Permute, nihilus_gemm::layout::NoPermute>::value;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -821,4 +821,4 @@ struct InversePermute<Tensor5DPermute02413ColumnMajorInverse<T1, T2, T3>> {
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace layout
-} // namespace cutlass
+} // namespace nihilus_gemm

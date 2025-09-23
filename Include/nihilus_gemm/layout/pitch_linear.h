@@ -34,15 +34,15 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/coord.h"
-#include "cutlass/pitch_linear_coord.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/coord.h"
+#include "nihilus_gemm/pitch_linear_coord.h"
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace layout {
 
 template <int Contiguous, int Strided>
-  using PitchLinearShape = cutlass::PitchLinearShape < Contiguous, Strided >;
+  using PitchLinearShape = nihilus_gemm::PitchLinearShape < Contiguous, Strided >;
   using PitchLinearCoord = PitchLinearCoord;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -51,10 +51,10 @@ template <int Contiguous, int Strided>
 class PitchLinear {
 public:
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int  kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int  kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -145,5 +145,5 @@ public:
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace layout
-} // namespace cutlass
+} // namespace nihilus_gemm
 

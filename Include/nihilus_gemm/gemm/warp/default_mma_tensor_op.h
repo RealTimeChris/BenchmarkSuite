@@ -34,10 +34,10 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/gemm/warp/mma_tensor_op.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/gemm/warp/mma_tensor_op.h"
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace gemm {
 namespace warp {
 
@@ -97,15 +97,15 @@ template <
     /// when output layout is interleaved.
     bool AccumulatorsInRowMajor>
 struct DefaultMmaTensorOp {
-  using Policy = cutlass::gemm::warp::MmaTensorOpPolicy<
-      cutlass::arch::Mma<InstructionShape_, 32, ElementA,
-                         cutlass::layout::RowMajor, ElementB,
-                         cutlass::layout::ColumnMajor, ElementC,
-                         cutlass::layout::RowMajor, Operator_>,
-      cutlass::MatrixShape<1, 1> >;
+  using Policy = nihilus_gemm::gemm::warp::MmaTensorOpPolicy<
+      nihilus_gemm::arch::Mma<InstructionShape_, 32, ElementA,
+                         nihilus_gemm::layout::RowMajor, ElementB,
+                         nihilus_gemm::layout::ColumnMajor, ElementC,
+                         nihilus_gemm::layout::RowMajor, Operator_>,
+      nihilus_gemm::MatrixShape<1, 1> >;
 
   // Define the warp-level tensor op
-  using Type = cutlass::gemm::warp::MmaTensorOp<
+  using Type = nihilus_gemm::gemm::warp::MmaTensorOp<
       WarpShape_, ElementA, LayoutA, ElementB, LayoutB, ElementC, LayoutC,
       Policy, PartitionsK, AccumulatorsInRowMajor>;
 };
@@ -114,10 +114,10 @@ struct DefaultMmaTensorOp {
 
 } // namespace warp
 } // namespace gemm
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "cutlass/gemm/warp/default_mma_tensor_op_sm80.h"
+#include "nihilus_gemm/gemm/warp/default_mma_tensor_op_sm80.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

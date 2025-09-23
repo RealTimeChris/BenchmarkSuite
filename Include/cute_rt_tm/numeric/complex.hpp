@@ -30,19 +30,19 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute/config.hpp>    // CUTE_HOST_DEVICE
+#include <cute_rt_tm/config.hpp>    // CUTE_HOST_DEVICE
 
-#include <cutlass/complex.h>  // cutlass::complexm, cutlass::real, cutlass::imag, cutlass::is_complex
+#include <nihilus_gemm/complex.h>  // nihilus_gemm::complexm, nihilus_gemm::real, nihilus_gemm::imag, nihilus_gemm::is_complex
 
-namespace cute
+namespace cute_rt_tm
 {
 
-using cutlass::complex;
-using cutlass::is_complex;
-using cutlass::RealType;
-using cutlass::real;
-using cutlass::imag;
-using cutlass::conj;
+using nihilus_gemm::complex;
+using nihilus_gemm::is_complex;
+using nihilus_gemm::RealType;
+using nihilus_gemm::real;
+using nihilus_gemm::imag;
+using nihilus_gemm::conj;
 
 template <class T>
 static constexpr auto is_complex_v = is_complex<T>::value;
@@ -73,4 +73,4 @@ fma(complex<A> const& a,
   return fma(c, a, b, c);
 }
 
-} // end namespace cute
+} // end namespace cute_rt_tm

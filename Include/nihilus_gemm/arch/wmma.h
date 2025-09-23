@@ -58,34 +58,34 @@
 #if defined(CUTLASS_ARCH_WMMA_ENABLED)
 
 #include <mma.h>
-#include "cutlass/arch/mma.h"
-#include "cutlass/array.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/gemm/gemm.h"
+#include "nihilus_gemm/arch/mma.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/gemm/gemm.h"
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace arch {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-/// Statically maps cutlass data types => nvcuda::wmma data types
+/// Statically maps nihilus_gemm data types => nvcuda::wmma data types
 /////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename Type_>
 struct CutlassToWmmaDataType{
   using Type = Type_;
 };
 
-/// Statically maps cutlass::half_t => __half
+/// Statically maps nihilus_gemm::half_t => __half
 template<>
-struct CutlassToWmmaDataType<cutlass::half_t> {
+struct CutlassToWmmaDataType<nihilus_gemm::half_t> {
   using Type = __half;
 };
 
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800) && (__CUDACC_VER_MAJOR__ >= 11)
 template<>
-struct CutlassToWmmaDataType<cutlass::bfloat16_t> {
+struct CutlassToWmmaDataType<nihilus_gemm::bfloat16_t> {
   using Type = __nv_bfloat16;
 };
 #endif
@@ -109,67 +109,67 @@ struct CutlassToWmmaDataType<int32_t> {
 };
 
 #if defined(CUTLASS_SUBBYTE_INTEGER_MATRIX_MULTIPLY_ENABLED)
-/// Statically maps cutlass::int4b_t => experimental::precision::s4
+/// Statically maps nihilus_gemm::int4b_t => experimental::precision::s4
 template<>
-struct CutlassToWmmaDataType<cutlass::int4b_t> {
+struct CutlassToWmmaDataType<nihilus_gemm::int4b_t> {
   using Type = nvcuda::wmma::experimental::precision::s4;
 };
 
-/// Statically maps cutlass::uint4b_t => experimental::precision::s4
+/// Statically maps nihilus_gemm::uint4b_t => experimental::precision::s4
 template<>
-struct CutlassToWmmaDataType<cutlass::uint4b_t> {
+struct CutlassToWmmaDataType<nihilus_gemm::uint4b_t> {
   using Type = nvcuda::wmma::experimental::precision::u4;
 };
 
-/// Statically maps cutlass::uint1b_t => experimental::precision::b1
+/// Statically maps nihilus_gemm::uint1b_t => experimental::precision::b1
 template<>
-struct CutlassToWmmaDataType<cutlass::uint1b_t> {
+struct CutlassToWmmaDataType<nihilus_gemm::uint1b_t> {
   using Type = nvcuda::wmma::experimental::precision::b1;
 };
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-/// Statically maps cutlass::layout => nvcuda::wmma layout tags
+/// Statically maps nihilus_gemm::layout => nvcuda::wmma layout tags
 ////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename Layout_>
 struct CutlassToWmmaLayout {
 };
 
-/// Statically maps cutlass::layout::RowMajor => nvcuda::wmma::row_major layout tags
+/// Statically maps nihilus_gemm::layout::RowMajor => nvcuda::wmma::row_major layout tags
 template <>
-struct CutlassToWmmaLayout<cutlass::layout::RowMajor> {
+struct CutlassToWmmaLayout<nihilus_gemm::layout::RowMajor> {
   using Layout = nvcuda::wmma::row_major;
   static nvcuda::wmma::layout_t const value = nvcuda::wmma::layout_t::mem_row_major;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-/// Statically maps cutlass::layout::RowMajor => nvcuda::wmma::row_major layout tags
+/// Statically maps nihilus_gemm::layout::RowMajor => nvcuda::wmma::row_major layout tags
 ////////////////////////////////////////////////////////////////////////////////////////////////
 template <>
-struct CutlassToWmmaLayout<cutlass::layout::ColumnMajor> {
+struct CutlassToWmmaLayout<nihilus_gemm::layout::ColumnMajor> {
   using Layout = nvcuda::wmma::col_major;
   static nvcuda::wmma::layout_t const value = nvcuda::wmma::layout_t::mem_col_major;
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-/// Statically maps nvcuda::wmma data types => cutlass data types
+/// Statically maps nvcuda::wmma data types => nihilus_gemm data types
 /////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename Type_>
 struct WmmaToCutlassDataType{
   using Type = Type_;
 };
 
-/// Statically maps __half => cutlass::half_t
+/// Statically maps __half => nihilus_gemm::half_t
 template<>
 struct WmmaToCutlassDataType<__half> {
-  using Type = cutlass::half_t;
+  using Type = nihilus_gemm::half_t;
 };
 
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800) && (__CUDACC_VER_MAJOR__ >= 11)
 template<>
 struct WmmaToCutlassDataType<__nv_bfloat16> {
-  using Type = cutlass::bfloat16_t;
+  using Type = nihilus_gemm::bfloat16_t;
 };
 #endif
 
@@ -188,13 +188,13 @@ template <
   typename LayoutB_,                                 ///< Layout of B matrix (concept: MatrixLayout)  
   typename ElementC_,                                ///< Element type of C matrix  
   typename LayoutC_,                                 /// Layout of C matrix (concept: MatrixLayout)
-  typename Operator_ = cutlass::arch::OpMultiplyAdd   ///< Inner product operator (multiply-add, xor.popc)
+  typename Operator_ = nihilus_gemm::arch::OpMultiplyAdd   ///< Inner product operator (multiply-add, xor.popc)
 >
 struct Wmma;
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace arch
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -202,15 +202,15 @@ struct Wmma;
 // Specializations for each compute capability
 //
 #ifdef CUTLASS_ARCH_WMMA_SM70_ENABLED
-#include "cutlass/arch/wmma_sm70.h"
+#include "nihilus_gemm/arch/wmma_sm70.h"
 #endif
 
 #ifdef CUTLASS_ARCH_WMMA_SM72_ENABLED
-#include "cutlass/arch/wmma_sm72.h"
+#include "nihilus_gemm/arch/wmma_sm72.h"
 #endif
 
 #ifdef CUTLASS_ARCH_WMMA_SM75_ENABLED
-#include "cutlass/arch/wmma_sm75.h"
+#include "nihilus_gemm/arch/wmma_sm75.h"
 #endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

@@ -42,7 +42,7 @@
 
 #if defined(__CUDACC_RTC__)
 
-#include "cutlass/floating_point_nvrtc.h"
+#include "nihilus_gemm/floating_point_nvrtc.h"
 
 // F16C extensions are not meaningful when compiling for NVRTC which only accommodates device code.
 #undef CUTLASS_ENABLE_F16C
@@ -62,9 +62,9 @@
 
 #include <cuda_fp16.h>
 
-#include "cutlass/cutlass.h"
-#include "cutlass/float8.h"
-#include "cutlass/platform/platform.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/float8.h"
+#include "nihilus_gemm/platform/platform.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -150,7 +150,7 @@ public:
     return f16c_enabled;
   } 
 
-  static const CpuId& instance() {
+  static constexpr CpuId& instance() {
       static CpuId cpu;
       return cpu;
   }
@@ -159,7 +159,7 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -493,43 +493,43 @@ struct alignas(2) half_t {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 CUTLASS_HOST_DEVICE
-bool signbit(cutlass::half_t const& h) {
+bool signbit(nihilus_gemm::half_t const& h) {
   return ((h.raw() & 0x8000) != 0);
 }
 
 CUTLASS_HOST_DEVICE
-cutlass::half_t abs(cutlass::half_t const& h) {
-  return cutlass::half_t::bitcast(h.raw() & 0x7fff);
+nihilus_gemm::half_t abs(nihilus_gemm::half_t const& h) {
+  return nihilus_gemm::half_t::bitcast(h.raw() & 0x7fff);
 }
 
 CUTLASS_HOST_DEVICE
-bool isnan(cutlass::half_t const& h) {
+bool isnan(nihilus_gemm::half_t const& h) {
   return (h.exponent_biased() == 0x1f) && h.mantissa();
 }
 
 CUTLASS_HOST_DEVICE
-bool isfinite(cutlass::half_t const& h) {
+bool isfinite(nihilus_gemm::half_t const& h) {
   return (h.exponent_biased() != 0x1f);
 }
 
 CUTLASS_HOST_DEVICE
-cutlass::half_t nanh(const char*) {
+nihilus_gemm::half_t nanh(const char*) {
   // NVIDIA canonical NaN
-  return cutlass::half_t::bitcast(0x7fff);
+  return nihilus_gemm::half_t::bitcast(0x7fff);
 }
 
 CUTLASS_HOST_DEVICE
-bool isinf(cutlass::half_t const& h) {
+bool isinf(nihilus_gemm::half_t const& h) {
   return (h.exponent_biased() == 0x1f) && !h.mantissa();
 }
 
 CUTLASS_HOST_DEVICE
-bool isnormal(cutlass::half_t const& h) {
+bool isnormal(nihilus_gemm::half_t const& h) {
   return h.exponent_biased() && h.exponent_biased() != 0x1f;
 }
 
 CUTLASS_HOST_DEVICE
-int fpclassify(cutlass::half_t const& h) {
+int fpclassify(nihilus_gemm::half_t const& h) {
   int exp = h.exponent_biased();
   int mantissa = h.mantissa();
   if (exp == 0x1f) {
@@ -552,11 +552,11 @@ int fpclassify(cutlass::half_t const& h) {
 }
 
 CUTLASS_HOST_DEVICE
-cutlass::half_t sqrt(cutlass::half_t const& h) {
+nihilus_gemm::half_t sqrt(nihilus_gemm::half_t const& h) {
 #if defined(__CUDACC_RTC__)
-  return cutlass::half_t(sqrtf(float(h)));
+  return nihilus_gemm::half_t(sqrtf(float(h)));
 #else
-  return cutlass::half_t(std::sqrt(float(h)));
+  return nihilus_gemm::half_t(std::sqrt(float(h)));
 #endif
 }
 
@@ -572,7 +572,7 @@ half_t copysign(half_t const& a, half_t const& b) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -585,62 +585,62 @@ namespace std {
 
 /// Numeric limits
 template <>
-struct numeric_limits<cutlass::half_t> {
-  static bool const is_specialized = true;
-  static bool const is_signed = true;
-  static bool const is_integer = false;
-  static bool const is_exact = false;
-  static bool const has_infinity = true;
-  static bool const has_quiet_NaN = true;
-  static bool const has_signaling_NaN = false;
+struct numeric_limits<nihilus_gemm::half_t> {
+  static constexpr bool  is_specialized = true;
+  static constexpr bool  is_signed = true;
+  static constexpr bool  is_integer = false;
+  static constexpr bool  is_exact = false;
+  static constexpr bool  has_infinity = true;
+  static constexpr bool  has_quiet_NaN = true;
+  static constexpr bool  has_signaling_NaN = false;
   static std::float_denorm_style const has_denorm = std::denorm_present;
-  static bool const has_denorm_loss = true;
+  static constexpr bool  has_denorm_loss = true;
   static std::float_round_style const round_style = std::round_to_nearest;
-  static bool const is_iec559 = true;
-  static bool const is_bounded = true;
-  static bool const is_modulo = false;
-  static int const digits = 10;
+  static constexpr bool  is_iec559 = true;
+  static constexpr bool  is_bounded = true;
+  static constexpr bool  is_modulo = false;
+  static constexpr int  digits = 10;
 
   /// Least positive value
   CUTLASS_HOST_DEVICE
-  static cutlass::half_t min() { return cutlass::half_t::bitcast(0x0001); }
+  static nihilus_gemm::half_t min() { return nihilus_gemm::half_t::bitcast(0x0001); }
 
   /// Minimum finite value
   CUTLASS_HOST_DEVICE
-  static cutlass::half_t lowest() { return cutlass::half_t::bitcast(0xfbff); }
+  static nihilus_gemm::half_t lowest() { return nihilus_gemm::half_t::bitcast(0xfbff); }
 
   /// Maximum finite value
   CUTLASS_HOST_DEVICE
-  static cutlass::half_t max() { return cutlass::half_t::bitcast(0x7bff); }
+  static nihilus_gemm::half_t max() { return nihilus_gemm::half_t::bitcast(0x7bff); }
 
   /// Returns smallest finite value
   CUTLASS_HOST_DEVICE
-  static cutlass::half_t epsilon() { return cutlass::half_t::bitcast(0x1800); }
+  static nihilus_gemm::half_t epsilon() { return nihilus_gemm::half_t::bitcast(0x1800); }
 
   /// Returns maximum rounding error
   CUTLASS_HOST_DEVICE
-  static cutlass::half_t round_error() { return cutlass::half_t(0.5f); }
+  static nihilus_gemm::half_t round_error() { return nihilus_gemm::half_t(0.5f); }
 
   /// Returns positive infinity value
   CUTLASS_HOST_DEVICE
-  static cutlass::half_t infinity() { return cutlass::half_t::bitcast(0x7c00); }
+  static nihilus_gemm::half_t infinity() { return nihilus_gemm::half_t::bitcast(0x7c00); }
 
   /// Returns quiet NaN value
   CUTLASS_HOST_DEVICE
-  static cutlass::half_t quiet_NaN() { return cutlass::half_t::bitcast(0x7fff); }
+  static nihilus_gemm::half_t quiet_NaN() { return nihilus_gemm::half_t::bitcast(0x7fff); }
 
   /// Returns signaling NaN value
   CUTLASS_HOST_DEVICE
-  static cutlass::half_t signaling_NaN() { return cutlass::half_t::bitcast(0x7fff); }
+  static nihilus_gemm::half_t signaling_NaN() { return nihilus_gemm::half_t::bitcast(0x7fff); }
 
   /// Returns smallest positive subnormal value
   CUTLASS_HOST_DEVICE
-  static cutlass::half_t denorm_min() { return cutlass::half_t::bitcast(0x0001); }
+  static nihilus_gemm::half_t denorm_min() { return nihilus_gemm::half_t::bitcast(0x0001); }
 };
 }  // namespace std
 #endif
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace platform {
 
 /// Forward Declaration
@@ -649,64 +649,64 @@ struct numeric_limits;
 
 /// Numeric limits
 template <>
-struct numeric_limits<cutlass::half_t> {
-  static bool const is_specialized = true;
-  static bool const is_signed = true;
-  static bool const is_integer = false;
-  static bool const is_exact = false;
-  static bool const has_infinity = true;
-  static bool const has_quiet_NaN = true;
-  static bool const has_signaling_NaN = false;
+struct numeric_limits<nihilus_gemm::half_t> {
+  static constexpr bool  is_specialized = true;
+  static constexpr bool  is_signed = true;
+  static constexpr bool  is_integer = false;
+  static constexpr bool  is_exact = false;
+  static constexpr bool  has_infinity = true;
+  static constexpr bool  has_quiet_NaN = true;
+  static constexpr bool  has_signaling_NaN = false;
 #if !defined(__CUDACC_RTC__)
   static std::float_denorm_style const has_denorm = std::denorm_present;
 #endif
-  static bool const has_denorm_loss = true;
+  static constexpr bool  has_denorm_loss = true;
 #if !defined(__CUDACC_RTC__)
   static std::float_round_style const round_style = std::round_to_nearest;
 #endif
-  static bool const is_iec559 = true;
-  static bool const is_bounded = true;
-  static bool const is_modulo = false;
-  static int const digits = 10;
+  static constexpr bool  is_iec559 = true;
+  static constexpr bool  is_bounded = true;
+  static constexpr bool  is_modulo = false;
+  static constexpr int  digits = 10;
 
   /// Least positive value
   CUTLASS_HOST_DEVICE
-  static cutlass::half_t min() { return cutlass::half_t::bitcast(0x0001); }
+  static nihilus_gemm::half_t min() { return nihilus_gemm::half_t::bitcast(0x0001); }
 
   /// Minimum finite value
   CUTLASS_HOST_DEVICE
-  static cutlass::half_t lowest() { return cutlass::half_t::bitcast(0xfbff); }
+  static nihilus_gemm::half_t lowest() { return nihilus_gemm::half_t::bitcast(0xfbff); }
 
   /// Maximum finite value
   CUTLASS_HOST_DEVICE
-  static cutlass::half_t max() { return cutlass::half_t::bitcast(0x7bff); }
+  static nihilus_gemm::half_t max() { return nihilus_gemm::half_t::bitcast(0x7bff); }
 
   /// Returns smallest finite value
   CUTLASS_HOST_DEVICE
-  static cutlass::half_t epsilon() { return cutlass::half_t::bitcast(0x1800); }
+  static nihilus_gemm::half_t epsilon() { return nihilus_gemm::half_t::bitcast(0x1800); }
 
   /// Returns maximum rounding error
   CUTLASS_HOST_DEVICE
-  static cutlass::half_t round_error() { return cutlass::half_t(0.5f); }
+  static nihilus_gemm::half_t round_error() { return nihilus_gemm::half_t(0.5f); }
 
   /// Returns positive infinity value
   CUTLASS_HOST_DEVICE
-  static cutlass::half_t infinity() { return cutlass::half_t::bitcast(0x7c00); }
+  static nihilus_gemm::half_t infinity() { return nihilus_gemm::half_t::bitcast(0x7c00); }
 
   /// Returns quiet NaN value
   CUTLASS_HOST_DEVICE
-  static cutlass::half_t quiet_NaN() { return cutlass::half_t::bitcast(0x7fff); }
+  static nihilus_gemm::half_t quiet_NaN() { return nihilus_gemm::half_t::bitcast(0x7fff); }
 
   /// Returns signaling NaN value
   CUTLASS_HOST_DEVICE
-  static cutlass::half_t signaling_NaN() { return cutlass::half_t::bitcast(0x7fff); }
+  static nihilus_gemm::half_t signaling_NaN() { return nihilus_gemm::half_t::bitcast(0x7fff); }
 
   /// Returns smallest positive subnormal value
   CUTLASS_HOST_DEVICE
-  static cutlass::half_t denorm_min() { return cutlass::half_t::bitcast(0x0001); }
+  static nihilus_gemm::half_t denorm_min() { return nihilus_gemm::half_t::bitcast(0x0001); }
 };
 }  // namespace platform 
-}  // namespace cutlass
+}  // namespace nihilus_gemm
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -714,7 +714,7 @@ struct numeric_limits<cutlass::half_t> {
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -909,7 +909,7 @@ half_t operator--(half_t & lhs, int) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -918,13 +918,13 @@ half_t operator--(half_t & lhs, int) {
 //
 
 CUTLASS_HOST_DEVICE
-cutlass::half_t operator "" _hf(long double x) {
-  return cutlass::half_t(float(x));
+nihilus_gemm::half_t operator "" _hf(long double x) {
+  return nihilus_gemm::half_t(float(x));
 }
 
 CUTLASS_HOST_DEVICE
-cutlass::half_t operator "" _hf(unsigned long long int x) {
-  return cutlass::half_t(int(x));
+nihilus_gemm::half_t operator "" _hf(unsigned long long int x) {
+  return nihilus_gemm::half_t(int(x));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

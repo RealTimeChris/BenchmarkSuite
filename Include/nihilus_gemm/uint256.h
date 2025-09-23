@@ -34,7 +34,7 @@
 */
 
 #pragma once
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 #if defined(__CUDACC_RTC__)
 #include CUDA_STD_HEADER(cstdint)
 #else
@@ -44,9 +44,9 @@
 #include <type_traits>
 #include <stdexcept>
 #endif
-#include "cutlass/uint128.h"
+#include "nihilus_gemm/uint128.h"
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 ///! Unsigned 256b integer type
 struct alignas(32) uint256_t {
@@ -88,6 +88,6 @@ struct alignas(32) uint256_t {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

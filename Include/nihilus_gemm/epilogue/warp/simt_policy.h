@@ -36,12 +36,12 @@
 
 #pragma once
 
-#include "cutlass/matrix_shape.h"
-#include "cutlass/layout/matrix.h"
+#include "nihilus_gemm/matrix_shape.h"
+#include "nihilus_gemm/layout/matrix.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace warp {
 
@@ -73,23 +73,23 @@ struct SimtPolicy<WarpShape_, Operator_, layout::RowMajor, MmaSimtPolicy_> {
   static_assert(!(WarpShape::kN % MmaSimtPolicy::WarpShape::kColumn), "Divisibility");
 
   /// Number of iterations
-  static int const kIterations = WarpShape::kM / MmaSimtPolicy::WarpShape::kRow;
+  static constexpr int  kIterations = WarpShape::kM / MmaSimtPolicy::WarpShape::kRow;
 
   /// Number of accumulators written per iteration
-  static int const kElementsPerIteration = 
+  static constexpr int  kElementsPerIteration = 
     (WarpShape::kN / MmaSimtPolicy::WarpShape::kColumn);
 
   /// Total number of accumulators
-  static int const kAccumulatorElementCount = kElementsPerIteration * kIterations;
+  static constexpr int  kAccumulatorElementCount = kElementsPerIteration * kIterations;
 
   /// Number of consecutive elements
-  static int const kElementsPerAccess = MmaSimtPolicy::LaneMmaShape::kN;
+  static constexpr int  kElementsPerAccess = MmaSimtPolicy::LaneMmaShape::kN;
 
   /// Number of rows per epilogue iteration
-  static int const kRowsPerIteration = MmaSimtPolicy::WarpShape::kRow;
+  static constexpr int  kRowsPerIteration = MmaSimtPolicy::WarpShape::kRow;
 
   /// Number of accesses made in one iteration
-  static int const kAccessesPerIteration = kElementsPerIteration / kElementsPerAccess;
+  static constexpr int  kAccessesPerIteration = kElementsPerIteration / kElementsPerAccess;
 
   /// Number of elements in between accumulator chunks of (LaneMmaShape::kM x LaneMmaShape::kN)
   using Delta = MatrixShape<
@@ -102,6 +102,6 @@ struct SimtPolicy<WarpShape_, Operator_, layout::RowMajor, MmaSimtPolicy_> {
 
 } // namespace warp
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

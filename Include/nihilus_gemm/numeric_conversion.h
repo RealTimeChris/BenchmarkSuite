@@ -39,15 +39,15 @@
 #include <cfenv>
 #endif
 
-#include "cutlass/cutlass.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/transform/thread/unary_op.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/transform/thread/unary_op.h"
 
-#include "cutlass/array.h"
-#include "cutlass/half.h"
-#include "cutlass/bfloat16.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/half.h"
+#include "nihilus_gemm/bfloat16.h"
 
-namespace cutlass {
+namespace nihilus_gemm {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -75,7 +75,7 @@ struct NumericConverter {
 
   using result_type = T;
   using source_type = S;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -100,7 +100,7 @@ struct NumericConverter<int32_t, float, FloatRoundStyle::round_to_nearest> {
 
   using result_type = int32_t;
   using source_type = float;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -123,7 +123,7 @@ struct NumericConverter<int32_t, float, FloatRoundStyle::round_toward_zero> {
 
   using result_type = int32_t;
   using source_type = float;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_toward_zero;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_zero;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -152,7 +152,7 @@ struct NumericConverter<int8_t, float, FloatRoundStyle::round_to_nearest> {
 
   using result_type = int8_t;
   using source_type = float;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -182,7 +182,7 @@ struct NumericConverter<int8_t, float, FloatRoundStyle::round_toward_zero> {
 
   using result_type = int8_t;
   using source_type = float;
-  static FloatRoundStyle const round_style =  FloatRoundStyle::round_toward_zero;
+  static constexpr FloatRoundStyle  round_style =  FloatRoundStyle::round_toward_zero;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -212,7 +212,7 @@ struct NumericConverter<uint8_t, float, FloatRoundStyle::round_to_nearest> {
 
   using result_type = uint8_t;
   using source_type = float;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -242,7 +242,7 @@ struct NumericConverter<uint8_t, float, FloatRoundStyle::round_toward_zero> {
 
   using result_type = uint8_t;
   using source_type = float;
-  static FloatRoundStyle const round_style =  FloatRoundStyle::round_toward_zero;
+  static constexpr FloatRoundStyle  round_style =  FloatRoundStyle::round_toward_zero;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -269,22 +269,22 @@ struct NumericConverter<uint8_t, float, FloatRoundStyle::round_toward_zero> {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// Partial specializations for cutlass::half_t => int8_t
+// Partial specializations for nihilus_gemm::half_t => int8_t
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct NumericConverter<int8_t, cutlass::half_t, FloatRoundStyle::round_to_nearest> {
+struct NumericConverter<int8_t, nihilus_gemm::half_t, FloatRoundStyle::round_to_nearest> {
 
   using result_type = int8_t;
-  using source_type = cutlass::half_t;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_to_nearest;
+  using source_type = nihilus_gemm::half_t;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & s) {
     #if defined(__CUDA_ARCH__)
     union { int8_t int8[2]; int16_t int16; };
-    union { cutlass::half_t fp16; int16_t int16_in; };
+    union { nihilus_gemm::half_t fp16; int16_t int16_in; };
     fp16 = s;
     asm volatile ("cvt.rni.sat.s8.f16 %0, %1;" : "=h"(int16) : "h"(int16_in));
     return int8[0];
@@ -367,13 +367,13 @@ public:
   
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Partial specialization for float <= cutlass::half_t
+/// Partial specialization for float <= nihilus_gemm::half_t
 template <typename T, FloatRoundStyle Round>
 struct NumericConverter<T, T, Round> {
 
   using result_type = T;
   using source_type = T;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -389,17 +389,17 @@ struct NumericConverter<T, T, Round> {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// Partial specializations for float <=> cutlass::half_t
+// Partial specializations for float <=> nihilus_gemm::half_t
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Partial specialization for float <= cutlass::half_t
+/// Partial specialization for float <= nihilus_gemm::half_t
 template <FloatRoundStyle Round>
-struct NumericConverter<float, cutlass::half_t, Round> {
+struct NumericConverter<float, nihilus_gemm::half_t, Round> {
 
   using result_type = float;
-  using source_type = cutlass::half_t;
-  static FloatRoundStyle const round_style = Round;
+  using source_type = nihilus_gemm::half_t;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -417,16 +417,16 @@ struct NumericConverter<float, cutlass::half_t, Round> {
 
 /// Specialization for round-to-nearest
 template <>
-struct NumericConverter<cutlass::half_t, float, FloatRoundStyle::round_to_nearest> {
+struct NumericConverter<nihilus_gemm::half_t, float, FloatRoundStyle::round_to_nearest> {
 
-  using result_type = cutlass::half_t;
+  using result_type = nihilus_gemm::half_t;
   using source_type = float;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & s) {
 
-    result_type result = static_cast<cutlass::half_t>(s);
+    result_type result = static_cast<nihilus_gemm::half_t>(s);
 
     return result;
   }
@@ -439,18 +439,18 @@ struct NumericConverter<cutlass::half_t, float, FloatRoundStyle::round_to_neares
 
 /// Specialization for round-toward-zero
 template <>
-struct NumericConverter<cutlass::half_t, float, FloatRoundStyle::round_toward_zero> {
+struct NumericConverter<nihilus_gemm::half_t, float, FloatRoundStyle::round_toward_zero> {
 
-  using result_type = cutlass::half_t;
+  using result_type = nihilus_gemm::half_t;
   using source_type = float;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_toward_zero;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_zero;
 
   /// Round toward zero
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & flt) {
 
   #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 530)
-    return cutlass::half_t(__float2half_rz(flt));
+    return nihilus_gemm::half_t(__float2half_rz(flt));
   #else
     // software implementation rounds toward nearest even
     unsigned const& s = reinterpret_cast<unsigned const &>(flt);
@@ -461,7 +461,7 @@ struct NumericConverter<cutlass::half_t, float, FloatRoundStyle::round_toward_ze
 
     if ((s & 0x7fffffff) == 0) {
       // sign-preserving zero
-      return cutlass::half_t::bitcast(sign);
+      return nihilus_gemm::half_t::bitcast(sign);
     }
 
     if (exp > 15) {
@@ -472,7 +472,7 @@ struct NumericConverter<cutlass::half_t, float, FloatRoundStyle::round_toward_ze
         // overflow to infinity
         u = sign | 0x7c00;
       }
-      return cutlass::half_t::bitcast(u);
+      return nihilus_gemm::half_t::bitcast(u);
     }
 
     if (exp >= -14) {
@@ -480,7 +480,7 @@ struct NumericConverter<cutlass::half_t, float, FloatRoundStyle::round_toward_ze
       u = uint16_t((uint32_t(exp + 15) & 0x1f) << 10);
       u = uint16_t(u | (mantissa >> 13));
     } else {
-      // normal single-precision to subnormal cutlass::half_t-precision representation
+      // normal single-precision to subnormal nihilus_gemm::half_t-precision representation
       int rshift = (-14 - exp);
       if (rshift < 32) {
         mantissa |= (1 << 23);
@@ -494,7 +494,7 @@ struct NumericConverter<cutlass::half_t, float, FloatRoundStyle::round_toward_ze
 
     u |= sign;
 
-    return cutlass::half_t::bitcast(u);
+    return nihilus_gemm::half_t::bitcast(u);
 
   #endif // defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 530)
   }
@@ -507,17 +507,17 @@ struct NumericConverter<cutlass::half_t, float, FloatRoundStyle::round_toward_ze
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// Partial specializations for float <=> cutlass::bfloat16_t
+// Partial specializations for float <=> nihilus_gemm::bfloat16_t
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Partial specialization for float <= cutlass::bfloat16_t
+/// Partial specialization for float <= nihilus_gemm::bfloat16_t
 template <FloatRoundStyle Round>
-struct NumericConverter<float, cutlass::bfloat16_t, Round> {
+struct NumericConverter<float, nihilus_gemm::bfloat16_t, Round> {
 
   using result_type = float;
-  using source_type = cutlass::bfloat16_t;
-  static FloatRoundStyle const round_style = Round;
+  using source_type = nihilus_gemm::bfloat16_t;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -532,14 +532,14 @@ struct NumericConverter<float, cutlass::bfloat16_t, Round> {
 };
 
 template <>
-struct NumericConverter<cutlass::bfloat16_t, float, FloatRoundStyle::round_to_nearest> {
-  using result_type = cutlass::bfloat16_t;
+struct NumericConverter<nihilus_gemm::bfloat16_t, float, FloatRoundStyle::round_to_nearest> {
+  using result_type = nihilus_gemm::bfloat16_t;
   using source_type = float;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & s) {
-    return static_cast<cutlass::bfloat16_t>(s);
+    return static_cast<nihilus_gemm::bfloat16_t>(s);
   }
 
   CUTLASS_HOST_DEVICE
@@ -549,10 +549,10 @@ struct NumericConverter<cutlass::bfloat16_t, float, FloatRoundStyle::round_to_ne
 };
 
 template <>
-struct NumericConverter<cutlass::bfloat16_t, float, FloatRoundStyle::round_half_ulp_truncate> {
-  using result_type = cutlass::bfloat16_t;
+struct NumericConverter<nihilus_gemm::bfloat16_t, float, FloatRoundStyle::round_half_ulp_truncate> {
+  using result_type = nihilus_gemm::bfloat16_t;
   using source_type = float;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_half_ulp_truncate;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_half_ulp_truncate;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -569,7 +569,7 @@ struct NumericConverter<cutlass::bfloat16_t, float, FloatRoundStyle::round_half_
     #endif
 
     uint16_t x16 = uint16_t((x32 >> 16) & 0xffff);
-    return cutlass::bfloat16_t::bitcast(x16);
+    return nihilus_gemm::bfloat16_t::bitcast(x16);
   }
 
   CUTLASS_HOST_DEVICE
@@ -579,10 +579,10 @@ struct NumericConverter<cutlass::bfloat16_t, float, FloatRoundStyle::round_half_
 };
 
 template <>
-struct NumericConverter<cutlass::bfloat16_t, float, FloatRoundStyle::round_toward_zero> {
-  using result_type = cutlass::bfloat16_t;
+struct NumericConverter<nihilus_gemm::bfloat16_t, float, FloatRoundStyle::round_toward_zero> {
+  using result_type = nihilus_gemm::bfloat16_t;
   using source_type = float;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_toward_zero;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_zero;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -590,7 +590,7 @@ struct NumericConverter<cutlass::bfloat16_t, float, FloatRoundStyle::round_towar
     uint32_t x32 = reinterpret_cast<uint32_t const &>(s);
     uint16_t x16 = uint16_t(x32 >> 16);
 
-    return cutlass::bfloat16_t::bitcast(x16);
+    return nihilus_gemm::bfloat16_t::bitcast(x16);
   }
 
   CUTLASS_HOST_DEVICE
@@ -601,17 +601,17 @@ struct NumericConverter<cutlass::bfloat16_t, float, FloatRoundStyle::round_towar
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// Partial specializations for float <=> cutlass::tfloat32_t
+// Partial specializations for float <=> nihilus_gemm::tfloat32_t
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Partial specialization for float <= cutlass::tfloat32_t
+/// Partial specialization for float <= nihilus_gemm::tfloat32_t
 template <FloatRoundStyle Round>
-struct NumericConverter<float, cutlass::tfloat32_t, Round> {
+struct NumericConverter<float, nihilus_gemm::tfloat32_t, Round> {
 
   using result_type = float;
-  using source_type = cutlass::tfloat32_t;
-  static FloatRoundStyle const round_style = Round;
+  using source_type = nihilus_gemm::tfloat32_t;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -626,10 +626,10 @@ struct NumericConverter<float, cutlass::tfloat32_t, Round> {
 };
 
 template <>
-struct NumericConverter<cutlass::tfloat32_t, float, FloatRoundStyle::round_to_nearest> {
-  using result_type = cutlass::tfloat32_t;
+struct NumericConverter<nihilus_gemm::tfloat32_t, float, FloatRoundStyle::round_to_nearest> {
+  using result_type = nihilus_gemm::tfloat32_t;
   using source_type = float;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -666,7 +666,7 @@ struct NumericConverter<cutlass::tfloat32_t, float, FloatRoundStyle::round_to_ne
     }
 #endif
 
-    return cutlass::tfloat32_t::bitcast(storage);
+    return nihilus_gemm::tfloat32_t::bitcast(storage);
   }
 
   CUTLASS_HOST_DEVICE
@@ -676,14 +676,14 @@ struct NumericConverter<cutlass::tfloat32_t, float, FloatRoundStyle::round_to_ne
 };
 
 template <>
-struct NumericConverter<cutlass::tfloat32_t, float, FloatRoundStyle::round_half_ulp_truncate> {
-  using result_type = cutlass::tfloat32_t;
+struct NumericConverter<nihilus_gemm::tfloat32_t, float, FloatRoundStyle::round_half_ulp_truncate> {
+  using result_type = nihilus_gemm::tfloat32_t;
   using source_type = float;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_half_ulp_truncate;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_half_ulp_truncate;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & s) {
-    return cutlass::tfloat32_t::round_half_ulp_truncate(s);
+    return nihilus_gemm::tfloat32_t::round_half_ulp_truncate(s);
   }
 
   CUTLASS_HOST_DEVICE
@@ -695,10 +695,10 @@ struct NumericConverter<cutlass::tfloat32_t, float, FloatRoundStyle::round_half_
 /// This rounding operation is similar to half_ulp_truncate except it rounds denorms toward zero.
 /// It avoids predicated code, though it requires a temporary register.
 template <>
-struct NumericConverter<cutlass::tfloat32_t, float, FloatRoundStyle::round_half_ulp_trunc_dntz> {
-  using result_type = cutlass::tfloat32_t;
+struct NumericConverter<nihilus_gemm::tfloat32_t, float, FloatRoundStyle::round_half_ulp_trunc_dntz> {
+  using result_type = nihilus_gemm::tfloat32_t;
   using source_type = float;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_half_ulp_trunc_dntz;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_half_ulp_trunc_dntz;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & s) {
@@ -718,15 +718,15 @@ struct NumericConverter<cutlass::tfloat32_t, float, FloatRoundStyle::round_half_
 };
 
 template <>
-struct NumericConverter<cutlass::tfloat32_t, float, FloatRoundStyle::round_toward_zero> {
-  using result_type = cutlass::tfloat32_t;
+struct NumericConverter<nihilus_gemm::tfloat32_t, float, FloatRoundStyle::round_toward_zero> {
+  using result_type = nihilus_gemm::tfloat32_t;
   using source_type = float;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_toward_zero;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_zero;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & s) {
     uint32_t x = reinterpret_cast<uint32_t const &>(s);
-    return cutlass::tfloat32_t::bitcast(x & 0xffffe000);
+    return nihilus_gemm::tfloat32_t::bitcast(x & 0xffffe000);
   }
 
   CUTLASS_HOST_DEVICE
@@ -737,7 +737,7 @@ struct NumericConverter<cutlass::tfloat32_t, float, FloatRoundStyle::round_towar
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// Conversion operator for float to cutlass::tfloat32_t big and small values
+// Conversion operator for float to nihilus_gemm::tfloat32_t big and small values
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////
 template <
@@ -746,27 +746,27 @@ template <
 >
 struct NumericConverterFastF32 {
 
-  // result_type holds big cutlass::tfloat32_t at idx(0) and small cutlass::tfloat32_t at idx(1)
-  using result_type = Array<cutlass::tfloat32_t, 2>;
+  // result_type holds big nihilus_gemm::tfloat32_t at idx(0) and small nihilus_gemm::tfloat32_t at idx(1)
+  using result_type = Array<nihilus_gemm::tfloat32_t, 2>;
 
   // source data type
   using source_type = float;
 
   // rounding styles for big and small part
-  static FloatRoundStyle const kRoundBig = RoundBig;
-  static FloatRoundStyle const kRoundSmall = RoundSmall;
+  static constexpr FloatRoundStyle  kRoundBig = RoundBig;
+  static constexpr FloatRoundStyle  kRoundSmall = RoundSmall;
 
   CUTLASS_HOST_DEVICE
     static result_type convert(source_type const & source) {
 
     result_type result;
-    NumericConverter<cutlass::tfloat32_t, float, kRoundBig> convert_big_;
-    NumericConverter<cutlass::tfloat32_t, float, kRoundSmall> convert_small_;
+    NumericConverter<nihilus_gemm::tfloat32_t, float, kRoundBig> convert_big_;
+    NumericConverter<nihilus_gemm::tfloat32_t, float, kRoundSmall> convert_small_;
 
-    // convert and fill cutlass::tfloat32_t big at idx 0
+    // convert and fill nihilus_gemm::tfloat32_t big at idx 0
     result[0] = convert_big_(source);
 
-    // convert and fill cutlass::tfloat32_t small at idx 1
+    // convert and fill nihilus_gemm::tfloat32_t small at idx 1
     result[1] = convert_small_(source - static_cast<float>(result[0]));
 
     return result;
@@ -796,8 +796,8 @@ struct NumericConverterClamp {
   CUTLASS_HOST_DEVICE
     static result_type convert(source_type const & s) {
     NumericConverter<result_type, source_type> convert_op;
-    result_type const kClamp_max = cutlass::platform::numeric_limits<result_type>::max();
-    result_type const kClamp_min = cutlass::platform::numeric_limits<result_type>::lowest();
+    result_type const kClamp_max = nihilus_gemm::platform::numeric_limits<result_type>::max();
+    result_type const kClamp_min = nihilus_gemm::platform::numeric_limits<result_type>::lowest();
     if (s < (source_type)kClamp_min)
       return kClamp_min;
     if (s > (source_type)kClamp_max)
@@ -811,20 +811,20 @@ struct NumericConverterClamp {
   }
 };
 
-// This converter is needed to enable cutlass::half_t output types when using int32_t accumulators.
+// This converter is needed to enable nihilus_gemm::half_t output types when using int32_t accumulators.
 // Since floating-point types do not require a clamp, this converter simply casts from
-// the source type to cutlass::half_t.
+// the source type to nihilus_gemm::half_t.
 template <
   typename S
 >
-struct NumericConverterClamp<cutlass::half_t, S> {
+struct NumericConverterClamp<nihilus_gemm::half_t, S> {
 
-  using result_type = cutlass::half_t;
+  using result_type = nihilus_gemm::half_t;
   using source_type = S;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const &source) {
-    return static_cast<cutlass::half_t>(source);
+    return static_cast<nihilus_gemm::half_t>(source);
   }
 
   CUTLASS_HOST_DEVICE
@@ -845,16 +845,16 @@ template <
   typename S,
   int N,
   FloatRoundStyle Round = FloatRoundStyle::round_to_nearest,
-  typename Transform = cutlass::transform::thread::UnaryTransform::Identity
+  typename Transform = nihilus_gemm::transform::thread::UnaryTransform::Identity
 >
 struct NumericArrayConverter {
 
   using result_type = Array<T, N>;
   using source_type = Array<S, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
-  static_assert(platform::is_same<Transform, cutlass::transform::thread::UnaryTransform::Identity>::value ||
-                platform::is_same<Transform, cutlass::transform::thread::UnaryTransform::Conjugate>::value,
+  static_assert(platform::is_same<Transform, nihilus_gemm::transform::thread::UnaryTransform::Identity>::value ||
+                platform::is_same<Transform, nihilus_gemm::transform::thread::UnaryTransform::Conjugate>::value,
                   "Unary Operator not supported.");
 
   CUTLASS_HOST_DEVICE
@@ -865,7 +865,7 @@ struct NumericArrayConverter {
 
     CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < N; ++i) {
-      if (platform::is_same<Transform, cutlass::transform::thread::UnaryTransform::Identity>::value) {
+      if (platform::is_same<Transform, nihilus_gemm::transform::thread::UnaryTransform::Identity>::value) {
         result[i] = convert_(s[i]);
       } else { // conjugate
         result[i] = conj(convert_(s[i]));
@@ -891,15 +891,15 @@ struct NumericArrayConverter<T, T, N, Round, Transform> {
 
   using result_type = Array<T, N>;
   using source_type = Array<T, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
-  static_assert(platform::is_same<Transform, cutlass::transform::thread::UnaryTransform::Identity>::value ||
-                platform::is_same<Transform, cutlass::transform::thread::UnaryTransform::Conjugate>::value,
+  static_assert(platform::is_same<Transform, nihilus_gemm::transform::thread::UnaryTransform::Identity>::value ||
+                platform::is_same<Transform, nihilus_gemm::transform::thread::UnaryTransform::Conjugate>::value,
                   "Unary Operator not supported.");
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const &source) {
-    if (platform::is_same<Transform, cutlass::transform::thread::UnaryTransform::Identity>::value) {
+    if (platform::is_same<Transform, nihilus_gemm::transform::thread::UnaryTransform::Identity>::value) {
       return source;
     } else {
       result_type result;
@@ -920,25 +920,25 @@ struct NumericArrayConverter<T, T, N, Round, Transform> {
 
 /// Partial specialization for Array<half, 2> <= Array<float, 2>, round to nearest
 template <>
-struct NumericArrayConverter<cutlass::half_t, float, 2, FloatRoundStyle::round_to_nearest> {
+struct NumericArrayConverter<nihilus_gemm::half_t, float, 2, FloatRoundStyle::round_to_nearest> {
 
-  using result_type = Array<cutlass::half_t, 2>;
+  using result_type = Array<nihilus_gemm::half_t, 2>;
   using source_type = Array<float, 2>;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
     #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 530)
-      Array<cutlass::half_t, 2> result;
+      Array<nihilus_gemm::half_t, 2> result;
       reinterpret_cast<__half2 &>(result) = __float22half2_rn(reinterpret_cast<float2 const &>(source));
       return result;
     #else
-      NumericConverter<cutlass::half_t, float, round_style> convert_;
-      // NOTE: cutlass::Array<half, N> is NOT an aggregate type and
+      NumericConverter<nihilus_gemm::half_t, float, round_style> convert_;
+      // NOTE: nihilus_gemm::Array<half, N> is NOT an aggregate type and
       //  below `{}` does NOT conduct zero initialization. Below `{}` will 
       //  conduct default initialization (calling default ctr). We use this syntax
       //  to resolve compiler warning on uninitialized member variable.
-      Array<cutlass::half_t, 2> result{};
+      Array<nihilus_gemm::half_t, 2> result{};
       result[0] = convert_(source[0]);
       result[1] = convert_(source[1]);
       return result;
@@ -951,13 +951,13 @@ struct NumericArrayConverter<cutlass::half_t, float, 2, FloatRoundStyle::round_t
   }
 };
 
-/// Partial specialization for Array<float, 2> <= Array<cutlass::half_t, 2>, round to nearest
+/// Partial specialization for Array<float, 2> <= Array<nihilus_gemm::half_t, 2>, round to nearest
 template <FloatRoundStyle Round>
-struct NumericArrayConverter<float, cutlass::half_t, 2, Round> {
+struct NumericArrayConverter<float, nihilus_gemm::half_t, 2, Round> {
 
   using result_type = Array<float, 2>;
-  using source_type = Array<cutlass::half_t, 2>;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_to_nearest;
+  using source_type = Array<nihilus_gemm::half_t, 2>;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -969,7 +969,7 @@ struct NumericArrayConverter<float, cutlass::half_t, 2, Round> {
         float{result2.y}
       };
     #else
-      NumericConverter<float, cutlass::half_t, round_style> convert_;
+      NumericConverter<float, nihilus_gemm::half_t, round_style> convert_;
       return {
         convert_(source[0]),
         convert_(source[1])
@@ -990,21 +990,21 @@ template <
   int N,
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<cutlass::half_t, float, N, Round> {
+struct NumericArrayConverter<nihilus_gemm::half_t, float, N, Round> {
 
-  using result_type = Array<cutlass::half_t, N>;
+  using result_type = Array<nihilus_gemm::half_t, N>;
   using source_type = Array<float, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
 
-    NumericArrayConverter<cutlass::half_t, float, 2, Round> convert_vector_;
-    NumericConverter<cutlass::half_t, float, Round> convert_element_;
+    NumericArrayConverter<nihilus_gemm::half_t, float, 2, Round> convert_vector_;
+    NumericConverter<nihilus_gemm::half_t, float, Round> convert_element_;
 
     result_type result;
 
-    Array<cutlass::half_t, 2> *result_ptr = reinterpret_cast<Array<cutlass::half_t, 2> *>(&result);
+    Array<nihilus_gemm::half_t, 2> *result_ptr = reinterpret_cast<Array<nihilus_gemm::half_t, 2> *>(&result);
     Array<float, 2> const *source_ptr = reinterpret_cast<Array<float, 2> const *>(&source);
 
     CUTLASS_PRAGMA_UNROLL
@@ -1031,22 +1031,22 @@ template <
   int N,
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<float, cutlass::half_t, N, Round> {
+struct NumericArrayConverter<float, nihilus_gemm::half_t, N, Round> {
 
   using result_type = Array<float, N>;
-  using source_type = Array<cutlass::half_t, N>;
-  static FloatRoundStyle const round_style = Round;
+  using source_type = Array<nihilus_gemm::half_t, N>;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
 
-    NumericArrayConverter<float, cutlass::half_t, 2, Round> convert_vector_;
-    NumericConverter<float, cutlass::half_t, Round> convert_element_;
+    NumericArrayConverter<float, nihilus_gemm::half_t, 2, Round> convert_vector_;
+    NumericConverter<float, nihilus_gemm::half_t, Round> convert_element_;
 
     result_type result;
 
     Array<float, 2> *result_ptr = reinterpret_cast<Array<float, 2> *>(&result);
-    Array<cutlass::half_t, 2> const *source_ptr = reinterpret_cast<Array<cutlass::half_t, 2> const *>(&source);
+    Array<nihilus_gemm::half_t, 2> const *source_ptr = reinterpret_cast<Array<nihilus_gemm::half_t, 2> const *>(&source);
 
     CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < N / 2; ++i) {
@@ -1071,13 +1071,13 @@ struct NumericArrayConverter<float, cutlass::half_t, N, Round> {
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Partial specialization for Array<cutlass::bfloat16_t, 2> <= Array<float, 2>, round to nearest
+/// Partial specialization for Array<nihilus_gemm::bfloat16_t, 2> <= Array<float, 2>, round to nearest
 template <>
-struct NumericArrayConverter<cutlass::bfloat16_t, float, 2, FloatRoundStyle::round_to_nearest> {
+struct NumericArrayConverter<nihilus_gemm::bfloat16_t, float, 2, FloatRoundStyle::round_to_nearest> {
 
-  using result_type = Array<cutlass::bfloat16_t, 2>;
+  using result_type = Array<nihilus_gemm::bfloat16_t, 2>;
   using source_type = Array<float, 2>;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -1096,13 +1096,13 @@ struct NumericArrayConverter<cutlass::bfloat16_t, float, 2, FloatRoundStyle::rou
 };
 
 
-/// Partial specialization for Array<cutlass::bfloat16_t, 2> <= Array<float, 2>, round to nearest with min/max saturation
+/// Partial specialization for Array<nihilus_gemm::bfloat16_t, 2> <= Array<float, 2>, round to nearest with min/max saturation
 template <>
-struct NumericArrayConverter<cutlass::bfloat16_t, float, 2, FloatRoundStyle::round_to_nearest_satfinite> {
+struct NumericArrayConverter<nihilus_gemm::bfloat16_t, float, 2, FloatRoundStyle::round_to_nearest_satfinite> {
 
-  using result_type = Array<cutlass::bfloat16_t, 2>;
+  using result_type = Array<nihilus_gemm::bfloat16_t, 2>;
   using source_type = Array<float, 2>;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_to_nearest_satfinite;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest_satfinite;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -1123,26 +1123,26 @@ struct NumericArrayConverter<cutlass::bfloat16_t, float, 2, FloatRoundStyle::rou
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-/// Partial specialization for Array<cutlass::bfloat16_t> <= Array<float>
+/// Partial specialization for Array<nihilus_gemm::bfloat16_t> <= Array<float>
 template <
   int N,
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<cutlass::bfloat16_t, float, N, Round> {
+struct NumericArrayConverter<nihilus_gemm::bfloat16_t, float, N, Round> {
 
-  using result_type = Array<cutlass::bfloat16_t, N>;
+  using result_type = Array<nihilus_gemm::bfloat16_t, N>;
   using source_type = Array<float, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
 
-    NumericArrayConverter<cutlass::bfloat16_t, float, 2, Round> convert_vector_;
-    NumericConverter<cutlass::bfloat16_t, float, Round> convert_element_;
+    NumericArrayConverter<nihilus_gemm::bfloat16_t, float, 2, Round> convert_vector_;
+    NumericConverter<nihilus_gemm::bfloat16_t, float, Round> convert_element_;
 
     result_type result;
 
-    Array<cutlass::bfloat16_t, 2> *result_ptr = reinterpret_cast<Array<cutlass::bfloat16_t, 2> *>(&result);
+    Array<nihilus_gemm::bfloat16_t, 2> *result_ptr = reinterpret_cast<Array<nihilus_gemm::bfloat16_t, 2> *>(&result);
     Array<float, 2> const *source_ptr = reinterpret_cast<Array<float, 2> const *>(&source);
 
     CUTLASS_PRAGMA_UNROLL
@@ -1180,7 +1180,7 @@ struct NumericArrayConverter<int8_t, int, 1, Round> {
 
   using result_type = Array<int8_t, 1>;
   using source_type = Array<int, 1>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -1207,7 +1207,7 @@ struct NumericArrayConverter<int8_t, int, 2, Round> {
 
   using result_type = Array<int8_t, 2>;
   using source_type = Array<int, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -1236,7 +1236,7 @@ struct NumericArrayConverter<int8_t, int, 4, Round> {
 
   using result_type = Array<int8_t, 4>;
   using source_type = Array<int, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -1269,7 +1269,7 @@ struct NumericArrayConverter<int8_t, int, N, Round> {
 
   using result_type = Array<int8_t, N>;
   using source_type = Array<int, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -1303,7 +1303,7 @@ struct NumericArrayConverter<uint8_t, int, 1, Round> {
 
   using result_type = Array<uint8_t, 1>;
   using source_type = Array<int, 1>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -1330,7 +1330,7 @@ struct NumericArrayConverter<uint8_t, int, 2, Round> {
 
   using result_type = Array<uint8_t, 2>;
   using source_type = Array<int, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -1359,7 +1359,7 @@ struct NumericArrayConverter<uint8_t, int, 4, Round> {
 
   using result_type = Array<uint8_t, 4>;
   using source_type = Array<int, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -1392,7 +1392,7 @@ struct NumericArrayConverter<uint8_t, int, N, Round> {
 
   using result_type = Array<uint8_t, N>;
   using source_type = Array<int, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -1430,13 +1430,13 @@ struct NumericArrayConverter<uint8_t, int, N, Round> {
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<float, cutlass::float_e4m3_t, 2, Round> {
+struct NumericArrayConverter<float, nihilus_gemm::float_e4m3_t, 2, Round> {
   using result_element = float;
-  using source_element = cutlass::float_e4m3_t;
+  using source_element = nihilus_gemm::float_e4m3_t;
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -1480,12 +1480,12 @@ template <
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<float_e4m3_t, float, 2, Round> {
-  using result_element = cutlass::float_e4m3_t;
+  using result_element = nihilus_gemm::float_e4m3_t;
   using source_element = float;
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -1523,13 +1523,13 @@ struct NumericArrayConverter<float_e4m3_t, float, 2, Round> {
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<float, cutlass::float_e5m2_t, 2, Round> {
+struct NumericArrayConverter<float, nihilus_gemm::float_e5m2_t, 2, Round> {
   using result_element = float;
-  using source_element = cutlass::float_e5m2_t;
+  using source_element = nihilus_gemm::float_e5m2_t;
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -1573,12 +1573,12 @@ template <
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<float_e5m2_t, float, 2, Round> {
-  using result_element = cutlass::float_e5m2_t;
+  using result_element = nihilus_gemm::float_e5m2_t;
   using source_element = float;
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -1622,13 +1622,13 @@ struct NumericArrayConverter<float_e5m2_t, float, 2, Round> {
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<cutlass::half_t, cutlass::float_e4m3_t, 2, Round> {
-  using result_element = cutlass::half_t;
-  using source_element = cutlass::float_e4m3_t;
+struct NumericArrayConverter<nihilus_gemm::half_t, nihilus_gemm::float_e4m3_t, 2, Round> {
+  using result_element = nihilus_gemm::half_t;
+  using source_element = nihilus_gemm::float_e4m3_t;
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -1667,13 +1667,13 @@ struct NumericArrayConverter<cutlass::half_t, cutlass::float_e4m3_t, 2, Round> {
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<float_e4m3_t, cutlass::half_t, 2, Round> {
-  using result_element = cutlass::float_e4m3_t;
-  using source_element = cutlass::half_t;
+struct NumericArrayConverter<float_e4m3_t, nihilus_gemm::half_t, 2, Round> {
+  using result_element = nihilus_gemm::float_e4m3_t;
+  using source_element = nihilus_gemm::half_t;
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -1711,13 +1711,13 @@ struct NumericArrayConverter<float_e4m3_t, cutlass::half_t, 2, Round> {
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<cutlass::half_t, cutlass::float_e5m2_t, 2, Round> {
-  using result_element = cutlass::half_t;
-  using source_element = cutlass::float_e5m2_t;
+struct NumericArrayConverter<nihilus_gemm::half_t, nihilus_gemm::float_e5m2_t, 2, Round> {
+  using result_element = nihilus_gemm::half_t;
+  using source_element = nihilus_gemm::float_e5m2_t;
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -1756,13 +1756,13 @@ struct NumericArrayConverter<cutlass::half_t, cutlass::float_e5m2_t, 2, Round> {
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<float_e5m2_t, cutlass::half_t, 2, Round> {
-  using result_element = cutlass::float_e5m2_t;
-  using source_element = cutlass::half_t;
+struct NumericArrayConverter<float_e5m2_t, nihilus_gemm::half_t, 2, Round> {
+  using result_element = nihilus_gemm::float_e5m2_t;
+  using source_element = nihilus_gemm::half_t;
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -1806,13 +1806,13 @@ struct NumericArrayConverter<float_e5m2_t, cutlass::half_t, 2, Round> {
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<cutlass::bfloat16_t, cutlass::float_e4m3_t, 2, Round> {
-  using result_element = cutlass::bfloat16_t;
-  using source_element = cutlass::float_e4m3_t;
+struct NumericArrayConverter<nihilus_gemm::bfloat16_t, nihilus_gemm::float_e4m3_t, 2, Round> {
+  using result_element = nihilus_gemm::bfloat16_t;
+  using source_element = nihilus_gemm::float_e4m3_t;
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -1826,7 +1826,7 @@ struct NumericArrayConverter<cutlass::bfloat16_t, cutlass::float_e4m3_t, 2, Roun
         "cvt.rn.f16x2.e4m3x2 %0, %1;\n" \
         "}\n" : "=r"(res_half): "h"(src_packed));
     float2 res_float = __half22float2(reinterpret_cast<__half2 &>(res_half));
-    NumericArrayConverter<cutlass::bfloat16_t, float, 2, Round> converter;
+    NumericArrayConverter<nihilus_gemm::bfloat16_t, float, 2, Round> converter;
     return converter(reinterpret_cast<Array<float, 2> const&>(res_float));
   #else
     result_type result;
@@ -1851,19 +1851,19 @@ struct NumericArrayConverter<cutlass::bfloat16_t, cutlass::float_e4m3_t, 2, Roun
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<float_e4m3_t, cutlass::bfloat16_t, 2, Round> {
-  using result_element = cutlass::float_e4m3_t;
-  using source_element = cutlass::bfloat16_t;
+struct NumericArrayConverter<float_e4m3_t, nihilus_gemm::bfloat16_t, 2, Round> {
+  using result_element = nihilus_gemm::float_e4m3_t;
+  using source_element = nihilus_gemm::bfloat16_t;
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
-    NumericArrayConverter<float, cutlass::bfloat16_t, 2, Round> converter;
+    NumericArrayConverter<float, nihilus_gemm::bfloat16_t, 2, Round> converter;
     Array<float, 2> res_float = converter(source);
     uint16_t out;
 
@@ -1897,13 +1897,13 @@ struct NumericArrayConverter<float_e4m3_t, cutlass::bfloat16_t, 2, Round> {
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<cutlass::bfloat16_t, cutlass::float_e5m2_t, 2, Round> {
-  using result_element = cutlass::bfloat16_t;
-  using source_element = cutlass::float_e5m2_t;
+struct NumericArrayConverter<nihilus_gemm::bfloat16_t, nihilus_gemm::float_e5m2_t, 2, Round> {
+  using result_element = nihilus_gemm::bfloat16_t;
+  using source_element = nihilus_gemm::float_e5m2_t;
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -1917,7 +1917,7 @@ struct NumericArrayConverter<cutlass::bfloat16_t, cutlass::float_e5m2_t, 2, Roun
         "cvt.rn.f16x2.e5m2x2 %0, %1;\n" \
         "}\n" : "=r"(res_half): "h"(src_packed));
     float2 res_float = __half22float2(reinterpret_cast<__half2 &>(res_half));
-    NumericArrayConverter<cutlass::bfloat16_t, float, 2, Round> converter;
+    NumericArrayConverter<nihilus_gemm::bfloat16_t, float, 2, Round> converter;
     return converter(reinterpret_cast<Array<float, 2> const&>(res_float));
   #else
     result_type result;
@@ -1942,19 +1942,19 @@ struct NumericArrayConverter<cutlass::bfloat16_t, cutlass::float_e5m2_t, 2, Roun
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<float_e5m2_t, cutlass::bfloat16_t, 2, Round> {
-  using result_element = cutlass::float_e5m2_t;
-  using source_element = cutlass::bfloat16_t;
+struct NumericArrayConverter<float_e5m2_t, nihilus_gemm::bfloat16_t, 2, Round> {
+  using result_element = nihilus_gemm::float_e5m2_t;
+  using source_element = nihilus_gemm::bfloat16_t;
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
-    NumericArrayConverter<float, cutlass::bfloat16_t, 2, Round> converter;
+    NumericArrayConverter<float, nihilus_gemm::bfloat16_t, 2, Round> converter;
     Array<float, 2> res_float = converter(source);
     uint16_t out;
 
@@ -1992,15 +1992,15 @@ template <
   typename T,
   typename S,
   FloatRoundStyle Round = FloatRoundStyle::round_to_nearest,
-  typename Transform = cutlass::transform::thread::UnaryTransform::Identity
+  typename Transform = nihilus_gemm::transform::thread::UnaryTransform::Identity
 >
 struct NumericArrayConverterPacked4Element {
   using result_type = Array<T, 4>;
   using source_type = Array<S, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
-  static_assert(platform::is_same<Transform, cutlass::transform::thread::UnaryTransform::Identity>::value ||
-                platform::is_same<Transform, cutlass::transform::thread::UnaryTransform::Conjugate>::value,
+  static_assert(platform::is_same<Transform, nihilus_gemm::transform::thread::UnaryTransform::Identity>::value ||
+                platform::is_same<Transform, nihilus_gemm::transform::thread::UnaryTransform::Conjugate>::value,
                   "Unary Operator not supported.");
 
   CUTLASS_HOST_DEVICE
@@ -2010,7 +2010,7 @@ struct NumericArrayConverterPacked4Element {
     NumericConverter<T, S, Round> convert_;
     CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
-      if (platform::is_same<Transform, cutlass::transform::thread::UnaryTransform::Identity>::value) {
+      if (platform::is_same<Transform, nihilus_gemm::transform::thread::UnaryTransform::Identity>::value) {
         result[i] = convert_(s[i]);
       }
       else { // conjugate
@@ -2031,13 +2031,13 @@ struct NumericArrayConverterPacked4Element {
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverterPacked4Element<float, cutlass::float_e4m3_t, Round> {
+struct NumericArrayConverterPacked4Element<float, nihilus_gemm::float_e4m3_t, Round> {
   using result_element = float;
-  using source_element = cutlass::float_e4m3_t;
+  using source_element = nihilus_gemm::float_e4m3_t;
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -2087,12 +2087,12 @@ template <
   FloatRoundStyle Round
 >
 struct NumericArrayConverterPacked4Element<float_e4m3_t, float, Round> {
-  using result_element = cutlass::float_e4m3_t;
+  using result_element = nihilus_gemm::float_e4m3_t;
   using source_element = float;
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -2141,7 +2141,7 @@ struct NumericArrayConverterPacked4Element<float, float_ue4m3_t, Round> {
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -2196,7 +2196,7 @@ struct NumericArrayConverterPacked4Element<float_ue4m3_t, float, Round> {
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -2250,8 +2250,8 @@ struct NumericArrayConverterPacked4Element<float, float_ue8m0_t, Round> {
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  using BfloatArr = Array<cutlass::bfloat16_t, 4>;
-  static FloatRoundStyle const round_style = Round;
+  using BfloatArr = Array<nihilus_gemm::bfloat16_t, 4>;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -2267,9 +2267,9 @@ struct NumericArrayConverterPacked4Element<float, float_ue8m0_t, Round> {
         "cvt.rn.bf16x2.ue8m0x2 %1, hi;\n" \
         "}\n" : "=r"(out_fp16[0]), "=r"(out_fp16[1]) : "r"(src_packed));
 
-    NumericArrayConverter<float, cutlass::bfloat16_t, 2> bf2fp32_converter;
-    auto res0 = bf2fp32_converter(reinterpret_cast<Array<cutlass::bfloat16_t, 2> &>(out_fp16[0]));
-    auto res1 = bf2fp32_converter(reinterpret_cast<Array<cutlass::bfloat16_t, 2> &>(out_fp16[1]));
+    NumericArrayConverter<float, nihilus_gemm::bfloat16_t, 2> bf2fp32_converter;
+    auto res0 = bf2fp32_converter(reinterpret_cast<Array<nihilus_gemm::bfloat16_t, 2> &>(out_fp16[0]));
+    auto res1 = bf2fp32_converter(reinterpret_cast<Array<nihilus_gemm::bfloat16_t, 2> &>(out_fp16[1]));
 
     result_type out;
     out[0] = res0[0];
@@ -2305,7 +2305,7 @@ struct NumericArrayConverterPacked4Element<float_ue8m0_t, float, FloatRoundStyle
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_toward_infinity;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_infinity;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -2349,7 +2349,7 @@ struct NumericArrayConverterPacked4Element<float_ue8m0_t, float, FloatRoundStyle
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_toward_zero;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_zero;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -2395,7 +2395,7 @@ struct NumericArrayConverterPacked4Element<float_ue8m0_t, float, Round> {
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_toward_infinity;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_infinity;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -2420,13 +2420,13 @@ struct NumericArrayConverterPacked4Element<float_ue8m0_t, float, Round> {
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverterPacked4Element<cutlass::detail::float_e2m3_unpack8bits_t, float, Round> {
-  using result_element = cutlass::detail::float_e2m3_unpack8bits_t;
+struct NumericArrayConverterPacked4Element<nihilus_gemm::detail::float_e2m3_unpack8bits_t, float, Round> {
+  using result_element = nihilus_gemm::detail::float_e2m3_unpack8bits_t;
   using source_element = float;
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -2468,13 +2468,13 @@ struct NumericArrayConverterPacked4Element<cutlass::detail::float_e2m3_unpack8bi
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverterPacked4Element<float, cutlass::detail::float_e2m3_unpack8bits_t, Round> {
+struct NumericArrayConverterPacked4Element<float, nihilus_gemm::detail::float_e2m3_unpack8bits_t, Round> {
   using result_element = float;
-  using source_element = cutlass::detail::float_e2m3_unpack8bits_t;
+  using source_element = nihilus_gemm::detail::float_e2m3_unpack8bits_t;
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -2529,13 +2529,13 @@ struct NumericArrayConverterPacked4Element<float, cutlass::detail::float_e2m3_un
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverterPacked4Element<cutlass::detail::float_e3m2_unpack8bits_t, float, Round> {
-  using result_element = cutlass::detail::float_e3m2_unpack8bits_t;
+struct NumericArrayConverterPacked4Element<nihilus_gemm::detail::float_e3m2_unpack8bits_t, float, Round> {
+  using result_element = nihilus_gemm::detail::float_e3m2_unpack8bits_t;
   using source_element = float;
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -2578,13 +2578,13 @@ struct NumericArrayConverterPacked4Element<cutlass::detail::float_e3m2_unpack8bi
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverterPacked4Element<float, cutlass::detail::float_e3m2_unpack8bits_t, Round> {
+struct NumericArrayConverterPacked4Element<float, nihilus_gemm::detail::float_e3m2_unpack8bits_t, Round> {
   using result_element = float;
-  using source_element = cutlass::detail::float_e3m2_unpack8bits_t;
+  using source_element = nihilus_gemm::detail::float_e3m2_unpack8bits_t;
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -2640,13 +2640,13 @@ struct NumericArrayConverterPacked4Element<float, cutlass::detail::float_e3m2_un
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverterPacked4Element<float, cutlass::float_e5m2_t, Round> {
+struct NumericArrayConverterPacked4Element<float, nihilus_gemm::float_e5m2_t, Round> {
   using result_element = float;
-  using source_element = cutlass::float_e5m2_t;
+  using source_element = nihilus_gemm::float_e5m2_t;
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -2696,12 +2696,12 @@ template <
   FloatRoundStyle Round
 >
 struct NumericArrayConverterPacked4Element<float_e5m2_t, float, Round> {
-  using result_element = cutlass::float_e5m2_t;
+  using result_element = nihilus_gemm::float_e5m2_t;
   using source_element = float;
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -2741,21 +2741,21 @@ struct NumericArrayConverterPacked4Element<float_e5m2_t, float, Round> {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// Partial specializations for Array<cutlass::half_t, 4> <=> Array<float_e4m3_t, 4>
+// Partial specializations for Array<nihilus_gemm::half_t, 4> <=> Array<float_e4m3_t, 4>
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Partial specialization for Array<cutlass::half_t, 4> <= Array<float_e4m3_t, 4>
+/// Partial specialization for Array<nihilus_gemm::half_t, 4> <= Array<float_e4m3_t, 4>
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverterPacked4Element<cutlass::half_t, cutlass::float_e4m3_t, Round> {
-  using result_element = cutlass::half_t;
-  using source_element = cutlass::float_e4m3_t;
+struct NumericArrayConverterPacked4Element<nihilus_gemm::half_t, nihilus_gemm::float_e4m3_t, Round> {
+  using result_element = nihilus_gemm::half_t;
+  using source_element = nihilus_gemm::float_e4m3_t;
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -2790,17 +2790,17 @@ struct NumericArrayConverterPacked4Element<cutlass::half_t, cutlass::float_e4m3_
   }
 };
 
-/// Partial specialization for Array<float_e4m3_t, 4> <= Array<cutlass::half_t, 4>
+/// Partial specialization for Array<float_e4m3_t, 4> <= Array<nihilus_gemm::half_t, 4>
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverterPacked4Element<float_e4m3_t, cutlass::half_t, Round> {
-  using result_element = cutlass::float_e4m3_t;
-  using source_element = cutlass::half_t;
+struct NumericArrayConverterPacked4Element<float_e4m3_t, nihilus_gemm::half_t, Round> {
+  using result_element = nihilus_gemm::float_e4m3_t;
+  using source_element = nihilus_gemm::half_t;
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -2841,21 +2841,21 @@ struct NumericArrayConverterPacked4Element<float_e4m3_t, cutlass::half_t, Round>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// Partial specializations for Array<cutlass::half_t, 4> <=> Array<float_e5m2_t, 4>
+// Partial specializations for Array<nihilus_gemm::half_t, 4> <=> Array<float_e5m2_t, 4>
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Partial specialization for Array<cutlass::half_t, 4> <= Array<float_e5m2_t, 4>
+/// Partial specialization for Array<nihilus_gemm::half_t, 4> <= Array<float_e5m2_t, 4>
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverterPacked4Element<cutlass::half_t, cutlass::float_e5m2_t, Round> {
-  using result_element = cutlass::half_t;
-  using source_element = cutlass::float_e5m2_t;
+struct NumericArrayConverterPacked4Element<nihilus_gemm::half_t, nihilus_gemm::float_e5m2_t, Round> {
+  using result_element = nihilus_gemm::half_t;
+  using source_element = nihilus_gemm::float_e5m2_t;
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -2890,17 +2890,17 @@ struct NumericArrayConverterPacked4Element<cutlass::half_t, cutlass::float_e5m2_
   }
 };
 
-/// Partial specialization for Array<float_e5m2_t, 4> <= Array<cutlass::half_t, 4>
+/// Partial specialization for Array<float_e5m2_t, 4> <= Array<nihilus_gemm::half_t, 4>
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverterPacked4Element<float_e5m2_t, cutlass::half_t, Round> {
-  using result_element = cutlass::float_e5m2_t;
-  using source_element = cutlass::half_t;
+struct NumericArrayConverterPacked4Element<float_e5m2_t, nihilus_gemm::half_t, Round> {
+  using result_element = nihilus_gemm::float_e5m2_t;
+  using source_element = nihilus_gemm::half_t;
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -2941,21 +2941,21 @@ struct NumericArrayConverterPacked4Element<float_e5m2_t, cutlass::half_t, Round>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// Partial specializations for Array<cutlass::bfloat16_t, 4> <=> Array<float_e4m3_t, 4>
+// Partial specializations for Array<nihilus_gemm::bfloat16_t, 4> <=> Array<float_e4m3_t, 4>
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Partial specialization for Array<cutlass::bfloat16_t, 4> <= Array<float_e4m3_t, 4>
+/// Partial specialization for Array<nihilus_gemm::bfloat16_t, 4> <= Array<float_e4m3_t, 4>
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverterPacked4Element<cutlass::bfloat16_t, cutlass::float_e4m3_t, Round> {
-  using result_element = cutlass::bfloat16_t;
-  using source_element = cutlass::float_e4m3_t;
+struct NumericArrayConverterPacked4Element<nihilus_gemm::bfloat16_t, nihilus_gemm::float_e4m3_t, Round> {
+  using result_element = nihilus_gemm::bfloat16_t;
+  using source_element = nihilus_gemm::float_e4m3_t;
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -2993,17 +2993,17 @@ struct NumericArrayConverterPacked4Element<cutlass::bfloat16_t, cutlass::float_e
   }
 };
 
-/// Partial specialization for Array<float_e4m3_t, 4> <= Array<cutlass::bfloat16_t, 4>
+/// Partial specialization for Array<float_e4m3_t, 4> <= Array<nihilus_gemm::bfloat16_t, 4>
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverterPacked4Element<float_e4m3_t, cutlass::bfloat16_t, Round> {
-  using result_element = cutlass::float_e4m3_t;
-  using source_element = cutlass::bfloat16_t;
+struct NumericArrayConverterPacked4Element<float_e4m3_t, nihilus_gemm::bfloat16_t, Round> {
+  using result_element = nihilus_gemm::float_e4m3_t;
+  using source_element = nihilus_gemm::bfloat16_t;
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -3041,21 +3041,21 @@ struct NumericArrayConverterPacked4Element<float_e4m3_t, cutlass::bfloat16_t, Ro
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// Partial specializations for Array<cutlass::bfloat16_t, 4> <=> Array<float_e5m2_t, 4>
+// Partial specializations for Array<nihilus_gemm::bfloat16_t, 4> <=> Array<float_e5m2_t, 4>
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Partial specialization for Array<cutlass::bfloat16_t, 4> <= Array<float_e5m2_t, 4>
+/// Partial specialization for Array<nihilus_gemm::bfloat16_t, 4> <= Array<float_e5m2_t, 4>
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverterPacked4Element<cutlass::bfloat16_t, cutlass::float_e5m2_t, Round> {
-  using result_element = cutlass::bfloat16_t;
-  using source_element = cutlass::float_e5m2_t;
+struct NumericArrayConverterPacked4Element<nihilus_gemm::bfloat16_t, nihilus_gemm::float_e5m2_t, Round> {
+  using result_element = nihilus_gemm::bfloat16_t;
+  using source_element = nihilus_gemm::float_e5m2_t;
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -3093,17 +3093,17 @@ struct NumericArrayConverterPacked4Element<cutlass::bfloat16_t, cutlass::float_e
   }
 };
 
-/// Partial specialization for Array<float_e5m2_t, 4> <= Array<cutlass::bfloat16_t, 4>
+/// Partial specialization for Array<float_e5m2_t, 4> <= Array<nihilus_gemm::bfloat16_t, 4>
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverterPacked4Element<float_e5m2_t, cutlass::bfloat16_t, Round> {
-  using result_element = cutlass::float_e5m2_t;
-  using source_element = cutlass::bfloat16_t;
+struct NumericArrayConverterPacked4Element<float_e5m2_t, nihilus_gemm::bfloat16_t, Round> {
+  using result_element = nihilus_gemm::float_e5m2_t;
+  using source_element = nihilus_gemm::bfloat16_t;
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -3149,13 +3149,13 @@ struct NumericArrayConverterPacked4Element<float_e5m2_t, cutlass::bfloat16_t, Ro
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverterPacked4Element<float_e4m3_t, cutlass::float_e5m2_t, Round> {
-  using result_element = cutlass::float_e4m3_t;
-  using source_element = cutlass::float_e5m2_t;
+struct NumericArrayConverterPacked4Element<float_e4m3_t, nihilus_gemm::float_e5m2_t, Round> {
+  using result_element = nihilus_gemm::float_e4m3_t;
+  using source_element = nihilus_gemm::float_e5m2_t;
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -3180,13 +3180,13 @@ struct NumericArrayConverterPacked4Element<float_e4m3_t, cutlass::float_e5m2_t, 
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverterPacked4Element<float_e5m2_t, cutlass::float_e4m3_t, Round> {
-  using result_element = cutlass::float_e5m2_t;
-  using source_element = cutlass::float_e4m3_t;
+struct NumericArrayConverterPacked4Element<float_e5m2_t, nihilus_gemm::float_e4m3_t, Round> {
+  using result_element = nihilus_gemm::float_e5m2_t;
+  using source_element = nihilus_gemm::float_e4m3_t;
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -3231,7 +3231,7 @@ struct PackedNumericArrayConverter {
   using result_type = Array<result_element, N>;
   using source_type = Array<source_element, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using packed_result_type = Array<result_element, 4>;
@@ -3274,8 +3274,8 @@ template <
   int N,
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<T, cutlass::float_e4m3_t, N, Round> :
-  public PackedNumericArrayConverter<T, cutlass::float_e4m3_t, N, Round> {};
+struct NumericArrayConverter<T, nihilus_gemm::float_e4m3_t, N, Round> :
+  public PackedNumericArrayConverter<T, nihilus_gemm::float_e4m3_t, N, Round> {};
 
 /// Partial specialization for Array<T, N> <= Array<float_e5m2_t, N>
 template <
@@ -3283,8 +3283,8 @@ template <
   int N,
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<T, cutlass::float_e5m2_t, N, Round> :
-  public PackedNumericArrayConverter<T, cutlass::float_e5m2_t, N, Round> {};
+struct NumericArrayConverter<T, nihilus_gemm::float_e5m2_t, N, Round> :
+  public PackedNumericArrayConverter<T, nihilus_gemm::float_e5m2_t, N, Round> {};
 
 /// Partial specialization for Array<float_e4m3_t, N> <= Array<S, N>
 template <
@@ -3309,32 +3309,32 @@ template <
   int N,
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<float_e4m3_t, cutlass::float_e5m2_t, N, Round> :
-  public PackedNumericArrayConverter<float_e4m3_t, cutlass::float_e5m2_t, N, Round> {};
+struct NumericArrayConverter<float_e4m3_t, nihilus_gemm::float_e5m2_t, N, Round> :
+  public PackedNumericArrayConverter<float_e4m3_t, nihilus_gemm::float_e5m2_t, N, Round> {};
 
 /// Partial specialization for Array<float_e5m2_t, N> <= Array<float_e4m3_t, N>
 template <
   int N,
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<float_e5m2_t, cutlass::float_e4m3_t, N, Round> :
-  public PackedNumericArrayConverter<float_e5m2_t, cutlass::float_e4m3_t, N, Round> {};
+struct NumericArrayConverter<float_e5m2_t, nihilus_gemm::float_e4m3_t, N, Round> :
+  public PackedNumericArrayConverter<float_e5m2_t, nihilus_gemm::float_e4m3_t, N, Round> {};
 
 /// Partial specialization for Array<float_e4m3_t, N> <= Array<float_e4m3_t, N>
 template <
   int N,
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<float_e4m3_t, cutlass::float_e4m3_t, N, Round> :
-  public PackedNumericArrayConverter<float_e4m3_t, cutlass::float_e4m3_t, N, Round> {};
+struct NumericArrayConverter<float_e4m3_t, nihilus_gemm::float_e4m3_t, N, Round> :
+  public PackedNumericArrayConverter<float_e4m3_t, nihilus_gemm::float_e4m3_t, N, Round> {};
 
 /// Partial specialization for Array<float_e5m2_t, N> <= Array<float_e5m2_t, N>
 template <
   int N,
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<float_e5m2_t, cutlass::float_e5m2_t, N, Round> :
-  public PackedNumericArrayConverter<float_e5m2_t, cutlass::float_e5m2_t, N, Round> {};
+struct NumericArrayConverter<float_e5m2_t, nihilus_gemm::float_e5m2_t, N, Round> :
+  public PackedNumericArrayConverter<float_e5m2_t, nihilus_gemm::float_e5m2_t, N, Round> {};
 
 
 /// Partial specialization for Array<float, 2> <= Array<float_ue8m0_t, 2>
@@ -3347,7 +3347,7 @@ struct NumericArrayConverter<float, float_ue8m0_t, 2, Round> {
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -3361,8 +3361,8 @@ struct NumericArrayConverter<float, float_ue8m0_t, 2, Round> {
         "cvt.rn.bf16x2.ue8m0x2 %0, %1;\n" \
         "}\n" : "=r"(out_fp16): "h"(src_packed));
 
-    NumericArrayConverter<float, cutlass::bfloat16_t, 2> bf2fp32_converter;
-    auto res0 = bf2fp32_converter(reinterpret_cast<Array<cutlass::bfloat16_t, 2> &>(out_fp16));
+    NumericArrayConverter<float, nihilus_gemm::bfloat16_t, 2> bf2fp32_converter;
+    auto res0 = bf2fp32_converter(reinterpret_cast<Array<nihilus_gemm::bfloat16_t, 2> &>(out_fp16));
 
     result_type out;
     out[0] = res0[0];
@@ -3395,7 +3395,7 @@ struct NumericArrayConverter<float_ue8m0_t, float, 2, FloatRoundStyle::round_tow
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_toward_infinity;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_infinity;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -3436,7 +3436,7 @@ struct NumericArrayConverter<float_ue8m0_t, float, 2, FloatRoundStyle::round_tow
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = FloatRoundStyle::round_toward_zero;
+  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_zero;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -3478,7 +3478,7 @@ struct NumericArrayConverter<float_ue8m0_t, float, 2, Round> {
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -3515,7 +3515,7 @@ struct NumericArrayConverter<float, float_ue4m3_t, 2, Round> {
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -3564,7 +3564,7 @@ struct NumericArrayConverter<float_ue4m3_t, float, 2, Round> {
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -3612,8 +3612,8 @@ template <
   int N,
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<T, cutlass::float_ue4m3_t, N, Round> :
-  public PackedNumericArrayConverter<T, cutlass::float_ue4m3_t, N, Round> {};
+struct NumericArrayConverter<T, nihilus_gemm::float_ue4m3_t, N, Round> :
+  public PackedNumericArrayConverter<T, nihilus_gemm::float_ue4m3_t, N, Round> {};
 
 // Partial specialization for Array<float_ue4m3_t, N> <= Array<S, N>
 template <
@@ -3621,8 +3621,8 @@ template <
   int N,
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<cutlass::float_ue4m3_t, S, N, Round> :
-  public PackedNumericArrayConverter<cutlass::float_ue4m3_t, S, N, Round> {};
+struct NumericArrayConverter<nihilus_gemm::float_ue4m3_t, S, N, Round> :
+  public PackedNumericArrayConverter<nihilus_gemm::float_ue4m3_t, S, N, Round> {};
 
 
 /// Partial specialization for Array<T, N> <= Array<float_e2m3_unpack8bits_t, N>
@@ -3631,8 +3631,8 @@ template <
   int N,
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<T, cutlass::detail::float_e2m3_unpack8bits_t, N, Round> :
-  public PackedNumericArrayConverter<T, cutlass::detail::float_e2m3_unpack8bits_t, N, Round> {};
+struct NumericArrayConverter<T, nihilus_gemm::detail::float_e2m3_unpack8bits_t, N, Round> :
+  public PackedNumericArrayConverter<T, nihilus_gemm::detail::float_e2m3_unpack8bits_t, N, Round> {};
 
 
 /// Partial specialization for Array<float_e2m3_unpack8bits_t, N> <= Array<S, N>
@@ -3641,16 +3641,16 @@ template <
   int N,
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<cutlass::detail::float_e2m3_unpack8bits_t, S, N, Round> :
-  public PackedNumericArrayConverter<cutlass::detail::float_e2m3_unpack8bits_t, S, N, Round> {};
+struct NumericArrayConverter<nihilus_gemm::detail::float_e2m3_unpack8bits_t, S, N, Round> :
+  public PackedNumericArrayConverter<nihilus_gemm::detail::float_e2m3_unpack8bits_t, S, N, Round> {};
 
 /// Partial specialization for Array<float_e2m3_unpack8bits_t, N> <= Array<float_e2m3_unpack8bits_t, N>
 template <
   int N,
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<cutlass::detail::float_e2m3_unpack8bits_t, cutlass::detail::float_e2m3_unpack8bits_t, N, Round> :
-  public PackedNumericArrayConverter<cutlass::detail::float_e2m3_unpack8bits_t, cutlass::detail::float_e2m3_unpack8bits_t, N, Round> {};
+struct NumericArrayConverter<nihilus_gemm::detail::float_e2m3_unpack8bits_t, nihilus_gemm::detail::float_e2m3_unpack8bits_t, N, Round> :
+  public PackedNumericArrayConverter<nihilus_gemm::detail::float_e2m3_unpack8bits_t, nihilus_gemm::detail::float_e2m3_unpack8bits_t, N, Round> {};
 
 /// Partial specialization for Array<T, N> <= Array<float_e3m2_unpack8bits_t, N>
 template <
@@ -3658,8 +3658,8 @@ template <
   int N,
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<T, cutlass::detail::float_e3m2_unpack8bits_t, N, Round> :
-  public PackedNumericArrayConverter<T, cutlass::detail::float_e3m2_unpack8bits_t, N, Round> {};
+struct NumericArrayConverter<T, nihilus_gemm::detail::float_e3m2_unpack8bits_t, N, Round> :
+  public PackedNumericArrayConverter<T, nihilus_gemm::detail::float_e3m2_unpack8bits_t, N, Round> {};
 
 /// Partial specialization for Array<float_e3m2_unpack8bits_t, N> <= Array<S, N>
 template <
@@ -3667,16 +3667,16 @@ template <
   int N,
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<cutlass::detail::float_e3m2_unpack8bits_t, S, N, Round> :
-  public PackedNumericArrayConverter<cutlass::detail::float_e3m2_unpack8bits_t, S, N, Round> {};
+struct NumericArrayConverter<nihilus_gemm::detail::float_e3m2_unpack8bits_t, S, N, Round> :
+  public PackedNumericArrayConverter<nihilus_gemm::detail::float_e3m2_unpack8bits_t, S, N, Round> {};
 
 /// Partial specialization for Array<float_e3m2_unpack8bits_t, N> <= Array<float_e3m2_unpack8bits_t, N>
 template <
   int N,
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<cutlass::detail::float_e3m2_unpack8bits_t, cutlass::detail::float_e3m2_unpack8bits_t, N, Round> :
-  public PackedNumericArrayConverter<cutlass::detail::float_e3m2_unpack8bits_t, cutlass::detail::float_e3m2_unpack8bits_t, N, Round> {};
+struct NumericArrayConverter<nihilus_gemm::detail::float_e3m2_unpack8bits_t, nihilus_gemm::detail::float_e3m2_unpack8bits_t, N, Round> :
+  public PackedNumericArrayConverter<nihilus_gemm::detail::float_e3m2_unpack8bits_t, nihilus_gemm::detail::float_e3m2_unpack8bits_t, N, Round> {};
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -3688,13 +3688,13 @@ struct NumericArrayConverter<cutlass::detail::float_e3m2_unpack8bits_t, cutlass:
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<float, cutlass::float_e2m1_t, 8, Round> {
+struct NumericArrayConverter<float, nihilus_gemm::float_e2m1_t, 8, Round> {
   using result_element = float;
-  using source_element = cutlass::float_e2m1_t;
+  using source_element = nihilus_gemm::float_e2m1_t;
 
   using result_type = Array<result_element, 8>;
   using source_type = Array<source_element, 8>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const & source) {
@@ -3752,17 +3752,17 @@ template <
   int N,
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<float, cutlass::float_e2m1_t, N, Round> {
+struct NumericArrayConverter<float, nihilus_gemm::float_e2m1_t, N, Round> {
   static_assert(!(N % 8), "N must be multiple of 8.");
 
   using result_type = Array<float, N>;
   using source_type = Array<float_e2m1_t, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
 
-    NumericArrayConverter<float, cutlass::float_e2m1_t, 8, Round> convert_vector_;
+    NumericArrayConverter<float, nihilus_gemm::float_e2m1_t, 8, Round> convert_vector_;
 
     result_type result;
 
@@ -3794,7 +3794,7 @@ struct NumericArrayConverter<float_e2m1_t, float, 2, Round> {
 
   using result_type = Array<float_e2m1_t, 2>;
   using source_type = Array<float, 2>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -3838,12 +3838,12 @@ template <
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<float_e2m1_t, float, 8, Round> {
-  using result_element = cutlass::float_e2m1_t;
+  using result_element = nihilus_gemm::float_e2m1_t;
   using source_element = float;
 
   using result_type = Array<float_e2m1_t, 8>;
   using source_type = Array<float, 8>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -3895,7 +3895,7 @@ struct NumericArrayConverter<float_e2m1_t, float, 4, Round> {
 
   using result_type = Array<float_e2m1_t, 4>;
   using source_type = Array<float, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -3942,7 +3942,7 @@ struct NumericArrayConverter<float_e2m1_t, float, N, Round> {
 
   using result_type = Array<float_e2m1_t, N>;
   using source_type = Array<float, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -3980,7 +3980,7 @@ struct NumericArrayConverter<int8_t, float, 1, Round> {
 
   using result_type = Array<int8_t, 1>;
   using source_type = Array<float, 1>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -4003,7 +4003,7 @@ struct NumericArrayConverter<uint8_t, float, 1, Round> {
 
   using result_type = Array<uint8_t, 1>;
   using source_type = Array<float, 1>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -4029,9 +4029,9 @@ struct NumericArrayFP32ToIntConverter {
 
   using result_type = Array<T, N>;
   using source_type = Array<float, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
-  static_assert(cutlass::platform::numeric_limits<T>::is_integer, "the dest type has to be int.");
+  static_assert(nihilus_gemm::platform::numeric_limits<T>::is_integer, "the dest type has to be int.");
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -4151,7 +4151,7 @@ struct NumericArrayConverter<int4b_t, int, 8, Round> {
 
   using result_type = Array<int4b_t, 8>;
   using source_type = Array<int, 8>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -4188,7 +4188,7 @@ struct NumericArrayConverter<int4b_t, int, N, Round> {
 
   using result_type = Array<int4b_t, N>;
   using source_type = Array<int, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -4222,7 +4222,7 @@ struct NumericArrayConverter<uint4b_t, int, 8, Round> {
 
   using result_type = Array<uint4b_t, 8>;
   using source_type = Array<int, 8>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -4259,7 +4259,7 @@ struct NumericArrayConverter<uint4b_t, int, N, Round> {
 
   using result_type = Array<uint4b_t, N>;
   using source_type = Array<int, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -4324,9 +4324,9 @@ namespace detail {
     static void convert_helper(typename ArrayConverter::result_type& result, typename ArrayConverter::source_type const& source) {
       static_assert(sizeof...(OtherVectorArrays) % 2 == 0, "Vector converters must come in {dst, src} pairs");
       static_assert(ResultVectorArray::kElements == SourceVectorArray::kElements, "Vector converters must have the same vector width");
-      static_assert(cutlass::platform::is_same<typename ArrayConverter::result_type::Element, typename ResultVectorArray::Element>::value,
+      static_assert(nihilus_gemm::platform::is_same<typename ArrayConverter::result_type::Element, typename ResultVectorArray::Element>::value,
         "ResultVectorArray must have the same type ArrayConverter::result_type");
-      static_assert(cutlass::platform::is_same<typename ArrayConverter::source_type::Element, typename SourceVectorArray::Element>::value,
+      static_assert(nihilus_gemm::platform::is_same<typename ArrayConverter::source_type::Element, typename SourceVectorArray::Element>::value,
         "SourceVectorArray must have the same type ArrayConverter::result_type");
       static_assert(Offset >= 0 && Offset <= ArrayConverter::result_type::kElements, "Offset must be between 0 and N");
 
@@ -4338,8 +4338,8 @@ namespace detail {
       using ElementRes = typename ArrayConverter::result_type::Element;
       using ElementSrc = typename ArrayConverter::source_type::Element;
 
-      constexpr int vector_bits_res = vector_width * cutlass::sizeof_bits<ElementRes>::value;
-      constexpr int vector_bits_src = vector_width * cutlass::sizeof_bits<ElementSrc>::value;
+      constexpr int vector_bits_res = vector_width * nihilus_gemm::sizeof_bits<ElementRes>::value;
+      constexpr int vector_bits_src = vector_width * nihilus_gemm::sizeof_bits<ElementSrc>::value;
 
       static_assert(vector_bits_res % 8 == 0, "Result vector type must be byte addressed.");
       static_assert(vector_bits_src % 8 == 0, "Source vector type must be byte addressed.");
@@ -4381,22 +4381,22 @@ template <
   FloatRoundStyle Round,
   int N
 >
-struct NumericArrayConverter<cutlass::half_t, cutlass::float_e2m1_t, N, Round> {
-  using result_element = cutlass::half_t;
-  using source_element = cutlass::float_e2m1_t;
+struct NumericArrayConverter<nihilus_gemm::half_t, nihilus_gemm::float_e2m1_t, N, Round> {
+  using result_element = nihilus_gemm::half_t;
+  using source_element = nihilus_gemm::float_e2m1_t;
   using result_type = Array<result_element, N>;
   using source_type = Array<source_element, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
-  using result_type_packed_8 = Array<cutlass::half_t, 8>;
-  using result_type_packed_4 = Array<cutlass::half_t, 4>;
-  using result_type_packed_2 = Array<cutlass::half_t, 2>;
-  using source_type_packed_8 = Array<cutlass::float_e2m1_t, 8>;
-  using source_type_packed_4 = Array<cutlass::float_e2m1_t, 4>;
-  using source_type_packed_2 = Array<cutlass::float_e2m1_t, 2>;
+  using result_type_packed_8 = Array<nihilus_gemm::half_t, 8>;
+  using result_type_packed_4 = Array<nihilus_gemm::half_t, 4>;
+  using result_type_packed_2 = Array<nihilus_gemm::half_t, 2>;
+  using source_type_packed_8 = Array<nihilus_gemm::float_e2m1_t, 8>;
+  using source_type_packed_4 = Array<nihilus_gemm::float_e2m1_t, 4>;
+  using source_type_packed_2 = Array<nihilus_gemm::float_e2m1_t, 2>;
 
-  using ScalarConverter = NumericConverter<cutlass::half_t, cutlass::float_e2m1_t, Round>;
+  using ScalarConverter = NumericConverter<nihilus_gemm::half_t, nihilus_gemm::float_e2m1_t, Round>;
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
   CUTLASS_DEVICE
@@ -4494,21 +4494,21 @@ public:
   }
 };
 
-/// Partial specialization for Array<cutlass::float_e4m3_t, N> <= Array<cutlass::int2b_t, N>
+/// Partial specialization for Array<nihilus_gemm::float_e4m3_t, N> <= Array<nihilus_gemm::int2b_t, N>
 template <FloatRoundStyle Round, int N>
-struct NumericArrayConverter<cutlass::float_e4m3_t, cutlass::int2b_t, N, Round> {
-  using result_type = Array<cutlass::float_e4m3_t, N>;
-  using source_type = Array<cutlass::int2b_t, N>;
+struct NumericArrayConverter<nihilus_gemm::float_e4m3_t, nihilus_gemm::int2b_t, N, Round> {
+  using result_type = Array<nihilus_gemm::float_e4m3_t, N>;
+  using source_type = Array<nihilus_gemm::int2b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
-  using result_type_packed_16 = Array<cutlass::float_e4m3_t, 16>;
-  using result_type_packed_8 = Array<cutlass::float_e4m3_t, 8>;
-  using source_type_packed_16 = Array<cutlass::int2b_t, 16>;
-  using source_type_packed_8 = Array<cutlass::int2b_t, 8>;
+  using result_type_packed_16 = Array<nihilus_gemm::float_e4m3_t, 16>;
+  using result_type_packed_8 = Array<nihilus_gemm::float_e4m3_t, 8>;
+  using source_type_packed_16 = Array<nihilus_gemm::int2b_t, 16>;
+  using source_type_packed_8 = Array<nihilus_gemm::int2b_t, 8>;
 
-  using ScalarConverter = NumericConverter<cutlass::float_e4m3_t, cutlass::int2b_t, Round>;
+  using ScalarConverter = NumericConverter<nihilus_gemm::float_e4m3_t, nihilus_gemm::int2b_t, Round>;
 
   CUTLASS_DEVICE
   static uint32_t to_reg(source_type_packed_8 const& source) {
@@ -4532,7 +4532,7 @@ private:
                   "Invalid PackedSrcType/PackedResultType must be 8 or 16 to use private convert dispatch.");
 
     // Hold output FP8s in reg. We need 1 reg for every 4 elements
-    using RegArray = cutlass::AlignedArray<uint32_t, PackedResultType::kElements / 4, sizeof(PackedResultType)>;
+    using RegArray = nihilus_gemm::AlignedArray<uint32_t, PackedResultType::kElements / 4, sizeof(PackedResultType)>;
     RegArray r;
 
     // View the input as reg
@@ -4587,21 +4587,21 @@ public:
   }
 };
 
-/// Partial specialization for Array<cutlass::float_e4m3_t, N> <= Array<cutlass::uint2b_t, N>
+/// Partial specialization for Array<nihilus_gemm::float_e4m3_t, N> <= Array<nihilus_gemm::uint2b_t, N>
 template <FloatRoundStyle Round, int N>
-struct NumericArrayConverter<cutlass::float_e4m3_t, cutlass::uint2b_t, N, Round> {
-  using result_type = Array<cutlass::float_e4m3_t, N>;
-  using source_type = Array<cutlass::uint2b_t, N>;
+struct NumericArrayConverter<nihilus_gemm::float_e4m3_t, nihilus_gemm::uint2b_t, N, Round> {
+  using result_type = Array<nihilus_gemm::float_e4m3_t, N>;
+  using source_type = Array<nihilus_gemm::uint2b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
-  using result_type_packed_16 = Array<cutlass::float_e4m3_t, 16>;
-  using result_type_packed_8 = Array<cutlass::float_e4m3_t, 8>;
-  using source_type_packed_16 = Array<cutlass::uint2b_t, 16>;
-  using source_type_packed_8 = Array<cutlass::uint2b_t, 8>;
+  using result_type_packed_16 = Array<nihilus_gemm::float_e4m3_t, 16>;
+  using result_type_packed_8 = Array<nihilus_gemm::float_e4m3_t, 8>;
+  using source_type_packed_16 = Array<nihilus_gemm::uint2b_t, 16>;
+  using source_type_packed_8 = Array<nihilus_gemm::uint2b_t, 8>;
 
-  using ScalarConverter = NumericConverter<cutlass::float_e4m3_t, cutlass::uint2b_t, Round>;
+  using ScalarConverter = NumericConverter<nihilus_gemm::float_e4m3_t, nihilus_gemm::uint2b_t, Round>;
 
   CUTLASS_DEVICE
   static uint32_t to_reg(source_type_packed_8 const& source) {
@@ -4625,7 +4625,7 @@ private:
                   "Invalid PackedSrcType/PackedResultType must be 8 or 16 to use private convert dispatch.");
 
     // Hold output FP8s in reg. We need 1 reg for every 4 elements
-    using RegArray = cutlass::AlignedArray<uint32_t, PackedResultType::kElements / 4, sizeof(PackedResultType)>;
+    using RegArray = nihilus_gemm::AlignedArray<uint32_t, PackedResultType::kElements / 4, sizeof(PackedResultType)>;
     RegArray r;
 
     // View the input as reg
@@ -4680,21 +4680,21 @@ public:
   }
 };
 
-/// Partial specialization for Array<cutlass::float_e5m2_t, N> <= Array<cutlass::int2b_t, N>
+/// Partial specialization for Array<nihilus_gemm::float_e5m2_t, N> <= Array<nihilus_gemm::int2b_t, N>
 template <FloatRoundStyle Round, int N>
-struct NumericArrayConverter<cutlass::float_e5m2_t, cutlass::int2b_t, N, Round> {
-  using result_type = Array<cutlass::float_e5m2_t, N>;
-  using source_type = Array<cutlass::int2b_t, N>;
+struct NumericArrayConverter<nihilus_gemm::float_e5m2_t, nihilus_gemm::int2b_t, N, Round> {
+  using result_type = Array<nihilus_gemm::float_e5m2_t, N>;
+  using source_type = Array<nihilus_gemm::int2b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
-  using result_type_packed_16 = Array<cutlass::float_e5m2_t, 16>;
-  using result_type_packed_8 = Array<cutlass::float_e5m2_t, 8>;
-  using source_type_packed_16 = Array<cutlass::int2b_t, 16>;
-  using source_type_packed_8 = Array<cutlass::int2b_t, 8>;
+  using result_type_packed_16 = Array<nihilus_gemm::float_e5m2_t, 16>;
+  using result_type_packed_8 = Array<nihilus_gemm::float_e5m2_t, 8>;
+  using source_type_packed_16 = Array<nihilus_gemm::int2b_t, 16>;
+  using source_type_packed_8 = Array<nihilus_gemm::int2b_t, 8>;
 
-  using ScalarConverter = NumericConverter<cutlass::float_e5m2_t, cutlass::int2b_t, Round>;
+  using ScalarConverter = NumericConverter<nihilus_gemm::float_e5m2_t, nihilus_gemm::int2b_t, Round>;
 
   CUTLASS_DEVICE
   static uint32_t to_reg(source_type_packed_8 const& source) {
@@ -4718,7 +4718,7 @@ private:
                   "Invalid PackedSrcType/PackedResultType must be 8 or 16 to use private convert dispatch.");
 
     // Hold output FP8s in reg. We need 1 reg for every 4 elements
-    using RegArray = cutlass::AlignedArray<uint32_t, PackedResultType::kElements / 4, sizeof(PackedResultType)>;
+    using RegArray = nihilus_gemm::AlignedArray<uint32_t, PackedResultType::kElements / 4, sizeof(PackedResultType)>;
     RegArray r;
 
     // View the input as reg
@@ -4773,21 +4773,21 @@ public:
   }
 };
 
-/// Partial specialization for Array<cutlass::float_e5m2_t, N> <= Array<cutlass::uint2b_t, N>
+/// Partial specialization for Array<nihilus_gemm::float_e5m2_t, N> <= Array<nihilus_gemm::uint2b_t, N>
 template <FloatRoundStyle Round, int N>
-struct NumericArrayConverter<cutlass::float_e5m2_t, cutlass::uint2b_t, N, Round> {
-  using result_type = Array<cutlass::float_e5m2_t, N>;
-  using source_type = Array<cutlass::uint2b_t, N>;
+struct NumericArrayConverter<nihilus_gemm::float_e5m2_t, nihilus_gemm::uint2b_t, N, Round> {
+  using result_type = Array<nihilus_gemm::float_e5m2_t, N>;
+  using source_type = Array<nihilus_gemm::uint2b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
-  using result_type_packed_16 = Array<cutlass::float_e5m2_t, 16>;
-  using result_type_packed_8 = Array<cutlass::float_e5m2_t, 8>;
-  using source_type_packed_16 = Array<cutlass::uint2b_t, 16>;
-  using source_type_packed_8 = Array<cutlass::uint2b_t, 8>;
+  using result_type_packed_16 = Array<nihilus_gemm::float_e5m2_t, 16>;
+  using result_type_packed_8 = Array<nihilus_gemm::float_e5m2_t, 8>;
+  using source_type_packed_16 = Array<nihilus_gemm::uint2b_t, 16>;
+  using source_type_packed_8 = Array<nihilus_gemm::uint2b_t, 8>;
 
-  using ScalarConverter = NumericConverter<cutlass::float_e5m2_t, cutlass::uint2b_t, Round>;
+  using ScalarConverter = NumericConverter<nihilus_gemm::float_e5m2_t, nihilus_gemm::uint2b_t, Round>;
 
   CUTLASS_DEVICE
   static uint32_t to_reg(source_type_packed_8 const& source) {
@@ -4811,7 +4811,7 @@ private:
                   "Invalid PackedSrcType/PackedResultType must be 8 or 16 to use private convert dispatch.");
 
     // Hold output FP8s in reg. We need 1 reg for every 4 elements
-    using RegArray = cutlass::AlignedArray<uint32_t, PackedResultType::kElements / 4, sizeof(PackedResultType)>;
+    using RegArray = nihilus_gemm::AlignedArray<uint32_t, PackedResultType::kElements / 4, sizeof(PackedResultType)>;
     RegArray r;
 
     // View the input as reg
@@ -4877,7 +4877,7 @@ struct NumericArrayConverter<int8_t, int4b_t, N, Round> {
 
   using result_type = Array<int8_t, N>;
   using source_type = Array<int4b_t, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
@@ -4949,21 +4949,21 @@ struct NumericArrayConverter<int8_t, int4b_t, N, Round> {
   }
 };
 
-/// Partial specialization for Array<cutlass::float_e4m3_t, N> <= Array<cutlass::int4b_t, N>
+/// Partial specialization for Array<nihilus_gemm::float_e4m3_t, N> <= Array<nihilus_gemm::int4b_t, N>
 template <FloatRoundStyle Round, int N>
-struct NumericArrayConverter<cutlass::float_e4m3_t, cutlass::int4b_t, N, Round> {
-  using result_type = Array<cutlass::float_e4m3_t, N>;
-  using source_type = Array<cutlass::int4b_t, N>;
+struct NumericArrayConverter<nihilus_gemm::float_e4m3_t, nihilus_gemm::int4b_t, N, Round> {
+  using result_type = Array<nihilus_gemm::float_e4m3_t, N>;
+  using source_type = Array<nihilus_gemm::int4b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
-  using result_type_packed_8 = Array<cutlass::float_e4m3_t, 8>;
-  using result_type_packed_4 = Array<cutlass::float_e4m3_t, 4>;
-  using source_type_packed_8 = Array<cutlass::int4b_t, 8>;
-  using source_type_packed_4 = Array<cutlass::int4b_t, 4>;
+  using result_type_packed_8 = Array<nihilus_gemm::float_e4m3_t, 8>;
+  using result_type_packed_4 = Array<nihilus_gemm::float_e4m3_t, 4>;
+  using source_type_packed_8 = Array<nihilus_gemm::int4b_t, 8>;
+  using source_type_packed_4 = Array<nihilus_gemm::int4b_t, 4>;
 
-  using ScalarConverter = NumericConverter<cutlass::float_e4m3_t, cutlass::int4b_t, Round>;
+  using ScalarConverter = NumericConverter<nihilus_gemm::float_e4m3_t, nihilus_gemm::int4b_t, Round>;
 
   CUTLASS_DEVICE
   static uint32_t to_reg(source_type_packed_4 const& source) {
@@ -4988,7 +4988,7 @@ private:
                   "Invalid PackedSrcType/PackedResultType must be 4 or 8 to use private convert dispatch.");
 
     // Hold FP8 outputs in reg. We need 1 reg for every 4 outputs.
-    cutlass::AlignedArray<uint32_t, PackedResultType::kElements / 4, sizeof(PackedResultType)> r;
+    nihilus_gemm::AlignedArray<uint32_t, PackedResultType::kElements / 4, sizeof(PackedResultType)> r;
 
     // View the input as reg
     uint32_t reg = to_reg(source);
@@ -5056,21 +5056,21 @@ public:
   }
 };
 
-/// Partial specialization for Array<cutlass::float_e5m2_t, N> <= Array<cutlass::int4b_t, N>
+/// Partial specialization for Array<nihilus_gemm::float_e5m2_t, N> <= Array<nihilus_gemm::int4b_t, N>
 template <FloatRoundStyle Round, int N>
-struct NumericArrayConverter<cutlass::float_e5m2_t, cutlass::int4b_t, N, Round> {
-  using result_type = Array<cutlass::float_e5m2_t, N>;
-  using source_type = Array<cutlass::int4b_t, N>;
+struct NumericArrayConverter<nihilus_gemm::float_e5m2_t, nihilus_gemm::int4b_t, N, Round> {
+  using result_type = Array<nihilus_gemm::float_e5m2_t, N>;
+  using source_type = Array<nihilus_gemm::int4b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
-  using result_type_packed_8 = Array<cutlass::float_e5m2_t, 8>;
-  using result_type_packed_4 = Array<cutlass::float_e5m2_t, 4>;
-  using source_type_packed_8 = Array<cutlass::int4b_t, 8>;
-  using source_type_packed_4 = Array<cutlass::int4b_t, 4>;
+  using result_type_packed_8 = Array<nihilus_gemm::float_e5m2_t, 8>;
+  using result_type_packed_4 = Array<nihilus_gemm::float_e5m2_t, 4>;
+  using source_type_packed_8 = Array<nihilus_gemm::int4b_t, 8>;
+  using source_type_packed_4 = Array<nihilus_gemm::int4b_t, 4>;
 
-  using ScalarConverter = NumericConverter<cutlass::float_e5m2_t, cutlass::int4b_t, Round>;
+  using ScalarConverter = NumericConverter<nihilus_gemm::float_e5m2_t, nihilus_gemm::int4b_t, Round>;
 
   CUTLASS_DEVICE
   static uint32_t to_reg(source_type_packed_4 const& source) {
@@ -5095,7 +5095,7 @@ private:
                   "Invalid PackedSrcType/PackedResultType must be 4 or 8 to use private convert dispatch.");
 
     // Hold FP8 outputs in reg. We need 1 reg for every 4 outputs.
-    cutlass::AlignedArray<uint32_t, PackedResultType::kElements / 4, sizeof(PackedResultType)> r;
+    nihilus_gemm::AlignedArray<uint32_t, PackedResultType::kElements / 4, sizeof(PackedResultType)> r;
 
     // View the input as reg
     uint32_t reg = to_reg(source);
@@ -5163,21 +5163,21 @@ public:
   }
 };
 
-/// Partial specialization for Array<cutlass::float_e4m3_t, N> <= Array<cutlass::uint4b_t, N>
+/// Partial specialization for Array<nihilus_gemm::float_e4m3_t, N> <= Array<nihilus_gemm::uint4b_t, N>
 template <FloatRoundStyle Round, int N>
-struct NumericArrayConverter<cutlass::float_e4m3_t, cutlass::uint4b_t, N, Round> {
-  using result_type = Array<cutlass::float_e4m3_t, N>;
-  using source_type = Array<cutlass::uint4b_t, N>;
+struct NumericArrayConverter<nihilus_gemm::float_e4m3_t, nihilus_gemm::uint4b_t, N, Round> {
+  using result_type = Array<nihilus_gemm::float_e4m3_t, N>;
+  using source_type = Array<nihilus_gemm::uint4b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
-  using result_type_packed_8 = Array<cutlass::float_e4m3_t, 8>;
-  using result_type_packed_4 = Array<cutlass::float_e4m3_t, 4>;
-  using source_type_packed_8 = Array<cutlass::uint4b_t, 8>;
-  using source_type_packed_4 = Array<cutlass::uint4b_t, 4>;
+  using result_type_packed_8 = Array<nihilus_gemm::float_e4m3_t, 8>;
+  using result_type_packed_4 = Array<nihilus_gemm::float_e4m3_t, 4>;
+  using source_type_packed_8 = Array<nihilus_gemm::uint4b_t, 8>;
+  using source_type_packed_4 = Array<nihilus_gemm::uint4b_t, 4>;
 
-  using ScalarConverter = NumericConverter<cutlass::float_e4m3_t, cutlass::uint4b_t, Round>;
+  using ScalarConverter = NumericConverter<nihilus_gemm::float_e4m3_t, nihilus_gemm::uint4b_t, Round>;
 
   CUTLASS_DEVICE
   static uint32_t to_reg(source_type_packed_4 const& source) {
@@ -5202,7 +5202,7 @@ private:
                   "Invalid PackedSrcType/PackedResultType must be 4 or 8 to use private convert dispatch.");
 
     // Hold FP8 outputs in reg. We need 1 reg for every 4 outputs.
-    cutlass::AlignedArray<uint32_t, PackedResultType::kElements / 4, sizeof(PackedResultType)> r;
+    nihilus_gemm::AlignedArray<uint32_t, PackedResultType::kElements / 4, sizeof(PackedResultType)> r;
 
     // View the input as reg
     uint32_t reg = to_reg(source);
@@ -5270,23 +5270,23 @@ public:
   }
 };
 
-/// Partial specialization for Array<float, N> <= Array<cutlass::int4b_t, N>
+/// Partial specialization for Array<float, N> <= Array<nihilus_gemm::int4b_t, N>
 template <FloatRoundStyle Round, int N>
-struct NumericArrayConverter<float, cutlass::int4b_t, N, Round> {
+struct NumericArrayConverter<float, nihilus_gemm::int4b_t, N, Round> {
   using result_type = Array<float, N>;
-  using source_type = Array<cutlass::int4b_t, N>;
+  using source_type = Array<nihilus_gemm::int4b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using result_type_packed_8 = Array<float, 8>;
   using result_type_packed_4 = Array<float, 4>;
   using result_type_packed_2 = Array<float, 2>;
-  using source_type_packed_8 = Array<cutlass::int4b_t, 8>;
-  using source_type_packed_4 = Array<cutlass::int4b_t, 4>;
-  using source_type_packed_2 = Array<cutlass::int4b_t, 2>;
+  using source_type_packed_8 = Array<nihilus_gemm::int4b_t, 8>;
+  using source_type_packed_4 = Array<nihilus_gemm::int4b_t, 4>;
+  using source_type_packed_2 = Array<nihilus_gemm::int4b_t, 2>;
 
-  using ScalarConverter = NumericConverter<float, cutlass::int4b_t, Round>;
+  using ScalarConverter = NumericConverter<float, nihilus_gemm::int4b_t, Round>;
 
   CUTLASS_DEVICE
   static uint32_t to_reg(source_type_packed_2 const& source) {
@@ -5395,7 +5395,7 @@ template <FloatRoundStyle Round, int N>
 struct NumericArrayConverter<float, int8_t, N, Round> {
   using result_type = Array<float, N>;
   using source_type = Array<int8_t, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using result_type_packed_4 = Array<float, 4>;
@@ -5496,7 +5496,7 @@ template <FloatRoundStyle Round, int N>
 struct NumericArrayConverter<float, uint8_t, N, Round> {
   using result_type = Array<float, N>;
   using source_type = Array<uint8_t, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
   using result_type_packed_4 = Array<float, 4>;
@@ -5565,23 +5565,23 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-/// Partial specialization for Array<cutlass::half_t, N> <= Array<cutlass::int2b_t, N>
+/// Partial specialization for Array<nihilus_gemm::half_t, N> <= Array<nihilus_gemm::int2b_t, N>
 template <FloatRoundStyle Round, int N>
-struct NumericArrayConverter<cutlass::half_t, cutlass::int2b_t, N, Round> {
-  using result_type = Array<cutlass::half_t, N>;
-  using source_type = Array<cutlass::int2b_t, N>;
+struct NumericArrayConverter<nihilus_gemm::half_t, nihilus_gemm::int2b_t, N, Round> {
+  using result_type = Array<nihilus_gemm::half_t, N>;
+  using source_type = Array<nihilus_gemm::int2b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
-  using result_type_packed_16 = Array<cutlass::half_t, 16>;
-  using result_type_packed_8 = Array<cutlass::half_t, 8>;
-  using result_type_packed_4 = Array<cutlass::half_t, 4>;
-  using source_type_packed_16 = Array<cutlass::int2b_t, 16>;
-  using source_type_packed_8 = Array<cutlass::int2b_t, 8>;
-  using source_type_packed_4 = Array<cutlass::int2b_t, 4>;
+  using result_type_packed_16 = Array<nihilus_gemm::half_t, 16>;
+  using result_type_packed_8 = Array<nihilus_gemm::half_t, 8>;
+  using result_type_packed_4 = Array<nihilus_gemm::half_t, 4>;
+  using source_type_packed_16 = Array<nihilus_gemm::int2b_t, 16>;
+  using source_type_packed_8 = Array<nihilus_gemm::int2b_t, 8>;
+  using source_type_packed_4 = Array<nihilus_gemm::int2b_t, 4>;
 
-  using ScalarConverter = NumericConverter<cutlass::half_t, cutlass::int2b_t, Round>;
+  using ScalarConverter = NumericConverter<nihilus_gemm::half_t, nihilus_gemm::int2b_t, Round>;
 
   CUTLASS_DEVICE
   static uint32_t to_reg(source_type_packed_4 const& source) {
@@ -5613,7 +5613,7 @@ private:
                   "Invalid PackedSrcType/PackedResultType must be 4, 8 or 16 to use private convert dispatch.");
 
     // Hold output FP16s in reg. We need 1 reg for every 2 elements
-    using RegArray = cutlass::AlignedArray<uint32_t, PackedResultType::kElements / 2, sizeof(PackedResultType)>;
+    using RegArray = nihilus_gemm::AlignedArray<uint32_t, PackedResultType::kElements / 2, sizeof(PackedResultType)>;
     RegArray r;
 
     // View the input as reg
@@ -5703,23 +5703,23 @@ public:
   }
 };
 
-/// Partial specialization for Array<cutlass::half_t, N> <= Array<cutlass::uint2b_t, N>
+/// Partial specialization for Array<nihilus_gemm::half_t, N> <= Array<nihilus_gemm::uint2b_t, N>
 template <FloatRoundStyle Round, int N>
-struct NumericArrayConverter<cutlass::half_t, cutlass::uint2b_t, N, Round> {
-  using result_type = Array<cutlass::half_t, N>;
-  using source_type = Array<cutlass::uint2b_t, N>;
+struct NumericArrayConverter<nihilus_gemm::half_t, nihilus_gemm::uint2b_t, N, Round> {
+  using result_type = Array<nihilus_gemm::half_t, N>;
+  using source_type = Array<nihilus_gemm::uint2b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
-  using result_type_packed_16 = Array<cutlass::half_t, 16>;
-  using result_type_packed_8 = Array<cutlass::half_t, 8>;
-  using result_type_packed_4 = Array<cutlass::half_t, 4>;
-  using source_type_packed_16 = Array<cutlass::uint2b_t, 16>;
-  using source_type_packed_8 = Array<cutlass::uint2b_t, 8>;
-  using source_type_packed_4 = Array<cutlass::uint2b_t, 4>;
+  using result_type_packed_16 = Array<nihilus_gemm::half_t, 16>;
+  using result_type_packed_8 = Array<nihilus_gemm::half_t, 8>;
+  using result_type_packed_4 = Array<nihilus_gemm::half_t, 4>;
+  using source_type_packed_16 = Array<nihilus_gemm::uint2b_t, 16>;
+  using source_type_packed_8 = Array<nihilus_gemm::uint2b_t, 8>;
+  using source_type_packed_4 = Array<nihilus_gemm::uint2b_t, 4>;
 
-  using ScalarConverter = NumericConverter<cutlass::half_t, cutlass::uint2b_t, Round>;
+  using ScalarConverter = NumericConverter<nihilus_gemm::half_t, nihilus_gemm::uint2b_t, Round>;
 
   CUTLASS_DEVICE
   static uint32_t to_reg(source_type_packed_4 const& source) {
@@ -5751,7 +5751,7 @@ private:
                   "Invalid PackedSrcType/PackedResultType must be 4, 8 or 16 to use private convert dispatch.");
 
     // Hold output FP16s in reg. We need 1 reg for every 2 elements
-    using RegArray = cutlass::AlignedArray<uint32_t, PackedResultType::kElements / 2, sizeof(PackedResultType)>;
+    using RegArray = nihilus_gemm::AlignedArray<uint32_t, PackedResultType::kElements / 2, sizeof(PackedResultType)>;
     RegArray r;
 
     // View the input as reg
@@ -5839,23 +5839,23 @@ public:
   }
 };
 
-/// Partial specialization for Array<cutlass::half_t, N> <= Array<cutlass::int4b_t, N>
+/// Partial specialization for Array<nihilus_gemm::half_t, N> <= Array<nihilus_gemm::int4b_t, N>
 template <FloatRoundStyle Round, int N>
-struct NumericArrayConverter<cutlass::half_t, cutlass::int4b_t, N, Round> {
-  using result_type = Array<cutlass::half_t, N>;
-  using source_type = Array<cutlass::int4b_t, N>;
+struct NumericArrayConverter<nihilus_gemm::half_t, nihilus_gemm::int4b_t, N, Round> {
+  using result_type = Array<nihilus_gemm::half_t, N>;
+  using source_type = Array<nihilus_gemm::int4b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
-  using result_type_packed_8 = Array<cutlass::half_t, 8>;
-  using result_type_packed_4 = Array<cutlass::half_t, 4>;
-  using result_type_packed_2 = Array<cutlass::half_t, 2>;
-  using source_type_packed_8 = Array<cutlass::int4b_t, 8>;
-  using source_type_packed_4 = Array<cutlass::int4b_t, 4>;
-  using source_type_packed_2 = Array<cutlass::int4b_t, 2>;
+  using result_type_packed_8 = Array<nihilus_gemm::half_t, 8>;
+  using result_type_packed_4 = Array<nihilus_gemm::half_t, 4>;
+  using result_type_packed_2 = Array<nihilus_gemm::half_t, 2>;
+  using source_type_packed_8 = Array<nihilus_gemm::int4b_t, 8>;
+  using source_type_packed_4 = Array<nihilus_gemm::int4b_t, 4>;
+  using source_type_packed_2 = Array<nihilus_gemm::int4b_t, 2>;
 
-  using ScalarConverter = NumericConverter<cutlass::half_t, cutlass::int4b_t, Round>;
+  using ScalarConverter = NumericConverter<nihilus_gemm::half_t, nihilus_gemm::int4b_t, Round>;
 
   CUTLASS_DEVICE
   static uint32_t to_reg(source_type_packed_2 const& source) {
@@ -5889,7 +5889,7 @@ private:
                   "Invalid PackedSrcType/PackedResultType must be 2, 4 or 8 to use private convert dispatch.");
 
     // Hold output FP16s in reg. We need 1 reg for every 2 elements
-    using RegArray = cutlass::AlignedArray<uint32_t, PackedResultType::kElements / 2, sizeof(PackedResultType)>;
+    using RegArray = nihilus_gemm::AlignedArray<uint32_t, PackedResultType::kElements / 2, sizeof(PackedResultType)>;
     RegArray r;
 
     // View the input as reg
@@ -5982,23 +5982,23 @@ public:
   }
 };
 
-/// Partial specialization for Array<cutlass::half_t, N> <= Array<cutlass::uint4b_t, N>
+/// Partial specialization for Array<nihilus_gemm::half_t, N> <= Array<nihilus_gemm::uint4b_t, N>
 template <FloatRoundStyle Round, int N>
-struct NumericArrayConverter<cutlass::half_t, cutlass::uint4b_t, N, Round> {
-  using result_type = Array<cutlass::half_t, N>;
-  using source_type = Array<cutlass::uint4b_t, N>;
+struct NumericArrayConverter<nihilus_gemm::half_t, nihilus_gemm::uint4b_t, N, Round> {
+  using result_type = Array<nihilus_gemm::half_t, N>;
+  using source_type = Array<nihilus_gemm::uint4b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
-  using result_type_packed_8 = Array<cutlass::half_t, 8>;
-  using result_type_packed_4 = Array<cutlass::half_t, 4>;
-  using result_type_packed_2 = Array<cutlass::half_t, 2>;
-  using source_type_packed_8 = Array<cutlass::uint4b_t, 8>;
-  using source_type_packed_4 = Array<cutlass::uint4b_t, 4>;
-  using source_type_packed_2 = Array<cutlass::uint4b_t, 2>;
+  using result_type_packed_8 = Array<nihilus_gemm::half_t, 8>;
+  using result_type_packed_4 = Array<nihilus_gemm::half_t, 4>;
+  using result_type_packed_2 = Array<nihilus_gemm::half_t, 2>;
+  using source_type_packed_8 = Array<nihilus_gemm::uint4b_t, 8>;
+  using source_type_packed_4 = Array<nihilus_gemm::uint4b_t, 4>;
+  using source_type_packed_2 = Array<nihilus_gemm::uint4b_t, 2>;
 
-  using ScalarConverter = NumericConverter<cutlass::half_t, cutlass::uint4b_t, Round>;
+  using ScalarConverter = NumericConverter<nihilus_gemm::half_t, nihilus_gemm::uint4b_t, Round>;
 
   CUTLASS_DEVICE
   static uint32_t to_reg(source_type_packed_2 const& source) {
@@ -6032,7 +6032,7 @@ private:
                   "Invalid PackedSrcType/PackedResultType must be 2, 4 or 8 to use private convert dispatch.");
 
     // Hold output FP16s in reg. We need 1 reg for every 2 elements
-    using RegArray = cutlass::AlignedArray<uint32_t, PackedResultType::kElements / 2, sizeof(PackedResultType)>;
+    using RegArray = nihilus_gemm::AlignedArray<uint32_t, PackedResultType::kElements / 2, sizeof(PackedResultType)>;
     RegArray r;
 
     // View the input as reg
@@ -6110,20 +6110,20 @@ public:
   }
 };
 
-/// Partial specialization for Array<cutlass::half_t, N> <= Array<int8_t, N>
+/// Partial specialization for Array<nihilus_gemm::half_t, N> <= Array<int8_t, N>
 template <FloatRoundStyle Round, int N>
-struct NumericArrayConverter<cutlass::half_t, int8_t, N, Round> {
-  using result_type = Array<cutlass::half_t, N>;
+struct NumericArrayConverter<nihilus_gemm::half_t, int8_t, N, Round> {
+  using result_type = Array<nihilus_gemm::half_t, N>;
   using source_type = Array<int8_t, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
-  using result_type_packed_4 = Array<cutlass::half_t, 4>;
-  using result_type_packed_2 = Array<cutlass::half_t, 2>;
+  using result_type_packed_4 = Array<nihilus_gemm::half_t, 4>;
+  using result_type_packed_2 = Array<nihilus_gemm::half_t, 2>;
   using source_type_packed_4 = Array<int8_t, 4>;
   using source_type_packed_2 = Array<int8_t, 2>;
 
-  using ScalarConverter = NumericConverter<cutlass::half_t, int8_t, Round>;
+  using ScalarConverter = NumericConverter<nihilus_gemm::half_t, int8_t, Round>;
 
   CUTLASS_DEVICE
   static uint32_t to_reg(source_type_packed_2 const& source) {
@@ -6149,7 +6149,7 @@ private:
                   "Invalid PackedSrcType/PackedResultType must be 2 or 4 to use private convert dispatch.");
 
     // Hold output FP16s in reg. We need 1 reg for every 2 elements
-    using RegArray = cutlass::AlignedArray<uint32_t, PackedResultType::kElements / 2, sizeof(PackedResultType)>;
+    using RegArray = nihilus_gemm::AlignedArray<uint32_t, PackedResultType::kElements / 2, sizeof(PackedResultType)>;
     RegArray r;
 
     #if 0 // Scalar conversion (Please keep this code for reference for vectorized version below)
@@ -6157,7 +6157,7 @@ private:
     CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < PackedResultType::kElements; ++i) {
       int16_t tmp = source[i] + 26112 /* 0x6600 */;
-      result[i] = reinterpret_cast<cutlass::half_t const &>(tmp) - 1536.0_hf;
+      result[i] = reinterpret_cast<nihilus_gemm::half_t const &>(tmp) - 1536.0_hf;
     }
     #endif
 
@@ -6223,20 +6223,20 @@ public:
   }
 };
 
-/// Partial specialization for Array<cutlass::half_t, N> <= Array<uint8_t, N>
+/// Partial specialization for Array<nihilus_gemm::half_t, N> <= Array<uint8_t, N>
 template <FloatRoundStyle Round, int N>
-struct NumericArrayConverter<cutlass::half_t, uint8_t, N, Round> {
-  using result_type = Array<cutlass::half_t, N>;
+struct NumericArrayConverter<nihilus_gemm::half_t, uint8_t, N, Round> {
+  using result_type = Array<nihilus_gemm::half_t, N>;
   using source_type = Array<uint8_t, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
-  using result_type_packed_4 = Array<cutlass::half_t, 4>;
-  using result_type_packed_2 = Array<cutlass::half_t, 2>;
+  using result_type_packed_4 = Array<nihilus_gemm::half_t, 4>;
+  using result_type_packed_2 = Array<nihilus_gemm::half_t, 2>;
   using source_type_packed_4 = Array<uint8_t, 4>;
   using source_type_packed_2 = Array<uint8_t, 2>;
 
-  using ScalarConverter = NumericConverter<cutlass::half_t, uint8_t, Round>;
+  using ScalarConverter = NumericConverter<nihilus_gemm::half_t, uint8_t, Round>;
 
   CUTLASS_DEVICE
   static uint32_t to_reg(source_type_packed_2 const& source) {
@@ -6260,7 +6260,7 @@ private:
                   "Invalid PackedSrcType/PackedResultType must be 2 or 4 to use private convert dispatch.");
 
     // Hold output FP16s in reg. We need 1 reg for every 2 elements
-    using RegArray = cutlass::AlignedArray<uint32_t, PackedResultType::kElements / 2, sizeof(PackedResultType)>;
+    using RegArray = nihilus_gemm::AlignedArray<uint32_t, PackedResultType::kElements / 2, sizeof(PackedResultType)>;
     RegArray r;
 
     // View the input as reg
@@ -6306,23 +6306,23 @@ public:
 
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
 /////////////////////////////////////////////////////////////////////////////////////////////////
-/// Partial specialization for Array<cutlass::bfloat16_t, N> <= Array<cutlass::int2b_t, N>
+/// Partial specialization for Array<nihilus_gemm::bfloat16_t, N> <= Array<nihilus_gemm::int2b_t, N>
 template <FloatRoundStyle Round, int N>
-struct NumericArrayConverter<cutlass::bfloat16_t, cutlass::int2b_t, N, Round> {
-  using result_type = Array<cutlass::bfloat16_t, N>;
-  using source_type = Array<cutlass::int2b_t, N>;
+struct NumericArrayConverter<nihilus_gemm::bfloat16_t, nihilus_gemm::int2b_t, N, Round> {
+  using result_type = Array<nihilus_gemm::bfloat16_t, N>;
+  using source_type = Array<nihilus_gemm::int2b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
-  using result_type_packed_16 = Array<cutlass::bfloat16_t, 16>;
-  using result_type_packed_8 = Array<cutlass::bfloat16_t, 8>;
-  using result_type_packed_4 = Array<cutlass::bfloat16_t, 4>;
-  using source_type_packed_16 = Array<cutlass::int2b_t, 16>;
-  using source_type_packed_8 = Array<cutlass::int2b_t, 8>;
-  using source_type_packed_4 = Array<cutlass::int2b_t, 4>;
+  using result_type_packed_16 = Array<nihilus_gemm::bfloat16_t, 16>;
+  using result_type_packed_8 = Array<nihilus_gemm::bfloat16_t, 8>;
+  using result_type_packed_4 = Array<nihilus_gemm::bfloat16_t, 4>;
+  using source_type_packed_16 = Array<nihilus_gemm::int2b_t, 16>;
+  using source_type_packed_8 = Array<nihilus_gemm::int2b_t, 8>;
+  using source_type_packed_4 = Array<nihilus_gemm::int2b_t, 4>;
 
-  using ScalarConverter = NumericConverter<cutlass::bfloat16_t, cutlass::int2b_t, Round>;
+  using ScalarConverter = NumericConverter<nihilus_gemm::bfloat16_t, nihilus_gemm::int2b_t, Round>;
 
   CUTLASS_DEVICE
   static uint32_t to_reg(source_type_packed_4 const& source) {
@@ -6353,7 +6353,7 @@ private:
                    platform::is_same<PackedResultType, result_type_packed_16>::value),
                   "Invalid PackedSrcType/PackedResultType must be 4, 8 or 16 to use private convert dispatch.");
 
-    using RegArray = cutlass::AlignedArray<uint32_t, PackedResultType::kElements / 2, sizeof(PackedResultType)>;
+    using RegArray = nihilus_gemm::AlignedArray<uint32_t, PackedResultType::kElements / 2, sizeof(PackedResultType)>;
     RegArray r;
 
     // View the input as reg
@@ -6440,23 +6440,23 @@ public:
   }
 };
 
-/// Partial specialization for Array<cutlass::bfloat16_t, N> <= Array<cutlass::uint2b_t, N>
+/// Partial specialization for Array<nihilus_gemm::bfloat16_t, N> <= Array<nihilus_gemm::uint2b_t, N>
 template <FloatRoundStyle Round, int N>
-struct NumericArrayConverter<cutlass::bfloat16_t, cutlass::uint2b_t, N, Round> {
-  using result_type = Array<cutlass::bfloat16_t, N>;
-  using source_type = Array<cutlass::uint2b_t, N>;
+struct NumericArrayConverter<nihilus_gemm::bfloat16_t, nihilus_gemm::uint2b_t, N, Round> {
+  using result_type = Array<nihilus_gemm::bfloat16_t, N>;
+  using source_type = Array<nihilus_gemm::uint2b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
-  using result_type_packed_16 = Array<cutlass::bfloat16_t, 16>;
-  using result_type_packed_8 = Array<cutlass::bfloat16_t, 8>;
-  using result_type_packed_4 = Array<cutlass::bfloat16_t, 4>;
-  using source_type_packed_16 = Array<cutlass::uint2b_t, 16>;
-  using source_type_packed_8 = Array<cutlass::uint2b_t, 8>;
-  using source_type_packed_4 = Array<cutlass::uint2b_t, 4>;
+  using result_type_packed_16 = Array<nihilus_gemm::bfloat16_t, 16>;
+  using result_type_packed_8 = Array<nihilus_gemm::bfloat16_t, 8>;
+  using result_type_packed_4 = Array<nihilus_gemm::bfloat16_t, 4>;
+  using source_type_packed_16 = Array<nihilus_gemm::uint2b_t, 16>;
+  using source_type_packed_8 = Array<nihilus_gemm::uint2b_t, 8>;
+  using source_type_packed_4 = Array<nihilus_gemm::uint2b_t, 4>;
 
-  using ScalarConverter = NumericConverter<cutlass::bfloat16_t, cutlass::uint2b_t, Round>;
+  using ScalarConverter = NumericConverter<nihilus_gemm::bfloat16_t, nihilus_gemm::uint2b_t, Round>;
 
   CUTLASS_DEVICE
   static uint32_t to_reg(source_type_packed_4 const& source) {
@@ -6487,7 +6487,7 @@ private:
                    platform::is_same<PackedResultType, result_type_packed_16>::value),
                   "Invalid PackedSrcType/PackedResultType must be 4, 8 or 16 to use private convert dispatch.");
 
-    using RegArray = cutlass::AlignedArray<uint32_t, PackedResultType::kElements / 2, sizeof(PackedResultType)>;
+    using RegArray = nihilus_gemm::AlignedArray<uint32_t, PackedResultType::kElements / 2, sizeof(PackedResultType)>;
     RegArray r;
 
     // View the input as reg
@@ -6560,23 +6560,23 @@ public:
   }
 };
 
-/// Partial specialization for Array<cutlass::bfloat16_t, N> <= Array<cutlass::int4b_t, N>
+/// Partial specialization for Array<nihilus_gemm::bfloat16_t, N> <= Array<nihilus_gemm::int4b_t, N>
 template <FloatRoundStyle Round, int N>
-struct NumericArrayConverter<cutlass::bfloat16_t, cutlass::int4b_t, N, Round> {
-  using result_type = Array<cutlass::bfloat16_t, N>;
-  using source_type = Array<cutlass::int4b_t, N>;
+struct NumericArrayConverter<nihilus_gemm::bfloat16_t, nihilus_gemm::int4b_t, N, Round> {
+  using result_type = Array<nihilus_gemm::bfloat16_t, N>;
+  using source_type = Array<nihilus_gemm::int4b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
-  using result_type_packed_8 = Array<cutlass::bfloat16_t, 8>;
-  using result_type_packed_4 = Array<cutlass::bfloat16_t, 4>;
-  using result_type_packed_2 = Array<cutlass::bfloat16_t, 2>;
-  using source_type_packed_8 = Array<cutlass::int4b_t, 8>;
-  using source_type_packed_4 = Array<cutlass::int4b_t, 4>;
-  using source_type_packed_2 = Array<cutlass::int4b_t, 2>;
+  using result_type_packed_8 = Array<nihilus_gemm::bfloat16_t, 8>;
+  using result_type_packed_4 = Array<nihilus_gemm::bfloat16_t, 4>;
+  using result_type_packed_2 = Array<nihilus_gemm::bfloat16_t, 2>;
+  using source_type_packed_8 = Array<nihilus_gemm::int4b_t, 8>;
+  using source_type_packed_4 = Array<nihilus_gemm::int4b_t, 4>;
+  using source_type_packed_2 = Array<nihilus_gemm::int4b_t, 2>;
 
-  using ScalarConverter = NumericConverter<cutlass::bfloat16_t, cutlass::int4b_t, Round>;
+  using ScalarConverter = NumericConverter<nihilus_gemm::bfloat16_t, nihilus_gemm::int4b_t, Round>;
 
   CUTLASS_DEVICE
   static uint32_t to_reg(source_type_packed_2 const& source) {
@@ -6610,7 +6610,7 @@ private:
                   "Invalid PackedSrcType/PackedResultType must be 2, 4 or 8 to use private convert dispatch.");
 
     // Hold output FP16s in reg. We need 1 reg for every 2 elements
-    using RegArray = cutlass::AlignedArray<uint32_t, PackedResultType::kElements / 2, sizeof(PackedResultType)>;
+    using RegArray = nihilus_gemm::AlignedArray<uint32_t, PackedResultType::kElements / 2, sizeof(PackedResultType)>;
     RegArray r;
 
     // View the input as reg
@@ -6684,23 +6684,23 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-/// Partial specialization for Array<cutlass::bfloat16_t, N> <= Array<cutlass::uint4b_t, N>
+/// Partial specialization for Array<nihilus_gemm::bfloat16_t, N> <= Array<nihilus_gemm::uint4b_t, N>
 template <FloatRoundStyle Round, int N>
-struct NumericArrayConverter<cutlass::bfloat16_t, cutlass::uint4b_t, N, Round> {
-  using result_type = Array<cutlass::bfloat16_t, N>;
-  using source_type = Array<cutlass::uint4b_t, N>;
+struct NumericArrayConverter<nihilus_gemm::bfloat16_t, nihilus_gemm::uint4b_t, N, Round> {
+  using result_type = Array<nihilus_gemm::bfloat16_t, N>;
+  using source_type = Array<nihilus_gemm::uint4b_t, N>;
 
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
-  using result_type_packed_8 = Array<cutlass::bfloat16_t, 8>;
-  using result_type_packed_4 = Array<cutlass::bfloat16_t, 4>;
-  using result_type_packed_2 = Array<cutlass::bfloat16_t, 2>;
-  using source_type_packed_8 = Array<cutlass::uint4b_t, 8>;
-  using source_type_packed_4 = Array<cutlass::uint4b_t, 4>;
-  using source_type_packed_2 = Array<cutlass::uint4b_t, 2>;
+  using result_type_packed_8 = Array<nihilus_gemm::bfloat16_t, 8>;
+  using result_type_packed_4 = Array<nihilus_gemm::bfloat16_t, 4>;
+  using result_type_packed_2 = Array<nihilus_gemm::bfloat16_t, 2>;
+  using source_type_packed_8 = Array<nihilus_gemm::uint4b_t, 8>;
+  using source_type_packed_4 = Array<nihilus_gemm::uint4b_t, 4>;
+  using source_type_packed_2 = Array<nihilus_gemm::uint4b_t, 2>;
 
-  using ScalarConverter = NumericConverter<cutlass::bfloat16_t, cutlass::uint4b_t, Round>;
+  using ScalarConverter = NumericConverter<nihilus_gemm::bfloat16_t, nihilus_gemm::uint4b_t, Round>;
 
   CUTLASS_DEVICE
   static uint32_t to_reg(source_type_packed_2 const& source) {
@@ -6734,7 +6734,7 @@ private:
                   "Invalid PackedSrcType/PackedResultType must be 2, 4 or 8 to use private convert dispatch.");
 
     // Hold output FP16s in reg. We need 1 reg for every 2 elements
-    using RegArray = cutlass::AlignedArray<uint32_t, PackedResultType::kElements / 2, sizeof(PackedResultType)>;
+    using RegArray = nihilus_gemm::AlignedArray<uint32_t, PackedResultType::kElements / 2, sizeof(PackedResultType)>;
     RegArray r;
 
     // View the input as reg
@@ -6811,20 +6811,20 @@ public:
   }
 };
 
-/// Partial specialization for Array<cutlass::bfloat16_t, N> <= Array<int8_t, N>
+/// Partial specialization for Array<nihilus_gemm::bfloat16_t, N> <= Array<int8_t, N>
 template <FloatRoundStyle Round, int N>
-struct NumericArrayConverter<cutlass::bfloat16_t, int8_t, N, Round> {
-  using result_type = Array<cutlass::bfloat16_t, N>;
+struct NumericArrayConverter<nihilus_gemm::bfloat16_t, int8_t, N, Round> {
+  using result_type = Array<nihilus_gemm::bfloat16_t, N>;
   using source_type = Array<int8_t, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
-  using result_type_packed_4 = Array<cutlass::bfloat16_t, 4>;
-  using result_type_packed_2 = Array<cutlass::bfloat16_t, 2>;
+  using result_type_packed_4 = Array<nihilus_gemm::bfloat16_t, 4>;
+  using result_type_packed_2 = Array<nihilus_gemm::bfloat16_t, 2>;
   using source_type_packed_4 = Array<int8_t, 4>;
   using source_type_packed_2 = Array<int8_t, 2>;
 
-  using ScalarConverter = NumericConverter<cutlass::bfloat16_t, int8_t, Round>;
+  using ScalarConverter = NumericConverter<nihilus_gemm::bfloat16_t, int8_t, Round>;
 
   CUTLASS_DEVICE
   static uint32_t to_reg(source_type_packed_2 const& source) {
@@ -6849,7 +6849,7 @@ private:
 
     NumericArrayConverter<float, int8_t, PackedResultType::kElements, Round> convert_int8_to_f32;
     Array<float, PackedResultType::kElements> tmp = convert_int8_to_f32(source);
-    NumericArrayConverter<cutlass::bfloat16_t, float, PackedResultType::kElements, Round> convert_f32_to_bf16;
+    NumericArrayConverter<nihilus_gemm::bfloat16_t, float, PackedResultType::kElements, Round> convert_f32_to_bf16;
     return convert_f32_to_bf16(tmp);
   }
 
@@ -6874,20 +6874,20 @@ public:
   }
 };
 
-/// Partial specialization for Array<cutlass::bfloat16_t, N> <= Array<uint8_t, N>
+/// Partial specialization for Array<nihilus_gemm::bfloat16_t, N> <= Array<uint8_t, N>
 template <FloatRoundStyle Round, int N>
-struct NumericArrayConverter<cutlass::bfloat16_t, uint8_t, N, Round> {
-  using result_type = Array<cutlass::bfloat16_t, N>;
+struct NumericArrayConverter<nihilus_gemm::bfloat16_t, uint8_t, N, Round> {
+  using result_type = Array<nihilus_gemm::bfloat16_t, N>;
   using source_type = Array<uint8_t, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
 private:
-  using result_type_packed_4 = Array<cutlass::bfloat16_t, 4>;
-  using result_type_packed_2 = Array<cutlass::bfloat16_t, 2>;
+  using result_type_packed_4 = Array<nihilus_gemm::bfloat16_t, 4>;
+  using result_type_packed_2 = Array<nihilus_gemm::bfloat16_t, 2>;
   using source_type_packed_4 = Array<uint8_t, 4>;
   using source_type_packed_2 = Array<uint8_t, 2>;
 
-  using ScalarConverter = NumericConverter<cutlass::bfloat16_t, uint8_t, Round>;
+  using ScalarConverter = NumericConverter<nihilus_gemm::bfloat16_t, uint8_t, Round>;
 
   CUTLASS_DEVICE
   static uint32_t to_reg(source_type_packed_2 const& source) {
@@ -6912,7 +6912,7 @@ private:
 
     NumericArrayConverter<float, uint8_t, PackedResultType::kElements, Round> convert_uint8_to_f32;
     Array<float, PackedResultType::kElements> tmp = convert_uint8_to_f32(source);
-    NumericArrayConverter<cutlass::bfloat16_t, float, PackedResultType::kElements, Round> convert_f32_to_bf16_;
+    NumericArrayConverter<nihilus_gemm::bfloat16_t, float, PackedResultType::kElements, Round> convert_f32_to_bf16_;
     return convert_f32_to_bf16_(tmp);
   }
 
@@ -6949,7 +6949,7 @@ template <typename T, typename S, int N,
 struct FastNumericArrayConverter {
   using result_type = Array<T, N>;
   using source_type = Array<S, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const &s) {
@@ -6967,7 +6967,7 @@ template <int N, FloatRoundStyle Round>
 struct FastNumericArrayConverter<float, int, N, Round> {
   using result_type = Array<float, N>;
   using source_type = Array<int, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const &source) {
@@ -6991,7 +6991,7 @@ template <FloatRoundStyle Round>
 struct FastNumericArrayConverter<int8_t, float, 4, Round> {
   using result_type = Array<int8_t, 4>;
   using source_type = Array<float, 4>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const &source) {
@@ -7021,7 +7021,7 @@ struct FastNumericArrayConverter<int8_t, float, N, Round> {
 
   using result_type = Array<int8_t, N>;
   using source_type = Array<float, N>;
-  static FloatRoundStyle const round_style = Round;
+  static constexpr FloatRoundStyle  round_style = Round;
 
   CUTLASS_DEVICE
   static result_type convert(source_type const &source) {
@@ -7051,14 +7051,14 @@ struct FastNumericArrayConverter<int8_t, float, N, Round> {
 /// Defines preferred rounding mode for a pair of types
 template <typename T, typename S>
 struct PreferredRoundingMode {
-  static FloatRoundStyle const kRound = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle  kRound = FloatRoundStyle::round_to_nearest;
 };
 
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ < 900
 /// Defines preferred rounding mode for a pair of types
 template <>
-struct PreferredRoundingMode<cutlass::tfloat32_t, float> {
-  static FloatRoundStyle const kRound = FloatRoundStyle::round_half_ulp_truncate;
+struct PreferredRoundingMode<nihilus_gemm::tfloat32_t, float> {
+  static constexpr FloatRoundStyle  kRound = FloatRoundStyle::round_half_ulp_truncate;
 };
 #endif
 
@@ -7118,6 +7118,6 @@ struct UnpackPredicates {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

@@ -33,20 +33,20 @@
 */
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/coord.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/coord.h"
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace layout {
 
 /// Tensor layout for densely packed vectors.
 class PackedVectorLayout {
 public:
   /// Logical rank of tensor
-  static int const kRank = 1;
+  static constexpr int  kRank = 1;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int  kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -102,4 +102,4 @@ public:
 };
 
 } // namespace layout
-} // namespace cutlass
+} // namespace nihilus_gemm

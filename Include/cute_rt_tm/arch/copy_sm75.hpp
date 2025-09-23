@@ -30,9 +30,9 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute/config.hpp>
+#include <cute_rt_tm/config.hpp>
 
-#include <cute/arch/copy.hpp>
+#include <cute_rt_tm/arch/copy.hpp>
 
 // Config
 #if defined(__clang__) && defined(__CUDA__)
@@ -75,7 +75,7 @@
 #endif
 
 
-namespace cute
+namespace cute_rt_tm
 {
 
 struct SM75_U32x1_LDSM_N
@@ -266,4 +266,4 @@ copy_ldsm_trans(uint128_t const* const smem_ptr,
   }
 }
 
-} // end namespace cute
+} // end namespace cute_rt_tm

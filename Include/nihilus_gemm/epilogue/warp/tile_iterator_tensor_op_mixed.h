@@ -34,12 +34,12 @@
 
 #pragma once
 
-#include "cutlass/array.h"
-#include "cutlass/layout/matrix.h"
-#include "cutlass/layout/pitch_linear.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/layout/pitch_linear.h"
 
-#include "cutlass/arch/memory_sm75.h"
-#include "cutlass/epilogue/warp/tensor_op_policy.h"
+#include "nihilus_gemm/arch/memory_sm75.h"
+#include "nihilus_gemm/epilogue/warp/tensor_op_policy.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -48,7 +48,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace epilogue {
 namespace warp {
 
@@ -74,7 +74,7 @@ public:
   using OperatorShape = OperatorShape_;
   using Element = Element_;
   using Layout = layout::RowMajor;
-  static int const kOutputElementCount = OutputElementCount;
+  static constexpr int  kOutputElementCount = OutputElementCount;
 
   using TensorRef = TensorRef<Element, Layout>;         ///< Tensor Reference object
   using TensorCoord = MatrixCoord;                      ///< Logical coordinate in referenced tensor
@@ -98,14 +98,14 @@ public:
   //using AccumulatorTile = typename Operator::FragmentC;
 
   /// Number of times this iterator can be incremented
-  static int const kIterations = Policy::kIterations;
+  static constexpr int  kIterations = Policy::kIterations;
 
   // Internal constants
   struct Detail {
-    static int const kLanesInQuad = 4;
+    static constexpr int  kLanesInQuad = 4;
 
     /// Number of pointers needed to write accumulators
-    static int const kPointerCount = 
+    static constexpr int  kPointerCount = 
       (OutputElementCount * sizeof_bits<Element>::value) / (const_min(128, OutputElementCount * sizeof_bits<Element>::value));
 
     // Currently support max 4 ptr
@@ -321,7 +321,7 @@ public:
   using OperatorShape = OperatorShape_;
   using Element = int32_t;
   using Layout = layout::RowMajor;
-  static int const kOutputElementCount = 16;
+  static constexpr int  kOutputElementCount = 16;
 
   using TensorRef = TensorRef<Element, Layout>;         ///< Tensor Reference object
   using TensorCoord = MatrixCoord;                      ///< Logical coordinate in referenced tensor
@@ -345,17 +345,17 @@ public:
   //using AccumulatorTile = typename Operator::FragmentC;
 
   /// Number of times this iterator can be incremented
-  static int const kIterations = Policy::kIterations;
+  static constexpr int  kIterations = Policy::kIterations;
 
   // Internal constants
   struct Detail {
-    static int const kLanesInQuad = 4;
+    static constexpr int  kLanesInQuad = 4;
 
     /// Number of pointers needed to write accumulators
-    static int const kPointerCount = 2;
+    static constexpr int  kPointerCount = 2;
 
     /// Offsets added 
-    static int const kOffsetCount = 4;
+    static constexpr int  kOffsetCount = 4;
 
     static_assert(sizeof(Element) == 4, "This can only be used with 32b accumulator data types (f32, s32).");
   };
@@ -522,7 +522,7 @@ public:
   using OperatorShape = OperatorShape_;
   using Element = int32_t;
   using Layout = layout::RowMajor;
-  static int const kOutputElementCount = 8;
+  static constexpr int  kOutputElementCount = 8;
 
   using TensorRef = TensorRef<Element, Layout>;         ///< Tensor Reference object
   using TensorCoord = MatrixCoord;                      ///< Logical coordinate in referenced tensor
@@ -546,14 +546,14 @@ public:
   //using AccumulatorTile = typename Operator::FragmentC;
 
   /// Number of times this iterator can be incremented
-  static int const kIterations = Policy::kIterations;
+  static constexpr int  kIterations = Policy::kIterations;
 
   // Internal constants
   struct Detail {
-    static int const kLanesInQuad = 4;
+    static constexpr int  kLanesInQuad = 4;
 
     /// Number of pointers needed to write accumulators
-    static int const kPointerCount = 2;
+    static constexpr int  kPointerCount = 2;
 
     static_assert(sizeof(Element) == 4, "This can only be used with 32b accumulator data types (f32, s32).");
   };
@@ -711,7 +711,7 @@ public:
   using OperatorShape = OperatorShape_;
   using Element = float;
   using Layout = layout::RowMajor;
-  static int const kOutputElementCount = 16;
+  static constexpr int  kOutputElementCount = 16;
 
   using TensorRef = TensorRef<Element, Layout>;         ///< Tensor Reference object
   using TensorCoord = MatrixCoord;                      ///< Logical coordinate in referenced tensor
@@ -735,17 +735,17 @@ public:
   //using AccumulatorTile = typename Operator::FragmentC;
 
   /// Number of times this iterator can be incremented
-  static int const kIterations = Policy::kIterations;
+  static constexpr int  kIterations = Policy::kIterations;
 
   // Internal constants
   struct Detail {
-    static int const kLanesInQuad = 4;
+    static constexpr int  kLanesInQuad = 4;
 
     /// Number of pointers needed to write accumulators
-    static int const kPointerCount = 2;
+    static constexpr int  kPointerCount = 2;
 
     /// Offsets added
-    static int const kOffsetCount = 4;
+    static constexpr int  kOffsetCount = 4;
 
     static_assert(sizeof(Element) == 4, "This can only be used with 32b accumulator data types (f32, s32).");
   };
@@ -906,7 +906,7 @@ public:
   using OperatorShape = OperatorShape_;
   using Element = float;
   using Layout = layout::RowMajor;
-  static int const kOutputElementCount = 8;
+  static constexpr int  kOutputElementCount = 8;
 
   using TensorRef = TensorRef<Element, Layout>;         ///< Tensor Reference object
   using TensorCoord = MatrixCoord;                      ///< Logical coordinate in referenced tensor
@@ -930,14 +930,14 @@ public:
   //using AccumulatorTile = typename Operator::FragmentC;
 
   /// Number of times this iterator can be incremented
-  static int const kIterations = Policy::kIterations;
+  static constexpr int  kIterations = Policy::kIterations;
 
   // Internal constants
   struct Detail {
-    static int const kLanesInQuad = 4;
+    static constexpr int  kLanesInQuad = 4;
 
     /// Number of pointers needed to write accumulators
-    static int const kPointerCount = 2;
+    static constexpr int  kPointerCount = 2;
 
     static_assert(sizeof(Element) == 4, "This can only be used with 32b accumulator data types (f32, s32).");
   };
@@ -1080,7 +1080,7 @@ public:
 
 } // namespace warp
 } // namespace epilogue
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 

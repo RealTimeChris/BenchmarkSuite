@@ -39,31 +39,31 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/array.h"
-#include "cutlass/complex.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/array.h"
+#include "nihilus_gemm/complex.h"
 
-#include "cutlass/layout/tensor_op_multiplicand_sm75.h"
-#include "cutlass/layout/tensor_op_multiplicand_sm80.h"
+#include "nihilus_gemm/layout/tensor_op_multiplicand_sm75.h"
+#include "nihilus_gemm/layout/tensor_op_multiplicand_sm80.h"
 
-#include "cutlass/gemm/warp/mma_simt_policy.h"
-#include "cutlass/gemm/warp/mma_simt.h"
-#include "cutlass/gemm/warp/default_mma_tensor_op.h"
-#include "cutlass/gemm/warp/mma_tensor_op_tile_iterator_sm80.h"
+#include "nihilus_gemm/gemm/warp/mma_simt_policy.h"
+#include "nihilus_gemm/gemm/warp/mma_simt.h"
+#include "nihilus_gemm/gemm/warp/default_mma_tensor_op.h"
+#include "nihilus_gemm/gemm/warp/mma_tensor_op_tile_iterator_sm80.h"
 
-#include "cutlass/gemm/threadblock/default_mma_core.h"
+#include "nihilus_gemm/gemm/threadblock/default_mma_core.h"
 
-#include "cutlass/matrix_shape.h"
-#include "cutlass/numeric_types.h"
-#include "cutlass/transform/pitch_linear_thread_map.h"
+#include "nihilus_gemm/matrix_shape.h"
+#include "nihilus_gemm/numeric_types.h"
+#include "nihilus_gemm/transform/pitch_linear_thread_map.h"
 
-#include "cutlass/transform/threadblock/regular_tile_access_iterator_tensor_op.h"
-#include "cutlass/transform/threadblock/regular_tile_access_iterator_pitch_linear.h"
-#include "cutlass/transform/threadblock/regular_tile_access_iterator_tensor_op_sm80.h"
+#include "nihilus_gemm/transform/threadblock/regular_tile_access_iterator_tensor_op.h"
+#include "nihilus_gemm/transform/threadblock/regular_tile_access_iterator_pitch_linear.h"
+#include "nihilus_gemm/transform/threadblock/regular_tile_access_iterator_tensor_op_sm80.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace gemm {
 namespace threadblock {
 
@@ -102,11 +102,11 @@ template <
     /// Multiply-add operator (arch::OpMultiplyAddComplex, arch::OpMultiplyGaussianComplex)
     typename Operator = arch::OpMultiplyAddComplex,
     /// Cache operation of operand A
-    cutlass::arch::CacheOperation::Kind CacheOpA =
-        cutlass::arch::CacheOperation::Global,
+    nihilus_gemm::arch::CacheOperation::Kind CacheOpA =
+        nihilus_gemm::arch::CacheOperation::Global,
     /// Cache operation of operand B
-    cutlass::arch::CacheOperation::Kind CacheOpB =
-        cutlass::arch::CacheOperation::Global>
+    nihilus_gemm::arch::CacheOperation::Kind CacheOpB =
+        nihilus_gemm::arch::CacheOperation::Global>
 struct DefaultMultistageMmaComplexCore;
 
 
@@ -114,6 +114,6 @@ struct DefaultMultistageMmaComplexCore;
 
 }  // namespace threadblock
 }  // namespace gemm
-}  // namespace cutlass
+}  // namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////

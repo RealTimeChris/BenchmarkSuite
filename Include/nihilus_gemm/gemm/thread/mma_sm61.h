@@ -34,15 +34,15 @@
 
 #pragma once
 
-#include "cutlass/cutlass.h"
-#include "cutlass/tensor_ref.h"
-#include "cutlass/layout/matrix.h"
-#include "cutlass/gemm/gemm.h"
-#include "cutlass/gemm/thread/mma.h"
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/tensor_ref.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/gemm/gemm.h"
+#include "nihilus_gemm/gemm/thread/mma.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace gemm {
 namespace thread {
 
@@ -279,6 +279,6 @@ struct Mma<
 
 } // namespace thread
 } // namespace gemm
-} // namespace cutlass
+} // namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

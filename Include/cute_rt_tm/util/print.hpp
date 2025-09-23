@@ -30,15 +30,15 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute/config.hpp>           // CUTE_HOST_DEVICE
-#include <cute/util/type_traits.hpp> // cute::is_valid
-#include <cute/numeric/numeric_types.hpp> 
+#include <cute_rt_tm/config.hpp>           // CUTE_HOST_DEVICE
+#include <cute_rt_tm/util/type_traits.hpp> // cute_rt_tm::is_valid
+#include <cute_rt_tm/numeric/numeric_types.hpp> 
 
 //
 // CUDA compatible print and printf
 //
 
-namespace cute
+namespace cute_rt_tm
 {
 
 CUTE_HOST_DEVICE
@@ -255,7 +255,7 @@ pretty_print(double v) {
 template <class T>
 CUTE_HOST_DEVICE void
 pretty_print(T t) {
-  constexpr auto has_print_exmy_base = cute::is_valid([](auto t) -> decltype(pretty_print_float_exmy_base(t)) {}, t);  
+  constexpr auto has_print_exmy_base = cute_rt_tm::is_valid([](auto t) -> decltype(pretty_print_float_exmy_base(t)) {}, t);  
   if constexpr (has_print_exmy_base) {   
   pretty_print_float_exmy_base(t);       
   } else {                               
@@ -263,4 +263,4 @@ pretty_print(T t) {
   }                                      
 }
 
-} // end namespace cute
+} // end namespace cute_rt_tm

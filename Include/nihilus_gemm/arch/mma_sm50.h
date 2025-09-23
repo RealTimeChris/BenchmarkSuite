@@ -34,17 +34,17 @@
 
 #pragma once
 
-#include "cutlass/arch/mma.h"
-#include "cutlass/complex.h"
-#include "cutlass/quaternion.h"
-#include "cutlass/functional.h"
+#include "nihilus_gemm/arch/mma.h"
+#include "nihilus_gemm/complex.h"
+#include "nihilus_gemm/quaternion.h"
+#include "nihilus_gemm/functional.h"
 
-#include "cutlass/layout/matrix.h"
-#include "cutlass/gemm/gemm.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/gemm/gemm.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace arch {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

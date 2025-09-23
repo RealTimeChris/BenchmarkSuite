@@ -34,12 +34,12 @@
 */
 
 #pragma once
-#include "cutlass/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 #include CUDA_STD_HEADER(cassert)
 
 #include "mma.h"
-#include "cutlass/layout/matrix.h"
-#include "cutlass/numeric_types.h"
+#include "nihilus_gemm/layout/matrix.h"
+#include "nihilus_gemm/numeric_types.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -63,7 +63,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace cutlass {
+namespace nihilus_gemm {
 namespace arch {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -75,13 +75,13 @@ template <class Operator>
 static constexpr bool is_sm89_staged_policy_v =
   (
     // ElementA must be FP8
-    platform::is_same<typename Operator::ElementA, cutlass::float_e4m3_t>::value ||
-    platform::is_same<typename Operator::ElementA, cutlass::float_e5m2_t>::value
+    platform::is_same<typename Operator::ElementA, nihilus_gemm::float_e4m3_t>::value ||
+    platform::is_same<typename Operator::ElementA, nihilus_gemm::float_e5m2_t>::value
   ) &&
   (
     // ElementB must be FP8
-    platform::is_same<typename Operator::ElementB, cutlass::float_e4m3_t>::value ||
-    platform::is_same<typename Operator::ElementB, cutlass::float_e5m2_t>::value
+    platform::is_same<typename Operator::ElementB, nihilus_gemm::float_e4m3_t>::value ||
+    platform::is_same<typename Operator::ElementB, nihilus_gemm::float_e5m2_t>::value
   ) &&
   (
     // The instruction shape must be 16x8x32
@@ -108,9 +108,9 @@ template <typename Operator_>
 struct Mma<
   gemm::GemmShape<16, 8, 32>,
   32,
-  cutlass::float_e4m3_t,
+  nihilus_gemm::float_e4m3_t,
   layout::RowMajor,
-  cutlass::float_e4m3_t,
+  nihilus_gemm::float_e4m3_t,
   layout::ColumnMajor,
   float,
   layout::RowMajor,
@@ -121,11 +121,11 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16, 8, 32>;
 
-  using ElementA = cutlass::float_e4m3_t;
+  using ElementA = nihilus_gemm::float_e4m3_t;
   using LayoutA = layout::RowMajor;
   using FragmentA = Array<ElementA, 16>;
 
-  using ElementB = cutlass::float_e4m3_t;
+  using ElementB = nihilus_gemm::float_e4m3_t;
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<ElementB, 8>;
 
@@ -174,9 +174,9 @@ template <typename Operator_>
 struct Mma<
   gemm::GemmShape<16, 8, 32>,
   32,
-  cutlass::float_e4m3_t,
+  nihilus_gemm::float_e4m3_t,
   layout::RowMajor,
-  cutlass::float_e5m2_t,
+  nihilus_gemm::float_e5m2_t,
   layout::ColumnMajor,
   float,
   layout::RowMajor,
@@ -187,11 +187,11 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16, 8, 32>;
 
-  using ElementA = cutlass::float_e4m3_t;
+  using ElementA = nihilus_gemm::float_e4m3_t;
   using LayoutA = layout::RowMajor;
   using FragmentA = Array<ElementA, 16>;
 
-  using ElementB = cutlass::float_e5m2_t;
+  using ElementB = nihilus_gemm::float_e5m2_t;
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<ElementB, 8>;
 
@@ -240,9 +240,9 @@ template <typename Operator_>
 struct Mma<
   gemm::GemmShape<16, 8, 32>,
   32,
-  cutlass::float_e5m2_t,
+  nihilus_gemm::float_e5m2_t,
   layout::RowMajor,
-  cutlass::float_e4m3_t,
+  nihilus_gemm::float_e4m3_t,
   layout::ColumnMajor,
   float,
   layout::RowMajor,
@@ -253,11 +253,11 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16, 8, 32>;
 
-  using ElementA = cutlass::float_e5m2_t;
+  using ElementA = nihilus_gemm::float_e5m2_t;
   using LayoutA = layout::RowMajor;
   using FragmentA = Array<ElementA, 16>;
 
-  using ElementB = cutlass::float_e4m3_t;
+  using ElementB = nihilus_gemm::float_e4m3_t;
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<ElementB, 8>;
 
@@ -306,9 +306,9 @@ template <typename Operator_>
 struct Mma<
   gemm::GemmShape<16, 8, 32>,
   32,
-  cutlass::float_e5m2_t,
+  nihilus_gemm::float_e5m2_t,
   layout::RowMajor,
-  cutlass::float_e5m2_t,
+  nihilus_gemm::float_e5m2_t,
   layout::ColumnMajor,
   float,
   layout::RowMajor,
@@ -319,11 +319,11 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16, 8, 32>;
 
-  using ElementA = cutlass::float_e5m2_t;
+  using ElementA = nihilus_gemm::float_e5m2_t;
   using LayoutA = layout::RowMajor;
   using FragmentA = Array<ElementA, 16>;
 
-  using ElementB = cutlass::float_e5m2_t;
+  using ElementB = nihilus_gemm::float_e5m2_t;
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<ElementB, 8>;
 
@@ -378,11 +378,11 @@ template <typename Operator_>
 struct Mma<
   gemm::GemmShape<16, 8, 32>,
   32,
-  cutlass::float_e4m3_t,
+  nihilus_gemm::float_e4m3_t,
   layout::RowMajor,
-  cutlass::float_e4m3_t,
+  nihilus_gemm::float_e4m3_t,
   layout::ColumnMajor,
-  cutlass::half_t,
+  nihilus_gemm::half_t,
   layout::RowMajor,
   Operator_> {
   static_assert(platform::is_same<Operator_, OpMultiplyAdd>::value ||
@@ -391,17 +391,17 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16, 8, 32>;
 
-  using ElementA = cutlass::float_e4m3_t;
+  using ElementA = nihilus_gemm::float_e4m3_t;
   using LayoutA = layout::RowMajor;
   using FragmentA = Array<ElementA, 16>;
 
-  using ElementB = cutlass::float_e4m3_t;
+  using ElementB = nihilus_gemm::float_e4m3_t;
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<ElementB, 8>;
 
-  using ElementC = cutlass::half_t;
+  using ElementC = nihilus_gemm::half_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<cutlass::half_t, 4>;
+  using FragmentC = Array<nihilus_gemm::half_t, 4>;
 
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
@@ -444,11 +444,11 @@ template <typename Operator_>
 struct Mma<
   gemm::GemmShape<16, 8, 32>,
   32,
-  cutlass::float_e4m3_t,
+  nihilus_gemm::float_e4m3_t,
   layout::RowMajor,
-  cutlass::float_e5m2_t,
+  nihilus_gemm::float_e5m2_t,
   layout::ColumnMajor,
-  cutlass::half_t,
+  nihilus_gemm::half_t,
   layout::RowMajor,
   Operator_> {
   static_assert(platform::is_same<Operator_, OpMultiplyAdd>::value ||
@@ -457,17 +457,17 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16, 8, 32>;
 
-  using ElementA = cutlass::float_e4m3_t;
+  using ElementA = nihilus_gemm::float_e4m3_t;
   using LayoutA = layout::RowMajor;
   using FragmentA = Array<ElementA, 16>;
 
-  using ElementB = cutlass::float_e5m2_t;
+  using ElementB = nihilus_gemm::float_e5m2_t;
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<ElementB, 8>;
 
-  using ElementC = cutlass::half_t;
+  using ElementC = nihilus_gemm::half_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<cutlass::half_t, 4>;
+  using FragmentC = Array<nihilus_gemm::half_t, 4>;
 
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
@@ -510,11 +510,11 @@ template <typename Operator_>
 struct Mma<
   gemm::GemmShape<16, 8, 32>,
   32,
-  cutlass::float_e5m2_t,
+  nihilus_gemm::float_e5m2_t,
   layout::RowMajor,
-  cutlass::float_e4m3_t,
+  nihilus_gemm::float_e4m3_t,
   layout::ColumnMajor,
-  cutlass::half_t,
+  nihilus_gemm::half_t,
   layout::RowMajor,
   Operator_> {
   static_assert(platform::is_same<Operator_, OpMultiplyAdd>::value ||
@@ -523,17 +523,17 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16, 8, 32>;
 
-  using ElementA = cutlass::float_e5m2_t;
+  using ElementA = nihilus_gemm::float_e5m2_t;
   using LayoutA = layout::RowMajor;
   using FragmentA = Array<ElementA, 16>;
 
-  using ElementB = cutlass::float_e4m3_t;
+  using ElementB = nihilus_gemm::float_e4m3_t;
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<ElementB, 8>;
 
-  using ElementC = cutlass::half_t;
+  using ElementC = nihilus_gemm::half_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<cutlass::half_t, 4>;
+  using FragmentC = Array<nihilus_gemm::half_t, 4>;
 
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
@@ -576,11 +576,11 @@ template <typename Operator_>
 struct Mma<
   gemm::GemmShape<16, 8, 32>,
   32,
-  cutlass::float_e5m2_t,
+  nihilus_gemm::float_e5m2_t,
   layout::RowMajor,
-  cutlass::float_e5m2_t,
+  nihilus_gemm::float_e5m2_t,
   layout::ColumnMajor,
-  cutlass::half_t,
+  nihilus_gemm::half_t,
   layout::RowMajor,
   Operator_> {
   static_assert(platform::is_same<Operator_, OpMultiplyAdd>::value ||
@@ -589,17 +589,17 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16, 8, 32>;
 
-  using ElementA = cutlass::float_e5m2_t;
+  using ElementA = nihilus_gemm::float_e5m2_t;
   using LayoutA = layout::RowMajor;
   using FragmentA = Array<ElementA, 16>;
 
-  using ElementB = cutlass::float_e5m2_t;
+  using ElementB = nihilus_gemm::float_e5m2_t;
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<ElementB, 8>;
 
-  using ElementC = cutlass::half_t;
+  using ElementC = nihilus_gemm::half_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<cutlass::half_t, 4>;
+  using FragmentC = Array<nihilus_gemm::half_t, 4>;
 
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
@@ -638,4 +638,4 @@ struct Mma<
 };
 
 } // namespace arch
-} // namespace cutlass
+} // namespace nihilus_gemm
