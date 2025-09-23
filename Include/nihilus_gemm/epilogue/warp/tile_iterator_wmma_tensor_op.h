@@ -34,17 +34,17 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/wmma_array.h"
-#include "nihilus_gemm/layout/matrix.h"
-#include "nihilus_gemm/layout/pitch_linear.h"
-#include "nihilus_gemm/tensor_ref.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/wmma_array.h"
+#include "cutlass/layout/matrix.h"
+#include "cutlass/layout/pitch_linear.h"
+#include "cutlass/tensor_ref.h"
 
-#include "nihilus_gemm/epilogue/warp/wmma_tensor_op_policy.h"
+#include "cutlass/epilogue/warp/wmma_tensor_op_policy.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace warp {
 
@@ -79,7 +79,7 @@ public:
   // Derived types
   //
   using WmmaDataType = typename OperatorFragment::element_type;
-  using Element = typename nihilus_gemm::arch::WmmaToCutlassDataType<WmmaDataType>::Type; ///< Data Type of element stored in nvcuda::wmma::frament         
+  using Element = typename cutlass::arch::WmmaToCutlassDataType<WmmaDataType>::Type; ///< Data Type of element stored in nvcuda::wmma::frament         
   using TensorRef = TensorRef<Element, Layout>;                                      ///< Tensor Reference object
   using TensorCoord = MatrixCoord;                                                   ///< Logical coordinate in referenced tensor
   using Index = typename TensorRef::Index;
@@ -124,13 +124,13 @@ private:
 public:
 
   /// Default constructor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorWmmaTensorOp(): ref_(nullptr) { 
 
   }
 
   /// Constructor from TensorRef
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorWmmaTensorOp(
     TensorRef const &ref,
     unsigned lane_id
@@ -138,28 +138,28 @@ public:
   }
 
   /// Adds a pointer offset
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorWmmaTensorOp & add_pointer_offset(Index pointer_offset) {
     ref_.add_pointer_offset(pointer_offset);
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorWmmaTensorOp & add_tile_offset(TensorCoord const &tile_offset) {
     ref_.add_coord_offset({tile_offset.row() * OperatorShape::kM, tile_offset.column() * WarpShape::kN});
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorWmmaTensorOp & operator+=(TensorCoord const &tile_offset) {
     add_tile_offset(tile_offset);
     return *this;
   }
 
   /// Store
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
     for(int n=0; n < Policy::OperatorCount::kColumn; n++) {
@@ -177,13 +177,13 @@ public:
   }
 
   /// Store
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag) {
     store_with_pointer_offset(frag, 0);
   }
 
   /// Load
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
  
     for(int n=0; n < Policy::OperatorCount::kColumn; n++) {
@@ -201,14 +201,14 @@ public:
   }
 
   /// Load
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load(Fragment &frag) const {
     load_with_pointer_offset(frag, 0);
   }
 
   
   /// Set smem base address
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_smem_base_address(Index address) {
   }
 };
@@ -217,7 +217,7 @@ public:
 
 } // namespace warp
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 

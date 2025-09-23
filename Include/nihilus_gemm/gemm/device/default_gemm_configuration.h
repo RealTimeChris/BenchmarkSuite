@@ -34,19 +34,19 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/numeric_types.h"
-#include "nihilus_gemm/arch/arch.h"
-#include "nihilus_gemm/arch/mma.h"
-#include "nihilus_gemm/arch/wmma.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/arch/arch.h"
+#include "cutlass/arch/mma.h"
+#include "cutlass/arch/wmma.h"
 
-#include "nihilus_gemm/gemm/gemm.h"
-#include "nihilus_gemm/epilogue/thread/linear_combination.h"
-#include "nihilus_gemm/epilogue/thread/linear_combination_clamp.h"
+#include "cutlass/gemm/gemm.h"
+#include "cutlass/epilogue/thread/linear_combination.h"
+#include "cutlass/epilogue/thread/linear_combination_clamp.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace device {
 
@@ -823,11 +823,11 @@ template <
   typename ElementC,
   typename ElementAccumulator>
 struct DefaultGemmConfigurationSm89F8 {
-  static_assert((platform::is_same<ElementA, nihilus_gemm::float_e4m3_t>::value ||
-                 platform::is_same<ElementA, nihilus_gemm::float_e5m2_t>::value),
+  static_assert((platform::is_same<ElementA, cutlass::float_e4m3_t>::value ||
+                 platform::is_same<ElementA, cutlass::float_e5m2_t>::value),
                 "ElementA must be of type float_e4m3_t or float_e5m2_t");
-  static_assert((platform::is_same<ElementB, nihilus_gemm::float_e4m3_t>::value ||
-                 platform::is_same<ElementB, nihilus_gemm::float_e5m2_t>::value),
+  static_assert((platform::is_same<ElementB, cutlass::float_e4m3_t>::value ||
+                 platform::is_same<ElementB, cutlass::float_e5m2_t>::value),
                 "ElementB must be of type float_e4m3_t or float_e5m2_t");
 
   static int const kAlignmentA = 128 / sizeof_bits<ElementA>::value;
@@ -850,12 +850,12 @@ template <typename ElementC, typename ElementAccumulator>
 struct DefaultGemmConfiguration<
   arch::OpClassTensorOp,
   arch::Sm89,
-  nihilus_gemm::float_e4m3_t,
-  nihilus_gemm::float_e4m3_t,
+  cutlass::float_e4m3_t,
+  cutlass::float_e4m3_t,
   ElementC,
   ElementAccumulator> : DefaultGemmConfigurationSm89F8<
-                            nihilus_gemm::float_e4m3_t,
-                            nihilus_gemm::float_e4m3_t,
+                            cutlass::float_e4m3_t,
+                            cutlass::float_e4m3_t,
                             ElementC,
                             ElementAccumulator> {};
 
@@ -864,12 +864,12 @@ template <typename ElementC, typename ElementAccumulator>
 struct DefaultGemmConfiguration<
   arch::OpClassTensorOp,
   arch::Sm89,
-  nihilus_gemm::float_e4m3_t,
-  nihilus_gemm::float_e5m2_t,
+  cutlass::float_e4m3_t,
+  cutlass::float_e5m2_t,
   ElementC,
   ElementAccumulator> : DefaultGemmConfigurationSm89F8<
-                            nihilus_gemm::float_e4m3_t,
-                            nihilus_gemm::float_e5m2_t,
+                            cutlass::float_e4m3_t,
+                            cutlass::float_e5m2_t,
                             ElementC,
                             ElementAccumulator> {};
 
@@ -878,12 +878,12 @@ template <typename ElementC, typename ElementAccumulator>
 struct DefaultGemmConfiguration<
   arch::OpClassTensorOp,
   arch::Sm89,
-  nihilus_gemm::float_e5m2_t,
-  nihilus_gemm::float_e4m3_t,
+  cutlass::float_e5m2_t,
+  cutlass::float_e4m3_t,
   ElementC,
   ElementAccumulator> : DefaultGemmConfigurationSm89F8<
-                            nihilus_gemm::float_e5m2_t,
-                            nihilus_gemm::float_e4m3_t,
+                            cutlass::float_e5m2_t,
+                            cutlass::float_e4m3_t,
                             ElementC,
                             ElementAccumulator> {};
 
@@ -892,12 +892,12 @@ template <typename ElementC, typename ElementAccumulator>
 struct DefaultGemmConfiguration<
   arch::OpClassTensorOp,
   arch::Sm89,
-  nihilus_gemm::float_e5m2_t,
-  nihilus_gemm::float_e5m2_t,
+  cutlass::float_e5m2_t,
+  cutlass::float_e5m2_t,
   ElementC,
   ElementAccumulator> : DefaultGemmConfigurationSm89F8<
-                            nihilus_gemm::float_e5m2_t,
-                            nihilus_gemm::float_e5m2_t,
+                            cutlass::float_e5m2_t,
+                            cutlass::float_e5m2_t,
                             ElementC,
                             ElementAccumulator> {};
 
@@ -950,6 +950,6 @@ struct DefaultGemmConfiguration<
 
 } // namespace device
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////

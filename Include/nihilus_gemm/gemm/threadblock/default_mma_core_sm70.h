@@ -37,23 +37,23 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/array.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/array.h"
 
-#include "nihilus_gemm/numeric_types.h"
-#include "nihilus_gemm/matrix_shape.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/matrix_shape.h"
 
 
-#include "nihilus_gemm/layout/tensor_op_multiplicand_sm70.h"
-#include "nihilus_gemm/transform/pitch_linear_thread_map.h"
-#include "nihilus_gemm/transform/threadblock/regular_tile_iterator_tensor_op_sm70.h"
+#include "cutlass/layout/tensor_op_multiplicand_sm70.h"
+#include "cutlass/transform/pitch_linear_thread_map.h"
+#include "cutlass/transform/threadblock/regular_tile_iterator_tensor_op_sm70.h"
 
-#include "nihilus_gemm/gemm/warp/mma_tensor_op_sm70.h"
-#include "nihilus_gemm/gemm/threadblock/default_mma_core.h"
+#include "cutlass/gemm/warp/mma_tensor_op_sm70.h"
+#include "cutlass/gemm/threadblock/default_mma_core.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace threadblock {
 
@@ -179,22 +179,22 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<8, 8, 4>, ElementA_,
   //
 
   // Define the warp-level tensor op
-  using Policy = nihilus_gemm::gemm::warp::MmaTensorOpPolicy<
-    nihilus_gemm::arch::Mma<
-      nihilus_gemm::gemm::GemmShape<16, 16, 4>,
+  using Policy = cutlass::gemm::warp::MmaTensorOpPolicy<
+    cutlass::arch::Mma<
+      cutlass::gemm::GemmShape<16, 16, 4>,
       32,
       ElementA,
       LayoutA,
       ElementB,
       LayoutB,
       ElementC,
-      nihilus_gemm::layout::RowMajor,
-      nihilus_gemm::arch::OpMultiplyAdd
+      cutlass::layout::RowMajor,
+      cutlass::arch::OpMultiplyAdd
     >,
-    nihilus_gemm::MatrixShape<1, 1>
+    cutlass::MatrixShape<1, 1>
   >;
 
-  using MmaTensorOp = nihilus_gemm::gemm::warp::MmaVoltaTensorOp<
+  using MmaTensorOp = cutlass::gemm::warp::MmaVoltaTensorOp<
     WarpShape,
     ElementA,
     SmemLayoutA,
@@ -332,22 +332,22 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<8, 8, 4>, ElementA_,
   //
 
   // Define the warp-level tensor op
-  using Policy = nihilus_gemm::gemm::warp::MmaTensorOpPolicy<
-    nihilus_gemm::arch::Mma<
-      nihilus_gemm::gemm::GemmShape<16, 16, 4>,
+  using Policy = cutlass::gemm::warp::MmaTensorOpPolicy<
+    cutlass::arch::Mma<
+      cutlass::gemm::GemmShape<16, 16, 4>,
       32,
       ElementA,
       LayoutA,
       ElementB,
       LayoutB,
       ElementC,
-      nihilus_gemm::layout::RowMajor,
-      nihilus_gemm::arch::OpMultiplyAdd
+      cutlass::layout::RowMajor,
+      cutlass::arch::OpMultiplyAdd
     >,
-    nihilus_gemm::MatrixShape<1, 1>
+    cutlass::MatrixShape<1, 1>
   >;
 
-  using MmaTensorOp = nihilus_gemm::gemm::warp::MmaVoltaTensorOp<
+  using MmaTensorOp = cutlass::gemm::warp::MmaVoltaTensorOp<
     WarpShape,
     ElementA,
     SmemLayoutA,
@@ -487,22 +487,22 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<8, 8, 4>, ElementA_,
   //
 
   // Define the warp-level tensor op
-  using Policy = nihilus_gemm::gemm::warp::MmaTensorOpPolicy<
-    nihilus_gemm::arch::Mma<
-      nihilus_gemm::gemm::GemmShape<16, 16, 4>,
+  using Policy = cutlass::gemm::warp::MmaTensorOpPolicy<
+    cutlass::arch::Mma<
+      cutlass::gemm::GemmShape<16, 16, 4>,
       32,
       ElementA,
       LayoutA,
       ElementB,
       LayoutB,
       ElementC,
-      nihilus_gemm::layout::RowMajor,
-      nihilus_gemm::arch::OpMultiplyAdd
+      cutlass::layout::RowMajor,
+      cutlass::arch::OpMultiplyAdd
     >,
-    nihilus_gemm::MatrixShape<1, 1>
+    cutlass::MatrixShape<1, 1>
   >;
 
-  using MmaTensorOp = nihilus_gemm::gemm::warp::MmaVoltaTensorOp<
+  using MmaTensorOp = cutlass::gemm::warp::MmaVoltaTensorOp<
     WarpShape,
     ElementA,
     SmemLayoutA,
@@ -642,22 +642,22 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<8, 8, 4>, ElementA_,
   //
 
   // Define the warp-level tensor op
-  using Policy = nihilus_gemm::gemm::warp::MmaTensorOpPolicy<
-    nihilus_gemm::arch::Mma<
-      nihilus_gemm::gemm::GemmShape<16, 16, 4>,
+  using Policy = cutlass::gemm::warp::MmaTensorOpPolicy<
+    cutlass::arch::Mma<
+      cutlass::gemm::GemmShape<16, 16, 4>,
       32,
       ElementA,
       LayoutA,
       ElementB,
       LayoutB,
       ElementC,
-      nihilus_gemm::layout::RowMajor,
-      nihilus_gemm::arch::OpMultiplyAdd
+      cutlass::layout::RowMajor,
+      cutlass::arch::OpMultiplyAdd
     >,
-    nihilus_gemm::MatrixShape<1, 1>
+    cutlass::MatrixShape<1, 1>
   >;
 
-  using MmaTensorOp = nihilus_gemm::gemm::warp::MmaVoltaTensorOp<
+  using MmaTensorOp = cutlass::gemm::warp::MmaVoltaTensorOp<
     WarpShape,
     ElementA,
     SmemLayoutA,
@@ -679,4 +679,4 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<8, 8, 4>, ElementA_,
 
 } // namespace threadblock
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass

@@ -35,17 +35,17 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/array.h"
-#include "nihilus_gemm/coord.h"
-#include "nihilus_gemm/predicate_vector.h"
-#include "nihilus_gemm/tensor_ref.h"
-#include "nihilus_gemm/tensor_view.h"
-#include "nihilus_gemm/layout/pitch_linear.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/array.h"
+#include "cutlass/coord.h"
+#include "cutlass/predicate_vector.h"
+#include "cutlass/tensor_ref.h"
+#include "cutlass/tensor_view.h"
+#include "cutlass/layout/pitch_linear.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace transform {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -137,7 +137,7 @@ struct PitchLinearStripminedThreadMap {
 
   /// Maps thread ID to a coordinate offset within the tensor's logical coordinate space
   /// (in units of Elements)
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static TensorCoord initial_offset(int thread_id) {
     return TensorCoord(
       (thread_id % Detail::ShapeVec::kContiguous) * kElementsPerAccess, 
@@ -167,7 +167,7 @@ struct PitchLinearTilePolicyStripminedThreadContiguous
 
   using Delta = layout::PitchLinearShape<1, 1>;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static TensorCoord initial_offset(int thread_id)
   {
     return TensorCoord(thread_id * Iterations::kContiguous * kElementsPerAccess, 0);
@@ -197,7 +197,7 @@ struct PitchLinearTilePolicyStripminedThreadStrided
 
   using ShapeVec = Shape;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static TensorCoord initial_offset(int thread_id)
   {
 
@@ -305,7 +305,7 @@ struct PitchLinearWarpRakedThreadMap {
   >;
 
   /// Maps thread ID to a coordinate offset within the tensor's logical coordinate space
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static TensorCoord initial_offset(int thread_id) {
 
     int warp_id = (thread_id / Detail::kWarpSize);
@@ -431,7 +431,7 @@ struct PitchLinearStridedWarpRakedThreadMap {
   using Delta = typename BaseThreadMap::Delta;
 
   /// Maps thread ID to a coordinate offset within the tensor's logical coordinate space
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static TensorCoord initial_offset(int thread_id) {
 
     int warp_id = (thread_id / Detail::kWarpSize);
@@ -540,7 +540,7 @@ struct TransposePitchLinearThreadMap {
   /// Maps thread ID to a coordinate offset within the tensor's logical
   /// coordinate space Note this is slightly different from the one of
   /// PitchLinearWarpRakedThreadMap.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static TensorCoord initial_offset(int thread_id) {
 
     int warp_id = (thread_id / Detail::kWarpSize);
@@ -622,7 +622,7 @@ struct TransposePitchLinearThreadMapSimt {
     /// Maps thread ID to a coordinate offset within the tensor's logical
     /// coordinate space Note this is slightly different from the one of
     /// PitchLinearWarpRakedThreadMap.
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
         static TensorCoord initial_offset(int thread_id) {
 
         TensorCoord coord = ThreadMap::initial_offset(thread_id);
@@ -723,7 +723,7 @@ struct PitchLinearWarpStripedThreadMap {
   >;
 
   /// Maps thread ID to a coordinate offset within the tensor's logical coordinate space
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static TensorCoord initial_offset(int thread_id) {
 
     int warp_id = (thread_id / Detail::kWarpSize);
@@ -785,7 +785,7 @@ template <
   typename Shape_,
   int Threads
 >
-struct PitchLinear2DThreadTileStripminedThreadMap <Shape_, Threads, nihilus_gemm::layout::PitchLinearShape<4, 4>>{
+struct PitchLinear2DThreadTileStripminedThreadMap <Shape_, Threads, cutlass::layout::PitchLinearShape<4, 4>>{
 
   /// Tensor coordinate
   using TensorCoord = layout::PitchLinearCoord;
@@ -794,7 +794,7 @@ struct PitchLinear2DThreadTileStripminedThreadMap <Shape_, Threads, nihilus_gemm
   using Shape = Shape_;
 
   /// Access Shape of each thread
-  using ThreadAccessShape = nihilus_gemm::layout::PitchLinearShape<4, 4>;
+  using ThreadAccessShape = cutlass::layout::PitchLinearShape<4, 4>;
   //using ThreadAccessShape = ThreadTileShape;
 
   /// Number of threads total
@@ -858,7 +858,7 @@ struct PitchLinear2DThreadTileStripminedThreadMap <Shape_, Threads, nihilus_gemm
 
   /// Maps thread ID to a coordinate offset within the tensor's logical coordinate space
   /// (in units of Elements)
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static TensorCoord initial_offset(int thread_id) {
 
     return TensorCoord(
@@ -906,7 +906,7 @@ struct TransposePitchLinearThreadMap2DThreadTile {
     /// Maps thread ID to a coordinate offset within the tensor's logical
     /// coordinate space Note this is slightly different from the one of
     /// PitchLinearWarpRakedThreadMap.
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
         static TensorCoord initial_offset(int thread_id) {
 
         TensorCoord coord = ThreadMap::initial_offset(thread_id);
@@ -921,6 +921,6 @@ struct TransposePitchLinearThreadMap2DThreadTile {
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace transform
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////

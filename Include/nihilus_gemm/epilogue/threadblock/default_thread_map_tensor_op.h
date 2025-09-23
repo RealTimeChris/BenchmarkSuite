@@ -35,13 +35,13 @@
 
 #pragma once
 
-#include "nihilus_gemm/epilogue/threadblock/predicated_tile_iterator.h"
-#include "nihilus_gemm/gemm/gemm.h"
-#include "nihilus_gemm/layout/pitch_linear.h"
+#include "cutlass/epilogue/threadblock/predicated_tile_iterator.h"
+#include "cutlass/gemm/gemm.h"
+#include "cutlass/layout/pitch_linear.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace threadblock {
 
@@ -203,6 +203,6 @@ struct DefaultInterleavedConvThreadMapTensorOp {
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////

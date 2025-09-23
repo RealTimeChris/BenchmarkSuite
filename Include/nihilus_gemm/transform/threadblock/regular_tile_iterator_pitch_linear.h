@@ -40,16 +40,16 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/tensor_ref.h"
-#include "nihilus_gemm/layout/matrix.h"
-#include "nihilus_gemm/layout/pitch_linear.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/tensor_ref.h"
+#include "cutlass/layout/matrix.h"
+#include "cutlass/layout/pitch_linear.h"
 
-#include "nihilus_gemm/transform/threadblock/regular_tile_iterator.h"
+#include "cutlass/transform/threadblock/regular_tile_iterator.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace transform {
 namespace threadblock {
 
@@ -112,10 +112,10 @@ private:
 
 public:
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   RegularTileIterator(): pointer_(nullptr), increment_strided_(0), increment_advance_(0) { }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   RegularTileIterator(
     TensorRef const &ref, 
     int thread_idx
@@ -132,18 +132,18 @@ public:
   }
 
   /// Loads a fragment
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) {
 
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
     uint8_t const *byte_pointer = pointer_ + pointer_offset * sizeof_bits<Element>::value / 8;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
 
       AccessType const *access_ptr = reinterpret_cast<AccessType const *>(byte_pointer);
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
 
         int idx = c + s * ThreadMap::Iterations::kContiguous;
@@ -158,7 +158,7 @@ public:
   }
 
   /// Loads a fragment
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load(Fragment &frag, TensorCoord const & tile_offset) {
     load_with_pointer_offset(
       frag, 
@@ -168,24 +168,24 @@ public:
   }
 
   /// Loads a fragment
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load(Fragment &frag) {
     load_with_pointer_offset(frag, 0);
   }
 
   /// Stores a fragment
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
     AccessType const *frag_ptr = reinterpret_cast<AccessType const*>(&frag);
     uint8_t *byte_pointer = pointer_ + pointer_offset * sizeof_bits<Element>::value / 8;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
 
       AccessType *access_ptr = reinterpret_cast<AccessType *>(byte_pointer);
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
 
         int idx = c + s * ThreadMap::Iterations::kContiguous;
@@ -200,7 +200,7 @@ public:
   }
 
   /// Stores a fragment
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag, TensorCoord const & tile_offset) {
     store_with_pointer_offset(
       frag,
@@ -209,27 +209,27 @@ public:
   }
 
   /// Stores a fragment
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag) {
     store_with_pointer_offset(frag, 0);
   }
 
   /// Advances the pointer
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   RegularTileIterator &operator++() {
     pointer_ += increment_advance_;
     return *this;
   }
 
   /// Advances the pointer
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   RegularTileIterator &operator--() {
     pointer_ -= increment_advance_;
     return *this;
   }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     pointer_ += pointer_offset;
   }
@@ -243,7 +243,7 @@ public:
   ///   For col major B operand, k dimension is contiguous dimension.
   /// Below two classes map col/row major to the pitch linear coordinates used
   /// in this base class.
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void add_tile_offset(TensorCoord const &coord) {
     int offset = sizeof_bits<Element>::value *
         (coord.contiguous() * Shape::kContiguous + coord.strided() * Shape::kStrided * stride_) / 8;
@@ -251,12 +251,12 @@ public:
   }
 
   /// Overrides the internal iteration index
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_iteration_index(int index) {
   }
 
     /// Returns a pointer
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   AccessType *get() const {
 #if 0
     AccessType *access_ptr = pointer_[iteration_strided_ & 1];
@@ -323,10 +323,10 @@ private:
 
 public:
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   RegularTileIterator() { }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   RegularTileIterator(
     TensorRef const &ref, 
     int thread_idx
@@ -336,74 +336,74 @@ public:
   }
 
   /// Loads a fragment
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) {
     iterator_.load_with_pointer_offset(frag, pointer_offset);
   }
 
   /// Loads a fragment
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load(Fragment &frag, TensorCoord const & tile_offset) {
     iterator_.load_with_pointer_offset(frag, {tile_offset.column(), tile_offset.row()});
   }
 
   /// Loads a fragment
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load(Fragment &frag) {
     iterator_.load_with_pointer_offset(frag, 0);
   }
 
   /// Stores a fragment
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
     iterator_.store_with_pointer_offset(frag, pointer_offset);
   }
 
   /// Stores a fragment
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag, TensorCoord const & tile_offset) {
     iterator_.store_with_pointer_offset(frag, {tile_offset.column(), tile_offset.row()});
   }
 
   /// Stores a fragment
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag) {
     iterator_.store_with_pointer_offset(frag, 0);
   }
 
   /// Advances the pointer
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   RegularTileIterator &operator++() {
     ++iterator_;
     return *this;
   }
 
   /// Advances the pointer
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   RegularTileIterator &operator--() {
     --iterator_;
     return *this;
   }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     iterator_.add_pointer_offset(pointer_offset);
   }
 
   /// Adds a tile offset
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void add_tile_offset(TensorCoord const &coord) {
     iterator_.add_tile_offset({coord.column(), coord.row()});
   }
 
   /// Overrides the internal iteration index
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_iteration_index(int index) {
   }
 
   /// Returns a pointer
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   AccessType *get() const {
     return iterator_.get();
   }
@@ -457,10 +457,10 @@ private:
 
 public:
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   RegularTileIterator() { }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   RegularTileIterator(
     TensorRef const &ref, 
     int thread_idx
@@ -470,74 +470,74 @@ public:
   }
 
   /// Loads a fragment
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) {
     iterator_.load_with_pointer_offset(frag, pointer_offset);
   }
 
   /// Loads a fragment
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load(Fragment &frag, TensorCoord const & tile_offset) {
     iterator_.load_with_pointer_offset(frag, {tile_offset.row(), tile_offset.column()});
   }
 
   /// Loads a fragment
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load(Fragment &frag) {
     iterator_.load_with_pointer_offset(frag, 0);
   }
 
   /// Stores a fragment
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
     iterator_.store_with_pointer_offset(frag, pointer_offset);
   }
 
   /// Stores a fragment
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag, TensorCoord const & tile_offset) {
     iterator_.store_with_pointer_offset(frag, {tile_offset.row(), tile_offset.column()});
   }
 
   /// Stores a fragment
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag) {
     iterator_.store_with_pointer_offset(frag, 0);
   }
 
   /// Advances the pointer
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   RegularTileIterator &operator++() {
     ++iterator_;
     return *this;
   }
 
   /// Advances the pointer
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   RegularTileIterator &operator--() {
     --iterator_;
     return *this;
   }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     iterator_.add_pointer_offset(pointer_offset);
   }
 
   /// Adds a tile offset
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void add_tile_offset(TensorCoord const &coord) {
     iterator_.add_tile_offset({coord.row(), coord.column()});
   }
 
   /// Overrides the internal iteration index
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_iteration_index(int index) {
   }
 
   /// Returns a pointer
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   AccessType *get() const {
     return iterator_.get();
   }
@@ -548,5 +548,5 @@ public:
 
 } // namespace threadblock
 } // namespace transform
-} // namespace nihilus_gemm
+} // namespace cutlass
 

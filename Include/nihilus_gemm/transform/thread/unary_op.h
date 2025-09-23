@@ -30,10 +30,10 @@
  **************************************************************************************************/
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/complex.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/complex.h"
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace transform {
 namespace thread {
 
@@ -50,7 +50,7 @@ template<
 class UnaryOp
 {
     public:
-        CUTLASS_RT_TM_DEVICE
+        CUTLASS_DEVICE
         static FragmentOut execute(FragmentIn &in)
         {
             static_assert(FragmentIn::kElements == FragmentOut::kElements, "Number of elements must match.");
@@ -61,7 +61,7 @@ class UnaryOp
             FragmentOut out;
             if (platform::is_same<Transform, UnaryTransform::Identity>::value )
             {
-                CUTLASS_RT_TM_PRAGMA_UNROLL
+                CUTLASS_PRAGMA_UNROLL
                 for (int i=0; i < FragmentIn::kElements; ++i){
                    out[i] = static_cast<typename FragmentOut::Element>(in[i]);
                 }
@@ -80,7 +80,7 @@ template<typename FragmentIn, typename Transform>
 class UnaryOp<FragmentIn, FragmentIn, Transform>
 {
     public:
-        CUTLASS_RT_TM_DEVICE
+        CUTLASS_DEVICE
         static FragmentIn execute(FragmentIn &in)
         {
             static_assert(platform::is_same<Transform, UnaryTransform::Identity>::value ||

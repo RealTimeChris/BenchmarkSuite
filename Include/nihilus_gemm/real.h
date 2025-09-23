@@ -35,9 +35,9 @@
 
 #pragma once
 
-#include <nihilus_gemm/detail/helper_macros.hpp> // CUTLASS_RT_TM_DEVICE
+#include <cutlass/detail/helper_macros.hpp> // CUTLASS_DEVICE
 
-namespace nihilus_gemm {
+namespace cutlass {
 
 /// Used to determine the real-valued underlying type of a numeric type T.
 template <typename T>
@@ -47,17 +47,17 @@ struct RealType {
   /// Number of elements
   static int const kExtent = 1;
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
   static T from_real(double x) {
     return static_cast<T>(x);
   }
 };
 
 template <typename T>
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 static T from_real(double r) {
   return T(r);
 }
 
 
-} // namespace nihilus_gemm
+} // namespace cutlass

@@ -34,18 +34,18 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "cutlass/cutlass.h"
 
-#include "nihilus_gemm/array.h"
+#include "cutlass/array.h"
 
-#include "nihilus_gemm/numeric_types.h"
-#include "nihilus_gemm/matrix_shape.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/matrix_shape.h"
 
-#include "nihilus_gemm/gemm/gemm.h"
+#include "cutlass/gemm/gemm.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -60,7 +60,7 @@ public:
 public:
 
   /// Implements a semaphore to wait for a flag to reach a given value
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Semaphore(int *lock_, int thread_id): 
     lock(lock_), 
     wait_thread(thread_id < 0 || thread_id == 0),
@@ -69,7 +69,7 @@ public:
   }
 
   /// Permit fetching the synchronization mechanism early
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void fetch() {
     if (wait_thread) {
       #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 700
@@ -81,13 +81,13 @@ public:
   }
 
   /// Gets the internal state
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   int get_state() const {
     return state;
   }
 
   /// Waits until the semaphore is equal to the given value
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void wait(int status = 0) {
     while( __syncthreads_and(state != status) ) {
       fetch();
@@ -97,7 +97,7 @@ public:
   }
 
   /// Updates the lock with the given result
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void release(int status = 0) {
     __syncthreads();
 
@@ -113,6 +113,6 @@ public:
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

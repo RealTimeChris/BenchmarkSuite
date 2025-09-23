@@ -34,16 +34,16 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "cutlass/cutlass.h"
 
-#include "nihilus_gemm/layout/pitch_linear.h"
-#include "nihilus_gemm/layout/matrix.h"
+#include "cutlass/layout/pitch_linear.h"
+#include "cutlass/layout/matrix.h"
 
-#include "nihilus_gemm/conv/conv2d_problem_size.h"
+#include "cutlass/conv/conv2d_problem_size.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace threadblock {
 
@@ -62,11 +62,11 @@ struct OutputTileShapeDesc {
   //
 
   /// Default ctor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   OutputTileShapeDesc(): column(0), row(0), group(0), cluster(0), tile(0) { }
 
   /// Ctor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   OutputTileShapeDesc(
     int column_,
     int row_,
@@ -81,13 +81,13 @@ struct OutputTileShapeDesc {
     tile(tile_) { }
 
   /// Total number of points in the 5D space
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   int count() const {
     return column * row * group * cluster * tile;
   }
 
   #if 0
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void print() const {
     printf("{%d, %d, %d, %d, %d}", column, row, group, cluster, tile);
   }
@@ -96,7 +96,7 @@ struct OutputTileShapeDesc {
 
 /// Helper template to construct an OutputTileShapeDesc from a OutputTileShape template.
 template <typename Shape>
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 OutputTileShapeDesc make_OutputTileShapeDesc() {
   return OutputTileShapeDesc(
     Shape::kColumn,
@@ -123,10 +123,10 @@ struct OutputTileThreadMapDesc {
   // Methods
   //
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   OutputTileThreadMapDesc() { }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   OutputTileThreadMapDesc(
     int threads_,
     int elements_per_access_,
@@ -148,7 +148,7 @@ struct OutputTileThreadMapDesc {
 
 /// Helper template to construct an OutputTileShapeDesc from a OutputTileThreadMap template.
 template <typename ThreadMap>
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 OutputTileThreadMapDesc make_OutputTileThreadMapDesc() {
   return OutputTileThreadMapDesc(
     ThreadMap::kThreads,
@@ -189,7 +189,7 @@ struct PredicatedTileIteratorParams {
   // Methods
   //
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Status initialize(LongIndex stride_, OutputTileThreadMapDesc thread_map) {
     
     stride = stride_;
@@ -226,22 +226,22 @@ struct PredicatedTileIteratorParams {
     return Status::kSuccess;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Status initialize(Index stride_, OutputTileThreadMapDesc thread_map) {
     return initialize(LongIndex(stride_), thread_map); 
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileIteratorParams() {
     initialize(LongIndex(0), OutputTileThreadMapDesc());
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileIteratorParams(Index stride, OutputTileThreadMapDesc thread_map) {
     initialize(stride, thread_map);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileIteratorParams(LongIndex stride, OutputTileThreadMapDesc thread_map) {
     initialize(stride, thread_map);
   }
@@ -275,9 +275,9 @@ struct PredicatedTileIteratorDirect2dConvParams{
   // Methods
   //
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Status initialize(LongIndex stride_,
-                    nihilus_gemm::conv::Conv2dProblemSize const &problem_size,
+                    cutlass::conv::Conv2dProblemSize const &problem_size,
                     MatrixCoord threadblock_output_shape) {
     stride = stride_; // The stride per row of output tensor (bytes)
     stride_n = problem_size.P * problem_size.Q;
@@ -292,15 +292,15 @@ struct PredicatedTileIteratorDirect2dConvParams{
       // MSVC emits a "potential divide by 0" warning as error
       // if the code just divides without a check and substitution.
 
-      CUTLASS_RT_TM_ASSERT(threadblock_output_shape.row() != 0);
+      CUTLASS_ASSERT(threadblock_output_shape.row() != 0);
       const auto row_denom = threadblock_output_shape.row() != 0 ?
-        threadblock_output_shape.row() : nihilus_gemm::MatrixCoord::Index(1);
+        threadblock_output_shape.row() : cutlass::MatrixCoord::Index(1);
       int tiles_p =
           (problem_size.P + (threadblock_output_shape.row() - 1)) / row_denom;
 
-      CUTLASS_RT_TM_ASSERT(threadblock_output_shape.column() != 0);
+      CUTLASS_ASSERT(threadblock_output_shape.column() != 0);
       const auto col_denom = threadblock_output_shape.column() != 0 ?
-        threadblock_output_shape.column() : nihilus_gemm::MatrixCoord::Index(1);
+        threadblock_output_shape.column() : cutlass::MatrixCoord::Index(1);
       int tiles_q = (problem_size.Q + (threadblock_output_shape.column() - 1)) /
                     col_denom;
 
@@ -311,27 +311,27 @@ struct PredicatedTileIteratorDirect2dConvParams{
     return Status::kSuccess;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Status initialize(
       Index stride_,
-      nihilus_gemm::conv::Conv2dProblemSize const &problem_size = nihilus_gemm::conv::Conv2dProblemSize(),
+      cutlass::conv::Conv2dProblemSize const &problem_size = cutlass::conv::Conv2dProblemSize(),
       MatrixCoord threadblock_output_shape = MatrixCoord()) {
     return initialize(LongIndex(stride_), problem_size, threadblock_output_shape);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileIteratorDirect2dConvParams() { initialize(LongIndex(0)); }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileIteratorDirect2dConvParams(Index stride,
-                               nihilus_gemm::conv::Conv2dProblemSize const &problem_size,
+                               cutlass::conv::Conv2dProblemSize const &problem_size,
                                MatrixCoord threadblock_output_shape) {
     initialize(stride, problem_size, threadblock_output_shape);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileIteratorDirect2dConvParams(LongIndex stride,
-                               nihilus_gemm::conv::Conv2dProblemSize const &problem_size,
+                               cutlass::conv::Conv2dProblemSize const &problem_size,
                                MatrixCoord threadblock_output_shape) {
     initialize(stride, problem_size, threadblock_output_shape);
   }
@@ -355,10 +355,10 @@ struct InterleavedPredicatedTileIteratorDesc {
   // Methods
   //
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   InterleavedPredicatedTileIteratorDesc() { }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   InterleavedPredicatedTileIteratorDesc(
     int element_size_bits_,
     int elements_per_access_,
@@ -394,7 +394,7 @@ struct InterleavedPredicatedTileIteratorParams {
   // Methods
   //
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Status initialize(LongIndex stride_, InterleavedPredicatedTileIteratorDesc desc) {
     
     stride = stride_;
@@ -409,17 +409,17 @@ struct InterleavedPredicatedTileIteratorParams {
     return Status::kSuccess;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   InterleavedPredicatedTileIteratorParams() {
     initialize(LongIndex(0), InterleavedPredicatedTileIteratorDesc());
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   InterleavedPredicatedTileIteratorParams(Index stride, InterleavedPredicatedTileIteratorDesc desc) {
     initialize(stride, desc);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   InterleavedPredicatedTileIteratorParams(LongIndex stride, InterleavedPredicatedTileIteratorDesc desc) {
     initialize(stride, desc);
   }
@@ -428,7 +428,7 @@ struct InterleavedPredicatedTileIteratorParams {
 /////////////////////////////////////////////////////////////////////////////////////////////////
 /// Helper template to construct an OutputTileShapeDesc from a OutputTileThreadMap template.
 template <typename Element, typename ThreadMap>
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 InterleavedPredicatedTileIteratorDesc make_InterleavedPredicatedTileIteratorDesc() {
   return InterleavedPredicatedTileIteratorDesc(
     sizeof_bits<Element>::value,
@@ -453,7 +453,7 @@ template <typename Element, typename ThreadMap>
 struct MakePredicatedTileIteratorDesc <
     Element, layout::RowMajor, ThreadMap> {
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   OutputTileThreadMapDesc operator()() {
 
     return make_OutputTileThreadMapDesc<ThreadMap>();
@@ -468,7 +468,7 @@ template <typename Element, typename ThreadMap, int InterleavedN>
 struct MakePredicatedTileIteratorDesc <
     Element, layout::ColumnMajorInterleaved<InterleavedN>, ThreadMap> {
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   InterleavedPredicatedTileIteratorDesc operator()() {
 
     return make_InterleavedPredicatedTileIteratorDesc<Element, ThreadMap>();
@@ -478,6 +478,6 @@ struct MakePredicatedTileIteratorDesc <
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////

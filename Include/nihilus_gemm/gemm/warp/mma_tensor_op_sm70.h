@@ -37,23 +37,23 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/array.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/array.h"
 
-#include "nihilus_gemm/numeric_types.h"
-#include "nihilus_gemm/matrix_shape.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/matrix_shape.h"
 
-#include "nihilus_gemm/arch/mma.h"
+#include "cutlass/arch/mma.h"
 
-#include "nihilus_gemm/gemm/gemm.h"
-#include "nihilus_gemm/gemm/warp/mma.h"
+#include "cutlass/gemm/gemm.h"
+#include "cutlass/gemm/warp/mma.h"
 
-#include "nihilus_gemm/gemm/warp/mma_tensor_op_policy.h"
-#include "nihilus_gemm/gemm/warp/mma_tensor_op_tile_iterator_sm70.h"
+#include "cutlass/gemm/warp/mma_tensor_op_policy.h"
+#include "cutlass/gemm/warp/mma_tensor_op_tile_iterator_sm70.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace warp {
 
@@ -216,11 +216,11 @@ public:
   //
   
   /// Ctor
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   MmaVoltaTensorOp() {}
 
   /// Performs a warp-level matrix multiply-accumulate operation
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void operator()(
     FragmentC &D, 
     FragmentA const &A, 
@@ -237,13 +237,13 @@ public:
     MmaOperandB const *ptr_B = reinterpret_cast<MmaOperandB const *>(&B);
     MmaOperandC *ptr_D = reinterpret_cast<MmaOperandC *>(&D);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int outer_col = 0; outer_col < TileIterations::kColumn; ++outer_col) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int inner_col = 0; inner_col < MmaIterations::kColumn; ++inner_col) {
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int outer_row = 0; outer_row < TileIterations::kRow; ++outer_row) {
-          CUTLASS_RT_TM_PRAGMA_UNROLL
+          CUTLASS_PRAGMA_UNROLL
 
           for (int inner_row = 0; inner_row < MmaIterations::kRow; ++inner_row) {
       
@@ -277,4 +277,4 @@ public:
 
 } // namespace warp
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass

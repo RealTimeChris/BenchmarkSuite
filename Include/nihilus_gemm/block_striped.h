@@ -35,13 +35,13 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/array.h"
-#include "nihilus_gemm/wmma_array.h"
-#include "nihilus_gemm/functional.h"
-#include "nihilus_gemm/complex.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/array.h"
+#include "cutlass/wmma_array.h"
+#include "cutlass/functional.h"
+#include "cutlass/complex.h"
 
-namespace nihilus_gemm {
+namespace cutlass {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // AccessWidth
@@ -96,7 +96,7 @@ struct alignas(TransferBytes) StripedAccessType : public T
 
 
 /// ReinterpretCast type for striping a trivially-copyable type in global memory
-/// (Specialization for nihilus_gemm::Array<T>.  Striping granularity is a multiple of T.)
+/// (Specialization for cutlass::Array<T>.  Striping granularity is a multiple of T.)
 template <
     typename T,           /// Array element type
     int N,                /// Number of elements in array
@@ -112,10 +112,10 @@ struct StripedAccessType<
 {};
 
 
-#if defined(CUTLASS_RT_TM_ARCH_WMMA_ENABLED)
+#if defined(CUTLASS_ARCH_WMMA_ENABLED)
 
 /// ReinterpretCast type for striping a trivially-copyable type in global memory
-/// (Specialization for nihilus_gemm::WmmaFragmentArray<T>.  Striping granularity is a multiple of T.)
+/// (Specialization for cutlass::WmmaFragmentArray<T>.  Striping granularity is a multiple of T.)
 template<
     typename Use,
     int m,
@@ -134,7 +134,7 @@ struct StripedAccessType<
             TransferBytes>
 {};
 
-#endif // if defined(CUTLASS_RT_TM_ARCH_WMMA_ENABLED)
+#endif // if defined(CUTLASS_ARCH_WMMA_ENABLED)
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -154,20 +154,20 @@ struct BlockStriped
   static_assert(kStripes > 0, "AccessT type must be smaller than or equal to ArrayT type");
 
   /// Load
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   static void load(ArrayT &data, ArrayT *ptr, int thread_idx)
   {
     AccessT *access_input = reinterpret_cast<AccessT*>(ptr);
     AccessT *access_data = reinterpret_cast<AccessT*>(&data);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < kStripes; ++i) {
       access_data[i] = access_input[(BlockThreads * i) + thread_idx];
     }
   }
 
   /// Load & Add
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   static void load_add(ArrayT &data, ArrayT *ptr, int thread_idx)
   {
     AccessT *access_input = reinterpret_cast<AccessT*>(ptr);
@@ -175,7 +175,7 @@ struct BlockStriped
 
     plus<AccessT> add;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < kStripes; ++i)
     {
       access_data[i] = add(access_data[i], access_input[(BlockThreads * i) + thread_idx]);
@@ -183,13 +183,13 @@ struct BlockStriped
   }
 
   /// Store
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   static void store(ArrayT *ptr, const ArrayT &data, int thread_idx)
   {
     AccessT *access_output = reinterpret_cast<AccessT*>(ptr);
     const AccessT *access_data = reinterpret_cast<const AccessT*>(&data);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < kStripes; ++i) {
       access_output[(BlockThreads * i) + thread_idx] = access_data[i];
     }
@@ -217,14 +217,14 @@ struct BlockStripedReduce :
     ElementT>
 {
   /// Reduce
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   static void reduce(ArrayT *ptr, const ArrayT &data, int thread_idx)
   {
-    nihilus_gemm::atomic_add<ElementT> reduce;
+    cutlass::atomic_add<ElementT> reduce;
     ElementT *access_output = reinterpret_cast<ElementT*>(ptr);
     const ElementT *access_data = reinterpret_cast<const ElementT*>(&data);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < BlockStripedReduce::kStripes; ++i) {
       reduce(access_output + (BlockThreads * i) + thread_idx, access_data[i]);
     }
@@ -247,14 +247,14 @@ struct BlockStripedReduce<BlockThreads, ArrayT, half_t> :
   static_assert(BlockStripedReduce::kStripes % 2 == 0, "Array of half must be even number in length");
 
   /// Reduce
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   static void reduce(ArrayT *ptr, const ArrayT &data, int thread_idx)
   {
-    nihilus_gemm::atomic_add<half2> reduce;
+    cutlass::atomic_add<half2> reduce;
     half2 *access_output = reinterpret_cast<half2*>(ptr);
     const half2 *access_data = reinterpret_cast<const half2*>(&data);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < BlockStripedReduce::kStripes; ++i)
     {
       reduce(access_output + (BlockThreads * i) + thread_idx, access_data[i]);
@@ -263,5 +263,5 @@ struct BlockStripedReduce<BlockThreads, ArrayT, half_t> :
 };
 
 
-} // namespace nihilus_gemm
+} // namespace cutlass
 

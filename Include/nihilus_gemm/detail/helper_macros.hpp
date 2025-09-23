@@ -38,44 +38,44 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-#ifdef CUTLASS_RT_TM_NAMESPACE
+#ifdef CUTLASS_NAMESPACE
 #define concat_tok(a, b) a ## b
-#define mknihilus_gemmnamespace(pre, ns) concat_tok(pre, ns)
-#define nihilus_gemm mknihilus_gemmnamespace(nihilus_gemm_, CUTLASS_RT_TM_NAMESPACE)
+#define mkcutlassnamespace(pre, ns) concat_tok(pre, ns)
+#define cutlass mkcutlassnamespace(cutlass_, CUTLASS_NAMESPACE)
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #if defined(__NVCC__) || (defined(__clang__) && defined(__CUDA__))
-#define CUTLASS_RT_TM_HOST_DEVICE __forceinline__ __device__ __host__
-#define CUTLASS_RT_TM_DEVICE __forceinline__ __device__
+#define CUTLASS_HOST_DEVICE __forceinline__ __device__ __host__
+#define CUTLASS_DEVICE __forceinline__ __device__
 #elif defined(__CUDACC_RTC__)
-#define CUTLASS_RT_TM_HOST_DEVICE __forceinline__ __device__
-#define CUTLASS_RT_TM_DEVICE __forceinline__ __device__
+#define CUTLASS_HOST_DEVICE __forceinline__ __device__
+#define CUTLASS_DEVICE __forceinline__ __device__
 #else
-#define CUTLASS_RT_TM_HOST_DEVICE inline
-#define CUTLASS_RT_TM_DEVICE inline
+#define CUTLASS_HOST_DEVICE inline
+#define CUTLASS_DEVICE inline
 #endif
 
 #if ! defined(_MSC_VER)
-#define CUTLASS_RT_TM_LAMBDA_FUNC_INLINE __attribute__((always_inline))
+#define CUTLASS_LAMBDA_FUNC_INLINE __attribute__((always_inline))
 #else
-#define CUTLASS_RT_TM_LAMBDA_FUNC_INLINE [[msvc::forceinline]]
+#define CUTLASS_LAMBDA_FUNC_INLINE [[msvc::forceinline]]
 #endif
 
-#define CUTLASS_RT_TM_HOST __host__
-#define CUTLASS_RT_TM_GLOBAL __global__ static
+#define CUTLASS_HOST __host__
+#define CUTLASS_GLOBAL __global__ static
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-CUTLASS_RT_TM_HOST_DEVICE void __CUTLASS_RT_TM_UNUSED(T const &) 
+CUTLASS_HOST_DEVICE void __CUTLASS_UNUSED(T const &) 
 { }
 
 #if defined(__GNUC__)
-  #define CUTLASS_RT_TM_UNUSED(expr) __CUTLASS_RT_TM_UNUSED(expr)
+  #define CUTLASS_UNUSED(expr) __CUTLASS_UNUSED(expr)
 #else
-  #define CUTLASS_RT_TM_UNUSED(expr) do { ; } while (&expr != &expr)
+  #define CUTLASS_UNUSED(expr) do { ; } while (&expr != &expr)
 #endif
 
 #ifdef _MSC_VER
@@ -89,27 +89,27 @@ CUTLASS_RT_TM_HOST_DEVICE void __CUTLASS_RT_TM_UNUSED(T const &)
 
 #if defined(__CUDA_ARCH__)
   #if defined(_MSC_VER)
-    #define CUTLASS_RT_TM_NOT_IMPLEMENTED() { printf("%s not implemented\n", __FUNCSIG__); asm volatile ("brkpt;\n"); }
+    #define CUTLASS_NOT_IMPLEMENTED() { printf("%s not implemented\n", __FUNCSIG__); asm volatile ("brkpt;\n"); }
   #else
-    #define CUTLASS_RT_TM_NOT_IMPLEMENTED() { printf("%s not implemented\n", __PRETTY_FUNCTION__); asm volatile ("brkpt;\n"); }
+    #define CUTLASS_NOT_IMPLEMENTED() { printf("%s not implemented\n", __PRETTY_FUNCTION__); asm volatile ("brkpt;\n"); }
   #endif
 #else
   #if defined(_MSC_VER)
-    #define CUTLASS_RT_TM_NOT_IMPLEMENTED() assert(0 && __FUNCSIG__)
+    #define CUTLASS_NOT_IMPLEMENTED() assert(0 && __FUNCSIG__)
   #else
-    #define CUTLASS_RT_TM_NOT_IMPLEMENTED() assert(0 && __PRETTY_FUNCTION__)
+    #define CUTLASS_NOT_IMPLEMENTED() assert(0 && __PRETTY_FUNCTION__)
   #endif
 #endif
 
-// CUTLASS_RT_TM_CMATH_NAMESPACE is the namespace where code can find
+// CUTLASS_CMATH_NAMESPACE is the namespace where code can find
 // <cmath> functions like isnan and log.  Such functions are in
 // the std namespace in host code, but in the global namespace
 // in device code.
 //
 // The intended use case for this macro is in "using" declarations
 // for making argument-dependent lookup (ADL) work in generic code.
-// For example, if T is nihilus_gemm::half_t, the following code will
-// invoke nihilus_gemm::isnan(half_t).  If T is float, it will invoke
+// For example, if T is cutlass::half_t, the following code will
+// invoke cutlass::isnan(half_t).  If T is float, it will invoke
 // std::isnan on host and ::isnan on device.  (CUTLASS's support
 // for NVRTC prevents it from using things in the std namespace
 // in device code.)  Correct use of "using" declarations can help
@@ -117,7 +117,7 @@ CUTLASS_RT_TM_HOST_DEVICE void __CUTLASS_RT_TM_UNUSED(T const &)
 //
 // template<class T>
 // bool foo(T x) {
-//   using CUTLASS_RT_TM_CMATH_NAMESPACE :: isnan;
+//   using CUTLASS_CMATH_NAMESPACE :: isnan;
 //   return isnan(x);
 // }
 //
@@ -134,76 +134,76 @@ CUTLASS_RT_TM_HOST_DEVICE void __CUTLASS_RT_TM_UNUSED(T const &)
 // }
 
 #if defined(__CUDA_ARCH__)
-#  define CUTLASS_RT_TM_CMATH_NAMESPACE
+#  define CUTLASS_CMATH_NAMESPACE
 #else
-#  define CUTLASS_RT_TM_CMATH_NAMESPACE std
+#  define CUTLASS_CMATH_NAMESPACE std
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 
 
-#ifndef CUTLASS_RT_TM_CONV_UNIT_TEST_RIGOROUS_SIZE_ENABLED
-#define CUTLASS_RT_TM_CONV_UNIT_TEST_RIGOROUS_SIZE_ENABLED 0
+#ifndef CUTLASS_CONV_UNIT_TEST_RIGOROUS_SIZE_ENABLED
+#define CUTLASS_CONV_UNIT_TEST_RIGOROUS_SIZE_ENABLED 0
 #endif
 
 
 // CUDA 10.1 introduces the mma instruction
-#if !defined(CUTLASS_RT_TM_ENABLE_TENSOR_CORE_MMA)
-#define CUTLASS_RT_TM_ENABLE_TENSOR_CORE_MMA 0
+#if !defined(CUTLASS_ENABLE_TENSOR_CORE_MMA)
+#define CUTLASS_ENABLE_TENSOR_CORE_MMA 0
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define CUTLASS_RT_TM_ASSERT(x) assert(x)
+#define CUTLASS_ASSERT(x) assert(x)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// CUTLASS_RT_TM_PRAGMA_(UNROLL|NO_UNROLL) optimization directives for the CUDA compiler.
+// CUTLASS_PRAGMA_(UNROLL|NO_UNROLL) optimization directives for the CUDA compiler.
 #if defined(__CUDA_ARCH__) && !defined(__INTELLISENSE__)
   #if defined(__CUDACC_RTC__) || (defined(__clang__) && defined(__CUDA__))
-    #define CUTLASS_RT_TM_PRAGMA_UNROLL _Pragma("unroll")
-    #define CUTLASS_RT_TM_PRAGMA_NO_UNROLL _Pragma("unroll 1")
+    #define CUTLASS_PRAGMA_UNROLL _Pragma("unroll")
+    #define CUTLASS_PRAGMA_NO_UNROLL _Pragma("unroll 1")
   #else
-    #define CUTLASS_RT_TM_PRAGMA_UNROLL #pragma unroll
-    #define CUTLASS_RT_TM_PRAGMA_NO_UNROLL #pragma unroll 1
+    #define CUTLASS_PRAGMA_UNROLL #pragma unroll
+    #define CUTLASS_PRAGMA_NO_UNROLL #pragma unroll 1
   #endif
 
-  #define CUTLASS_RT_TM_GEMM_LOOP CUTLASS_RT_TM_PRAGMA_NO_UNROLL
+  #define CUTLASS_GEMM_LOOP CUTLASS_PRAGMA_NO_UNROLL
 
 #else
 
-    #define CUTLASS_RT_TM_PRAGMA_UNROLL
-    #define CUTLASS_RT_TM_PRAGMA_NO_UNROLL
-    #define CUTLASS_RT_TM_GEMM_LOOP
+    #define CUTLASS_PRAGMA_UNROLL
+    #define CUTLASS_PRAGMA_NO_UNROLL
+    #define CUTLASS_GEMM_LOOP
 
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #if !defined(__CUDACC_RTC__)
-#define CUTLASS_RT_TM_THREAD_LOCAL thread_local
+#define CUTLASS_THREAD_LOCAL thread_local
 #else
-#define CUTLASS_RT_TM_THREAD_LOCAL
+#define CUTLASS_THREAD_LOCAL
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #if defined(_MSVC_LANG)
-#  define CUTLASS_RT_TM_CPLUSPLUS _MSVC_LANG
+#  define CUTLASS_CPLUSPLUS _MSVC_LANG
 #else
-#  define CUTLASS_RT_TM_CPLUSPLUS __cplusplus
+#  define CUTLASS_CPLUSPLUS __cplusplus
 #endif
 
 // https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/n4762.pdf
 // Section 14.8 Predefined macro names
-#if (201703L <= CUTLASS_RT_TM_CPLUSPLUS)
-#define CUTLASS_RT_TM_CONSTEXPR_IF_CXX17 constexpr
-#define CUTLASS_RT_TM_CXX17_OR_LATER 1
+#if (201703L <= CUTLASS_CPLUSPLUS)
+#define CUTLASS_CONSTEXPR_IF_CXX17 constexpr
+#define CUTLASS_CXX17_OR_LATER 1
 #else
-#define CUTLASS_RT_TM_CONSTEXPR_IF_CXX17
-#define CUTLASS_RT_TM_CXX17_OR_LATER 0
+#define CUTLASS_CONSTEXPR_IF_CXX17
+#define CUTLASS_CXX17_OR_LATER 0
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -237,6 +237,6 @@ namespace nihilus_gemm {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-}; // namespace nihilus_gemm
+}; // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

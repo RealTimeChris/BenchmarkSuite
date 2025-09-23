@@ -35,12 +35,12 @@
 
 #pragma once
 
-#include "nihilus_gemm/epilogue/threadblock/predicated_tile_iterator.h"
-#include "nihilus_gemm/gemm/gemm.h"
+#include "cutlass/epilogue/threadblock/predicated_tile_iterator.h"
+#include "cutlass/gemm/gemm.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace threadblock {
 
@@ -122,6 +122,6 @@ struct DefaultThreadMapSimt {
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

@@ -34,11 +34,11 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "cutlass/cutlass.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace arch {
 
 constexpr int sm100_smem_capacity_bytes = 232448;  
@@ -47,7 +47,7 @@ constexpr int sm120_smem_capacity_bytes = 101376;
 #if defined(__NVCC__) || defined(__CUDACC_RTC__) || (defined(__clang__) && defined(__CUDA__))
 
 /// Computes laneId within a warp
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 int LaneId() {
   int ret;
   asm ("mov.u32 %0, %%laneid;" : "=r"(ret) : );
@@ -55,7 +55,7 @@ int LaneId() {
 }
 
 /// Computes SM number the thread is running on
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 int SmId() {
   int ret;
   asm ("mov.u32 %0, %%smid;" : "=r"(ret) : );
@@ -114,7 +114,7 @@ struct Sm103 {
 };
 
 /// Triggers a breakpoint on the device
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void device_breakpoint() {
 #if defined(__CUDA_ARCH__)
   asm volatile ("  brkpt;\n");
@@ -124,6 +124,6 @@ void device_breakpoint() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace arch
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

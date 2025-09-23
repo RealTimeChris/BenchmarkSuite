@@ -42,18 +42,18 @@
 
 #pragma once
 
-#include "nihilus_gemm/array.h"
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/epilogue/threadblock/output_tile_thread_map.h"
-#include "nihilus_gemm/transform/pitch_linear_thread_map.h"
-#include "nihilus_gemm/layout/matrix.h"
-#include "nihilus_gemm/matrix_shape.h"
-#include "nihilus_gemm/numeric_types.h"
-#include "nihilus_gemm/tensor_ref.h"
+#include "cutlass/array.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/epilogue/threadblock/output_tile_thread_map.h"
+#include "cutlass/transform/pitch_linear_thread_map.h"
+#include "cutlass/layout/matrix.h"
+#include "cutlass/matrix_shape.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/tensor_ref.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace threadblock {
 
@@ -122,7 +122,7 @@ class SharedLoadIteratorPitchLinear {
   //
 
   /// Constructor
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   SharedLoadIteratorPitchLinear(TensorRef ref, int thread_idx)
       : byte_pointer_(reinterpret_cast<uint8_t *>(ref.data())),
         stride_((ref.stride(0) * sizeof_bits<Element>::value) / 8),
@@ -137,12 +137,12 @@ class SharedLoadIteratorPitchLinear {
   }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     byte_pointer_ += pointer_offset * sizeof_bits<Element>::value / 8;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void add_tile_offset(TensorCoord const &offset) {
     byte_pointer_ +=
         offset.row() * ThreadMap::StorageShape::kContiguous * sizeof(AccessType) / kElementsPerAccess +
@@ -150,11 +150,11 @@ class SharedLoadIteratorPitchLinear {
   }
 
   /// Loads a fragment from memory
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
         uint8_t const *byte_pointer =
             byte_pointer_ + s * ThreadMap::Delta::kStrided * stride_ +
@@ -168,7 +168,7 @@ class SharedLoadIteratorPitchLinear {
 
         LoadType const *memory_pointer = reinterpret_cast<LoadType const *>(byte_pointer);
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int v = 0; v < kLoadsPerAccess; ++v) {
           frag_ptr[frag_base_idx * kLoadsPerAccess + v] = memory_pointer[v];
         }
@@ -177,11 +177,11 @@ class SharedLoadIteratorPitchLinear {
   }
 
   /// Loads a fragment from memory
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void set_smem_base_address(Index address) { base_smem_address_ = address; }
 
   /// Loads a fragment
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void load(Fragment &frag) const { load_with_pointer_offset(frag, 0); }
 };
 
@@ -189,6 +189,6 @@ class SharedLoadIteratorPitchLinear {
 
 }  // namespace threadblock
 }  // namespace epilogue
-}  // namespace nihilus_gemm
+}  // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

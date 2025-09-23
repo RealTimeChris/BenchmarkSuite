@@ -43,18 +43,18 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/numeric_types.h"
-#include "nihilus_gemm/array.h"
-#include "nihilus_gemm/layout/matrix.h"
-#include "nihilus_gemm/matrix_shape.h"
-#include "nihilus_gemm/tensor_ref.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/array.h"
+#include "cutlass/layout/matrix.h"
+#include "cutlass/matrix_shape.h"
+#include "cutlass/tensor_ref.h"
 
-#include "nihilus_gemm/epilogue/threadblock/output_tile_thread_map.h"
+#include "cutlass/epilogue/threadblock/output_tile_thread_map.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace threadblock {
 
@@ -150,7 +150,7 @@ public:
   //
 
   /// Constructor
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   SharedLoadIteratorMixed(
     TensorRef ref,
     int thread_idx
@@ -160,7 +160,7 @@ public:
     TensorCoord thread_offset = ThreadMap::initial_offset(thread_idx);
 
     // Initialize pointers
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < kLoadsPerAccess; ++i) {
       pointers_[i] = reinterpret_cast<LoadType const *>(ref.data());
 
@@ -174,17 +174,17 @@ public:
   }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < kLoadsPerAccess; ++i) {
       pointers_[i] += pointer_offset / LoadType::kElements;
     }
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void add_tile_offset(TensorCoord const &offset) {
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < kLoadsPerAccess; ++i) {
       pointers_[i] += 
         offset.row() * Shape::kRow * stride_ + 
@@ -193,16 +193,16 @@ public:
   }
 
   /// Loads a fragment from memory
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int cluster = 0; cluster < ThreadMap::Iterations::kCluster; ++cluster) {
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int group = 0; group < ThreadMap::Iterations::kGroup; ++group) {
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int row = 0; row < ThreadMap::Iterations::kRow; ++row) {
 
           int row_ptr_offset =
@@ -215,12 +215,12 @@ public:
 
           LoadType *frag_ptr = reinterpret_cast<LoadType *>(&frag);
 
-          CUTLASS_RT_TM_PRAGMA_UNROLL
+          CUTLASS_PRAGMA_UNROLL
           for (int column = 0; column < ThreadMap::Iterations::kColumn; ++column) {
             
             int frag_idx = frag_row_idx * ThreadMap::Iterations::kColumn + column;
 
-            CUTLASS_RT_TM_PRAGMA_UNROLL
+            CUTLASS_PRAGMA_UNROLL
             for (int v = 0; v < kLoadsPerAccess; ++v) {
            
               int vector_idx = (column * ThreadMap::Delta::kColumn / kElementsPerAccess * kLoadsPerAccess); 
@@ -236,11 +236,11 @@ public:
   }
 
   /// Set base smem address
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void set_smem_base_address(Index address) {}
 
   /// Loads a fragment
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void load(Fragment &frag) const {
 
     load_with_pointer_offset(frag, 0);
@@ -322,7 +322,7 @@ public:
   //
 
   /// Constructor
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   SharedLoadIteratorMixed(
     TensorRef ref,
     int thread_idx
@@ -336,7 +336,7 @@ public:
       
     int lane_col_idx = thread_offset.column() / 16;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < kLoadsPerAccess; ++i) {
       int lane_offset = (lane_col_idx % 2) * 4 | ((lane_col_idx / 2) * 8) | ((lane_col_idx / 2) ^ i);
  
@@ -345,17 +345,17 @@ public:
   }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < kLoadsPerAccess; ++i) {
       pointers_[i] += pointer_offset / LoadType::kElements;
     }
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void add_tile_offset(TensorCoord const &offset) {
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < kLoadsPerAccess; ++i) {
       pointers_[i] += 
         offset.row() * Shape::kRow * stride_ + 
@@ -364,16 +364,16 @@ public:
   }
 
   /// Loads a fragment from memory
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) {
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int cluster = 0; cluster < ThreadMap::Iterations::kCluster; ++cluster) {
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int group = 0; group < ThreadMap::Iterations::kGroup; ++group) {
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int row = 0; row < ThreadMap::Iterations::kRow; ++row) {
 
           int row_ptr_offset =
@@ -386,12 +386,12 @@ public:
 
           LoadType *frag_ptr = reinterpret_cast<LoadType *>(&frag);
 
-          CUTLASS_RT_TM_PRAGMA_UNROLL
+          CUTLASS_PRAGMA_UNROLL
           for (int column = 0; column < ThreadMap::Iterations::kColumn; ++column) {
             
             int frag_idx = frag_row_idx * ThreadMap::Iterations::kColumn + column;
 
-            CUTLASS_RT_TM_PRAGMA_UNROLL
+            CUTLASS_PRAGMA_UNROLL
             for (int v = 0; v < kLoadsPerAccess; ++v) {
            
               LoadType const *memory_pointer = pointers_[v];
@@ -405,11 +405,11 @@ public:
   }
 
   /// Set base smem address
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void set_smem_base_address(Index address) {}
 
   /// Loads a fragment
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void load(Fragment &frag) {
 
     load_with_pointer_offset(frag, 0);
@@ -491,7 +491,7 @@ public:
   //
 
   /// Constructor
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   SharedLoadIteratorMixed(
     TensorRef ref,
     int thread_idx
@@ -505,7 +505,7 @@ public:
       
     int lane_col_idx = thread_offset.column() / 8;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < kLoadsPerAccess; ++i) {
       int lane_offset = (lane_col_idx % 8) * 2 | ((lane_col_idx / 4) ^ i);
 
@@ -514,17 +514,17 @@ public:
   }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < kLoadsPerAccess; ++i) {
       pointers_[i] += pointer_offset / LoadType::kElements;
     }
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void add_tile_offset(TensorCoord const &offset) {
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < kLoadsPerAccess; ++i) {
       pointers_[i] += 
         offset.row() * Shape::kRow * stride_ + 
@@ -533,16 +533,16 @@ public:
   }
 
   /// Loads a fragment from memory
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) {
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int cluster = 0; cluster < ThreadMap::Iterations::kCluster; ++cluster) {
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int group = 0; group < ThreadMap::Iterations::kGroup; ++group) {
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int row = 0; row < ThreadMap::Iterations::kRow; ++row) {
 
           int row_ptr_offset =
@@ -555,12 +555,12 @@ public:
 
           LoadType *frag_ptr = reinterpret_cast<LoadType *>(&frag);
 
-          CUTLASS_RT_TM_PRAGMA_UNROLL
+          CUTLASS_PRAGMA_UNROLL
           for (int column = 0; column < ThreadMap::Iterations::kColumn; ++column) {
             
             int frag_idx = frag_row_idx * ThreadMap::Iterations::kColumn + column;
 
-            CUTLASS_RT_TM_PRAGMA_UNROLL
+            CUTLASS_PRAGMA_UNROLL
             for (int v = 0; v < kLoadsPerAccess; ++v) {
            
               LoadType const *memory_pointer = pointers_[v];
@@ -574,11 +574,11 @@ public:
   }
 
   /// Set base smem address
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void set_smem_base_address(Index address) {}
 
   /// Loads a fragment
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void load(Fragment &frag) {
 
     load_with_pointer_offset(frag, 0);
@@ -589,6 +589,6 @@ public:
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

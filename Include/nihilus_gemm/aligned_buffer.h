@@ -35,14 +35,14 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/array.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/array.h"
 
-namespace nihilus_gemm {
+namespace cutlass {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Modifies semantics of nihilus_gemm::Array<> to provide guaranteed alignment. 
+/// Modifies semantics of cutlass::Array<> to provide guaranteed alignment. 
 template <
   typename T,
   int N,
@@ -86,38 +86,38 @@ public:
 
 public:
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   pointer data() {
     return reinterpret_cast<pointer>(storage); 
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   const_pointer data() const {
     return reinterpret_cast<pointer>(storage); 
   }
   
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Storage * raw_data() {
     return storage;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Storage const * raw_data() const {
     return storage;
   }
 
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   constexpr bool empty() const {
     return !kCount;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   constexpr size_type size() const {
     return kCount;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   constexpr size_type max_size() const {
     return kCount;
   }
@@ -125,5 +125,5 @@ public:
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace nihilus_gemm
+} // namespace cutlass
 

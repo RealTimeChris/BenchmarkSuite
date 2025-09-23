@@ -33,10 +33,10 @@
 */
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/coord.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/coord.h"
 
-namespace nihilus_gemm {
+namespace cutlass {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -70,35 +70,35 @@ public:
   //
 
   /// Default ctor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   MatrixCoord() { }
 
   /// Constructs from Coord<2>
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   MatrixCoord(Coord<2, Index> const &coord): Base(coord) { }
 
   /// Helper to construct from a row and column
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   MatrixCoord(Index row, Index column): Base(make_Coord(row, column)) { }
 
   /// Helper to construct from a row and column, which are LongIndex based
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   MatrixCoord(LongIndex row, LongIndex column): Base(make_Coord(Index(row), Index(column))) { }
 
   /// Returns the row of the coordinate
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Index const & row() const { return this->at(kRow); }
 
   /// Returns the row of the coordinate
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Index & row() { return this->at(kRow); }
 
   /// Returns the column of the coordinate
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Index const & column() const { return this->at(kColumn); }
 
   /// Returns the column of the coordinate
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Index & column() { return this->at(kColumn); }
 
   //
@@ -106,52 +106,52 @@ public:
   //
 
   /// Element-wise addition
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   MatrixCoord operator+(Base const& b) const {
     return MatrixCoord(Base::operator+(b));
   }
 
   /// Element-wise subtraction
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   MatrixCoord operator-(Base const& b) const {
     return MatrixCoord(Base::operator-(b));
   }
 
   /// Element-wise multiplication
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   MatrixCoord operator*(Base const& b) const {
     return MatrixCoord(Base::operator*(b));
   }
 
   /// Element-wise division
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   MatrixCoord operator/(Base const& b) const {
     return MatrixCoord(Base::operator/(b));
   }
 
   /// In-place addition
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   MatrixCoord& operator+=(Base const& b) {
     Base::operator+=(b);
     return *this;
   }
 
   /// In-place subtraction
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   MatrixCoord& operator-=(Base const& b) {
     Base::operator-=(b);
     return *this;
   }
 
   /// In-place multiplication
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   MatrixCoord& operator*=(Base const& b) {
     Base::operator*=(b);
     return *this;
   }
 
   /// In-place division
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   MatrixCoord& operator/=(Base const& b) {
     Base::operator/=(b);
     return *this;
@@ -161,4 +161,4 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace nihilus_gemm
+} // namespace cutlass

@@ -34,21 +34,21 @@
 */
 #pragma once
 
-#include "cute_rt_tm/util/type_traits.hpp"
+#include "cute/util/type_traits.hpp"
 
-#include "nihilus_gemm/numeric_size.h"
-#include "nihilus_gemm/integer_subbyte.h"
-#include "nihilus_gemm/half.h"
-#include "nihilus_gemm/bfloat16.h"
-#include "nihilus_gemm/tfloat32.h"
-#include "nihilus_gemm/float8.h"
-#include "nihilus_gemm/uint128.h"
-#include "nihilus_gemm/uint256.h"
-#include "nihilus_gemm/exmy_base.h"
-#include "nihilus_gemm/float_subbyte.h"
+#include "cutlass/numeric_size.h"
+#include "cutlass/integer_subbyte.h"
+#include "cutlass/half.h"
+#include "cutlass/bfloat16.h"
+#include "cutlass/tfloat32.h"
+#include "cutlass/float8.h"
+#include "cutlass/uint128.h"
+#include "cutlass/uint256.h"
+#include "cutlass/exmy_base.h"
+#include "cutlass/float_subbyte.h"
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -70,22 +70,22 @@ using make_index_sequence = typename index_sequence_helper<N>::type;
 
 // Default case - no negative zero
 template <typename T>
-struct has_negative_zero : CUTE_RT_TM_STL_NAMESPACE::false_type{};
+struct has_negative_zero : CUTE_STL_NAMESPACE::false_type{};
 
 // Float types that support negative zero
-template <> struct has_negative_zero<mx_float4_t<float_e2m1_t>> : CUTE_RT_TM_STL_NAMESPACE::true_type{};
-template <> struct has_negative_zero<mx_float6_t<float_e2m3_t>> : CUTE_RT_TM_STL_NAMESPACE::true_type{};
-template <> struct has_negative_zero<mx_float8_t<float_e4m3_t>> : CUTE_RT_TM_STL_NAMESPACE::true_type{};
-template <> struct has_negative_zero<mx_float8_t<float_e5m2_t>> : CUTE_RT_TM_STL_NAMESPACE::true_type{};
-template <> struct has_negative_zero<float_e2m1_t> : CUTE_RT_TM_STL_NAMESPACE::true_type{};
-template <> struct has_negative_zero<float_e2m3_t> : CUTE_RT_TM_STL_NAMESPACE::true_type{};
-template <> struct has_negative_zero<float_e4m3_t> : CUTE_RT_TM_STL_NAMESPACE::true_type{};
-template <> struct has_negative_zero<float_e5m2_t> : CUTE_RT_TM_STL_NAMESPACE::true_type{};
-template <> struct has_negative_zero<half_t> : CUTE_RT_TM_STL_NAMESPACE::true_type{};
-template <> struct has_negative_zero<bfloat16_t> : CUTE_RT_TM_STL_NAMESPACE::true_type{};
-template <> struct has_negative_zero<float> : CUTE_RT_TM_STL_NAMESPACE::true_type{};
-template <> struct has_negative_zero<double> : CUTE_RT_TM_STL_NAMESPACE::true_type{};
-template <> struct has_negative_zero<tfloat32_t> : CUTE_RT_TM_STL_NAMESPACE::true_type{};
+template <> struct has_negative_zero<mx_float4_t<float_e2m1_t>> : CUTE_STL_NAMESPACE::true_type{};
+template <> struct has_negative_zero<mx_float6_t<float_e2m3_t>> : CUTE_STL_NAMESPACE::true_type{};
+template <> struct has_negative_zero<mx_float8_t<float_e4m3_t>> : CUTE_STL_NAMESPACE::true_type{};
+template <> struct has_negative_zero<mx_float8_t<float_e5m2_t>> : CUTE_STL_NAMESPACE::true_type{};
+template <> struct has_negative_zero<float_e2m1_t> : CUTE_STL_NAMESPACE::true_type{};
+template <> struct has_negative_zero<float_e2m3_t> : CUTE_STL_NAMESPACE::true_type{};
+template <> struct has_negative_zero<float_e4m3_t> : CUTE_STL_NAMESPACE::true_type{};
+template <> struct has_negative_zero<float_e5m2_t> : CUTE_STL_NAMESPACE::true_type{};
+template <> struct has_negative_zero<half_t> : CUTE_STL_NAMESPACE::true_type{};
+template <> struct has_negative_zero<bfloat16_t> : CUTE_STL_NAMESPACE::true_type{};
+template <> struct has_negative_zero<float> : CUTE_STL_NAMESPACE::true_type{};
+template <> struct has_negative_zero<double> : CUTE_STL_NAMESPACE::true_type{};
+template <> struct has_negative_zero<tfloat32_t> : CUTE_STL_NAMESPACE::true_type{};
 
 // Helper variable template 
 template <typename T>
@@ -106,7 +106,7 @@ struct get_unpacked_element_type {
 
 } // namespace detail
 
-}  // namespace nihilus_gemm
+}  // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 

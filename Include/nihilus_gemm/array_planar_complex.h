@@ -34,12 +34,12 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/array.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/array.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -54,7 +54,7 @@ struct ArrayPlanarComplex {
   static constexpr size_t kElements = N;
 
   /// Underlying Fragment of real-valued elemenets
-  using ArrayReal = nihilus_gemm::Array<Element, N>;
+  using ArrayReal = cutlass::Array<Element, N>;
 
 public:
   /// Fragment of real-valued elements representing the real part
@@ -65,7 +65,7 @@ public:
 
 public:
   /// Sets the array to zero efficiently
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void clear() {
     real.clear();
     imag.clear();
@@ -76,7 +76,7 @@ public:
 
 /// Helper to deduce template arguments
 template <typename Element, int N>
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 ArrayPlanarComplex<Element, N> 
 make_ArrayPlanarComplex(Array<Element, N> const &real, Array<Element, N> const &imag) {
   return ArrayPlanarComplex<Element, N>{real, imag};
@@ -84,6 +84,6 @@ make_ArrayPlanarComplex(Array<Element, N> const &real, Array<Element, N> const &
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

@@ -38,29 +38,29 @@
 */
 
 #pragma once
-#include "nihilus_gemm/cutlass.h"
+#include "cutlass/cutlass.h"
 #include CUDA_STD_HEADER(cassert)
 
-#include "nihilus_gemm/numeric_types.h"
-#include "nihilus_gemm/array.h"
-#include "nihilus_gemm/layout/vector.h"
-#include "nihilus_gemm/layout/tensor.h"
-#include "nihilus_gemm/tensor_coord.h"
-#include "nihilus_gemm/aligned_buffer.h"
-#include "nihilus_gemm/functional.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/array.h"
+#include "cutlass/layout/vector.h"
+#include "cutlass/layout/tensor.h"
+#include "cutlass/tensor_coord.h"
+#include "cutlass/aligned_buffer.h"
+#include "cutlass/functional.h"
 
-#include "nihilus_gemm/gemm/gemm.h"
+#include "cutlass/gemm/gemm.h"
 
-#include "nihilus_gemm/transform/pitch_linear_thread_map.h"
-#include "nihilus_gemm/transform/threadblock/regular_tile_iterator.h"
+#include "cutlass/transform/pitch_linear_thread_map.h"
+#include "cutlass/transform/threadblock/regular_tile_iterator.h"
 
-#include "nihilus_gemm/epilogue/threadblock/epilogue_base.h"
-#include "nihilus_gemm/epilogue/threadblock/epilogue_base_streamk.h"
-#include "nihilus_gemm/epilogue/threadblock/predicated_tile_iterator.h"
+#include "cutlass/epilogue/threadblock/epilogue_base.h"
+#include "cutlass/epilogue/threadblock/epilogue_base_streamk.h"
+#include "cutlass/epilogue/threadblock/predicated_tile_iterator.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace threadblock {
 
@@ -152,7 +152,7 @@ public:
   using TensorRef = typename OutputTileIterator::TensorRef;
 
   /// Tensor reference to sync tensor
-  using SyncTensorRef = typename nihilus_gemm::TensorRef<int, nihilus_gemm::layout::PackedVectorLayout>;
+  using SyncTensorRef = typename cutlass::TensorRef<int, cutlass::layout::PackedVectorLayout>;
 
   /// Const tensor reference to source tensor
   using ConstTensorRef = typename OutputTileIterator::ConstTensorRef;
@@ -188,16 +188,16 @@ public:
   struct SourceAspectNotNeeded
   {
     /// Constructor
-    CUTLASS_RT_TM_DEVICE
+    CUTLASS_DEVICE
     SourceAspectNotNeeded()
     {}
 
     // No-op
-    CUTLASS_RT_TM_DEVICE
+    CUTLASS_DEVICE
     void load() { }
 
     /// Invoke the output functor over each vector of output
-    CUTLASS_RT_TM_DEVICE
+    CUTLASS_DEVICE
     void apply_output_operator(
       typename OutputTileIterator::Fragment &output_fragment,
       OutputOp const &output_op,
@@ -212,7 +212,7 @@ public:
       int const kOutputOpIterations =
         OutputTileIterator::Fragment::kElements / OutputTileIterator::kElementsPerAccess;
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int i = 0; i < kOutputOpIterations; ++i)
       {
         // Call the output operator
@@ -230,7 +230,7 @@ public:
     typename OutputTileIterator::Fragment source_fragment;
 
     /// Invoke the output functor over each vector of output
-    CUTLASS_RT_TM_DEVICE
+    CUTLASS_DEVICE
     static void apply_output_operator(
       typename OutputTileIterator::Fragment &output_fragment,
       OutputOp const &output_op,
@@ -249,7 +249,7 @@ public:
       int const kOutputOpIterations =
         OutputTileIterator::Fragment::kElements / OutputTileIterator::kElementsPerAccess;
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int i = 0; i < kOutputOpIterations; ++i)
       {
         // Call the output operator
@@ -258,7 +258,7 @@ public:
     }
 
     /// Constructor
-    CUTLASS_RT_TM_DEVICE
+    CUTLASS_DEVICE
     SourceAspectNeeded(OutputTileIterator source_iterator) :
       source_iterator(source_iterator)
     {
@@ -266,14 +266,14 @@ public:
     }
 
     // Load addend source fragment from global memory
-    CUTLASS_RT_TM_DEVICE
+    CUTLASS_DEVICE
     void load() {
       source_iterator.load(source_fragment);
       ++source_iterator;
     }
 
     /// Invoke the output functor over each vector of output
-    CUTLASS_RT_TM_DEVICE
+    CUTLASS_DEVICE
     void apply_output_operator(
       typename OutputTileIterator::Fragment &output_fragment,
       OutputOp const &output_op,
@@ -298,7 +298,7 @@ private:
 public:
 
   /// Constructor
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   Epilogue(
       typename Base::SharedStorage &shared_storage,   ///< Shared storage object
       int thread_idx,                                 ///< ID of a thread within the threadblock
@@ -315,7 +315,7 @@ public:
 
   /// Aggregates the accumulator sets shared by peer blocks in the global workspace,
   /// performing epilogue computations, writing to output
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void reduce(
       int peer_idx_begin,
       int peer_idx_end,
@@ -353,7 +353,7 @@ public:
     {
       plus <typename SharedLoadIterator::Fragment> add_fragments;
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for ( int i = 1; i < kPartitionsK; ++i) {
         typename SharedLoadIterator::Fragment aligned_addend_fragment;
         shared_load_iterator_.add_pointer_offset(kSmemPointerOffset);
@@ -379,7 +379,7 @@ public:
 
 
   /// Perform the epilogue computations and stream the result to global memory.
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void operator()(
     OutputOp const &output_op,                      ///< Output operator
     OutputTileIterator destination_iterator,        ///< Tile iterator for destination
@@ -391,7 +391,7 @@ public:
 
   /// Perform the epilogue computations and stream the result to global memory.  Implements
   /// two alternative codepaths, depending on whether the output op requires addend data to be loaded.
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void operator()(
     OutputOp const &output_op,                      ///< Output operator
     OutputTileIterator destination_iterator,        ///< Tile iterator for destination
@@ -411,7 +411,7 @@ public:
 
   /// Perform the epilogue computations and stream the result to global memory.  Implements a
   /// single codepath, regardless of whether the output op requires addend data to be loaded
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void unified(
     OutputOp const &output_op,                      ///< Output operator
     OutputTileIterator destination_iterator,        ///< Tile iterator for destination
@@ -431,12 +431,12 @@ public:
   struct acc2smem;
 
   template <size_t... Seq>
-  struct acc2smem<nihilus_gemm::index_sequence<Seq...>> {
+  struct acc2smem<cutlass::index_sequence<Seq...>> {
     template<int Advance>
-    CUTLASS_RT_TM_DEVICE
+    CUTLASS_DEVICE
     static void helper(AccumulatorFragmentIterator accum_fragment_iterator,
                       WarpTileIterator &warp_tile_iterator) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int i = 0; i < Advance; i++) {
         ++accum_fragment_iterator;
       }
@@ -448,7 +448,7 @@ public:
       warp_tile_iterator.store(accum_fragment);
     }
 
-    CUTLASS_RT_TM_DEVICE
+    CUTLASS_DEVICE
     static void push(size_t pos,
                     AccumulatorFragmentIterator const &iterator_begin,
                     WarpTileIterator &warp_tile_iterator) {
@@ -459,7 +459,7 @@ public:
 
   /// Streams the result to global memory
   template <typename SourceAspect>
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void operator()(
     OutputOp const &output_op,                      ///< Output operator
     OutputTileIterator destination_iterator,        ///< Tile iterator for destination
@@ -493,7 +493,7 @@ public:
 
       __syncthreads();
 
-      acc2smem<nihilus_gemm::make_index_sequence<OutputTileIterator::kIterations>>::push(
+      acc2smem<cutlass::make_index_sequence<OutputTileIterator::kIterations>>::push(
         iter, accum_fragment_iterator, this->warp_tile_iterator_);
 
       __syncthreads();
@@ -508,7 +508,7 @@ public:
       if (kPartitionsK > 1) {
         plus <typename SharedLoadIterator::Fragment> add_fragments;
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for ( int i = 1; i < kPartitionsK; ++i) {
           shared_load_iterator_.add_pointer_offset(kSmemPointerOffset);
           shared_load_iterator_.load(aligned_accum_fragment[i]);
@@ -543,6 +543,6 @@ public:
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////

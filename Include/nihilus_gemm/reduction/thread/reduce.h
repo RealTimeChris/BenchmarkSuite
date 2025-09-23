@@ -34,13 +34,13 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/numeric_types.h"
-#include "nihilus_gemm/array.h"
-#include "nihilus_gemm/half.h"
-#include "nihilus_gemm/functional.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/array.h"
+#include "cutlass/half.h"
+#include "cutlass/functional.h"
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace reduction {
 namespace thread {
 
@@ -54,7 +54,7 @@ struct Reduce;
 template <typename T>
 struct Reduce< plus<T>, T > {
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   T operator()(T lhs, T const &rhs) const {
     plus<T> _op;
     return _op(lhs, rhs);
@@ -67,14 +67,14 @@ struct Reduce< plus<T>, T > {
 template <typename T, int N>
 struct Reduce < plus<T>, Array<T, N>> {
   
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Array<T, 1> operator()(Array<T, N> const &in) const {
 
     Array<T, 1> result;
     Reduce< plus<T>, T > scalar_reduce;
     result.clear();
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (auto i = 0; i < N; ++i) {
       result[0] = scalar_reduce(result[0], in[i]);
     }
@@ -89,7 +89,7 @@ struct Reduce < plus<T>, Array<T, N>> {
 template <int N>
 struct Reduce < plus<half_t>, Array<half_t, N> > {
   
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Array<half_t, 1> operator()(Array<half_t, N> const &input) {
 
     Array<half_t, 1> result;
@@ -111,7 +111,7 @@ struct Reduce < plus<half_t>, Array<half_t, N> > {
         // Set initial result = first half2, in case N==2
         __half2 tmp_result = x_in_half2[0];
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int i = 1; i < N/2; ++i) {
 
           tmp_result = __hadd2(x_in_half2[i], tmp_result);
@@ -141,7 +141,7 @@ struct Reduce < plus<half_t>, Array<half_t, N> > {
         Reduce< plus<half_t>, half_t > scalar_reduce;
         result.clear();
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (auto i = 0; i < N; ++i) {
 
           result[0] = scalar_reduce(result[0], input[i]);
@@ -163,7 +163,7 @@ struct Reduce < plus<half_t>, Array<half_t, N> > {
 template <int N>
 struct Reduce < plus<half_t>, AlignedArray<half_t, N> > {
   
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Array<half_t, 1> operator()(AlignedArray<half_t, N> const &input) {
 
     Array<half_t, 1> result;
@@ -185,7 +185,7 @@ struct Reduce < plus<half_t>, AlignedArray<half_t, N> > {
         // Set initial result = first half2, in case N==2
         __half2 tmp_result = x_in_half2[0];
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int i = 1; i < N/2; ++i) {
 
           tmp_result = __hadd2(x_in_half2[i], tmp_result);
@@ -215,7 +215,7 @@ struct Reduce < plus<half_t>, AlignedArray<half_t, N> > {
         Reduce< plus<half_t>, half_t > scalar_reduce;
         result.clear();
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (auto i = 0; i < N; ++i) {
 
           result[0] = scalar_reduce(result[0], input[i]);

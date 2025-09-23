@@ -35,13 +35,13 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/functional.h"
-#include "nihilus_gemm/block_striped.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/functional.h"
+#include "cutlass/block_striped.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace threadblock {
 
@@ -106,7 +106,7 @@ public:
 public:
 
   /// Constructor
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   EpilogueBaseStreamK(
       int thread_idx)                                       ///< ID of a thread within the threadblock
   :
@@ -115,7 +115,7 @@ public:
 
 
   /// Aggregates the accumulator sets shared by peer blocks in the global workspace
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void reduce(
       AccumulatorFragment &accum_fragment,                  ///< [out] sum of all shared accumulator fragments for these peer partials
       int peer_idx_begin,
@@ -150,7 +150,7 @@ public:
 
 
   /// Shares the accumulator set with peers in the global workspace
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void share(
       int peer_idx,
       void *workspace_ptr,
@@ -169,7 +169,7 @@ public:
     AccumulatorFragmentIterator accum_fragment_iterator(accumulators);
 
     // Convert raw accumulator tile to fragments and store
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int iter = 0; iter < kAccumulatorFragments; ++iter)
     {
       // Acquire reordered accumulator fragment
@@ -192,6 +192,6 @@ public:
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////

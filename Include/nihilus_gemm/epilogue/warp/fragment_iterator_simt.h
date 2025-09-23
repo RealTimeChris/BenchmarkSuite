@@ -43,14 +43,14 @@
 
 #pragma once
 
-#include "nihilus_gemm/array.h"
-#include "nihilus_gemm/layout/matrix.h"
+#include "cutlass/array.h"
+#include "cutlass/layout/matrix.h"
 
-#include "nihilus_gemm/epilogue/warp/simt_policy.h"
+#include "cutlass/epilogue/warp/simt_policy.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace warp {
 
@@ -118,7 +118,7 @@ private:
 public:
 
   /// Constructs an iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   FragmentIteratorSimt(AccumulatorTile const &accum): 
     accumulators_(reinterpret_cast<AccessType const *>(&accum)), 
     index_(0) {
@@ -126,26 +126,26 @@ public:
   }
 
   /// Increments
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   FragmentIteratorSimt &operator++() {
     ++index_;
     return *this;
   }
 
   /// Decrements
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   FragmentIteratorSimt &operator--() {
     --index_;
     return *this;
   }
 
   /// Loads a fragment from the referenced part of the accumulator tile
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load(Fragment &frag, int index_offset = 0) const {
 
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int n = 0; n < Policy::kAccessesPerIteration; ++n) {
 
       int accumulator_access_offset = index_ * Policy::kAccessesPerIteration + n;
@@ -159,6 +159,6 @@ public:
 
 } // namespace warp
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

@@ -37,7 +37,7 @@
 #pragma once
 
 #if defined(__CUDACC_RTC__)
-#include "nihilus_gemm/floating_point_nvrtc.h"
+#include "cutlass/floating_point_nvrtc.h"
 #else
 #include <cmath>
 #include <limits>
@@ -46,10 +46,10 @@
 #endif
 
 #include <cuda_bf16.h>
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/platform/platform.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/platform/platform.h"
 
-namespace nihilus_gemm {
+namespace cutlass {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -68,7 +68,7 @@ struct alignas(2) bfloat16_t {
   //
 
   /// Constructs from an unsigned short
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static bfloat16_t bitcast(uint16_t x) {
     bfloat16_t h;
     h.storage = x;
@@ -80,9 +80,9 @@ private:
   static constexpr from_32_bit_integer_t from_32_bit_integer{};
 
   template<class T>
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit bfloat16_t(from_32_bit_integer_t, T x) {
-    static_assert(nihilus_gemm::platform::is_integral<T>::value && sizeof(T) == 4, "Requires 32-bit integer");
+    static_assert(cutlass::platform::is_integral<T>::value && sizeof(T) == 4, "Requires 32-bit integer");
 
     float flt = static_cast<float>(x);
     uint32_t bits;
@@ -101,7 +101,7 @@ public:
   bfloat16_t() = default;
 
   /// Reinterpret cast from CUDA's __nv_bfloat16 type
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit bfloat16_t(__nv_bfloat16 const & x) {
     #if defined(__CUDA_ARCH__)
     storage = reinterpret_cast<uint16_t const &>(x);
@@ -112,7 +112,7 @@ public:
   }
 
   /// Floating-point conversion - round toward nearest
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit bfloat16_t(float x) {
 
     #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800) && (__CUDACC_VER_MAJOR__ >= 11)
@@ -147,20 +147,20 @@ public:
   }
 
   /// Floating-point conversion - round toward nearest
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit bfloat16_t(double x): bfloat16_t(float(x)) {
 
   }
 
   /// Integer conversion - round toward nearest
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit bfloat16_t(int x) : bfloat16_t(from_32_bit_integer, x) {}
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit bfloat16_t(uint32_t x) : bfloat16_t(from_32_bit_integer, x) {}
 
   /// Converts to float
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   operator float() const {
     unsigned bits = (unsigned(storage) << 16);
     #if defined(__CUDA_ARCH__)
@@ -173,54 +173,54 @@ public:
   }
 
   /// Converts to float
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit operator double() const {
     return double(float(*this));
   }
 
   /// Converts to int
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit operator int() const {
     return int(float(*this));
   }
 
   /// Casts to bool
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit operator bool() const {
     return (float(*this) != 0.0f);
   }
 
   /// Bitcasts to CUDA's bf16 type
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   __nv_bfloat16 to_nv_bfloat16() const {
     return reinterpret_cast<__nv_bfloat16 const &>(storage);
   }
 
   /// Obtains raw bits
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   uint16_t raw() const {
     return storage;
   }
     /// Returns the sign bit
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   bool signbit() const {
     return ((raw() & 0x8000) != 0);
   }
 
   /// Returns the biased exponent
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   int exponent_biased() const {
     return int((raw() >> 7) & 0x0ff);
   }
 
   /// Returns the unbiased exponent
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   int exponent() const {
     return exponent_biased() - 127;
   }
 
   /// Returns the mantissa
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   int mantissa() const {
     return int(raw() & 0x7f);
   }
@@ -228,44 +228,44 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-CUTLASS_RT_TM_HOST_DEVICE
-bool signbit(nihilus_gemm::bfloat16_t const& h) {
+CUTLASS_HOST_DEVICE
+bool signbit(cutlass::bfloat16_t const& h) {
   return h.signbit();
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
-nihilus_gemm::bfloat16_t abs(nihilus_gemm::bfloat16_t const& h) {
-  return nihilus_gemm::bfloat16_t::bitcast(h.raw() & 0x7fff);
+CUTLASS_HOST_DEVICE
+cutlass::bfloat16_t abs(cutlass::bfloat16_t const& h) {
+  return cutlass::bfloat16_t::bitcast(h.raw() & 0x7fff);
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
-bool isnan(nihilus_gemm::bfloat16_t const& h) {
+CUTLASS_HOST_DEVICE
+bool isnan(cutlass::bfloat16_t const& h) {
   return (h.exponent_biased() == 0x0ff) && h.mantissa();
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
-bool isfinite(nihilus_gemm::bfloat16_t const& h) {
+CUTLASS_HOST_DEVICE
+bool isfinite(cutlass::bfloat16_t const& h) {
   return (h.exponent_biased() != 0x0ff);
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
-nihilus_gemm::bfloat16_t nan_bf16(const char*) {
+CUTLASS_HOST_DEVICE
+cutlass::bfloat16_t nan_bf16(const char*) {
   // NVIDIA canonical NaN
-  return nihilus_gemm::bfloat16_t::bitcast(0x7fff);
+  return cutlass::bfloat16_t::bitcast(0x7fff);
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
-bool isinf(nihilus_gemm::bfloat16_t const& h) {
+CUTLASS_HOST_DEVICE
+bool isinf(cutlass::bfloat16_t const& h) {
   return (h.exponent_biased() == 0x0ff) && !h.mantissa();
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
-bool isnormal(nihilus_gemm::bfloat16_t const& h) {
+CUTLASS_HOST_DEVICE
+bool isnormal(cutlass::bfloat16_t const& h) {
   return h.exponent_biased() && h.exponent_biased() != 0x0ff;
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
-int fpclassify(nihilus_gemm::bfloat16_t const& h) {
+CUTLASS_HOST_DEVICE
+int fpclassify(cutlass::bfloat16_t const& h) {
   int exp = h.exponent_biased();
   int mantissa = h.mantissa();
   if (exp == 0x0ff) {
@@ -287,16 +287,16 @@ int fpclassify(nihilus_gemm::bfloat16_t const& h) {
   return FP_NORMAL;
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
-nihilus_gemm::bfloat16_t sqrt(nihilus_gemm::bfloat16_t const& h) {
+CUTLASS_HOST_DEVICE
+cutlass::bfloat16_t sqrt(cutlass::bfloat16_t const& h) {
 #if defined(__CUDACC_RTC__)
-  return nihilus_gemm::bfloat16_t(sqrtf(float(h)));
+  return cutlass::bfloat16_t(sqrtf(float(h)));
 #else
-  return nihilus_gemm::bfloat16_t(std::sqrt(float(h)));
+  return cutlass::bfloat16_t(std::sqrt(float(h)));
 #endif
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 bfloat16_t copysign(bfloat16_t const& a, bfloat16_t const& b) {
 
   uint16_t a_bits;
@@ -319,7 +319,7 @@ bfloat16_t copysign(bfloat16_t const& a, bfloat16_t const& b) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -332,7 +332,7 @@ namespace std {
 
 /// Numeric limits
 template <>
-struct numeric_limits<nihilus_gemm::bfloat16_t> {
+struct numeric_limits<cutlass::bfloat16_t> {
   static bool const is_specialized = true;
   static bool const is_signed = true;
   static bool const is_integer = false;
@@ -349,45 +349,45 @@ struct numeric_limits<nihilus_gemm::bfloat16_t> {
   static int const digits = 7;
 
   /// Least positive value
-  CUTLASS_RT_TM_HOST_DEVICE
-  static nihilus_gemm::bfloat16_t min() { return nihilus_gemm::bfloat16_t::bitcast(0x01); }
+  CUTLASS_HOST_DEVICE
+  static cutlass::bfloat16_t min() { return cutlass::bfloat16_t::bitcast(0x01); }
 
   /// Minimum finite value
-  CUTLASS_RT_TM_HOST_DEVICE
-  static nihilus_gemm::bfloat16_t lowest() { return nihilus_gemm::bfloat16_t::bitcast(0xff7f); }
+  CUTLASS_HOST_DEVICE
+  static cutlass::bfloat16_t lowest() { return cutlass::bfloat16_t::bitcast(0xff7f); }
 
   /// Maximum finite value
-  CUTLASS_RT_TM_HOST_DEVICE
-  static nihilus_gemm::bfloat16_t max() { return nihilus_gemm::bfloat16_t::bitcast(0x7f7f); }
+  CUTLASS_HOST_DEVICE
+  static cutlass::bfloat16_t max() { return cutlass::bfloat16_t::bitcast(0x7f7f); }
 
   /// Returns smallest finite value
-  CUTLASS_RT_TM_HOST_DEVICE
-  static nihilus_gemm::bfloat16_t epsilon() { return nihilus_gemm::bfloat16_t::bitcast(0x3c00); }
+  CUTLASS_HOST_DEVICE
+  static cutlass::bfloat16_t epsilon() { return cutlass::bfloat16_t::bitcast(0x3c00); }
   /// Returns smallest finite value
-  CUTLASS_RT_TM_HOST_DEVICE
-  static nihilus_gemm::bfloat16_t round_error() { return nihilus_gemm::bfloat16_t(0.5f); }
+  CUTLASS_HOST_DEVICE
+  static cutlass::bfloat16_t round_error() { return cutlass::bfloat16_t(0.5f); }
 
   /// Returns smallest finite value
-  CUTLASS_RT_TM_HOST_DEVICE
-  static nihilus_gemm::bfloat16_t infinity() { return nihilus_gemm::bfloat16_t::bitcast(0x7f80); }
+  CUTLASS_HOST_DEVICE
+  static cutlass::bfloat16_t infinity() { return cutlass::bfloat16_t::bitcast(0x7f80); }
 
   /// Returns smallest finite value
-  CUTLASS_RT_TM_HOST_DEVICE
-  static nihilus_gemm::bfloat16_t quiet_NaN() { return nihilus_gemm::bfloat16_t::bitcast(0x7fff); }
+  CUTLASS_HOST_DEVICE
+  static cutlass::bfloat16_t quiet_NaN() { return cutlass::bfloat16_t::bitcast(0x7fff); }
 
   /// Returns smallest finite value
-  CUTLASS_RT_TM_HOST_DEVICE
-  static nihilus_gemm::bfloat16_t signaling_NaN() { return nihilus_gemm::bfloat16_t::bitcast(0x7fff); }
+  CUTLASS_HOST_DEVICE
+  static cutlass::bfloat16_t signaling_NaN() { return cutlass::bfloat16_t::bitcast(0x7fff); }
 
   /// Returns smallest finite value
-  CUTLASS_RT_TM_HOST_DEVICE
-  static nihilus_gemm::bfloat16_t denorm_min() { return nihilus_gemm::bfloat16_t::bitcast(0x1); }
+  CUTLASS_HOST_DEVICE
+  static cutlass::bfloat16_t denorm_min() { return cutlass::bfloat16_t::bitcast(0x1); }
 };
 
 } // namespace std
 #endif
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace platform {
 
 /// Forward Declaration
@@ -396,7 +396,7 @@ struct numeric_limits;
 
 /// Numeric limits
 template <>
-struct numeric_limits<nihilus_gemm::bfloat16_t> {
+struct numeric_limits<cutlass::bfloat16_t> {
   static bool const is_specialized = true;
   static bool const is_signed = true;
   static bool const is_integer = false;
@@ -417,43 +417,43 @@ struct numeric_limits<nihilus_gemm::bfloat16_t> {
   static int const digits = 7;
 
   /// Least positive value
-  CUTLASS_RT_TM_HOST_DEVICE
-  static nihilus_gemm::bfloat16_t min() { return nihilus_gemm::bfloat16_t::bitcast(0x01); }
+  CUTLASS_HOST_DEVICE
+  static cutlass::bfloat16_t min() { return cutlass::bfloat16_t::bitcast(0x01); }
 
   /// Minimum finite value
-  CUTLASS_RT_TM_HOST_DEVICE
-  static nihilus_gemm::bfloat16_t lowest() { return nihilus_gemm::bfloat16_t::bitcast(0xff7f); }
+  CUTLASS_HOST_DEVICE
+  static cutlass::bfloat16_t lowest() { return cutlass::bfloat16_t::bitcast(0xff7f); }
 
   /// Maximum finite value
-  CUTLASS_RT_TM_HOST_DEVICE
-  static nihilus_gemm::bfloat16_t max() { return nihilus_gemm::bfloat16_t::bitcast(0x7f7f); }
+  CUTLASS_HOST_DEVICE
+  static cutlass::bfloat16_t max() { return cutlass::bfloat16_t::bitcast(0x7f7f); }
 
   /// Returns smallest finite value
-  CUTLASS_RT_TM_HOST_DEVICE
-  static nihilus_gemm::bfloat16_t epsilon() { return nihilus_gemm::bfloat16_t::bitcast(0x3c00); }
+  CUTLASS_HOST_DEVICE
+  static cutlass::bfloat16_t epsilon() { return cutlass::bfloat16_t::bitcast(0x3c00); }
   /// Returns smallest finite value
-  CUTLASS_RT_TM_HOST_DEVICE
-  static nihilus_gemm::bfloat16_t round_error() { return nihilus_gemm::bfloat16_t(0.5f); }
+  CUTLASS_HOST_DEVICE
+  static cutlass::bfloat16_t round_error() { return cutlass::bfloat16_t(0.5f); }
 
   /// Returns smallest finite value
-  CUTLASS_RT_TM_HOST_DEVICE
-  static nihilus_gemm::bfloat16_t infinity() { return nihilus_gemm::bfloat16_t::bitcast(0x7f80); }
+  CUTLASS_HOST_DEVICE
+  static cutlass::bfloat16_t infinity() { return cutlass::bfloat16_t::bitcast(0x7f80); }
 
   /// Returns smallest finite value
-  CUTLASS_RT_TM_HOST_DEVICE
-  static nihilus_gemm::bfloat16_t quiet_NaN() { return nihilus_gemm::bfloat16_t::bitcast(0x7fff); }
+  CUTLASS_HOST_DEVICE
+  static cutlass::bfloat16_t quiet_NaN() { return cutlass::bfloat16_t::bitcast(0x7fff); }
 
   /// Returns smallest finite value
-  CUTLASS_RT_TM_HOST_DEVICE
-  static nihilus_gemm::bfloat16_t signaling_NaN() { return nihilus_gemm::bfloat16_t::bitcast(0x7fff); }
+  CUTLASS_HOST_DEVICE
+  static cutlass::bfloat16_t signaling_NaN() { return cutlass::bfloat16_t::bitcast(0x7fff); }
 
   /// Returns smallest finite value
-  CUTLASS_RT_TM_HOST_DEVICE
-  static nihilus_gemm::bfloat16_t denorm_min() { return nihilus_gemm::bfloat16_t::bitcast(0x1); }
+  CUTLASS_HOST_DEVICE
+  static cutlass::bfloat16_t denorm_min() { return cutlass::bfloat16_t::bitcast(0x1); }
 };
 
 } // namespace platform
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -461,11 +461,11 @@ struct numeric_limits<nihilus_gemm::bfloat16_t> {
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 bool operator==(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
   return __heq(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16());
@@ -474,7 +474,7 @@ bool operator==(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 #endif
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 bool operator!=(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
   return __hne(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16());
@@ -483,7 +483,7 @@ bool operator!=(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 #endif
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 bool operator<(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
   return __hlt(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16());
@@ -492,7 +492,7 @@ bool operator<(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 #endif
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 bool operator<=(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
   return __hle(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16());
@@ -501,7 +501,7 @@ bool operator<=(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 #endif
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 bool operator>(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
   return __hgt(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16());
@@ -510,7 +510,7 @@ bool operator>(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 #endif
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 bool operator>=(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
   return __hge(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16());
@@ -519,7 +519,7 @@ bool operator>=(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 #endif
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 bfloat16_t operator+(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
   return bfloat16_t(__hadd(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16()));
@@ -528,7 +528,7 @@ bfloat16_t operator+(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 #endif
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 bfloat16_t operator-(bfloat16_t const& lhs) {
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
   return bfloat16_t(__hneg(lhs.to_nv_bfloat16()));
@@ -537,7 +537,7 @@ bfloat16_t operator-(bfloat16_t const& lhs) {
 #endif
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 bfloat16_t operator-(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
   return bfloat16_t(__hsub(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16()));
@@ -546,7 +546,7 @@ bfloat16_t operator-(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 #endif
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 bfloat16_t operator*(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
   return bfloat16_t(__hmul(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16()));
@@ -555,7 +555,7 @@ bfloat16_t operator*(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 #endif
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 bfloat16_t operator/(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
   return bfloat16_t(__hdiv(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16()));
@@ -564,7 +564,7 @@ bfloat16_t operator/(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 #endif
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 bfloat16_t& operator+=(bfloat16_t & lhs, bfloat16_t const& rhs) {
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
   lhs = bfloat16_t(__hadd(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16()));
@@ -574,7 +574,7 @@ bfloat16_t& operator+=(bfloat16_t & lhs, bfloat16_t const& rhs) {
   return lhs;
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 bfloat16_t& operator-=(bfloat16_t & lhs, bfloat16_t const& rhs) {
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
   lhs = bfloat16_t(__hsub(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16()));
@@ -584,7 +584,7 @@ bfloat16_t& operator-=(bfloat16_t & lhs, bfloat16_t const& rhs) {
   return lhs;
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 bfloat16_t& operator*=(bfloat16_t & lhs, bfloat16_t const& rhs) {
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
   lhs = bfloat16_t(__hmul(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16()));
@@ -594,7 +594,7 @@ bfloat16_t& operator*=(bfloat16_t & lhs, bfloat16_t const& rhs) {
   return lhs;
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 bfloat16_t& operator/=(bfloat16_t & lhs, bfloat16_t const& rhs) {
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
   lhs = bfloat16_t(__hdiv(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16()));
@@ -604,7 +604,7 @@ bfloat16_t& operator/=(bfloat16_t & lhs, bfloat16_t const& rhs) {
   return lhs;
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 bfloat16_t& operator++(bfloat16_t & lhs) {
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
   lhs = bfloat16_t(__hadd(lhs.to_nv_bfloat16(), bfloat16_t(1.0f).to_nv_bfloat16()));
@@ -616,7 +616,7 @@ bfloat16_t& operator++(bfloat16_t & lhs) {
   return lhs;
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 bfloat16_t& operator--(bfloat16_t & lhs) {
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
   lhs = bfloat16_t(__hsub(lhs.to_nv_bfloat16(), bfloat16_t(1.0f).to_nv_bfloat16()));
@@ -628,7 +628,7 @@ bfloat16_t& operator--(bfloat16_t & lhs) {
   return lhs;
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 bfloat16_t operator++(bfloat16_t & lhs, int) {
   bfloat16_t ret(lhs);
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
@@ -641,7 +641,7 @@ bfloat16_t operator++(bfloat16_t & lhs, int) {
   return ret;
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 bfloat16_t operator--(bfloat16_t & lhs, int) {
   bfloat16_t ret(lhs);
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
@@ -656,7 +656,7 @@ bfloat16_t operator--(bfloat16_t & lhs, int) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -664,14 +664,14 @@ bfloat16_t operator--(bfloat16_t & lhs, int) {
 // User-defined literals
 //
 
-CUTLASS_RT_TM_HOST_DEVICE
-nihilus_gemm::bfloat16_t operator "" _bf16(long double x) {
-  return nihilus_gemm::bfloat16_t(float(x));
+CUTLASS_HOST_DEVICE
+cutlass::bfloat16_t operator "" _bf16(long double x) {
+  return cutlass::bfloat16_t(float(x));
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
-nihilus_gemm::bfloat16_t operator "" _bf16(unsigned long long int x) {
-  return nihilus_gemm::bfloat16_t(int(x));
+CUTLASS_HOST_DEVICE
+cutlass::bfloat16_t operator "" _bf16(unsigned long long int x) {
+  return cutlass::bfloat16_t(int(x));
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

@@ -34,21 +34,21 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/array.h"
-#include "nihilus_gemm/numeric_types.h"
-#include "nihilus_gemm/matrix_shape.h"
-#include "nihilus_gemm/gemm/gemm.h"
-#include "nihilus_gemm/gemm/warp/mma.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/array.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/matrix_shape.h"
+#include "cutlass/gemm/gemm.h"
+#include "cutlass/gemm/warp/mma.h"
 
-#include "nihilus_gemm/gemm/thread/mma.h"
+#include "cutlass/gemm/thread/mma.h"
 
-#include "nihilus_gemm/gemm/warp/mma_simt_tile_iterator.h"
-#include "nihilus_gemm/gemm/warp/mma_simt_policy.h"
+#include "cutlass/gemm/warp/mma_simt_tile_iterator.h"
+#include "cutlass/gemm/warp/mma_simt_policy.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace warp {
 
@@ -221,11 +221,11 @@ public:
   //
 
   /// Ctor
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   MmaSimt() {}
 
   /// Performs a warp-level matrix multiply-accumulate operation
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void operator()(
     FragmentC &d, 
     FragmentA a, 
@@ -248,7 +248,7 @@ public:
   }
 
   /// Transform the mma operands to the required types
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void transform(TransformedFragmentA &dst_A, TransformedFragmentB &dst_B,
                  FragmentA const &A, FragmentB const &B) const {
     dst_A = A;
@@ -260,4 +260,4 @@ public:
 
 } // namespace warp
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass

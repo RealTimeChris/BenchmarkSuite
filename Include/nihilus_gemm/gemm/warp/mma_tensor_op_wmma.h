@@ -35,29 +35,29 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/arch/wmma.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/arch/wmma.h"
 
-#if defined(CUTLASS_RT_TM_ARCH_WMMA_ENABLED)
+#if defined(CUTLASS_ARCH_WMMA_ENABLED)
 
-#include "nihilus_gemm/wmma_array.h"
-#include "nihilus_gemm/numeric_types.h"
-#include "nihilus_gemm/matrix_shape.h"
+#include "cutlass/wmma_array.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/matrix_shape.h"
 
-#include "nihilus_gemm/arch/memory_sm75.h"
-#include "nihilus_gemm/arch/mma_sm75.h"
-#include "nihilus_gemm/arch/mma_sm80.h"
+#include "cutlass/arch/memory_sm75.h"
+#include "cutlass/arch/mma_sm75.h"
+#include "cutlass/arch/mma_sm80.h"
 
-#include "nihilus_gemm/gemm/gemm.h"
-#include "nihilus_gemm/gemm/warp/mma.h"
+#include "cutlass/gemm/gemm.h"
+#include "cutlass/gemm/warp/mma.h"
 
-#include "nihilus_gemm/gemm/warp/mma_tensor_op_policy.h"
+#include "cutlass/gemm/warp/mma_tensor_op_policy.h"
 
-#include "nihilus_gemm/gemm/warp/mma_tensor_op_tile_iterator_wmma.h"
+#include "cutlass/gemm/warp/mma_tensor_op_tile_iterator_wmma.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace warp {
 
@@ -180,7 +180,7 @@ private:
 
 public:
 
-  /// Underlying matrix multiply operator (concept: nihilus_gemm::arch::Wmma)
+  /// Underlying matrix multiply operator (concept: cutlass::arch::Wmma)
   typename Policy::Operator wmma;
 
 public:
@@ -190,20 +190,20 @@ public:
   //
 
   /// Ctor
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   MmaTensorOpWmma() {}
 
   /// Performs a warp-level matrix multiply-accumulate operation
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void operator()(
     FragmentC &D, 
     FragmentA const &A, 
     FragmentB const &B, 
     FragmentC const &C) const {
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int n = 0; n < WmmaIterations::kColumn; ++n) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int m = 0; m < WmmaIterations::kRow; ++m) {
 
         // accumulate wmma mma
@@ -217,7 +217,7 @@ public:
 
 } // namespace warp
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass
 
-#endif // if defined(CUTLASS_RT_TM_ARCH_WMMA_ENABLED)
+#endif // if defined(CUTLASS_ARCH_WMMA_ENABLED)
 

@@ -35,11 +35,11 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "cutlass/cutlass.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -67,7 +67,7 @@ struct sizeof_bits<void> {
 
 /// Returns the number of bytes required to hold a specified number of bits
 template <class R = int, class T>
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 constexpr
 R
 bits_to_bytes(T bits) {
@@ -76,7 +76,7 @@ bits_to_bytes(T bits) {
 
 /// Returns the number of bits required to hold a specified number of bytes
 template <class R = int, class T>
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 constexpr
 R
 bytes_to_bits(T bytes) {
@@ -93,6 +93,6 @@ struct is_subbyte {
 template <class T>
 struct is_subbyte<T const> : is_subbyte<T> {};
 
-}  // namespace nihilus_gemm
+}  // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

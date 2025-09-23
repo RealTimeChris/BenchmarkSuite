@@ -44,23 +44,23 @@
 
 #pragma once
 
-#include "nihilus_gemm/array.h"
-#include "nihilus_gemm/coord.h"
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/layout/matrix.h"
-#include "nihilus_gemm/layout/permute.h"
-#include "nihilus_gemm/layout/pitch_linear.h"
-#include "nihilus_gemm/matrix_shape.h"
-#include "nihilus_gemm/predicate_vector.h"
-#include "nihilus_gemm/tensor_ref.h"
-#include "nihilus_gemm/tensor_view.h"
-#include "nihilus_gemm/transform/threadblock/predicated_tile_access_iterator_params.h"
+#include "cutlass/array.h"
+#include "cutlass/coord.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/layout/matrix.h"
+#include "cutlass/layout/permute.h"
+#include "cutlass/layout/pitch_linear.h"
+#include "cutlass/matrix_shape.h"
+#include "cutlass/predicate_vector.h"
+#include "cutlass/tensor_ref.h"
+#include "cutlass/tensor_view.h"
+#include "cutlass/transform/threadblock/predicated_tile_access_iterator_params.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace transform {
 namespace threadblock {
 
@@ -130,19 +130,19 @@ class PredicatedTileAccessIteratorPredicates {
 
  public:
   /// Computes predicates based on internally tracked per-thread offset.
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void compute_predicates_(
       /// Extent of the matrix window
       TensorCoord extent,
       /// optionally, simplify predicate calculation during 'steady state' phase
       bool is_steady_state = false) {
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < kPredicateWordCount; ++i) {
       predicates_[i] = 0u;
     }
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int access_idx = 0; access_idx < ThreadMap::Iterations::kCount * kAccessesPerVector; ++access_idx) {
 
       int s = access_idx / (ThreadMap::Iterations::kContiguous * kAccessesPerVector);
@@ -183,7 +183,7 @@ class PredicatedTileAccessIteratorPredicates {
 
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_predicates(int thread_id, TensorCoord const &threadblock_offset) {
 
     TensorCoord residue_extent;
@@ -227,7 +227,7 @@ class PredicatedTileAccessIteratorPredicates {
 
   /// Constructs a TileIterator from its precomputed state, threadblock offset,
   /// and thread ID
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIteratorPredicates(
       /// Extent of tensor
       TensorCoord extent)
@@ -235,7 +235,7 @@ class PredicatedTileAccessIteratorPredicates {
 	}
 
   /// Overrides the internal iteration index
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_iteration_index(int index) {
 
     iteration_vector_ = index % kAccessesPerVector;
@@ -247,16 +247,16 @@ class PredicatedTileAccessIteratorPredicates {
   }
 
   /// Increment and return an instance to self.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIteratorPredicates &operator++() {
 
     return *this;
   }
 
   /// Clears the predicate set efficiently
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void clear_mask(bool enable = true) {
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < kPredicateWordCount; ++i) {
       predicates_[i] = enable ? 0u : predicates_[i];
     }
@@ -264,18 +264,18 @@ class PredicatedTileAccessIteratorPredicates {
   }
 
   /// Clears the predicate set efficiently
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void enable_mask() {
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < kPredicateWordCount; ++i) {
       predicates_[i] = 0xffffffff;
     }
   }
 
   /// Sets the predicate mask, overriding value stored in predicate iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_mask(Mask const &mask) { 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < kPredicateWordCount; ++i) {
       predicates_[i] = mask[i];
     }
@@ -283,16 +283,16 @@ class PredicatedTileAccessIteratorPredicates {
   }
 
   /// Gets the mask
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void get_mask(Mask &mask) {
-     CUTLASS_RT_TM_PRAGMA_UNROLL
+     CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < kPredicateWordCount; ++i) {
       mask[i] = predicates_[i];
     }
   }
 
   /// Returns whether access is valid or not
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   bool valid() const {
 
     
@@ -374,13 +374,13 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::PitchLinear,
     Params() = default;
 
     /// Construct the Params object given a pitch-linear tensor's layout
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(Layout const &layout) : 
       Base(layout.stride(0),
             MakePredicatedTileAccessIteratorDesc<Shape, Element, Layout, kAdvanceRank, ThreadMap>()()
         ) { }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(Base const &base) : 
       Base(base) { }
   };
@@ -424,7 +424,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::PitchLinear,
 
  private:
   /// Computes predicates based on internally tracked per-thread offset.
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void compute_predicates_(
       /// Extent of the matrix window
       TensorCoord extent,
@@ -440,7 +440,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::PitchLinear,
 
   /// Constructs a TileIterator from its precomputed state, threadblock offset,
   /// and thread ID
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator(
       /// Precomputed parameters object
       Params const &params,
@@ -482,7 +482,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::PitchLinear,
   }
 
   /// Construct a PredicatedTileAccessIterator with zero threadblock offset
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator(
       /// Precomputed parameters object
       Params const &params,
@@ -496,19 +496,19 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::PitchLinear,
                                      make_Coord(0, 0)) {}
 
   /// Overrides the internal iteration index
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_iteration_index(int index) {
     the_predicates.set_iteration_index(index);
   }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     pointer_ += sizeof_bits<Element>::value * pointer_offset / 8;
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole tiles
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void add_tile_offset(
       TensorCoord const &tile_offset) {
     if (is_residue_tile_) {
@@ -561,7 +561,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::PitchLinear,
   }
 
   /// Returns a pointer
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   AccessType *get() const {
 
     if (Gather || Permute)
@@ -586,7 +586,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::PitchLinear,
   }
 
   /// Increment and return an instance to self.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator &operator++() {
 
     the_predicates.operator++();
@@ -633,7 +633,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::PitchLinear,
   }
 
   /// Increment and return an instance to self.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator operator++(int) {
     PredicatedTileAccessIterator self(*this);
     operator++();
@@ -641,31 +641,31 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::PitchLinear,
   }
 
   /// Clears the predicate set efficiently
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void clear_mask(bool enable = true) {
     the_predicates.clear_mask(enable);
   }
 
   /// Clears the predicate set efficiently
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void enable_mask() {
     the_predicates.enable_mask();
   }
 
   /// Sets the predicate mask, overriding value stored in predicate iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_mask(Mask const &mask) { 
     the_predicates.set_mask(mask);
   }
 
   /// Gets the mask
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void get_mask(Mask &mask) {
     the_predicates.get_mask(mask);
   }
 
   /// Returns whether access is valid or not
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   bool valid() const {
     return the_predicates.valid();
   }
@@ -733,12 +733,12 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::ColumnMajor,
     Params() = default;
 
     /// Construct the Params object given a pitch-linear tensor's layout
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(Layout const &layout)
         : params_(layout::PitchLinear(layout.stride(0))){};
 
     /// Construct the Params object given a pitch-linear tensor's layout
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(typename UnderlyingIterator::Params::Base const &base) 
         : params_(base) {}
   };
@@ -758,7 +758,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::ColumnMajor,
 
   /// Constructs a TileIterator from its precomputed state, threadblock offset,
   /// and thread ID
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator(
       ///< Precomputed parameters object
       Params const &params,
@@ -780,7 +780,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::ColumnMajor,
                   indices) {}
 
   /// Construct a PredicatedTileAccessIterator with zero threadblock offset
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator(
       Params const &params,  ///< Precomputed parameters object
       Pointer pointer,       ///< Pointer to start of tensor
@@ -791,24 +791,24 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::ColumnMajor,
                                      make_Coord(0, 0)) {}
 
   /// Overrides the internal iteration index
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_iteration_index(int index) { iterator_.set_iteration_index(index); }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     iterator_.add_pointer_offset(pointer_offset);
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole
   /// tiles
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_tile_offset(TensorCoord const &tile_offset) {
     iterator_.add_tile_offset({tile_offset.row(), tile_offset.column()});
   }
 
   /// Returns a pointer
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   AccessType *get() const {
     return reinterpret_cast<AccessType *>(iterator_.get());
   }
@@ -819,7 +819,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::ColumnMajor,
   /// iterator's internal pointer is reverted to the first "steady state" tile.
   /// Subsequent calls are lightweight and must only update the internal
   /// pointer.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator &operator++() {
     ++iterator_;
     return *this;
@@ -831,7 +831,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::ColumnMajor,
   /// iterator's internal pointer is reverted to the first "steady state" tile.
   /// Subsequent calls are lightweight and must only update the internal
   /// pointer.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator operator++(int) {
     PredicatedTileAccessIterator self(*this);
     operator++();
@@ -839,23 +839,23 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::ColumnMajor,
   }
 
   /// Clears the predicate set efficiently
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void clear_mask(bool enable = true) { iterator_.clear_mask(enable); }
 
   /// Clears the predicate set efficiently
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void enable_mask() { iterator_.enable_mask(); }
 
   /// Sets the predicate mask, overriding value stored in predicate iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_mask(Mask const &mask) { iterator_.set_mask(mask); }
 
   /// Gets the mask
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void get_mask(Mask &mask) { iterator_.get_mask(mask); }
 
   /// Returns whether access is valid or not
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   bool valid() {
     return iterator_.valid();
   }
@@ -923,12 +923,12 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::RowMajor,
     Params() = default;
 
     /// Construct the Params object given a pitch-linear tensor's layout
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(Layout const &layout)
         : params_(layout::PitchLinear(layout.stride(0))){};
 
     /// Construct the Params object given a pitch-linear tensor's layout
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(typename UnderlyingIterator::Params::Base const &base) 
         : params_(base) {}
   };
@@ -948,7 +948,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::RowMajor,
 
   /// Constructs a TileIterator from its precomputed state, threadblock offset,
   /// and thread ID
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator(
       ///< Precomputed parameters object
       Params const &params,
@@ -970,7 +970,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::RowMajor,
                   indices) {}
 
   /// Construct a PredicatedTileAccessIterator with zero threadblock offset
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator(
       Params const &params,  ///< Precomputed parameters object
       Pointer pointer,       ///< Pointer to start of tensor
@@ -981,24 +981,24 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::RowMajor,
                                      make_Coord(0, 0)) {}
 
   /// Overrides the internal iteration index
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_iteration_index(int index) { iterator_.set_iteration_index(index); }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     iterator_.add_pointer_offset(pointer_offset);
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole
   /// tiles
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_tile_offset(TensorCoord const &tile_offset) {
     iterator_.add_tile_offset({tile_offset.column(), tile_offset.row()});
   }
 
   /// Returns a pointer
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   AccessType *get() const {
     return reinterpret_cast<AccessType *>(iterator_.get());
   }
@@ -1009,7 +1009,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::RowMajor,
   /// iterator's internal pointer is reverted to the first "steady state" tile.
   /// Subsequent calls are lightweight and must only update the internal
   /// pointer.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator &operator++() {
     ++iterator_;
     return *this;
@@ -1021,7 +1021,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::RowMajor,
   /// iterator's internal pointer is reverted to the first "steady state" tile.
   /// Subsequent calls are lightweight and must only update the internal
   /// pointer.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator operator++(int) {
     PredicatedTileAccessIterator self(*this);
     operator++();
@@ -1029,23 +1029,23 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::RowMajor,
   }
 
   /// Clears the predicate set efficiently
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void clear_mask(bool enable = true) { iterator_.clear_mask(enable); }
 
   /// Clears the predicate set efficiently
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void enable_mask() { iterator_.enable_mask(); }
 
   /// Sets the predicate mask, overriding value stored in predicate iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_mask(Mask const &mask) { iterator_.set_mask(mask); }
 
   /// Gets the mask
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void get_mask(Mask &mask) { iterator_.get_mask(mask); }
 
   /// Returns whether access is valid or not
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   bool valid() {
     return iterator_.valid();
   }
@@ -1126,11 +1126,11 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRankN<2>,
    public:
 
     // Default ctor
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(): stride_(0), inc_contiguous_(0), inc_strided_(0), inc_next_(0), inc_advance_(0) { }
 
     /// Construct the Params object given a pitch-linear tensor's layout
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(Layout const &layout) : stride_({layout.stride(0), layout.stride(1)}) {
       inc_contiguous_ = (LongIndex(stride_[0]) * ThreadMap::Delta::kContiguous) *
                      sizeof_bits<Element>::value / 8;
@@ -1174,7 +1174,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRankN<2>,
 
  private:
   /// Computes predicates based on internally tracked per-thread offset.
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void compute_predicates_(
       /// Extent of the matrix window
       TensorCoord extent,
@@ -1190,7 +1190,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRankN<2>,
 
   /// Constructs a TileIterator from its precomputed state, threadblock offset,
   /// and thread ID
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator(
       ///< Precomputed parameters object
       Params const &params,
@@ -1218,7 +1218,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRankN<2>,
   }
 
   /// Construct a PredicatedTileAccessIterator with zero threadblock offset
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator(
       Params const &params,  ///< Precomputed parameters object
       Pointer pointer,       ///< Pointer to start of tensor
@@ -1229,18 +1229,18 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRankN<2>,
                                      make_Coord(0, 0)) {}
 
   /// Overrides the internal iteration index
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_iteration_index(int index) { the_predicates.set_iteration_index(index); }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     pointer_ += sizeof_bits<Element>::value * pointer_offset / 8;
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole
   /// tiles
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_tile_offset(TensorCoord const &tile_offset) {
     if (is_residue_tile_) {
 
@@ -1271,7 +1271,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRankN<2>,
   }
 
   /// Returns a pointer
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   AccessType *get() const {
     return reinterpret_cast<AccessType *>(pointer_) + the_predicates.iteration_vector_;
   }
@@ -1282,7 +1282,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRankN<2>,
   /// iterator's internal pointer is reverted to the first "steady state" tile.
   /// Subsequent calls are lightweight and must only update the internal
   /// pointer.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator &operator++() {
     the_predicates.operator++();
     ++the_predicates.iteration_vector_;
@@ -1329,7 +1329,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRankN<2>,
   /// iterator's internal pointer is reverted to the first "steady state" tile.
   /// Subsequent calls are lightweight and must only update the internal
   /// pointer.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator operator++(int) {
     PredicatedTileAccessIterator self(*this);
     operator++();
@@ -1337,23 +1337,23 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRankN<2>,
   }
 
   /// Clears the predicate set efficiently
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void clear_mask(bool enable = true) { the_predicates.clear_mask(enable); }
 
   /// Clears the predicate set efficiently
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void enable_mask() { the_predicates.enable_mask(); }
 
   /// Sets the predicate mask, overriding value stored in predicate iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_mask(Mask const &mask) { the_predicates.set_mask(mask); }
 
   /// Gets the mask
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void get_mask(Mask &mask) { the_predicates.get_mask(mask); }
 
   /// Returns whether access is valid or not
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   bool valid() {
     return the_predicates.valid();
   }
@@ -1420,7 +1420,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRank2ColumnMa
     Params() = default;
 
     /// Construct the Params object given an AffineRankN<2> tensor's layout
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(Layout const &layout)
         : params_(layout::AffineRankN<2>(layout.stride(0), layout.stride(1))){};
   };
@@ -1440,7 +1440,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRank2ColumnMa
 
   /// Constructs a TileIterator from its precomputed state, threadblock offset,
   /// and thread ID
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator(
       ///< Precomputed parameters object
       Params const &params,
@@ -1461,7 +1461,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRank2ColumnMa
                                            threadblock_offset.column())) {}
 
   /// Construct a PredicatedTileAccessIterator with zero threadblock offset
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator(
       Params const &params,  ///< Precomputed parameters object
       Pointer pointer,       ///< Pointer to start of tensor
@@ -1472,24 +1472,24 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRank2ColumnMa
                                      make_Coord(0, 0)) {}
 
   /// Overrides the internal iteration index
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_iteration_index(int index) { iterator_.set_iteration_index(index); }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     iterator_.add_pointer_offset(pointer_offset);
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole
   /// tiles
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_tile_offset(TensorCoord const &tile_offset) {
     iterator_.add_tile_offset(make_Coord(tile_offset.row(), tile_offset.column()));
   }
 
   /// Returns a pointer
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   AccessType *get() const {
     return reinterpret_cast<AccessType *>(iterator_.get());
   }
@@ -1500,7 +1500,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRank2ColumnMa
   /// iterator's internal pointer is reverted to the first "steady state" tile.
   /// Subsequent calls are lightweight and must only update the internal
   /// pointer.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator &operator++() {
     ++iterator_;
     return *this;
@@ -1512,7 +1512,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRank2ColumnMa
   /// iterator's internal pointer is reverted to the first "steady state" tile.
   /// Subsequent calls are lightweight and must only update the internal
   /// pointer.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator operator++(int) {
     PredicatedTileAccessIterator self(*this);
     operator++();
@@ -1520,23 +1520,23 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRank2ColumnMa
   }
 
   /// Clears the predicate set efficiently
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void clear_mask(bool enable = true) { iterator_.clear_mask(enable); }
 
   /// Clears the predicate set efficiently
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void enable_mask() { iterator_.enable_mask(); }
 
   /// Sets the predicate mask, overriding value stored in predicate iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_mask(Mask const &mask) { iterator_.set_mask(mask); }
 
   /// Gets the mask
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void get_mask(Mask &mask) { iterator_.get_mask(mask); }
 
   /// Returns whether access is valid or not
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   bool valid() {
     return iterator_.valid();
   }
@@ -1603,7 +1603,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRank2RowMajor
     Params() = default;
 
     /// Construct the Params object given an AffineRankN<2> tensor's layout
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(Layout const &layout)
         : params_(layout::AffineRankN<2>(layout.stride(1), layout.stride(0))){};
   };
@@ -1623,7 +1623,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRank2RowMajor
 
   /// Constructs a TileIterator from its precomputed state, threadblock offset,
   /// and thread ID
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator(
       ///< Precomputed parameters object
       Params const &params,
@@ -1644,7 +1644,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRank2RowMajor
                                            threadblock_offset.row())) {}
 
   /// Construct a PredicatedTileAccessIterator with zero threadblock offset
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator(
       Params const &params,  ///< Precomputed parameters object
       Pointer pointer,       ///< Pointer to start of tensor
@@ -1655,24 +1655,24 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRank2RowMajor
                                      make_Coord(0, 0)) {}
 
   /// Overrides the internal iteration index
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_iteration_index(int index) { iterator_.set_iteration_index(index); }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     iterator_.add_pointer_offset(pointer_offset);
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole
   /// tiles
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_tile_offset(TensorCoord const &tile_offset) {
     iterator_.add_tile_offset(make_Coord(tile_offset.column(), tile_offset.row()));
   }
 
   /// Returns a pointer
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   AccessType *get() const {
     return reinterpret_cast<AccessType *>(iterator_.get());
   }
@@ -1683,7 +1683,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRank2RowMajor
   /// iterator's internal pointer is reverted to the first "steady state" tile.
   /// Subsequent calls are lightweight and must only update the internal
   /// pointer.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator &operator++() {
     ++iterator_;
     return *this;
@@ -1695,7 +1695,7 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRank2RowMajor
   /// iterator's internal pointer is reverted to the first "steady state" tile.
   /// Subsequent calls are lightweight and must only update the internal
   /// pointer.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator operator++(int) {
     PredicatedTileAccessIterator self(*this);
     operator++();
@@ -1703,23 +1703,23 @@ class PredicatedTileAccessIterator<Shape_, Element_, layout::AffineRank2RowMajor
   }
 
   /// Clears the predicate set efficiently
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void clear_mask(bool enable = true) { iterator_.clear_mask(enable); }
 
   /// Clears the predicate set efficiently
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void enable_mask() { iterator_.enable_mask(); }
 
   /// Sets the predicate mask, overriding value stored in predicate iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_mask(Mask const &mask) { iterator_.set_mask(mask); }
 
   /// Gets the mask
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void get_mask(Mask &mask) { iterator_.get_mask(mask); }
 
   /// Returns whether access is valid or not
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   bool valid() {
     return iterator_.valid();
   }
@@ -1791,11 +1791,11 @@ class PredicatedTileAccessIterator<Shape_, Element_,
     Params() = default;
 
     /// Construct the Params object given a pitch-linear tensor's layout
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(Layout const &layout)
         : params_(layout::PitchLinear(layout.stride(0))) {}
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(typename UnderlyingIterator::Params::Base const &base) 
         : params_(base) {}
   };
@@ -1815,7 +1815,7 @@ class PredicatedTileAccessIterator<Shape_, Element_,
 
   /// Constructs a TileIterator from its precomputed state, threadblock offset,
   /// and thread ID
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator(
       /// Precomputed parameters object
       Params const &params,
@@ -1838,7 +1838,7 @@ class PredicatedTileAccessIterator<Shape_, Element_,
                       threadblock_offset.column() / kInterleavedK)) {}
 
   /// Construct a PredicatedTileAccessIterator with zero threadblock offset
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator(
       Params const &params,  ///< Precomputed parameters object
       Pointer pointer,       ///< Pointer to start of tensor
@@ -1849,24 +1849,24 @@ class PredicatedTileAccessIterator<Shape_, Element_,
                                      make_Coord(0, 0)) {}
 
   /// Overrides the internal iteration index
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_iteration_index(int index) { iterator_.set_iteration_index(index); }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     iterator_.add_pointer_offset(pointer_offset);
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole
   /// tiles
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_tile_offset(TensorCoord const &tile_offset) {
     iterator_.add_tile_offset({tile_offset.row(), tile_offset.column()});
   }
 
   /// Returns a pointer
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   AccessType *get() const {
     return reinterpret_cast<AccessType *>(iterator_.get());
   }
@@ -1877,7 +1877,7 @@ class PredicatedTileAccessIterator<Shape_, Element_,
   /// iterator's internal pointer is reverted to the first "steady state" tile.
   /// Subsequent calls are lightweight and must only update the internal
   /// pointer.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator &operator++() {
     ++iterator_;
     return *this;
@@ -1889,7 +1889,7 @@ class PredicatedTileAccessIterator<Shape_, Element_,
   /// iterator's internal pointer is reverted to the first "steady state" tile.
   /// Subsequent calls are lightweight and must only update the internal
   /// pointer.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator operator++(int) {
     PredicatedTileAccessIterator self(*this);
     operator++();
@@ -1897,23 +1897,23 @@ class PredicatedTileAccessIterator<Shape_, Element_,
   }
 
   /// Clears the predicate set efficiently
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void clear_mask(bool enable = true) { iterator_.clear_mask(enable); }
 
   /// Clears the predicate set efficiently
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void enable_mask() { iterator_.enable_mask(); }
 
   /// Sets the predicate mask, overriding value stored in predicate iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_mask(Mask const &mask) { iterator_.set_mask(mask); }
 
   /// Gets the mask
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void get_mask(Mask &mask) { iterator_.get_mask(mask); }
 
   /// Returns whether access is valid or not
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   bool valid() { return iterator_.valid(); }
 };
 
@@ -1983,11 +1983,11 @@ class PredicatedTileAccessIterator<Shape_, Element_,
     Params() = default;
 
     /// Construct the Params object given a pitch-linear tensor's layout
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(Layout const &layout)
         : params_(layout::PitchLinear(layout.stride(0))) {}
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(typename UnderlyingIterator::Params::Base const &base) 
         : params_(base) {}
   };
@@ -2007,7 +2007,7 @@ class PredicatedTileAccessIterator<Shape_, Element_,
 
   /// Constructs a TileIterator from its precomputed state, threadblock offset,
   /// and thread ID
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator(
       /// Precomputed parameters object
       Params const &params,
@@ -2030,7 +2030,7 @@ class PredicatedTileAccessIterator<Shape_, Element_,
                       threadblock_offset.row() / kInterleavedK)) {}
 
   /// Construct a PredicatedTileAccessIterator with zero threadblock offset
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator(
       Params const &params,  ///< Precomputed parameters object
       Pointer pointer,       ///< Pointer to start of tensor
@@ -2041,24 +2041,24 @@ class PredicatedTileAccessIterator<Shape_, Element_,
                                      make_Coord(0, 0)) {}
 
   /// Overrides the internal iteration index
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_iteration_index(int index) { iterator_.set_iteration_index(index); }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     iterator_.add_pointer_offset(pointer_offset);
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole
   /// tiles
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_tile_offset(TensorCoord const &tile_offset) {
     iterator_.add_tile_offset({tile_offset.column(), tile_offset.row()});
   }
 
   /// Returns a pointer
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   AccessType *get() const {
     return reinterpret_cast<AccessType *>(iterator_.get());
   }
@@ -2069,7 +2069,7 @@ class PredicatedTileAccessIterator<Shape_, Element_,
   /// iterator's internal pointer is reverted to the first "steady state" tile.
   /// Subsequent calls are lightweight and must only update the internal
   /// pointer.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator &operator++() {
     ++iterator_;
     return *this;
@@ -2081,7 +2081,7 @@ class PredicatedTileAccessIterator<Shape_, Element_,
   /// iterator's internal pointer is reverted to the first "steady state" tile.
   /// Subsequent calls are lightweight and must only update the internal
   /// pointer.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIterator operator++(int) {
     PredicatedTileAccessIterator self(*this);
     operator++();
@@ -2089,23 +2089,23 @@ class PredicatedTileAccessIterator<Shape_, Element_,
   }
 
   /// Clears the predicate set efficiently
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void clear_mask(bool enable = true) { iterator_.clear_mask(enable); }
 
   /// Clears the predicate set efficiently
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void enable_mask() { iterator_.enable_mask(); }
 
   /// Sets the predicate mask, overriding value stored in predicate iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_mask(Mask const &mask) { iterator_.set_mask(mask); }
 
   /// Gets the mask
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void get_mask(Mask &mask) { iterator_.get_mask(mask); }
 
   /// Returns whether access is valid or not
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   bool valid() { return iterator_.valid(); }
 };
 
@@ -2113,6 +2113,6 @@ class PredicatedTileAccessIterator<Shape_, Element_,
 
 }  // namespace threadblock
 }  // namespace transform
-}  // namespace nihilus_gemm
+}  // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////

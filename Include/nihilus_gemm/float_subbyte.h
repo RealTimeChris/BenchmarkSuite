@@ -36,34 +36,34 @@
 */
 #pragma once
 
-#include "nihilus_gemm/arch/config.h"
-#include "nihilus_gemm/float8.h"
+#include "cutlass/arch/config.h"
+#include "cutlass/float8.h"
 
 // FP4 types are available starting CUDA 12+
 #if (__CUDACC_VER_MAJOR__ >= 12)
 #define CUDA_FP4_ENABLED 1
 #endif
 
-#if (defined(CUTLASS_RT_TM_ARCH_MMA_SM100A_ENABLED) || defined(CUTLASS_RT_TM_ARCH_MMA_SM101A_ENABLED) ||\
-     defined(CUTLASS_RT_TM_ARCH_MMA_SM103A_ENABLED) || defined(CUTLASS_RT_TM_ARCH_MMA_SM110A_ENABLED) ||\
-     defined(CUTLASS_RT_TM_ARCH_MMA_SM120A_ENABLED) || defined(CUTLASS_RT_TM_ARCH_MMA_SM121A_ENABLED))
+#if (defined(CUTLASS_ARCH_MMA_SM100A_ENABLED) || defined(CUTLASS_ARCH_MMA_SM101A_ENABLED) ||\
+     defined(CUTLASS_ARCH_MMA_SM103A_ENABLED) || defined(CUTLASS_ARCH_MMA_SM110A_ENABLED) ||\
+     defined(CUTLASS_ARCH_MMA_SM120A_ENABLED) || defined(CUTLASS_ARCH_MMA_SM121A_ENABLED))
 #  define CUDA_PTX_FP4FP6_CVT_ENABLED 1
 #endif
 
-#if (defined(CUTLASS_RT_TM_ARCH_MMA_SM100F_ENABLED) || defined(CUTLASS_RT_TM_ARCH_MMA_SM101F_ENABLED) ||\
-     defined(CUTLASS_RT_TM_ARCH_MMA_SM103F_ENABLED) || defined(CUTLASS_RT_TM_ARCH_MMA_SM110F_ENABLED) ||\
-     defined(CUTLASS_RT_TM_ARCH_MMA_SM120F_ENABLED) || defined(CUTLASS_RT_TM_ARCH_MMA_SM121F_ENABLED))
+#if (defined(CUTLASS_ARCH_MMA_SM100F_ENABLED) || defined(CUTLASS_ARCH_MMA_SM101F_ENABLED) ||\
+     defined(CUTLASS_ARCH_MMA_SM103F_ENABLED) || defined(CUTLASS_ARCH_MMA_SM110F_ENABLED) ||\
+     defined(CUTLASS_ARCH_MMA_SM120F_ENABLED) || defined(CUTLASS_ARCH_MMA_SM121F_ENABLED))
 #  define CUDA_PTX_FP4FP6_CVT_ENABLED 1
 #endif
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/exmy_base.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/exmy_base.h"
 
-#include "cute_rt_tm/util/type_traits.hpp"
+#include "cute/util/type_traits.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 
 // FP4 and FP6 types
 struct float_e2m1_t;
@@ -76,25 +76,25 @@ struct float_e3m2_t;
 //   has_denorm: true
 //   Exponent bias (exp_bias): 1
 
-struct float_e2m1_t : public float_exmy_base<nihilus_gemm::detail::FpEncoding::E2M1, float_e2m1_t> {
+struct float_e2m1_t : public float_exmy_base<cutlass::detail::FpEncoding::E2M1, float_e2m1_t> {
   
-  using Base = float_exmy_base<nihilus_gemm::detail::FpEncoding::E2M1, float_e2m1_t>;
+  using Base = float_exmy_base<cutlass::detail::FpEncoding::E2M1, float_e2m1_t>;
 
   float_e2m1_t() = default;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit float_e2m1_t(double x) : Base(float(x)) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit float_e2m1_t(float x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit float_e2m1_t(int x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   float_e2m1_t(Base x) : Base(x) {
   }
 };
@@ -102,29 +102,29 @@ struct float_e2m1_t : public float_exmy_base<nihilus_gemm::detail::FpEncoding::E
 namespace detail {
 
 // This new type is used to select correct MMA type and TMA type.
-struct float_e2m1_unpacksmem_t : public float_exmy_base<nihilus_gemm::detail::FpEncoding::E2M1, float_e2m1_t> {
+struct float_e2m1_unpacksmem_t : public float_exmy_base<cutlass::detail::FpEncoding::E2M1, float_e2m1_t> {
 
-  using Base = float_exmy_base<nihilus_gemm::detail::FpEncoding::E2M1, float_e2m1_t>;
+  using Base = float_exmy_base<cutlass::detail::FpEncoding::E2M1, float_e2m1_t>;
 
   float_e2m1_unpacksmem_t() = default;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   float_e2m1_unpacksmem_t(float_e2m1_unpacksmem_t const& x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit float_e2m1_unpacksmem_t(double x) : Base(float(x)) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit float_e2m1_unpacksmem_t(float x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit float_e2m1_unpacksmem_t(int x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   float_e2m1_unpacksmem_t(Base x) : Base(x) {
   }
 };
@@ -142,7 +142,7 @@ struct sizeof_bits<detail::float_e2m1_unpacksmem_t> {
   static constexpr int value = 4;
 };
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 float_e2m1_t abs(float_e2m1_t const& val) {
   using BaseType = typename float_e2m1_t::Base;
   return float_e2m1_t(abs(BaseType{val.raw()}));
@@ -157,81 +157,81 @@ float_e2m1_t abs(float_e2m1_t const& val) {
 //   has_denorm: true
 //   Exponent bias (exp_bias): 1
 
-struct float_e2m3_t : public float_exmy_base<nihilus_gemm::detail::FpEncoding::E2M3, float_e2m3_t> {
+struct float_e2m3_t : public float_exmy_base<cutlass::detail::FpEncoding::E2M3, float_e2m3_t> {
 
-  using Base = float_exmy_base<nihilus_gemm::detail::FpEncoding::E2M3, float_e2m3_t>;
+  using Base = float_exmy_base<cutlass::detail::FpEncoding::E2M3, float_e2m3_t>;
 
   float_e2m3_t() = default;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit float_e2m3_t(double x) : Base(float(x)) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit float_e2m3_t(float x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit float_e2m3_t(int x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   float_e2m3_t(Base x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit float_e2m3_t(float_e3m2_t x);
 };
 
 namespace detail {
 
-struct float_e2m3_unpack8bits_t: public float_exmy_base<nihilus_gemm::detail::FpEncoding::E2M3, float_e2m3_unpack8bits_t> {
+struct float_e2m3_unpack8bits_t: public float_exmy_base<cutlass::detail::FpEncoding::E2M3, float_e2m3_unpack8bits_t> {
   // Used in register.
-  using Base = float_exmy_base<nihilus_gemm::detail::FpEncoding::E2M3, float_e2m3_unpack8bits_t>;
+  using Base = float_exmy_base<cutlass::detail::FpEncoding::E2M3, float_e2m3_unpack8bits_t>;
 
   float_e2m3_unpack8bits_t() = default;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit float_e2m3_unpack8bits_t(double x) : Base(float(x)) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit float_e2m3_unpack8bits_t(float x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit float_e2m3_unpack8bits_t(int x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   float_e2m3_unpack8bits_t(Base x) : Base(x) {
   }
 };
 
 // This new type is used to select correct MMA type and TMA type.
-struct float_e2m3_unpacksmem_t : public float_exmy_base<nihilus_gemm::detail::FpEncoding::E2M3, float_e2m3_t> {
+struct float_e2m3_unpacksmem_t : public float_exmy_base<cutlass::detail::FpEncoding::E2M3, float_e2m3_t> {
 
-  using Base = float_exmy_base<nihilus_gemm::detail::FpEncoding::E2M3, float_e2m3_t>;
+  using Base = float_exmy_base<cutlass::detail::FpEncoding::E2M3, float_e2m3_t>;
 
   float_e2m3_unpacksmem_t() = default;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   float_e2m3_unpacksmem_t(float_e2m3_unpacksmem_t const& x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit float_e2m3_unpacksmem_t(double x) : Base(float(x)) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit float_e2m3_unpacksmem_t(float x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit float_e2m3_unpacksmem_t(int x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   float_e2m3_unpacksmem_t(Base x) : Base(x) {
   }
 };
@@ -250,7 +250,7 @@ struct sizeof_bits<detail::float_e2m3_unpacksmem_t> {
   static constexpr int value = 6;
 };
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 float_e2m3_t abs(float_e2m3_t const& val) {
   using BaseType = typename float_e2m3_t::Base;
   return float_e2m3_t(abs(BaseType{val.raw()}));
@@ -264,81 +264,81 @@ float_e2m3_t abs(float_e2m3_t const& val) {
 //   has_denorm: true
 //   Exponent bias (exp_bias): 3
 
-struct float_e3m2_t : public float_exmy_base<nihilus_gemm::detail::FpEncoding::E3M2, float_e3m2_t> {
+struct float_e3m2_t : public float_exmy_base<cutlass::detail::FpEncoding::E3M2, float_e3m2_t> {
 
-  using Base = float_exmy_base<nihilus_gemm::detail::FpEncoding::E3M2, float_e3m2_t>;
+  using Base = float_exmy_base<cutlass::detail::FpEncoding::E3M2, float_e3m2_t>;
 
   float_e3m2_t() = default;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit float_e3m2_t(double x) : Base(float(x)) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit float_e3m2_t(float x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit float_e3m2_t(int x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   float_e3m2_t(Base x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit float_e3m2_t(float_e2m3_t x);
 };
 
 namespace detail {
 
-struct float_e3m2_unpack8bits_t : public float_exmy_base<nihilus_gemm::detail::FpEncoding::E3M2, float_e3m2_unpack8bits_t> {
+struct float_e3m2_unpack8bits_t : public float_exmy_base<cutlass::detail::FpEncoding::E3M2, float_e3m2_unpack8bits_t> {
 
-  using Base = float_exmy_base<nihilus_gemm::detail::FpEncoding::E3M2, float_e3m2_unpack8bits_t>;
+  using Base = float_exmy_base<cutlass::detail::FpEncoding::E3M2, float_e3m2_unpack8bits_t>;
 
   float_e3m2_unpack8bits_t() = default;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit float_e3m2_unpack8bits_t(double x) : Base(float(x)) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit float_e3m2_unpack8bits_t(float x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit float_e3m2_unpack8bits_t(int x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   float_e3m2_unpack8bits_t(Base x) : Base(x) {
   }
 };
 
 // This new type is used to select correct MMA type and TMA type.
-struct float_e3m2_unpacksmem_t : public float_exmy_base<nihilus_gemm::detail::FpEncoding::E3M2, float_e3m2_t> {
+struct float_e3m2_unpacksmem_t : public float_exmy_base<cutlass::detail::FpEncoding::E3M2, float_e3m2_t> {
 
-  using Base = float_exmy_base<nihilus_gemm::detail::FpEncoding::E3M2, float_e3m2_t>;
+  using Base = float_exmy_base<cutlass::detail::FpEncoding::E3M2, float_e3m2_t>;
 
   float_e3m2_unpacksmem_t() = default;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   float_e3m2_unpacksmem_t(float_e3m2_unpacksmem_t const& x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit float_e3m2_unpacksmem_t(double x) : Base(float(x)) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit float_e3m2_unpacksmem_t(float x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit float_e3m2_unpacksmem_t(int x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   float_e3m2_unpacksmem_t(Base x) : Base(x) {
   }
 };
@@ -357,7 +357,7 @@ struct sizeof_bits<detail::float_e3m2_unpacksmem_t> {
   static constexpr int value = 6;
 };
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 float_e3m2_t abs(float_e3m2_t const& val) {
   using BaseType = typename float_e3m2_t::Base;
   return float_e3m2_t(abs(BaseType{val.raw()}));
@@ -402,13 +402,13 @@ struct get_unpacked_element_type<float_e3m2_t> {
 // //
 // ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 float_e2m3_t::float_e2m3_t(float_e3m2_t x)
 {
   storage = convert_from_float(float(x)).storage;
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_HOST_DEVICE
 float_e3m2_t::float_e3m2_t(float_e2m3_t x)
 {
   storage = convert_from_float(float(x)).storage;
@@ -428,16 +428,16 @@ float_e3m2_t::float_e3m2_t(float_e2m3_t x)
 ///////////////////////////////////////////////////////////////
 
 union type_erased_dynamic_float6_t {
-  nihilus_gemm::float_e2m3_t e2m3;
-  nihilus_gemm::float_e3m2_t e3m2;
+  cutlass::float_e2m3_t e2m3;
+  cutlass::float_e3m2_t e3m2;
 
-  CUTLASS_RT_TM_HOST_DEVICE
-  explicit operator nihilus_gemm::float_e2m3_t() const { 
+  CUTLASS_HOST_DEVICE
+  explicit operator cutlass::float_e2m3_t() const { 
     return e2m3;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
-  explicit operator nihilus_gemm::float_e3m2_t() const { 
+  CUTLASS_HOST_DEVICE
+  explicit operator cutlass::float_e3m2_t() const { 
     return e3m2;
   }
 };
@@ -459,9 +459,9 @@ struct sizeof_bits<type_erased_dynamic_float6_t> {
 ///////////////////////////////////////////////////////////////
 
 union type_erased_dynamic_float4_t {
-  nihilus_gemm::float_e2m1_t e2m1;
-  CUTLASS_RT_TM_HOST_DEVICE
-  explicit operator nihilus_gemm::float_e2m1_t() const { 
+  cutlass::float_e2m1_t e2m1;
+  CUTLASS_HOST_DEVICE
+  explicit operator cutlass::float_e2m1_t() const { 
     return e2m1;
   }
 };
@@ -480,11 +480,11 @@ struct sizeof_bits<type_erased_dynamic_float4_t> {
 template <class F6Type>
 struct mx_float6_t
 {
-  static_assert(cute_rt_tm::is_same_v<F6Type,nihilus_gemm::float_e2m3_t>
-                || cute_rt_tm::is_same_v<F6Type,nihilus_gemm::float_e3m2_t>
-                || cute_rt_tm::is_same_v<F6Type,type_erased_dynamic_float6_t>
+  static_assert(cute::is_same_v<F6Type,cutlass::float_e2m3_t>
+                || cute::is_same_v<F6Type,cutlass::float_e3m2_t>
+                || cute::is_same_v<F6Type,type_erased_dynamic_float6_t>
                 , "Only float_e2m3_t, float_e3m2_t can have scale factors for MXFP6");
-  using ScaleFactorType = nihilus_gemm::float_ue8m0_t;
+  using ScaleFactorType = cutlass::float_ue8m0_t;
   using DataType = F6Type;
 };
 
@@ -493,10 +493,10 @@ using type_erased_dynamic_mx_float6_t = mx_float6_t<type_erased_dynamic_float6_t
 template <class F4Type>
 struct mx_float4_t
 {
-  static_assert(cute_rt_tm::is_same_v<F4Type,nihilus_gemm::float_e2m1_t>
-                || cute_rt_tm::is_same_v<F4Type,type_erased_dynamic_float4_t>
+  static_assert(cute::is_same_v<F4Type,cutlass::float_e2m1_t>
+                || cute::is_same_v<F4Type,type_erased_dynamic_float4_t>
                 , "Only float_e2m1_t type_erased_dynamic_float4_t can have scale factors for MXFP4");
-  using ScaleFactorType = nihilus_gemm::float_ue8m0_t;
+  using ScaleFactorType = cutlass::float_ue8m0_t;
   using DataType = F4Type;
 };
 
@@ -505,10 +505,10 @@ using type_erased_dynamic_mx_float4_t = mx_float4_t<type_erased_dynamic_float4_t
 template <class F4Type>
 struct nv_float4_t
 {
-  static_assert(cute_rt_tm::is_same_v<F4Type,nihilus_gemm::float_e2m1_t>
-                || cute_rt_tm::is_same_v<F4Type,type_erased_dynamic_float4_t>
+  static_assert(cute::is_same_v<F4Type,cutlass::float_e2m1_t>
+                || cute::is_same_v<F4Type,type_erased_dynamic_float4_t>
                 , "Only float_e2m1_t type_erased_dynamic_float4_t can have scale factors for NVFP4");
-  using ScaleFactorType = nihilus_gemm::float_ue4m3_t;
+  using ScaleFactorType = cutlass::float_ue4m3_t;
   using DataType = F4Type;
 };
 
@@ -518,25 +518,25 @@ using type_erased_dynamic_nv_float4_t = nv_float4_t<type_erased_dynamic_float4_t
 namespace detail {
 
 union type_erased_dynamic_float6_unpacksmem_t {
-  nihilus_gemm::detail::float_e2m3_unpacksmem_t e2m3_unpacksmem;
-  nihilus_gemm::detail::float_e3m2_unpacksmem_t e3m2_unpacksmem;
+  cutlass::detail::float_e2m3_unpacksmem_t e2m3_unpacksmem;
+  cutlass::detail::float_e3m2_unpacksmem_t e3m2_unpacksmem;
 
-  CUTLASS_RT_TM_HOST_DEVICE
-  explicit operator nihilus_gemm::detail::float_e2m3_unpacksmem_t() const { 
+  CUTLASS_HOST_DEVICE
+  explicit operator cutlass::detail::float_e2m3_unpacksmem_t() const { 
     return e2m3_unpacksmem;
   }
   
-  CUTLASS_RT_TM_HOST_DEVICE
-  explicit operator nihilus_gemm::detail::float_e3m2_unpacksmem_t() const { 
+  CUTLASS_HOST_DEVICE
+  explicit operator cutlass::detail::float_e3m2_unpacksmem_t() const { 
     return e3m2_unpacksmem;
   }
 };
 
 union type_erased_dynamic_float4_unpacksmem_t {
-  nihilus_gemm::detail::float_e2m1_unpacksmem_t e2m1_unpacksmem;
+  cutlass::detail::float_e2m1_unpacksmem_t e2m1_unpacksmem;
 
-  CUTLASS_RT_TM_HOST_DEVICE
-  explicit operator nihilus_gemm::detail::float_e2m1_unpacksmem_t() const { 
+  CUTLASS_HOST_DEVICE
+  explicit operator cutlass::detail::float_e2m1_unpacksmem_t() const { 
     return e2m1_unpacksmem;
   }
 };
@@ -554,7 +554,7 @@ struct sizeof_bits<detail::type_erased_dynamic_float4_unpacksmem_t> {
   static constexpr int value = 4;
 };
 
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -578,8 +578,8 @@ public:
   static bool const has_quiet_NaN = false;
   static bool const has_signaling_NaN = false;
   static bool const has_denorm_loss = true;
-  static nihilus_gemm::platform::float_denorm_style const has_denorm = nihilus_gemm::platform::denorm_present;
-  static nihilus_gemm::platform::float_round_style const round_style = nihilus_gemm::platform::round_to_nearest;
+  static cutlass::platform::float_denorm_style const has_denorm = cutlass::platform::denorm_present;
+  static cutlass::platform::float_round_style const round_style = cutlass::platform::round_to_nearest;
   static bool const is_iec559 = false;
   static bool const is_bounded = true;
   static bool const is_modulo = false;
@@ -609,41 +609,41 @@ public:
 };
 /// Numeric limits for float_e2m1_t
 template <>
-struct numeric_limits<nihilus_gemm::float_e2m1_t> : public float_subbyte_base_numeric_limits<nihilus_gemm::float_e2m1_t>
+struct numeric_limits<cutlass::float_e2m1_t> : public float_subbyte_base_numeric_limits<cutlass::float_e2m1_t>
 {
   /// Minimum finite value
-  static nihilus_gemm::float_e2m1_t lowest() { return nihilus_gemm::float_e2m1_t::bitcast(0xf); }
+  static cutlass::float_e2m1_t lowest() { return cutlass::float_e2m1_t::bitcast(0xf); }
 
   /// Returns machine epsilon, that is, the difference between 1.0 and the next value representable by the floating-point
-  static nihilus_gemm::float_e2m1_t epsilon() { return nihilus_gemm::float_e2m1_t::bitcast(0x1); }
+  static cutlass::float_e2m1_t epsilon() { return cutlass::float_e2m1_t::bitcast(0x1); }
 };
 
 /// Numeric limits for float_e2m3_t
 template <>
-struct numeric_limits<nihilus_gemm::float_e2m3_t> : public float_subbyte_base_numeric_limits<nihilus_gemm::float_e2m3_t>
+struct numeric_limits<cutlass::float_e2m3_t> : public float_subbyte_base_numeric_limits<cutlass::float_e2m3_t>
 {
   /// Minimum finite value
-  static nihilus_gemm::float_e2m3_t lowest() { return nihilus_gemm::float_e2m3_t::bitcast(0x2f); }
+  static cutlass::float_e2m3_t lowest() { return cutlass::float_e2m3_t::bitcast(0x2f); }
 
   /// Returns machine epsilon, that is, the difference between 1.0 and the next value representable by the floating-point
-  static nihilus_gemm::float_e2m3_t epsilon() { return nihilus_gemm::float_e2m3_t::bitcast(0x1); }   
+  static cutlass::float_e2m3_t epsilon() { return cutlass::float_e2m3_t::bitcast(0x1); }   
 };
 
 /// Numeric limits for float_e3m2_t
 
 template <>
-struct numeric_limits<nihilus_gemm::float_e3m2_t> : public float_subbyte_base_numeric_limits<nihilus_gemm::float_e3m2_t>
+struct numeric_limits<cutlass::float_e3m2_t> : public float_subbyte_base_numeric_limits<cutlass::float_e3m2_t>
 {
   /// Minimum finite value
-  static nihilus_gemm::float_e3m2_t lowest() { return nihilus_gemm::float_e3m2_t::bitcast(0x2f); }
+  static cutlass::float_e3m2_t lowest() { return cutlass::float_e3m2_t::bitcast(0x2f); }
 
   /// Returns machine epsilon, that is, the difference between 1.0 and the next value representable by the floating-point
-  static nihilus_gemm::float_e3m2_t epsilon() { return nihilus_gemm::float_e3m2_t::bitcast(0x4); }
+  static cutlass::float_e3m2_t epsilon() { return cutlass::float_e3m2_t::bitcast(0x4); }
 };
 } // namespace std
 #endif
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace platform {
 
 /// Numeric limits common to all float4 types
@@ -661,8 +661,8 @@ public:
   static bool const has_quiet_NaN = false;
   static bool const has_signaling_NaN = false;
   static bool const has_denorm_loss = true;
-  static nihilus_gemm::platform::float_denorm_style const has_denorm = nihilus_gemm::platform::denorm_present;
-  static nihilus_gemm::platform::float_round_style const round_style = nihilus_gemm::platform::round_to_nearest;
+  static cutlass::platform::float_denorm_style const has_denorm = cutlass::platform::denorm_present;
+  static cutlass::platform::float_round_style const round_style = cutlass::platform::round_to_nearest;
   static bool const is_iec559 = false;
   static bool const is_bounded = true;
   static bool const is_modulo = false;
@@ -673,7 +673,7 @@ public:
   static type min() { return type::bitcast(0x01); }
 
   /// Maximum finite value
-  CUTLASS_RT_TM_HOST_DEVICE static type max() { return type::bitcast(type::Base::BitRepresentation::MAX_VALUE); }
+  CUTLASS_HOST_DEVICE static type max() { return type::bitcast(type::Base::BitRepresentation::MAX_VALUE); }
 
   /// Returns maximum rounding error
   static type round_error() { return type(0.5f); }
@@ -696,102 +696,102 @@ template <class T>
 struct numeric_limits;
 /// Numeric limits for float_e2m1_t
 template <>
-struct numeric_limits<nihilus_gemm::float_e2m1_t> : public float_subbyte_base_numeric_limits<nihilus_gemm::float_e2m1_t>
+struct numeric_limits<cutlass::float_e2m1_t> : public float_subbyte_base_numeric_limits<cutlass::float_e2m1_t>
 {
   /// Minimum finite value
-  static nihilus_gemm::float_e2m1_t lowest() { return nihilus_gemm::float_e2m1_t::bitcast(0xf); }
+  static cutlass::float_e2m1_t lowest() { return cutlass::float_e2m1_t::bitcast(0xf); }
 
   /// Returns machine epsilon, that is, the difference between 1.0 and the next value representable by the floating-point
-  static nihilus_gemm::float_e2m1_t epsilon() { return nihilus_gemm::float_e2m1_t::bitcast(0x1); }
+  static cutlass::float_e2m1_t epsilon() { return cutlass::float_e2m1_t::bitcast(0x1); }
 };
 
 /// Numeric limits for float_e2m3_t
 template <>
-struct numeric_limits<nihilus_gemm::float_e2m3_t> : public float_subbyte_base_numeric_limits<nihilus_gemm::float_e2m3_t>
+struct numeric_limits<cutlass::float_e2m3_t> : public float_subbyte_base_numeric_limits<cutlass::float_e2m3_t>
 {
   /// Minimum finite value
-  static nihilus_gemm::float_e2m3_t lowest() { return nihilus_gemm::float_e2m3_t::bitcast(0x2f); }
+  static cutlass::float_e2m3_t lowest() { return cutlass::float_e2m3_t::bitcast(0x2f); }
 
   /// Returns machine epsilon, that is, the difference between 1.0 and the next value representable by the floating-point
-  static nihilus_gemm::float_e2m3_t epsilon() { return nihilus_gemm::float_e2m3_t::bitcast(0x1); }   
+  static cutlass::float_e2m3_t epsilon() { return cutlass::float_e2m3_t::bitcast(0x1); }   
 };
 
 /// Numeric limits for float_e3m2_t
 
 template <>
-struct numeric_limits<nihilus_gemm::float_e3m2_t> : public float_subbyte_base_numeric_limits<nihilus_gemm::float_e3m2_t>
+struct numeric_limits<cutlass::float_e3m2_t> : public float_subbyte_base_numeric_limits<cutlass::float_e3m2_t>
 {
   /// Minimum finite value
-  static nihilus_gemm::float_e3m2_t lowest() { return nihilus_gemm::float_e3m2_t::bitcast(0x2f); }
+  static cutlass::float_e3m2_t lowest() { return cutlass::float_e3m2_t::bitcast(0x2f); }
 
   /// Returns machine epsilon, that is, the difference between 1.0 and the next value representable by the floating-point
-  static nihilus_gemm::float_e3m2_t epsilon() { return nihilus_gemm::float_e3m2_t::bitcast(0x4); }
+  static cutlass::float_e3m2_t epsilon() { return cutlass::float_e3m2_t::bitcast(0x4); }
 };
 
 /// Numeric limits for float_e2m3_unpack8bits_t
 template <>
-struct numeric_limits<nihilus_gemm::detail::float_e2m3_unpack8bits_t> : public float_subbyte_base_numeric_limits<nihilus_gemm::detail::float_e2m3_unpack8bits_t>
+struct numeric_limits<cutlass::detail::float_e2m3_unpack8bits_t> : public float_subbyte_base_numeric_limits<cutlass::detail::float_e2m3_unpack8bits_t>
 {
   /// Minimum finite value
-  static nihilus_gemm::detail::float_e2m3_unpack8bits_t lowest() { return nihilus_gemm::detail::float_e2m3_unpack8bits_t::bitcast(0x2f); }
+  static cutlass::detail::float_e2m3_unpack8bits_t lowest() { return cutlass::detail::float_e2m3_unpack8bits_t::bitcast(0x2f); }
 
   /// Returns machine epsilon, that is, the difference between 1.0 and the next value representable by the floating-point
-  static nihilus_gemm::detail::float_e2m3_unpack8bits_t epsilon() { return nihilus_gemm::detail::float_e2m3_unpack8bits_t::bitcast(0x1); }   
+  static cutlass::detail::float_e2m3_unpack8bits_t epsilon() { return cutlass::detail::float_e2m3_unpack8bits_t::bitcast(0x1); }   
 };
 
 /// Numeric limits for float_e3m2_unpack8bits_t
 
 template <>
-struct numeric_limits<nihilus_gemm::detail::float_e3m2_unpack8bits_t> : public float_subbyte_base_numeric_limits<nihilus_gemm::detail::float_e3m2_unpack8bits_t>
+struct numeric_limits<cutlass::detail::float_e3m2_unpack8bits_t> : public float_subbyte_base_numeric_limits<cutlass::detail::float_e3m2_unpack8bits_t>
 {
   /// Minimum finite value
-  static nihilus_gemm::detail::float_e3m2_unpack8bits_t lowest() { return nihilus_gemm::detail::float_e3m2_unpack8bits_t::bitcast(0x2f); }
+  static cutlass::detail::float_e3m2_unpack8bits_t lowest() { return cutlass::detail::float_e3m2_unpack8bits_t::bitcast(0x2f); }
 
   /// Returns machine epsilon, that is, the difference between 1.0 and the next value representable by the floating-point
-  static nihilus_gemm::detail::float_e3m2_unpack8bits_t epsilon() { return nihilus_gemm::detail::float_e3m2_unpack8bits_t::bitcast(0x4); }
+  static cutlass::detail::float_e3m2_unpack8bits_t epsilon() { return cutlass::detail::float_e3m2_unpack8bits_t::bitcast(0x4); }
 };
 } // namespace platform
 
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 //
 // User-defined literals
 //
-CUTLASS_RT_TM_HOST_DEVICE
-nihilus_gemm::float_e2m1_t operator"" _fe2m1(long double x)
+CUTLASS_HOST_DEVICE
+cutlass::float_e2m1_t operator"" _fe2m1(long double x)
 {
-  return nihilus_gemm::float_e2m1_t(float(x));
+  return cutlass::float_e2m1_t(float(x));
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
-nihilus_gemm::float_e2m1_t operator"" _fe2m1(unsigned long long int x)
+CUTLASS_HOST_DEVICE
+cutlass::float_e2m1_t operator"" _fe2m1(unsigned long long int x)
 {
-  return nihilus_gemm::float_e2m1_t(int(x));
+  return cutlass::float_e2m1_t(int(x));
 }
-CUTLASS_RT_TM_HOST_DEVICE
-nihilus_gemm::float_e2m3_t operator"" _fe2m3(long double x)
+CUTLASS_HOST_DEVICE
+cutlass::float_e2m3_t operator"" _fe2m3(long double x)
 {
-  return nihilus_gemm::float_e2m3_t(float(x));
-}
-
-CUTLASS_RT_TM_HOST_DEVICE
-nihilus_gemm::float_e2m3_t operator"" _fe2m3(unsigned long long int x)
-{
-  return nihilus_gemm::float_e2m3_t(int(x));
+  return cutlass::float_e2m3_t(float(x));
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
-nihilus_gemm::float_e3m2_t operator"" _fe3m2(long double x)
+CUTLASS_HOST_DEVICE
+cutlass::float_e2m3_t operator"" _fe2m3(unsigned long long int x)
 {
-  return nihilus_gemm::float_e3m2_t(float(x));
+  return cutlass::float_e2m3_t(int(x));
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
-nihilus_gemm::float_e3m2_t operator"" _fe3m2(unsigned long long int x)
+CUTLASS_HOST_DEVICE
+cutlass::float_e3m2_t operator"" _fe3m2(long double x)
 {
-  return nihilus_gemm::float_e3m2_t(int(x));
+  return cutlass::float_e3m2_t(float(x));
+}
+
+CUTLASS_HOST_DEVICE
+cutlass::float_e3m2_t operator"" _fe3m2(unsigned long long int x)
+{
+  return cutlass::float_e3m2_t(int(x));
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

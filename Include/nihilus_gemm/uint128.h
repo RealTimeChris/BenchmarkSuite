@@ -33,7 +33,7 @@
   \brief Defines an unsigned 128b integer with several operators to support 64-bit integer division.
 */
 #pragma once
-#include "nihilus_gemm/cutlass.h"
+#include "cutlass/cutlass.h"
 #if defined(__CUDACC_RTC__)
 #include CUDA_STD_HEADER(cstdint)
 #else
@@ -47,20 +47,20 @@
 
 /// Optionally enable GCC's built-in type
 #if (defined(__x86_64) || defined (__aarch64__)) && !(defined(__CUDA_ARCH__) && ((__CUDACC_VER_MAJOR__ <= 10) || ((__CUDACC_VER_MAJOR__ == 11) && (__CUDACC_VER_MINOR__ <= 4)))) && defined(__GNUC__)
-#define CUTLASS_RT_TM_UINT128_NATIVE
+#define CUTLASS_UINT128_NATIVE
 #elif !defined(__CUDA_ARCH__)
 // No custom support for 128b arithmetic on device
 #if defined(_MSC_VER) && defined(_M_AMD64)
-#define CUTLASS_RT_TM_INT128_ARITHMETIC
+#define CUTLASS_INT128_ARITHMETIC
 #include <intrin.h>
 #if _MSC_VER >= 1920 && !defined(__CUDA_ARCH__)
-#define CUTLASS_RT_TM_INT128_ARITHMETIC_DIV
+#define CUTLASS_INT128_ARITHMETIC_DIV
 #include <immintrin.h>
 #endif
 #endif
 #endif
 
-namespace nihilus_gemm {
+namespace cutlass {
 
 ///! Unsigned 128b integer type
 struct alignas(16) uint128_t
@@ -78,9 +78,9 @@ struct alignas(16) uint128_t
   union {
     struct hilo hilo_;
 
-#if defined(CUTLASS_RT_TM_UINT128_NATIVE)
+#if defined(CUTLASS_UINT128_NATIVE)
     unsigned __int128 native;
-#endif // defined(CUTLASS_RT_TM_UINT128_NATIVE)
+#endif // defined(CUTLASS_UINT128_NATIVE)
   };
 
   //
@@ -88,30 +88,30 @@ struct alignas(16) uint128_t
   //
 
   /// Default ctor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   uint128_t() : hilo_{0, 0} {}
 
   /// Constructor from uint64
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   uint128_t(uint64_t lo_) : hilo_{lo_, 0} {}
 
   /// Constructor from two 64b unsigned integers
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   uint128_t(uint64_t lo_, uint64_t hi_) : hilo_{lo_, hi_} {}
 
   /// Optional constructor from native value
-#if defined(CUTLASS_RT_TM_UINT128_NATIVE)
+#if defined(CUTLASS_UINT128_NATIVE)
   uint128_t(unsigned __int128 value) : native(value) { }
 #endif
 
   /// Lossily cast to uint64
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit operator uint64_t() const
   {
     return hilo_.lo;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static void exception()
   {
 #if defined(__CUDA_ARCH__)
@@ -123,11 +123,11 @@ struct alignas(16) uint128_t
   }
 
   /// Add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   uint128_t operator+(uint128_t const& rhs) const
   {
     uint128_t y{};
-#if defined(CUTLASS_RT_TM_UINT128_NATIVE)
+#if defined(CUTLASS_UINT128_NATIVE)
     y.native = native + rhs.native;
 #else
     y.hilo_.lo = hilo_.lo + rhs.hilo_.lo;
@@ -137,11 +137,11 @@ struct alignas(16) uint128_t
   }
 
   /// Subtract
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   uint128_t operator-(uint128_t const& rhs) const
   {
     uint128_t y{};
-#if defined(CUTLASS_RT_TM_UINT128_NATIVE)
+#if defined(CUTLASS_UINT128_NATIVE)
     y.native = native - rhs.native;
 #else
     y.hilo_.lo = hilo_.lo - rhs.hilo_.lo;
@@ -151,13 +151,13 @@ struct alignas(16) uint128_t
   }
 
   /// Multiply by unsigned 64b integer yielding 128b integer
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   uint128_t operator*(uint64_t const& rhs) const
   {
     uint128_t y{};
-#if defined(CUTLASS_RT_TM_UINT128_NATIVE)
+#if defined(CUTLASS_UINT128_NATIVE)
     y.native = native * rhs;
-#elif defined(CUTLASS_RT_TM_INT128_ARITHMETIC)
+#elif defined(CUTLASS_INT128_ARITHMETIC)
     // Multiply by the low part
     y.hilo_.lo = _umul128(hilo_.lo, rhs, &y.hilo_.hi);
 
@@ -165,68 +165,68 @@ struct alignas(16) uint128_t
     uint64_t overflow{0};
     y.hilo_.hi += _umul128(hilo_.hi, rhs, &overflow);
 #else
-    CUTLASS_RT_TM_UNUSED(rhs);
+    CUTLASS_UNUSED(rhs);
     exception();
 #endif
     return y;
   }
 
   /// Divide 128b operation by 64b operation yielding a 64b quotient
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   uint64_t operator/(uint64_t const& divisor) const
   {
     uint64_t quotient{0};
-#if defined(CUTLASS_RT_TM_UINT128_NATIVE)
+#if defined(CUTLASS_UINT128_NATIVE)
     quotient = uint64_t(native / divisor);
-#elif defined(CUTLASS_RT_TM_INT128_ARITHMETIC_DIV)
+#elif defined(CUTLASS_INT128_ARITHMETIC_DIV)
     // implemented using MSVC's arithmetic intrinsics
     uint64_t remainder{0};
     quotient = _udiv128(hilo_.hi, hilo_.lo, divisor, &remainder);
 #else
-    CUTLASS_RT_TM_UNUSED(divisor);
+    CUTLASS_UNUSED(divisor);
     exception();
 #endif
     return quotient;
   }
 
   /// Divide 128b operation by 64b operation yielding a 64b quotient
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   uint64_t operator%(uint64_t const& divisor) const
   {
     uint64_t remainder{0};
-#if defined(CUTLASS_RT_TM_UINT128_NATIVE)
+#if defined(CUTLASS_UINT128_NATIVE)
     remainder = uint64_t(native % divisor);
-#elif defined(CUTLASS_RT_TM_INT128_ARITHMETIC_DIV)
+#elif defined(CUTLASS_INT128_ARITHMETIC_DIV)
     // implemented using MSVC's arithmetic intrinsics
     (void)_udiv128(hilo_.hi, hilo_.lo, divisor, &remainder);
 #else
-    CUTLASS_RT_TM_UNUSED(divisor);
+    CUTLASS_UNUSED(divisor);
     exception();
 #endif
     return remainder;
   }
 
   /// Computes the quotient and remainder in a single method.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   uint64_t divmod(uint64_t &remainder, uint64_t divisor) const
   {
     uint64_t quotient{0};
-#if defined(CUTLASS_RT_TM_UINT128_NATIVE)
+#if defined(CUTLASS_UINT128_NATIVE)
     quotient = uint64_t(native / divisor);
     remainder = uint64_t(native % divisor);
-#elif defined(CUTLASS_RT_TM_INT128_ARITHMETIC_DIV)
+#elif defined(CUTLASS_INT128_ARITHMETIC_DIV)
     // implemented using MSVC's arithmetic intrinsics
     quotient = _udiv128(hilo_.hi, hilo_.lo, divisor, &remainder);
 #else
-    CUTLASS_RT_TM_UNUSED(remainder);
-    CUTLASS_RT_TM_UNUSED(divisor);
+    CUTLASS_UNUSED(remainder);
+    CUTLASS_UNUSED(divisor);
     exception();
 #endif
     return quotient;
   }
 
   /// Left-shifts a 128b unsigned integer
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   uint128_t operator<<(int sh) const
   {
     if (sh == 0) {
@@ -244,7 +244,7 @@ struct alignas(16) uint128_t
   }
 
   /// Right-shifts a 128b unsigned integer
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   uint128_t operator>>(int sh) const
   {
     if (sh == 0) {
@@ -264,6 +264,6 @@ struct alignas(16) uint128_t
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

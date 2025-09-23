@@ -36,17 +36,17 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/numeric_types.h"
-#include "nihilus_gemm/array.h"
-#include "nihilus_gemm/layout/matrix.h"
-#include "nihilus_gemm/matrix_shape.h"
-#include "nihilus_gemm/tensor_ref.h"
-#include "nihilus_gemm/fast_math.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/array.h"
+#include "cutlass/layout/matrix.h"
+#include "cutlass/matrix_shape.h"
+#include "cutlass/tensor_ref.h"
+#include "cutlass/fast_math.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace threadblock {
 
@@ -76,7 +76,7 @@ template <typename Iterations, typename Delta>
 struct OutputTileThreadMapHelpers {
 
   /// Determines the iteration index of a vector access according to the thread map
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static void iteration_index(
     int &column_idx,
     int &row_idx,
@@ -99,7 +99,7 @@ struct OutputTileThreadMapHelpers {
   }
 
   /// Computes the offset of a given vector access
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static MatrixCoord iteration_offset(int iter_idx) {
 
     int column_idx;
@@ -155,7 +155,7 @@ struct OutputTileThreadMap : public OutputTileThreadMapHelpers<Iterations_, Delt
   using Count = Count_;
 
   /// Initial offset function
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static MatrixCoord initial_offset(int thread_idx) {
 
     using Index = typename layout::PitchLinearCoord::Index;
@@ -391,7 +391,7 @@ struct OutputTileOptimalThreadMap {
     1>;
 
   /// Initial offset function
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static MatrixCoord initial_offset(int thread_idx) {
 
 //    int warp_idx = __shfl_sync(0xffffffff, thread_idx / kWarpSize, 0);
@@ -425,7 +425,7 @@ struct OutputTileOptimalThreadMap {
   }
 
   /// Computes the offset of a given vector access
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static MatrixCoord iteration_offset(int iter_idx) {
     return OutputTileThreadMapHelpers<Iterations, Delta>::iteration_offset(iter_idx);
   }
@@ -462,7 +462,7 @@ struct OutputTileOptimalThreadMap {
     static int const kThreads = Threads;
 
     /// Function to compute each thread's initial offset
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     static MatrixCoord initial_offset(int thread_idx) {
 
 //      int warp_idx = __shfl_sync(0xffffffff, thread_idx / kWarpSize, 0);
@@ -535,7 +535,7 @@ struct InterleavedOutputTileThreadMap {
   using Delta = layout::PitchLinearShape<kWarpSize * kElementsPerAccess, 1>;
 
   /// Initial offset function
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static layout::PitchLinearCoord initial_offset(int thread_idx) {
     int warp_idx = thread_idx / kWarpSize;
     int lane_idx = thread_idx % kWarpSize;
@@ -596,7 +596,7 @@ struct InterleavedConvOutputTileThreadMap {
   using Delta = MatrixShape<kWarpSize / 4, 4 * kElementsPerAccess>;
 
   /// Initial offset function
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static MatrixCoord initial_offset(int thread_idx) {
     int warp_idx = thread_idx / kWarpSize;
     int lane_idx = thread_idx % kWarpSize;
@@ -625,4 +625,4 @@ struct InterleavedConvOutputTileThreadMap {
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass

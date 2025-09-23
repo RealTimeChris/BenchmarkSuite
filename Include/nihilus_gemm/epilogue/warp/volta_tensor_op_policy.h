@@ -36,13 +36,13 @@
 
 #pragma once
 
-#include "nihilus_gemm/matrix_shape.h"
-#include "nihilus_gemm/layout/matrix.h"
-#include "nihilus_gemm/gemm/gemm.h"
+#include "cutlass/matrix_shape.h"
+#include "cutlass/layout/matrix.h"
+#include "cutlass/gemm/gemm.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace warp {
 
@@ -190,6 +190,6 @@ struct VoltaTensorOpPolicy<WarpShape_, gemm::GemmShape<32, 32, 4>, float, layout
 
 } // namespace warp
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

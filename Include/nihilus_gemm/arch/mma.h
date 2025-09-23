@@ -34,16 +34,16 @@
 
 #pragma once
 
-#include "nihilus_gemm/array.h"
-#include "nihilus_gemm/numeric_types.h"
-#include "nihilus_gemm/functional.h"
+#include "cutlass/array.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/functional.h"
 
-#include "nihilus_gemm/gemm/gemm.h"
-#include "nihilus_gemm/arch/arch.h"
+#include "cutlass/gemm/gemm.h"
+#include "cutlass/arch/arch.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace arch {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -186,7 +186,7 @@ struct Mma<gemm::GemmShape<1, 1, 1>, 1, ElementA, LayoutA, ElementB, LayoutB, El
   using Operator = Operator_;
   using ElementC = ElementC_;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(
     Array<ElementC, 1> &d,
     Array<ElementA, 1> const &a,
@@ -239,7 +239,7 @@ template <
 struct SparseMma;
 
 } // namespace arch
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -247,19 +247,19 @@ struct SparseMma;
 // Specializations for each compute capability
 //
 
-#include "nihilus_gemm/arch/mma_sm50.h"
-#include "nihilus_gemm/arch/mma_sm60.h"
-#include "nihilus_gemm/arch/mma_sm61.h"
-#include "nihilus_gemm/arch/mma_sm70.h"
-#include "nihilus_gemm/arch/mma_sm75.h"
-#include "nihilus_gemm/arch/mma_sm80.h"
-#include "nihilus_gemm/arch/mma_sparse_sm80.h"
-#include "nihilus_gemm/arch/mma_sm89.h"
-#include "nihilus_gemm/arch/mma_sparse_sm89.h"
-#include "nihilus_gemm/arch/mma_sm90.h"
+#include "cutlass/arch/mma_sm50.h"
+#include "cutlass/arch/mma_sm60.h"
+#include "cutlass/arch/mma_sm61.h"
+#include "cutlass/arch/mma_sm70.h"
+#include "cutlass/arch/mma_sm75.h"
+#include "cutlass/arch/mma_sm80.h"
+#include "cutlass/arch/mma_sparse_sm80.h"
+#include "cutlass/arch/mma_sm89.h"
+#include "cutlass/arch/mma_sparse_sm89.h"
+#include "cutlass/arch/mma_sm90.h"
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace arch {
 namespace detail {
 /// Helper for determining whether staged accumulation should be used for a given operator
@@ -271,6 +271,6 @@ struct UseStagedAccumulation {
 };
 } // namespace detail
 } // namespace arch
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

@@ -35,11 +35,11 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/array.h"
-#include "nihilus_gemm/platform/platform.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/array.h"
+#include "cutlass/platform/platform.h"
 
-namespace nihilus_gemm {
+namespace cutlass {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -104,11 +104,11 @@ struct Array<T, N, false> {
     reference() = default;
 
     /// Ctor
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     reference(Storage *ptr, int idx = 0): ptr_(ptr), idx_(idx) { }
 
     /// Assignment
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     reference &operator=(T x) {
     // `*ptr_ & kUpdateMask` will read ptr_ before write to it
     // This means code pattern like
@@ -145,26 +145,26 @@ struct Array<T, N, false> {
       return *this;
     }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     T get() const {
       Storage item = Storage((*ptr_ >> (idx_ * sizeof_bits<T>::value)) & kMask);
       return reinterpret_cast<T const &>(item);
     }
 
     /// Extract
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     operator T() const {
       return get();
     }
 
     /// Explicit cast to int
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     explicit operator int() const {
       return int(get());
     }
 
     /// Explicit cast to float
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     explicit operator float() const {
       return float(get());
     }
@@ -184,30 +184,30 @@ struct Array<T, N, false> {
     const_reference() = default;
 
     /// Ctor
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     const_reference(Storage const *ptr, int idx = 0): ptr_(ptr), idx_(idx) { }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     const T get() const {
       Storage item = (*ptr_ >> (idx_ * sizeof_bits<T>::value)) & kMask;
       return reinterpret_cast<T const &>(item);
     }
 
     /// Extract
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     operator T() const {
       Storage item = Storage(Storage(*ptr_ >> Storage(idx_ * sizeof_bits<T>::value)) & kMask);
       return reinterpret_cast<T const &>(item);
     }
 
     /// Explicit cast to int
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     explicit operator int() const {
       return int(get());
     }
 
     /// Explicit cast to float
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     explicit operator float() const {
       return float(get());
     }
@@ -230,10 +230,10 @@ struct Array<T, N, false> {
 
     iterator() = default;
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     iterator(Storage *ptr, int idx = 0): ptr_(ptr), idx_(idx) { }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     iterator &operator++() {
       ++idx_;
       if (idx_ == kElementsPerStoredItem) {
@@ -243,7 +243,7 @@ struct Array<T, N, false> {
       return *this;
     }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     iterator &operator--() {
       if (!idx_) {
         --ptr_;
@@ -255,7 +255,7 @@ struct Array<T, N, false> {
       return *this;
     }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     iterator operator++(int) {
       iterator ret(*this);
       ++idx_;
@@ -266,7 +266,7 @@ struct Array<T, N, false> {
       return ret;
     }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     iterator operator--(int) {
       iterator ret(*this);
       if (!idx_) {
@@ -279,17 +279,17 @@ struct Array<T, N, false> {
       return ret;
     }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     reference operator*() const {
       return reference(ptr_, idx_);
     }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     bool operator==(iterator const &other) const {
       return ptr_ == other.ptr_ && idx_ == other.idx_;
     }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     bool operator!=(iterator const &other) const {
       return !(*this == other);
     }
@@ -308,10 +308,10 @@ struct Array<T, N, false> {
 
     const_iterator() = default;
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     const_iterator(Storage const *ptr, int idx = 0): ptr_(ptr), idx_(idx) { }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     iterator &operator++() {
       ++idx_;
       if (idx_ == kElementsPerStoredItem) {
@@ -321,7 +321,7 @@ struct Array<T, N, false> {
       return *this;
     }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     iterator &operator--() {
       if (!idx_) {
         --ptr_;
@@ -333,7 +333,7 @@ struct Array<T, N, false> {
       return *this;
     }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     iterator operator++(int) {
       iterator ret(*this);
       ++idx_;
@@ -344,7 +344,7 @@ struct Array<T, N, false> {
       return ret;
     }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     iterator operator--(int) {
       iterator ret(*this);
       if (!idx_) {
@@ -357,17 +357,17 @@ struct Array<T, N, false> {
       return ret;
     }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     const_reference operator*() const {
       return const_reference(ptr_, idx_);
     }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     bool operator==(iterator const &other) const {
       return ptr_ == other.ptr_ && idx_ == other.idx_;
     }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     bool operator!=(iterator const &other) const {
       return !(*this == other);
     }
@@ -386,7 +386,7 @@ struct Array<T, N, false> {
 
     reverse_iterator() = default;
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     reverse_iterator(Storage *ptr, int idx = 0): ptr_(ptr), idx_(idx) { }
   };
 
@@ -403,146 +403,146 @@ struct Array<T, N, false> {
 
     const_reverse_iterator() = default;
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     const_reverse_iterator(Storage const *ptr, int idx = 0): ptr_(ptr), idx_(idx) { }
   };
 
   /// Efficient clear method
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void clear() {
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < int(kStorageElements); ++i) {
       storage[i] = Storage(0);
     }
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   reference at(size_type pos) {
     return reference(storage + pos / kElementsPerStoredItem, pos % kElementsPerStoredItem);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   const_reference at(size_type pos) const {
     return const_reference(storage + pos / kElementsPerStoredItem, pos % kElementsPerStoredItem);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   reference operator[](size_type pos) {
     return at(pos);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   const_reference operator[](size_type pos) const {
     return at(pos);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   reference front() {
     return at(0);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   const_reference front() const {
     return at(0);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   reference back() {
     return reference(storage + kStorageElements - 1, kElementsPerStoredItem - 1);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   const_reference back() const {
     return const_reference(storage + kStorageElements - 1, kElementsPerStoredItem - 1);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   pointer data() {
     return reinterpret_cast<pointer>(storage);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   const_pointer data() const {
     return reinterpret_cast<const_pointer>(storage);
   }
   
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Storage * raw_data() {
     return storage;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Storage const * raw_data() const {
     return storage;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   constexpr bool empty() const {
     return !kElements;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   constexpr size_type size() const {
     return kElements;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   constexpr size_type max_size() const {
     return kElements;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void fill(T const &value) {
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < kElementsPerStoredItem; ++i) {
       reference ref(storage, i);
       ref = value;
     }
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 1; i < kStorageElements; ++i) {
       storage[i] = storage[0];
     }
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   iterator begin() {
     return iterator(storage);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   const_iterator cbegin() const {
     return const_iterator(storage);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   iterator end() {
     return iterator(storage + kStorageElements);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   const_iterator cend() const {
     return const_iterator(storage + kStorageElements);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   reverse_iterator rbegin() {
     return reverse_iterator(storage + kStorageElements);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   const_reverse_iterator crbegin() const {
     return const_reverse_iterator(storage + kStorageElements);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   reverse_iterator rend() {
     return reverse_iterator(storage);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   const_reverse_iterator crend() const {
     return const_reverse_iterator(storage);
   }
@@ -556,6 +556,6 @@ private:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

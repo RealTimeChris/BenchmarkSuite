@@ -34,28 +34,28 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "cutlass/cutlass.h"
 
-#include "nihilus_gemm/aligned_buffer.h"
-#include "nihilus_gemm/array.h"
+#include "cutlass/aligned_buffer.h"
+#include "cutlass/array.h"
 
-#include "nihilus_gemm/numeric_types.h"
-#include "nihilus_gemm/matrix_shape.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/matrix_shape.h"
 
-#include "nihilus_gemm/gemm/gemm.h"
+#include "cutlass/gemm/gemm.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace kernel {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename Mma, typename Epilogue, typename ThreadblockSwizzle>
-CUTLASS_RT_TM_GLOBAL void GemmPipelined(
-  nihilus_gemm::gemm::GemmCoord problem_size,
-  nihilus_gemm::gemm::GemmCoord grid_tiled_shape,
+CUTLASS_GLOBAL void GemmPipelined(
+  cutlass::gemm::GemmCoord problem_size,
+  cutlass::gemm::GemmCoord grid_tiled_shape,
   typename Mma::IteratorA::Params params_A,
   typename Mma::IteratorA::TensorRef ref_A,
   typename Mma::IteratorB::Params params_B,
@@ -74,7 +74,7 @@ CUTLASS_RT_TM_GLOBAL void GemmPipelined(
 
   int swizzle_log_tile = ThreadblockSwizzle().get_log_tile(grid_tiled_shape);
 
-  nihilus_gemm::gemm::GemmCoord tb_tile_offset = threadblock_swizzle.get_tile_offset(swizzle_log_tile);
+  cutlass::gemm::GemmCoord tb_tile_offset = threadblock_swizzle.get_tile_offset(swizzle_log_tile);
 
   if (grid_tiled_shape.m() <= tb_tile_offset.m() ||
     grid_tiled_shape.n() <= tb_tile_offset.n()) {
@@ -83,12 +83,12 @@ CUTLASS_RT_TM_GLOBAL void GemmPipelined(
   }
 
   // Compute initial location in logical coordinates
-  nihilus_gemm::MatrixCoord tb_offset_A{
+  cutlass::MatrixCoord tb_offset_A{
     tb_tile_offset.m() * Mma::Shape::kM,
     tb_tile_offset.k()
   };
 
-  nihilus_gemm::MatrixCoord tb_offset_B{
+  cutlass::MatrixCoord tb_offset_B{
     tb_tile_offset.k(),
     tb_tile_offset.n() * Mma::Shape::kN
   };
@@ -155,4 +155,4 @@ CUTLASS_RT_TM_GLOBAL void GemmPipelined(
 
 } // namespace kernel
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass

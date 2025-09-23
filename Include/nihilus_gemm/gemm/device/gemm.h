@@ -34,22 +34,22 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/numeric_types.h"
-#include "nihilus_gemm/arch/arch.h"
-#include "nihilus_gemm/device_kernel.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/arch/arch.h"
+#include "cutlass/device_kernel.h"
 
-#include "nihilus_gemm/gemm/threadblock/threadblock_swizzle.h"
-#include "nihilus_gemm/gemm/kernel/gemm.h"
+#include "cutlass/gemm/threadblock/threadblock_swizzle.h"
+#include "cutlass/gemm/kernel/gemm.h"
 
-#include "nihilus_gemm/gemm/kernel/default_gemm.h"
-#include "nihilus_gemm/gemm/device/default_gemm_configuration.h"
+#include "cutlass/gemm/kernel/default_gemm.h"
+#include "cutlass/gemm/device/default_gemm_configuration.h"
 
-#include "nihilus_gemm/layout/permute.h"
+#include "cutlass/layout/permute.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace device {
 
@@ -91,20 +91,20 @@ namespace device {
     // Instantiate the CUTLASS GEMM operator.
     //
 
-    nihilus_gemm::gemm::device::Gemm<
+    cutlass::gemm::device::Gemm<
       float,
-      nihilus_gemm::layout::ColumnMajor,
+      cutlass::layout::ColumnMajor,
       float,
-      nihilus_gemm::layout::ColumnMajor,
+      cutlass::layout::ColumnMajor,
       float,
-      nihilus_gemm::layout::ColumnMajor
+      cutlass::layout::ColumnMajor
     > gemm_op;
 
     //
     // Launch the GEMM operation on the device
     //
 
-    nihilus_gemm::Status status = gemm_op({
+    cutlass::Status status = gemm_op({
       {m, n, k},                          // GemmCoord problem_size,
       {A, lda},                           // TensorRef<float, layout::ColumnMajor> ref_A,
       {B, ldb},                           // TensorRef<float, layout::ColumnMajor> ref_B,
@@ -312,13 +312,13 @@ class Gemm {
     //
 
     /// Default ctor
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Arguments(): problem_size(0, 0, 0), split_k_slices(1) {
 
     }
 
     /// Constructs an Arguments structure 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Arguments(
       GemmCoord problem_size_,
       TensorRef<ElementA const, LayoutA> ref_A_,
@@ -386,7 +386,7 @@ public:
     // Determine grid shape
     ThreadblockSwizzle threadblock_swizzle;
 
-    nihilus_gemm::gemm::GemmCoord tiled_shape = threadblock_swizzle.get_tiled_shape(
+    cutlass::gemm::GemmCoord tiled_shape = threadblock_swizzle.get_tiled_shape(
       args.problem_size, 
       {ThreadblockShape::kM, ThreadblockShape::kN, ThreadblockShape::kK},
       args.split_k_slices);
@@ -405,7 +405,7 @@ public:
     // Determine grid shape
     ThreadblockSwizzle threadblock_swizzle;
 
-    nihilus_gemm::gemm::GemmCoord grid_shape = threadblock_swizzle.get_tiled_shape(
+    cutlass::gemm::GemmCoord grid_shape = threadblock_swizzle.get_tiled_shape(
       args.problem_size, 
       {ThreadblockShape::kM, ThreadblockShape::kN, ThreadblockShape::kK},
       args.split_k_slices);
@@ -491,8 +491,8 @@ public:
       }
     }
 
-    nihilus_gemm::arch::synclog_setup();
-    nihilus_gemm::Kernel<GemmKernel><<<grid, block, smem_size, stream>>>(params_);
+    cutlass::arch::synclog_setup();
+    cutlass::Kernel<GemmKernel><<<grid, block, smem_size, stream>>>(params_);
 
     result = cudaGetLastError();
 
@@ -657,11 +657,11 @@ class Gemm<ElementA_, LayoutA_, ElementB_, LayoutB_, ElementC_,
     //
 
     /// Default ctor
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Arguments() { }
 
     /// Constructs an Arguments structure 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Arguments(
       GemmCoord problem_size_,
       TensorRef<ElementA const, LayoutA> ref_A_,
@@ -767,6 +767,6 @@ public:
 
 } // namespace device
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////

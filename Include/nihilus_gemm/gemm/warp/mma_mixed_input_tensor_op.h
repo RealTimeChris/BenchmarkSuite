@@ -35,29 +35,29 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/array.h"
-#include "nihilus_gemm/platform/platform.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/array.h"
+#include "cutlass/platform/platform.h"
 
-#include "nihilus_gemm/numeric_conversion.h"
-#include "nihilus_gemm/numeric_types.h"
-#include "nihilus_gemm/matrix_shape.h"
+#include "cutlass/numeric_conversion.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/matrix_shape.h"
 
-#include "nihilus_gemm/arch/memory_sm75.h"
-#include "nihilus_gemm/arch/mma_sm75.h" 
-#include "nihilus_gemm/arch/mma_sm80.h"
+#include "cutlass/arch/memory_sm75.h"
+#include "cutlass/arch/mma_sm75.h" 
+#include "cutlass/arch/mma_sm80.h"
 
-#include "nihilus_gemm/gemm/gemm.h"
-#include "nihilus_gemm/gemm/warp/mma.h"
+#include "cutlass/gemm/gemm.h"
+#include "cutlass/gemm/warp/mma.h"
 
-#include "nihilus_gemm/gemm/warp/mma_tensor_op_policy.h"
+#include "cutlass/gemm/warp/mma_tensor_op_policy.h"
 
-#include "nihilus_gemm/gemm/warp/mma_tensor_op_tile_iterator.h"
-#include "nihilus_gemm/gemm/warp/mma_tensor_op_tile_iterator_sm80.h"
+#include "cutlass/gemm/warp/mma_tensor_op_tile_iterator.h"
+#include "cutlass/gemm/warp/mma_tensor_op_tile_iterator_sm80.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace warp {
 
@@ -96,7 +96,7 @@ struct FragmentShuffler {
   using WarpFragment = Array<ElementLoad, kNumElementsInWarpFragment>;
   using MmaFragment = Array<ElementLoad, kNumElementsInMmaFragment>;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   WarpFragment operator()(WarpFragment const &src) {
     return src;
   }
@@ -147,9 +147,9 @@ private:
   uint32_t byte_selector_;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   FragmentShuffler() {
-    int lane_id = nihilus_gemm::arch::LaneId();
+    int lane_id = cutlass::arch::LaneId();
     delta_up_ = (lane_id & 1) + ((lane_id & 2) >> 1);
     delta_down_ = 2 - delta_up_;
     odd_even_lane_id_ = static_cast<int>(lane_id & 1);
@@ -157,14 +157,14 @@ public:
                     (1 - odd_even_lane_id_) * kSelectBytesEvenThread;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   WarpFragment operator()(WarpFragment const &src) {
 
     WarpFragment result;
     MmaFragment const* mma_frag_src_ptr = reinterpret_cast<MmaFragment const*>(&src);
     MmaFragment* mma_frag_dst_ptr = reinterpret_cast<MmaFragment*>(&result);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int n = 0; n < kNumMmaInstructions; n++) {
 
         uint32_t const* src_ptr = reinterpret_cast<uint32_t const *>(&mma_frag_src_ptr[n]);
@@ -231,9 +231,9 @@ private:
   uint32_t byte_selector_;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   FragmentShuffler() {
-    int lane_id = nihilus_gemm::arch::LaneId();
+    int lane_id = cutlass::arch::LaneId();
     delta_up_ = (lane_id & 1) + ((lane_id & 2) >> 1);
     delta_down_ = 2 - delta_up_;
     odd_even_lane_id_ = static_cast<int>(lane_id & 1);
@@ -241,7 +241,7 @@ public:
                     (1 - odd_even_lane_id_) * kSelectBytesEvenThread;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   WarpFragment operator()(WarpFragment const &src) {
 
     WarpFragment result;
@@ -249,7 +249,7 @@ public:
     MmaFragment const* mma_frag_src_ptr = reinterpret_cast<MmaFragment const *>(&src);
     MmaFragment* mma_frag_dst_ptr = reinterpret_cast<MmaFragment *>(&result);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int n = 0; n < kNumMmaInstructions; n++) {
 
         uint32_t const* src_ptr = reinterpret_cast<uint32_t const*>(&mma_frag_src_ptr[n]);
@@ -291,7 +291,7 @@ struct FragmentConverter {
 
   FastNumericArrayConverter<ElementDst, ElementSrc, N> convert;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   DestinationFragment operator()(SourceFragment const &src) const {
     return convert(src);
   }
@@ -312,7 +312,7 @@ struct FragmentConverter<Element, Element, N, Enable> {
   using DestinationFragment = Array<Element, N>;
   using SourceFragment = Array<Element, N>;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   DestinationFragment operator()(SourceFragment const &src) const {
     return src;
   }
@@ -476,11 +476,11 @@ public:
   //
 
   /// Ctor
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   MmaMixedInputTensorOp() {}
 
     /// Performs a warp-level matrix multiply-accumulate operation
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void operator()(
     FragmentC &D, 
     TransformedFragmentA const &A, 
@@ -494,10 +494,10 @@ public:
     MmaOperandB const *ptr_B = reinterpret_cast<MmaOperandB const *>(&B);
     MmaOperandC *ptr_D = reinterpret_cast<MmaOperandC *>(&D);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int m = 0; m < MmaIterations::kRow; ++m) {
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int n = 0; n < MmaIterations::kColumn; ++n) {
 
         int n_serpentine = ((m % 2) ? (MmaIterations::kColumn - 1 - n) : n);
@@ -520,7 +520,7 @@ public:
 
   /// Transform the operand warp fragment register to the required data types and layout 
   /// for the `cultass::arch::Mma`
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void transform(TransformedFragmentA &dst_A, TransformedFragmentB &dst_B,
                  FragmentA const &A, FragmentB const &B) const {
 
@@ -561,6 +561,6 @@ public:
 
 } // namespace warp
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

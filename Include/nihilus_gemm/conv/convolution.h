@@ -72,14 +72,14 @@ Map elements' data types (Conv -> ImplicitGemm): ConvToGemmElementMap
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/layout/tensor.h"
-#include "nihilus_gemm/tensor_coord.h"
-#include "nihilus_gemm/fast_math.h"
-#include "nihilus_gemm/gemm/gemm_enumerated_types.h"
-#include "nihilus_gemm/matrix_coord.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/layout/tensor.h"
+#include "cutlass/tensor_coord.h"
+#include "cutlass/fast_math.h"
+#include "cutlass/gemm/gemm_enumerated_types.h"
+#include "cutlass/matrix_coord.h"
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace conv {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -156,7 +156,7 @@ struct TensorNHWCShape {
   //
 
   /// Returns a Coord object
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static Coord<4> toCoord() {
     return make_Coord(kN, kH, kW, kC);
   }
@@ -180,7 +180,7 @@ struct Stride2D {
   //
 
   /// Returns a Coord object
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static Coord<2> toCoord() {
     return make_Coord(kU, kV);
   }
@@ -189,6 +189,6 @@ struct Stride2D {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace conv
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

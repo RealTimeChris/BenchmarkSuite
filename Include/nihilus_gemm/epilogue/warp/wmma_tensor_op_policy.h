@@ -36,15 +36,15 @@
 
 #pragma once
 
-#include "nihilus_gemm/arch/wmma.h"
-#include "nihilus_gemm/matrix_shape.h"
-#include "nihilus_gemm/layout/matrix.h"
+#include "cutlass/arch/wmma.h"
+#include "cutlass/matrix_shape.h"
+#include "cutlass/layout/matrix.h"
 
-#if defined(CUTLASS_RT_TM_ARCH_WMMA_ENABLED)
+#if defined(CUTLASS_ARCH_WMMA_ENABLED)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace warp {
 
@@ -93,7 +93,7 @@ struct WmmaTensorOpPolicy<WarpShape, OperatorShape, layout::RowMajor> {
 
 } // namespace warp
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////
 

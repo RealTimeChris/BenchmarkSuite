@@ -35,7 +35,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/detail/helper_macros.hpp"
+#include "cutlass/detail/helper_macros.hpp"
 
 #if (__CUDACC_VER_MAJOR__ >= 13)
   #define CUDA_STD_HEADER(header) <cccl/cuda/std/header>
@@ -45,7 +45,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 
 /// Status code returned by CUTLASS operations
 enum class Status {
@@ -63,33 +63,33 @@ enum class Status {
   kInvalid                     ///< Status is unspecified.
 };
 
-/// Convert nihilus_gemm status to status strings
-CUTLASS_RT_TM_HOST_DEVICE
-static char const* nihilus_gemmGetStatusString(nihilus_gemm::Status status) {
+/// Convert cutlass status to status strings
+CUTLASS_HOST_DEVICE
+static char const* cutlassGetStatusString(cutlass::Status status) {
   switch (status) {
-    case nihilus_gemm::Status::kSuccess:
+    case cutlass::Status::kSuccess:
       return "Success";
-    case nihilus_gemm::Status::kErrorMisalignedOperand:
+    case cutlass::Status::kErrorMisalignedOperand:
       return "Error Misaligned Operand";
-    case nihilus_gemm::Status::kErrorInvalidDataType:
+    case cutlass::Status::kErrorInvalidDataType:
       return "Error Invalid Data Type";
-    case nihilus_gemm::Status::kErrorInvalidLayout:
+    case cutlass::Status::kErrorInvalidLayout:
       return "Error Invalid Layout";
-    case nihilus_gemm::Status::kErrorInvalidProblem:
+    case cutlass::Status::kErrorInvalidProblem:
       return "Error Invalid Problem";
-    case nihilus_gemm::Status::kErrorNotSupported:
+    case cutlass::Status::kErrorNotSupported:
       return "Error Not Supported";
-    case nihilus_gemm::Status::kErrorWorkspaceNull:
+    case cutlass::Status::kErrorWorkspaceNull:
       return "Error Workspace Null";
-    case nihilus_gemm::Status::kErrorInternal:
+    case cutlass::Status::kErrorInternal:
       return "Error Internal";
-    case nihilus_gemm::Status::kErrorInsufficientDriver:
+    case cutlass::Status::kErrorInsufficientDriver:
       return "Error Insufficient Driver";
-    case nihilus_gemm::Status::kErrorArchMismatch:
+    case cutlass::Status::kErrorArchMismatch:
       return "Error Architecture Mismatch";
-    case nihilus_gemm::Status::kErrorMemoryAllocation:
+    case cutlass::Status::kErrorMemoryAllocation:
       return "Error Memory Allocation failed";
-    case nihilus_gemm::Status::kInvalid: break;
+    case cutlass::Status::kInvalid: break;
   }
 
   return "Invalid status";
@@ -107,7 +107,7 @@ static const int NumThreadsPerQuadPair = NumThreadsPerQuad * 2;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Helper function to return true when called by thread 0 of threadblock 0.
-CUTLASS_RT_TM_HOST_DEVICE bool thread0() {
+CUTLASS_HOST_DEVICE bool thread0() {
   #if defined(__CUDA_ARCH__)
     return (!threadIdx.x && !threadIdx.y && !threadIdx.z) && (!blockIdx.x && !blockIdx.y && !blockIdx.z);
   #else
@@ -116,7 +116,7 @@ CUTLASS_RT_TM_HOST_DEVICE bool thread0() {
 }
 
 /// Returns a lane index in the warp. The threads in warp may not be convergent
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 int canonical_lane_idx() { 
   #if defined(__CUDA_ARCH__)
     return threadIdx.x % NumThreadsPerWarp;
@@ -127,7 +127,7 @@ int canonical_lane_idx() {
 
 /// Returns a warp-uniform value indicating the canonical warp index of the calling threads.
 /// Threads within the warp must be converged.
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 int canonical_warp_idx_sync() { 
   #if defined(__CUDA_ARCH__)
     return __shfl_sync(0xffffffff, threadIdx.x / NumThreadsPerWarp, 0);
@@ -138,7 +138,7 @@ int canonical_warp_idx_sync() {
 
 /// Returns a warp index in the CTA. The threads in warp may not be convergent
 /// As it doesn't sync the warp, it faster and allows forward progress
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 int canonical_warp_idx() { 
   #if defined(__CUDA_ARCH__)
     return threadIdx.x / NumThreadsPerWarp;
@@ -149,7 +149,7 @@ int canonical_warp_idx() {
 
 /// Returns a warp-uniform value indicating the canonical warp group index of the calling threads.
 /// Threads within the warp must be converged.
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 int canonical_warp_group_idx() {
   #if defined(__CUDA_ARCH__)
     return __shfl_sync(0xffffffff, threadIdx.x / NumThreadsPerWarpGroup, 0);
@@ -160,6 +160,6 @@ int canonical_warp_group_idx() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-}  // namespace nihilus_gemm
+}  // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

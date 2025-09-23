@@ -34,16 +34,16 @@
 
 #pragma once
 
-#include "nihilus_gemm/array.h"
-#include "nihilus_gemm/layout/matrix.h"
-#include "nihilus_gemm/layout/pitch_linear.h"
+#include "cutlass/array.h"
+#include "cutlass/layout/matrix.h"
+#include "cutlass/layout/pitch_linear.h"
 
-#include "nihilus_gemm/epilogue/warp/tensor_op_policy.h"
-#include "nihilus_gemm/epilogue/warp/volta_tensor_op_policy.h"
+#include "cutlass/epilogue/warp/tensor_op_policy.h"
+#include "cutlass/epilogue/warp/volta_tensor_op_policy.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace warp {
 
@@ -129,11 +129,11 @@ private:
 public:
 
   /// Default constructor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorVoltaTensorOp(): pointer_(nullptr) { }
 
   /// Constructor from TensorRef
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   TileIteratorVoltaTensorOp(
     TensorRef const &ref,
     unsigned lane_id
@@ -154,14 +154,14 @@ public:
   }
 
   /// Adds a pointer offset
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorVoltaTensorOp & add_pointer_offset(Index pointer_offset) {
     pointer_ += pointer_offset / Policy::kElementsPerAccess;
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorVoltaTensorOp & add_tile_offset(TensorCoord const &tile_offset) {
 
     pointer_ += layout_({
@@ -172,22 +172,22 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorVoltaTensorOp & operator+=(TensorCoord const &tile_offset) {
     add_tile_offset(tile_offset);
     return *this;
   }
 
   /// Store
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int tile_idx = 0; tile_idx < Policy::TileIterations::kColumn; ++tile_idx) {
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int access_idx = 0; access_idx < Policy::kAccessesPerInterleavedTile; ++access_idx) {
 
         int access_quad = access_idx / 2;
@@ -207,21 +207,21 @@ public:
   }
 
   /// Store
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag) {
     store_with_pointer_offset(frag, 0);
   }
 
   /// Load
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int tile_idx = 0; tile_idx < Policy::TileIterations::kColumn; ++tile_idx) {
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int access_idx = 0; access_idx < Policy::kAccessesPerInterleavedTile; ++access_idx) {
 
         int access_quad = access_idx / 2;
@@ -238,13 +238,13 @@ public:
   }
 
   /// Load
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load(Fragment const &frag) {
     load_with_pointer_offset(frag, 0);
   }
   
   /// Set smem base address
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_smem_base_address(Index address) {
   }
 };
@@ -320,11 +320,11 @@ private:
 public:
 
   /// Default constructor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorVoltaTensorOp(): pointer_(nullptr) { }
 
   /// Constructor from TensorRef
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   TileIteratorVoltaTensorOp(
     TensorRef const &ref,
     unsigned lane_id
@@ -351,14 +351,14 @@ public:
   }
 
   /// Adds a pointer offset
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorVoltaTensorOp & add_pointer_offset(Index pointer_offset) {
     pointer_ += pointer_offset / Policy::kElementsPerAccess;
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorVoltaTensorOp & add_tile_offset(TensorCoord const &tile_offset) {
 
     pointer_ += layout_({
@@ -369,24 +369,24 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorVoltaTensorOp & operator+=(TensorCoord const &tile_offset) {
     add_tile_offset(tile_offset);
     return *this;
   }
 
   /// Store
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
     int const kAccessesPerRow = Policy::TileIterations::kColumn * Policy::MmaIterations::kColumn * 2;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int row_idx = 0; row_idx < Policy::kRowsPerMmaTile; ++row_idx) {
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int access_idx = 0; access_idx < kAccessesPerRow; ++access_idx) {
 
         int frag_idx = row_idx * kAccessesPerRow + access_idx;
@@ -405,13 +405,13 @@ public:
   }
 
   /// Store
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag) {
     store_with_pointer_offset(frag, 0);
   }
 
   /// Load
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
@@ -420,13 +420,13 @@ public:
   }
 
   /// Load
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load(Fragment const &frag) {
     load_with_pointer_offset(frag, 0);
   }
   
   /// Set smem base address
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_smem_base_address(Index address) {
   }
 };
@@ -435,6 +435,6 @@ public:
 
 } // namespace warp
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

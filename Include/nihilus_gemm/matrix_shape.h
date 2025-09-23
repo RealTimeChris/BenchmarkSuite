@@ -33,10 +33,10 @@
 */
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/coord.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/coord.h"
 
-namespace nihilus_gemm {
+namespace cutlass {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -54,7 +54,7 @@ struct MatrixShape {
   // Static member functions
   //
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static Coord<2> toCoord() {
     return make_Coord(kRow, kColumn);
   }
@@ -62,4 +62,4 @@ struct MatrixShape {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace nihilus_gemm
+} // namespace cutlass

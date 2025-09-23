@@ -35,15 +35,15 @@
 
 #pragma once
 
-#include "nihilus_gemm/arch/wmma.h"
+#include "cutlass/arch/wmma.h"
 
-#if defined(CUTLASS_RT_TM_ARCH_WMMA_ENABLED)
+#if defined(CUTLASS_ARCH_WMMA_ENABLED)
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/array.h"
-#include "nihilus_gemm/functional.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/array.h"
+#include "cutlass/functional.h"
 
-namespace nihilus_gemm {
+namespace cutlass {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -54,14 +54,14 @@ template <
   /// Number of elements in the array
   int N,
   /// Whether the element type of T is half_t or __half
-  bool IsHalfType = (platform::is_same<typename T::element_type, nihilus_gemm::half_t>::value ||
+  bool IsHalfType = (platform::is_same<typename T::element_type, cutlass::half_t>::value ||
                      platform::is_same<typename T::element_type, __half>::value)
 >
 class WmmaFragmentArray: public Array<T, N, true> {
 public:
 
   /// Efficient clear method (override Array::clear())
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void clear()
   {
     for(int i = 0; i < Array<T, N, true>::kElements; i++)
@@ -70,7 +70,7 @@ public:
     }
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   WmmaFragmentArray<T, N>& operator+=(const WmmaFragmentArray<T, N>& rhs)
   {
     using element_type = typename T::element_type;
@@ -99,7 +99,7 @@ class WmmaFragmentArray<T, N, true>: public Array<T, N, true> {
 public:
 
   /// Efficient clear method (override Array::clear())
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void clear()
   {
     for(int i = 0; i < Array<T, N, true>::kElements; i++)
@@ -108,7 +108,7 @@ public:
     }
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   WmmaFragmentArray<T, N>& operator+=(const WmmaFragmentArray<T, N>& rhs)
   {
     using element_type = typename T::element_type;
@@ -125,9 +125,9 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#endif // if defined(CUTLASS_RT_TM_ARCH_WMMA_ENABLED)
+#endif // if defined(CUTLASS_ARCH_WMMA_ENABLED)
 

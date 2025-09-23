@@ -37,18 +37,18 @@
 
 #pragma once
 
-#include "nihilus_gemm/half.h"
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/numeric_types.h"
-#include "nihilus_gemm/array.h"
-#include "nihilus_gemm/functional.h"
-#include "nihilus_gemm/numeric_conversion.h"
-#include "nihilus_gemm/epilogue/thread/activation.h"
-#include "nihilus_gemm/epilogue/thread/scale_type.h"
+#include "cutlass/half.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/array.h"
+#include "cutlass/functional.h"
+#include "cutlass/numeric_conversion.h"
+#include "cutlass/epilogue/thread/activation.h"
+#include "cutlass/epilogue/thread/scale_type.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace thread {
 
@@ -110,14 +110,14 @@ public:
     // Methods
     //
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(): 
       alpha(ElementCompute(1)), 
       beta(ElementCompute(0)),
       alpha_ptr(nullptr), 
       beta_ptr(nullptr) { }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(
       ElementCompute alpha,
       ElementCompute beta = ElementCompute(0)
@@ -125,7 +125,7 @@ public:
 
     }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(
       ElementCompute const *alpha_ptr,
       ElementCompute const *beta_ptr = nullptr
@@ -146,7 +146,7 @@ private:
 public:
 
   /// Constructs the function object, possibly loading from pointers in host memory
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LinearCombinationRelu0(Params const &params) {
 
     alpha_ = (params.alpha_ptr ? *params.alpha_ptr : params.alpha);
@@ -154,7 +154,7 @@ public:
   }
 
   /// Returns true if source is needed
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   bool is_source_needed() const {
     if (Scale == ScaleType::NoBetaScaling) return true;
 
@@ -166,13 +166,13 @@ public:
   }
 
   /// This is used for serial reduction which is not supported by Relu0
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_k_partition(int k_partition, int k_partition_count) {
     assert(k_partition == 0);
   }
   
   /// Computes linear scaling: D = alpha * accumulator + beta * source
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   FragmentOutput operator()(
     FragmentAccumulator const &accumulator, 
     FragmentOutput const &source) const {
@@ -211,7 +211,7 @@ public:
   }
 
   /// Computes linear scaling: D = alpha * accumulator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   FragmentOutput operator()(
     FragmentAccumulator const &accumulator) const {
 
@@ -243,7 +243,7 @@ public:
 
   /// Computes per-channel linear scaling and bias : D = scale * accumulator + bias
   /// Scale and Bias are from input Fragment
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   FragmentOutput operator()(
     FragmentAccumulator const &accumulator,
     FragmentScaleBias const &scale,
@@ -324,14 +324,14 @@ public:
     // Methods
     //
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(): 
       alpha(ElementCompute(1)), 
       beta(ElementCompute(0)),
       alpha_ptr(nullptr), 
       beta_ptr(nullptr) { }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(
       ElementCompute alpha,
       ElementCompute beta = ElementCompute(0)
@@ -339,7 +339,7 @@ public:
 
     }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(
       ElementCompute const *alpha_ptr,
       ElementCompute const *beta_ptr = nullptr
@@ -360,7 +360,7 @@ private:
 public:
 
   /// Constructs the function object, possibly loading from pointers in host memory
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LinearCombinationRelu0(Params const &params) {
 
     alpha_ = (params.alpha_ptr ? *params.alpha_ptr : params.alpha);
@@ -368,7 +368,7 @@ public:
   }
 
   /// Returns true if source is needed
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   bool is_source_needed() const {
     if (Scale == ScaleType::NoBetaScaling) return true;
 
@@ -380,13 +380,13 @@ public:
   }
 
   /// This is used for serial reduction which is not supported by Relu0
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_k_partition(int k_partition, int k_partition_count) {
     assert(k_partition == 0);
   }
   
   /// Computes linear scaling: D = alpha * accumulator + beta * source
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   FragmentOutput operator()(
     FragmentAccumulator const &accumulator, 
     FragmentOutput const &source) const {
@@ -418,7 +418,7 @@ public:
     // Compute threshold optionally
     intermediate = relu(intermediate);
 
-    if (nihilus_gemm::platform::numeric_limits<ElementOutput>::is_integer) {
+    if (cutlass::platform::numeric_limits<ElementOutput>::is_integer) {
       // Convert floats back to INT
       FragmentAccumulator scaled_accumulator;
 
@@ -439,7 +439,7 @@ public:
   }
 
   /// Computes linear scaling: D = alpha * accumulator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   FragmentOutput operator()(
     FragmentAccumulator const &accumulator) const {
 
@@ -463,7 +463,7 @@ public:
     // Compute threshold optionally
     intermediate = relu(intermediate);
 
-    if (nihilus_gemm::platform::numeric_limits<ElementOutput>::is_integer) {
+    if (cutlass::platform::numeric_limits<ElementOutput>::is_integer) {
       // Convert floats back to INT
       FragmentAccumulator scaled_accumulator;
 
@@ -485,7 +485,7 @@ public:
 
   /// Computes per-channel linear scaling and bias : D = scale * accumulator + bias
   /// Scale and Bias are from input Fragment
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   FragmentOutput operator()(
     FragmentAccumulator const &accumulator,
     FragmentScaleBias const &scale,
@@ -511,7 +511,7 @@ public:
     // Compute threshold optionally
     intermediate = relu(intermediate);
 
-    if (nihilus_gemm::platform::numeric_limits<ElementOutput>::is_integer) {
+    if (cutlass::platform::numeric_limits<ElementOutput>::is_integer) {
       // Convert floats back to INT
       FragmentAccumulator scaled_accumulator;
 
@@ -538,6 +538,6 @@ public:
 
 } // namespace thread
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

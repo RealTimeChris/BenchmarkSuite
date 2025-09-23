@@ -41,39 +41,39 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "cutlass/cutlass.h"
 
-#include "nihilus_gemm/layout/matrix.h"
-#include "nihilus_gemm/numeric_types.h"
-#include "nihilus_gemm/arch/wmma.h"
+#include "cutlass/layout/matrix.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/arch/wmma.h"
 
-#include "nihilus_gemm/epilogue/threadblock/epilogue.h"
-#include "nihilus_gemm/epilogue/thread/linear_combination.h"
+#include "cutlass/epilogue/threadblock/epilogue.h"
+#include "cutlass/epilogue/thread/linear_combination.h"
 
-#include "nihilus_gemm/gemm/gemm.h"
-#include "nihilus_gemm/gemm/kernel/gemm.h"
-#include "nihilus_gemm/gemm/kernel/gemm_pipelined.h"
-#include "nihilus_gemm/gemm/threadblock/default_mma_core_sm75.h"
-#include "nihilus_gemm/gemm/threadblock/default_mma_core_sm70.h"
-#include "nihilus_gemm/gemm/threadblock/default_mma_core_sm80.h"
-#include "nihilus_gemm/gemm/threadblock/default_mma.h"
-#include "nihilus_gemm/gemm/threadblock/default_mma_core_simt.h"
-#include "nihilus_gemm/gemm/threadblock/threadblock_swizzle.h"
+#include "cutlass/gemm/gemm.h"
+#include "cutlass/gemm/kernel/gemm.h"
+#include "cutlass/gemm/kernel/gemm_pipelined.h"
+#include "cutlass/gemm/threadblock/default_mma_core_sm75.h"
+#include "cutlass/gemm/threadblock/default_mma_core_sm70.h"
+#include "cutlass/gemm/threadblock/default_mma_core_sm80.h"
+#include "cutlass/gemm/threadblock/default_mma.h"
+#include "cutlass/gemm/threadblock/default_mma_core_simt.h"
+#include "cutlass/gemm/threadblock/threadblock_swizzle.h"
 
-#include "nihilus_gemm/epilogue/threadblock/default_epilogue_tensor_op.h"
-#include "nihilus_gemm/epilogue/threadblock/default_epilogue_volta_tensor_op.h"
-#include "nihilus_gemm/epilogue/threadblock/default_epilogue_simt.h"
-#include "nihilus_gemm/transform/threadblock/predicated_tile_iterator.h"
+#include "cutlass/epilogue/threadblock/default_epilogue_tensor_op.h"
+#include "cutlass/epilogue/threadblock/default_epilogue_volta_tensor_op.h"
+#include "cutlass/epilogue/threadblock/default_epilogue_simt.h"
+#include "cutlass/transform/threadblock/predicated_tile_iterator.h"
 
-#include "nihilus_gemm/layout/permute.h"
+#include "cutlass/layout/permute.h"
 
-#if defined(CUTLASS_RT_TM_ARCH_WMMA_ENABLED)
-#include "nihilus_gemm/epilogue/threadblock/default_epilogue_wmma_tensor_op.h"
-#endif //CUTLASS_RT_TM_ARCH_WMMA_ENABLED
+#if defined(CUTLASS_ARCH_WMMA_ENABLED)
+#include "cutlass/epilogue/threadblock/default_epilogue_wmma_tensor_op.h"
+#endif //CUTLASS_ARCH_WMMA_ENABLED
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace kernel {
 
@@ -197,7 +197,7 @@ struct DefaultGemm<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignment
                    Operator, SharedMemoryClear, GatherA, GatherB, ScatterD,
                    PermuteDLayout, PermuteALayout, PermuteBLayout> {
   /// Define the threadblock-scoped matrix multiply-accumulate
-  using Mma = typename nihilus_gemm::gemm::threadblock::DefaultMma<
+  using Mma = typename cutlass::gemm::threadblock::DefaultMma<
       ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignmentB,
       ElementAccumulator, layout::RowMajor, arch::OpClassTensorOp, arch::Sm90,
       ThreadblockShape, WarpShape, InstructionShape, Stages,
@@ -208,7 +208,7 @@ struct DefaultGemm<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignment
 
   /// Define the epilogue
   using Epilogue =
-      typename nihilus_gemm::epilogue::threadblock::DefaultEpilogueTensorOp<
+      typename cutlass::epilogue::threadblock::DefaultEpilogueTensorOp<
           ThreadblockShape, typename Mma::Operator, kPartitionsK, EpilogueOutputOp,
           EpilogueOutputOp::kCount, ScatterD, PermuteDLayout>::Epilogue;
 
@@ -275,7 +275,7 @@ struct DefaultGemm<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignment
                    Operator, SharedMemoryClear, GatherA, GatherB, ScatterD, 
                    PermuteDLayout, PermuteALayout, PermuteBLayout> {
   /// Define the threadblock-scoped matrix multiply-accumulate
-  using Mma = typename nihilus_gemm::gemm::threadblock::DefaultMma<
+  using Mma = typename cutlass::gemm::threadblock::DefaultMma<
       ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignmentB,
       ElementAccumulator, layout::RowMajor, arch::OpClassTensorOp, arch::Sm89,
       ThreadblockShape, WarpShape, InstructionShape, Stages,
@@ -286,7 +286,7 @@ struct DefaultGemm<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignment
 
   /// Define the epilogue
   using Epilogue =
-      typename nihilus_gemm::epilogue::threadblock::DefaultEpilogueTensorOp<
+      typename cutlass::epilogue::threadblock::DefaultEpilogueTensorOp<
           ThreadblockShape, typename Mma::Operator, kPartitionsK, EpilogueOutputOp,
           EpilogueOutputOp::kCount, ScatterD, PermuteDLayout>::Epilogue;
 
@@ -360,7 +360,7 @@ struct DefaultGemm<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignment
              "Epilogue in the kernel level must be row major");
 
   /// Define the threadblock-scoped matrix multiply-accumulate
-  using Mma = typename nihilus_gemm::gemm::threadblock::DefaultMma<
+  using Mma = typename cutlass::gemm::threadblock::DefaultMma<
       ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignmentB,
       ElementAccumulator, LayoutC, arch::OpClassTensorOp, arch::Sm80,
       ThreadblockShape, WarpShape, InstructionShape, Stages,
@@ -371,12 +371,12 @@ struct DefaultGemm<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignment
 
   /// Define the epilogue
   using RegularEpilogue =
-      typename nihilus_gemm::epilogue::threadblock::DefaultEpilogueTensorOp<
+      typename cutlass::epilogue::threadblock::DefaultEpilogueTensorOp<
           ThreadblockShape, typename Mma::Operator, kPartitionsK, EpilogueOutputOp,
           EpilogueOutputOp::kCount, ScatterD, PermuteDLayout>::Epilogue;
 
   using Affine2Epilogue =
-      typename nihilus_gemm::epilogue::threadblock::DefaultEpilogueTensorOpAffineRankN<
+      typename cutlass::epilogue::threadblock::DefaultEpilogueTensorOpAffineRankN<
           2, ThreadblockShape, typename Mma::Operator, kPartitionsK, EpilogueOutputOp,
           EpilogueOutputOp::kCount>::Epilogue;
 
@@ -462,7 +462,7 @@ struct DefaultGemm<
 > {
 
   /// Define the threadblock-scoped matrix multiply-accumulate
-  using Mma = typename nihilus_gemm::gemm::threadblock::DefaultMma<
+  using Mma = typename cutlass::gemm::threadblock::DefaultMma<
     ElementA,
     LayoutA,
     kAlignmentA,
@@ -489,7 +489,7 @@ struct DefaultGemm<
   static const int kPartitionsK = ThreadblockShape::kK / WarpShape::kK;
 
   /// Define the epilogue
-  using Epilogue = typename nihilus_gemm::epilogue::threadblock::DefaultEpilogueTensorOp<
+  using Epilogue = typename cutlass::epilogue::threadblock::DefaultEpilogueTensorOp<
     ThreadblockShape,
     typename Mma::Operator,
     kPartitionsK,
@@ -553,7 +553,7 @@ struct DefaultGemm<
   using ElementAccumulator = int32_t;
 
   /// Define the threadblock-scoped matrix multiply-accumulate
-  using Mma = typename nihilus_gemm::gemm::threadblock::DefaultMma<
+  using Mma = typename cutlass::gemm::threadblock::DefaultMma<
       ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignmentB,
       ElementAccumulator, LayoutC, arch::OpClassTensorOp, arch::Sm80,
       ThreadblockShape, WarpShape, InstructionShape, Stages, Operator,
@@ -562,7 +562,7 @@ struct DefaultGemm<
   static const int kPartitionsK = ThreadblockShape::kK / WarpShape::kK;
 
   /// Define the epilogue
-  using Epilogue = typename nihilus_gemm::epilogue::threadblock::
+  using Epilogue = typename cutlass::epilogue::threadblock::
       DefaultInterleavedEpilogueTensorOp<
           ThreadblockShape, typename Mma::Operator, kPartitionsK, EpilogueOutputOp,
           64 / sizeof_bits<ElementC>::value, InterleavedK>::Epilogue;
@@ -620,7 +620,7 @@ struct DefaultGemm<ElementA, layout::ColumnMajorInterleaved<InterleavedK>,
   using ElementAccumulator = int32_t;
 
   /// Define the threadblock-scoped matrix multiply-accumulate
-  using Mma = typename nihilus_gemm::gemm::threadblock::DefaultMma<
+  using Mma = typename cutlass::gemm::threadblock::DefaultMma<
       ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignmentB, ElementAccumulator, LayoutC,
       arch::OpClassTensorOp, arch::Sm75, ThreadblockShape, WarpShape,
       InstructionShape, 2, Operator, true>::ThreadblockMma;
@@ -628,7 +628,7 @@ struct DefaultGemm<ElementA, layout::ColumnMajorInterleaved<InterleavedK>,
   static const int kPartitionsK = ThreadblockShape::kK / WarpShape::kK;
 
   /// Define the epilogue
-  using Epilogue = typename nihilus_gemm::epilogue::threadblock::
+  using Epilogue = typename cutlass::epilogue::threadblock::
       DefaultInterleavedEpilogueTensorOp<
           ThreadblockShape, typename Mma::Operator, kPartitionsK, EpilogueOutputOp,
           64 / sizeof_bits<ElementC>::value, InterleavedK>::Epilogue;
@@ -709,7 +709,7 @@ struct DefaultGemm<
 > {
 
   /// Define the threadblock-scoped matrix multiply-accumulate
-  using Mma = typename nihilus_gemm::gemm::threadblock::DefaultMma<
+  using Mma = typename cutlass::gemm::threadblock::DefaultMma<
     ElementA,
     LayoutA,
     kAlignmentA,
@@ -736,7 +736,7 @@ struct DefaultGemm<
   static const int kPartitionsK = ThreadblockShape::kK / WarpShape::kK;
 
   /// Define the epilogue
-  using Epilogue = typename nihilus_gemm::epilogue::threadblock::DefaultEpilogueVoltaTensorOp<
+  using Epilogue = typename cutlass::epilogue::threadblock::DefaultEpilogueVoltaTensorOp<
     ThreadblockShape,
     typename Mma::Operator,
     kPartitionsK,
@@ -835,7 +835,7 @@ struct DefaultGemm<
              "Epilogue in the kernel level must be row major");
 
   /// Define the threadblock-scoped matrix multiply-accumulate
-  using Mma = typename nihilus_gemm::gemm::threadblock::DefaultMma<
+  using Mma = typename cutlass::gemm::threadblock::DefaultMma<
       ElementA,
       LayoutA,
       kAlignmentA,
@@ -862,7 +862,7 @@ struct DefaultGemm<
   static_assert(kEpilogueElementsPerAccess == 1, "simt epilogue must operate on scalars");
 
   /// Define the epilogue
-  using RegularEpilogue = typename nihilus_gemm::epilogue::threadblock::DefaultEpilogueSimt<
+  using RegularEpilogue = typename cutlass::epilogue::threadblock::DefaultEpilogueSimt<
       ThreadblockShape,
       typename Mma::Operator,
       EpilogueOutputOp,
@@ -871,7 +871,7 @@ struct DefaultGemm<
       PermuteDLayout
       >::Epilogue;
 
-  using Affine2Epilogue = typename nihilus_gemm::epilogue::threadblock::DefaultEpilogueSimtAffineRankN<
+  using Affine2Epilogue = typename cutlass::epilogue::threadblock::DefaultEpilogueSimtAffineRankN<
       2,
       ThreadblockShape,
       typename Mma::Operator,
@@ -970,7 +970,7 @@ struct DefaultGemm<ElementA,
              "Epilogue in the kernel level must be row major");
 
   /// Define the threadblock-scoped matrix multiply-accumulate
-  using Mma = typename nihilus_gemm::gemm::threadblock::DefaultMma<
+  using Mma = typename cutlass::gemm::threadblock::DefaultMma<
       ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignmentB,
       ElementAccumulator, LayoutC, arch::OpClassSimt, arch::Sm80,
       ThreadblockShape, WarpShape, GemmShape<1, 1, 1>, Stages,
@@ -981,7 +981,7 @@ struct DefaultGemm<ElementA,
   static_assert(kEpilogueElementsPerAccess == 1, "simt epilogue must operate on scalars");
 
   /// Define the epilogue
-  using RegularEpilogue = typename nihilus_gemm::epilogue::threadblock::DefaultEpilogueSimt<
+  using RegularEpilogue = typename cutlass::epilogue::threadblock::DefaultEpilogueSimt<
       ThreadblockShape,
       typename Mma::Operator,
       EpilogueOutputOp,
@@ -990,7 +990,7 @@ struct DefaultGemm<ElementA,
       PermuteDLayout
       >::Epilogue;
 
-  using Affine2Epilogue = typename nihilus_gemm::epilogue::threadblock::DefaultEpilogueSimtAffineRankN<
+  using Affine2Epilogue = typename cutlass::epilogue::threadblock::DefaultEpilogueSimtAffineRankN<
       2,
       ThreadblockShape,
       typename Mma::Operator,
@@ -1054,7 +1054,7 @@ struct DefaultGemm<int8_t, LayoutA, kAlignmentA, int8_t, LayoutB, kAlignmentB,
 
   using OperatorClass =  arch::OpClassSimt;
   /// Define the threadblock-scoped matrix multiply-accumulate
-  using Mma = typename nihilus_gemm::gemm::threadblock::DefaultMma<
+  using Mma = typename cutlass::gemm::threadblock::DefaultMma<
       ElementA,
       LayoutA,
       kAlignmentA,
@@ -1076,7 +1076,7 @@ struct DefaultGemm<int8_t, LayoutA, kAlignmentA, int8_t, LayoutB, kAlignmentB,
   static_assert(kEpilogueElementsPerAccess == 1, "simt epilogue must operate on scalars");
 
   /// Define the epilogue
-  using Epilogue = typename nihilus_gemm::epilogue::threadblock::DefaultEpilogueSimt<
+  using Epilogue = typename cutlass::epilogue::threadblock::DefaultEpilogueSimt<
       ThreadblockShape,
       typename Mma::Operator,
       EpilogueOutputOp,
@@ -1087,7 +1087,7 @@ struct DefaultGemm<int8_t, LayoutA, kAlignmentA, int8_t, LayoutB, kAlignmentB,
   using GemmKernel = kernel::Gemm<Mma, Epilogue, ThreadblockSwizzle, SplitKSerial>;
 };
 
-#if defined(CUTLASS_RT_TM_ARCH_WMMA_ENABLED)
+#if defined(CUTLASS_ARCH_WMMA_ENABLED)
 ////////////////////////////////////////////////////////////////////////////////
 /// Partial specialization for Wmma Gemm Kernel
 template <
@@ -1152,7 +1152,7 @@ struct DefaultGemm<
   layout::NoPermute
 > {
   /// Define the threadblock-scoped matrix multiply-accumulate
-  using Mma = typename nihilus_gemm::gemm::threadblock::DefaultMma<
+  using Mma = typename cutlass::gemm::threadblock::DefaultMma<
       ElementA, LayoutA, kAlignmentA,
       ElementB, LayoutB, kAlignmentB,
       ElementAccumulator, LayoutC, 
@@ -1167,7 +1167,7 @@ struct DefaultGemm<
   static const int kPartitionsK = ThreadblockShape::kK / WarpShape::kK;
 
   /// Define the epilogue 
-  using Epilogue = typename nihilus_gemm::epilogue::threadblock::DefaultEpilogueWmmaTensorOp<
+  using Epilogue = typename cutlass::epilogue::threadblock::DefaultEpilogueWmmaTensorOp<
       ThreadblockShape,
       typename Mma::Operator, 
       kPartitionsK, 
@@ -1180,10 +1180,10 @@ struct DefaultGemm<
 };
 ////////////////////////////////////////////////////////////////////////////////
 
-#endif //CUTLASS_RT_TM_ARCH_WMMA_ENABLED
+#endif //CUTLASS_ARCH_WMMA_ENABLED
 
 ////////////////////////////////////////////////////////////////////////////////
 
 }  // namespace kernel
 }  // namespace gemm
-}  // namespace nihilus_gemm
+}  // namespace cutlass

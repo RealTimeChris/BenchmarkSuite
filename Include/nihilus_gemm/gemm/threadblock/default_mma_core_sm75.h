@@ -37,23 +37,23 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/array.h"
-#include "nihilus_gemm/platform/platform.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/array.h"
+#include "cutlass/platform/platform.h"
 
-#include "nihilus_gemm/numeric_types.h"
-#include "nihilus_gemm/matrix_shape.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/matrix_shape.h"
 
-#include "nihilus_gemm/layout/tensor_op_multiplicand_sm75.h"
-#include "nihilus_gemm/transform/pitch_linear_thread_map.h"
-#include "nihilus_gemm/transform/threadblock/regular_tile_iterator_tensor_op.h"
+#include "cutlass/layout/tensor_op_multiplicand_sm75.h"
+#include "cutlass/transform/pitch_linear_thread_map.h"
+#include "cutlass/transform/threadblock/regular_tile_iterator_tensor_op.h"
 
-#include "nihilus_gemm/gemm/warp/default_mma_tensor_op.h"
-#include "nihilus_gemm/gemm/threadblock/default_mma_core.h"
+#include "cutlass/gemm/warp/default_mma_tensor_op.h"
+#include "cutlass/gemm/threadblock/default_mma_core.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace threadblock {
 
@@ -198,7 +198,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, ElementA, SmemLayoutA, ElementB, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK>::Type;
 
@@ -344,7 +344,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, ElementA, SmemLayoutA, ElementB, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK>::Type;
 
@@ -495,7 +495,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, ElementA, SmemLayoutA, ElementB, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK>::Type;
 
@@ -630,7 +630,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, ElementA, SmemLayoutA, ElementB, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK>::Type;
 
@@ -757,7 +757,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, float,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, half_t, SmemLayoutA, half_t, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK>::Type;
 
@@ -896,7 +896,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, float,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, half_t, SmemLayoutA, half_t, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK>::Type;
 
@@ -1029,7 +1029,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, float,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, half_t, SmemLayoutA, half_t, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK>::Type;
 
@@ -1148,7 +1148,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, float,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, half_t, SmemLayoutA, half_t, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK>::Type;
 
@@ -1299,7 +1299,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, ElementA, SmemLayoutA, ElementB, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK, AccumulatorsInRowMajor>::Type;
 
@@ -1312,4 +1312,4 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
 
 } // namespace threadblock
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass

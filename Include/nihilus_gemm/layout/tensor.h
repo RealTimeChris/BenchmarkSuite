@@ -36,18 +36,18 @@
     data to describe strides between elements.
 
     Layout functions must implement all members in the public interface of IdentityTensorLayout<>
-    defined in nihilus_gemm/tensor_ref.h.
+    defined in cutlass/tensor_ref.h.
 */
 #pragma once
-#include "nihilus_gemm/cutlass.h"
+#include "cutlass/cutlass.h"
 #include CUDA_STD_HEADER(cassert)
-#include "nihilus_gemm/fast_math.h"
-#include "nihilus_gemm/layout/pitch_linear.h"
-#include "nihilus_gemm/layout/matrix.h"
-#include "nihilus_gemm/coord.h"
-#include "nihilus_gemm/tensor_coord.h"
+#include "cutlass/fast_math.h"
+#include "cutlass/layout/pitch_linear.h"
+#include "cutlass/layout/matrix.h"
+#include "cutlass/coord.h"
+#include "cutlass/tensor_coord.h"
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace layout {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -104,11 +104,11 @@ public:
   //
 
   /// Constructor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TensorNHWC(Stride const &stride = Stride(0)): stride_(stride) { }
 
   /// Constructor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TensorNHWC(
     typename Stride::Index stride_w,    ///< number of elements between adjacent W coordinates
     typename Stride::Index stride_h,    ///< number of elements between adjacent H coordinates
@@ -118,7 +118,7 @@ public:
 
   /// Constructor
   // Once convolutions implement 64b stride this ctor can be deleted
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TensorNHWC(Coord<kStrideRank, LongIndex> const &stride): 
     stride_(make_Coord(
       static_cast<typename Stride::Index>(stride[0]), 
@@ -127,7 +127,7 @@ public:
     ) { }
 
   /// Helper returns a layout to a tightly packed NHWC tensor.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static TensorNHWC packed(TensorCoord const &extent) {
     return TensorNHWC(
       make_Coord(
@@ -139,7 +139,7 @@ public:
   }
   
   /// Returns the offset of a coordinate (n, h, w, c) in linear memory. 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex operator()(TensorCoord const &coord) const {
     return coord.c() + 
       LongIndex(stride_[0] * coord.w()) + 
@@ -148,13 +148,13 @@ public:
   }
   
   /// Returns the offset of a pitchlinear coordinate in linear memory. 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex operator()(PitchLinearCoord coord) const {
     return coord.contiguous() + LongIndex(coord.strided() * stride_[2]);
   }
 
   /// Returns the logical coordinate (n, h, w, c) from a given offset in linear memory.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TensorCoord inverse(LongIndex index) const {
 
     int n = 0, h = 0, w = 0, c = 0;
@@ -188,19 +188,19 @@ public:
   }
 
   /// Returns the stride of the layout
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride stride() const {
     return stride_;
   }
 
   /// Returns the stride of the layout
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride & stride() {
     return stride_;
   }
 
   /// Compute the number of contiguous elements needed to store a tensor with the given size
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex capacity(TensorCoord const &extent) const {
     // it does not make sense if the extent is larger than stride
     // and we could not rely on the capacity calculation in such cases
@@ -251,11 +251,11 @@ public:
   //
 
   /// Constructor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TensorNCHW(Stride const &stride = Stride(0)): stride_(stride) { }
 
   /// Helper returns a layout to a tightly packed tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static TensorNCHW packed(TensorCoord const &extent) {
     return TensorNCHW(
       make_Coord(
@@ -267,7 +267,7 @@ public:
   }
 
   /// Returns the offset of a coordinate in linear memory. 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex operator()(TensorCoord const &coord) const {
     return coord.w() + 
       LongIndex(stride_[0] * coord.h()) + 
@@ -276,19 +276,19 @@ public:
   }
 
   /// Returns the stride of the layout
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride stride() const {
     return stride_;
   }
 
   /// Returns the stride of the layout
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride & stride() {
     return stride_;
   }
 
   /// Compute the number of contiguous elements needed to store a tensor with the given size
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex capacity(TensorCoord const &extent) const {
     return extent.n() * stride_[2];
   }
@@ -336,11 +336,11 @@ public:
   //
 
   /// Constructor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TensorNCxHWx(Stride const &stride = Stride(0)): stride_(stride) { }
 
   /// Constructor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TensorNCxHWx(
     typename Stride::Index stride_w,    ///< number of elements between adjacent W coordinates
     typename Stride::Index stride_h,    ///< number of elements between adjacent H coordinates
@@ -350,7 +350,7 @@ public:
 
   /// Constructor
   // Once convolutions implement 64b stride this ctor can be deleted
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TensorNCxHWx(Coord<kStrideRank, LongIndex> const &stride): 
     stride_(make_Coord(
       static_cast<typename Stride::Index>(stride[0]), 
@@ -359,7 +359,7 @@ public:
     ) { }
 
   /// Helper returns a layout to a tightly packed tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static TensorNCxHWx packed(TensorCoord const &extent) {
     return TensorNCxHWx(
       make_Coord(
@@ -371,7 +371,7 @@ public:
   }
 
   /// Returns the offset of a coordinate in linear memory. 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex operator()(TensorCoord const &coord) const {
 
     Index c_minor = (coord.c() % kInterleave);
@@ -385,19 +385,19 @@ public:
   }
 
   /// Returns the stride of the layout
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride stride() const {
     return stride_;
   }
 
   /// Returns the stride of the layout
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride & stride() {
     return stride_;
   }
 
   /// Compute the number of contiguous elements needed to store a tensor with the given size
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex capacity(TensorCoord const &extent) const {
     return extent.n() * stride_[2];
   }
@@ -445,11 +445,11 @@ public:
   //
 
   /// Constructor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TensorCxRSKx(Stride const &stride = Stride(0)): stride_(stride) { }
 
   /// Constructor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TensorCxRSKx(
     typename Stride::Index stride_w,    ///< number of elements between adjacent W coordinates
     typename Stride::Index stride_h,    ///< number of elements between adjacent H coordinates
@@ -459,7 +459,7 @@ public:
 
   /// Constructor
   // Once convolutions implement 64b stride this ctor can be deleted
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TensorCxRSKx(Coord<kStrideRank, LongIndex> const &stride): 
     stride_(make_Coord(
       static_cast<typename Stride::Index>(stride[0]), 
@@ -469,7 +469,7 @@ public:
 
 
   /// Helper returns a layout to a tightly packed tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static TensorCxRSKx packed(TensorCoord const &extent) {
     return TensorCxRSKx(
       make_Coord(
@@ -481,7 +481,7 @@ public:
   }
 
   /// Returns the offset of a coordinate in linear memory. 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex operator()(TensorCoord const &coord) const {
 
     Index c_minor = (coord.c() % kInterleave);
@@ -495,7 +495,7 @@ public:
   }
 
   /// Returns the offset of a pitchlinear coordinate in linear memory. 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex operator()(PitchLinearCoord const &coord) const {
     return (coord.contiguous() % kInterleave) +
       LongIndex((coord.contiguous() / kInterleave) * stride_[2]) +
@@ -503,19 +503,19 @@ public:
   }
 
   /// Returns the stride of the layout
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride stride() const {
     return stride_;
   }
 
   /// Returns the stride of the layout
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride & stride() {
     return stride_;
   }
 
   /// Compute the number of contiguous elements needed to store a tensor with the given size
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex capacity(TensorCoord const &extent) const {
     return (extent.c() / kInterleave * stride_[2]);
   }
@@ -558,11 +558,11 @@ public:
   //
 
   /// Constructor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TensorNDHWC(Stride const &stride = Stride(0)): stride_(stride) { }
 
   /// Constructor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TensorNDHWC(
     typename Stride::Index c, 
     typename Stride::Index wc, 
@@ -572,7 +572,7 @@ public:
 
   /// Constructor
   // Once convolutions implement 64b stride this ctor can be deleted
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TensorNDHWC(Coord<kStrideRank, LongIndex> const &stride): 
     stride_(make_Coord(
       static_cast<typename Stride::Index>(stride[0]), 
@@ -582,7 +582,7 @@ public:
     ) { }
 
   /// Helper returns a layout to a tightly packed NHWC tensor.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static TensorNDHWC packed(TensorCoord const &extent) {
     return TensorNDHWC(
       make_Coord(
@@ -595,7 +595,7 @@ public:
   }
   
   /// Returns the offset of a coordinate (n, d, h, w, c) in linear memory. 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex operator()(TensorCoord const &coord) const {
     return coord.c() + 
       LongIndex(stride_[0] * coord.w()) + 
@@ -605,25 +605,25 @@ public:
   }
 
   /// Returns the offset of a pitchlinear coordinate in linear memory. 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex operator()(PitchLinearCoord coord) const {
     return coord.contiguous() + LongIndex(coord.strided() * stride_[3]);
   }
   
   /// Returns the stride of the layout
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride stride() const {
     return stride_;
   }
 
   /// Returns the stride of the layout
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride & stride() {
     return stride_;
   }
 
   /// Compute the number of contiguous elements needed to store a tensor with the given size
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex capacity(TensorCoord const &extent) const {
     // it does not make sense if the extent is larger than stride
     // and we could not rely on the capacity calculation in such cases
@@ -641,4 +641,4 @@ public:
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace layout
-} // namespace nihilus_gemm
+} // namespace cutlass

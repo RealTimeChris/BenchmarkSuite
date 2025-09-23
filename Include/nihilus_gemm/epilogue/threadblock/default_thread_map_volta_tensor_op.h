@@ -35,12 +35,12 @@
 
 #pragma once
 
-#include "nihilus_gemm/epilogue/threadblock/predicated_tile_iterator.h"
-#include "nihilus_gemm/gemm/gemm.h"
+#include "cutlass/epilogue/threadblock/predicated_tile_iterator.h"
+#include "cutlass/gemm/gemm.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace threadblock {
 
@@ -106,7 +106,7 @@ struct DefaultThreadMapVoltaTensorOp<
     /// Number of participating threads
     static int const kThreads = WarpCount::kCount * kWarpSize;
 
-    using Shape = nihilus_gemm::epilogue::threadblock::OutputTileShape<
+    using Shape = cutlass::epilogue::threadblock::OutputTileShape<
       ThreadblockShape::kN,   // column
       4,                      // row
       4,                      // group
@@ -115,7 +115,7 @@ struct DefaultThreadMapVoltaTensorOp<
     >;
     
     /// Number of iterations per subspace
-    using Count = nihilus_gemm::epilogue::threadblock::OutputTileShape<
+    using Count = cutlass::epilogue::threadblock::OutputTileShape<
       1,                                // column
       2,                                // row
       kInterleavedTilesM,               // group
@@ -187,7 +187,7 @@ struct DefaultThreadMapVoltaTensorOp<
     /// Number of participating threads
     static int const kThreads = WarpCount::kCount * kWarpSize;
 
-    using Shape = nihilus_gemm::epilogue::threadblock::OutputTileShape<
+    using Shape = cutlass::epilogue::threadblock::OutputTileShape<
       ThreadblockShape::kN,   // column
       4,                      // row
       4,                      // group
@@ -196,7 +196,7 @@ struct DefaultThreadMapVoltaTensorOp<
     >;
     
     /// Number of iterations per subspace
-    using Count = nihilus_gemm::epilogue::threadblock::OutputTileShape<
+    using Count = cutlass::epilogue::threadblock::OutputTileShape<
       1,                                // column
       2,                                // row
       kInterleavedTilesM,               // group
@@ -223,6 +223,6 @@ struct DefaultThreadMapVoltaTensorOp<
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

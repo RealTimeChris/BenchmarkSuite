@@ -34,11 +34,11 @@
 
 #pragma once
 
-#include "nihilus_gemm/layout/matrix.h"
+#include "cutlass/layout/matrix.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace arch {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -60,7 +60,7 @@ struct Mma<
   using Operator = OpMultiplyAdd;
   using ElementC = int;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(
     Array<int, 1> &d,
     Array<int8_t, 4> const &a,
@@ -81,7 +81,7 @@ struct Mma<
 
     d[0] = c[0];
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int k = 0; k < 4; ++k) {
       d[0] += a[k] * b[k];
     }
@@ -109,7 +109,7 @@ struct Mma<
   using Operator = OpMultiplyAdd;
   using ElementC = int;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(
     Array<int, 1> &d,
     Array<int16_t, 2> const &a,
@@ -128,7 +128,7 @@ struct Mma<
 #else
     d[0] = c[0];
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int k = 0; k < 2; ++k) {
       d[0] += a[k] * b[k];
     }

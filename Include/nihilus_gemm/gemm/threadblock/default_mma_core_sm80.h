@@ -43,32 +43,32 @@
 
 #pragma once
 
-#include "nihilus_gemm/array.h"
-#include "nihilus_gemm/cutlass.h"
+#include "cutlass/array.h"
+#include "cutlass/cutlass.h"
 
-#include "nihilus_gemm/layout/tensor_op_multiplicand_sm75.h"
-#include "nihilus_gemm/layout/tensor_op_multiplicand_sm80.h"
+#include "cutlass/layout/tensor_op_multiplicand_sm75.h"
+#include "cutlass/layout/tensor_op_multiplicand_sm80.h"
 
-#include "nihilus_gemm/gemm/warp/mma_simt_policy.h"
-#include "nihilus_gemm/gemm/warp/mma_simt.h"
-#include "nihilus_gemm/gemm/warp/default_mma_tensor_op.h"
-#include "nihilus_gemm/gemm/warp/mma_tensor_op_tile_iterator_sm80.h"
+#include "cutlass/gemm/warp/mma_simt_policy.h"
+#include "cutlass/gemm/warp/mma_simt.h"
+#include "cutlass/gemm/warp/default_mma_tensor_op.h"
+#include "cutlass/gemm/warp/mma_tensor_op_tile_iterator_sm80.h"
 
-#include "nihilus_gemm/gemm/threadblock/default_mma_core.h"
-#include "nihilus_gemm/gemm/threadblock/default_multistage_mma_complex_core.h"
-#include "nihilus_gemm/gemm/threadblock/default_multistage_mma_complex_core_sm80.h"
+#include "cutlass/gemm/threadblock/default_mma_core.h"
+#include "cutlass/gemm/threadblock/default_multistage_mma_complex_core.h"
+#include "cutlass/gemm/threadblock/default_multistage_mma_complex_core_sm80.h"
 
-#include "nihilus_gemm/matrix_shape.h"
-#include "nihilus_gemm/numeric_types.h"
-#include "nihilus_gemm/transform/pitch_linear_thread_map.h"
-#include "nihilus_gemm/transform/threadblock/regular_tile_access_iterator_tensor_op.h"
-#include "nihilus_gemm/transform/threadblock/regular_tile_access_iterator_tensor_op_sm80.h"
-#include "nihilus_gemm/transform/threadblock/regular_tile_access_iterator_pitch_linear.h"
-#include "nihilus_gemm/gemm/threadblock/mma_multistage.h"
+#include "cutlass/matrix_shape.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/transform/pitch_linear_thread_map.h"
+#include "cutlass/transform/threadblock/regular_tile_access_iterator_tensor_op.h"
+#include "cutlass/transform/threadblock/regular_tile_access_iterator_tensor_op_sm80.h"
+#include "cutlass/transform/threadblock/regular_tile_access_iterator_pitch_linear.h"
+#include "cutlass/gemm/threadblock/mma_multistage.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace threadblock {
 
@@ -96,9 +96,9 @@ template <
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
                       layout::ColumnMajor, double, layout::ColumnMajor, double,
                       LayoutC_, arch::OpClassTensorOp, Stages, Operator_,
@@ -113,8 +113,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
   using ElementC = double;
   using LayoutC = LayoutC_;
   static int const kStages = Stages;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Number of warps present
   using WarpCount = GemmShape<Shape::kM / WarpShape::kM,
@@ -184,7 +184,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, ElementA, SmemLayoutA, ElementB, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK>::Type;
 
@@ -215,9 +215,9 @@ template <
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
                       layout::ColumnMajor, double, layout::RowMajor, double,
                       LayoutC_, arch::OpClassTensorOp, Stages, Operator_,
@@ -232,8 +232,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
   using ElementC = double;
   using LayoutC = LayoutC_;
   static int const kStages = Stages;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Number of warps present
   using WarpCount = GemmShape<Shape::kM / WarpShape::kM,
@@ -300,7 +300,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, ElementA, SmemLayoutA, ElementB, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK>::Type;
 
@@ -333,9 +333,9 @@ template <
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
                       layout::RowMajor, double, layout::ColumnMajor, double,
                       LayoutC_, arch::OpClassTensorOp, Stages, Operator_,
@@ -350,8 +350,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
   using ElementC = double;
   using LayoutC = LayoutC_;
   static int const kStages = Stages;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Number of warps present
   using WarpCount = GemmShape<Shape::kM / WarpShape::kM,
@@ -414,7 +414,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, ElementA, SmemLayoutA, ElementB, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK>::Type;
 
@@ -447,9 +447,9 @@ template <
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
                       layout::RowMajor, double, layout::RowMajor, double,
                       LayoutC_, arch::OpClassTensorOp, Stages, Operator_,
@@ -464,8 +464,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
   using ElementC = double;
   using LayoutC = LayoutC_;
   static int const kStages = Stages;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Number of warps present
   using WarpCount = GemmShape<Shape::kM / WarpShape::kM,
@@ -532,7 +532,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, ElementA, SmemLayoutA, ElementB, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK>::Type;
 
@@ -565,9 +565,9 @@ template <
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
                       layout::AffineRank2ColumnMajor, double, layout::AffineRank2ColumnMajor, double,
                       LayoutC_, arch::OpClassTensorOp, Stages, Operator_,
@@ -582,8 +582,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
   using ElementC = double;
   using LayoutC = LayoutC_;
   static int const kStages = Stages;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Default Operator
   using Operator = Operator_;
@@ -657,9 +657,9 @@ template <
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
                       layout::AffineRank2ColumnMajor, double, layout::AffineRank2RowMajor, double,
                       LayoutC_, arch::OpClassTensorOp, Stages, Operator_,
@@ -674,8 +674,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
   using ElementC = double;
   using LayoutC = LayoutC_;
   static int const kStages = Stages;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Default Operator
   using Operator = Operator_;
@@ -751,9 +751,9 @@ template <
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
                       layout::AffineRank2RowMajor, double, layout::AffineRank2ColumnMajor, double,
                       LayoutC_, arch::OpClassTensorOp, Stages, Operator_,
@@ -768,8 +768,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
   using ElementC = double;
   using LayoutC = LayoutC_;
   static int const kStages = Stages;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Default Operator
   using Operator = Operator_;
@@ -845,9 +845,9 @@ template <
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
                       layout::AffineRank2RowMajor, double, layout::AffineRank2RowMajor, double,
                       LayoutC_, arch::OpClassTensorOp, Stages, Operator_,
@@ -862,8 +862,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
   using ElementC = double;
   using LayoutC = LayoutC_;
   static int const kStages = Stages;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Default Operator
   using Operator = Operator_;
@@ -942,9 +942,9 @@ template <
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB,
+    cutlass::arch::CacheOperation::Kind CacheOpB,
     /// per-element transformation for elements of A
     ComplexTransform TransformA_,
     /// per-element transformation for elements of B
@@ -973,8 +973,8 @@ struct DefaultMmaCore<
   using ElementC = complex<float>;
   using LayoutC = LayoutC_;
   static int const kStages = Stages;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
   static const ComplexTransform TransformA = TransformA_;
   static const ComplexTransform TransformB = TransformB_;
 
@@ -1092,9 +1092,9 @@ template <
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB,
+    cutlass::arch::CacheOperation::Kind CacheOpB,
     /// per-element transformation for elements of A
     ComplexTransform TransformA_,
     /// per-element transformation for elements of B
@@ -1123,8 +1123,8 @@ struct DefaultMmaCore<
   using ElementC = complex<double>;
   using LayoutC = LayoutC_;
   static int const kStages = Stages;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
   static const ComplexTransform TransformA = TransformA_;
   static const ComplexTransform TransformB = TransformB_;
 
@@ -1243,9 +1243,9 @@ template <
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
                       layout::ColumnMajor, ElementB_, layout::RowMajor,
                       ElementC_, LayoutC_, arch::OpClassTensorOp, Stages,
@@ -1260,8 +1260,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   static int const kStages = Stages;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = CacheOpA;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = CacheOpB;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = CacheOpA;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = CacheOpB;
 
   /// Number of warps present
   using WarpCount = GemmShape<Shape::kM / WarpShape::kM,
@@ -1345,7 +1345,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, ElementA, SmemLayoutA, ElementB, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK>::Type;
 
@@ -1384,9 +1384,9 @@ template <
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
                       layout::RowMajor, ElementB_, layout::ColumnMajor,
                       ElementC_, LayoutC_, arch::OpClassTensorOp, Stages,
@@ -1401,8 +1401,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   static int const kStages = Stages;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = CacheOpA;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = CacheOpB;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = CacheOpA;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = CacheOpB;
 
   /// Number of warps present
   using WarpCount = GemmShape<Shape::kM / WarpShape::kM,
@@ -1483,7 +1483,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, ElementA, SmemLayoutA, ElementB, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK>::Type;
 
@@ -1522,9 +1522,9 @@ template <
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
                       layout::ColumnMajor, ElementB_, layout::ColumnMajor,
                       ElementC_, LayoutC_, arch::OpClassTensorOp, Stages,
@@ -1541,8 +1541,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   static int const kStages = Stages;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = CacheOpA;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = CacheOpB;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = CacheOpA;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = CacheOpB;
 
   /// Number of warps present
   using WarpCount = GemmShape<Shape::kM / WarpShape::kM,
@@ -1624,7 +1624,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, ElementA, SmemLayoutA, ElementB, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK>::Type;
 
@@ -1663,9 +1663,9 @@ template <
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
                       layout::RowMajor, ElementB_, layout::RowMajor, ElementC_,
                       LayoutC_, arch::OpClassTensorOp, Stages, Operator_,
@@ -1680,8 +1680,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   static int const kStages = Stages;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = CacheOpA;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = CacheOpB;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = CacheOpA;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = CacheOpB;
 
   /// Number of warps present
   using WarpCount = GemmShape<Shape::kM / WarpShape::kM,
@@ -1764,7 +1764,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, ElementA, SmemLayoutA, ElementB, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK>::Type;
 
@@ -1813,9 +1813,9 @@ template <
     /// when output layout is interleaved.
     bool AccumulatorsInRowMajor,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB,
+    cutlass::arch::CacheOperation::Kind CacheOpB,
     /// Number of interleaved K
     int InterleavedK>
 struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
@@ -1833,8 +1833,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   static int const kStages = Stages;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = CacheOpA;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = CacheOpB;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = CacheOpA;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = CacheOpB;
   static int const kInterleavedK = InterleavedK;
 
   /// Number of warps present
@@ -1923,7 +1923,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, ElementA, SmemLayoutA, ElementB, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK, AccumulatorsInRowMajor>::Type;
 
@@ -1960,9 +1960,9 @@ template <
     /// Operation performed by Simt
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
                       layout::ColumnMajor, ElementB_, layout::ColumnMajor,
                       ElementC_, LayoutC_, arch::OpClassSimt, Stages, Operator_,
@@ -1977,8 +1977,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   static int const kStages = Stages;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Number of warps present
   using WarpCount = GemmShape<Shape::kM / WarpShape::kM,
@@ -2057,24 +2057,24 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   static const int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
   static const int numElementsA = 128 / sizeof_bits<ElementA>::value;
   static const int numElementsB = 128 / sizeof_bits<ElementB>::value;
-  static const int LaneM = nihilus_gemm::const_min(numElementsA, ThreadTileM);
-  static const int LaneN = nihilus_gemm::const_min(numElementsB, ThreadTileN);
+  static const int LaneM = cutlass::const_min(numElementsA, ThreadTileM);
+  static const int LaneN = cutlass::const_min(numElementsB, ThreadTileN);
 
   static_assert(!((Shape::kK / 32) % LaneN),
                 "Padding must be divisible by Lane");
 
   // these should have max of thread tile also
-  using LaneMmaShape = nihilus_gemm::gemm::GemmShape<
+  using LaneMmaShape = cutlass::gemm::GemmShape<
       LaneM,
       LaneN,
       1>;
-  using Policy = nihilus_gemm::gemm::warp::MmaSimtPolicy<
-      nihilus_gemm::MatrixShape<WarpNumThreadsM, WarpNumThreadsN>,   // WarpShape
-      nihilus_gemm::layout::RowMajorInterleaved<LaneLayout>,         // LaneLayout
+  using Policy = cutlass::gemm::warp::MmaSimtPolicy<
+      cutlass::MatrixShape<WarpNumThreadsM, WarpNumThreadsN>,   // WarpShape
+      cutlass::layout::RowMajorInterleaved<LaneLayout>,         // LaneLayout
       LaneMmaShape
   >;
 
-  using MmaWarpSimt = nihilus_gemm::gemm::warp::MmaSimt<
+  using MmaWarpSimt = cutlass::gemm::warp::MmaSimt<
     WarpShape, /// Size of the Gemm problem - concept: gemm::GemmShape<> 128, 128, 8
     ElementA,  /// Data type of A elements
     SmemLayoutA,   /// Layout of A matrix (concept: MatrixLayout)
@@ -2118,9 +2118,9 @@ template <
     /// Operation performed by Simt
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
                       layout::ColumnMajor, ElementB_, layout::RowMajor,
                       ElementC_, LayoutC_, arch::OpClassSimt, Stages, Operator_,
@@ -2135,8 +2135,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   static int const kStages = Stages;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Number of warps present
   using WarpCount = GemmShape<Shape::kM / WarpShape::kM,
@@ -2212,20 +2212,20 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   static const int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
   static const int numElementsA = 128 / sizeof_bits<ElementA>::value;
   static const int numElementsB = 128 / sizeof_bits<ElementB>::value;
-  static const int LaneM = nihilus_gemm::const_min(numElementsA, ThreadTileM);
-  static const int LaneN = nihilus_gemm::const_min(numElementsB, ThreadTileN);
+  static const int LaneM = cutlass::const_min(numElementsA, ThreadTileM);
+  static const int LaneN = cutlass::const_min(numElementsB, ThreadTileN);
   // these should have max of thread tile also
-  using LaneMmaShape = nihilus_gemm::gemm::GemmShape<
+  using LaneMmaShape = cutlass::gemm::GemmShape<
       LaneM,
       LaneN,
       1>;
-  using Policy = nihilus_gemm::gemm::warp::MmaSimtPolicy<
-      nihilus_gemm::MatrixShape<WarpNumThreadsM, WarpNumThreadsN>,   // WarpShape
-      nihilus_gemm::layout::RowMajorInterleaved<LaneLayout>,         // LaneLayout
+  using Policy = cutlass::gemm::warp::MmaSimtPolicy<
+      cutlass::MatrixShape<WarpNumThreadsM, WarpNumThreadsN>,   // WarpShape
+      cutlass::layout::RowMajorInterleaved<LaneLayout>,         // LaneLayout
       LaneMmaShape
   >;
 
-  using MmaWarpSimt = nihilus_gemm::gemm::warp::MmaSimt<
+  using MmaWarpSimt = cutlass::gemm::warp::MmaSimt<
     WarpShape, /// Size of the Gemm problem - concept: gemm::GemmShape<> 128, 128, 8
     ElementA,  /// Data type of A elements
     SmemLayoutA,   /// Layout of A matrix (concept: MatrixLayout)
@@ -2269,9 +2269,9 @@ template <
     /// Operation performed by Simt
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
                       layout::RowMajor, ElementB_, layout::ColumnMajor,
                       ElementC_, LayoutC_, arch::OpClassSimt, Stages, Operator_,
@@ -2286,8 +2286,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   static int const kStages = Stages;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Number of warps present
   using WarpCount = GemmShape<Shape::kM / WarpShape::kM,
@@ -2369,24 +2369,24 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   static const int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
   static const int numElementsA = 128 / sizeof_bits<ElementA>::value;
   static const int numElementsB = 128 / sizeof_bits<ElementB>::value;
-  static const int LaneM = nihilus_gemm::const_min(numElementsA, ThreadTileM);
-  static const int LaneN = nihilus_gemm::const_min(numElementsB, ThreadTileN);
+  static const int LaneM = cutlass::const_min(numElementsA, ThreadTileM);
+  static const int LaneN = cutlass::const_min(numElementsB, ThreadTileN);
 
   static_assert(!((Shape::kK / 32) % LaneM) && !((Shape::kK / 32) % LaneN),
                 "Padding must be divisible by Lane");
 
   // these should have max of thread tile also
-  using LaneMmaShape = nihilus_gemm::gemm::GemmShape<
+  using LaneMmaShape = cutlass::gemm::GemmShape<
       LaneM,
       LaneN,
       1>;
-  using Policy = nihilus_gemm::gemm::warp::MmaSimtPolicy<
-      nihilus_gemm::MatrixShape<WarpNumThreadsM, WarpNumThreadsN>,   // WarpShape
-      nihilus_gemm::layout::RowMajorInterleaved<LaneLayout>,         // LaneLayout
+  using Policy = cutlass::gemm::warp::MmaSimtPolicy<
+      cutlass::MatrixShape<WarpNumThreadsM, WarpNumThreadsN>,   // WarpShape
+      cutlass::layout::RowMajorInterleaved<LaneLayout>,         // LaneLayout
       LaneMmaShape
   >;
 
-  using MmaWarpSimt = nihilus_gemm::gemm::warp::MmaSimt<
+  using MmaWarpSimt = cutlass::gemm::warp::MmaSimt<
     WarpShape, /// Size of the Gemm problem - concept: gemm::GemmShape<> 128, 128, 8
     ElementA,  /// Data type of A elements
     SmemLayoutA,   /// Layout of A matrix (concept: MatrixLayout)
@@ -2430,9 +2430,9 @@ template <
     /// Operation performed by Simt
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
                       layout::RowMajor, ElementB_, layout::RowMajor, ElementC_,
                       LayoutC_, arch::OpClassSimt, Stages, Operator_,
@@ -2447,8 +2447,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   static int const kStages = Stages;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Number of warps present
   using WarpCount = GemmShape<Shape::kM / WarpShape::kM,
@@ -2526,24 +2526,24 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   static const int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
   static const int numElementsA = 128 / sizeof_bits<ElementA>::value;
   static const int numElementsB = 128 / sizeof_bits<ElementB>::value;
-  static const int LaneM = nihilus_gemm::const_min(numElementsA, ThreadTileM);
-  static const int LaneN = nihilus_gemm::const_min(numElementsB, ThreadTileN);
+  static const int LaneM = cutlass::const_min(numElementsA, ThreadTileM);
+  static const int LaneN = cutlass::const_min(numElementsB, ThreadTileN);
 
   static_assert(!((Shape::kK / 32) % LaneM),
                 "Padding must be divisible by Lane");
 
   // these should have max of thread tile also
-  using LaneMmaShape = nihilus_gemm::gemm::GemmShape<
+  using LaneMmaShape = cutlass::gemm::GemmShape<
       LaneM,
       LaneN,
       1>;
-  using Policy = nihilus_gemm::gemm::warp::MmaSimtPolicy<
-      nihilus_gemm::MatrixShape<WarpNumThreadsM, WarpNumThreadsN>,   // WarpShape
-      nihilus_gemm::layout::RowMajorInterleaved<LaneLayout>,         // LaneLayout
+  using Policy = cutlass::gemm::warp::MmaSimtPolicy<
+      cutlass::MatrixShape<WarpNumThreadsM, WarpNumThreadsN>,   // WarpShape
+      cutlass::layout::RowMajorInterleaved<LaneLayout>,         // LaneLayout
       LaneMmaShape
   >;
 
-  using MmaWarpSimt = nihilus_gemm::gemm::warp::MmaSimt<
+  using MmaWarpSimt = cutlass::gemm::warp::MmaSimt<
     WarpShape, /// Size of the Gemm problem - concept: gemm::GemmShape<> 128, 128, 8
     ElementA,  /// Data type of A elements
     SmemLayoutA,   /// Layout of A matrix (concept: MatrixLayout)
@@ -2587,9 +2587,9 @@ template <
     /// Operation performed by Simt
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
                       layout::AffineRank2ColumnMajor, ElementB_, layout::AffineRank2RowMajor,
                       ElementC_, LayoutC_, arch::OpClassSimt, Stages, Operator_,
@@ -2604,8 +2604,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   static int const kStages = Stages;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Default Operator
   using Operator = Operator_;
@@ -2682,9 +2682,9 @@ template <
     /// Operation performed by Simt
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
                       layout::AffineRank2RowMajor, ElementB_, layout::AffineRank2ColumnMajor,
                       ElementC_, LayoutC_, arch::OpClassSimt, Stages, Operator_,
@@ -2699,8 +2699,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   static int const kStages = Stages;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Default Operator
   using Operator = Operator_;
@@ -2777,9 +2777,9 @@ template <
     /// Operation performed by Simt
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
                       layout::AffineRank2ColumnMajor, ElementB_, layout::AffineRank2ColumnMajor,
                       ElementC_, LayoutC_, arch::OpClassSimt, Stages, Operator_,
@@ -2794,8 +2794,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   static int const kStages = Stages;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Default Operator
   using Operator = Operator_;
@@ -2873,9 +2873,9 @@ template <
     /// Operation performed by Simt
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
                       layout::AffineRank2RowMajor, ElementB_, layout::AffineRank2RowMajor, ElementC_,
                       LayoutC_, arch::OpClassSimt, Stages, Operator_,
@@ -2890,8 +2890,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   static int const kStages = Stages;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Default Operator
   using Operator = Operator_;
@@ -2948,4 +2948,4 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
 
 }  // namespace threadblock
 }  // namespace gemm
-}  // namespace nihilus_gemm
+}  // namespace cutlass

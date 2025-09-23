@@ -35,12 +35,12 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/complex.h"
-#include "nihilus_gemm/arch/memory.h"
-#include "nihilus_gemm/arch/memory_sm75.h"
-#include "nihilus_gemm/arch/cache_operation.h"
-#include "nihilus_gemm/arch/synclog.hpp"
+#include "cutlass/cutlass.h"
+#include "cutlass/complex.h"
+#include "cutlass/arch/memory.h"
+#include "cutlass/arch/memory_sm75.h"
+#include "cutlass/arch/cache_operation.h"
+#include "cutlass/arch/synclog.hpp"
 
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
   #define CUDA_CP_ASYNC_ACTIVATED 1
@@ -48,7 +48,7 @@
   #define CUDA_CP_ASYNC_ACTIVATED 0
 #endif
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace arch {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -112,7 +112,7 @@ template <
 struct cp_async<SizeInBytes, CacheOperation::Always> {
 
   /// Copy
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   cp_async(void *smem_ptr, void const *global_ptr, bool pred_guard = true) {
     #if CUDA_CP_ASYNC_ACTIVATED
 
@@ -120,13 +120,13 @@ struct cp_async<SizeInBytes, CacheOperation::Always> {
       static_assert((SizeInBytes == 4 || SizeInBytes == 8 || SizeInBytes == 16),
                 "Size is not supported");
 
-      unsigned smem_int_ptr = nihilus_gemm_get_smem_pointer(smem_ptr);
+      unsigned smem_int_ptr = cutlass_get_smem_pointer(smem_ptr);
 
       asm volatile(
           "{\n"
           "  .reg .pred p;\n"
           "  setp.ne.b32 p, %0, 0;\n"
-#if CUTLASS_RT_TM_ENABLE_L2_PREFETCH
+#if CUTLASS_ENABLE_L2_PREFETCH
           "  @p cp.async.ca.shared.global.L2::128B [%1], [%2], %3;\n"
 #else
           "  @p cp.async.ca.shared.global [%1], [%2], %3;\n"
@@ -151,7 +151,7 @@ template <
 struct cp_async_zfill<SizeInBytes, CacheOperation::Always> {
 
   /// Copy with zero fill
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   cp_async_zfill(void *smem_ptr, void const *global_ptr, bool pred_guard) {
     #if CUDA_CP_ASYNC_ACTIVATED
 
@@ -159,11 +159,11 @@ struct cp_async_zfill<SizeInBytes, CacheOperation::Always> {
       static_assert((SizeInBytes == 4 || SizeInBytes == 8 || SizeInBytes == 16),
                 "Size is not supported");
 
-      unsigned smem_int_ptr = nihilus_gemm_get_smem_pointer(smem_ptr);
+      unsigned smem_int_ptr = cutlass_get_smem_pointer(smem_ptr);
       int src_in_bytes = (pred_guard ? SizeInBytes : 0);
 
       asm volatile(
-#if CUTLASS_RT_TM_ENABLE_L2_PREFETCH
+#if CUTLASS_ENABLE_L2_PREFETCH
         "cp.async.ca.shared.global.L2::128B [%0], [%1], %2, %3;\n" ::"r"(smem_int_ptr),
 #else
         "cp.async.ca.shared.global [%0], [%1], %2, %3;\n" ::"r"(smem_int_ptr),
@@ -191,20 +191,20 @@ struct cp_async_nan<16, CacheOperation::Always> {
   static int const kSizeInBytes = 16;
 
   /// Copy with nan fill
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   cp_async_nan(void *smem_ptr, void const *global_ptr, bool pred_guard) {
     #if CUDA_CP_ASYNC_ACTIVATED
 
       static __constant__ uint4 OOB_NAN_F16x8 = {OOB_NAN_F16x2, OOB_NAN_F16x2,
                                                  OOB_NAN_F16x2, OOB_NAN_F16x2};
 
-      unsigned smem_int_ptr = nihilus_gemm_get_smem_pointer(smem_ptr);
+      unsigned smem_int_ptr = cutlass_get_smem_pointer(smem_ptr);
 
       asm volatile(
           "{\n"
           "  .reg .pred p;\n"
           "  setp.ne.b32 p, %0, 0;\n"
-#if CUTLASS_RT_TM_ENABLE_L2_PREFETCH
+#if CUTLASS_ENABLE_L2_PREFETCH
           "  @p cp.async.ca.shared.global.L2::128B [%1], [%2], %3;\n"
 #else
           "  @p cp.async.ca.shared.global [%1], [%2], %3;\n"
@@ -218,10 +218,10 @@ struct cp_async_nan<16, CacheOperation::Always> {
 
     #else
 
-      CUTLASS_RT_TM_UNUSED(smem_ptr);
-      CUTLASS_RT_TM_UNUSED(global_ptr);
-      CUTLASS_RT_TM_UNUSED(pred_guard);
-      CUTLASS_RT_TM_NOT_IMPLEMENTED();
+      CUTLASS_UNUSED(smem_ptr);
+      CUTLASS_UNUSED(global_ptr);
+      CUTLASS_UNUSED(pred_guard);
+      CUTLASS_NOT_IMPLEMENTED();
 
     #endif
   }
@@ -232,7 +232,7 @@ template<typename Element_>
 struct cp_async_diag <Element_, false> {
   using Element = Element_;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   cp_async_diag(void *smem_ptr) {
     #if CUDA_CP_ASYNC_ACTIVATED
 
@@ -241,7 +241,7 @@ struct cp_async_diag <Element_, false> {
       static __constant__ uint1 DIAG_DATA_FLOAT_ONE = {0x3f800000};
       static __constant__ uint1 DIAG_DATA_ZERO = {0x00000000};
 
-      unsigned smem_int_ptr = nihilus_gemm_get_smem_pointer(smem_ptr);
+      unsigned smem_int_ptr = cutlass_get_smem_pointer(smem_ptr);
 
       if (platform::is_same<Element, complex<double>>::value) {
         asm volatile("st.shared.v4.u32 [%0], {%1, %2, %3, %4};\n"
@@ -261,14 +261,14 @@ struct cp_async_diag <Element_, false> {
                       : :
                       "r"(smem_int_ptr), "r"(DIAG_DATA_FLOAT_ONE.x));
       } else {
-        CUTLASS_RT_TM_UNUSED(smem_int_ptr);
-        CUTLASS_RT_TM_NOT_IMPLEMENTED();
+        CUTLASS_UNUSED(smem_int_ptr);
+        CUTLASS_NOT_IMPLEMENTED();
       }
       
     #else
 
-      CUTLASS_RT_TM_UNUSED(smem_ptr);
-      CUTLASS_RT_TM_NOT_IMPLEMENTED();
+      CUTLASS_UNUSED(smem_ptr);
+      CUTLASS_NOT_IMPLEMENTED();
 
     #endif
   }
@@ -279,14 +279,14 @@ template<typename Element_>
 struct cp_async_diag <Element_, true> {
   using Element = Element_;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   cp_async_diag(void *smem_ptr) {
     #if CUDA_CP_ASYNC_ACTIVATED
 
       /// Values for the diagonal elements of the triangular input matrix
       static __constant__ uint1 DIAG_DATA_ZERO = {0x00000000};
 
-      unsigned smem_int_ptr = nihilus_gemm_get_smem_pointer(smem_ptr);
+      unsigned smem_int_ptr = cutlass_get_smem_pointer(smem_ptr);
 
       if (platform::is_same<Element, complex<double>>::value) {
         asm volatile("st.shared.v2.u32 [%0], {%1, %2};\n"
@@ -297,14 +297,14 @@ struct cp_async_diag <Element_, true> {
                       : :
                       "r"(smem_int_ptr), "r"(DIAG_DATA_ZERO.x));
       } else {
-        CUTLASS_RT_TM_UNUSED(smem_int_ptr);
-        CUTLASS_RT_TM_NOT_IMPLEMENTED();
+        CUTLASS_UNUSED(smem_int_ptr);
+        CUTLASS_NOT_IMPLEMENTED();
       }
       
     #else
 
-      CUTLASS_RT_TM_UNUSED(smem_ptr);
-      CUTLASS_RT_TM_NOT_IMPLEMENTED();
+      CUTLASS_UNUSED(smem_ptr);
+      CUTLASS_NOT_IMPLEMENTED();
 
     #endif
   }
@@ -319,21 +319,21 @@ template <
 struct cp_async<SizeInBytes, CacheOperation::Global> {
 
   /// Copy
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   cp_async(void *smem_ptr, void const *global_ptr, bool pred_guard = true) {
     #if CUDA_CP_ASYNC_ACTIVATED
 
       static_assert(SizeInBytes == 16,
         "cp.async only supports CacheOperation::Global when access size is 16B.");
 
-      unsigned smem_int_ptr = nihilus_gemm_get_smem_pointer(smem_ptr);
-      nihilus_gemm::arch::synclog_emit_cp_async(__LINE__, smem_int_ptr, global_ptr, pred_guard, SizeInBytes);
+      unsigned smem_int_ptr = cutlass_get_smem_pointer(smem_ptr);
+      cutlass::arch::synclog_emit_cp_async(__LINE__, smem_int_ptr, global_ptr, pred_guard, SizeInBytes);
 
       asm volatile(
           "{\n"
           "  .reg .pred p;\n"
           "  setp.ne.b32 p, %0, 0;\n"
-#if CUTLASS_RT_TM_ENABLE_L2_PREFETCH
+#if CUTLASS_ENABLE_L2_PREFETCH
           "  @p cp.async.cg.shared.global.L2::128B [%1], [%2], %3;\n"
 #else
           "  @p cp.async.cg.shared.global [%1], [%2], %3;\n"
@@ -358,19 +358,19 @@ template <
 struct cp_async_zfill<SizeInBytes, CacheOperation::Global> {
 
   /// Copy with zero fill
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   cp_async_zfill(void *smem_ptr, void const *global_ptr, bool pred_guard = true) {
     #if CUDA_CP_ASYNC_ACTIVATED
 
       static_assert(SizeInBytes == 16,
         "cp.async only supports CacheOperation::Global when access size is 16B.");
 
-      unsigned smem_int_ptr = nihilus_gemm_get_smem_pointer(smem_ptr);
+      unsigned smem_int_ptr = cutlass_get_smem_pointer(smem_ptr);
       int src_in_bytes = (pred_guard ? SizeInBytes : 0);
-      nihilus_gemm::arch::synclog_emit_cp_async_zfill(__LINE__, smem_int_ptr, global_ptr, pred_guard, SizeInBytes);
+      cutlass::arch::synclog_emit_cp_async_zfill(__LINE__, smem_int_ptr, global_ptr, pred_guard, SizeInBytes);
 
       asm volatile(
-#if CUTLASS_RT_TM_ENABLE_L2_PREFETCH
+#if CUTLASS_ENABLE_L2_PREFETCH
         "cp.async.cg.shared.global.L2::128B [%0], [%1], %2, %3;\n" ::"r"(smem_int_ptr),
 #else
         "cp.async.cg.shared.global [%0], [%1], %2, %3;\n" ::"r"(smem_int_ptr),
@@ -398,21 +398,21 @@ struct cp_async_nan<16, CacheOperation::Global> {
   static int const kSizeInBytes = 16;
 
   /// Copy with nan fill
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   cp_async_nan(void *smem_ptr, void const *global_ptr, bool pred_guard) {
     #if CUDA_CP_ASYNC_ACTIVATED
 
       static __constant__ uint4 OOB_NAN_F16x8 = {OOB_NAN_F16x2, OOB_NAN_F16x2,
                                                  OOB_NAN_F16x2, OOB_NAN_F16x2};
 
-      unsigned smem_int_ptr = nihilus_gemm_get_smem_pointer(smem_ptr);
-      nihilus_gemm::arch::synclog_emit_cp_async_nan(__LINE__, smem_int_ptr, global_ptr, pred_guard);
+      unsigned smem_int_ptr = cutlass_get_smem_pointer(smem_ptr);
+      cutlass::arch::synclog_emit_cp_async_nan(__LINE__, smem_int_ptr, global_ptr, pred_guard);
 
       asm volatile(
           "{\n"
           "  .reg .pred p;\n"
           "  setp.ne.b32 p, %0, 0;\n"
-#if CUTLASS_RT_TM_ENABLE_L2_PREFETCH
+#if CUTLASS_ENABLE_L2_PREFETCH
           "  @p cp.async.cg.shared.global.L2::128B [%1], [%2], %3;\n"
 #else
           "  @p cp.async.cg.shared.global [%1], [%2], %3;\n"
@@ -426,10 +426,10 @@ struct cp_async_nan<16, CacheOperation::Global> {
 
     #else
 
-      CUTLASS_RT_TM_UNUSED(smem_ptr);
-      CUTLASS_RT_TM_UNUSED(global_ptr);
-      CUTLASS_RT_TM_UNUSED(pred_guard);
-      CUTLASS_RT_TM_NOT_IMPLEMENTED();
+      CUTLASS_UNUSED(smem_ptr);
+      CUTLASS_UNUSED(global_ptr);
+      CUTLASS_UNUSED(pred_guard);
+      CUTLASS_NOT_IMPLEMENTED();
 
     #endif
   }
@@ -437,11 +437,11 @@ struct cp_async_nan<16, CacheOperation::Global> {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Establishes an ordering w.r.t previously issued cp.async instructions. Does not block.
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void cp_async_fence() {
   #if CUDA_CP_ASYNC_ACTIVATED
   asm volatile("cp.async.commit_group;\n" ::);
-  nihilus_gemm::arch::synclog_emit_cp_async_fence(__LINE__);
+  cutlass::arch::synclog_emit_cp_async_fence(__LINE__);
   #endif
 }
 
@@ -449,25 +449,25 @@ void cp_async_fence() {
 
 /// Blocks until all but <N> previous cp.async.commit_group operations have committed.
 template <int N>
-CUTLASS_RT_TM_DEVICE void cp_async_wait() {
+CUTLASS_DEVICE void cp_async_wait() {
   #if CUDA_CP_ASYNC_ACTIVATED
   asm volatile("cp.async.wait_group %0;\n" ::"n"(N));
-  nihilus_gemm::arch::synclog_emit_cp_async_wait(__LINE__, N);
+  cutlass::arch::synclog_emit_cp_async_wait(__LINE__, N);
   #endif
 }
 
 /// Blocks until all previous cp.async.commit_group operations have committed.
 template <>
-CUTLASS_RT_TM_DEVICE void cp_async_wait<0>() {
+CUTLASS_DEVICE void cp_async_wait<0>() {
   #if CUDA_CP_ASYNC_ACTIVATED
   asm volatile("cp.async.wait_all;\n" ::);
-  nihilus_gemm::arch::synclog_emit_cp_async_wait_all(__LINE__);
+  cutlass::arch::synclog_emit_cp_async_wait_all(__LINE__);
   #endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 }  // namespace arch
-}  // namespace nihilus_gemm
+}  // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

@@ -35,16 +35,16 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "cutlass/cutlass.h"
 
-#include "nihilus_gemm/gemm/gemm.h"
-#include "nihilus_gemm/matrix_coord.h"
-#include "nihilus_gemm/semaphore.h"
-#include "nihilus_gemm/arch/arch.h"
+#include "cutlass/gemm/gemm.h"
+#include "cutlass/matrix_coord.h"
+#include "cutlass/semaphore.h"
+#include "cutlass/arch/arch.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace kernel {
 
@@ -70,8 +70,8 @@ struct Gemm {
 
   /// Parameters structure
   struct Params {
-    nihilus_gemm::gemm::GemmCoord problem_size;
-    nihilus_gemm::gemm::GemmCoord grid_tiled_shape;
+    cutlass::gemm::GemmCoord problem_size;
+    cutlass::gemm::GemmCoord grid_tiled_shape;
     int swizzle_log_tile;
     typename Mma::IteratorA::Params params_A;
     typename Mma::IteratorA::TensorRef ref_A;
@@ -93,13 +93,13 @@ struct Gemm {
     // Methods
     //
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(): swizzle_log_tile(0), semaphore(0), gemm_k_size(0) { }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(
-      nihilus_gemm::gemm::GemmCoord const & problem_size,
-      nihilus_gemm::gemm::GemmCoord const & grid_tiled_shape,
+      cutlass::gemm::GemmCoord const & problem_size,
+      cutlass::gemm::GemmCoord const & grid_tiled_shape,
       typename Mma::IteratorA::TensorRef ref_A,
       typename Mma::IteratorB::TensorRef ref_B,
       typename Epilogue::OutputTileIterator::TensorRef ref_C,
@@ -145,13 +145,13 @@ struct Gemm {
   // Methods
   //
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Gemm() { } 
 
   /// Determines whether kernel satisfies alignment
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static Status can_implement(
-    nihilus_gemm::gemm::GemmCoord const & problem_size,
+    cutlass::gemm::GemmCoord const & problem_size,
     typename Mma::IteratorA::TensorRef ref_A,
     typename Mma::IteratorB::TensorRef ref_B,
     typename Epilogue::OutputTileIterator::TensorRef ref_C,
@@ -199,13 +199,13 @@ struct Gemm {
   }
 
   /// Executes one GEMM
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void operator()(Params const &params, SharedStorage &shared_storage) {
 
     // Compute threadblock location
     ThreadblockSwizzle threadblock_swizzle;
 
-    nihilus_gemm::gemm::GemmCoord threadblock_tile_offset =
+    cutlass::gemm::GemmCoord threadblock_tile_offset =
         threadblock_swizzle.get_tile_offset(params.swizzle_log_tile);
 
     // Early exit if CTA is out of range
@@ -216,12 +216,12 @@ struct Gemm {
     }
 
     // Compute initial location in logical coordinates
-    nihilus_gemm::MatrixCoord tb_offset_A{
+    cutlass::MatrixCoord tb_offset_A{
       threadblock_tile_offset.m() * Mma::Shape::kM,
       threadblock_tile_offset.k() * params.gemm_k_size,
     };
 
-    nihilus_gemm::MatrixCoord tb_offset_B{
+    cutlass::MatrixCoord tb_offset_B{
       threadblock_tile_offset.k() * params.gemm_k_size,
       threadblock_tile_offset.n() * Mma::Shape::kN
     };
@@ -376,5 +376,5 @@ struct Gemm {
 
 } // namespace kernel
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass
 

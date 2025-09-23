@@ -34,15 +34,15 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/array.h"
-#include "nihilus_gemm/numeric_types.h"
-#include "nihilus_gemm/gemm/gemm.h"
-#include "nihilus_gemm/arch/mma.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/array.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/gemm/gemm.h"
+#include "cutlass/arch/mma.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace thread {
 
@@ -75,7 +75,7 @@ struct Mma;
 
 } // namespace thread
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -83,8 +83,8 @@ struct Mma;
 // Overloads specialized for existing architectures
 //
 
-#include "nihilus_gemm/gemm/thread/mma_sm50.h"
-#include "nihilus_gemm/gemm/thread/mma_sm60.h"
-#include "nihilus_gemm/gemm/thread/mma_sm61.h"
+#include "cutlass/gemm/thread/mma_sm50.h"
+#include "cutlass/gemm/thread/mma_sm60.h"
+#include "cutlass/gemm/thread/mma_sm61.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

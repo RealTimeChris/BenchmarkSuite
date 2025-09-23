@@ -36,28 +36,28 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/array.h"
-#include "nihilus_gemm/platform/platform.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/array.h"
+#include "cutlass/platform/platform.h"
 
-#include "nihilus_gemm/numeric_conversion.h"
-#include "nihilus_gemm/numeric_types.h"
-#include "nihilus_gemm/matrix_shape.h"
+#include "cutlass/numeric_conversion.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/matrix_shape.h"
 
-#include "nihilus_gemm/arch/mma_sm80.h"
+#include "cutlass/arch/mma_sm80.h"
 
-#include "nihilus_gemm/gemm/gemm.h"
-#include "nihilus_gemm/gemm/warp/mma.h"
+#include "cutlass/gemm/gemm.h"
+#include "cutlass/gemm/warp/mma.h"
 
-#include "nihilus_gemm/gemm/warp/mma_tensor_op_policy.h"
-#include "nihilus_gemm/gemm/warp/mma_tensor_op.h"
+#include "cutlass/gemm/warp/mma_tensor_op_policy.h"
+#include "cutlass/gemm/warp/mma_tensor_op.h"
 
-#include "nihilus_gemm/gemm/warp/mma_tensor_op_tile_iterator.h"
-#include "nihilus_gemm/gemm/warp/mma_tensor_op_tile_iterator_sm80.h"
+#include "cutlass/gemm/warp/mma_tensor_op_tile_iterator.h"
+#include "cutlass/gemm/warp/mma_tensor_op_tile_iterator_sm80.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace warp {
 
@@ -121,7 +121,7 @@ namespace detail {
     static int const kBigIndex = 0;
     static int const kSmallIndex = 1;
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     void operator()(SourceFragment const &source,
                     DestinationFragment &dst_big,
                     DestinationFragment &dst_small) {
@@ -129,7 +129,7 @@ namespace detail {
       Converter convert_;
       ConverterFragment result_;
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int i = 0; i < N; ++i) {
         // convert source to result fragment
         result_ = convert_(source[i]);
@@ -343,11 +343,11 @@ public:
   //
 
   /// Ctor
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   MmaTensorOpFastF32() {}
 
   /// Performs a warp-level matrix multiply-accumulate operation
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void operator()(
     FragmentC &D, 
     TransformedFragmentA const &A, 
@@ -374,7 +374,7 @@ public:
   }
 
   /// Performs a warp-level matrix multiply-accumulate operation
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void mma_operator(
     FragmentC &D, 
     AccessTypeFragmentA const &A, 
@@ -393,10 +393,10 @@ public:
       MmaOperandC *ptr_D = reinterpret_cast<MmaOperandC *>(&D);
 
       // Serpentine visitation order maximizing reuse of Ra
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int m = 0; m < MmaIterations::kRow; ++m) {
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int n = 0; n < MmaIterations::kColumn; ++n) {
 
           // This allows to reuse of Rb when at serpentine turns
@@ -423,7 +423,7 @@ public:
   }
 
   /// Transform the mma operands to the required types
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void transform(TransformedFragmentA &dst_A, TransformedFragmentB &dst_B,
                  FragmentA const &A, FragmentB const &B) const {
 
@@ -466,6 +466,6 @@ public:
 
 } // namespace warp
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

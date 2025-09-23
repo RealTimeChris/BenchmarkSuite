@@ -34,21 +34,21 @@
 
 #pragma once
 
-#include "nihilus_gemm/array.h"
-#include "nihilus_gemm/layout/matrix.h"
-#include "nihilus_gemm/layout/pitch_linear.h"
+#include "cutlass/array.h"
+#include "cutlass/layout/matrix.h"
+#include "cutlass/layout/pitch_linear.h"
 
-#include "nihilus_gemm/arch/memory_sm75.h"
-#include "nihilus_gemm/epilogue/warp/tensor_op_policy.h"
+#include "cutlass/arch/memory_sm75.h"
+#include "cutlass/epilogue/warp/tensor_op_policy.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 // This is an optimization available on CUDA 11.2 and beyond that eliminates branches in the epilogue.
-#define CUTLASS_RT_TM_EPILOGUE_WARP_TILE_ITERATOR_TENSOR_OP_MIXED_OPTIMIZATION_ENABLED ((__CUDACC_VER_MAJOR__ * 10 + __CUDACC_VER_MINOR__) >= 112)
+#define CUTLASS_EPILOGUE_WARP_TILE_ITERATOR_TENSOR_OP_MIXED_OPTIMIZATION_ENABLED ((__CUDACC_VER_MAJOR__ * 10 + __CUDACC_VER_MINOR__) >= 112)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace warp {
 
@@ -144,7 +144,7 @@ public:
   TileIteratorTensorOpMixed() = default;
 
   /// Constructor from TensorRef
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed(
     TensorRef const &ref,
     unsigned lane_id
@@ -155,7 +155,7 @@ public:
     int quad_id = (lane_id / Detail::kLanesInQuad); 
     int lane_in_quad = (lane_id % Detail::kLanesInQuad);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int64_t i = 0; i < Detail::kPointerCount; ++i) {
       AccessType *ptr = reinterpret_cast<AccessType *>(ref.data()) + quad_id * stride_;
       int column_idx = (lane_in_quad % 2) + (((lane_in_quad / 2) + i) % Detail::kPointerCount) * 2;
@@ -167,10 +167,10 @@ public:
   }
 
   /// Adds a pointer offset
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & add_pointer_offset(Index pointer_offset) {
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int64_t i = 0; i < Detail::kPointerCount; ++i) {
       pointers_[i] += pointer_offset / Policy::kElementsPerAccess;
     }
@@ -179,10 +179,10 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & add_tile_offset(TensorCoord const &tile_offset) {
     
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int64_t i = 0; i < Detail::kPointerCount; ++i) {
       pointers_[i] += tile_offset.row() * Shape::kRow * stride_ + 
         tile_offset.column() * Shape::kColumn / Policy::kElementsPerAccess;
@@ -194,20 +194,20 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & operator+=(TensorCoord const &tile_offset) {
     return add_tile_offset(tile_offset);
   }
 
   /// Store
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
     AccessType *ptr = pointers_[0];
 
-#if CUTLASS_RT_TM_EPILOGUE_WARP_TILE_ITERATOR_TENSOR_OP_MIXED_OPTIMIZATION_ENABLED
+#if CUTLASS_EPILOGUE_WARP_TILE_ITERATOR_TENSOR_OP_MIXED_OPTIMIZATION_ENABLED
 
     // When the optimization is enabled, small tiles require separate logic.
     bool kN32_optimization = (WarpShape::kN * Detail::kLanesInQuad * Policy::kElementsPerAccess * sizeof_bits<Element>::value) % 1024 == 0;
@@ -234,10 +234,10 @@ public:
 
 #endif
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int64_t n = 0; n < Policy::OperatorCount::kColumn; ++n) {
       
-#if CUTLASS_RT_TM_EPILOGUE_WARP_TILE_ITERATOR_TENSOR_OP_MIXED_OPTIMIZATION_ENABLED
+#if CUTLASS_EPILOGUE_WARP_TILE_ITERATOR_TENSOR_OP_MIXED_OPTIMIZATION_ENABLED
 
       //
       // When the optimization is enabled, this expression suffices to obtain the SMEM pointer.
@@ -272,18 +272,18 @@ public:
   }
 
   /// Store
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag) {
     store_with_pointer_offset(frag, 0);
   }
 
   /// Load
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
 
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int64_t n = 0; n < Policy::OperatorCount::kColumn; ++n) {
 
       int column_idx = warp_column_ + n * Detail::kLanesInQuad * Policy::kElementsPerAccess;
@@ -295,13 +295,13 @@ public:
   }
 
   /// Load
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load(Fragment &frag) const {
     load_with_pointer_offset(frag, 0);
   }
   
   /// Set smem base address
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_smem_base_address(Index address) {
   }
 };
@@ -387,7 +387,7 @@ public:
   TileIteratorTensorOpMixed() = default;
 
   /// Constructor from TensorRef
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed(
     TensorRef const &ref,
     unsigned lane_id
@@ -397,7 +397,7 @@ public:
     int quad_id = (lane_id / Detail::kLanesInQuad); 
     int lane_in_quad = (lane_id % Detail::kLanesInQuad);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < Detail::kPointerCount; ++i) {
       AccessType *ptr = reinterpret_cast<AccessType *>(ref.data()) + quad_id * stride_;
       int column_idx = lane_in_quad ^ (i * 2);
@@ -412,17 +412,17 @@ public:
       }
     }
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < Detail::kOffsetCount; ++i) {
       uniform_offset_[i] = (i ^ 0) * 4 * sizeof(AccessType);
     }
   }
 
   /// Adds a pointer offset
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & add_pointer_offset(Index pointer_offset) {
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int64_t i = 0; i < Detail::kPointerCount; ++i) {
       pointers_[i] += pointer_offset / AccessType::kElements;
     }
@@ -431,7 +431,7 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & add_tile_offset(TensorCoord const &tile_offset) {
     
     int ptr_offset = tile_offset.row() * Shape::kRow * stride_ + 
@@ -440,7 +440,7 @@ public:
     pointers_[0] += ptr_offset;
     pointers_[1] += ptr_offset;
     
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < Detail::kOffsetCount; ++i) {
       uniform_offset_[i] = (i ^ tile_offset.column()) * 4 * sizeof(AccessType);
     }
@@ -449,18 +449,18 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & operator+=(TensorCoord const &tile_offset) {
     return add_tile_offset(tile_offset);
   }
 
   /// Store
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int n = 0; n < Policy::OperatorCount::kColumn; ++n) {
 
       int ptr_idx = (n / 4);
@@ -483,7 +483,7 @@ public:
       AccessType *smem_ptr = pointers_[ptr_idx];
       smem_ptr[offset] = frag_ptr[n];
 #else
-      uint32_t smem_addr = arch::nihilus_gemm_get_smem_pointer(ptr);
+      uint32_t smem_addr = arch::cutlass_get_smem_pointer(ptr);
       uint32_t const *data = reinterpret_cast<uint32_t const *>(frag_ptr + n);
       uint32_t offset_in_bytes = offset * sizeof(AccessType) + uniform_offset_[offset_idx];
 
@@ -496,13 +496,13 @@ public:
   }
 
   /// Store
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag) {
     store_with_pointer_offset(frag, 0);
   }
 
   /// Set smem base address
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_smem_base_address(Index address) {
   }
 };
@@ -582,7 +582,7 @@ public:
   TileIteratorTensorOpMixed() = default;
 
   /// Constructor from TensorRef
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed(
     TensorRef const &ref,
     unsigned lane_id
@@ -592,7 +592,7 @@ public:
     int quad_id = (lane_id / Detail::kLanesInQuad); 
     int lane_in_quad = (lane_id % Detail::kLanesInQuad);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < Detail::kPointerCount; ++i) {
       AccessType *ptr = reinterpret_cast<AccessType *>(ref.data()) + quad_id * stride_;
       int column_idx = lane_in_quad ^ (i * 2);
@@ -609,10 +609,10 @@ public:
   }
 
   /// Adds a pointer offset
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & add_pointer_offset(Index pointer_offset) {
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int64_t i = 0; i < Detail::kPointerCount; ++i) {
       pointers_[i] += pointer_offset / AccessType::kElements;
     }
@@ -621,7 +621,7 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & add_tile_offset(TensorCoord const &tile_offset) {
     
     int ptr_offset = tile_offset.row() * Shape::kRow * stride_ + 
@@ -640,18 +640,18 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & operator+=(TensorCoord const &tile_offset) {
     return add_tile_offset(tile_offset);
   }
 
   /// Store
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int n = 0; n < Policy::OperatorCount::kColumn; ++n) {
 
       int ptr_idx = (n / 4);
@@ -673,7 +673,7 @@ public:
       AccessType *smem_ptr = pointers_[ptr_idx];
       smem_ptr[offset] = frag_ptr[n];
 #else
-      uint32_t smem_addr = arch::nihilus_gemm_get_smem_pointer(ptr);
+      uint32_t smem_addr = arch::cutlass_get_smem_pointer(ptr);
       uint32_t const *data = reinterpret_cast<uint32_t const *>(frag_ptr + n);
       uint32_t offset_in_bytes = offset * sizeof(AccessType);
 
@@ -686,13 +686,13 @@ public:
   }
 
   /// Store
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag) {
     store_with_pointer_offset(frag, 0);
   }
 
   /// Set smem base address
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_smem_base_address(Index address) {
   }
 };
@@ -777,7 +777,7 @@ public:
   TileIteratorTensorOpMixed() = default;
 
   /// Constructor from TensorRef
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed(
     TensorRef const &ref,
     unsigned lane_id
@@ -787,7 +787,7 @@ public:
     int quad_id = (lane_id / Detail::kLanesInQuad);
     int lane_in_quad = (lane_id % Detail::kLanesInQuad);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < Detail::kPointerCount; ++i) {
       AccessType *ptr = reinterpret_cast<AccessType *>(ref.data()) + quad_id * stride_;
       int column_idx = lane_in_quad ^ (i * 2);
@@ -802,17 +802,17 @@ public:
       }
     }
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < Detail::kOffsetCount; ++i) {
       uniform_offset_[i] = (i ^ 0) * 4 * sizeof(AccessType);
     }
   }
 
   /// Adds a pointer offset
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & add_pointer_offset(Index pointer_offset) {
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int64_t i = 0; i < Detail::kPointerCount; ++i) {
       pointers_[i] += pointer_offset / AccessType::kElements;
     }
@@ -821,7 +821,7 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & add_tile_offset(TensorCoord const &tile_offset) {
 
     int ptr_offset = tile_offset.row() * Shape::kRow * stride_ +
@@ -830,7 +830,7 @@ public:
     pointers_[0] += ptr_offset;
     pointers_[1] += ptr_offset;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < Detail::kOffsetCount; ++i) {
       uniform_offset_[i] = (i ^ tile_offset.column()) * 4 * sizeof(AccessType);
     }
@@ -839,18 +839,18 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & operator+=(TensorCoord const &tile_offset) {
     return add_tile_offset(tile_offset);
   }
 
   /// Store
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int n = 0; n < Policy::OperatorCount::kColumn; ++n) {
 
       int ptr_idx = (n / 4);
@@ -873,7 +873,7 @@ public:
       AccessType *smem_ptr = pointers_[ptr_idx];
       smem_ptr[offset] = frag_ptr[n];
 #else
-      uint32_t smem_addr = arch::nihilus_gemm_get_smem_pointer(ptr);
+      uint32_t smem_addr = arch::cutlass_get_smem_pointer(ptr);
       uint32_t const *data = reinterpret_cast<uint32_t const *>(frag_ptr + n);
       uint32_t offset_in_bytes = offset * sizeof(AccessType) + uniform_offset_[offset_idx];
 
@@ -886,7 +886,7 @@ public:
   }
 
   /// Store
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag) {
     store_with_pointer_offset(frag, 0);
   }
@@ -966,7 +966,7 @@ public:
   TileIteratorTensorOpMixed() = default;
 
   /// Constructor from TensorRef
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed(
     TensorRef const &ref,
     unsigned lane_id
@@ -976,7 +976,7 @@ public:
     int quad_id = (lane_id / Detail::kLanesInQuad);
     int lane_in_quad = (lane_id % Detail::kLanesInQuad);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < Detail::kPointerCount; ++i) {
       AccessType *ptr = reinterpret_cast<AccessType *>(ref.data()) + quad_id * stride_;
       int column_idx = lane_in_quad ^ (i * 2);
@@ -993,10 +993,10 @@ public:
   }
 
   /// Adds a pointer offset
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & add_pointer_offset(Index pointer_offset) {
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int64_t i = 0; i < Detail::kPointerCount; ++i) {
       pointers_[i] += pointer_offset / AccessType::kElements;
     }
@@ -1005,7 +1005,7 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & add_tile_offset(TensorCoord const &tile_offset) {
 
     int ptr_offset = tile_offset.row() * Shape::kRow * stride_ +
@@ -1024,18 +1024,18 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & operator+=(TensorCoord const &tile_offset) {
     return add_tile_offset(tile_offset);
   }
 
   /// Store
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int n = 0; n < Policy::OperatorCount::kColumn; ++n) {
 
       int ptr_idx = (n / 4);
@@ -1057,7 +1057,7 @@ public:
       AccessType *smem_ptr = pointers_[ptr_idx];
       smem_ptr[offset] = frag_ptr[n];
 #else
-      uint32_t smem_addr = arch::nihilus_gemm_get_smem_pointer(ptr);
+      uint32_t smem_addr = arch::cutlass_get_smem_pointer(ptr);
       uint32_t const *data = reinterpret_cast<uint32_t const *>(frag_ptr + n);
       uint32_t offset_in_bytes = offset * sizeof(AccessType);
 
@@ -1070,7 +1070,7 @@ public:
   }
 
   /// Store
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag) {
     store_with_pointer_offset(frag, 0);
   }
@@ -1080,10 +1080,10 @@ public:
 
 } // namespace warp
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-#undef CUTLASS_RT_TM_EPILOGUE_WARP_TILE_ITERATOR_TENSOR_OP_MIXED_OPTIMIZATION_ENABLED
+#undef CUTLASS_EPILOGUE_WARP_TILE_ITERATOR_TENSOR_OP_MIXED_OPTIMIZATION_ENABLED
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

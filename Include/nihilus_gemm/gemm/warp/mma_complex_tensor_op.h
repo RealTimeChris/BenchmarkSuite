@@ -35,32 +35,32 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "cutlass/cutlass.h"
 
-#include "nihilus_gemm/array.h"
-#include "nihilus_gemm/complex.h"
-#include "nihilus_gemm/numeric_types.h"
-#include "nihilus_gemm/matrix_shape.h"
-#include "nihilus_gemm/functional.h"
+#include "cutlass/array.h"
+#include "cutlass/complex.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/matrix_shape.h"
+#include "cutlass/functional.h"
 
-#include "nihilus_gemm/arch/memory_sm75.h"
-#include "nihilus_gemm/arch/mma_sm75.h"
-#include "nihilus_gemm/arch/mma_sm80.h"
-#include "nihilus_gemm/arch/mma_sm90.h"
+#include "cutlass/arch/memory_sm75.h"
+#include "cutlass/arch/mma_sm75.h"
+#include "cutlass/arch/mma_sm80.h"
+#include "cutlass/arch/mma_sm90.h"
 
-#include "nihilus_gemm/gemm/gemm.h"
-#include "nihilus_gemm/gemm/warp/mma.h"
+#include "cutlass/gemm/gemm.h"
+#include "cutlass/gemm/warp/mma.h"
 
-#include "nihilus_gemm/gemm/warp/mma_tensor_op_policy.h"
-#include "nihilus_gemm/gemm/warp/mma_tensor_op.h"
+#include "cutlass/gemm/warp/mma_tensor_op_policy.h"
+#include "cutlass/gemm/warp/mma_tensor_op.h"
 
-#include "nihilus_gemm/gemm/warp/mma_tensor_op_tile_iterator.h"
-#include "nihilus_gemm/gemm/warp/mma_tensor_op_tile_iterator_sm80.h"
-#include "nihilus_gemm/gemm/warp/mma_complex_tensor_op_tile_iterator_sm80.h"
+#include "cutlass/gemm/warp/mma_tensor_op_tile_iterator.h"
+#include "cutlass/gemm/warp/mma_tensor_op_tile_iterator_sm80.h"
+#include "cutlass/gemm/warp/mma_complex_tensor_op_tile_iterator_sm80.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace warp {
 
@@ -124,21 +124,21 @@ struct UnpackComplexConvertAndPackForMma <
   static int const kLdm = MmaIterations::kRow * MmaOperandShape::kRow;
 
   /// Ctor
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   UnpackComplexConvertAndPackForMma() {}
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void operator()(DestinationFragment *dest, SourceFragment const &source) {
     
     Converter convert_op;
     SourceFragmentLayout layout(kLdm);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for(int i=0; i<MmaIterations::kRow; i++) {
       int pos = 0;
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for(int c=0; c<MmaOperandShape::kColumn; c++) {
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for(int r=0; r<MmaOperandShape::kRow; r++) {
           // Logical position of element in source fragment
           int row = r + i * MmaOperandShape::kRow;
@@ -195,21 +195,21 @@ struct UnpackComplexConvertAndPackForMma <
   static int const kLdm = MmaIterations::kColumn * MmaOperandShape::kColumn;
 
   /// Ctor
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   UnpackComplexConvertAndPackForMma() {}
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(DestinationFragment *dest, SourceFragment const &source) {
     
     Converter convert_op;
     SourceFragmentLayout layout(kLdm);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for(int i=0; i<MmaIterations::kColumn; i++) {
       int pos = 0;
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for(int c=0; c<MmaOperandShape::kColumn; c++) {
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for(int r=0; r<MmaOperandShape::kRow; r++) {
           // Logical position of element in source fragment
           int row = r;
@@ -427,11 +427,11 @@ public:
   //
 
   /// Ctor
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   MmaComplexTensorOp() {}
 
   /// Performs a warp-level matrix multiply-accumulate operation
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void operator()(
     FragmentC &D, 
     FragmentA const &A, 
@@ -454,11 +454,11 @@ public:
 
     D = C;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int m = 0; m < MmaIterations::kRow; ++m) {
 
       // mma(accum.real(), a.real(), b.real(), accum.real());
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int n = 0; n < MmaIterations::kColumn; ++n) {
 
         // Pack operands together. This may result in actual MOVs 
@@ -476,7 +476,7 @@ public:
       }
 
       // mma(accum.imag(), a.real(), b.imag(), accum.imag()); 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int n = MmaIterations::kColumn - 1; n >= 0; --n) {
 
         // Pack operands together. This may result in actual MOVs 
@@ -494,7 +494,7 @@ public:
       }
 
       // mma(accum.real(), -a.imag(), b.imag(), accum.real())
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int n = 0; n < MmaIterations::kColumn; ++n) {
 
         // Pack operands together. This may result in actual MOVs 
@@ -512,7 +512,7 @@ public:
         mma(*accum, operand_A, operand_B, *accum);
       }
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int n = MmaIterations::kColumn - 1; n >= 0; --n) {
 
         // Pack operands together. This may result in actual MOVs 
@@ -532,7 +532,7 @@ public:
   }
 
   /// Transform the mma operands to the required types
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void transform(TransformedFragmentA &dst_A, TransformedFragmentB &dst_B,
                  FragmentA const &A, FragmentB const &B) const {
     dst_A = A;
@@ -715,11 +715,11 @@ public:
   //
 
   /// Ctor
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   MmaComplexTensorOp() {}
 
   /// Performs a warp-level matrix multiply-accumulate operation
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void operator()(
     FragmentC &D, 
     TransformedFragmentA const &A, 
@@ -732,7 +732,7 @@ public:
     using InstMmaOperandB = typename ArchMmaOperator::FragmentB;
     using MmaOperandC = typename ArchMmaOperator::FragmentC;
 
-    static_assert(platform::is_same<nihilus_gemm::gemm::GemmShape<16, 8, 8>, typename ArchMmaOperator::Shape>::value, 
+    static_assert(platform::is_same<cutlass::gemm::GemmShape<16, 8, 8>, typename ArchMmaOperator::Shape>::value, 
       "This implementation only supports mma.m16n8k8 math instructions.");
 
     static_assert(InstMmaOperandA::kElements == 4, 
@@ -752,11 +752,11 @@ public:
     //
     D = C;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int m = 0; m < MmaIterations::kRow; ++m) {
 
       // mma(accum.real(), a.real(), b.real(), accum.real());
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int n = 0; n < MmaIterations::kColumn; ++n) {
 
         // Real-valued accumulator part
@@ -767,7 +767,7 @@ public:
       }
 
       // mma(accum.imag(), a.real(), b.imag(), accum.imag()); 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int n = MmaIterations::kColumn - 1; n >= 0; --n) {
 
         // Complex-valued accumulator part
@@ -778,7 +778,7 @@ public:
       }
 
       // mma(accum.real(), a.imag(), -b.imag(), accum.real())
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int n = 0; n < MmaIterations::kColumn; ++n) {
 
         // negate OperandB to accumulate  -(a.imag()*b.imag())
@@ -793,7 +793,7 @@ public:
       }
 
       // mma(accum.imag(), a.imag(), b.real(), accum.imag())
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int n = MmaIterations::kColumn - 1; n >= 0; --n) {
 
         // Complex-valued accumulator part
@@ -806,7 +806,7 @@ public:
   }
 
   /// Transform the mma operands to the required types
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void transform(TransformedFragmentA &dst_A, TransformedFragmentB &dst_B,
                  FragmentA const &A, FragmentB const &B) const {
     // Alias types for underlying real-valued matrix multiply operator
@@ -1027,11 +1027,11 @@ public:
   //
 
   /// Ctor
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   MmaComplexTensorOp() {}
 
   /// Performs a warp-level matrix multiply-accumulate operation
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void operator()(
     FragmentC &D, 
     FragmentA const &A, 
@@ -1046,22 +1046,22 @@ public:
 
     D = C;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int m = 0; m < MmaIterations::kRow; ++m) {
 
       // mma(accum.real(), a.real(), b.real(), accum.real());
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int n = 0; n < MmaIterations::kColumn; ++n) {
 
         // Pack operands together. This may result in actual MOVs 
         MmaOperandA operand_A;
         MmaOperandB operand_B;
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int mk = 0; mk < MmaOperandA::kElements; ++mk)
           operand_A[mk] = A[m*MmaOperandA::kElements + mk].real();
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int nk = 0; nk < MmaOperandB::kElements; ++nk)
           operand_B[nk] = B[n*MmaOperandB::kElements + nk].real();
 
@@ -1073,18 +1073,18 @@ public:
       }
 
       // mma(accum.imag(), a.real(), b.imag(), accum.imag()); 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int n = MmaIterations::kColumn - 1; n >= 0; --n) {
 
         // Pack operands together. This may result in actual MOVs 
         MmaOperandA operand_A;
         MmaOperandB operand_B;
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int mk = 0; mk < MmaOperandA::kElements; ++mk)
           operand_A[mk] = A[m*MmaOperandA::kElements + mk].real();
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int nk = 0; nk < MmaOperandB::kElements; ++nk)
           operand_B[nk] = (kTransformB == ComplexTransform::kConjugate ? 
                           -B[n*MmaOperandB::kElements + nk].imag() : B[n*MmaOperandB::kElements + nk].imag());
@@ -1097,7 +1097,7 @@ public:
       }
 
       // mma(accum.real(), -a.imag(), b.imag(), accum.real())
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int n = 0; n < MmaIterations::kColumn; ++n) {
 
         // Pack operands together. This may result in actual MOVs 
@@ -1105,12 +1105,12 @@ public:
         MmaOperandB operand_B;
 
         // A imaginary part is intentionally negated
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int mk = 0; mk < MmaOperandA::kElements; ++mk)
           operand_A[mk] = (kTransformA == ComplexTransform::kConjugate ?
                           A[m*MmaOperandA::kElements + mk].imag() : -A[m*MmaOperandA::kElements + mk].imag());
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int nk = 0; nk < MmaOperandB::kElements; ++nk)
             operand_B[nk] = (kTransformB == ComplexTransform::kConjugate ?
                             -B[n*MmaOperandB::kElements + nk].imag() : B[n*MmaOperandB::kElements + nk].imag());
@@ -1123,19 +1123,19 @@ public:
       }
 
       // mma(accum.imag(), a.imag(), b.real(), accum.imag())
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int n = MmaIterations::kColumn - 1; n >= 0; --n) {
 
         // Pack operands together. This may result in actual MOVs 
         MmaOperandA operand_A;
         MmaOperandB operand_B;
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int mk = 0; mk < MmaOperandA::kElements; ++mk)
           operand_A[mk] = (kTransformA == ComplexTransform::kConjugate ?
                           -A[m*MmaOperandA::kElements + mk].imag() : A[m*MmaOperandA::kElements + mk].imag());
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int nk = 0; nk < MmaOperandB::kElements; ++nk)
           operand_B[nk] = B[n*MmaOperandB::kElements + nk].real();
 
@@ -1149,7 +1149,7 @@ public:
   }
 
   /// Transform the mma operands to the required types
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void transform(TransformedFragmentA &dst_A, TransformedFragmentB &dst_B,
                  FragmentA const &A, FragmentB const &B) const {
     dst_A = A;
@@ -1163,6 +1163,6 @@ public:
 
 } // namespace warp
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

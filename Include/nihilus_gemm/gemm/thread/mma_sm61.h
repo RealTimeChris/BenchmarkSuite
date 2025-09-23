@@ -34,15 +34,15 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/tensor_ref.h"
-#include "nihilus_gemm/layout/matrix.h"
-#include "nihilus_gemm/gemm/gemm.h"
-#include "nihilus_gemm/gemm/thread/mma.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/tensor_ref.h"
+#include "cutlass/layout/matrix.h"
+#include "cutlass/gemm/gemm.h"
+#include "cutlass/gemm/thread/mma.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace thread {
 
@@ -117,7 +117,7 @@ struct Mma<
   //
 
   /// Computes a matrix product D = A * B + C
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(
     FragmentC & D,
     FragmentA const & A,
@@ -134,13 +134,13 @@ struct Mma<
     ArchMmaOperator mma;
 
     // Compute matrix product
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int k = 0; k < Shape::kK / ArchMmaOperator::Shape::kK; ++k) {
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int n = 0; n < Shape::kN; ++n) {
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int m = 0; m < Shape::kM; ++m) {
           MatrixCoord mn(m, n);
 
@@ -232,7 +232,7 @@ struct Mma<
   //
 
   /// Computes a matrix product D = A * B + C
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(
     FragmentC & D,
     FragmentA const & A,
@@ -252,13 +252,13 @@ struct Mma<
     Array<int8_t, 4> const *ptr_B = reinterpret_cast<Array<int8_t, 4> const *>(&B);
 
     // Compute matrix product
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int k = 0; k < Shape::kK / ArchMmaOperator::Shape::kK; ++k) {
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int n = 0; n < Shape::kN; ++n) {
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int m = 0; m < Shape::kM; ++m) {
           MatrixCoord mn(m, n);
 
@@ -279,6 +279,6 @@ struct Mma<
 
 } // namespace thread
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

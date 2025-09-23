@@ -33,27 +33,27 @@
 */
 
 #pragma once
-#include "nihilus_gemm/cutlass.h"
+#include "cutlass/cutlass.h"
 #include CUDA_STD_HEADER(cassert)
 
 #include "mma.h"
-#include "nihilus_gemm/layout/matrix.h"
-#include "nihilus_gemm/numeric_types.h"
+#include "cutlass/layout/matrix.h"
+#include "cutlass/numeric_types.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
 #if ((__CUDACC_VER_MAJOR__ > 11) || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ >= 0))
 
-#define CUTLASS_RT_TM_ARCH_MMA_SM80_SUPPORTED 1
+#define CUTLASS_ARCH_MMA_SM80_SUPPORTED 1
 
 #if (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800))
-#define CUTLASS_RT_TM_ARCH_MMA_SM80_ENABLED
+#define CUTLASS_ARCH_MMA_SM80_ENABLED
 
 #if (__CUDA_ARCH__ <= 900)
-#define CUTLASS_RT_TM_ARCH_MMA_B1_AND_SM80_ENABLED
+#define CUTLASS_ARCH_MMA_B1_AND_SM80_ENABLED
 #endif
 #if (__CUDA_ARCH__ <= 890)
-#define CUTLASS_RT_TM_ARCH_MMA_B1_XOR_SM80_ENABLED
+#define CUTLASS_ARCH_MMA_B1_XOR_SM80_ENABLED
 #endif
 
 #endif
@@ -62,7 +62,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace arch {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -101,11 +101,11 @@ struct Mma<
   using Operator = OpMultiplyAdd;
   using ArchTag = arch::Sm80;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM80_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_SM80_ENABLED)
 
   uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
   uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -124,11 +124,11 @@ struct Mma<
 
 #else
 
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_UNUSED(d);
+    CUTLASS_UNUSED(a);
+    CUTLASS_UNUSED(b);
+    CUTLASS_UNUSED(c);
+    CUTLASS_NOT_IMPLEMENTED();
 
 #endif
   }
@@ -170,7 +170,7 @@ struct Mma<
   using Operator = OpMultiplyAdd;
   using ArchTag = arch::Sm80;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -178,7 +178,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM80_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_SM80_ENABLED)
 
   uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
   uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -196,11 +196,11 @@ struct Mma<
 
 #else
 
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_UNUSED(d);
+    CUTLASS_UNUSED(a);
+    CUTLASS_UNUSED(b);
+    CUTLASS_UNUSED(c);
+    CUTLASS_NOT_IMPLEMENTED();
 
 #endif
   }
@@ -234,11 +234,11 @@ struct Mma<gemm::GemmShape<16, 8, 8>, 32, tfloat32_t, layout::RowMajor,
   using Operator = OpMultiplyAdd;
   using ArchTag = arch::Sm80;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM80_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_SM80_ENABLED)
 
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -254,11 +254,11 @@ struct Mma<gemm::GemmShape<16, 8, 8>, 32, tfloat32_t, layout::RowMajor,
 
 #else
 
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_UNUSED(d);
+    CUTLASS_UNUSED(a);
+    CUTLASS_UNUSED(b);
+    CUTLASS_UNUSED(c);
+    CUTLASS_NOT_IMPLEMENTED();
 
 #endif
   }
@@ -301,11 +301,11 @@ struct Mma<
   using ArchTag = arch::Sm80;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM80_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_SM80_ENABLED)
 
   uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
   uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -321,11 +321,11 @@ struct Mma<
 
 #else
 
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_UNUSED(d);
+    CUTLASS_UNUSED(a);
+    CUTLASS_UNUSED(b);
+    CUTLASS_UNUSED(c);
+    CUTLASS_NOT_IMPLEMENTED();
 
 #endif
   }
@@ -364,7 +364,7 @@ struct Mma<
   using ArchTag = arch::Sm80;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -372,7 +372,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM80_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_SM80_ENABLED)
 
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -388,11 +388,11 @@ struct Mma<
 
 #else
 
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_UNUSED(d);
+    CUTLASS_UNUSED(a);
+    CUTLASS_UNUSED(b);
+    CUTLASS_UNUSED(c);
+    CUTLASS_NOT_IMPLEMENTED();
 
 #endif
   }
@@ -431,7 +431,7 @@ struct Mma<
   using ArchTag = arch::Sm80;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -439,7 +439,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM80_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_SM80_ENABLED)
 
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -455,11 +455,11 @@ struct Mma<
 
 #else
 
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_UNUSED(d);
+    CUTLASS_UNUSED(a);
+    CUTLASS_UNUSED(b);
+    CUTLASS_UNUSED(c);
+    CUTLASS_NOT_IMPLEMENTED();
 
 #endif
   }
@@ -502,11 +502,11 @@ struct Mma<
 
   using ArchTag = arch::Sm80;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM80_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_SM80_ENABLED)
 
   double const & A = reinterpret_cast<double const &>(a);
   double const & B = reinterpret_cast<double const &>(b);
@@ -520,11 +520,11 @@ struct Mma<
 
 #else
 
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_UNUSED(d);
+    CUTLASS_UNUSED(a);
+    CUTLASS_UNUSED(b);
+    CUTLASS_UNUSED(c);
+    CUTLASS_NOT_IMPLEMENTED();
     
 #endif
   }
@@ -567,7 +567,7 @@ struct Mma<
   using ArchTag = arch::Sm80;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -575,7 +575,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM80_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_SM80_ENABLED)
 
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const &B = reinterpret_cast<uint32_t const &>(b);
@@ -627,7 +627,7 @@ struct Mma<
   using ArchTag = arch::Sm80;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -635,7 +635,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM80_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_SM80_ENABLED)
 
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const &B = reinterpret_cast<uint32_t const &>(b);
@@ -687,7 +687,7 @@ struct Mma<
   using ArchTag = arch::Sm80;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -695,7 +695,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM80_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_SM80_ENABLED)
 
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const &B = reinterpret_cast<uint32_t const &>(b);
@@ -747,7 +747,7 @@ struct Mma<
   using ArchTag = arch::Sm80;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -755,7 +755,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM80_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_SM80_ENABLED)
 
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const &B = reinterpret_cast<uint32_t const &>(b);
@@ -813,7 +813,7 @@ struct Mma<
   using ArchTag = arch::Sm80;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -821,7 +821,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM80_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_SM80_ENABLED)
 
   uint32_t const * A = reinterpret_cast<uint32_t const *>(&a);
   uint32_t const * B = reinterpret_cast<uint32_t const *>(&b);
@@ -873,7 +873,7 @@ struct Mma<
   using ArchTag = arch::Sm80;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -881,7 +881,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM80_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_SM80_ENABLED)
 
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -933,7 +933,7 @@ struct Mma<
   using ArchTag = arch::Sm80;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -941,7 +941,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM80_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_SM80_ENABLED)
 
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -993,7 +993,7 @@ struct Mma<
   using ArchTag = arch::Sm80;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -1001,7 +1001,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM80_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_SM80_ENABLED)
 
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -1033,9 +1033,9 @@ template <>
 struct Mma<
   gemm::GemmShape<16, 8, 64>,
   32,
-  nihilus_gemm::int4b_t,
+  cutlass::int4b_t,
   layout::RowMajor,
-  nihilus_gemm::int4b_t,
+  cutlass::int4b_t,
   layout::ColumnMajor,
   int,
   layout::RowMajor,
@@ -1043,13 +1043,13 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16, 8, 64>;
 
-  using ElementA = nihilus_gemm::int4b_t;
+  using ElementA = cutlass::int4b_t;
   using LayoutA = layout::RowMajor;
-  using FragmentA = Array<nihilus_gemm::int4b_t, 32>;
+  using FragmentA = Array<cutlass::int4b_t, 32>;
 
-  using ElementB = nihilus_gemm::int4b_t;
+  using ElementB = cutlass::int4b_t;
   using LayoutB = layout::ColumnMajor;
-  using FragmentB = Array<nihilus_gemm::int4b_t, 16>;
+  using FragmentB = Array<cutlass::int4b_t, 16>;
 
   using ElementC = int;
   using LayoutC = layout::RowMajor;
@@ -1059,7 +1059,7 @@ struct Mma<
   using ArchTag = arch::Sm80;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -1067,7 +1067,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM80_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_SM80_ENABLED)
 
   uint32_t const * A = reinterpret_cast<uint32_t const *>(&a);
   uint32_t const * B = reinterpret_cast<uint32_t const *>(&b);
@@ -1083,10 +1083,10 @@ struct Mma<
         "r"(C[0]), "r"(C[1]), "r"(C[2]), "r"(C[3]));
 
 #else
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_UNUSED(d);
+    CUTLASS_UNUSED(a);
+    CUTLASS_UNUSED(b);
+    CUTLASS_UNUSED(c);
+    CUTLASS_UNUSED(d);
     assert(0);
 #endif
   }
@@ -1097,9 +1097,9 @@ template <>
 struct Mma<
   gemm::GemmShape<16, 8, 64>,
   32,
-  nihilus_gemm::uint4b_t,
+  cutlass::uint4b_t,
   layout::RowMajor,
-  nihilus_gemm::int4b_t,
+  cutlass::int4b_t,
   layout::ColumnMajor,
   int,
   layout::RowMajor,
@@ -1107,13 +1107,13 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16, 8, 64>;
 
-  using ElementA = nihilus_gemm::uint4b_t;
+  using ElementA = cutlass::uint4b_t;
   using LayoutA = layout::RowMajor;
-  using FragmentA = Array<nihilus_gemm::uint4b_t, 32>;
+  using FragmentA = Array<cutlass::uint4b_t, 32>;
 
-  using ElementB = nihilus_gemm::int4b_t;
+  using ElementB = cutlass::int4b_t;
   using LayoutB = layout::ColumnMajor;
-  using FragmentB = Array<nihilus_gemm::int4b_t, 16>;
+  using FragmentB = Array<cutlass::int4b_t, 16>;
 
   using ElementC = int;
   using LayoutC = layout::RowMajor;
@@ -1123,7 +1123,7 @@ struct Mma<
   using ArchTag = arch::Sm80;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -1131,7 +1131,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM80_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_SM80_ENABLED)
 
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -1147,10 +1147,10 @@ struct Mma<
           "r"(C[0]), "r"(C[1]), "r"(C[2]), "r"(C[3]));
 
 #else
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_UNUSED(d);
+    CUTLASS_UNUSED(a);
+    CUTLASS_UNUSED(b);
+    CUTLASS_UNUSED(c);
+    CUTLASS_UNUSED(d);
     assert(0);
 #endif
   }
@@ -1161,9 +1161,9 @@ template <>
 struct Mma<
   gemm::GemmShape<16, 8, 64>,
   32,
-  nihilus_gemm::int4b_t,
+  cutlass::int4b_t,
   layout::RowMajor,
-  nihilus_gemm::uint4b_t,
+  cutlass::uint4b_t,
   layout::ColumnMajor,
   int,
   layout::RowMajor,
@@ -1171,13 +1171,13 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16, 8, 64>;
 
-  using ElementA = nihilus_gemm::int4b_t;
+  using ElementA = cutlass::int4b_t;
   using LayoutA = layout::RowMajor;
-  using FragmentA = Array<nihilus_gemm::int4b_t, 32>;
+  using FragmentA = Array<cutlass::int4b_t, 32>;
 
-  using ElementB = nihilus_gemm::uint4b_t;
+  using ElementB = cutlass::uint4b_t;
   using LayoutB = layout::ColumnMajor;
-  using FragmentB = Array<nihilus_gemm::uint4b_t, 16>;
+  using FragmentB = Array<cutlass::uint4b_t, 16>;
 
   using ElementC = int;
   using LayoutC = layout::RowMajor;
@@ -1187,7 +1187,7 @@ struct Mma<
   using ArchTag = arch::Sm80;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -1195,7 +1195,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM80_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_SM80_ENABLED)
 
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -1211,10 +1211,10 @@ struct Mma<
           "r"(C[0]), "r"(C[1]), "r"(C[2]), "r"(C[3]));
 
 #else
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_UNUSED(d);
+    CUTLASS_UNUSED(a);
+    CUTLASS_UNUSED(b);
+    CUTLASS_UNUSED(c);
+    CUTLASS_UNUSED(d);
     assert(0);
 #endif
   }
@@ -1225,9 +1225,9 @@ template <>
 struct Mma<
   gemm::GemmShape<16, 8, 64>,
   32,
-  nihilus_gemm::uint4b_t,
+  cutlass::uint4b_t,
   layout::RowMajor,
-  nihilus_gemm::uint4b_t,
+  cutlass::uint4b_t,
   layout::ColumnMajor,
   int,
   layout::RowMajor,
@@ -1235,13 +1235,13 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16, 8, 64>;
 
-  using ElementA = nihilus_gemm::uint4b_t;
+  using ElementA = cutlass::uint4b_t;
   using LayoutA = layout::RowMajor;
-  using FragmentA = Array<nihilus_gemm::uint4b_t, 32>;
+  using FragmentA = Array<cutlass::uint4b_t, 32>;
 
-  using ElementB = nihilus_gemm::uint4b_t;
+  using ElementB = cutlass::uint4b_t;
   using LayoutB = layout::ColumnMajor;
-  using FragmentB = Array<nihilus_gemm::uint4b_t, 16>;
+  using FragmentB = Array<cutlass::uint4b_t, 16>;
 
   using ElementC = int;
   using LayoutC = layout::RowMajor;
@@ -1251,7 +1251,7 @@ struct Mma<
   using ArchTag = arch::Sm80;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -1259,7 +1259,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM80_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_SM80_ENABLED)
 
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -1275,10 +1275,10 @@ struct Mma<
           "r"(C[0]), "r"(C[1]), "r"(C[2]), "r"(C[3]));
 
 #else
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_UNUSED(d);
+    CUTLASS_UNUSED(a);
+    CUTLASS_UNUSED(b);
+    CUTLASS_UNUSED(c);
+    CUTLASS_UNUSED(d);
     assert(0);
 #endif
   }
@@ -1295,9 +1295,9 @@ template <>
 struct Mma<
   gemm::GemmShape<16,8,256>,
   32,
-  nihilus_gemm::uint1b_t,
+  cutlass::uint1b_t,
   layout::RowMajor,
-  nihilus_gemm::uint1b_t,
+  cutlass::uint1b_t,
   layout::ColumnMajor,
   int32_t,
   layout::RowMajor,
@@ -1305,13 +1305,13 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16,8,256>;
 
-  using ElementA = nihilus_gemm::uint1b_t;
+  using ElementA = cutlass::uint1b_t;
   using LayoutA = layout::RowMajor;
-  using FragmentA = Array<nihilus_gemm::uint1b_t, 128>;
+  using FragmentA = Array<cutlass::uint1b_t, 128>;
 
-  using ElementB = nihilus_gemm::uint1b_t;
+  using ElementB = cutlass::uint1b_t;
   using LayoutB = layout::ColumnMajor;
-  using FragmentB = Array<nihilus_gemm::uint1b_t, 64>;
+  using FragmentB = Array<cutlass::uint1b_t, 64>;
 
   using ElementC = int32_t;
   using LayoutC = layout::RowMajor;
@@ -1321,7 +1321,7 @@ struct Mma<
   using ArchTag = arch::Sm80;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -1329,7 +1329,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_B1_AND_SM80_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_B1_AND_SM80_ENABLED)
 
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -1346,10 +1346,10 @@ struct Mma<
           "r"(C[0]), "r"(C[1]), "r"(C[2]), "r"(C[3]));
 
 #else
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_UNUSED(d);
+    CUTLASS_UNUSED(a);
+    CUTLASS_UNUSED(b);
+    CUTLASS_UNUSED(c);
+    CUTLASS_UNUSED(d);
     assert(0);
 #endif
   }
@@ -1360,9 +1360,9 @@ template <>
 struct Mma<
   gemm::GemmShape<16,8,256>,
   32,
-  nihilus_gemm::uint1b_t,
+  cutlass::uint1b_t,
   layout::RowMajor,
-  nihilus_gemm::uint1b_t,
+  cutlass::uint1b_t,
   layout::ColumnMajor,
   int,
   layout::RowMajor,
@@ -1370,13 +1370,13 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16,8,256>;
 
-  using ElementA = nihilus_gemm::uint1b_t;
+  using ElementA = cutlass::uint1b_t;
   using LayoutA = layout::RowMajor;
-  using FragmentA = Array<nihilus_gemm::uint1b_t, 128>;
+  using FragmentA = Array<cutlass::uint1b_t, 128>;
 
-  using ElementB = nihilus_gemm::uint1b_t;
+  using ElementB = cutlass::uint1b_t;
   using LayoutB = layout::ColumnMajor;
-  using FragmentB = Array<nihilus_gemm::uint1b_t, 64>;
+  using FragmentB = Array<cutlass::uint1b_t, 64>;
 
   using ElementC = int32_t;
   using LayoutC = layout::RowMajor;
@@ -1386,7 +1386,7 @@ struct Mma<
   using ArchTag = arch::Sm80;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -1394,7 +1394,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_B1_AND_SM80_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_B1_AND_SM80_ENABLED)
 
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -1411,10 +1411,10 @@ struct Mma<
           "r"(C[0]), "r"(C[1]), "r"(C[2]), "r"(C[3]));
 
 #else
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_UNUSED(d);
+    CUTLASS_UNUSED(a);
+    CUTLASS_UNUSED(b);
+    CUTLASS_UNUSED(c);
+    CUTLASS_UNUSED(d);
     assert(0);
 #endif
   }
@@ -1431,9 +1431,9 @@ template <>
 struct Mma<
   gemm::GemmShape<16,8,256>,
   32,
-  nihilus_gemm::uint1b_t,
+  cutlass::uint1b_t,
   layout::RowMajor,
-  nihilus_gemm::uint1b_t,
+  cutlass::uint1b_t,
   layout::ColumnMajor,
   int,
   layout::RowMajor,
@@ -1441,13 +1441,13 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16,8,256>;
 
-  using ElementA = nihilus_gemm::uint1b_t;
+  using ElementA = cutlass::uint1b_t;
   using LayoutA = layout::RowMajor;
-  using FragmentA = Array<nihilus_gemm::uint1b_t, 128>;
+  using FragmentA = Array<cutlass::uint1b_t, 128>;
 
-  using ElementB = nihilus_gemm::uint1b_t;
+  using ElementB = cutlass::uint1b_t;
   using LayoutB = layout::ColumnMajor;
-  using FragmentB = Array<nihilus_gemm::uint1b_t, 64>;
+  using FragmentB = Array<cutlass::uint1b_t, 64>;
 
   using ElementC = int;
   using LayoutC = layout::RowMajor;
@@ -1457,7 +1457,7 @@ struct Mma<
   using ArchTag = arch::Sm80;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -1465,7 +1465,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_B1_XOR_SM80_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_B1_XOR_SM80_ENABLED)
 
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -1483,18 +1483,18 @@ struct Mma<
 
 #else
     
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_UNUSED(d);
+    CUTLASS_UNUSED(a);
+    CUTLASS_UNUSED(b);
+    CUTLASS_UNUSED(c);
+    CUTLASS_UNUSED(d);
     assert(0);
 
-#endif // defined(CUTLASS_RT_TM_ARCH_MMA_B1_XOR_SM80_ENABLED)
+#endif // defined(CUTLASS_ARCH_MMA_B1_XOR_SM80_ENABLED)
   }
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace arch
-} // namespace nihilus_gemm
+} // namespace cutlass
 /////////////////////////////////////////////////////////////////////////////////////////////////

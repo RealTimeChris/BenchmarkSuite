@@ -34,7 +34,7 @@
 */
 
 #pragma once
-#include "nihilus_gemm/cutlass.h"
+#include "cutlass/cutlass.h"
 #if defined(__CUDACC_RTC__)
 #include CUDA_STD_HEADER(cstdint)
 #else
@@ -44,9 +44,9 @@
 #include <type_traits>
 #include <stdexcept>
 #endif
-#include "nihilus_gemm/uint128.h"
+#include "cutlass/uint128.h"
 
-namespace nihilus_gemm {
+namespace cutlass {
 
 ///! Unsigned 256b integer type
 struct alignas(32) uint256_t {
@@ -68,19 +68,19 @@ struct alignas(32) uint256_t {
   //
 
   /// Default ctor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   uint256_t() : hilo_{uint128_t{}, uint128_t{}} {}
 
   /// Constructor from uint128
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   uint256_t(uint128_t lo_) : hilo_{lo_, uint128_t{}} {}
 
   /// Constructor from two 128b unsigned integers
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   uint256_t(uint128_t lo_, uint128_t hi_) : hilo_{lo_, hi_} {}
 
   /// Lossily cast to uint128_t
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   explicit operator uint128_t() const {
     return hilo_.lo;
   }
@@ -88,6 +88,6 @@ struct alignas(32) uint256_t {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

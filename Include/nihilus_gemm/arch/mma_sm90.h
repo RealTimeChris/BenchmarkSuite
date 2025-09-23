@@ -33,17 +33,17 @@
 */
 
 #pragma once
-#include "nihilus_gemm/cutlass.h"
+#include "cutlass/cutlass.h"
 #include CUDA_STD_HEADER(cassert)
 
 #include "mma.h"
-#include "nihilus_gemm/layout/matrix.h"
-#include "nihilus_gemm/numeric_types.h"
-#include "nihilus_gemm/arch/config.h"
+#include "cutlass/layout/matrix.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/arch/config.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace arch {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -81,11 +81,11 @@ struct Mma<
 
   using ArchTag = arch::Sm90;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM90_F64_MMA_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_SM90_F64_MMA_ENABLED)
 
   double const *A = reinterpret_cast<double const *>(&a);
   double const *B = reinterpret_cast<double const *>(&b);
@@ -100,11 +100,11 @@ struct Mma<
         "d"(C[0]), "d"(C[1]), "d"(C[2]), "d"(C[3]));
 
 #else
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_UNUSED(d);
+    CUTLASS_UNUSED(a);
+    CUTLASS_UNUSED(b);
+    CUTLASS_UNUSED(c);
+    CUTLASS_NOT_IMPLEMENTED();
 #endif
   }
 };
@@ -144,11 +144,11 @@ struct Mma<
 
   using ArchTag = arch::Sm90;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM90_F64_MMA_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_SM90_F64_MMA_ENABLED)
 
   double const *A = reinterpret_cast<double const *>(&a);
   double const *B = reinterpret_cast<double const *>(&b);
@@ -164,11 +164,11 @@ struct Mma<
 
 #else
 
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_UNUSED(d);
+    CUTLASS_UNUSED(a);
+    CUTLASS_UNUSED(b);
+    CUTLASS_UNUSED(c);
+    CUTLASS_NOT_IMPLEMENTED();
 #endif
   }
 };
@@ -208,11 +208,11 @@ struct Mma<
 
   using ArchTag = arch::Sm90;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
     
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM90_F64_MMA_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_SM90_F64_MMA_ENABLED)
 
   double const *A = reinterpret_cast<double const *>(&a);
   double const *B = reinterpret_cast<double const *>(&b);
@@ -227,7 +227,7 @@ struct Mma<
         "d"(C[0]), "d"(C[1]), "d"(C[2]), "d"(C[3]));
 
 #else
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_NOT_IMPLEMENTED();
 #endif
   }
 };
@@ -235,7 +235,7 @@ struct Mma<
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace arch
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 

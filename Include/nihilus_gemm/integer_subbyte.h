@@ -35,17 +35,17 @@
 */
 
 #pragma once
-#include "nihilus_gemm/cutlass.h"
+#include "cutlass/cutlass.h"
 #if defined(__CUDACC_RTC__)
 #include CUDA_STD_HEADER(cstdint)
 #else
 #include <cstdint>
 #endif
 
-#include "nihilus_gemm/numeric_size.h"
-#include "nihilus_gemm/platform/platform.h"
+#include "cutlass/numeric_size.h"
+#include "cutlass/platform/platform.h"
 
-namespace nihilus_gemm {
+namespace cutlass {
 
 template <int Bits, bool Signed = true>
 struct integer_subbyte {
@@ -55,7 +55,7 @@ struct integer_subbyte {
 
   // "External type"; the integer type for which
   // integer_subbyte has a conversion-to operator
-  using xint_t = typename nihilus_gemm::platform::conditional<Signed, int, unsigned>::type;
+  using xint_t = typename cutlass::platform::conditional<Signed, int, unsigned>::type;
 
   // Bitmask for truncation from larger integers
   static constexpr Storage bits_mask_ = Storage(Storage(-1) >> (8 - Bits));
@@ -71,16 +71,16 @@ struct integer_subbyte {
   // Implicit conversion is DEPRECATED.
   // Please use one of the two explicit constructors below.
   template<class T,
-    class Enable = nihilus_gemm::platform::enable_if_t<nihilus_gemm::platform::is_convertible_v<T, int>>
+    class Enable = cutlass::platform::enable_if_t<cutlass::platform::is_convertible_v<T, int>>
   >
-#if !defined(CUTLASS_RT_TM_EXTRA_WARNINGS)
+#if !defined(CUTLASS_EXTRA_WARNINGS)
   [[deprecated("Implicit conversion is deprecated; please use explicit construction instead")]]
 #endif
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   integer_subbyte(T value)
       : integer_subbyte(static_cast<xint_t>(value)) {}
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   integer_subbyte(float value)
       : integer_subbyte(static_cast<xint_t>(value)) {}
 
@@ -90,7 +90,7 @@ struct integer_subbyte {
 
   // Precondition: If the external type is unsigned int, then value
   // fits in unsigned int (is nonnegative).
-  CUTLASS_RT_TM_HOST_DEVICE explicit
+  CUTLASS_HOST_DEVICE explicit
   integer_subbyte(int value)
       : storage(reinterpret_cast<Storage const&>(value) & bits_mask_)
   {
@@ -109,7 +109,7 @@ struct integer_subbyte {
 
   // Precondition: If the external type is (signed) int, then value
   // fits in int.
-  CUTLASS_RT_TM_HOST_DEVICE explicit
+  CUTLASS_HOST_DEVICE explicit
   integer_subbyte(unsigned value)
       : storage(reinterpret_cast<Storage const&>(value) & bits_mask_)
   {
@@ -125,12 +125,12 @@ struct integer_subbyte {
     }
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE explicit
+  CUTLASS_HOST_DEVICE explicit
   integer_subbyte(uint8_t value)
     : integer_subbyte(static_cast<unsigned>(value)) {}
 
   // Convert to the "external" integer type (int or unsigned)
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   operator xint_t() const {
     if (sign_mask_ & storage) {  // Sign extend
       return xint_t(storage) | ~xint_t(bits_mask_);
@@ -139,17 +139,17 @@ struct integer_subbyte {
     }
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   bool operator==(integer_subbyte const& rhs) const {
     return storage == rhs.storage;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   bool operator!=(integer_subbyte const& rhs) const {
     return storage != rhs.storage;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   bool operator<(integer_subbyte const& rhs) const {
     if ((sign_mask_ & storage) == (sign_mask_ & rhs.storage)) {
       // If both *this and rhs have the same sign, compare storage directly.
@@ -162,7 +162,7 @@ struct integer_subbyte {
     }
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   bool operator<=(integer_subbyte const& rhs) const {
     if ((sign_mask_ & storage) == (sign_mask_ & rhs.storage)) {
       // If both *this and rhs have the same sign, compare storage directly.
@@ -175,17 +175,17 @@ struct integer_subbyte {
     }
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   bool operator>=(integer_subbyte const& rhs) const {
     return !(*this < rhs);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   bool operator>(integer_subbyte const& rhs) const {
     return !(*this <= rhs);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE friend integer_subbyte
+  CUTLASS_HOST_DEVICE friend integer_subbyte
   conj(integer_subbyte const& x) {
     return x;
   }
@@ -246,24 +246,24 @@ struct numeric_limits;
 
 // Specialization for signed integer_subbyte
 template<int NumBits>
-struct numeric_limits<nihilus_gemm::integer_subbyte<NumBits, true>> {
+struct numeric_limits<cutlass::integer_subbyte<NumBits, true>> {
 private:
-  using value_type = nihilus_gemm::integer_subbyte<NumBits, true>;
+  using value_type = cutlass::integer_subbyte<NumBits, true>;
 
 public:
-  CUTLASS_RT_TM_HOST_DEVICE static value_type lowest() noexcept {
+  CUTLASS_HOST_DEVICE static value_type lowest() noexcept {
     return value_type{
       -(1 << (NumBits - 1))
     };
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE static value_type max() noexcept {
+  CUTLASS_HOST_DEVICE static value_type max() noexcept {
     return value_type{
       (1 << (NumBits - 1)) - 1
     };
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE static value_type const min() noexcept {
+  CUTLASS_HOST_DEVICE static value_type const min() noexcept {
     return lowest();
   }
 
@@ -274,22 +274,22 @@ public:
 
 // Specialization for unsigned integer_subbyte
 template<int NumBits>
-struct numeric_limits<nihilus_gemm::integer_subbyte<NumBits, false>> {
+struct numeric_limits<cutlass::integer_subbyte<NumBits, false>> {
 private:
-  using value_type = nihilus_gemm::integer_subbyte<NumBits, false>;
+  using value_type = cutlass::integer_subbyte<NumBits, false>;
 
 public:
-  CUTLASS_RT_TM_HOST_DEVICE static value_type lowest() noexcept {
+  CUTLASS_HOST_DEVICE static value_type lowest() noexcept {
     return value_type{0u};
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE static value_type max() noexcept {
+  CUTLASS_HOST_DEVICE static value_type max() noexcept {
     return value_type{
       (1u << NumBits) - 1u
     };
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE static value_type const min() noexcept {
+  CUTLASS_HOST_DEVICE static value_type const min() noexcept {
     return lowest();
   }
 
@@ -298,4 +298,4 @@ public:
 };
 
 } // namespace platform
-} // namespace nihilus_gemm
+} // namespace cutlass

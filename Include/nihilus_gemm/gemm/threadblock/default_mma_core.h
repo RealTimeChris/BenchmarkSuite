@@ -37,21 +37,21 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/array.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/array.h"
 
-#include "nihilus_gemm/numeric_types.h"
-#include "nihilus_gemm/matrix_shape.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/matrix_shape.h"
 
-#include "nihilus_gemm/gemm/warp/mma.h"
-#include "nihilus_gemm/gemm/threadblock/mma_pipelined.h"
-#include "nihilus_gemm/gemm/threadblock/mma_singlestage.h"
-#include "nihilus_gemm/arch/cache_operation.h" 
-#include "nihilus_gemm/arch/mma.h" 
+#include "cutlass/gemm/warp/mma.h"
+#include "cutlass/gemm/threadblock/mma_pipelined.h"
+#include "cutlass/gemm/threadblock/mma_singlestage.h"
+#include "cutlass/arch/cache_operation.h" 
+#include "cutlass/arch/mma.h" 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace threadblock {
 
@@ -85,22 +85,22 @@ template <
     /// Operation performed by MMA
     typename Operator = typename platform::conditional<
         (platform::is_same<OperatorClass,
-                           nihilus_gemm::arch::OpClassTensorOp>::value) &&
+                           cutlass::arch::OpClassTensorOp>::value) &&
             (platform::is_same<ElementA, int8_t>::value ||
              platform::is_same<ElementA, int4b_t>::value ||
              platform::is_same<ElementA, uint8_t>::value ||
              platform::is_same<ElementA, uint4b_t>::value),
-        nihilus_gemm::arch::OpMultiplyAddSaturate,
-        nihilus_gemm::arch::OpMultiplyAdd>::type,
+        cutlass::arch::OpMultiplyAddSaturate,
+        cutlass::arch::OpMultiplyAdd>::type,
     /// Store the accumulators in row major or column major.  Row major is used
     /// when output layout is interleaved.
     bool AccumulatorsInRowMajor = false,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA =
-        nihilus_gemm::arch::CacheOperation::Global,
+    cutlass::arch::CacheOperation::Kind CacheOpA =
+        cutlass::arch::CacheOperation::Global,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB =
-        nihilus_gemm::arch::CacheOperation::Global,
+    cutlass::arch::CacheOperation::Kind CacheOpB =
+        cutlass::arch::CacheOperation::Global,
     /// per-element transformation for elements of A
     ComplexTransform TransformA = ComplexTransform::kNone,
     /// per-element transformation for elements of B
@@ -113,4 +113,4 @@ struct DefaultMmaCore;
 
 } // namespace threadblock
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass

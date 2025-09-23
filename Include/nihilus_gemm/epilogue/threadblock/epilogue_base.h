@@ -37,28 +37,28 @@
 */
 
 #pragma once
-#include "nihilus_gemm/cutlass.h"
+#include "cutlass/cutlass.h"
 #if !defined(__CUDACC_RTC__)
 #include <type_traits>
 #include <utility>
 #endif
 #include CUDA_STD_HEADER(cassert)
 
-#include "nihilus_gemm/matrix_shape.h"
-#include "nihilus_gemm/numeric_types.h"
-#include "nihilus_gemm/array.h"
-#include "nihilus_gemm/layout/vector.h"
-#include "nihilus_gemm/layout/tensor.h"
-#include "nihilus_gemm/tensor_coord.h"
-#include "nihilus_gemm/aligned_buffer.h"
+#include "cutlass/matrix_shape.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/array.h"
+#include "cutlass/layout/vector.h"
+#include "cutlass/layout/tensor.h"
+#include "cutlass/tensor_coord.h"
+#include "cutlass/aligned_buffer.h"
 
-#include "nihilus_gemm/gemm/gemm.h"
+#include "cutlass/gemm/gemm.h"
 
-#include "nihilus_gemm/transform/pitch_linear_thread_map.h"
+#include "cutlass/transform/pitch_linear_thread_map.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace threadblock {
 
@@ -170,13 +170,13 @@ public:
     //
 
     /// Returns a pointer to the shared memory buffer
-    CUTLASS_RT_TM_DEVICE
+    CUTLASS_DEVICE
     Element *data() {
       return storage.data();
     }
 
     /// Returns a tensor reference to the shared memory buffer
-    CUTLASS_RT_TM_DEVICE
+    CUTLASS_DEVICE
     TensorRef reference() {
       return TensorRef(
         storage.data(), 
@@ -198,7 +198,7 @@ protected:
 public:
 
   /// Constructor
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   EpilogueBase(
     SharedStorage &shared_storage,    ///< Shared storage object    
     int thread_idx,                   ///< ID of a thread within the threadblock
@@ -229,6 +229,6 @@ public:
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////

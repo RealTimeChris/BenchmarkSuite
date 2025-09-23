@@ -34,21 +34,21 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/array.h"
-#include "nihilus_gemm/aligned_buffer.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/array.h"
+#include "cutlass/aligned_buffer.h"
 
-#include "nihilus_gemm/numeric_types.h"
-#include "nihilus_gemm/matrix_shape.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/matrix_shape.h"
 
-#include "nihilus_gemm/gemm/gemm.h"
-#include "nihilus_gemm/gemm/threadblock/mma_base.h"
+#include "cutlass/gemm/gemm.h"
+#include "cutlass/gemm/threadblock/mma_base.h"
 
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace threadblock {
 
@@ -137,7 +137,7 @@ protected:
 public:
 
   /// Construct from tensor references
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   MmaSingleStage(
     typename Base::SharedStorage &shared_storage,       ///< Shared storage needed for internal use by threadblock-scoped GEMM
     int thread_idx,                                     ///< ID within the threadblock
@@ -167,7 +167,7 @@ public:
   }
 
   /// Perform a threadblock-scoped matrix multiply-accumulate
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void operator()(
     int gemm_k_iterations,            ///< number of iterations of the mainloop
     FragmentC &accum,                 ///< destination accumulator tile
@@ -209,7 +209,7 @@ public:
     // Mainloop
     //
 
-    CUTLASS_RT_TM_GEMM_LOOP
+    CUTLASS_GEMM_LOOP
     for (; gemm_k_iterations > 0; --gemm_k_iterations) {
       this->smem_iterator_A_.store(tb_frag_A);
       this->smem_iterator_B_.store(tb_frag_B);
@@ -220,7 +220,7 @@ public:
       // Loop over GEMM K dimension
       //
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int warp_mma_k = 0; warp_mma_k < Base::kWarpGemmIterations; ++warp_mma_k) {
 
         // Load warp-level tiles from shared memory, wrapping to k offset if this is the last group
@@ -262,4 +262,4 @@ public:
 
 } // namespace threadblock
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass

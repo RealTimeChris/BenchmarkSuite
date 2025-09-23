@@ -34,8 +34,8 @@
 
 #pragma once
 
-#include "nihilus_gemm/detail/helper_macros.hpp"
-#include "nihilus_gemm/cutlass.h"
+#include "cutlass/detail/helper_macros.hpp"
+#include "cutlass/cutlass.h"
 #if defined(__CUDACC_RTC__)
 #include CUDA_STD_HEADER(cstdint)
 #else
@@ -47,22 +47,22 @@
 #include <vector>
 #endif
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace arch {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+#if defined(CUTLASS_ENABLE_SYNCLOG)
 
 constexpr uint32_t synclog_cap = 1 << 26;
 
 inline std::mutex synclog_mutex;
 inline std::vector<uint32_t*> synclog_buf_list;
 #if defined(__NVCC__) || (defined(__clang__) && defined(__CUDA__))
-CUTLASS_RT_TM_DEVICE uint32_t* synclog_buf;
+CUTLASS_DEVICE uint32_t* synclog_buf;
 #endif
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 uint32_t* synclog_alloc(uint32_t n) {
   #if defined(__NVCC__) || (defined(__clang__) && defined(__CUDA__))
   uint32_t* buf = synclog_buf;
@@ -74,7 +74,7 @@ uint32_t* synclog_alloc(uint32_t n) {
   return nullptr;
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_prefix(uint32_t* to, uint32_t header, uint32_t line) {
   #if defined(__NVCC__) || (defined(__clang__) && defined(__CUDA__))
   uint64_t time64;
@@ -219,7 +219,7 @@ constexpr uint32_t synclog_length_wgmma_smem_smem = synclog_length_prefix + 4;
 constexpr bool     synclog_enable_cpasync_barrier_arrive = true;
 constexpr uint32_t synclog_header_cpasync_barrier_arrive = 33;
 constexpr uint32_t synclog_length_cpasync_barrier_arrive = synclog_length_prefix + 1;
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 bool synclog_condition_emit() {
   #if defined(__NVCC__) || (defined(__clang__) && defined(__CUDA__))
   return threadIdx.x % NumThreadsPerWarp == 0 && threadIdx.y == 0 && threadIdx.z == 0 &&
@@ -229,7 +229,7 @@ bool synclog_condition_emit() {
   #endif
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 bool synclog_condition_print() {
   #if defined(__NVCC__) || (defined(__clang__) && defined(__CUDA__))
   return threadIdx.x == 0 && threadIdx.y == 0 && threadIdx.z == 0 &&
@@ -239,7 +239,7 @@ bool synclog_condition_print() {
   #endif
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_print_prefix(char const* header, uint32_t at) {
   #if defined(__NVCC__) || (defined(__clang__) && defined(__CUDA__))
   uint32_t line = synclog_buf[at + 1];
@@ -261,19 +261,19 @@ void synclog_print_prefix(char const* header, uint32_t at) {
   #endif
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_print_wgmma_desc(char const* str, uint32_t lo, uint32_t hi, char const* sep) {
-  CUTLASS_RT_TM_UNUSED(hi);
+  CUTLASS_UNUSED(hi);
   uint32_t smem_int_ptr = (lo & ((1 << 14) - 1)) << 4;
   printf("%s_smem_int_ptr=%u%s", str, smem_int_ptr, sep);
 }
 
-#endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+#endif // defined(CUTLASS_ENABLE_SYNCLOG)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 inline void synclog_setup() {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   #if defined(__NVCC__) || (defined(__clang__) && defined(__CUDA__))
   std::scoped_lock lock(synclog_mutex);
   auto fail = [] () {
@@ -310,41 +310,41 @@ inline void synclog_setup() {
     fail();
   }
   #endif
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_syncthreads(uint32_t line) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_syncthreads) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_syncthreads);
   if (to == nullptr) return;
   synclog_emit_prefix(to, synclog_header_syncthreads, line);
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_syncwarp(uint32_t line) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_syncwarp) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_syncwarp);
   if (to == nullptr) return;
   synclog_emit_prefix(to, synclog_header_syncwarp, line);
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_named_barrier_arrive_and_wait(
   uint32_t line,
   uint32_t num_threads,
   uint32_t barrier_id) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_named_barrier_arrive_and_wait) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_named_barrier_arrive_and_wait);
@@ -353,18 +353,18 @@ void synclog_emit_named_barrier_arrive_and_wait(
   to[synclog_length_prefix + 0] = num_threads;
   to[synclog_length_prefix + 1] = barrier_id;
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  CUTLASS_RT_TM_UNUSED(num_threads);
-  CUTLASS_RT_TM_UNUSED(barrier_id);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  CUTLASS_UNUSED(num_threads);
+  CUTLASS_UNUSED(barrier_id);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_named_barrier_arrive(
   uint32_t line,
   uint32_t num_threads,
   uint32_t barrier_id) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_named_barrier_arrive) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_named_barrier_arrive);
@@ -373,18 +373,18 @@ void synclog_emit_named_barrier_arrive(
   to[synclog_length_prefix + 0] = num_threads;
   to[synclog_length_prefix + 1] = barrier_id;
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  CUTLASS_RT_TM_UNUSED(num_threads);
-  CUTLASS_RT_TM_UNUSED(barrier_id);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  CUTLASS_UNUSED(num_threads);
+  CUTLASS_UNUSED(barrier_id);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_cluster_barrier_init(
   uint32_t line,
   uint32_t smem_addr,
   uint32_t arrive_count) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_cluster_barrier_init) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_cluster_barrier_init);
@@ -393,18 +393,18 @@ void synclog_emit_cluster_barrier_init(
   to[synclog_length_prefix + 0] = smem_addr;
   to[synclog_length_prefix + 1] = arrive_count;
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  CUTLASS_RT_TM_UNUSED(smem_addr);
-  CUTLASS_RT_TM_UNUSED(arrive_count);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  CUTLASS_UNUSED(smem_addr);
+  CUTLASS_UNUSED(arrive_count);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_cluster_barrier_wait(
   uint32_t line,
   uint32_t smem_addr,
   uint32_t phase) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_cluster_barrier_wait) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_cluster_barrier_wait);
@@ -413,19 +413,19 @@ void synclog_emit_cluster_barrier_wait(
   to[synclog_length_prefix + 0] = smem_addr;
   to[synclog_length_prefix + 1] = phase;
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  CUTLASS_RT_TM_UNUSED(smem_addr);
-  CUTLASS_RT_TM_UNUSED(phase);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  CUTLASS_UNUSED(smem_addr);
+  CUTLASS_UNUSED(phase);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_cluster_barrier_test_wait(
   uint32_t line,
   uint32_t smem_addr,
   uint32_t phase,
   uint32_t pred) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_cluster_barrier_test_wait) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_cluster_barrier_test_wait);
@@ -435,19 +435,19 @@ void synclog_emit_cluster_barrier_test_wait(
   to[synclog_length_prefix + 1] = phase;
   to[synclog_length_prefix + 2] = pred;
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  CUTLASS_RT_TM_UNUSED(smem_addr);
-  CUTLASS_RT_TM_UNUSED(phase);
-  CUTLASS_RT_TM_UNUSED(pred);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  CUTLASS_UNUSED(smem_addr);
+  CUTLASS_UNUSED(phase);
+  CUTLASS_UNUSED(pred);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_cluster_barrier_try_wait(
   uint32_t line,
   uint32_t smem_addr,
   uint32_t phase) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_cluster_barrier_try_wait) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_cluster_barrier_try_wait);
@@ -456,19 +456,19 @@ void synclog_emit_cluster_barrier_try_wait(
   to[synclog_length_prefix + 0] = smem_addr;
   to[synclog_length_prefix + 1] = phase;
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  CUTLASS_RT_TM_UNUSED(smem_addr);
-  CUTLASS_RT_TM_UNUSED(phase);  
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  CUTLASS_UNUSED(smem_addr);
+  CUTLASS_UNUSED(phase);  
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_cluster_barrier_arrive_cluster(
   uint32_t line,
   uint32_t smem_addr,
   uint32_t cta_id,
   uint32_t pred) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_cluster_barrier_arrive_cluster) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_cluster_barrier_arrive_cluster);
@@ -478,18 +478,18 @@ void synclog_emit_cluster_barrier_arrive_cluster(
   to[synclog_length_prefix + 1] = cta_id;
   to[synclog_length_prefix + 2] = pred;
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  CUTLASS_RT_TM_UNUSED(smem_addr);
-  CUTLASS_RT_TM_UNUSED(cta_id);
-  CUTLASS_RT_TM_UNUSED(pred);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  CUTLASS_UNUSED(smem_addr);
+  CUTLASS_UNUSED(cta_id);
+  CUTLASS_UNUSED(pred);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_cluster_barrier_arrive(
   uint32_t line,
   uint32_t smem_addr) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_cluster_barrier_arrive) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_cluster_barrier_arrive);
@@ -497,16 +497,16 @@ void synclog_emit_cluster_barrier_arrive(
   synclog_emit_prefix(to, synclog_header_cluster_barrier_arrive, line);
   to[synclog_length_prefix + 0] = smem_addr;
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  CUTLASS_RT_TM_UNUSED(smem_addr);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  CUTLASS_UNUSED(smem_addr);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_cluster_barrier_invalidate(
   uint32_t line,
   uint32_t smem_addr) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_cluster_barrier_invalidate) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_cluster_barrier_invalidate);
@@ -514,17 +514,17 @@ void synclog_emit_cluster_barrier_invalidate(
   synclog_emit_prefix(to, synclog_header_cluster_barrier_invalidate, line);
   to[synclog_length_prefix + 0] = smem_addr;
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  CUTLASS_RT_TM_UNUSED(smem_addr);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  CUTLASS_UNUSED(smem_addr);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_cluster_transaction_barrier_arrive_and_expect_tx(
   uint32_t line,
   uint32_t smem_addr,
   uint32_t transaction_bytes) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_cluster_transaction_barrier_arrive_and_expect_tx) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_cluster_transaction_barrier_arrive_and_expect_tx);
@@ -533,20 +533,20 @@ void synclog_emit_cluster_transaction_barrier_arrive_and_expect_tx(
   to[synclog_length_prefix + 0] = smem_addr;
   to[synclog_length_prefix + 1] = transaction_bytes;
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  CUTLASS_RT_TM_UNUSED(smem_addr);
-  CUTLASS_RT_TM_UNUSED(transaction_bytes);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  CUTLASS_UNUSED(smem_addr);
+  CUTLASS_UNUSED(transaction_bytes);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_cluster_transaction_barrier_arrive_and_expect_tx_cluster(
   uint32_t line,
   uint32_t smem_addr,
   uint32_t transaction_bytes,
   uint32_t cta_id,
   uint32_t pred) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_cluster_transaction_barrier_arrive_and_expect_tx_cluster) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_cluster_transaction_barrier_arrive_and_expect_tx_cluster);
@@ -557,20 +557,20 @@ void synclog_emit_cluster_transaction_barrier_arrive_and_expect_tx_cluster(
   to[synclog_length_prefix + 2] = cta_id;
   to[synclog_length_prefix + 3] = pred;
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  CUTLASS_RT_TM_UNUSED(smem_addr);
-  CUTLASS_RT_TM_UNUSED(transaction_bytes);
-  CUTLASS_RT_TM_UNUSED(cta_id);
-  CUTLASS_RT_TM_UNUSED(pred);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  CUTLASS_UNUSED(smem_addr);
+  CUTLASS_UNUSED(transaction_bytes);
+  CUTLASS_UNUSED(cta_id);
+  CUTLASS_UNUSED(pred);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_cluster_transaction_barrier_expect_transaction(
   uint32_t line,
   uint32_t smem_addr,
   uint32_t transaction_bytes) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_cluster_transaction_barrier_expect_transaction) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_cluster_transaction_barrier_expect_transaction);
@@ -579,20 +579,20 @@ void synclog_emit_cluster_transaction_barrier_expect_transaction(
   to[synclog_length_prefix + 0] = smem_addr;
   to[synclog_length_prefix + 1] = transaction_bytes;
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  CUTLASS_RT_TM_UNUSED(smem_addr);
-  CUTLASS_RT_TM_UNUSED(transaction_bytes);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  CUTLASS_UNUSED(smem_addr);
+  CUTLASS_UNUSED(transaction_bytes);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_cluster_transaction_barrier_complete_transaction(
   uint32_t line,
   uint32_t smem_addr,
   uint32_t dst_cta_id,
   uint32_t transaction_bytes,
   uint32_t pred) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_cluster_transaction_barrier_complete_transaction) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_cluster_transaction_barrier_complete_transaction);
@@ -603,45 +603,45 @@ void synclog_emit_cluster_transaction_barrier_complete_transaction(
   to[synclog_length_prefix + 2] = transaction_bytes;
   to[synclog_length_prefix + 3] = pred;
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  CUTLASS_RT_TM_UNUSED(smem_addr);
-  CUTLASS_RT_TM_UNUSED(dst_cta_id);
-  CUTLASS_RT_TM_UNUSED(transaction_bytes);
-  CUTLASS_RT_TM_UNUSED(pred);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  CUTLASS_UNUSED(smem_addr);
+  CUTLASS_UNUSED(dst_cta_id);
+  CUTLASS_UNUSED(transaction_bytes);
+  CUTLASS_UNUSED(pred);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_fence_barrier_init(uint32_t line) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_fence_barrier_init) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_fence_barrier_init);
   if (to == nullptr) return;
   synclog_emit_prefix(to, synclog_header_fence_barrier_init, line);
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_fence_view_async_shared(uint32_t line) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_fence_view_async_shared) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_fence_view_async_shared);
   if (to == nullptr) return;
   synclog_emit_prefix(to, synclog_header_fence_view_async_shared, line);
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_cp_async_wait(
   uint32_t line,
   uint32_t n) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_cp_async_wait) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_cp_async_wait);
@@ -649,44 +649,44 @@ void synclog_emit_cp_async_wait(
   synclog_emit_prefix(to, synclog_header_cp_async_wait, line);
   to[synclog_length_prefix + 0] = n;
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  CUTLASS_RT_TM_UNUSED(n);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  CUTLASS_UNUSED(n);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_cp_async_wait_all(uint32_t line) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_cp_async_wait_all) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_cp_async_wait_all);
   if (to == nullptr) return;
   synclog_emit_prefix(to, synclog_header_cp_async_wait_all, line);
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_cp_async_fence(uint32_t line) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_cp_async_fence) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_cp_async_fence);
   if (to == nullptr) return;
   synclog_emit_prefix(to, synclog_header_cp_async_fence, line);
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_cp_async_nan(
   uint32_t line,
   uint32_t smem_addr,
   const void* gmem_ptr,
   uint32_t pred) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_cp_async_nan) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_cp_async_nan);
@@ -697,21 +697,21 @@ void synclog_emit_cp_async_nan(
   to[synclog_length_prefix + 2] = (uint32_t)((uint64_t)gmem_ptr >> 32);
   to[synclog_length_prefix + 3] = pred;
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  CUTLASS_RT_TM_UNUSED(smem_addr);
-  CUTLASS_RT_TM_UNUSED(gmem_ptr);
-  CUTLASS_RT_TM_UNUSED(pred);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  CUTLASS_UNUSED(smem_addr);
+  CUTLASS_UNUSED(gmem_ptr);
+  CUTLASS_UNUSED(pred);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_cp_async_zfill(
   uint32_t line,
   uint32_t smem_addr,
   const void* gmem_ptr,
   uint32_t pred,
   uint32_t size) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_cp_async_zfill) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_cp_async_zfill);
@@ -723,22 +723,22 @@ void synclog_emit_cp_async_zfill(
   to[synclog_length_prefix + 3] = pred;
   to[synclog_length_prefix + 4] = size;
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  CUTLASS_RT_TM_UNUSED(smem_addr);
-  CUTLASS_RT_TM_UNUSED(gmem_ptr);
-  CUTLASS_RT_TM_UNUSED(pred);
-  CUTLASS_RT_TM_UNUSED(size);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  CUTLASS_UNUSED(smem_addr);
+  CUTLASS_UNUSED(gmem_ptr);
+  CUTLASS_UNUSED(pred);
+  CUTLASS_UNUSED(size);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_cp_async(
   uint32_t line,
   uint32_t smem_addr,
   const void* gmem_ptr,
   uint32_t pred,
   uint32_t size) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_cp_async) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_cp_async);
@@ -750,21 +750,21 @@ void synclog_emit_cp_async(
   to[synclog_length_prefix + 3] = pred;
   to[synclog_length_prefix + 4] = size;
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  CUTLASS_RT_TM_UNUSED(smem_addr);
-  CUTLASS_RT_TM_UNUSED(gmem_ptr);
-  CUTLASS_RT_TM_UNUSED(pred);
-  CUTLASS_RT_TM_UNUSED(size);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  CUTLASS_UNUSED(smem_addr);
+  CUTLASS_UNUSED(gmem_ptr);
+  CUTLASS_UNUSED(pred);
+  CUTLASS_UNUSED(size);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_tma_load(
   uint32_t line,
   uint64_t gmem_int_desc,
   uint32_t smem_int_mbar,
   uint32_t smem_int_ptr) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_tma_load) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_tma_load);
@@ -775,19 +775,19 @@ void synclog_emit_tma_load(
   to[synclog_length_prefix + 2] = smem_int_mbar;
   to[synclog_length_prefix + 3] = smem_int_ptr;
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  CUTLASS_RT_TM_UNUSED(gmem_int_desc);
-  CUTLASS_RT_TM_UNUSED(smem_int_mbar);
-  CUTLASS_RT_TM_UNUSED(smem_int_ptr);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  CUTLASS_UNUSED(gmem_int_desc);
+  CUTLASS_UNUSED(smem_int_mbar);
+  CUTLASS_UNUSED(smem_int_ptr);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_tma_store(
   uint32_t line,
   uint64_t gmem_int_desc,
   uint32_t smem_int_ptr) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_tma_store) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_tma_store);
@@ -797,30 +797,30 @@ void synclog_emit_tma_store(
   to[synclog_length_prefix + 1] = (uint32_t)((uint64_t)gmem_int_desc >> 32);
   to[synclog_length_prefix + 2] = smem_int_ptr;
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  CUTLASS_RT_TM_UNUSED(gmem_int_desc);
-  CUTLASS_RT_TM_UNUSED(smem_int_ptr);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  CUTLASS_UNUSED(gmem_int_desc);
+  CUTLASS_UNUSED(smem_int_ptr);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_tma_store_arrive(uint32_t line) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_tma_store_arrive) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_tma_store_arrive);
   if (to == nullptr) return;
   synclog_emit_prefix(to, synclog_header_tma_store_arrive, line);
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_tma_store_wait(
   uint32_t line,
   uint32_t count) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_tma_store_wait) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_tma_store_wait);
@@ -828,30 +828,30 @@ void synclog_emit_tma_store_wait(
   synclog_emit_prefix(to, synclog_header_tma_store_wait, line);
   to[synclog_length_prefix + 0] = count;
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  CUTLASS_RT_TM_UNUSED(count);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  CUTLASS_UNUSED(count);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_warpgroup_arrive(
   uint32_t line) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_warpgroup_arrive) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_warpgroup_arrive);
   if (to == nullptr) return;
   synclog_emit_prefix(to, synclog_header_warpgroup_arrive, line);
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_warpgroup_wait(
   uint32_t line,
   uint32_t n) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_warpgroup_wait) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_warpgroup_wait);
@@ -859,30 +859,30 @@ void synclog_emit_warpgroup_wait(
   synclog_emit_prefix(to, synclog_header_warpgroup_wait, line);
   to[synclog_length_prefix + 0] = n;
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  CUTLASS_RT_TM_UNUSED(n);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  CUTLASS_UNUSED(n);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_warpgroup_commit_batch(
   uint32_t line) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_warpgroup_commit_batch) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_warpgroup_commit_batch);
   if (to == nullptr) return;
   synclog_emit_prefix(to, synclog_header_warpgroup_commit_batch, line);
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_wgmma_reg_smem(
   uint32_t line,
   uint64_t desc_b) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_wgmma_reg_smem) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_wgmma_reg_smem);
@@ -891,17 +891,17 @@ void synclog_emit_wgmma_reg_smem(
   to[synclog_length_prefix + 0] = desc_b;
   to[synclog_length_prefix + 1] = desc_b >> 32;
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  CUTLASS_RT_TM_UNUSED(desc_b);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  CUTLASS_UNUSED(desc_b);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_wgmma_smem_smem(
   uint32_t line,
   uint64_t desc_a,
   uint64_t desc_b) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_wgmma_smem_smem) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_wgmma_smem_smem);
@@ -912,17 +912,17 @@ void synclog_emit_wgmma_smem_smem(
   to[synclog_length_prefix + 2] = desc_b;
   to[synclog_length_prefix + 3] = desc_b >> 32;
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  CUTLASS_RT_TM_UNUSED(desc_a);
-  CUTLASS_RT_TM_UNUSED(desc_b);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  CUTLASS_UNUSED(desc_a);
+  CUTLASS_UNUSED(desc_b);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-CUTLASS_RT_TM_DEVICE
+CUTLASS_DEVICE
 void synclog_emit_cpasync_barrier_arrive(
   uint32_t line,
   uint32_t smem_addr) {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   if constexpr (!synclog_enable_cpasync_barrier_arrive) return;
   if (!synclog_condition_emit()) return;
   uint32_t* to = synclog_alloc(synclog_length_cpasync_barrier_arrive);
@@ -930,20 +930,20 @@ void synclog_emit_cpasync_barrier_arrive(
   synclog_emit_prefix(to, synclog_header_cpasync_barrier_arrive, line);
   to[synclog_length_prefix + 0] = smem_addr;
   #else
-  CUTLASS_RT_TM_UNUSED(line);
-  CUTLASS_RT_TM_UNUSED(smem_addr);
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  CUTLASS_UNUSED(line);
+  CUTLASS_UNUSED(smem_addr);
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
-#if !defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
-CUTLASS_RT_TM_DEVICE
+#if !defined(CUTLASS_ENABLE_SYNCLOG)
+CUTLASS_DEVICE
 #elif defined(__NVCC__) || (defined(__clang__) && defined(__CUDA__))
 static __attribute__((__noinline__)) __device__
 #else
 static __attribute__((__noinline__))
 #endif
 void synclog_print() {
-  #if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #if defined(CUTLASS_ENABLE_SYNCLOG)
   #if defined(__NVCC__) || (defined(__clang__) && defined(__CUDA__))
   if (synclog_buf == nullptr || !synclog_condition_print()) {
     return;
@@ -1242,30 +1242,30 @@ void synclog_print() {
   }
   printf("synclog end\n");
   #endif
-  #endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+  #endif // defined(CUTLASS_ENABLE_SYNCLOG)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-#if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+#if defined(CUTLASS_ENABLE_SYNCLOG)
 #undef __syncthreads
 #define __syncthreads() do {\
-  nihilus_gemm::arch::synclog_emit_syncthreads(__LINE__);\
+  cutlass::arch::synclog_emit_syncthreads(__LINE__);\
   __syncthreads();\
 } while (0)
-#endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+#endif // defined(CUTLASS_ENABLE_SYNCLOG)
 
-#if defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+#if defined(CUTLASS_ENABLE_SYNCLOG)
 #undef __syncwarp
 #define __syncwarp(...) do {\
-  nihilus_gemm::arch::synclog_emit_syncwarp(__LINE__);\
+  cutlass::arch::synclog_emit_syncwarp(__LINE__);\
   __syncwarp(__VA_ARGS__);\
 } while (0)
-#endif // defined(CUTLASS_RT_TM_ENABLE_SYNCLOG)
+#endif // defined(CUTLASS_ENABLE_SYNCLOG)
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace arch
-} // namespace nihilus_gemm
+} // namespace cutlass

@@ -43,14 +43,14 @@
 
 #pragma once
 
-#include "nihilus_gemm/array.h"
-#include "nihilus_gemm/layout/matrix.h"
+#include "cutlass/array.h"
+#include "cutlass/layout/matrix.h"
 
-#include "nihilus_gemm/epilogue/warp/tensor_op_policy.h"
+#include "cutlass/epilogue/warp/tensor_op_policy.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace warp {
 
@@ -123,35 +123,35 @@ private:
 public:
 
   /// Constructs an iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   FragmentIteratorTensorOp(AccumulatorTile const &accum): 
     accumulators_(reinterpret_cast<AccessType const *>(&accum)), 
     index_(0) {
   }
 
   /// Increments
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   FragmentIteratorTensorOp &operator++() {
     ++index_;
     return *this;
   }
 
   /// Decrements
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   FragmentIteratorTensorOp &operator--() {
     --index_;
     return *this;
   }
 
   /// Loads a fragment from the referenced part of the accumulator tile
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load(Fragment &frag, int index_offset = 0) const {
 
     int index = index_ + index_offset;
 
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int n = 0; n < Policy::OperatorCount::kColumn; ++n) {
 
       int accumulator_access_offset = 
@@ -220,38 +220,38 @@ private:
 public:
 
   /// Constructs an iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   FragmentIteratorTensorOp(AccumulatorTile const &accum): 
     accumulators_(reinterpret_cast<AccessType const *>(&accum)), 
     index_(0) {
   }
 
   /// Increments
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   FragmentIteratorTensorOp &operator++() {
     ++index_;
     return *this;
   }
 
   /// Decrements
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   FragmentIteratorTensorOp &operator--() {
     --index_;
     return *this;
   }
 
   /// Loads a fragment from the referenced part of the accumulator tile
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load(Fragment &frag, int index_offset = 0) const {
 
     int index = index_ + index_offset;
 
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < Policy::kAccumulatorRowStride; ++i) {
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int m = 0; m < (Policy::OperatorCount::kRow * 2); ++m) {
 
         int accumulator_access_offset = 
@@ -323,33 +323,33 @@ class FragmentIteratorTensorOp<WarpShape_, OperatorShape_, OperatorElementC_, Op
 
  public:
   /// Constructs an iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   FragmentIteratorTensorOp(AccumulatorTile const &accum)
       : accumulators_(reinterpret_cast<AccessType const *>(&accum)),
         index_(0) {}
 
   /// Increments
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   FragmentIteratorTensorOp &operator++() {
     ++index_;
     return *this;
   }
 
   /// Decrements
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   FragmentIteratorTensorOp &operator--() {
     --index_;
     return *this;
   }
 
   /// Loads a fragment from the referenced part of the accumulator tile
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load(Fragment &frag, int index_offset = 0) const {
     int index = index_ + index_offset;
 
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int n = 0; n < (InterleavedK / OperatorShape::kN); ++n) {
       int index_m = index % (Policy::OperatorCount::kRow *
                              Policy::kIterationsPerInstruction);
@@ -373,6 +373,6 @@ class FragmentIteratorTensorOp<WarpShape_, OperatorShape_, OperatorElementC_, Op
 
 } // namespace warp
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////

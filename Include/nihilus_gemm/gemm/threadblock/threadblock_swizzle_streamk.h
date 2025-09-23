@@ -34,25 +34,25 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
-#include "nihilus_gemm/fast_math.h"
-#include "nihilus_gemm/layout/matrix.h"
-#include "nihilus_gemm/platform/platform.h"
-#include "nihilus_gemm/gemm/gemm_enumerated_types.h"
-#include "nihilus_gemm/conv/conv2d_problem_size.h"
-#include "nihilus_gemm/conv/conv3d_problem_size.h"
-#include "nihilus_gemm/gemm/threadblock/index_remat.h"
+#include "cutlass/cutlass.h"
+#include "cutlass/fast_math.h"
+#include "cutlass/layout/matrix.h"
+#include "cutlass/platform/platform.h"
+#include "cutlass/gemm/gemm_enumerated_types.h"
+#include "cutlass/conv/conv2d_problem_size.h"
+#include "cutlass/conv/conv3d_problem_size.h"
+#include "cutlass/gemm/threadblock/index_remat.h"
 
 #if !defined(__CUDACC_RTC__)
 #include <iostream>
-#include "nihilus_gemm/core_io.h"
-#include "nihilus_gemm/trace.h"
+#include "cutlass/core_io.h"
+#include "cutlass/trace.h"
 #endif
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace threadblock {
 
@@ -167,7 +167,7 @@ struct ThreadblockSwizzleStreamK {
   ThreadblockSwizzleStreamK() = default;
 
   /// Returns the GEMM volume in thread block tiles
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   GemmCoord tiled_shape() const
   {
     return GemmCoord(
@@ -177,28 +177,28 @@ struct ThreadblockSwizzleStreamK {
   }
 
   /// Number of iterations per output tile
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   int iters_per_tile() const
   {
     return static_cast<int>(div_mod_iters_per_tile);
   }
 
   /// Number of iterations for normal SK-blocks
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   int sk_iters_per_normal_block() const
   {
     return static_cast<int>(div_mod_sk_iters_per_normal_block);
   }
 
   /// Number of SK regions
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   int sk_regions() const
   {
     return static_cast<int>(div_mod_sk_regions);
   }
 
   /// Number of SK blocks per region (splitting factor)
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   int sk_blocks_per_region() const
   {
     return static_cast<int>(div_mod_sk_blocks_per_region);
@@ -546,7 +546,7 @@ struct ThreadblockSwizzleStreamK {
 
     dp_blocks = dp_tiles;
 
-    nihilus_gemm::gemm::GemmCoord tiled_cohort_shape(
+    cutlass::gemm::GemmCoord tiled_cohort_shape(
         (tiled_shape.m() + kCohortCtasM - 1) / kCohortCtasM,
         (tiled_shape.n() + kCohortCtasN - 1) / kCohortCtasN,
         tiled_shape.k());
@@ -635,14 +635,14 @@ struct ThreadblockSwizzleStreamK {
   //
 
   /// Obtains number of threadblocks per GEMM
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   int device_num_blocks() const
   {
     return gridDim.x;
   }
 
   /// Obtains tile index for the given sk iteration
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   int get_sk_tile_idx(int iter) const
   {
     int tile_idx = div_mod_iters_per_tile.div(iter);
@@ -650,14 +650,14 @@ struct ThreadblockSwizzleStreamK {
   }
 
   /// Obtains the batch index
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   int get_batch_idx() const
   {
     return RematerializeBlockIdxZ();
   }
 
   /// Obtains the calling threadblock's tiled coordinates for the given tile index
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   GemmCoord get_tile_offset(int tile_idx) const
   {
     int m, n;
@@ -690,7 +690,7 @@ struct ThreadblockSwizzleStreamK {
   }
 
   /// Obtains the calling threadblock's tiled coordinates for the given tile index (row-major rasterization)
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   GemmCoord get_tile_offset_row_major(int tile_idx) const
   {
     // row-major raster
@@ -700,7 +700,7 @@ struct ThreadblockSwizzleStreamK {
   }
 
   /// Obtains calling threadblock's linear threadblock index
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   int get_block_idx() const
   {
     int block_idx = RematerializeBlockIdxX();
@@ -729,7 +729,7 @@ struct ThreadblockSwizzleStreamK {
 
 
   /// Obtains calling linear threadblock index of the first block to work on the given tile
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   int get_sk_block_idx(int iter) const
   {
     int region_idx;
@@ -752,7 +752,7 @@ struct ThreadblockSwizzleStreamK {
   }
 
   /// Obtains iteration extends for the given SK block index
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void get_iter_extents(
       int sk_block_idx,
       int &block_iter_begin,
@@ -779,7 +779,7 @@ struct ThreadblockSwizzleStreamK {
 
 
   /// Obtains calling linear threadblock index of the first block to work on the given tile
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   int get_first_block_idx(int tile_idx, int block_idx) const
   {
     if (tile_idx >= sk_tiles) {
@@ -797,5 +797,5 @@ struct ThreadblockSwizzleStreamK {
 
 } // namespace threadblock
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass
 

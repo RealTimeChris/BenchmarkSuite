@@ -40,12 +40,12 @@
 
 #pragma once
 
-#include "nihilus_gemm/transform/threadblock/predicated_tile_access_iterator_2dthreadtile.h"
-#include "nihilus_gemm/transform/thread/transpose.h"
+#include "cutlass/transform/threadblock/predicated_tile_access_iterator_2dthreadtile.h"
+#include "cutlass/transform/thread/transpose.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace transform {
 namespace threadblock {
 
@@ -191,7 +191,7 @@ class PredicatedTileIterator2dThreadTile<Shape_, Element_, layout::PitchLinear, 
                                    ThreadMap, AccessType>;
 
   /// Fragment object to be loaded or stored
-  using Fragment = nihilus_gemm::Array<Element, ThreadMap::Iterations::kCount *
+  using Fragment = cutlass::Array<Element, ThreadMap::Iterations::kCount *
                                                ThreadMap::ThreadAccessShape::kCount>;
 
   /// Predicate vector stores mask to guard accesses
@@ -210,13 +210,13 @@ class PredicatedTileIterator2dThreadTile<Shape_, Element_, layout::PitchLinear, 
 
    public:
     /// Construct the Params object given a pitch-linear tensor's layout
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(Layout const &layout) : params_(layout) { }
     
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params() { }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(Base const &base) 
         : params_(base) {}
   };
@@ -236,7 +236,7 @@ class PredicatedTileIterator2dThreadTile<Shape_, Element_, layout::PitchLinear, 
  public:
   /// Constructs a TileIterator from its precomputed state, threadblock offset,
   /// and thread ID
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileIterator2dThreadTile(
       /// Precomputed parameters object
       Params const &params,
@@ -254,7 +254,7 @@ class PredicatedTileIterator2dThreadTile<Shape_, Element_, layout::PitchLinear, 
                           threadblock_offset) {}
 
   /// Construct a PredicatedTileIterator2dThreadTile with zero threadblock offset
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileIterator2dThreadTile(
       Params const &params,  ///< Precomputed parameters object
       Pointer pointer,       ///< Pointer to start of tensor
@@ -265,7 +265,7 @@ class PredicatedTileIterator2dThreadTile<Shape_, Element_, layout::PitchLinear, 
                                make_Coord(0, 0)) {}
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     address_iterator_.add_pointer_offset(pointer_offset);
   }
@@ -276,7 +276,7 @@ class PredicatedTileIterator2dThreadTile<Shape_, Element_, layout::PitchLinear, 
   /// iterator's internal pointer is reverted to the first "steady state" tile.
   /// Subsequent calls are lightweight and must only update the internal
   /// pointer.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileIterator2dThreadTile &operator++() {
     if (kAdvanceRank)
       address_iterator_.add_tile_offset({0, 1});
@@ -292,7 +292,7 @@ class PredicatedTileIterator2dThreadTile<Shape_, Element_, layout::PitchLinear, 
   /// iterator's internal pointer is reverted to the first "steady state" tile.
   /// Subsequent calls are lightweight and must only update the internal
   /// pointer.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileIterator2dThreadTile operator++(int) {
     PredicatedTileIterator2dThreadTile self(*this);
     operator++();
@@ -300,32 +300,32 @@ class PredicatedTileIterator2dThreadTile<Shape_, Element_, layout::PitchLinear, 
   }
 
   /// Clears the predicate set efficiently
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void clear_mask(bool enable = true) { address_iterator_.clear_mask(enable); }
 
   /// Clears the predicate set efficiently
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void enable_mask() { address_iterator_.enable_mask(); }
 
   /// Sets the predicate mask, overriding value stored in predicate iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_mask(Mask const &mask) { address_iterator_.set_mask(mask); }
 
   /// Gets the mask
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void get_mask(Mask &mask) { address_iterator_.get_mask(mask); }
 
   /// Loads a fragment from memory
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) {
 
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int ts = 0; ts < ThreadMap::ThreadAccessShape::kStrided; ts++){
 
           int access_idx = ts + c * ThreadMap::ThreadAccessShape::kStrided  + \
@@ -350,20 +350,20 @@ class PredicatedTileIterator2dThreadTile<Shape_, Element_, layout::PitchLinear, 
   }
 
   /// Loads a fragment from memory
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void load(Fragment &frag) { load_with_pointer_offset(frag, 0); }
 
   /// Store a fragment to memory
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
     
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int ts = 0; ts < ThreadMap::ThreadAccessShape::kStrided; ts++){
 
           int access_idx = ts + c * ThreadMap::ThreadAccessShape::kStrided  + \
@@ -380,7 +380,7 @@ class PredicatedTileIterator2dThreadTile<Shape_, Element_, layout::PitchLinear, 
   }
 
   /// Store a fragment to memory
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void store(Fragment const &frag) { store_with_pointer_offset(frag, 0); }
 };
 
@@ -436,7 +436,7 @@ public:
   using AccessType = typename UnderlyingIterator::AccessType;
 
   /// Fragment object to be loaded or stored
-  using Fragment = nihilus_gemm::Array<Element, ThreadMap::Iterations::kCount * ThreadMap::ThreadAccessShape::kCount>;
+  using Fragment = cutlass::Array<Element, ThreadMap::Iterations::kCount * ThreadMap::ThreadAccessShape::kCount>;
 
   /// Predicate vector stores mask to guard accesses
   using Mask = typename UnderlyingIterator::Mask;
@@ -452,14 +452,14 @@ public:
 
   public:
     
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params() { }
 
     /// Construct the Params object given a pitch-linear tensor's layout
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(Layout const &layout): params_(layout::PitchLinear(layout.stride(0))) {}
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(typename UnderlyingIterator::Params::Base const &base) 
         : params_(base) {}
   };
@@ -477,7 +477,7 @@ private:
 public:
 
   /// Constructs a TileIterator from its precomputed state, threadblock offset, and thread ID
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileIterator2dThreadTile(
     Params const &params,                         ///< Precomputed parameters object 
     Pointer pointer,                              ///< Pointer to start of tensor
@@ -495,7 +495,7 @@ public:
     ) { }
 
   /// Construct a PredicatedTileIterator2dThreadTile with zero threadblock offset
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileIterator2dThreadTile(
     Params const &params,                         ///< Precomputed parameters object
     Pointer pointer,                              ///< Pointer to start of tensor
@@ -504,7 +504,7 @@ public:
   ): PredicatedTileIterator2dThreadTile(params, pointer, extent, thread_id, make_Coord(0, 0)) { }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     iterator_.add_pointer_offset(pointer_offset);
   }
@@ -514,7 +514,7 @@ public:
   /// The first time this method is called, predicates are updated, and the iterator's
   /// internal pointer is reverted to the first "steady state" tile. Subsequent calls
   /// are lightweight and must only update the internal pointer.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileIterator2dThreadTile &operator++() {
     ++iterator_;
     return *this;
@@ -525,7 +525,7 @@ public:
   /// The first time this method is called, predicates are updated, and the iterator's
   /// internal pointer is reverted to the first "steady state" tile. Subsequent calls
   /// are lightweight and must only update the internal pointer.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileIterator2dThreadTile operator++(int) {
     PredicatedTileIterator2dThreadTile self(*this);
     operator++();
@@ -533,49 +533,49 @@ public:
   }
 
   /// Clears the predicate set efficiently
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void clear_mask(bool enable = true) {
     iterator_.clear_mask(enable);
   }
 
   /// Clears the predicate set efficiently
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void enable_mask() {
     iterator_.enable_mask();
   }
 
   /// Sets the predicate mask, overriding value stored in predicate iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_mask(Mask const &mask) {
     iterator_.set_mask(mask);
   }
 
   /// Gets the mask
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void get_mask(Mask &mask) {
     iterator_.get_mask(mask);
   }
 
   /// Loads a fragment from memory
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) {
     iterator_.load_with_pointer_offset(frag, pointer_offset);
   }
 
   /// Loads a fragment from memory
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void load(Fragment &frag) {
     load_with_pointer_offset(frag, 0);
   }
 
   /// Store a fragment to memory
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
     iterator_.store_with_pointer_offset(frag, pointer_offset);
   }
 
   /// Store a fragment to memory
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void store(Fragment const &frag) {
     store_with_pointer_offset(frag, 0);
   }
@@ -633,7 +633,7 @@ public:
   using AccessType = typename UnderlyingIterator::AccessType;
 
   /// Fragment object to be loaded or stored
-  using Fragment = nihilus_gemm::Array<Element, ThreadMap::Iterations::kCount * ThreadMap::ThreadAccessShape::kCount>;
+  using Fragment = cutlass::Array<Element, ThreadMap::Iterations::kCount * ThreadMap::ThreadAccessShape::kCount>;
 
   /// Predicate vector stores mask to guard accesses
   using Mask = typename UnderlyingIterator::Mask;
@@ -649,14 +649,14 @@ public:
 
   public:
     
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params() { } 
 
     /// Construct the Params object given a pitch-linear tensor's layout
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(Layout const &layout): params_(layout::PitchLinear(layout.stride(0))) { }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(typename UnderlyingIterator::Params::Base const &base) 
         : params_(base) {}
   };
@@ -674,7 +674,7 @@ private:
 public:
 
   /// Constructs a TileIterator from its precomputed state, threadblock offset, and thread ID
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileIterator2dThreadTile(
     Params const &params,                         ///< Precomputed parameters object 
     Pointer pointer,                              ///< Pointer to start of tensor
@@ -692,7 +692,7 @@ public:
     ) { }
 
   /// Construct a PredicatedTileIterator2dThreadTile with zero threadblock offset
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileIterator2dThreadTile(
     Params const &params,                         ///< Precomputed parameters object
     Pointer pointer,                              ///< Pointer to start of tensor
@@ -701,7 +701,7 @@ public:
   ): PredicatedTileIterator2dThreadTile(params, pointer, extent, thread_id, make_Coord(0, 0)) { }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     iterator_.add_pointer_offset(pointer_offset);
   }
@@ -711,7 +711,7 @@ public:
   /// The first time this method is called, predicates are updated, and the iterator's
   /// internal pointer is reverted to the first "steady state" tile. Subsequent calls
   /// are lightweight and must only update the internal pointer.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileIterator2dThreadTile &operator++() {
     ++iterator_;
     return *this;
@@ -722,7 +722,7 @@ public:
   /// The first time this method is called, predicates are updated, and the iterator's
   /// internal pointer is reverted to the first "steady state" tile. Subsequent calls
   /// are lightweight and must only update the internal pointer.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileIterator2dThreadTile operator++(int) {
     PredicatedTileIterator2dThreadTile self(*this);
     operator++();
@@ -730,49 +730,49 @@ public:
   }
 
   /// Clears the predicate set efficiently
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void clear_mask(bool enable = true) {
     iterator_.clear_mask(enable);
   }
 
   /// Clears the predicate set efficiently
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void enable_mask() {
     iterator_.enable_mask();
   }
 
   /// Sets the predicate mask, overriding value stored in predicate iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_mask(Mask const &mask) {
     iterator_.set_mask(mask);
   }
 
   /// Gets the mask
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void get_mask(Mask &mask) {
     iterator_.get_mask(mask);
   }
 
   /// Loads a fragment from memory
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) {
     iterator_.load_with_pointer_offset(frag, pointer_offset);
   }
 
   /// Loads a fragment from memory
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void load(Fragment &frag) {
     load_with_pointer_offset(frag, 0);
   }
 
   /// Store a fragment to memory
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
     iterator_.store_with_pointer_offset(frag, pointer_offset);
   }
 
   /// Store a fragment to memory
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_DEVICE
   void store(Fragment const &frag) {
     store_with_pointer_offset(frag, 0);
   }
@@ -782,6 +782,6 @@ public:
 
 } // namespace threadblock
 } // namespace transform
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -36,12 +36,12 @@
 
 #pragma once
 
-#include "nihilus_gemm/matrix_shape.h"
-#include "nihilus_gemm/layout/matrix.h"
+#include "cutlass/matrix_shape.h"
+#include "cutlass/layout/matrix.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace warp {
 
@@ -102,6 +102,6 @@ struct SimtPolicy<WarpShape_, Operator_, layout::RowMajor, MmaSimtPolicy_> {
 
 } // namespace warp
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
