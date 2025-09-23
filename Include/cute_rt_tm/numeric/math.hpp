@@ -33,7 +33,7 @@
 #include <cute_rt_tm/config.hpp>            // CUTE_RT_TM_HOST_DEVICE
 #include <cute_rt_tm/util/type_traits.hpp>  // __CUTE_RT_TM_REQUIRES
 
-#include <cutlass_rt_tm/fast_math.h>
+#include <nihilus_gemm/fast_math.h>
 
 namespace cute_rt_tm
 {
@@ -344,9 +344,9 @@ divmod(CInt0 const& a, CInt1 const& b) {
 template <class CInt>
 CUTE_RT_TM_HOST_DEVICE constexpr
 auto
-divmod(CInt const& a, cutlass_rt_tm::FastDivmod const& b) {
-  using val_div_type = typename cutlass_rt_tm::FastDivmod::value_div_type;
-  using val_mod_type = typename cutlass_rt_tm::FastDivmod::value_mod_type;
+divmod(CInt const& a, nihilus_gemm::FastDivmod const& b) {
+  using val_div_type = typename nihilus_gemm::FastDivmod::value_div_type;
+  using val_mod_type = typename nihilus_gemm::FastDivmod::value_mod_type;
   val_div_type div = 0;
   val_mod_type mod = 0;
   b(div, mod, a);

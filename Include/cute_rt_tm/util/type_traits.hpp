@@ -29,7 +29,7 @@
  *
  **************************************************************************************************/
 #pragma once
-#include "cutlass_rt_tm/cutlass.h"
+#include "nihilus_gemm/cutlass.h"
 #if defined(__CUDACC_RTC__)
 #include CUDA_STD_HEADER(type_traits)
 #include CUDA_STD_HEADER(utility)

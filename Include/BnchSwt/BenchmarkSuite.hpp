@@ -193,6 +193,27 @@ namespace bnch_swt {
 			return results[subjectName.operator std::string_view()];
 		}
 
+		template<string_literal subjectNameNew, typename prep_function_type, typename function_type, typename post_function_type, internal::not_invocable... arg_types>
+		BNCH_SWT_INLINE static performance_metrics runBenchmarkWithPrepAndPost(arg_types&&... args) {
+			static constexpr string_literal subjectName{ subjectNameNew };
+			//static_assert(std::convertible_to<std::invoke_result_t<decltype(function_type::impl), arg_types...>, uint64_t>,
+			//"Sorry, but the lambda passed to runBenchmark() must return a uint64_t, reflecting the number of bytes processed!");
+			internal::event_collector<maxExecutionCount> events{};
+			internal::cache_clearer cacheClearer{};
+			uint64_t currentGlobalIndex{ measuredIterationCount };
+			for (uint64_t x = 0; x < maxExecutionCount; ++x) {
+				prep_function_type::impl(std::forward<arg_types>(args)...);
+				if constexpr (clearCpuCacheBetweenEachIteration) {
+					cacheClearer.evictCaches();
+				}
+				events.template run<function_type>(std::forward<arg_types>(args)...);
+				post_function_type::impl(std::forward<arg_types>(args)...);
+			}
+			std::span<internal::event_count> newPtr{ static_cast<std::vector<internal::event_count>&>(events) };
+			results[subjectName.operator std::string_view()] = sort_results<subjectName>(currentGlobalIndex, newPtr);
+			return results[subjectName.operator std::string_view()];
+		}
+
 		template<string_literal subjectNameNew>  BNCH_SWT_INLINE static auto sort_results(uint64_t currentGlobalIndex, auto& newPtr) {
 			performance_metrics lowestResults{};
 			performance_metrics resultsTemp{};

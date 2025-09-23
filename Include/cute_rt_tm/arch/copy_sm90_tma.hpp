@@ -35,7 +35,7 @@
 #include <cute_rt_tm/arch/config.hpp> // CUTE_RT_TM_ARCH_TMA_SMxx_ENABLED
 #include <cute_rt_tm/arch/copy.hpp>
 #include <cute_rt_tm/arch/copy_sm90.hpp>
-#include "cutlass_rt_tm/arch/synclog.hpp"
+#include "nihilus_gemm/arch/synclog.hpp"
 
 namespace cute_rt_tm
 {
@@ -55,7 +55,7 @@ struct SM90_TMA_LOAD_1D
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_mbar = cast_smem_ptr_to_uint(mbar_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
 #if defined(CUTE_RT_TM_ARCH_TMA_SM120_ENABLED)
     asm volatile (
       "cp.async.bulk.tensor.1d.shared::cta.global.mbarrier::complete_tx::bytes.L2::cache_hint"
@@ -111,7 +111,7 @@ struct SM90_TMA_LOAD_2D
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_mbar = cast_smem_ptr_to_uint(mbar_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
 #if defined(CUTE_RT_TM_ARCH_TMA_SM120_ENABLED)
     asm volatile (
       "cp.async.bulk.tensor.2d.shared::cta.global.mbarrier::complete_tx::bytes.L2::cache_hint"
@@ -167,7 +167,7 @@ struct SM90_TMA_LOAD_3D
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_mbar = cast_smem_ptr_to_uint(mbar_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
 #if defined(CUTE_RT_TM_ARCH_TMA_SM120_ENABLED)
     asm volatile (
       "cp.async.bulk.tensor.3d.shared::cta.global.mbarrier::complete_tx::bytes.L2::cache_hint"
@@ -223,7 +223,7 @@ struct SM90_TMA_LOAD_4D
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_mbar = cast_smem_ptr_to_uint(mbar_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
 #if defined(CUTE_RT_TM_ARCH_TMA_SM120_ENABLED)
     asm volatile (
       "cp.async.bulk.tensor.4d.shared::cta.global.mbarrier::complete_tx::bytes.L2::cache_hint"
@@ -279,7 +279,7 @@ struct SM90_TMA_LOAD_5D
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_mbar = cast_smem_ptr_to_uint(mbar_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
 #if defined(CUTE_RT_TM_ARCH_TMA_SM120_ENABLED)
     asm volatile (
       "cp.async.bulk.tensor.5d.shared::cta.global.mbarrier::complete_tx::bytes.L2::cache_hint"
@@ -413,7 +413,7 @@ struct SM90_TMA_LOAD_IM2COL_3D
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_mbar = cast_smem_ptr_to_uint(mbar_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
     // Copy from global to shared::cluster.
     asm volatile (
       "cp.async.bulk.tensor.3d.shared::cluster.global.im2col.mbarrier::complete_tx::bytes"
@@ -464,7 +464,7 @@ struct SM90_TMA_LOAD_IM2COL_4D
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_mbar = cast_smem_ptr_to_uint(mbar_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
     // Copy from global to shared::cluster.
     asm volatile (
       "cp.async.bulk.tensor.4d.shared::cluster.global.im2col.mbarrier::complete_tx::bytes"
@@ -515,7 +515,7 @@ struct SM90_TMA_LOAD_IM2COL_5D
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_mbar = cast_smem_ptr_to_uint(mbar_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
     // Copy from global to shared::cluster.
     asm volatile (
       "cp.async.bulk.tensor.5d.shared::cluster.global.im2col.mbarrier::complete_tx::bytes"
@@ -637,7 +637,7 @@ struct SM90_TMA_LOAD_MULTICAST_1D
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_mbar = cast_smem_ptr_to_uint(mbar_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
     asm volatile (
       "cp.async.bulk.tensor.1d.shared::cluster.global.mbarrier::complete_tx::bytes.multicast::cluster.L2::cache_hint"
       " [%0], [%1, {%4}], [%2], %3, %5;"
@@ -666,7 +666,7 @@ struct SM90_TMA_LOAD_MULTICAST_2D
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_mbar = cast_smem_ptr_to_uint(mbar_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
     asm volatile (
       "cp.async.bulk.tensor.2d.shared::cluster.global.mbarrier::complete_tx::bytes.multicast::cluster.L2::cache_hint"
       " [%0], [%1, {%4, %5}], [%2], %3, %6;"
@@ -695,7 +695,7 @@ struct SM90_TMA_LOAD_MULTICAST_3D
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_mbar = cast_smem_ptr_to_uint(mbar_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
     asm volatile (
       "cp.async.bulk.tensor.3d.shared::cluster.global.mbarrier::complete_tx::bytes.multicast::cluster.L2::cache_hint"
       " [%0], [%1, {%4, %5, %6}], [%2], %3, %7;"
@@ -724,7 +724,7 @@ struct SM90_TMA_LOAD_MULTICAST_4D
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_mbar = cast_smem_ptr_to_uint(mbar_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
     asm volatile (
       "cp.async.bulk.tensor.4d.shared::cluster.global.mbarrier::complete_tx::bytes.multicast::cluster.L2::cache_hint"
       " [%0], [%1, {%4, %5, %6, %7}], [%2], %3, %8;"
@@ -753,7 +753,7 @@ struct SM90_TMA_LOAD_MULTICAST_5D
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_mbar = cast_smem_ptr_to_uint(mbar_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
     asm volatile (
       "cp.async.bulk.tensor.5d.shared::cluster.global.mbarrier::complete_tx::bytes.multicast::cluster.L2::cache_hint"
       " [%0], [%1, {%4, %5, %6, %7, %8}], [%2], %3, %9;"
@@ -828,7 +828,7 @@ struct SM90_TMA_LOAD_IM2COL_MULTICAST_3D
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_mbar = cast_smem_ptr_to_uint(mbar_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
     // Copy from global to shared::cluster.
     asm volatile (
       "cp.async.bulk.tensor.3d.shared::cluster.global.im2col.mbarrier::complete_tx::bytes.multicast::cluster"
@@ -860,7 +860,7 @@ struct SM90_TMA_LOAD_IM2COL_MULTICAST_4D
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_mbar = cast_smem_ptr_to_uint(mbar_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
     // Copy from global to shared::cluster.
     asm volatile (
       "cp.async.bulk.tensor.4d.shared::cluster.global.im2col.mbarrier::complete_tx::bytes.multicast::cluster"
@@ -892,7 +892,7 @@ struct SM90_TMA_LOAD_IM2COL_MULTICAST_5D
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_mbar = cast_smem_ptr_to_uint(mbar_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_load(__LINE__, gmem_int_desc, smem_int_mbar, smem_int_ptr);
     // Copy from global to shared::cluster.
     asm volatile (
       "cp.async.bulk.tensor.5d.shared::cluster.global.im2col.mbarrier::complete_tx::bytes.multicast::cluster"
@@ -964,7 +964,7 @@ struct SM90_TMA_STORE_1D
 #if defined(CUTE_RT_TM_ARCH_TMA_SM90_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_store(__LINE__, gmem_int_desc, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_store(__LINE__, gmem_int_desc, smem_int_ptr);
     asm volatile (
       "cp.async.bulk.tensor.1d.global.shared::cta.bulk_group [%0, {%2}], [%1];"
       :
@@ -987,7 +987,7 @@ struct SM90_TMA_STORE_2D
 #if defined(CUTE_RT_TM_ARCH_TMA_SM90_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_store(__LINE__, gmem_int_desc, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_store(__LINE__, gmem_int_desc, smem_int_ptr);
     asm volatile (
       "cp.async.bulk.tensor.2d.global.shared::cta.bulk_group [%0, {%2, %3}], [%1];"
       :
@@ -1010,7 +1010,7 @@ struct SM90_TMA_STORE_3D
 #if defined(CUTE_RT_TM_ARCH_TMA_SM90_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_store(__LINE__, gmem_int_desc, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_store(__LINE__, gmem_int_desc, smem_int_ptr);
     asm volatile (
       "cp.async.bulk.tensor.3d.global.shared::cta.bulk_group [%0, {%2, %3, %4}], [%1];"
       :
@@ -1033,7 +1033,7 @@ struct SM90_TMA_STORE_4D
 #if defined(CUTE_RT_TM_ARCH_TMA_SM90_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_store(__LINE__, gmem_int_desc, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_store(__LINE__, gmem_int_desc, smem_int_ptr);
     asm volatile (
       "cp.async.bulk.tensor.4d.global.shared::cta.bulk_group [%0, {%2, %3, %4, %5}], [%1];"
       :
@@ -1056,7 +1056,7 @@ struct SM90_TMA_STORE_5D
 #if defined(CUTE_RT_TM_ARCH_TMA_SM90_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_store(__LINE__, gmem_int_desc, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_store(__LINE__, gmem_int_desc, smem_int_ptr);
     asm volatile (
       "cp.async.bulk.tensor.5d.global.shared::cta.bulk_group [%0, {%2, %3, %4, %5, %6}], [%1];"
       :
@@ -1122,7 +1122,7 @@ struct SM90_TMA_STORE_IM2COL_3D
 #if defined(CUTE_RT_TM_ARCH_TMA_SM90_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_store(__LINE__, gmem_int_desc, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_store(__LINE__, gmem_int_desc, smem_int_ptr);
     asm volatile (
       "cp.async.bulk.tensor.3d.global.shared::cta.im2col_no_offs.bulk_group"
       " [%0, {%2, %3, %4}], [%1];"
@@ -1146,7 +1146,7 @@ struct SM90_TMA_STORE_IM2COL_4D
 #if defined(CUTE_RT_TM_ARCH_TMA_SM90_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_store(__LINE__, gmem_int_desc, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_store(__LINE__, gmem_int_desc, smem_int_ptr);
     asm volatile (
       "cp.async.bulk.tensor.4d.global.shared::cta.im2col_no_offs.bulk_group"
       " [%0, {%2, %3, %4, %5}], [%1];"
@@ -1170,7 +1170,7 @@ struct SM90_TMA_STORE_IM2COL_5D
 #if defined(CUTE_RT_TM_ARCH_TMA_SM90_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_store(__LINE__, gmem_int_desc, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_store(__LINE__, gmem_int_desc, smem_int_ptr);
     asm volatile (
       "cp.async.bulk.tensor.5d.global.shared::cta.im2col_no_offs.bulk_group"
       " [%0, {%2, %3, %4, %5, %6}], [%1];"
@@ -1213,7 +1213,7 @@ struct SM90_TMA_STORE_IM2COL
 CUTE_RT_TM_HOST_DEVICE static void
 tma_store_fence() {
 #if defined(CUTE_RT_TM_ARCH_TMA_SM90_ENABLED)
-    cutlass_rt_tm::arch::synclog_emit_fence_view_async_shared(__LINE__);
+    nihilus_gemm::arch::synclog_emit_fence_view_async_shared(__LINE__);
     asm volatile ("fence.proxy.async.shared::cta;");
 #elif defined(__CUDA_ARCH__)
     CUTE_RT_TM_INVALID_CONTROL_PATH("Trying to use tma without CUTE_RT_TM_ARCH_TMA_SM90_ENABLED.");
@@ -1224,7 +1224,7 @@ tma_store_fence() {
 CUTE_RT_TM_HOST_DEVICE static void
 tma_store_arrive() {
 #if defined(CUTE_RT_TM_ARCH_TMA_SM90_ENABLED)
-    cutlass_rt_tm::arch::synclog_emit_tma_store_arrive(__LINE__);
+    nihilus_gemm::arch::synclog_emit_tma_store_arrive(__LINE__);
     asm volatile("cp.async.bulk.commit_group;");
 #else
     CUTE_RT_TM_INVALID_CONTROL_PATH("Trying to use tma without CUTE_RT_TM_ARCH_TMA_SM90_ENABLED.");
@@ -1252,7 +1252,7 @@ tma_store_wait() {
       :
       : "n"(Count)
       : "memory");
-    cutlass_rt_tm::arch::synclog_emit_tma_store_wait(__LINE__, Count);
+    nihilus_gemm::arch::synclog_emit_tma_store_wait(__LINE__, Count);
 #else
     CUTE_RT_TM_INVALID_CONTROL_PATH("Trying to use tma without CUTE_RT_TM_ARCH_TMA_SM90_ENABLED.");
 #endif
@@ -1288,7 +1288,7 @@ struct SM90_TMA_REDUCE_ADD_1D
 #if defined(CUTE_RT_TM_ARCH_TMA_SM90_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_store(__LINE__, gmem_int_desc, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_store(__LINE__, gmem_int_desc, smem_int_ptr);
     asm volatile (
       "cp.reduce.async.bulk.tensor.1d.global.shared::cta.add.bulk_group [%0, {%2}], [%1];"
       :
@@ -1311,7 +1311,7 @@ struct SM90_TMA_REDUCE_ADD_2D
 #if defined(CUTE_RT_TM_ARCH_TMA_SM90_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_store(__LINE__, gmem_int_desc, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_store(__LINE__, gmem_int_desc, smem_int_ptr);
     asm volatile (
       "cp.reduce.async.bulk.tensor.2d.global.shared::cta.add.bulk_group [%0, {%2, %3}], [%1];"
       :
@@ -1334,7 +1334,7 @@ struct SM90_TMA_REDUCE_ADD_3D
 #if defined(CUTE_RT_TM_ARCH_TMA_SM90_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_store(__LINE__, gmem_int_desc, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_store(__LINE__, gmem_int_desc, smem_int_ptr);
     asm volatile (
       "cp.reduce.async.bulk.tensor.3d.global.shared::cta.add.bulk_group [%0, {%2, %3, %4}], [%1];"
       :
@@ -1357,7 +1357,7 @@ struct SM90_TMA_REDUCE_ADD_4D
 #if defined(CUTE_RT_TM_ARCH_TMA_SM90_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_store(__LINE__, gmem_int_desc, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_store(__LINE__, gmem_int_desc, smem_int_ptr);
     asm volatile (
       "cp.reduce.async.bulk.tensor.4d.global.shared::cta.add.bulk_group [%0, {%2, %3, %4, %5}], [%1];"
       :
@@ -1380,7 +1380,7 @@ struct SM90_TMA_REDUCE_ADD_5D
 #if defined(CUTE_RT_TM_ARCH_TMA_SM90_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     uint32_t smem_int_ptr  = cast_smem_ptr_to_uint(smem_ptr);
-    cutlass_rt_tm::arch::synclog_emit_tma_store(__LINE__, gmem_int_desc, smem_int_ptr);
+    nihilus_gemm::arch::synclog_emit_tma_store(__LINE__, gmem_int_desc, smem_int_ptr);
     asm volatile (
       "cp.reduce.async.bulk.tensor.5d.global.shared::cta.add.bulk_group [%0, {%2, %3, %4, %5, %6}], [%1];"
       :

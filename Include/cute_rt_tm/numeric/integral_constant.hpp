@@ -85,7 +85,7 @@ constexpr bool is_integral_v = is_integral<T>::value;
 
 // Register FastDivmod as integral type
 template<>
-struct is_integral<cutlass_rt_tm::FastDivmod> : true_type {};
+struct is_integral<nihilus_gemm::FastDivmod> : true_type {};
 
 // is_static detects if an (abstract) value is defined completely by its type (no members)
 template <class T>

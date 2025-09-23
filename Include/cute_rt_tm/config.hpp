@@ -59,7 +59,7 @@
 #endif // CUTE_RT_TM_UNROLL
 
 #if defined(__CUDA_ARCH__) || defined(_NVHPC_CUDA)
-#  define CUTE_RT_TM_INLINE_CONSTANT                 static const __device__
+#  define CUTE_RT_TM_INLINE_CONSTANT                 static constexpr __device__ 
 #else
 #  define CUTE_RT_TM_INLINE_CONSTANT                 static constexpr
 #endif

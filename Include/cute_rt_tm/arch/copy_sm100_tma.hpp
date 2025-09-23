@@ -37,7 +37,7 @@
 
 #include <cute_rt_tm/arch/copy.hpp>
 #include <cute_rt_tm/arch/copy_sm90.hpp>
-#include "cutlass_rt_tm/arch/synclog.hpp"
+#include "nihilus_gemm/arch/synclog.hpp"
 
 namespace cute_rt_tm
 {

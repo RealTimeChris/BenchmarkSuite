@@ -33,13 +33,13 @@
 #include <cute_rt_tm/config.hpp>          // CUTE_RT_TM_HOST_DEVICE
 #include <cute_rt_tm/numeric/int.hpp>     // cute_rt_tm::int2_t, cute_rt_tm::int4_t, etc
 
-#include <cutlass_rt_tm/numeric_size.h>   // cutlass_rt_tm::sizeof_bits
-#include <cutlass_rt_tm/numeric_types.h>  // cutlass_rt_tm::float_e4m3_t, cutlass_rt_tm::float_e5m2_t, etc
+#include <nihilus_gemm/numeric_size.h>   // nihilus_gemm::sizeof_bits
+#include <nihilus_gemm/numeric_types.h>  // nihilus_gemm::float_e4m3_t, nihilus_gemm::float_e5m2_t, etc
 
 namespace cute_rt_tm {
 
 template <class T>
-struct sizeof_bits : cutlass_rt_tm::sizeof_bits<T> {};
+struct sizeof_bits : nihilus_gemm::sizeof_bits<T> {};
 
 template <class T>
 struct sizeof_bits<T const> : sizeof_bits<T> {};
@@ -54,10 +54,10 @@ struct sizeof_bits<T const volatile> : sizeof_bits<T> {};
 template <class T>
 static constexpr auto sizeof_bits_v = sizeof_bits<T>::value;
 
-using cutlass_rt_tm::bits_to_bytes;
-using cutlass_rt_tm::bytes_to_bits;
+using nihilus_gemm::bits_to_bytes;
+using nihilus_gemm::bytes_to_bits;
 
-using cutlass_rt_tm::is_subbyte;
+using nihilus_gemm::is_subbyte;
 
 template <class T>
 static constexpr auto is_subbyte_v = is_subbyte<T>::value;
@@ -66,52 +66,52 @@ static constexpr auto is_subbyte_v = is_subbyte<T>::value;
 // Integral
 //
 
-using cutlass_rt_tm::bin1_t;
-using cutlass_rt_tm::uint1b_t;
-using cutlass_rt_tm::int2b_t;
-using cutlass_rt_tm::uint2b_t;
-using cutlass_rt_tm::int4b_t;
-using cutlass_rt_tm::uint4b_t;
-using cutlass_rt_tm::int6b_t;
-using cutlass_rt_tm::uint6b_t;
+using nihilus_gemm::bin1_t;
+using nihilus_gemm::uint1b_t;
+using nihilus_gemm::int2b_t;
+using nihilus_gemm::uint2b_t;
+using nihilus_gemm::int4b_t;
+using nihilus_gemm::uint4b_t;
+using nihilus_gemm::int6b_t;
+using nihilus_gemm::uint6b_t;
 
 //
 // Floating Point
 //
 
-using cutlass_rt_tm::half_t;
-using cutlass_rt_tm::bfloat16_t;
+using nihilus_gemm::half_t;
+using nihilus_gemm::bfloat16_t;
 
-using cutlass_rt_tm::tfloat32_t;
+using nihilus_gemm::tfloat32_t;
 
 // Umbrella floating-point 8-bit data type : type_erased_dynamic_float8_t
 // This umbrella datatype can be enabled when a user provides a specific
 // datatype in runtime argument list.
-using cutlass_rt_tm::type_erased_dynamic_float8_t;
-using cutlass_rt_tm::float_e4m3_t;
-using cutlass_rt_tm::float_e5m2_t;
+using nihilus_gemm::type_erased_dynamic_float8_t;
+using nihilus_gemm::float_e4m3_t;
+using nihilus_gemm::float_e5m2_t;
 
 
 
 
-using cutlass_rt_tm::float_ue4m3_t;
-using cutlass_rt_tm::float_ue8m0_t;
+using nihilus_gemm::float_ue4m3_t;
+using nihilus_gemm::float_ue8m0_t;
 
-using cutlass_rt_tm::float_e2m1_t;
-using cutlass_rt_tm::float_e2m3_t;
-using cutlass_rt_tm::float_e3m2_t;
+using nihilus_gemm::float_e2m1_t;
+using nihilus_gemm::float_e2m3_t;
+using nihilus_gemm::float_e3m2_t;
 
-using cutlass_rt_tm::type_erased_dynamic_float6_t;
-using cutlass_rt_tm::type_erased_dynamic_float4_t;
+using nihilus_gemm::type_erased_dynamic_float6_t;
+using nihilus_gemm::type_erased_dynamic_float4_t;
 
 namespace detail {
-using cutlass_rt_tm::detail::float_e2m1_unpacksmem_t;
-using cutlass_rt_tm::detail::float_e2m3_unpacksmem_t;
-using cutlass_rt_tm::detail::float_e3m2_unpacksmem_t;
-using cutlass_rt_tm::detail::float_e2m3_unpack8bits_t;
-using cutlass_rt_tm::detail::float_e3m2_unpack8bits_t;
-using cutlass_rt_tm::detail::type_erased_dynamic_float4_unpacksmem_t;
-using cutlass_rt_tm::detail::type_erased_dynamic_float6_unpacksmem_t;
+using nihilus_gemm::detail::float_e2m1_unpacksmem_t;
+using nihilus_gemm::detail::float_e2m3_unpacksmem_t;
+using nihilus_gemm::detail::float_e3m2_unpacksmem_t;
+using nihilus_gemm::detail::float_e2m3_unpack8bits_t;
+using nihilus_gemm::detail::float_e3m2_unpack8bits_t;
+using nihilus_gemm::detail::type_erased_dynamic_float4_unpacksmem_t;
+using nihilus_gemm::detail::type_erased_dynamic_float6_unpacksmem_t;
 };
 
 //
@@ -148,10 +148,10 @@ print(float_e5m2_t a) {
   printf("%f", static_cast<float>(a));
 }
 
-template <cutlass_rt_tm::detail::FpEncoding Encoding, class Derived>
+template <nihilus_gemm::detail::FpEncoding Encoding, class Derived>
 CUTE_RT_TM_HOST_DEVICE
 void
-print(cutlass_rt_tm::float_exmy_base<Encoding, Derived> a) {
+print(nihilus_gemm::float_exmy_base<Encoding, Derived> a) {
   printf("%f", static_cast<float>(a));
 }
 
@@ -182,10 +182,10 @@ pretty_print(float_e5m2_t t) {
   printf("%*.2f", 8, static_cast<float>(t));
 }
 
-template <cutlass_rt_tm::detail::FpEncoding Encoding, class Derived>
+template <nihilus_gemm::detail::FpEncoding Encoding, class Derived>
 CUTE_RT_TM_HOST_DEVICE
 void
-pretty_print_float_exmy_base(cutlass_rt_tm::float_exmy_base<Encoding, Derived> t) {
+pretty_print_float_exmy_base(nihilus_gemm::float_exmy_base<Encoding, Derived> t) {
   printf("%*.2f", 8, static_cast<float>(t));
 }
 

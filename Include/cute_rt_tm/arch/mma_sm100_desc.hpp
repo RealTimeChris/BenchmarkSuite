@@ -290,7 +290,7 @@ template <typename ShapeType, int FLT_S, int CTA_M, int CTA_N>
 CUTE_RT_TM_HOST_DEVICE constexpr auto
 make_column_zero_mask(ShapeType conv_q, int32_t cta_coord_q, int32_t num_pixels_skip_left) {
 
-  static_assert(cute_rt_tm::is_same_v<ShapeType, cutlass_rt_tm::FastDivmod> || cute_rt_tm::is_integral<ShapeType>::value);
+  static_assert(cute_rt_tm::is_same_v<ShapeType, nihilus_gemm::FastDivmod> || cute_rt_tm::is_integral<ShapeType>::value);
 
   cute_rt_tm::array<MaskAndShiftB, FLT_S> column_zero_masks{};
 
