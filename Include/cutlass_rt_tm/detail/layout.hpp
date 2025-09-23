@@ -228,7 +228,7 @@ stride_to_layout_tag_A() {
     return layout::RowMajor{};
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 template<class StrideB>
@@ -246,7 +246,7 @@ stride_to_layout_tag_B() {
     return layout::ColumnMajor{};
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 template<class StrideC>
@@ -264,7 +264,7 @@ stride_to_layout_tag_C() {
     return layout::RowMajor{};
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 // Utilities to map Stride back on to their corresponding layout tags
@@ -396,7 +396,7 @@ get_output_alignment_bits() {
 
 // Check if tensor layout satisfies a given major alignment
 template<int Alignment, class Shape, class Stride>
-CUTLASS_RT_TM_HOST_DEVICE constexpr
+CUTLASS_RT_TMHOST_DEVICE constexpr
 bool
 check_alignment(cute_rt_tm::Layout<Shape,Stride> const& layout) {
   // Condition: shape must divide by Alignment without rounding
@@ -408,14 +408,14 @@ check_alignment(cute_rt_tm::Layout<Shape,Stride> const& layout) {
 
 // Check if tensor layout satisfies a given major alignment
 template<int Alignment, class Shape, class Stride>
-CUTLASS_RT_TM_HOST_DEVICE constexpr
+CUTLASS_RT_TMHOST_DEVICE constexpr
 bool
 check_alignment(Shape const& shape, Stride const& stride) {
   return check_alignment<Alignment>(cute_rt_tm::make_layout(shape, stride));
 }
 
 template<int B, int M, int S>
-CUTLASS_RT_TM_HOST_DEVICE constexpr
+CUTLASS_RT_TMHOST_DEVICE constexpr
 size_t
 alignment_for_swizzle(cute_rt_tm::Swizzle<B, M, S>) {
   static_assert(B >= 0 and M >= 0);
@@ -423,7 +423,7 @@ alignment_for_swizzle(cute_rt_tm::Swizzle<B, M, S>) {
 }
 
 template<class Layout>
-CUTLASS_RT_TM_HOST_DEVICE constexpr
+CUTLASS_RT_TMHOST_DEVICE constexpr
 size_t
 alignment_for_swizzle(Layout layout) {
   return alignment_for_swizzle(cute_rt_tm::get_swizzle_portion(layout));

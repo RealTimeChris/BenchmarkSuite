@@ -102,7 +102,7 @@ public:
   using Shape = Shape_;
 
   /// Operand tag
-  static constexpr Operand  kOperand = Operand::kA;
+  static constexpr Operand kOperand = Operand::kA;
 
   /// Element type
   using Element = Element_;
@@ -163,11 +163,11 @@ private:
 public:
   
   /// Default ctor constructs null iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator() { }
 
   /// Constructor from TensorRef
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator(
     TensorRef ref, 
     int lane_id
@@ -188,14 +188,14 @@ public:
   
 
   /// Adds a pointer offset to internal pointer(s) to advance through memory
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator &add_pointer_offset(LongIndex offset) {
     ref_.add_pointer_offset(offset);
     return *this;
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole tiles
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator &add_tile_offset(TensorCoord const &coord) {
 
     ref_.add_coord_offset({
@@ -206,7 +206,7 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator & operator++() {
 
     ref_.add_coord_offset({0, Shape::kColumn});
@@ -215,7 +215,7 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator & operator--() {
 
     ref_.add_coord_offset({0, -Shape::kColumn});
@@ -224,14 +224,14 @@ public:
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator. (vector loads)
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
     Array<Element, Policy::LaneMmaShape::kM> *dst_ptr = 
       reinterpret_cast<Array<Element, Policy::LaneMmaShape::kM> *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int k = 0; k < Iterations::kColumn; ++k) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int m = 0; m < Iterations::kRow; ++m) {
 
         // This logic has been replaced with calls to inline PTX to guarantee vectorization.
@@ -246,21 +246,21 @@ public:
     }
   }
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void load(Fragment &frag) const {
     load_with_pointer_offset(frag, 0);
   }
     
   /// Stores a fragment to memory at the location pointed to by the iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) const {
     
     Array<Element, Policy::LaneMmaShape::kM> const *src_ptr = 
       reinterpret_cast<Array<Element, Policy::LaneMmaShape::kM> *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int k = 0; k < Iterations::kN; ++k) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int m = 0; m < Iterations::kM; ++m) {
         *(ref_.data() + ref_.offset(m * Policy::WarpShape::kM, k) + pointer_offset / Policy::LaneMmaShape::kM) = 
           src_ptr[m + k * Iterations::kM];
@@ -269,7 +269,7 @@ public:
   }
 
   /// Stores a fragment to memory at the location pointed to by the iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void store(Fragment const &frag) const {
     store_with_pointer_offset(frag, 0);
   }
@@ -281,7 +281,7 @@ public:
   /// fold constants and achieve more efficient code.
   ///
   /// This is used by some nontrivial permuted layouts.
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void set_kgroup_index(int k_group) {
     // no operation here
   }
@@ -312,7 +312,7 @@ public:
   using Shape = Shape_;
 
   /// Operand tag
-  static constexpr Operand  kOperand = Operand::kA;
+  static constexpr Operand kOperand = Operand::kA;
 
   /// Element type
   using Element = Element_;
@@ -382,11 +382,11 @@ private:
 public:
   
   /// Default ctor constructs null iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator() : divisible_(true) { }
 
   /// Constructor from TensorRef
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator(
     TensorRef ref, 
     int lane_id
@@ -407,7 +407,7 @@ public:
   }
   
   /// Constructor from TensorRef
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator(
     TensorRef ref,
     TensorCoord extent, 
@@ -429,14 +429,14 @@ public:
   }
 
   /// Adds a pointer offset to internal pointer(s) to advance through memory
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator &add_pointer_offset(LongIndex offset) {
     ref_.add_pointer_offset(offset);
     return *this;
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole tiles
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator &add_tile_offset(TensorCoord const &coord) {
 
     TensorCoord coord_offset(
@@ -451,7 +451,7 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator & operator++() {
 
     ref_.add_coord_offset({0, Shape::kColumn});
@@ -460,7 +460,7 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator & operator--() {
 
     ref_.add_coord_offset({0, -Shape::kColumn});
@@ -469,14 +469,14 @@ public:
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator. (scalar loads)
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int k = 0; k < Iterations::kColumn; ++k) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int m = 0; m < Iterations::kRow; ++m) {
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_RT_TMPRAGMA_UNROLL
         for (int i = 0; i < Policy::LaneMmaShape::kM; i++) {
           
           MatrixCoord offset(m * Policy::WarpShape::kRow * Policy::LaneMmaShape::kM + i, k);
@@ -498,20 +498,20 @@ public:
     }
   }
   /// Loads a fragment from memory at the location pointed to by the iterator. 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void load(Fragment &frag) const {
     load_with_pointer_offset(frag, 0);
   }
     
   /// Stores a fragment to memory at the location pointed to by the iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) const {
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int k = 0; k < Iterations::kColumn; ++k) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int m = 0; m < Iterations::kRow; ++m) {
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_RT_TMPRAGMA_UNROLL
         for (int i = 0; i < Policy::LaneMmaShape::kM; i++) {
 
           *(ref_.data() + ref_.offset(m * Policy::WarpShape::kM * Policy::LaneMmaShape::kM + i, k) + pointer_offset) = 
@@ -522,7 +522,7 @@ public:
   }
 
   /// Stores a fragment to memory at the location pointed to by the iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void store(Fragment const &frag) const {
     store_with_pointer_offset(frag, 0);
   }
@@ -534,7 +534,7 @@ public:
   /// fold constants and achieve more efficient code.
   ///
   /// This is used by some nontrivial permuted layouts.
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void set_kgroup_index(int k_group) {
     // no operation here
   }
@@ -565,7 +565,7 @@ public:
   using Shape = Shape_;
 
   /// Operand tag
-  static constexpr Operand  kOperand = Operand::kB;
+  static constexpr Operand kOperand = Operand::kB;
 
   /// Element type
   using Element = Element_;
@@ -626,11 +626,11 @@ protected:
 public:
   
   /// Default ctor constructs null iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator() { }
 
   /// Constructor from TensorRef
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator(
     TensorRef ref, 
     int lane_id
@@ -650,14 +650,14 @@ public:
   }
   
   /// Adds a pointer offset to internal pointer(s) to advance through memory
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator &add_pointer_offset(LongIndex offset) {
     ref_.add_pointer_offset(offset);
     return *this;
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole tiles
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator &add_tile_offset(TensorCoord const &coord) {
 
     ref_.add_coord_offset({
@@ -668,7 +668,7 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator & operator++() {
 
     ref_.add_coord_offset({Shape::kRow, 0});
@@ -677,7 +677,7 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator & operator--() {
 
     ref_.add_coord_offset({-Shape::kRow, 0});
@@ -686,15 +686,15 @@ public:
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator. (vector loads)
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
 
     Array<Element, Policy::LaneMmaShape::kN> *dst_ptr = 
       reinterpret_cast<Array<Element, Policy::LaneMmaShape::kN> *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int k = 0; k < Iterations::kRow; ++k) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int n = 0; n < Iterations::kColumn; ++n) {
 
         #if 0
@@ -709,21 +709,21 @@ public:
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void load(Fragment &frag) const {
     load_with_pointer_offset(frag, 0);
   }
   
   /// Stores a fragment to memory at the location pointed to by the iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) const {
 
     Array<Element, Policy::LaneMmaShape::kN> const *src_ptr = 
       reinterpret_cast<Array<Element, Policy::LaneMmaShape::kN> *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int k = 0; k < Iterations::kM; ++k) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int n = 0; n < Iterations::kN; ++n) {
         *(ref_.data() + ref_.offset({k, n * Policy::WarpShape::kN}) + pointer_offset / Policy::LaneMmaShape::kN) = 
           src_ptr[n + k * Iterations::kN];
@@ -732,7 +732,7 @@ public:
   }
 
   /// Stores a fragment to memory at the location pointed to by the iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void store(Fragment const &frag, Index pointer_offset) const {
     store_with_pointer_offset(frag, 0);
   }
@@ -744,7 +744,7 @@ public:
   /// fold constants and achieve more efficient code.
   ///
   /// This is used by some nontrivial permuted layouts.
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void set_kgroup_index(int k_group) {
     // no operation here
   }
@@ -775,7 +775,7 @@ public:
   using Shape = Shape_;
 
   /// Operand tag
-  static constexpr Operand  kOperand = Operand::kB;
+  static constexpr Operand kOperand = Operand::kB;
 
   /// Element type
   using Element = Element_;
@@ -845,11 +845,11 @@ private:
 public:
   
   /// Default ctor constructs null iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator(): divisible_(true) { }
 
   /// Constructor from TensorRef
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator(
     TensorRef ref, 
     int lane_id
@@ -869,7 +869,7 @@ public:
   }
 
   /// Constructor from TensorRef
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator(
     TensorRef ref,
     TensorCoord extent, 
@@ -890,14 +890,14 @@ public:
   }
 
   /// Adds a pointer offset to internal pointer(s) to advance through memory
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator &add_pointer_offset(LongIndex offset) {
     ref_.add_pointer_offset(offset);
     return *this;
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole tiles
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator &add_tile_offset(TensorCoord const &coord) {
 
     TensorCoord coord_offset(
@@ -912,7 +912,7 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator & operator++() {
 
     ref_.add_coord_offset({Shape::kRow, 0});
@@ -921,7 +921,7 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator & operator--() {
 
     ref_.add_coord_offset({-Shape::kRow, 0});
@@ -930,14 +930,14 @@ public:
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator. (scalar loads)
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int k = 0; k < Iterations::kRow; ++k) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int n = 0; n < Iterations::kColumn; ++n) {
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_RT_TMPRAGMA_UNROLL
         for (int i = 0; i < Policy::LaneMmaShape::kN; ++i) {
 
           MatrixCoord offset(k, n * Policy::WarpShape::kColumn * Policy::LaneMmaShape::kN + i);
@@ -960,21 +960,21 @@ public:
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void load(Fragment &frag) const {
     load_with_pointer_offset(frag, 0);
   }
   
   /// Stores a fragment to memory at the location pointed to by the iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) const {
 
     Array<Element, Policy::LaneMmaShape::kN> const *src_ptr = 
       reinterpret_cast<Array<Element, Policy::LaneMmaShape::kN> *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int k = 0; k < Iterations::kM; ++k) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int n = 0; n < Iterations::kN; ++n) {
         *(ref_.data() + ref_.offset({k, n * Policy::WarpShape::kN}) + pointer_offset / Policy::LaneMmaShape::kN) = 
           src_ptr[n + k * Iterations::kN];
@@ -983,7 +983,7 @@ public:
   }
 
   /// Stores a fragment to memory at the location pointed to by the iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void store(Fragment const &frag, Index pointer_offset) const {
     store_with_pointer_offset(frag, 0);
   }
@@ -995,7 +995,7 @@ public:
   /// fold constants and achieve more efficient code.
   ///
   /// This is used by some nontrivial permuted layouts.
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void set_kgroup_index(int k_group) {
     // no operation here
   }
@@ -1022,7 +1022,7 @@ public:
   using Shape = Shape_;
 
   /// Operand tag
-  static constexpr Operand  kOperand = Operand::kC;
+  static constexpr Operand kOperand = Operand::kC;
 
   /// Element type
   using Element = Element_;
@@ -1091,11 +1091,11 @@ private:
 public:
   
   /// Default ctor constructs null iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator() { }
 
   /// Constructor from TensorRef
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator(
     TensorRef const &ref, 
     int lane_id
@@ -1112,14 +1112,14 @@ public:
   }
   
   /// Adds a pointer offset to internal pointer(s) to advance through memory
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator &add_pointer_offset(LongIndex offset) {
     ref_.add_pointer_offset(offset);
     return *this;
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole tiles
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator &add_tile_offset(TensorCoord const &coord) {
 
     ref_.add_coord_offset({
@@ -1130,7 +1130,7 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator & operator++() {
 
     ref_.add_coord_offset({Shape::kRow, 0});
@@ -1139,7 +1139,7 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator & operator--() {
 
     ref_.add_coord_offset({-Shape::kRow, 0});
@@ -1148,21 +1148,21 @@ public:
   }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void load_with_pointer_offset(
     Fragment &frag,                             ///< fragment to be loaded from memory
     Index pointer_offset) const {               ///< linear offset (in units of Element) when loading
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int mma_n = 0; mma_n < Iterations::kN; ++mma_n) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int n = 0; n < Policy::LaneMmaShape::kN; ++n) {
 
         Array<Element, Policy::LaneMmaShape::kM> const *src_ptr = 
           reinterpret_cast<Array<Element, Policy::LaneMmaShape::kM> const *>(
             ref_.data() + pointer_offset + ref_.offset({0, mma_n * Delta::kN + n}));
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_RT_TMPRAGMA_UNROLL
         for (int mma_m = 0; mma_m < Iterations::kM; ++mma_m) {
 
           Array<Element, Policy::LaneMmaShape::kM> *dst_ptr = 
@@ -1176,25 +1176,25 @@ public:
   }
     
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void load(Fragment &frag) const {
     load_with_pointer_offset(frag, 0);
   }
 
   /// Stores a fragment to memory at the location pointed to by the iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) const {
     
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int mma_n = 0; mma_n < Iterations::kColumn; ++mma_n) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int n = 0; n < Policy::LaneMmaShape::kN; ++n) {
 
         Array<Element, Policy::LaneMmaShape::kM> *dst_ptr= 
           reinterpret_cast<Array<Element, Policy::LaneMmaShape::kM> *>(
             ref_.data() + pointer_offset + ref_.offset({0, mma_n * Delta::kColumn + n}));
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_RT_TMPRAGMA_UNROLL
         for (int mma_m = 0; mma_m < Iterations::kRow; ++mma_m) {
 
           Array<Element, Policy::LaneMmaShape::kM> const *src_ptr = 
@@ -1207,7 +1207,7 @@ public:
     }
   }
   /// Stores a fragment to memory at the location pointed to by the iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void store(Fragment const &frag) const {
     store_with_pointer_offset(frag, 0);
   }
@@ -1234,7 +1234,7 @@ public:
   using Shape = Shape_;
 
   /// Operand tag
-  static constexpr Operand  kOperand = Operand::kC;
+  static constexpr Operand kOperand = Operand::kC;
 
   /// Element type
   using Element = Element_;
@@ -1303,11 +1303,11 @@ private:
 public:
   
   /// Default ctor constructs null iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator() { }
 
   /// Constructor from TensorRef
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator(
     TensorRef const &ref, 
     int lane_id
@@ -1324,14 +1324,14 @@ public:
   }
   
   /// Adds a pointer offset to internal pointer(s) to advance through memory
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator &add_pointer_offset(LongIndex offset) {
     ref_.add_pointer_offset(offset);
     return *this;
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole tiles
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator &add_tile_offset(TensorCoord const &coord) {
 
     ref_.add_coord_offset({
@@ -1342,7 +1342,7 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator & operator++() {
 
     ref_.add_coord_offset({Shape::kRow, 0});
@@ -1351,7 +1351,7 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator & operator--() {
 
     ref_.add_coord_offset({-Shape::kRow, 0});
@@ -1360,21 +1360,21 @@ public:
   }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void load_with_pointer_offset(
     Fragment &frag,                             ///< fragment to be loaded from memory
     Index pointer_offset) const {               ///< linear offset (in units of Element) when loading
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int mma_m = 0; mma_m < Iterations::kRow; ++mma_m) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int m = 0; m < Policy::LaneMmaShape::kM; ++m) {
 
         Array<Element, Policy::LaneMmaShape::kN> const *src_ptr = 
           reinterpret_cast<Array<Element, Policy::LaneMmaShape::kN> const *>(
             ref_.data() + pointer_offset + ref_.offset({mma_m * Delta::kRow + m, 0}));
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_RT_TMPRAGMA_UNROLL
         for (int mma_n = 0; mma_n < Iterations::kColumn; ++mma_n) {
 
           Array<Element, Policy::LaneMmaShape::kN> *dst_ptr = 
@@ -1388,25 +1388,25 @@ public:
   }
     
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void load(Fragment &frag) const {
     load_with_pointer_offset(frag, 0);
   }
 
   /// Stores a fragment to memory at the location pointed to by the iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) const {
     
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int mma_m = 0; mma_m < Iterations::kRow; ++mma_m) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int m = 0; m < Policy::LaneMmaShape::kM; ++m) {
 
         Array<Element, Policy::LaneMmaShape::kN> *dst_ptr = 
           reinterpret_cast<Array<Element, Policy::LaneMmaShape::kN> *>(
             ref_.data() + pointer_offset + ref_.offset({mma_m * Delta::kRow + m, 0}));
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_RT_TMPRAGMA_UNROLL
         for (int mma_n = 0; mma_n < Iterations::kColumn; ++mma_n) {
 
           Array<Element, Policy::LaneMmaShape::kN> const *src_ptr = 
@@ -1420,7 +1420,7 @@ public:
   }
   
   /// Stores a fragment to memory at the location pointed to by the iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void store(Fragment const &frag) const {
     store_with_pointer_offset(frag, 0);
   }
@@ -1453,7 +1453,7 @@ public:
   using Shape = Shape_;
 
   /// Operand tag
-  static constexpr Operand  kOperand = Operand::kA;
+  static constexpr Operand kOperand = Operand::kA;
 
   /// Element type
   using Element = Element_;
@@ -1477,13 +1477,13 @@ public:
   using TensorCoord = typename TensorRef::TensorCoord;
 
   /// Iterleave factor
-  static constexpr  int kInterleave = 4;
+  static constexpr int kInterleave = 4;
   
   /// Number of partitions along K dimension
-  static constexpr  int kPartitionsK = PartitionsK;
+  static constexpr int kPartitionsK = PartitionsK;
 
   /// Number of KGroups per kPartition
-  static constexpr  int kGroupPerTile = PartitionGroupSize / Shape::kColumn;
+  static constexpr int kGroupPerTile = PartitionGroupSize / Shape::kColumn;
 
   //
   // Derived quantities
@@ -1524,11 +1524,11 @@ private:
   int k_group_idx_;
 
 public:
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator() { }
 
   /// Constructor from TensorRef
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator(
     TensorRef ref, 
     int lane_id
@@ -1548,14 +1548,14 @@ public:
   
 
   /// Adds a pointer offset to internal pointer(s) to advance through memory
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator &add_pointer_offset(LongIndex offset) {
     ref_.add_pointer_offset(offset);
     return *this;
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole tiles
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator &add_tile_offset(TensorCoord const &coord) {
 
     ref_.add_coord_offset({
@@ -1566,7 +1566,7 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator & operator++() {
 
     add_tile_offset({0, 1});
@@ -1584,7 +1584,7 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator & operator--() {
 
     ref_.add_coord_offset({0, -Shape::kColumn});
@@ -1593,16 +1593,16 @@ public:
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
 
     Array<Element, Policy::LaneMmaShape::kMK > *dst_ptr = 
       reinterpret_cast<Array<Element, Policy::LaneMmaShape::kMK> *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int k = 0; k < Iterations::kColumn; ++k) {
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int m = 0; m < Iterations::kRow; ++m) {
 
         dst_ptr[m + k * Iterations::kRow] = 
@@ -1613,21 +1613,21 @@ public:
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void load(Fragment &frag) const {
     load_with_pointer_offset(frag, 0);
   }
     
   /// Stores a fragment to memory at the location pointed to by the iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) const {
     
     Array<Element, Policy::LaneMmaShape::kMK> const *src_ptr = 
       reinterpret_cast<Array<Element, Policy::LaneMmaShape::kMK > *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int k = 0; k < Iterations::kN; ++k) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int m = 0; m < Iterations::kM; ++m) {
         *(ref_.data() + ref_.offset(m * Policy::WarpShape::kM, k) + pointer_offset / Policy::LaneMmaShape::kM) = 
           src_ptr[m + k * Iterations::kM];
@@ -1636,7 +1636,7 @@ public:
   }
 
   /// Stores a fragment to memory at the location pointed to by the iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void store(Fragment const &frag) const {
     store_with_pointer_offset(frag, 0);
   }
@@ -1648,7 +1648,7 @@ public:
   /// fold constants and achieve more efficient code.
   ///
   /// This is used by some nontrivial permuted layouts.
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void set_kgroup_index(int k_group) {
     // no operation here
   }
@@ -1679,7 +1679,7 @@ public:
   using Shape = Shape_;
 
   /// Operand tag
-  static constexpr Operand  kOperand = Operand::kB;
+  static constexpr Operand kOperand = Operand::kB;
 
   /// Element type
   using Element = Element_;
@@ -1703,13 +1703,13 @@ public:
   using TensorCoord = typename TensorRef::TensorCoord;
 
   /// Interleave factor
-  static constexpr  int kInterleave = 4;
+  static constexpr int kInterleave = 4;
 
   /// Number of partitions along K dimension
-  static constexpr  int kPartitionsK = PartitionsK;
+  static constexpr int kPartitionsK = PartitionsK;
 
   /// Number of KGroups per kPartition
-  static constexpr  int kGroupPerTile = PartitionGroupSize / Shape::kRow;
+  static constexpr int kGroupPerTile = PartitionGroupSize / Shape::kRow;
 
   //
   // Derived quantities
@@ -1753,11 +1753,11 @@ private:
 public:
   
   /// Default ctor constructs null iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator() { }
 
   /// Constructor from TensorRef
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator(
     TensorRef ref, 
     int lane_id
@@ -1779,14 +1779,14 @@ public:
   }
   
   /// Adds a pointer offset to internal pointer(s) to advance through memory
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator &add_pointer_offset(LongIndex offset) {
     ref_.add_pointer_offset(offset);
     return *this;
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole tiles
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator &add_tile_offset(TensorCoord const &coord) {
 
     ref_.add_coord_offset({
@@ -1797,7 +1797,7 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator & operator++() {
 
     add_tile_offset({1, 0});
@@ -1815,7 +1815,7 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   MmaSimtTileIterator & operator--() {
 
     ref_.add_coord_offset({-Shape::kRow, 0});
@@ -1824,15 +1824,15 @@ public:
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
 
     Array<Element, Policy::LaneMmaShape::kKN> *dst_ptr = 
       reinterpret_cast<Array<Element, Policy::LaneMmaShape::kKN> *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int k = 0; k < Iterations::kRow; ++k) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int n = 0; n < Iterations::kColumn; ++n) {
         dst_ptr[n + k * Iterations::kColumn] = 
           *(ref_.data() + ref_.offset({k * Policy::LaneMmaShape::kK, 
@@ -1842,21 +1842,21 @@ public:
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void load(Fragment &frag) const {
     load_with_pointer_offset(frag, 0);
   }
   
   /// Stores a fragment to memory at the location pointed to by the iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) const {
 
     Array<Element, Policy::LaneMmaShape::kN> const *src_ptr = 
       reinterpret_cast<Array<Element, Policy::LaneMmaShape::kN> *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int k = 0; k < Iterations::kM; ++k) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int n = 0; n < Iterations::kN; ++n) {
         *(ref_.data() + ref_.offset({k, n * Policy::WarpShape::kN}) + pointer_offset / Policy::LaneMmaShape::kN) = 
           src_ptr[n + k * Iterations::kN];
@@ -1865,7 +1865,7 @@ public:
   }
 
   /// Stores a fragment to memory at the location pointed to by the iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void store(Fragment const &frag, Index pointer_offset) const {
     store_with_pointer_offset(frag, 0);
   }
@@ -1877,7 +1877,7 @@ public:
   /// fold constants and achieve more efficient code.
   ///
   /// This is used by some nontrivial permuted layouts.
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void set_kgroup_index(int k_group) {
     // no operation here
   }

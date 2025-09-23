@@ -34,25 +34,25 @@
 
 #pragma once
 
-#include <cutlass_rt_tm/detail/helper_macros.hpp> // CUTLASS_RT_TM_HOST_DEVICE
+#include <cutlass_rt_tm/detail/helper_macros.hpp> // CUTLASS_RT_TMHOST_DEVICE
 #include <cutlass_rt_tm/arch/synclog.hpp>  // cutlass_rt_tm::arch::synclog_*
 #include <cutlass_rt_tm/platform/platform.h> // uint64_t
 
 // __grid_constant__ was introduced in CUDA 11.7.
-#if ((__CUDACC_VER_MAJOR__ >= 12) || ((__CUDACC_VER_MAJOR__ == 11) && (__CUDACC_VER_MINOR__ >= 7))) && !CUTLASS_RT_TM_CLANG_CUDA
-#  define CUTLASS_RT_TM_GRID_CONSTANT_SUPPORTED
+#if ((__CUDACC_VER_MAJOR__ >= 12) || ((__CUDACC_VER_MAJOR__ == 11) && (__CUDACC_VER_MINOR__ >= 7))) && !CUTLASS_RT_TMCLANG_CUDA
+#  define CUTLASS_RT_TMGRID_CONSTANT_SUPPORTED
 #endif
 
 // __grid_constant__ can be enabled only on SM70+
-#if defined(CUTLASS_RT_TM_GRID_CONSTANT_SUPPORTED) && defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 700)
-#  define CUTLASS_RT_TM_GRID_CONSTANT_ENABLED
+#if defined(CUTLASS_RT_TMGRID_CONSTANT_SUPPORTED) && defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 700)
+#  define CUTLASS_RT_TMGRID_CONSTANT_ENABLED
 #endif
 
-#if ! defined(CUTLASS_RT_TM_GRID_CONSTANT)
-#  if defined(CUTLASS_RT_TM_GRID_CONSTANT_ENABLED)
-#    define CUTLASS_RT_TM_GRID_CONSTANT __grid_constant__
+#if ! defined(CUTLASS_RT_TMGRID_CONSTANT)
+#  if defined(CUTLASS_RT_TMGRID_CONSTANT_ENABLED)
+#    define CUTLASS_RT_TMGRID_CONSTANT __grid_constant__
 #  else
-#    define CUTLASS_RT_TM_GRID_CONSTANT
+#    define CUTLASS_RT_TMGRID_CONSTANT
 #  endif
 #endif
 
@@ -71,7 +71,7 @@ template <typename  T>                                                          
 
 /// Generic CUTLASS kernel template.
 template <typename Operator>
-CUTLASS_RT_TM_GLOBAL
+CUTLASS_RT_TMGLOBAL
 void Kernel(typename Operator::Params params) {
   // Dynamic shared memory base pointer
   extern __shared__ int SharedStorageBase[];
@@ -80,13 +80,15 @@ void Kernel(typename Operator::Params params) {
       reinterpret_cast<typename Operator::SharedStorage *>(SharedStorageBase);
 
   Operator op;
+
   op(params, *shared_storage);
+  cutlass_rt_tm::arch::synclog_print();
 }
 
 
 /// Generic CUTLASS kernel template.
 template <typename Operator>
-CUTLASS_RT_TM_GLOBAL
+CUTLASS_RT_TMGLOBAL
 void Kernel2(typename Operator::Params params) {
   // Dynamic shared memory base pointer
   extern __shared__ int SharedStorageBase[];
@@ -95,6 +97,7 @@ void Kernel2(typename Operator::Params params) {
       reinterpret_cast<typename Operator::SharedStorage *>(SharedStorageBase);
 
   Operator::invoke(params, *shared_storage);
+  cutlass_rt_tm::arch::synclog_print();
 
 }
 
@@ -107,17 +110,18 @@ void Kernel2(typename Operator::Params params) {
 
 /// Generic CUTLASS kernel template.
 template <typename Operator>
-CUTLASS_RT_TM_GLOBAL
+CUTLASS_RT_TMGLOBAL
 #ifdef __CUDACC__
 // Enclosing this in __CUDACC__ suppresses MSVC warnings.
 __launch_bounds__(Operator::MaxThreadsPerBlock, Operator::MinBlocksPerMultiprocessor)
 #endif // __CUDACC__
-void device_kernel(CUTLASS_RT_TM_GRID_CONSTANT typename Operator::Params const params)
+void device_kernel(CUTLASS_RT_TMGRID_CONSTANT typename Operator::Params const params)
 {
   // Dynamic shared memory base pointer
   extern __shared__ char smem[];
   Operator op;
   op(params, smem);
+  cutlass_rt_tm::arch::synclog_print();
 
 }
 

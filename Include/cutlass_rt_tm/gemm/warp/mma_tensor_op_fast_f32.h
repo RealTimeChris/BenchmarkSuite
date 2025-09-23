@@ -84,11 +84,11 @@ template <
   >
 struct FastF32 {
 
-  static constexpr FloatRoundStyle  kRoundBigA = RoundBigA_;
-  static constexpr FloatRoundStyle  kRoundSmallA = RoundSmallA_;
-  static constexpr FloatRoundStyle  kRoundBigB = RoundBigB_;
-  static constexpr FloatRoundStyle  kRoundSmallB = RoundSmallB_;
-  static constexpr TensorFloat32Op  kPrecision = Precision_;
+  static constexpr FloatRoundStyle kRoundBigA = RoundBigA_;
+  static constexpr FloatRoundStyle kRoundSmallA = RoundSmallA_;
+  static constexpr FloatRoundStyle kRoundBigB = RoundBigB_;
+  static constexpr FloatRoundStyle kRoundSmallB = RoundSmallB_;
+  static constexpr TensorFloat32Op kPrecision = Precision_;
 };
 
 
@@ -102,8 +102,8 @@ namespace detail {
   struct ConvertAndPackAccurateF32 {
   
     /// Rounding styles for big and small part
-    static constexpr FloatRoundStyle  kRoundBig = RoundBig;
-    static constexpr FloatRoundStyle  kRoundSmall = RoundSmall;
+    static constexpr FloatRoundStyle kRoundBig = RoundBig;
+    static constexpr FloatRoundStyle kRoundSmall = RoundSmall;
 
     /// Converter type
     using Converter = NumericConverterFastF32<kRoundBig, kRoundSmall>;
@@ -118,10 +118,10 @@ namespace detail {
     using ConverterFragment = Array<tfloat32_t, 2>;
 
     /// Index in fargments for the big and small part
-    static constexpr int  kBigIndex = 0;
-    static constexpr int  kSmallIndex = 1;
+    static constexpr int kBigIndex = 0;
+    static constexpr int kSmallIndex = 1;
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     void operator()(SourceFragment const &source,
                     DestinationFragment &dst_big,
                     DestinationFragment &dst_small) {
@@ -129,7 +129,7 @@ namespace detail {
       Converter convert_;
       ConverterFragment result_;
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int i = 0; i < N; ++i) {
         // convert source to result fragment
         result_ = convert_(source[i]);
@@ -242,16 +242,16 @@ public:
   using InstructionShape = typename ArchMmaOperator::Shape;
 
   /// Complex transform on A operand
-  static constexpr ComplexTransform  kTransformA = ComplexTransform::kNone;
+  static constexpr ComplexTransform kTransformA = ComplexTransform::kNone;
 
   /// Complex transform on B operand
-  static constexpr ComplexTransform  kTransformB = ComplexTransform::kNone;
+  static constexpr ComplexTransform kTransformB = ComplexTransform::kNone;
 
   /// Number of threads participating in warp-level matrix product
-  static constexpr int  kThreadCount = 32;
+  static constexpr int kThreadCount = 32;
 
   /// Number of partitions along K dimension
-  static constexpr int  kPartitionsK = PartitionsK_;
+  static constexpr int kPartitionsK = PartitionsK_;
 
   /// Tune F32 to TF32 big small conversion for float operation
   /// Different combination of big small conversin can cause different tradeoff
@@ -314,8 +314,8 @@ public:
       Array<typename ArchMmaOperator::ElementB, FragmentB::kElements>;
 
   /// Index in fargments for the big and small part
-  static constexpr int  kBigIndex = 0;
-  static constexpr int  kSmallIndex = 1;
+  static constexpr int kBigIndex = 0;
+  static constexpr int kSmallIndex = 1;
 
   /// Iterates over the C operand in memory
   using IteratorC = MmaTensorOpAccumulatorTileIterator<
@@ -343,11 +343,11 @@ public:
   //
 
   /// Ctor
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   MmaTensorOpFastF32() {}
 
   /// Performs a warp-level matrix multiply-accumulate operation
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void operator()(
     FragmentC &D, 
     TransformedFragmentA const &A, 
@@ -374,7 +374,7 @@ public:
   }
 
   /// Performs a warp-level matrix multiply-accumulate operation
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void mma_operator(
     FragmentC &D, 
     AccessTypeFragmentA const &A, 
@@ -393,10 +393,10 @@ public:
       MmaOperandC *ptr_D = reinterpret_cast<MmaOperandC *>(&D);
 
       // Serpentine visitation order maximizing reuse of Ra
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int m = 0; m < MmaIterations::kRow; ++m) {
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_RT_TMPRAGMA_UNROLL
         for (int n = 0; n < MmaIterations::kColumn; ++n) {
 
           // This allows to reuse of Rb when at serpentine turns
@@ -423,7 +423,7 @@ public:
   }
 
   /// Transform the mma operands to the required types
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void transform(TransformedFragmentA &dst_A, TransformedFragmentB &dst_B,
                  FragmentA const &A, FragmentB const &B) const {
 

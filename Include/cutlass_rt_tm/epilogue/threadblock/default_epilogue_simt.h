@@ -99,14 +99,14 @@ struct DefaultEpilogueSimt {
   using Shape = Shape_;
   using WarpMmaSimt = WarpMmaSimt_;
   using OutputOp = OutputOp_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
-  static constexpr int kPartitionsK = Shape::kK / WarpMmaSimt::Shape::kK;
+  static int const kElementsPerAccess = ElementsPerAccess;
+  static const int kPartitionsK = Shape::kK / WarpMmaSimt::Shape::kK;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using LayoutC = typename WarpMmaSimt::LayoutC;
   using ElementAccumulator = typename WarpMmaSimt::ElementC;
   static conv::StrideSupport const kStrideSupport = StrideSupport;
-  static constexpr int kRank = Rank;
+  static int const kRank = Rank;
 
   //
   // Thread map
@@ -121,7 +121,7 @@ struct DefaultEpilogueSimt {
     kElementsPerAccess
   >::Type;
 
-  static constexpr bool UseCUDAStore = platform::is_same<ElementOutput, double>::value;
+  static bool const UseCUDAStore = platform::is_same<ElementOutput, double>::value;
 
   using PackedOutputTileIterator = cutlass_rt_tm::epilogue::threadblock::PredicatedTileIterator<
     OutputTileThreadMap,
@@ -197,8 +197,8 @@ struct DefaultEpilogueSimtStridedDgrad {
   using Shape = Shape_;
   using WarpMmaSimt = WarpMmaSimt_;
   using OutputOp = OutputOp_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
-  static constexpr int kPartitionsK = Shape::kK / WarpMmaSimt::Shape::kK;
+  static int const kElementsPerAccess = ElementsPerAccess;
+  static const int kPartitionsK = Shape::kK / WarpMmaSimt::Shape::kK;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using LayoutC = typename WarpMmaSimt::LayoutC;
@@ -276,8 +276,8 @@ struct DefaultEpilogueSimtAffineRankN {
   using Shape = Shape_;
   using WarpMmaSimt = WarpMmaSimt_;
   using OutputOp = OutputOp_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
-  static constexpr int kPartitionsK = Shape::kK / WarpMmaSimt::Shape::kK;
+  static int const kElementsPerAccess = ElementsPerAccess;
+  static const int kPartitionsK = Shape::kK / WarpMmaSimt::Shape::kK;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using LayoutC = typename WarpMmaSimt::LayoutC;
@@ -358,7 +358,7 @@ struct DefaultDirectConvEpilogueSimt {
   using OutputOp = OutputOp_;
   using ThreadOutputShape = ThreadOutputShape_;
   using ThreadBlockOutputShape = ThreadBlockOutputShape_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess_;
+  static int const kElementsPerAccess = ElementsPerAccess_;
 
 
   using ElementOutput = typename OutputOp::ElementOutput;
@@ -371,9 +371,9 @@ struct DefaultDirectConvEpilogueSimt {
     Shape::kN / WarpShape::kN
   >;
 
-  static constexpr int kWarpSize = cutlass_rt_tm::gemm::warp::WarpSize<arch::OpClassSimt>::value;
+  static int const kWarpSize = cutlass_rt_tm::gemm::warp::WarpSize<arch::OpClassSimt>::value;
 
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static int const kThreads = WarpCount::kCount * kWarpSize;
 
   //
   // Thread map

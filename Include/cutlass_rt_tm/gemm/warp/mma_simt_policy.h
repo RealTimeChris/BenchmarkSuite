@@ -56,7 +56,7 @@ struct MmaSimtPolicy {
   using MmaShape = LaneMmaShape;
 
   /// Returns a layout functor mapping lane position in the warp to thread ID
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static LaneLayout get_lane_layout() {
     return LaneLayout::packed({WarpShape::kRow, WarpShape::kColumn});
   }

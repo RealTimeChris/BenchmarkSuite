@@ -1,4 +1,3 @@
-# Dead Code Detection - BULLETPROOF VERSION
 $SourceDirectory = Get-Location
 $BuildDirectory = 'build'
 $Generator = 'Visual Studio 17 2022'
@@ -15,7 +14,6 @@ if (-not (Test-Path $TestDeletionFolder)) {
     exit 1
 }
 
-# Get ALL files
 $filesToTest = Get-ChildItem -Path $TestDeletionFolder -Recurse -File
 $fileCount = $filesToTest.Count
 Write-Host "Found $fileCount FILES TO TEST!" -ForegroundColor Green
@@ -32,34 +30,28 @@ foreach ($file in $filesToTest) {
     
     Write-Host "$testNumber / $fileCount - Testing: $relativePath" -ForegroundColor White
     $testNumber++
-    
-    # Backup and delete
+
     $backupPath = "$env:TEMP\$fileName.backup"
     Copy-Item $originalPath $backupPath -Force
     Remove-Item $originalPath -Force
     
     Write-Host "  Deleted $fileName, testing build..." -ForegroundColor Gray
-    
-    # FULL BUILD TEST
+
     $buildSuccess = $false
     
-    # Step 1: Configure - MANUAL QUOTES
     Push-Location $SourceDirectory
     $configArgs = '-G "Visual Studio 17 2022" -S . -B build -DBENCH_TYPE=BENCHMARK'
     $configureProcess = Start-Process -FilePath 'cmake.exe' -ArgumentList $configArgs -Wait -PassThru -NoNewWindow
     if ($configureProcess.ExitCode -eq 0) {
-        # Step 2: Clean
         Pop-Location
         Push-Location $BuildDirectory
         $cleanArgs = '--build . --config Release --target clean'
         $cleanProcess = Start-Process -FilePath 'cmake.exe' -ArgumentList $cleanArgs -Wait -PassThru -NoNewWindow
         if ($cleanProcess.ExitCode -eq 0) {
-            # Step 3: Build
             $buildArgs = '--build . --config Release'
             $buildProcess = Start-Process -FilePath 'cmake.exe' -ArgumentList $buildArgs -Wait -PassThru -NoNewWindow -RedirectStandardOutput "$env:TEMP\build_out.txt" -RedirectStandardError "$env:TEMP\build_err.txt"
             $exitCode = $buildProcess.ExitCode
-            
-            # Check output for errors
+
             $buildOutput = @()
             if (Test-Path "$env:TEMP\build_out.txt") { 
                 $buildOutput += Get-Content "$env:TEMP\build_out.txt" 
@@ -77,8 +69,7 @@ foreach ($file in $filesToTest) {
         }
         Pop-Location
     }
-    
-    # RESULT
+
     if ($buildSuccess) {
         Write-Host "  BUILD SUCCEEDED - $fileName is DEAD CODE! (Safe to delete)" -ForegroundColor Green
         Remove-Item $backupPath -Force

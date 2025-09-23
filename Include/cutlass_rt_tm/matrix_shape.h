@@ -54,7 +54,7 @@ struct MatrixShape {
   // Static member functions
   //
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static Coord<2> toCoord() {
     return make_Coord(kRow, kColumn);
   }

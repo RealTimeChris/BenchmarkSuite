@@ -59,7 +59,7 @@ class ReductionOpPlus {
 public:
 
   using Element = Element_;
-  static constexpr int kCount = Count;
+  static int const kCount = Count;
 
   using Fragment = Array<Element, kCount>;
   using Operator = plus<Fragment>;
@@ -75,13 +75,13 @@ private:
 public:
 
   /// Constructs the function object, possibly loading from pointers in host memory
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   ReductionOpPlus(Params const &params) {
 
   }
 
   /// Computes Compute => 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Fragment operator()(
     Fragment const &lhs,
     Fragment const &rhs) const {

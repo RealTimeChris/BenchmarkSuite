@@ -68,19 +68,19 @@ struct alignas(32) uint256_t {
   //
 
   /// Default ctor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   uint256_t() : hilo_{uint128_t{}, uint128_t{}} {}
 
   /// Constructor from uint128
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   uint256_t(uint128_t lo_) : hilo_{lo_, uint128_t{}} {}
 
   /// Constructor from two 128b unsigned integers
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   uint256_t(uint128_t lo_, uint128_t hi_) : hilo_{lo_, hi_} {}
 
   /// Lossily cast to uint128_t
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit operator uint128_t() const {
     return hilo_.lo;
   }

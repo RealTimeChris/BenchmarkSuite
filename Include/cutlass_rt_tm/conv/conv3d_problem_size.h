@@ -78,7 +78,7 @@ struct Conv3dProblemSize : public Conv2dProblemSize {
   // Methods
   //
 public:
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Conv3dProblemSize(): 
     Conv2dProblemSize(),
     D(0), T(0), Z(0), 
@@ -87,7 +87,7 @@ public:
     dilation_d(1) { }
  
   /// Constructor for default padding, stride, dilation, and split-K
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Conv3dProblemSize(
     int N,
     int D,
@@ -108,7 +108,7 @@ public:
     pad_d(T / 2), stride_d(1), dilation_d(1) { }
 
   /// Constructor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Conv3dProblemSize(
     int N,
     int D,
@@ -146,7 +146,7 @@ public:
 
   /// Constructs convolution problem size from cutlass_rt_tm Tensor5DCoord and Coord3D 
   // set *user-defined* output size and sets Z, P, and Q (include all data members in ctor)
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Conv3dProblemSize(
     cutlass_rt_tm::Tensor5DCoord input_size,    // NDHWC
     cutlass_rt_tm::Tensor5DCoord filter_size,   // KTRSC
@@ -171,7 +171,7 @@ public:
 
   /// Constructs convolution problem size from cutlass_rt_tm Tensor5DCoord and Coord3D 
   // *computes* output size and sets Z, P and Q (include all data members in ctor)
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Conv3dProblemSize(
     cutlass_rt_tm::Tensor5DCoord input_size,    // NDHWC
     cutlass_rt_tm::Tensor5DCoord filter_size,   // KTRSC
@@ -198,11 +198,11 @@ public:
 
   /// Constructs convolution problem size from cutlass_rt_tm Tensor5DCoord, Coord3D
   // *computes* output size and sets Z, P and Q (include all data members in ctor)
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Conv3dProblemSize(
     cutlass_rt_tm::Tensor5DCoord input_size,    // NDHWC
     cutlass_rt_tm::Tensor5DCoord filter_size,   // KTRSC
-    CUTLASS_RT_TM_STL_NAMESPACE::tuple<Coord3D, Coord3D> padding, // Coord3D {pad_d, pad_h, pad_w} & Coord3D {far pad_d, pad_h, pad_w} to calculate o/p/q
+    CUTLASS_RT_TMSTL_NAMESPACE::tuple<Coord3D, Coord3D> padding, // Coord3D {pad_d, pad_h, pad_w} & Coord3D {far pad_d, pad_h, pad_w} to calculate o/p/q
     Coord3D stride,                       // stride_d, stride_h, stride_w
     Coord3D dilation,                     // dilation_d, dilation_h, dilation_w
     cutlass_rt_tm::conv::Mode mode = cutlass_rt_tm::conv::Mode::kCrossCorrelation,
@@ -212,20 +212,20 @@ public:
     Conv2dProblemSize(
       {input_size.n(), input_size.h(), input_size.w(), input_size.c()},
       {filter_size.n(), filter_size.h(), filter_size.w(), filter_size.c()},
-      {CUTLASS_RT_TM_STL_NAMESPACE::get<0>(padding)[1], CUTLASS_RT_TM_STL_NAMESPACE::get<1>(padding)[1],
-       CUTLASS_RT_TM_STL_NAMESPACE::get<0>(padding)[2], CUTLASS_RT_TM_STL_NAMESPACE::get<1>(padding)[2]},
+      {CUTLASS_RT_TMSTL_NAMESPACE::get<0>(padding)[1], CUTLASS_RT_TMSTL_NAMESPACE::get<1>(padding)[1],
+       CUTLASS_RT_TMSTL_NAMESPACE::get<0>(padding)[2], CUTLASS_RT_TMSTL_NAMESPACE::get<1>(padding)[2]},
       {stride[1], stride[2]},
       {dilation[1], dilation[2]},
       mode, split_k_slices, groups),
     D(input_size.d()), T(filter_size.d()),
-    pad_d(CUTLASS_RT_TM_STL_NAMESPACE::get<0>(padding)[0]), stride_d(stride[0]), dilation_d(dilation[0])
+    pad_d(CUTLASS_RT_TMSTL_NAMESPACE::get<0>(padding)[0]), stride_d(stride[0]), dilation_d(dilation[0])
     {
       // set output Z
-      Z = ((D + pad_d + CUTLASS_RT_TM_STL_NAMESPACE::get<1>(padding)[0] - T * dilation_d) / stride_d) + 1;
+      Z = ((D + pad_d + CUTLASS_RT_TMSTL_NAMESPACE::get<1>(padding)[0] - T * dilation_d) / stride_d) + 1;
     }
 
   /// Equality operator (ignores mode and split_k_slice)
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   bool operator==(Conv3dProblemSize const &conv) const {
     return (
       (N == conv.N) && (D == conv.D) && (H == conv.H) && (W == conv.W) && (C == conv.C) &&
@@ -238,13 +238,13 @@ public:
   }
 
   /// Inequality operator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   bool operator!=(Conv3dProblemSize const &rhs) const {
     return !(*this == rhs);
   }
 
   // Reset covolution mode in the problem
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Conv3dProblemSize reset_mode(cutlass_rt_tm::conv::Mode mode_) {
     Conv3dProblemSize tmp(*this);
     tmp.mode = mode_; 
@@ -252,7 +252,7 @@ public:
   }
 
   // Reset covolution mode in the problem
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Conv3dProblemSize reset_split_k_slices(int split_k_slices_) {
     Conv3dProblemSize tmp(*this);
     tmp.split_k_slices = split_k_slices_; 
@@ -260,14 +260,14 @@ public:
   }
   
   /// Returns activation extent as Tensor5DCoord
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   cutlass_rt_tm::Tensor5DCoord activation_extent() const {
 
     return cutlass_rt_tm::Tensor5DCoord ({N, D, H, W, C});
   }
 
   /// Returns filter extent as Tensor5DCoord
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   cutlass_rt_tm::Tensor5DCoord filter_extent(bool is_deconv = false) const {
 
     return is_deconv ? cutlass_rt_tm::Tensor5DCoord ({C, T, R, S, K})
@@ -275,14 +275,14 @@ public:
   }
 
   /// Returns output extent as Tensor5DCoord
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   cutlass_rt_tm::Tensor5DCoord output_extent() const {
 
     return cutlass_rt_tm::Tensor5DCoord ({N, Z, P, Q, K});
   }
 
   /// Returns activation size in number of elements
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   int64_t activation_size() const {
 
     return static_cast<int64_t>(N) * static_cast<int64_t>(D) *
@@ -291,7 +291,7 @@ public:
   }
 
   /// Returns filter size in number of elements
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   int64_t filter_size() const {
 
     return static_cast<int64_t>(K) * static_cast<int64_t>(T) *
@@ -300,7 +300,7 @@ public:
   }
 
   /// Returns output size in number of elements
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   int64_t output_size() const {
 
     return static_cast<int64_t>(N) * static_cast<int64_t>(Z) *
@@ -309,21 +309,21 @@ public:
   }
 
   /// Returns padding as Coord3D
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Coord3D padding() const {
 
     return Coord3D ({pad_d, pad_h, pad_w});
   }
 
   /// Returns stride as MatrixCoord
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Coord3D stride() const {
 
     return Coord3D ({stride_d, stride_h, stride_w});
   }
 
   /// Returns dilation as MatrixCoord
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Coord3D dilation() const {
 
     return Coord3D ({dilation_d, dilation_h, dilation_w});
@@ -337,7 +337,7 @@ public:
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Determine the problem size of the implicit GEMM operation
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 cutlass_rt_tm::gemm::GemmCoord implicit_gemm_problem_size(
   Operator conv_operator, 
   Conv3dProblemSize const &problem_size) {
@@ -369,7 +369,7 @@ cutlass_rt_tm::gemm::GemmCoord implicit_gemm_problem_size(
 }
 
 // Determine the number of gemm_k iterations for conv2d problem using implicit gemm algorithm
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 int implicit_gemm_k_iterations(
   Operator conv_operator, 
   int threadblock_K, 
@@ -424,7 +424,7 @@ int implicit_gemm_k_iterations(
 //  Mapping function (ImplicitGemm A, B, C -> Conv Activation, Filter, Output)
 ////////////////////////////////////////////////////////////////////////////////
 /// Returns ImplicitGemm tensor A extent as Tensor5DCoord
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 cutlass_rt_tm::Tensor5DCoord implicit_gemm_tensor_a_extent(
   Operator conv_operator,
   Conv3dProblemSize const &problem_size) {
@@ -439,7 +439,7 @@ cutlass_rt_tm::Tensor5DCoord implicit_gemm_tensor_a_extent(
 }
 
 /// Returns ImplicitGemm tensor B extent as Tensor5DCoord
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 cutlass_rt_tm::Tensor5DCoord implicit_gemm_tensor_b_extent(
   Operator conv_operator,
   Conv3dProblemSize const &problem_size) {
@@ -454,7 +454,7 @@ cutlass_rt_tm::Tensor5DCoord implicit_gemm_tensor_b_extent(
 }
 
 /// Returns ImplicitGemm tensor C extent as Tensor5DCoord
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 cutlass_rt_tm::Tensor5DCoord implicit_gemm_tensor_c_extent(
   Operator conv_operator,
   Conv3dProblemSize const &problem_size) {
@@ -469,7 +469,7 @@ cutlass_rt_tm::Tensor5DCoord implicit_gemm_tensor_c_extent(
 }
 
 /// Returns ImplicitGemm tensor A size in number of elements
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 int64_t implicit_gemm_tensor_a_size(
   Operator conv_operator,
   Conv3dProblemSize const &problem_size) {
@@ -484,7 +484,7 @@ int64_t implicit_gemm_tensor_a_size(
 }
 
 /// Returns ImplicitGemm tensor B size in number of elements
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 int64_t implicit_gemm_tensor_b_size(
   Operator conv_operator,
   Conv3dProblemSize const &problem_size) {
@@ -499,7 +499,7 @@ int64_t implicit_gemm_tensor_b_size(
 }
 
 /// Returns ImplicitGemm tensor C size in number of elements
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 int64_t implicit_gemm_tensor_c_size(
   Operator conv_operator,
   Conv3dProblemSize const &problem_size) {

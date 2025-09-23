@@ -86,9 +86,9 @@ public:
   using LongIndex = typename Layout::LongIndex;
   using TensorCoord = MatrixCoord;
 
-  static constexpr int kElementsPerAccess = ThreadMap::kElementsPerAccess;
-  static constexpr int kThreads = ThreadMap::kThreads;
-  static constexpr int kIterations = ThreadMap::Count::kTile;
+  static int const kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static int const kThreads = ThreadMap::kThreads;
+  static int const kIterations = ThreadMap::Count::kTile;
 
   static_assert( ThreadMap::Iterations::kRow > 0,"ThreadMap::Iterations::kRow must be > 0");
   static_assert( ThreadMap::Iterations::kGroup > 0,"ThreadMap::Iterations::kGroup must be > 0");
@@ -117,10 +117,10 @@ public:
     cutlass_rt_tm::conv::Conv2dProblemSize problem_size;
     int tiled_rows_per_filter;
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     Params() { }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     Params(Layout const &layout, cutlass_rt_tm::conv::Conv2dProblemSize problem_size_, int threadblock_row): 
       problem_size(problem_size_), 
       PredicatedTileIteratorParams(
@@ -138,7 +138,7 @@ public:
   /// Mask object
   struct Mask {
 
-    static constexpr int kCount = ThreadMap::Iterations::kColumn;
+    static int const kCount = ThreadMap::Iterations::kColumn;
 
     /// Predicate state
     bool predicates[kCount];
@@ -146,22 +146,22 @@ public:
     //
     // Mask
     //
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     Mask() {
       enable();
     }
 
     ///< Efficiently disables all accesses guarded by mask
-    CUTLASS_RT_TM_HOST_DEVICE void clear() {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMHOST_DEVICE void clear() {
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int i = 0; i < kCount; ++i) {
         predicates[i] = false;
       }
     }
 
-    ///< CUTLASS_RT_TM_HOST_DEVICE enables all accesses guarded by mask
-    CUTLASS_RT_TM_DEVICE void enable() {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+    ///< CUTLASS_RT_TMHOST_DEVICE enables all accesses guarded by mask
+    CUTLASS_RT_TMDEVICE void enable() {
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int i = 0; i < kCount; ++i) {
         predicates[i] = true;
       }
@@ -222,7 +222,7 @@ public:
   //
 
   /// Constructor
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   PredicatedTileIteratorStridedDgrad(
     Params const & params,
     Element *pointer,
@@ -260,7 +260,7 @@ public:
     thread_start_column_ = thread_offset.column();
 
     // Initialize predicates
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int c = 0; c < ThreadMap::Iterations::kColumn; ++c) {
 
       mask_.predicates[c] = ((thread_offset.column() 
@@ -280,25 +280,25 @@ public:
   }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     byte_pointer_ += pointer_offset * sizeof_bits<Element>::value / 8;
   }
 
   /// Loads a fragment from memory
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void load_with_byte_offset(Fragment &frag, int64_t byte_offset) {
 
     uint8_t *byte_pointer = byte_pointer_;
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int cluster = 0; cluster < ThreadMap::Iterations::kCluster; ++cluster) {
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int group = 0; group < ThreadMap::Iterations::kGroup; ++group) {
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_RT_TMPRAGMA_UNROLL
         for (int row = 0; row < ThreadMap::Iterations::kRow; ++row) {
 
           int frag_row_idx = 
@@ -324,7 +324,7 @@ public:
 
           int64_t row_byte_offset = mapped_row_offset * params_.stride;
 
-          CUTLASS_RT_TM_PRAGMA_UNROLL
+          CUTLASS_RT_TMPRAGMA_UNROLL
           for (int column = 0; column < ThreadMap::Iterations::kColumn; ++column) {
 
             int64_t column_byte_offset = (thread_start_column_ + column * ThreadMap::Delta::kColumn) * (sizeof_bits<Element>::value / 8);
@@ -347,25 +347,25 @@ public:
 
 
   /// Loads a fragment from memory
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void load(Fragment &frag) {
 
     load_with_byte_offset(frag, 0);
   }
 
   /// Stores a fragment to memory
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void store_with_byte_offset(Fragment const &frag, int64_t byte_offset) {
     uint8_t *byte_pointer = byte_pointer_;
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int cluster = 0; cluster < ThreadMap::Iterations::kCluster; ++cluster) {
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int group = 0; group < ThreadMap::Iterations::kGroup; ++group) {
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_RT_TMPRAGMA_UNROLL
         for (int row = 0; row < ThreadMap::Iterations::kRow; ++row) {
 
           int frag_row_idx = 
@@ -391,7 +391,7 @@ public:
 
           int64_t row_byte_offset = mapped_row_offset * params_.stride;
           
-          CUTLASS_RT_TM_PRAGMA_UNROLL
+          CUTLASS_RT_TMPRAGMA_UNROLL
           for (int column = 0; column < ThreadMap::Iterations::kColumn; ++column) {
 
             int64_t column_byte_offset = (thread_start_column_ + column * ThreadMap::Delta::kColumn) * (sizeof_bits<Element>::value / 8);
@@ -410,14 +410,14 @@ public:
 
 
   /// Stores a fragment to memory
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void store(Fragment const &frag) {
 
     store_with_byte_offset(frag, 0);
   }
 
   /// Advances to the next position to load or store
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   PredicatedTileIteratorStridedDgrad &operator++() {
 
     ++state_[0];
@@ -450,22 +450,22 @@ public:
   }
 
   ///< Efficiently disables all accesses guarded by mask
-  CUTLASS_RT_TM_DEVICE void clear_mask() {
+  CUTLASS_RT_TMDEVICE void clear_mask() {
     mask_.clear();
   }
 
   ///< Efficiently enables all accesses guarded by mask
-  CUTLASS_RT_TM_DEVICE void enable_mask() {
+  CUTLASS_RT_TMDEVICE void enable_mask() {
     mask_.enable();
   }
 
   ///< Sets the mask
-  CUTLASS_RT_TM_DEVICE void get_mask(Mask &mask) {
+  CUTLASS_RT_TMDEVICE void get_mask(Mask &mask) {
     mask = mask_;
   }
 
   ///< Sets the mask
-  CUTLASS_RT_TM_DEVICE void set_mask(Mask const &mask) {
+  CUTLASS_RT_TMDEVICE void set_mask(Mask const &mask) {
     mask_ = mask;
   }
 };

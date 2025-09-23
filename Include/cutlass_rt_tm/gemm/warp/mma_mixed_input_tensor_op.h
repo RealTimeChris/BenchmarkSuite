@@ -88,15 +88,15 @@ struct FragmentShuffler {
   using ElementMma = ElementMma_;
   using ElementLoad = ElementLoad_;
 
-  static constexpr int  kNumMmaInstructions = NumMmaInstructions;
-  static constexpr int  kNumElementsInWarpFragment = NumElementsInWarpFragment;
-  static constexpr int  kNumElementsInMmaFragment = NumElementsInMmaFragment;
-  static constexpr Operand  kOperand = Operand_;
+  static constexpr int kNumMmaInstructions = NumMmaInstructions;
+  static constexpr int kNumElementsInWarpFragment = NumElementsInWarpFragment;
+  static constexpr int kNumElementsInMmaFragment = NumElementsInMmaFragment;
+  static constexpr Operand kOperand = Operand_;
 
   using WarpFragment = Array<ElementLoad, kNumElementsInWarpFragment>;
   using MmaFragment = Array<ElementLoad, kNumElementsInMmaFragment>;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   WarpFragment operator()(WarpFragment const &src) {
     return src;
   }
@@ -129,16 +129,16 @@ public:
   using ElementMma = ElementMma_;
   using ElementLoad = ElementLoad_;
 
-  static constexpr int  kNumMmaInstructions = NumMmaInstructions;
-  static constexpr int  kNumElementsInWarpFragment = NumElementsInWarpFragment;
-  static constexpr int  kNumElementsInMmaFragment = NumElementsInMmaFragment;
-  static constexpr Operand  kOperand = Operand::kA;
+  static constexpr int kNumMmaInstructions = NumMmaInstructions;
+  static constexpr int kNumElementsInWarpFragment = NumElementsInWarpFragment;
+  static constexpr int kNumElementsInMmaFragment = NumElementsInMmaFragment;
+  static constexpr Operand kOperand = Operand::kA;
 
   using WarpFragment = Array<ElementLoad, kNumElementsInWarpFragment>;
   using MmaFragment = Array<ElementLoad, kNumElementsInMmaFragment>;
 
-  static constexpr uint32_t  kSelectBytesEvenThread = 0x5410;
-  static constexpr uint32_t  kSelectBytesOddThread = 0x7632;
+  static constexpr uint32_t kSelectBytesEvenThread = 0x5410;
+  static constexpr uint32_t kSelectBytesOddThread = 0x7632;
 
 private:
   int delta_up_;
@@ -147,7 +147,7 @@ private:
   uint32_t byte_selector_;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   FragmentShuffler() {
     int lane_id = cutlass_rt_tm::arch::LaneId();
     delta_up_ = (lane_id & 1) + ((lane_id & 2) >> 1);
@@ -157,14 +157,14 @@ public:
                     (1 - odd_even_lane_id_) * kSelectBytesEvenThread;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   WarpFragment operator()(WarpFragment const &src) {
 
     WarpFragment result;
     MmaFragment const* mma_frag_src_ptr = reinterpret_cast<MmaFragment const*>(&src);
     MmaFragment* mma_frag_dst_ptr = reinterpret_cast<MmaFragment*>(&result);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int n = 0; n < kNumMmaInstructions; n++) {
 
         uint32_t const* src_ptr = reinterpret_cast<uint32_t const *>(&mma_frag_src_ptr[n]);
@@ -213,16 +213,16 @@ public:
   using ElementMma = ElementMma_;
   using ElementLoad = ElementLoad_;
 
-  static constexpr int  kNumMmaInstructions = NumMmaInstructions;
-  static constexpr int  kNumElementsInWarpFragment = NumElementsInWarpFragment;
-  static constexpr int  kNumElementsInMmaFragment = NumElementsInMmaFragment;
-  static constexpr Operand  kOperand = Operand::kB;
+  static constexpr int kNumMmaInstructions = NumMmaInstructions;
+  static constexpr int kNumElementsInWarpFragment = NumElementsInWarpFragment;
+  static constexpr int kNumElementsInMmaFragment = NumElementsInMmaFragment;
+  static constexpr Operand kOperand = Operand::kB;
 
   using WarpFragment = Array<ElementLoad, kNumElementsInWarpFragment>;
   using MmaFragment = Array<ElementLoad, kNumElementsInMmaFragment>;
 
-  static constexpr uint32_t  kSelectBytesEvenThread = 0x5410;
-  static constexpr uint32_t  kSelectBytesOddThread = 0x7632;
+  static constexpr uint32_t kSelectBytesEvenThread = 0x5410;
+  static constexpr uint32_t kSelectBytesOddThread = 0x7632;
 
 private:
   int delta_up_;
@@ -231,7 +231,7 @@ private:
   uint32_t byte_selector_;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   FragmentShuffler() {
     int lane_id = cutlass_rt_tm::arch::LaneId();
     delta_up_ = (lane_id & 1) + ((lane_id & 2) >> 1);
@@ -241,7 +241,7 @@ public:
                     (1 - odd_even_lane_id_) * kSelectBytesEvenThread;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   WarpFragment operator()(WarpFragment const &src) {
 
     WarpFragment result;
@@ -249,7 +249,7 @@ public:
     MmaFragment const* mma_frag_src_ptr = reinterpret_cast<MmaFragment const *>(&src);
     MmaFragment* mma_frag_dst_ptr = reinterpret_cast<MmaFragment *>(&result);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int n = 0; n < kNumMmaInstructions; n++) {
 
         uint32_t const* src_ptr = reinterpret_cast<uint32_t const*>(&mma_frag_src_ptr[n]);
@@ -291,7 +291,7 @@ struct FragmentConverter {
 
   FastNumericArrayConverter<ElementDst, ElementSrc, N> convert;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   DestinationFragment operator()(SourceFragment const &src) const {
     return convert(src);
   }
@@ -312,7 +312,7 @@ struct FragmentConverter<Element, Element, N, Enable> {
   using DestinationFragment = Array<Element, N>;
   using SourceFragment = Array<Element, N>;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   DestinationFragment operator()(SourceFragment const &src) const {
     return src;
   }
@@ -397,19 +397,19 @@ public:
   using InstructionShape = typename ArchMmaOperator::Shape;
 
   /// Complex transform on A operand
-  static constexpr ComplexTransform  kTransformA = ComplexTransform::kNone;
+  static constexpr ComplexTransform kTransformA = ComplexTransform::kNone;
 
   /// Complex transform on B operand
-  static constexpr ComplexTransform  kTransformB = ComplexTransform::kNone;
+  static constexpr ComplexTransform kTransformB = ComplexTransform::kNone;
 
   /// Number of threads participating in warp-level matrix product
-  static constexpr int  kThreadCount = 32;
+  static constexpr int kThreadCount = 32;
 
   /// Number of partitions along K dimension
-  static constexpr int  kPartitionsK = PartitionsK_;
+  static constexpr int kPartitionsK = PartitionsK_;
 
   /// 
-  // static constexpr int  kLoadShapeK = InstructionShape::kK * 
+  // static constexpr int kLoadShapeK = InstructionShape::kK * 
   //  (sizeof_bits<ElementAMma>::value / sizeof_bits<ElementB>::value);
 
 public:
@@ -476,11 +476,11 @@ public:
   //
 
   /// Ctor
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   MmaMixedInputTensorOp() {}
 
     /// Performs a warp-level matrix multiply-accumulate operation
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void operator()(
     FragmentC &D, 
     TransformedFragmentA const &A, 
@@ -494,10 +494,10 @@ public:
     MmaOperandB const *ptr_B = reinterpret_cast<MmaOperandB const *>(&B);
     MmaOperandC *ptr_D = reinterpret_cast<MmaOperandC *>(&D);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int m = 0; m < MmaIterations::kRow; ++m) {
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int n = 0; n < MmaIterations::kColumn; ++n) {
 
         int n_serpentine = ((m % 2) ? (MmaIterations::kColumn - 1 - n) : n);
@@ -520,7 +520,7 @@ public:
 
   /// Transform the operand warp fragment register to the required data types and layout 
   /// for the `cultass::arch::Mma`
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void transform(TransformedFragmentA &dst_A, TransformedFragmentB &dst_B,
                  FragmentA const &A, FragmentB const &B) const {
 

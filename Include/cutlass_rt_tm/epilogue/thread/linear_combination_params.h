@@ -46,13 +46,13 @@ struct LinearCombinationParams {
   uint64_t alpha_data[2];
   uint64_t beta_data[2];
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   LinearCombinationParams()
   : alpha_data {0lu, 0lu}, beta_data {0lu, 0lu} 
   { }
 
   template <typename ElementCompute>
-  CUTLASS_RT_TM_HOST_DEVICE 
+  CUTLASS_RT_TMHOST_DEVICE 
   LinearCombinationParams(ElementCompute alpha, ElementCompute beta) 
   : alpha_data {0lu, 0lu}, beta_data {0lu, 0lu} 
   {

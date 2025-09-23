@@ -53,7 +53,7 @@ namespace kernel {
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename Mma, typename Epilogue, typename ThreadblockSwizzle>
-CUTLASS_RT_TM_GLOBAL void GemmPipelined(
+CUTLASS_RT_TMGLOBAL void GemmPipelined(
   cutlass_rt_tm::gemm::GemmCoord problem_size,
   cutlass_rt_tm::gemm::GemmCoord grid_tiled_shape,
   typename Mma::IteratorA::Params params_A,

@@ -128,10 +128,10 @@ public:
   using ArchTag = typename Policy::Operator::ArchTag;
 
   /// Complex transform on A operand
-  static constexpr ComplexTransform  kTransformA = Operator::kTransformA;
+  static constexpr ComplexTransform kTransformA = Operator::kTransformA;
 
   /// Complex transform on B operand
-  static constexpr ComplexTransform  kTransformB = Operator::kTransformB;
+  static constexpr ComplexTransform kTransformB = Operator::kTransformB;
 
   // staticaly assert kStages for MmaPipelined is two (Double-buffered pipeline)
   static_assert((Base::kStages==2), "MmaPipelined requires kStages set to value 2");
@@ -163,7 +163,7 @@ protected:
 public:
 
   /// Construct from tensor references
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   MmaPipelined(
     typename Base::SharedStorage &shared_storage,       ///< Shared storage needed for internal use by threadblock-scoped GEMM
     int thread_idx,                                     ///< ID within the threadblock
@@ -199,7 +199,7 @@ public:
 
 
   /// Advance shared memory write-iterators to the next stage
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void advance_smem_write_stage()
   {
     ++this->smem_iterator_A_;
@@ -215,7 +215,7 @@ public:
   }
 
   /// Advance shared memory read- and write-iterators to the next stage
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void advance_smem_stages()
   {
     ++this->smem_iterator_A_;
@@ -242,7 +242,7 @@ public:
 
   /// GEMM prologue.  Bootstrap the global->shared memory pipeline by fetching
   /// the global fragments needed by the first kStages-1 threadblock mainloop iterations
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void prologue(
     IteratorA &iterator_A,      ///< [in|out] iterator over A operand in global memory
     IteratorB &iterator_B,      ///< [in|out] iterator over B operand in global memory
@@ -271,7 +271,7 @@ public:
   }
 
   /// Wait until we have at least one completed global fetch stage
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void gmem_wait()
   {
     __syncthreads();
@@ -280,7 +280,7 @@ public:
 
   /// Perform the specified number of threadblock mainloop iterations of matrix
   /// multiply-accumulate.  Assumes prologue has been initiated.
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void gemm_iters(
     int gemm_k_iterations,        ///< number of threadblock mainloop iterations
     FragmentC &accum,             ///< [in|out] accumulator tile
@@ -317,13 +317,13 @@ public:
     //
 
     // Note: The main loop does not support Base::kWarpGemmIterations == 2.
-    CUTLASS_RT_TM_GEMM_LOOP
+    CUTLASS_RT_TMGEMM_LOOP
     for (; gemm_k_iterations > 0; --gemm_k_iterations) {
       //
       // Loop over GEMM K dimension
       //
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int warp_mma_k = 0; warp_mma_k < Base::kWarpGemmIterations; ++warp_mma_k) {
 
         // Load warp-level tiles from shared memory, wrapping to k offset if this is the last group
@@ -381,7 +381,7 @@ public:
 
 
   /// Prepares the class for another prologue.
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void wind_down()
   {
     // First, increment remaining warp tiles to catch it up with the write stage.
@@ -407,7 +407,7 @@ public:
   }
 
   /// Perform a threadblock-scoped matrix multiply-accumulate
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void operator()(
     int gemm_k_iterations,                            ///< number of iterations of the mainloop
     FragmentC &accum,                                 ///< destination accumulator tile

@@ -38,7 +38,7 @@
 #include "cutlass_rt_tm/cutlass.h"
 #include "cutlass_rt_tm/arch/wmma.h"
 
-#if defined(CUTLASS_RT_TM_ARCH_WMMA_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_WMMA_ENABLED)
 
 #include "cutlass_rt_tm/wmma_array.h"
 #include "cutlass_rt_tm/numeric_types.h"
@@ -125,19 +125,19 @@ public:
   using ArchTag = typename Policy::Operator::ArchTag;
 
   /// Complex transform on A operand
-  static constexpr ComplexTransform  kTransformA = ComplexTransform::kNone;
+  static constexpr ComplexTransform kTransformA = ComplexTransform::kNone;
 
   /// Complex transform on B operand
-  static constexpr ComplexTransform  kTransformB = ComplexTransform::kNone;
+  static constexpr ComplexTransform kTransformB = ComplexTransform::kNone;
 
   /// Indicates class of matrix operator
   using OperatorClass = arch::OpClassWmmaTensorOp;
 
   /// Number of threads participating in warp-level matrix product
-  static constexpr int  kThreadCount = 32;
+  static constexpr int kThreadCount = 32;
 
   /// Number of partitions along K dimension
-  static constexpr int  kPartitionsK = PartitionsK_;
+  static constexpr int kPartitionsK = PartitionsK_;
 
 public:
 
@@ -190,20 +190,20 @@ public:
   //
 
   /// Ctor
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   MmaTensorOpWmma() {}
 
   /// Performs a warp-level matrix multiply-accumulate operation
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void operator()(
     FragmentC &D, 
     FragmentA const &A, 
     FragmentB const &B, 
     FragmentC const &C) const {
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int n = 0; n < WmmaIterations::kColumn; ++n) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int m = 0; m < WmmaIterations::kRow; ++m) {
 
         // accumulate wmma mma
@@ -219,5 +219,5 @@ public:
 } // namespace gemm
 } // namespace cutlass_rt_tm
 
-#endif // if defined(CUTLASS_RT_TM_ARCH_WMMA_ENABLED)
+#endif // if defined(CUTLASS_RT_TMARCH_WMMA_ENABLED)
 

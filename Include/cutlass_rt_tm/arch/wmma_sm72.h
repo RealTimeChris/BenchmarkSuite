@@ -62,7 +62,7 @@ struct Wmma<
   LayoutC_,                                 ///< LayoutC
   cutlass_rt_tm::arch::OpMultiplyAdd              ///< Operator (multiply-add, xor.popc)
 > {
-#if defined(CUTLASS_RT_TM_ARCH_WMMA_SM72_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_WMMA_SM72_ENABLED)
   using Shape = Shape_;
   using ElementA = int8_t;
   using LayoutA = LayoutA_;
@@ -106,7 +106,7 @@ struct Wmma<
           typename CutlassToWmmaDataType<ElementC>::Type>;
 
   /// Performs a nvcuda::wmma matrix multiply-accumulate operation
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void operator()(
     FragmentC &D, 
     FragmentA const &A, 
@@ -143,7 +143,7 @@ struct Wmma<
   LayoutC_,                                 ///< LayoutC
   cutlass_rt_tm::arch::OpMultiplyAdd              ///< Operator (multiply-add, xor.popc)
 > {
-#if defined(CUTLASS_RT_TM_ARCH_WMMA_SM72_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_WMMA_SM72_ENABLED)
   using Shape = Shape_;
   using ElementA = uint8_t;
   using LayoutA = LayoutA_;
@@ -186,7 +186,7 @@ struct Wmma<
           typename CutlassToWmmaDataType<ElementC>::Type>;
   
   /// Performs a nvcuda::wmma matrix multiply-accumulate operation
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void operator()(
     FragmentC &D, 
     FragmentA const &A, 

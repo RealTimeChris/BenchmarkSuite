@@ -124,13 +124,13 @@ private:
 public:
 
   /// Default constructor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   TileIteratorWmmaTensorOp(): ref_(nullptr) { 
 
   }
 
   /// Constructor from TensorRef
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   TileIteratorWmmaTensorOp(
     TensorRef const &ref,
     unsigned lane_id
@@ -138,28 +138,28 @@ public:
   }
 
   /// Adds a pointer offset
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   TileIteratorWmmaTensorOp & add_pointer_offset(Index pointer_offset) {
     ref_.add_pointer_offset(pointer_offset);
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   TileIteratorWmmaTensorOp & add_tile_offset(TensorCoord const &tile_offset) {
     ref_.add_coord_offset({tile_offset.row() * OperatorShape::kM, tile_offset.column() * WarpShape::kN});
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   TileIteratorWmmaTensorOp & operator+=(TensorCoord const &tile_offset) {
     add_tile_offset(tile_offset);
     return *this;
   }
 
   /// Store
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
     for(int n=0; n < Policy::OperatorCount::kColumn; n++) {
@@ -177,13 +177,13 @@ public:
   }
 
   /// Store
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void store(Fragment const &frag) {
     store_with_pointer_offset(frag, 0);
   }
 
   /// Load
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
  
     for(int n=0; n < Policy::OperatorCount::kColumn; n++) {
@@ -201,14 +201,14 @@ public:
   }
 
   /// Load
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void load(Fragment &frag) const {
     load_with_pointer_offset(frag, 0);
   }
 
   
   /// Set smem base address
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void set_smem_base_address(Index address) {
   }
 };

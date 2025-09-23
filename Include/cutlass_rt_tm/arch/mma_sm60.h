@@ -64,7 +64,7 @@ struct Mma<
   using Operator = OpMultiplyAdd;
   using ElementC = half_t;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     Array<half_t, 2> &d,
     Array<half_t, 2> const &a,
@@ -83,7 +83,7 @@ struct Mma<
     d = reinterpret_cast<Array<half_t, 2> &>(D);
 
 #else
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 2; ++i) {
       d[i] = a[i] * b[0] + c[i];
     }
@@ -110,7 +110,7 @@ struct Mma<
   using Operator = OpMultiplyAdd;
   using ElementC = half_t;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     Array<half_t, 2> &d,
     Array<half_t, 1> const &a,
@@ -129,7 +129,7 @@ struct Mma<
     d = reinterpret_cast<Array<half_t, 2> &>(D);
 
 #else
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 2; ++i) {
       d[i] = a[0] * b[i] + c[i];
     }
@@ -156,7 +156,7 @@ struct Mma <
   using Operator = OpMultiplyAdd;
   using ElementC = half_t;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     Array<half_t, 4> &d,
     Array<half_t, 2> const &a,
@@ -181,9 +181,9 @@ struct Mma <
     D[1] = reinterpret_cast<Array<half_t, 2> const &>(Dhi);
 
 #else
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int j = 0; j < 2; ++j) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int i = 0; i < 2; ++i) {
         d[i + 2 * j] = a[i] * b[j] + c[i + 2 * j];
       }
@@ -211,7 +211,7 @@ struct Mma<
   using Operator = OpMultiplyAdd;
   using ElementC = half_t;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     Array<half_t, 4> &d,
     Array<half_t, 2> const &a,
@@ -235,9 +235,9 @@ struct Mma<
     D[0] = reinterpret_cast<Array<half_t, 2> &>(Dlo);
     D[1] = reinterpret_cast<Array<half_t, 2> &>(Dhi);
 #else
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 2; ++i) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int j = 0; j < 2; ++j) {
         d[i * 2 + j] = a[i] * b[j] + c[i * 2 + j];
       }

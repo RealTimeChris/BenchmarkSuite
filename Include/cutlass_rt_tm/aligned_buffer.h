@@ -86,38 +86,38 @@ public:
 
 public:
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   pointer data() {
     return reinterpret_cast<pointer>(storage); 
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   const_pointer data() const {
     return reinterpret_cast<pointer>(storage); 
   }
   
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Storage * raw_data() {
     return storage;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Storage const * raw_data() const {
     return storage;
   }
 
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   constexpr bool empty() const {
     return !kCount;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   constexpr size_type size() const {
     return kCount;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   constexpr size_type max_size() const {
     return kCount;
   }

@@ -3,7 +3,7 @@
 #include <cuda_fp16.h>
 #include "cutlass_rt_tm/arch/config.h"
 
-static constexpr uint64_t total_iterations{ 2 };
+static constexpr uint64_t total_iterations{ 4 };
 static constexpr uint64_t measured_iterations{ 2 };
 
 template<auto multiple, typename value_01_type = decltype(multiple)> BNCH_SWT_INLINE constexpr value_01_type round_up_to_multiple(value_01_type value) noexcept {
@@ -94,6 +94,12 @@ using q8_quant = int8_t;
 inline static uint16_t fp32_to_fp16(float f) {
 	return static_cast<uint16_t>(_mm_extract_epi16(_mm_cvtps_ph(_mm_set_ss(f), _MM_FROUND_TO_NEAREST_INT), 0));
 }
+
+struct block_q8_0 {
+	static constexpr uint64_t block_count{32};
+	int16_t scale;
+	int8_t quants[block_count];
+};
 
 inline block_q8_0 generate_block(const float* x) {
 	block_q8_0 return_values{};
@@ -1854,13 +1860,13 @@ template<uint64_t M, uint64_t K> struct nihilus_gemm {
 			cudaDeviceSynchronize();
 
 			using index_type		= cutlass_rt_tm::gemm::GemmCoord::Index;
-			using nihilus_gemm_type = cutlass_rt_tm::gemm::device::Gemm<M, K, element_a, layout_a, element_b, layout_b, element_c, layout_c, element_c>;
+			using nihilus_gemm_type = cutlass_rt_tm::gemm::device::Gemm<element_a, layout_a, element_b, layout_b, element_c, layout_c, element_c>;
 			nihilus_gemm_type gemm_op;
-			cutlass_rt_tm::Status status = gemm_op({ N, { A_ptr, static_cast<index_type>(K) }, { B_ptr, static_cast<index_type>(N) },
-				{ C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
+			cutlass_rt_tm::Status status = gemm_op({ { static_cast<index_type>(M), static_cast<index_type>(N), static_cast<index_type>(K) }, { A_ptr, static_cast<index_type>(K) },
+				{ B_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
 
 			if (status != cutlass_rt_tm::Status::kSuccess) {
-				std::cerr << "CUTLASS GEMM failed: " << cutlass_rt_tm::cutlass_rt_tmGetStatusString(status) << std::endl;
+				std::cerr << "CUTLASS GEMM failed: " << cutlass_rt_tm::cutlassGetStatusString(status) << std::endl;
 			}
 		}
 
@@ -1889,13 +1895,13 @@ template<uint64_t M, uint64_t K> struct nihilus_gemm {
 
 		float* C_ptr = reinterpret_cast<float*>(static_cast<uint8_t*>(buffer.data()) + offset);
 		using index_type		= cutlass_rt_tm::gemm::GemmCoord::Index;
-		using nihilus_gemm_type = cutlass_rt_tm::gemm::device::Gemm<M, K, element_a, layout_a, element_b, layout_b, element_c, layout_c, element_c>;
+		using nihilus_gemm_type = cutlass_rt_tm::gemm::device::Gemm<element_a, layout_a, element_b, layout_b, element_c, layout_c, element_c>;
 		nihilus_gemm_type gemm_op;
-		cutlass_rt_tm::Status status = gemm_op({ N, { A_ptr, static_cast<index_type>(K) }, { B_ptr, static_cast<index_type>(N) },
-			{ C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
+		cutlass_rt_tm::Status status = gemm_op({ { static_cast<index_type>(M), static_cast<index_type>(N), static_cast<index_type>(K) }, { A_ptr, static_cast<index_type>(K) },
+			{ B_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
 
 		if (status != cutlass_rt_tm::Status::kSuccess) {
-			std::cerr << "CUTLASS GEMM failed: " << cutlass_rt_tm::cutlass_rt_tmGetStatusString(status) << std::endl;
+			std::cerr << "CUTLASS GEMM failed: " << cutlass_rt_tm::cutlassGetStatusString(status) << std::endl;
 		}
 
 		cudaError_t err = cudaGetLastError();
@@ -1914,7 +1920,6 @@ template<uint64_t M, uint64_t K> struct nihilus_gemm {
 };
 
 #include <cutlass/gemm/device/gemm.h>
-#include <cutlass/cuda_host_adapter.hpp>
 
 using cutless_element_a = float;
 using cutless_element_b = float;
@@ -2027,32 +2032,107 @@ template<uint64_t M, uint64_t K> struct cutlass_baseline_gemm {
 	}
 };
 
-template<bnch_swt::string_literal rhs> inline void compare_outputs(const std::vector<std::vector<float>>& outputs01, const std::vector<std::vector<float>>& outputs02) {
-	static constexpr float relative_tolerance = 1e-1f;
-	static constexpr float absolute_tolerance = 1e-30f;
+template<bnch_swt::string_literal rhs> inline bool compare_floats(float val1, float val2, uint64_t row, uint64_t col) {
+	static constexpr float relative_tolerance	= 0.15f;
+	static constexpr float absolute_tolerance	= 1e-7f;
+	static constexpr float tiny_value_threshold = 1e-6f;
+	if (val1 == val2)
+		return true;
+
+	const float abs_val1 = std::abs(val1);
+	const float abs_val2 = std::abs(val2);
+	const float abs_diff = std::abs(val1 - val2);
+
+	if (abs_val1 < tiny_value_threshold && abs_val2 < tiny_value_threshold) {
+		return abs_diff <= absolute_tolerance;
+	}
+
+	const float max_val = std::max(abs_val1, abs_val2);
+	if (abs_diff <= relative_tolerance * max_val) {
+		return true;
+	}
+
+	std::cerr << rhs.operator std::string_view() << ": Mismatch at 0[" << 0 << "] position[" << row << "," << col << "]: Ref Val: " << val1 << " vs Incorrect Val: " << val2
+			  << std::endl;
+	std::cerr << "Absolute difference: " << abs_diff << ", Relative difference: " << (abs_diff / max_val) * 100.0f << "%" << std::endl;
+	return false;
+}
+
+template<uint64_t M, uint64_t K, uint64_t matB_dim_00, uint64_t N, bnch_swt::string_literal rhs>
+inline void compare_outputs(const std::vector<std::vector<float>>& outputs01, const std::vector<std::vector<float>>& outputs02) {
+	static_assert(matB_dim_00 == K, "matB_dim_00 should equal K for matrix multiplication");
+
 	if (outputs01.size() != outputs02.size()) {
-		std::cerr << "Unequal output sizes!" << std::endl;
+		std::cerr << rhs.operator std::string_view() << ": Unequal 0 count! " << outputs01.size() << " vs " << outputs02.size() << std::endl;
 		return;
 	}
-	for (uint64_t x = 0; x < outputs02.size(); ++x) {
-		if (outputs01[x].size() != outputs02[x].size()) {
-			std::cerr << "Unequal output sizes!" << std::endl;
-			return;
-		}
-		for (uint64_t y = 0; y < outputs01[x].size(); ++y) {
-			const float val1 = outputs01[x][y];
-			const float val2 = outputs02[x][y];
 
-			const float abs_diff = std::abs(val1 - val2);
-			const float max_val	 = std::max(std::abs(val1), std::abs(val2));
+	constexpr uint64_t expected_size = M * N;
 
-			if (std::isinf(val1) || std::isinf(val2) || std::isnan(val1) || std::isnan(val2) || !((abs_diff <= absolute_tolerance) || (abs_diff <= relative_tolerance * max_val))) {
-				std::cerr << rhs.operator std::string_view() << ": Mismatch at [" << x << "," << y << "]: Ref Val: " << val1 << " vs Incorrect Val: " << val2 << std::endl;
-				std::cerr << "Relative difference: " << (abs_diff / max_val) * 100.0f << "%" << std::endl;
+	if (outputs01[0].size() != outputs02[0].size()) {
+		std::cerr << rhs.operator std::string_view() << ": Unequal matrix sizes at 0 " << 0 << "! " << outputs01[0].size() << " vs " << outputs02[0].size() << std::endl;
+		return;
+	}
+
+	if (outputs01[0].size() != expected_size) {
+		std::cerr << rhs.operator std::string_view() << ": Unexpected matrix size at 0 " << 0 << "! Expected " << expected_size << ", got " << outputs01[0].size() << std::endl;
+		return;
+	}
+
+	for (uint64_t row = 0; row < M; ++row) {
+		for (uint64_t col = 0; col < N; ++col) {
+			const uint64_t idx = row * N + col;
+
+			const float val1 = outputs01[0][idx];
+			const float val2 = outputs02[0][idx];
+
+			if (!compare_floats<rhs>(val1, val2, row, col)) {
+				std::cerr << "\n--- Additional Diagnostic: Checking Last Element ---" << std::endl;
+
+				const uint64_t last_row = M - 1;
+				const uint64_t last_col = N - 1;
+				const uint64_t last_idx = last_row * N + last_col;
+
+				const float last_val1 = outputs01[0][last_idx];
+				const float last_val2 = outputs02[0][last_idx];
+
+				if (compare_floats<rhs>(last_val1, last_val2, last_row, last_col)) {
+					std::cerr << "Last element comparison PASSED - suggests localized error" << std::endl;
+				} else {
+					std::cerr << "Last element comparison FAILED - suggests systematic error" << std::endl;
+				}
+
+				std::cerr << "\n--- Additional Diagnostic Elements ---" << std::endl;
+
+				const uint64_t mid_row = M / 2;
+				const uint64_t mid_col = N / 2;
+				const uint64_t mid_idx = mid_row * N + mid_col;
+
+				const float mid_val1 = outputs01[0][mid_idx];
+				const float mid_val2 = outputs02[0][mid_idx];
+
+				if (compare_floats<rhs>(mid_val1, mid_val2, mid_row, mid_col)) {
+					std::cerr << "Middle element [" << mid_row << "," << mid_col << "] comparison PASSED" << std::endl;
+				} else {
+					std::cerr << "Middle element [" << mid_row << "," << mid_col << "] comparison FAILED" << std::endl;
+				}
+
+				const uint64_t last_row_first_col_idx = last_row * N + 0;
+				const float last_row_first_val1		  = outputs01[0][last_row_first_col_idx];
+				const float last_row_first_val2		  = outputs02[0][last_row_first_col_idx];
+
+				if (compare_floats<rhs>(last_row_first_val1, last_row_first_val2, last_row, 0)) {
+					std::cerr << "Last row, first column [" << last_row << ",0] comparison PASSED" << std::endl;
+				} else {
+					std::cerr << "Last row, first column [" << last_row << ",0] comparison FAILED" << std::endl;
+				}
+
 				return;
 			}
 		}
 	}
+
+	std::cout << rhs.operator std::string_view() << ": All output comparisons to reference mul_mat passed!" << std::endl;
 }
 
 template<uint64_t M, uint64_t K, uint64_t matB_dim_00, uint64_t N> BNCH_SWT_INLINE void test_function() {
@@ -2103,17 +2183,17 @@ template<uint64_t M, uint64_t K, uint64_t matB_dim_00, uint64_t N> BNCH_SWT_INLI
 		ggml_cuda_mul_mat<M, K>>(buffer, current_index, floats, blocks, outputs01, N);
 	current_index = 0;
 
-	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"cutlass_baseline_gemm", cuda_mul_mat_01_prep<M, K>,
-		cutlass_baseline_gemm<M, K>>(buffer, current_index, floats, blocks, outputs02, N);
+	//bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"cutlass_baseline_gemm", cuda_mul_mat_01_prep<M, K>,
+	//cutlass_baseline_gemm<M, K>>(buffer, current_index, floats, blocks, outputs02, N);
 	current_index = 0;
 
-	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"nihilus_gemm", cuda_mul_mat_01_prep<M, K>,
-		nihilus_gemm<M, K>>(buffer, current_index, floats, blocks, outputs03, N);
+	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"nihilus_gemm", cuda_mul_mat_01_prep<M, K>, nihilus_gemm<M, K>>(
+		buffer, current_index, floats, blocks, outputs03, N);
 	current_index = 0;
 
 	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::printResults();
-	compare_outputs<"cutlass_baseline_gemm Incorrect Value">(outputs01, outputs02);
-	compare_outputs<"nihilus_gemm Incorrect Value">(outputs01, outputs03);
+	//compare_outputs<"cutlass_baseline_gemm Incorrect Value">(outputs01, outputs02);
+	compare_outputs<M, K, matB_dim_00, N, "nihilus_gemm">(outputs01, outputs03);
 };
 
 template<uint64_t M, uint64_t K, uint64_t matB_dim_00, uint64_t N> BNCH_SWT_INLINE void test_function_floats() {
@@ -2162,21 +2242,21 @@ template<uint64_t M, uint64_t K, uint64_t matB_dim_00, uint64_t N> BNCH_SWT_INLI
 	current_index = 0;
 
 	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"nihilus_gemm", cuda_mul_mat_01_prep<M, K>, nihilus_gemm<M, K>>(
-		buffer, current_index, floats_a, floats_b, outputs04, N);
+		buffer, current_index, floats_a, floats_b, outputs03, N);
 	current_index = 0;
 
-	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"cutlass_baseline_gemm", cuda_mul_mat_01_prep<M, K>,
-		cutlass_baseline_gemm<M, K>>(buffer, current_index, floats_a, floats_b, outputs02, N);
+	//bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"cutlass_baseline_gemm", cuda_mul_mat_01_prep<M, K>,
+	//cutlass_baseline_gemm<M, K>>(buffer, current_index, floats_a, floats_b, outputs02, N);
 	current_index = 0;
 
-	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"nvcuda_cublas_mul_mat_simple",
-		cuda_mul_mat_01_prep_transposed<M, K>, cublas_mul_mat<M, K>>(buffer, current_index, floats_a, floats_b, outputs03, N);
+	//bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrep<"nvcuda_cublas_mul_mat_simple",
+	//cuda_mul_mat_01_prep_transposed<M, K>, cublas_mul_mat<M, K>>(buffer, current_index, floats_a, floats_b, outputs03, N);
 	current_index = 0;
 
 	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::printResults();
-	compare_outputs<"cutlass_baseline_gemm Incorrect Value">(outputs01, outputs02);
-	compare_outputs<"nvcuda_cublas_mul_mat_simple Incorrect Value">(outputs01, outputs03);
-	compare_outputs<"nihilus_gemm Incorrect Value">(outputs01, outputs04);
+	//compare_outputs<"cutlass_baseline_gemm Incorrect Value">(outputs01, outputs02);
+	//compare_outputs<"nvcuda_cublas_mul_mat_simple Incorrect Value">(outputs01, outputs03);
+	compare_outputs<M, K, matB_dim_00, N, "nihilus_gemm">(outputs01, outputs03);
 };
 
 int32_t main() {

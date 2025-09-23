@@ -30,7 +30,7 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute_rt_tm/config.hpp>                     // CUTE_RT_TM_INLINE_CONSTANT, CUTE_RT_TM_HOST_DEVICE
+#include <cute_rt_tm/config.hpp>                     // CUTE_RT_TMINLINE_CONSTANT, CUTE_RT_TMHOST_DEVICE
 #include <cute_rt_tm/container/tuple.hpp>            // cute_rt_tm::is_tuple
 #include <cute_rt_tm/numeric/integral_constant.hpp>  // cute_rt_tm::false_type, cute_rt_tm::true_type
 
@@ -40,7 +40,7 @@ namespace cute_rt_tm
 // For slicing
 struct Underscore : Int<0> {};
 
-CUTE_RT_TM_INLINE_CONSTANT Underscore _;
+CUTE_RT_TMINLINE_CONSTANT Underscore _;
 
 // Convenient alias
 using X = Underscore;
@@ -98,7 +98,7 @@ using has_int0 = has_elem<Tuple, Int<0>>;
 namespace detail {
 
 template <class A, class B>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 lift_slice(A const& a, B const& b)
 {
@@ -111,14 +111,14 @@ lift_slice(A const& a, B const& b)
     return cute_rt_tm::tuple<>{};
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 } // end namespace detail
 
 // Entry point overrides the lifting so that slice(_,b) == b
 template <class A, class B>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 slice(A const& a, B const& b)
 {
@@ -131,7 +131,7 @@ slice(A const& a, B const& b)
     return cute_rt_tm::tuple<>{};
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 //
@@ -141,7 +141,7 @@ slice(A const& a, B const& b)
 namespace detail {
 
 template <class A, class B>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 lift_dice(A const& a, B const& b)
 {
@@ -154,14 +154,14 @@ lift_dice(A const& a, B const& b)
     return cute_rt_tm::tuple<B>{b};
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 } // end namespace detail
 
 // Entry point overrides the lifting so that dice(1,b) == b
 template <class A, class B>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 dice(A const& a, B const& b)
 {
@@ -174,19 +174,19 @@ dice(A const& a, B const& b)
     return b;
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 //
 // Display utilities
 //
 
-CUTE_RT_TM_HOST_DEVICE void print(Underscore const&) {
+CUTE_RT_TMHOST_DEVICE void print(Underscore const&) {
   printf("_");
 }
 
 #if !defined(__CUDACC_RTC__)
-CUTE_RT_TM_HOST std::ostream& operator<<(std::ostream& os, Underscore const&) {
+CUTE_RT_TMHOST std::ostream& operator<<(std::ostream& os, Underscore const&) {
   return os << "_";
 }
 #endif

@@ -114,10 +114,10 @@ public:
   using ArchTag = arch::Sm50;
 
   /// Complex transform on A operand
-  static constexpr ComplexTransform  kTransformA = TransformA;
+  static constexpr ComplexTransform kTransformA = TransformA;
 
   /// Complex transform on B operand
-  static constexpr ComplexTransform  kTransformB = TransformB;
+  static constexpr ComplexTransform kTransformB = TransformB;
 
   /// Layout of threads
   using ThreadLayoutA = typename platform::conditional< platform::is_same< layout::ColumnMajorInterleaved<4>, LayoutA >::value,
@@ -221,11 +221,11 @@ public:
   //
 
   /// Ctor
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   MmaSimt() {}
 
   /// Performs a warp-level matrix multiply-accumulate operation
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void operator()(
     FragmentC &d, 
     FragmentA a, 
@@ -248,7 +248,7 @@ public:
   }
 
   /// Transform the mma operands to the required types
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void transform(TransformedFragmentA &dst_A, TransformedFragmentB &dst_B,
                  FragmentA const &A, FragmentB const &B) const {
     dst_A = A;

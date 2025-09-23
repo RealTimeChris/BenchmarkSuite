@@ -60,9 +60,9 @@ struct DefaultThreadMapSimt {
   using ThreadblockShape = ThreadblockShape_;
   using WarpShape = WarpShape_;
   using MmaSimtPolicy = MmaSimtPolicy_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static int const kPartitionsK = PartitionsK;
   using Element = Element_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
+  static int const kElementsPerAccess = ElementsPerAccess;
 
   //
   // Definitions
@@ -70,7 +70,7 @@ struct DefaultThreadMapSimt {
 
   struct Detail {
 
-    static constexpr int kWarpSize = 32;
+    static int const kWarpSize = 32;
 
     static_assert(
       !(ThreadblockShape::kM % WarpShape::kM) &&
@@ -84,14 +84,14 @@ struct DefaultThreadMapSimt {
     >;
 
     /// Computes number of thread-level matrix multiplies are needed to span a warp
-    static constexpr int kGroupCount =
+    static int const kGroupCount =
       WarpShape::kM / (MmaSimtPolicy::WarpShape::kRow * MmaSimtPolicy::LaneMmaShape::kM);
 
     /// Number of participating threads
-    static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+    static int const kThreads = WarpCount::kCount * kWarpSize;
 
     /// Number of iterations
-    static constexpr int kIterations = MmaSimtPolicy::LaneMmaShape::kM * kGroupCount;
+    static int const kIterations = MmaSimtPolicy::LaneMmaShape::kM * kGroupCount;
   };
 
   //

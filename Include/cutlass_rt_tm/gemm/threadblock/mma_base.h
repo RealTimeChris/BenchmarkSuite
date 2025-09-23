@@ -72,7 +72,7 @@ struct MmaPolicy {
   using SmemPaddingB = SmemPaddingB_;
 
   /// Number of partitions of K dimension
-  static constexpr int  kPartitionsK = PartitionsK;
+  static constexpr int kPartitionsK = PartitionsK;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -113,11 +113,11 @@ class MmaBase {
                               Shape::kK / WarpGemm::kK>;
 
   /// Number of warp-level GEMM oeprations
-  static constexpr int  kWarpGemmIterations =
+  static constexpr int kWarpGemmIterations =
       (WarpGemm::kK / Operator::Policy::MmaShape::kK);
 
   /// Number of stages
-  static constexpr int  kStages = Stages;
+  static constexpr int kStages = Stages;
 
   /// Tensor reference to the A operand
   using TensorRefA = TensorRef<typename Operator::ElementA, typename Operator::LayoutA>;
@@ -171,25 +171,25 @@ class MmaBase {
     //
 
     /// Returns a layout object for the A matrix
-    CUTLASS_RT_TM_DEVICE
+    CUTLASS_RT_TMDEVICE
     static typename Operator::LayoutA LayoutA() {
       return Operator::LayoutA::packed({ShapeA::kRow, ShapeA::kColumn});
     }
 
     /// Returns a layout object for the B matrix
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     static typename Operator::LayoutB LayoutB() {
       return Operator::LayoutB::packed({ShapeB::kRow, ShapeB::kColumn});
     }
 
     /// Returns a TensorRef to the A operand
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     TensorRefA operand_A_ref() {
       return TensorRefA{operand_A.data(), LayoutA()};
     }
 
     /// Returns a TensorRef to the B operand
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     TensorRefB operand_B_ref() {
       return TensorRefB{operand_B.data(), LayoutB()};
     }
@@ -210,7 +210,7 @@ class MmaBase {
 public:
 
   /// Construct from tensor references
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   MmaBase(
       ///< Shared storage needed for internal use by threadblock-scoped GEMM
       SharedStorage &shared_storage,

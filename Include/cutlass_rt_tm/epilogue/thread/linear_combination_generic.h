@@ -72,20 +72,20 @@ struct LinearCombinationGenericParams {
   // Methods
   //
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   LinearCombinationGenericParams():
     alpha(T(1)),
     beta(T(0)),
     alpha_ptr(nullptr),
     beta_ptr(nullptr) { }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   LinearCombinationGenericParams(
     T alpha,
     T beta = T(0)
   ): alpha(alpha), beta(beta), alpha_ptr(nullptr), beta_ptr(nullptr) { }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   LinearCombinationGenericParams(
     T const *alpha_ptr,
     T const *beta_ptr = nullptr
@@ -117,16 +117,16 @@ public:
   using ElementAccumulator = ElementAccumulator_;
   using ElementCompute = ElementCompute_;
 
-  static constexpr bool kIsHeavy = IsHeavy;
-  static constexpr int kCount = Count;
-  static constexpr ScaleType::Kind kScale = Scale;
+  static bool const kIsHeavy = IsHeavy;
+  static int const kCount = Count;
+  static const ScaleType::Kind kScale = Scale;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
   using FragmentSource = Array<ElementOutput, kCount>;
   using FragmentCompute = Array<ElementCompute, kCount>;
 
-  static constexpr FloatRoundStyle  kRound = Round;
+  static FloatRoundStyle const kRound = Round;
 
   /// Host-constructable parameters structure
   struct Params
@@ -147,7 +147,7 @@ private:
 public:
 
   /// Constructs the function object, possibly loading from pointers in host memory
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   LinearCombinationGeneric(Params const &params) {
     params_ = params;
     params_.alpha = (params.alpha_ptr ? *params.alpha_ptr : params.alpha);
@@ -156,7 +156,7 @@ public:
   }
 
   /// Returns true if source is needed
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   bool is_source_needed() const {
     if (Scale == ScaleType::NoBetaScaling) return true;
 
@@ -168,7 +168,7 @@ public:
   }
 
   /// Functionally required for serial reduction in the epilogue
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void set_k_partition(int k_partition, int k_partition_count) {
     if (k_partition) {
       params_.beta = ElementCompute(1);
@@ -180,7 +180,7 @@ public:
   }
 
   /// Computes linear scaling: D = alpha * accumulator + beta * source
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   FragmentOutput operator()(
     FragmentAccumulator const &accumulator,
     FragmentOutput const &source) const {
@@ -223,7 +223,7 @@ public:
   }
 
   /// Computes linear scaling: D = alpha * accumulator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   FragmentOutput operator()(
     FragmentAccumulator const &accumulator) const {
 

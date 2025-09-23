@@ -38,44 +38,44 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-#ifdef CUTLASS_RT_TM_NAMESPACE
+#ifdef CUTLASS_RT_TMNAMESPACE
 #define concat_tok(a, b) a ## b
-#define mkcutlass_rt_tmnamespace(pre, ns) concat_tok(pre, ns)
-#define cutlass_rt_tm mkcutlass_rt_tmnamespace(cutlass_rt_tm_, CUTLASS_RT_TM_NAMESPACE)
+#define mkcutlassnamespace(pre, ns) concat_tok(pre, ns)
+#define cutlass_rt_tm mkcutlassnamespace(cutlass_, CUTLASS_RT_TMNAMESPACE)
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #if defined(__NVCC__) || (defined(__clang__) && defined(__CUDA__))
-#define CUTLASS_RT_TM_HOST_DEVICE __forceinline__ __device__ __host__
-#define CUTLASS_RT_TM_DEVICE __forceinline__ __device__
+#define CUTLASS_RT_TMHOST_DEVICE __forceinline__ __device__ __host__
+#define CUTLASS_RT_TMDEVICE __forceinline__ __device__
 #elif defined(__CUDACC_RTC__)
-#define CUTLASS_RT_TM_HOST_DEVICE __forceinline__ __device__
-#define CUTLASS_RT_TM_DEVICE __forceinline__ __device__
+#define CUTLASS_RT_TMHOST_DEVICE __forceinline__ __device__
+#define CUTLASS_RT_TMDEVICE __forceinline__ __device__
 #else
-#define CUTLASS_RT_TM_HOST_DEVICE inline
-#define CUTLASS_RT_TM_DEVICE inline
+#define CUTLASS_RT_TMHOST_DEVICE inline
+#define CUTLASS_RT_TMDEVICE inline
 #endif
 
 #if ! defined(_MSC_VER)
-#define CUTLASS_RT_TM_LAMBDA_FUNC_INLINE __attribute__((always_inline))
+#define CUTLASS_RT_TMLAMBDA_FUNC_INLINE __attribute__((always_inline))
 #else
-#define CUTLASS_RT_TM_LAMBDA_FUNC_INLINE [[msvc::forceinline]]
+#define CUTLASS_RT_TMLAMBDA_FUNC_INLINE [[msvc::forceinline]]
 #endif
 
-#define CUTLASS_RT_TM_HOST __host__
-#define CUTLASS_RT_TM_GLOBAL __global__ static
+#define CUTLASS_RT_TMHOST __host__
+#define CUTLASS_RT_TMGLOBAL __global__ static
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-CUTLASS_RT_TM_HOST_DEVICE void __CUTLASS_RT_TM_UNUSED(T const &) 
+CUTLASS_RT_TMHOST_DEVICE void __CUTLASS_RT_TMUNUSED(T const &) 
 { }
 
 #if defined(__GNUC__)
-  #define CUTLASS_RT_TM_UNUSED(expr) __CUTLASS_RT_TM_UNUSED(expr)
+  #define CUTLASS_RT_TMUNUSED(expr) __CUTLASS_RT_TMUNUSED(expr)
 #else
-  #define CUTLASS_RT_TM_UNUSED(expr) do { ; } while (&expr != &expr)
+  #define CUTLASS_RT_TMUNUSED(expr) do { ; } while (&expr != &expr)
 #endif
 
 #ifdef _MSC_VER
@@ -89,19 +89,19 @@ CUTLASS_RT_TM_HOST_DEVICE void __CUTLASS_RT_TM_UNUSED(T const &)
 
 #if defined(__CUDA_ARCH__)
   #if defined(_MSC_VER)
-    #define CUTLASS_RT_TM_NOT_IMPLEMENTED() { printf("%s not implemented\n", __FUNCSIG__); asm volatile ("brkpt;\n"); }
+    #define CUTLASS_RT_TMNOT_IMPLEMENTED() { printf("%s not implemented\n", __FUNCSIG__); asm volatile ("brkpt;\n"); }
   #else
-    #define CUTLASS_RT_TM_NOT_IMPLEMENTED() { printf("%s not implemented\n", __PRETTY_FUNCTION__); asm volatile ("brkpt;\n"); }
+    #define CUTLASS_RT_TMNOT_IMPLEMENTED() { printf("%s not implemented\n", __PRETTY_FUNCTION__); asm volatile ("brkpt;\n"); }
   #endif
 #else
   #if defined(_MSC_VER)
-    #define CUTLASS_RT_TM_NOT_IMPLEMENTED() assert(0 && __FUNCSIG__)
+    #define CUTLASS_RT_TMNOT_IMPLEMENTED() assert(0 && __FUNCSIG__)
   #else
-    #define CUTLASS_RT_TM_NOT_IMPLEMENTED() assert(0 && __PRETTY_FUNCTION__)
+    #define CUTLASS_RT_TMNOT_IMPLEMENTED() assert(0 && __PRETTY_FUNCTION__)
   #endif
 #endif
 
-// CUTLASS_RT_TM_CMATH_NAMESPACE is the namespace where code can find
+// CUTLASS_RT_TMCMATH_NAMESPACE is the namespace where code can find
 // <cmath> functions like isnan and log.  Such functions are in
 // the std namespace in host code, but in the global namespace
 // in device code.
@@ -117,7 +117,7 @@ CUTLASS_RT_TM_HOST_DEVICE void __CUTLASS_RT_TM_UNUSED(T const &)
 //
 // template<class T>
 // bool foo(T x) {
-//   using CUTLASS_RT_TM_CMATH_NAMESPACE :: isnan;
+//   using CUTLASS_RT_TMCMATH_NAMESPACE :: isnan;
 //   return isnan(x);
 // }
 //
@@ -134,9 +134,9 @@ CUTLASS_RT_TM_HOST_DEVICE void __CUTLASS_RT_TM_UNUSED(T const &)
 // }
 
 #if defined(__CUDA_ARCH__)
-#  define CUTLASS_RT_TM_CMATH_NAMESPACE
+#  define CUTLASS_RT_TMCMATH_NAMESPACE
 #else
-#  define CUTLASS_RT_TM_CMATH_NAMESPACE std
+#  define CUTLASS_RT_TMCMATH_NAMESPACE std
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -144,66 +144,66 @@ CUTLASS_RT_TM_HOST_DEVICE void __CUTLASS_RT_TM_UNUSED(T const &)
 namespace cutlass_rt_tm {
 
 
-#ifndef CUTLASS_RT_TM_CONV_UNIT_TEST_RIGOROUS_SIZE_ENABLED
-#define CUTLASS_RT_TM_CONV_UNIT_TEST_RIGOROUS_SIZE_ENABLED 0
+#ifndef CUTLASS_RT_TMCONV_UNIT_TEST_RIGOROUS_SIZE_ENABLED
+#define CUTLASS_RT_TMCONV_UNIT_TEST_RIGOROUS_SIZE_ENABLED 0
 #endif
 
 
 // CUDA 10.1 introduces the mma instruction
-#if !defined(CUTLASS_RT_TM_ENABLE_TENSOR_CORE_MMA)
-#define CUTLASS_RT_TM_ENABLE_TENSOR_CORE_MMA 0
+#if !defined(CUTLASS_RT_TMENABLE_TENSOR_CORE_MMA)
+#define CUTLASS_RT_TMENABLE_TENSOR_CORE_MMA 0
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define CUTLASS_RT_TM_ASSERT(x) assert(x)
+#define CUTLASS_RT_TMASSERT(x) assert(x)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// CUTLASS_RT_TM_PRAGMA_(UNROLL|NO_UNROLL) optimization directives for the CUDA compiler.
+// CUTLASS_RT_TMPRAGMA_(UNROLL|NO_UNROLL) optimization directives for the CUDA compiler.
 #if defined(__CUDA_ARCH__) && !defined(__INTELLISENSE__)
   #if defined(__CUDACC_RTC__) || (defined(__clang__) && defined(__CUDA__))
-    #define CUTLASS_RT_TM_PRAGMA_UNROLL _Pragma("unroll")
-    #define CUTLASS_RT_TM_PRAGMA_NO_UNROLL _Pragma("unroll 1")
+    #define CUTLASS_RT_TMPRAGMA_UNROLL _Pragma("unroll")
+    #define CUTLASS_RT_TMPRAGMA_NO_UNROLL _Pragma("unroll 1")
   #else
-    #define CUTLASS_RT_TM_PRAGMA_UNROLL #pragma unroll
-    #define CUTLASS_RT_TM_PRAGMA_NO_UNROLL #pragma unroll 1
+    #define CUTLASS_RT_TMPRAGMA_UNROLL #pragma unroll
+    #define CUTLASS_RT_TMPRAGMA_NO_UNROLL #pragma unroll 1
   #endif
 
-  #define CUTLASS_RT_TM_GEMM_LOOP CUTLASS_RT_TM_PRAGMA_NO_UNROLL
+  #define CUTLASS_RT_TMGEMM_LOOP CUTLASS_RT_TMPRAGMA_NO_UNROLL
 
 #else
 
-    #define CUTLASS_RT_TM_PRAGMA_UNROLL
-    #define CUTLASS_RT_TM_PRAGMA_NO_UNROLL
-    #define CUTLASS_RT_TM_GEMM_LOOP
+    #define CUTLASS_RT_TMPRAGMA_UNROLL
+    #define CUTLASS_RT_TMPRAGMA_NO_UNROLL
+    #define CUTLASS_RT_TMGEMM_LOOP
 
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #if !defined(__CUDACC_RTC__)
-#define CUTLASS_RT_TM_THREAD_LOCAL thread_local
+#define CUTLASS_RT_TMTHREAD_LOCAL thread_local
 #else
-#define CUTLASS_RT_TM_THREAD_LOCAL
+#define CUTLASS_RT_TMTHREAD_LOCAL
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #if defined(_MSVC_LANG)
-#  define CUTLASS_RT_TM_CPLUSPLUS _MSVC_LANG
+#  define CUTLASS_RT_TMCPLUSPLUS _MSVC_LANG
 #else
-#  define CUTLASS_RT_TM_CPLUSPLUS __cplusplus
+#  define CUTLASS_RT_TMCPLUSPLUS __cplusplus
 #endif
 
 // https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/n4762.pdf
 // Section 14.8 Predefined macro names
-#if (201703L <= CUTLASS_RT_TM_CPLUSPLUS)
-#define CUTLASS_RT_TM_CONSTEXPR_IF_CXX17 constexpr
-#define CUTLASS_RT_TM_CXX17_OR_LATER 1
+#if (201703L <= CUTLASS_RT_TMCPLUSPLUS)
+#define CUTLASS_RT_TMCONSTEXPR_IF_CXX17 constexpr
+#define CUTLASS_RT_TMCXX17_OR_LATER 1
 #else
-#define CUTLASS_RT_TM_CONSTEXPR_IF_CXX17
-#define CUTLASS_RT_TM_CXX17_OR_LATER 0
+#define CUTLASS_RT_TMCONSTEXPR_IF_CXX17
+#define CUTLASS_RT_TMCXX17_OR_LATER 0
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

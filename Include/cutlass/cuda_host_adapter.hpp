@@ -147,9 +147,9 @@ namespace cutlass {
 #endif // defined(CUTLASS_ENABLE_DIRECT_CUDA_DRIVER_CALL)
 
 #if (__CUDACC_VER_MAJOR__ >= 12)
-///CUTLASS_CUDA_DRIVER_WRAPPER_DECL(cuTensorMapEncodeTiled, 12000);
-	///CUTLASS_CUDA_DRIVER_WRAPPER_DECL(cuTensorMapEncodeIm2col, 12000);
-	#endif
+CUTLASS_CUDA_DRIVER_WRAPPER_DECL(cuTensorMapEncodeTiled, 12000);
+CUTLASS_CUDA_DRIVER_WRAPPER_DECL(cuTensorMapEncodeIm2col, 12000);
+#endif
 
 #undef CUTLASS_CUDA_DRIVER_STRINGIFY
 

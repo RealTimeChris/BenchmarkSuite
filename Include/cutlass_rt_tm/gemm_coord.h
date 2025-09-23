@@ -64,7 +64,7 @@ struct GemmShape {
   //
 
   /// Returns a Coord object
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static Coord<3> toCoord() {
     return make_Coord(kM, kN, kK);
   }
@@ -105,85 +105,85 @@ struct GemmCoord : public Coord<3, int> {
   //
 
   /// Default ctor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   GemmCoord() { }
 
   /// Constructs from Coord<3> and a batch
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   GemmCoord(Coord<3, Index> const& coord): Base(make_Coord(coord[0], coord[1], coord[2])) { }
 
   /// Helper to construct from a K, N, M, batch variables
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   GemmCoord(Index m, Index n, Index k): Base(make_Coord(m, n, k)) { }
 
   /// Returns the GEMM M coordinate
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Index const&  m() const { return this->at(kM); }
 
   /// Returns reference to the GEMM M coordinate
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Index & m() { return this->at(kM); }
 
   /// Returns the GEMM N coordinate
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Index const&  n() const { return this->at(kN); }
 
   /// Returns reference to the GEMM N coordinate
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Index & n() { return this->at(kN); }
 
   /// Returns the GEMM K coordinate
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Index const&  k() const { return this->at(kK); }
 
   /// Returns reference to the GEMM K coordinate
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Index & k() { return this->at(kK); }
 
   /// Obtains a Coord<3> from GemmCoord
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Coord<3> mnk() const {
     return make_Coord(m(), n(), k());
   }
 
   /// Obtains a Coord<3> from GemmCoord
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Coord<3> knm() const {
     return make_Coord(k(), n(), m());
   }
 
   /// Obtains a Coord<2> from GemmCoord
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Coord<2> nm() const {
     return make_Coord(n(), m());
   }
 
   /// Obtains a Coord<2> from GemmCoord
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Coord<2> mn() const {
     return make_Coord(m(), n());
   }
 
   /// Obtains a Coord<2> from GemmCoord
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Coord<2> mk() const {
     return make_Coord(m(), k());
   }
 
   /// Obtains a Coord<2> from GemmCoord
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Coord<2> km() const {
     return make_Coord(k(), m());
   }
 
   /// Obtains a Coord<2> from GemmCoord
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Coord<2> nk() const {
     return make_Coord(n(), k());
   }
 
   /// Obtains a Coord<2> from GemmCoord
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Coord<2> kn() const {
     return make_Coord(k(), n());
   }
@@ -193,52 +193,52 @@ struct GemmCoord : public Coord<3, int> {
   //
 
   /// Element-wise addition
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   GemmCoord operator+(Base const& b) const {
     return GemmCoord(Base::operator+(b));
   }
 
   /// Element-wise subtraction
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   GemmCoord operator-(Base const& b) const {
     return GemmCoord(Base::operator-(b));
   }
 
   /// Element-wise multiplication
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   GemmCoord operator*(Base const& b) const {
     return GemmCoord(Base::operator*(b));
   }
 
   /// Element-wise division
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   GemmCoord operator/(Base const& b) const {
     return GemmCoord(Base::operator/(b));
   }
 
   /// In-place addition
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   GemmCoord& operator+=(Base const& b) {
     Base::operator+=(b);
     return *this;
   }
 
   /// In-place subtraction
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   GemmCoord& operator-=(Base const& b) {
     Base::operator-=(b);
     return *this;
   }
 
   /// In-place multiplication
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   GemmCoord& operator*=(Base const& b) {
     Base::operator*=(b);
     return *this;
   }
 
   /// In-place division
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   GemmCoord& operator/=(Base const& b) {
     Base::operator/=(b);
     return *this;
@@ -274,57 +274,57 @@ struct BatchedGemmCoord : public Coord<4, int> {
   //
 
   /// Default ctor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   BatchedGemmCoord() { }
 
   /// Constructs from Coord<4>
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   BatchedGemmCoord(Base const& coord): Base(coord) { }
 
   /// Helper to construct from a K, N, M, and batch variables
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   BatchedGemmCoord(Index m, Index n, Index k, Index b): Base(make_Coord(m, n, k, b)) { }
 
   /// Returns the GEMM M coordinate
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Index const&  m() const { return this->at(kM); }
 
   /// Returns reference to the GEMM M coordinate
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Index & m() { return this->at(kM); }
 
   /// Returns the GEMM N coordinate
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Index const&  n() const { return this->at(kN); }
 
   /// Returns reference to the GEMM N coordinate
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Index & n() { return this->at(kN); }
 
   /// Returns the GEMM K coordinate
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Index const&  k() const { return this->at(kK); }
 
   /// Returns reference to the GEMM K coordinate
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Index & k() { return this->at(kK); }
 
   /// Returns the GEMM batch coordinate
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Index const&  batch() const { return this->at(kBatch); }
 
   /// Returns reference to the GEMM batch coordinate
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Index & batch() { return this->at(kBatch); }
 
   /// Obtains a GemmCoord from BatchedGemmCoord
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   GemmCoord mnk() const {
     return GemmCoord(m(), n(), k());
   }
 
   /// Obtains a Coord<4> from BatchedGemmCoord
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Coord<4> mnkb() const {
     return make_Coord(m(), n(), k(), batch());
   }
@@ -334,52 +334,52 @@ struct BatchedGemmCoord : public Coord<4, int> {
   //
 
   /// Element-wise addition
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   BatchedGemmCoord operator+(Base const& b) const {
     return BatchedGemmCoord(Base::operator+(b));
   }
 
   /// Element-wise subtraction
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   BatchedGemmCoord operator-(Base const& b) const {
     return BatchedGemmCoord(Base::operator-(b));
   }
 
   /// Element-wise multiplication
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   BatchedGemmCoord operator*(Base const& b) const {
     return BatchedGemmCoord(Base::operator*(b));
   }
 
   /// Element-wise division
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   BatchedGemmCoord operator/(Base const& b) const {
     return BatchedGemmCoord(Base::operator/(b));
   }
 
   /// In-place addition
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   BatchedGemmCoord& operator+=(Base const& b) {
     Base::operator+=(b);
     return *this;
   }
 
   /// In-place subtraction
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   BatchedGemmCoord& operator-=(Base const& b) {
     Base::operator-=(b);
     return *this;
   }
 
   /// In-place multiplication
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   BatchedGemmCoord& operator*=(Base const& b) {
     Base::operator*=(b);
     return *this;
   }
 
   /// In-place division
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   BatchedGemmCoord& operator/=(Base const& b) {
     Base::operator/=(b);
     return *this;

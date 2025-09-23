@@ -64,15 +64,15 @@ public:
   using ElementCompute = ElementAccumulator_;
   using ElementD = ElementOutput;                     // for use with cute_rt_tm::collective::DefaultEpilogue
 
-  static constexpr int kCount = Count;
+  static int const kCount = Count;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
   using ComputeFragment = FragmentAccumulator;
 
-  static constexpr FloatRoundStyle  kRound = Round;
+  static FloatRoundStyle const kRound = Round;
 
-  static constexpr bool kIsHeavy = false;
+  static bool const kIsHeavy = false;
 
   /// Host-constructable parameters structure
   struct Params {
@@ -81,39 +81,39 @@ public:
     // Methods
     //
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     Params() {}
   };
 
 public:
 
   /// Constructs the function object, possibly loading from pointers in host memory
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Convert(Params const &params = Params()) {
 
   }
 
   /// Functionally required for serial reduction in the epilogue
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void set_k_partition(int k_partition, int k_partition_count) {
 
   }
 
   /// Returns true if source is needed based on state of runtime arguments
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   constexpr bool is_source_needed() const {
     return false;
   }
 
   /// Constexpr function to enable the compiler to optimize away the source loading if it is
   /// never needed.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   constexpr bool is_source_ever_needed() const {
     return false;
   }
 
   /// Computes linear scaling: D = alpha * accumulator + beta * source
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   FragmentOutput operator()(
     FragmentAccumulator const &accumulator, 
     FragmentOutput const &source = FragmentOutput(),
@@ -128,13 +128,13 @@ public:
   //
   // Specializations for scalar (for use with cute_rt_tm::collective::DefaultEpilogue)
   //
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   ElementD operator()(ElementAccumulator const accumulator, ElementAccumulator const source) const {
     NumericConverter<ElementD, ElementAccumulator, Round> destination_converter;
     return destination_converter(source);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   ElementD operator()(ElementAccumulator const accumulator) const {
     NumericConverter<ElementD, ElementAccumulator, Round> destination_converter;
     return destination_converter(accumulator);

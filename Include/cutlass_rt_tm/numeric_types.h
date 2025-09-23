@@ -70,22 +70,22 @@ using make_index_sequence = typename index_sequence_helper<N>::type;
 
 // Default case - no negative zero
 template <typename T>
-struct has_negative_zero : CUTE_RT_TM_STL_NAMESPACE::false_type{};
+struct has_negative_zero : CUTE_RT_TMSTL_NAMESPACE::false_type{};
 
 // Float types that support negative zero
-template <> struct has_negative_zero<mx_float4_t<float_e2m1_t>> : CUTE_RT_TM_STL_NAMESPACE::true_type{};
-template <> struct has_negative_zero<mx_float6_t<float_e2m3_t>> : CUTE_RT_TM_STL_NAMESPACE::true_type{};
-template <> struct has_negative_zero<mx_float8_t<float_e4m3_t>> : CUTE_RT_TM_STL_NAMESPACE::true_type{};
-template <> struct has_negative_zero<mx_float8_t<float_e5m2_t>> : CUTE_RT_TM_STL_NAMESPACE::true_type{};
-template <> struct has_negative_zero<float_e2m1_t> : CUTE_RT_TM_STL_NAMESPACE::true_type{};
-template <> struct has_negative_zero<float_e2m3_t> : CUTE_RT_TM_STL_NAMESPACE::true_type{};
-template <> struct has_negative_zero<float_e4m3_t> : CUTE_RT_TM_STL_NAMESPACE::true_type{};
-template <> struct has_negative_zero<float_e5m2_t> : CUTE_RT_TM_STL_NAMESPACE::true_type{};
-template <> struct has_negative_zero<half_t> : CUTE_RT_TM_STL_NAMESPACE::true_type{};
-template <> struct has_negative_zero<bfloat16_t> : CUTE_RT_TM_STL_NAMESPACE::true_type{};
-template <> struct has_negative_zero<float> : CUTE_RT_TM_STL_NAMESPACE::true_type{};
-template <> struct has_negative_zero<double> : CUTE_RT_TM_STL_NAMESPACE::true_type{};
-template <> struct has_negative_zero<tfloat32_t> : CUTE_RT_TM_STL_NAMESPACE::true_type{};
+template <> struct has_negative_zero<mx_float4_t<float_e2m1_t>> : CUTE_RT_TMSTL_NAMESPACE::true_type{};
+template <> struct has_negative_zero<mx_float6_t<float_e2m3_t>> : CUTE_RT_TMSTL_NAMESPACE::true_type{};
+template <> struct has_negative_zero<mx_float8_t<float_e4m3_t>> : CUTE_RT_TMSTL_NAMESPACE::true_type{};
+template <> struct has_negative_zero<mx_float8_t<float_e5m2_t>> : CUTE_RT_TMSTL_NAMESPACE::true_type{};
+template <> struct has_negative_zero<float_e2m1_t> : CUTE_RT_TMSTL_NAMESPACE::true_type{};
+template <> struct has_negative_zero<float_e2m3_t> : CUTE_RT_TMSTL_NAMESPACE::true_type{};
+template <> struct has_negative_zero<float_e4m3_t> : CUTE_RT_TMSTL_NAMESPACE::true_type{};
+template <> struct has_negative_zero<float_e5m2_t> : CUTE_RT_TMSTL_NAMESPACE::true_type{};
+template <> struct has_negative_zero<half_t> : CUTE_RT_TMSTL_NAMESPACE::true_type{};
+template <> struct has_negative_zero<bfloat16_t> : CUTE_RT_TMSTL_NAMESPACE::true_type{};
+template <> struct has_negative_zero<float> : CUTE_RT_TMSTL_NAMESPACE::true_type{};
+template <> struct has_negative_zero<double> : CUTE_RT_TMSTL_NAMESPACE::true_type{};
+template <> struct has_negative_zero<tfloat32_t> : CUTE_RT_TMSTL_NAMESPACE::true_type{};
 
 // Helper variable template 
 template <typename T>

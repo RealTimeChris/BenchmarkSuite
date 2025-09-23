@@ -30,7 +30,7 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute_rt_tm/config.hpp>                      // CUTE_RT_TM_HOST_DEVICE
+#include <cute_rt_tm/config.hpp>                      // CUTE_RT_TMHOST_DEVICE
 #include <cute_rt_tm/container/array.hpp>             // cute_rt_tm::array
 #include <cute_rt_tm/container/tuple.hpp>             // cute_rt_tm::is_tuple
 #include <cute_rt_tm/numeric/integral_constant.hpp>   // cute_rt_tm::Int
@@ -48,8 +48,8 @@ namespace cute_rt_tm
 // Implementation of get<0>(Integral).
 //   Even though is_tuple<Integral> is false and tuple_size<Integral> doesn't compile,
 //   CuTe defines rank(Integral) as 1, so it's useful for get<0>(Integral) to return its input
-template <size_t I, class T, __CUTE_RT_TM_REQUIRES(cute_rt_tm::is_integral<cute_rt_tm::remove_cvref_t<T>>::value)>
-CUTE_RT_TM_HOST_DEVICE constexpr
+template <size_t I, class T, __CUTE_RT_TMREQUIRES(cute_rt_tm::is_integral<cute_rt_tm::remove_cvref_t<T>>::value)>
+CUTE_RT_TMHOST_DEVICE constexpr
 decltype(auto)
 get(T&& t) noexcept
 {
@@ -59,7 +59,7 @@ get(T&& t) noexcept
 
 // Custom recursive get for anything that implements get<I>(.) (for a single integer I).
 template <size_t I0, size_t I1, size_t... Is, class T>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 decltype(auto)
 get(T&& t) noexcept
 {
@@ -71,7 +71,7 @@ get(T&& t) noexcept
 //
 
 template <int... Is, class IntTuple>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 rank(IntTuple const& t)
 {
@@ -85,7 +85,7 @@ rank(IntTuple const& t)
     return rank(get<Is...>(t));
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 template <class IntTuple>
@@ -99,7 +99,7 @@ static constexpr auto rank_v = rank_t<IntTuple>::value;
 //
 
 template <class IntTuple>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 shape(IntTuple const& s)
 {
@@ -109,11 +109,11 @@ shape(IntTuple const& s)
     return s;
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 template <int I, int... Is, class IntTuple>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 shape(IntTuple const& s)
 {
@@ -123,7 +123,7 @@ shape(IntTuple const& s)
     return get<I,Is...>(shape(s));
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 //
@@ -131,7 +131,7 @@ shape(IntTuple const& s)
 //
 
 template <class T0, class... Ts>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 max(T0 const& t0, Ts const&... ts)
 {
@@ -143,7 +143,7 @@ max(T0 const& t0, Ts const&... ts)
     return cute_rt_tm::max(t0, cute_rt_tm::max(ts...));
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 //
@@ -151,7 +151,7 @@ max(T0 const& t0, Ts const&... ts)
 //
 
 template <class T0, class... Ts>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 min(T0 const& t0, Ts const&... ts)
 {
@@ -163,7 +163,7 @@ min(T0 const& t0, Ts const&... ts)
     return cute_rt_tm::min(t0, cute_rt_tm::min(ts...));
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 //
@@ -171,7 +171,7 @@ min(T0 const& t0, Ts const&... ts)
 //
 
 template <class T0, class... Ts>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 gcd(T0 const& t0, Ts const&... ts)
 {
@@ -183,7 +183,7 @@ gcd(T0 const& t0, Ts const&... ts)
     return cute_rt_tm::gcd(t0, cute_rt_tm::gcd(ts...));
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 //
@@ -191,7 +191,7 @@ gcd(T0 const& t0, Ts const&... ts)
 //
 
 template <int... Is, class IntTuple>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 depth(IntTuple const& t)
 {
@@ -205,7 +205,7 @@ depth(IntTuple const& t)
     return depth(get<Is...>(t));
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 template <class Tuple>
@@ -222,7 +222,7 @@ static constexpr auto depth_v = depth_t<Tuple>::value;
 struct Product
 {
   template <class IntTuple>
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_RT_TMHOST_DEVICE constexpr
   auto
   operator()(IntTuple const& a) const
   {
@@ -236,15 +236,15 @@ struct Product
       return a;
     }
 
-    CUTE_RT_TM_GCC_UNREACHABLE;
+    CUTE_RT_TMGCC_UNREACHABLE;
   }
 };
 // Callable product function object
-CUTE_RT_TM_INLINE_CONSTANT Product product;
+CUTE_RT_TMINLINE_CONSTANT Product product;
 
 // Return a rank(t) tuple @a result such that get<i>(@a result) = product(get<i>(@a t))
 template <class Tuple>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 product_each(Tuple const& t)
 {
@@ -253,7 +253,7 @@ product_each(Tuple const& t)
 
 // Take the product of Tuple at the leaves of TupleG
 template <class Tuple, class TupleG>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 product_like(Tuple const& tuple, TupleG const& guide)
 {
@@ -262,7 +262,7 @@ product_like(Tuple const& tuple, TupleG const& guide)
 
 // Return the product of elements in a mode
 template <int... Is, class IntTuple>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 size(IntTuple const& a)
 {
@@ -272,7 +272,7 @@ size(IntTuple const& a)
     return size(get<Is...>(a));
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 template <class IntTuple>
@@ -283,7 +283,7 @@ static constexpr auto size_v = decltype(size(declval<IntTuple>()))::value;
 //
 
 template <class IntTuple>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 sum(IntTuple const& a)
 {
@@ -293,7 +293,7 @@ sum(IntTuple const& a)
     return a;
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 //
@@ -301,7 +301,7 @@ sum(IntTuple const& a)
 //
 
 template <class IntTupleA, class IntTupleB>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 inner_product(IntTupleA const& a, IntTupleB const& b)
 {
@@ -313,7 +313,7 @@ inner_product(IntTupleA const& a, IntTupleB const& b)
     return a * b;
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 //
@@ -321,7 +321,7 @@ inner_product(IntTupleA const& a, IntTupleB const& b)
 //
 
 template <class IntTupleA, class IntTupleB>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 ceil_div(IntTupleA const& a, IntTupleB const& b)
 {
@@ -344,7 +344,7 @@ ceil_div(IntTupleA const& a, IntTupleB const& b)
     return (a + b - Int<1>{}) / b;
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 //
@@ -353,7 +353,7 @@ ceil_div(IntTupleA const& a, IntTupleB const& b)
 //
 
 template <class IntTupleA, class IntTupleB>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 round_up(IntTupleA const& a, IntTupleB const& b)
 {
@@ -365,7 +365,7 @@ round_up(IntTupleA const& a, IntTupleB const& b)
     return ((a + b - Int<1>{}) / b) * b;
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 /** Division for Shapes
@@ -381,7 +381,7 @@ round_up(IntTupleA const& a, IntTupleB const& b)
  *   Return ceil_div(a, b)
  */
 template <class IntTupleA, class IntTupleB>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 shape_div(IntTupleA const& a, IntTupleB const& b)
 {
@@ -414,13 +414,13 @@ shape_div(IntTupleA const& a, IntTupleB const& b)
     return (a + b - Int<1>{}) / b;
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 /** Return a tuple the same profile as A scaled by corresponding elements in B
  */
 template <class A, class B>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 elem_scale(A const& a, B const& b)
 {
@@ -430,13 +430,13 @@ elem_scale(A const& a, B const& b)
     return a * product(b);
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 /** Test if two IntTuple have the same profile (hierarchical rank division)
  */
 template <class IntTupleA, class IntTupleB>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 congruent(IntTupleA const& a, IntTupleB const& b)
 {
@@ -451,7 +451,7 @@ using is_congruent = decltype(congruent(declval<A>(), declval<B>()));
  * weakly_congruent is a partial order on A and B: A <= B
  */
 template <class IntTupleA, class IntTupleB>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 weakly_congruent(IntTupleA const& a, IntTupleB const& b)
 {
@@ -470,7 +470,7 @@ weakly_congruent(IntTupleA const& a, IntTupleB const& b)
     return weakly_congruent(shape(a), shape(b));
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 template <class A, class B>
@@ -483,7 +483,7 @@ using is_weakly_congruent = decltype(weakly_congruent(declval<A>(), declval<B>()
  * compatible is a partial order on A and B: A <= B
  */
 template <class IntTupleA, class IntTupleB>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 compatible(IntTupleA const& a, IntTupleB const& b)
 {
@@ -502,7 +502,7 @@ compatible(IntTupleA const& a, IntTupleB const& b)
     return compatible(shape(a), shape(b));
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 template <class A, class B>
@@ -515,7 +515,7 @@ using is_compatible = decltype(compatible(declval<A>(), declval<B>()));
  *       and result in true_type.
  */
 template <class Shape, class Tiler>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 evenly_divides(Shape const& a, Tiler const& b)
 {
@@ -530,13 +530,13 @@ evenly_divides(Shape const& a, Tiler const& b)
     return size(a) == size(b) * size(ceil_div(shape(a), b));
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 /** Replace the elements of Tuple B that are paired with an Int<0> with an Int<1>
  */
 template <class IntTupleA, class IntTupleB>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 filter_zeros(IntTupleA const& a, IntTupleB const& b)
 {
@@ -548,11 +548,11 @@ filter_zeros(IntTupleA const& a, IntTupleB const& b)
     return b;
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 template <class Tuple>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 filter_zeros(Tuple const& t)
 {
@@ -638,7 +638,7 @@ struct SortByKey<seq<Ks...>, seq<Vs...>, seq<Is...>> {
  * \endcode
  */
 template <int N, class Indexable, class T>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 make_int_tuple(Indexable const& t, int n, T const& init)
 {
@@ -649,7 +649,7 @@ make_int_tuple(Indexable const& t, int n, T const& init)
     return transform(make_seq<N>{}, [&](auto i) { return i < n ? t[i] : init; });
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 /** Fill the dynamic values of a Tuple with values from another Tuple
@@ -660,7 +660,7 @@ make_int_tuple(Indexable const& t, int n, T const& init)
  * \endcode
  */
 template <class Tuple, class TupleV>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 fill_int_tuple_from(Tuple& result, TupleV const& vals)
 {
@@ -675,7 +675,7 @@ fill_int_tuple_from(Tuple& result, TupleV const& vals)
       return remove<0>(init);
     }
 
-    CUTE_RT_TM_GCC_UNREACHABLE;
+    CUTE_RT_TMGCC_UNREACHABLE;
   });
 }
 
@@ -686,7 +686,7 @@ fill_int_tuple_from(Tuple& result, TupleV const& vals)
  * \endcode
  */
 template <class Tuple, class... Ts>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 Tuple
 make_int_tuple_from(Ts const&... ts)
 {
@@ -702,7 +702,7 @@ make_int_tuple_from(Ts const&... ts)
  * \endcode
  */
 template <class T = int64_t, class IntTuple>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 to_array(IntTuple const& t)
 {
@@ -735,24 +735,24 @@ to_array(IntTuple const& t)
 //
 
 template <class IntTupleA, class IntTupleB>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 lex_less(IntTupleA const& a, IntTupleB const& b);
 
 template <class IntTupleA, class IntTupleB>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 colex_less(IntTupleA const& a, IntTupleB const& b);
 
 template <class IntTupleA, class IntTupleB>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 elem_less(IntTupleA const& a, IntTupleB const& b);
 
 namespace detail {
 
 template <size_t I, class TupleA, class TupleB>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 lex_less_impl(TupleA const& a, TupleB const& b)
 {
@@ -764,11 +764,11 @@ lex_less_impl(TupleA const& a, TupleB const& b)
     return lex_less(get<I>(a), get<I>(b)) || (get<I>(a) == get<I>(b) && lex_less_impl<I+1>(a,b));
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 template <size_t I, class TupleA, class TupleB>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 colex_less_impl(TupleA const& a, TupleB const& b)
 {
@@ -782,11 +782,11 @@ colex_less_impl(TupleA const& a, TupleB const& b)
     return colex_less(get<A>(a), get<B>(b)) || (get<A>(a) == get<B>(b) && colex_less_impl<I+1>(a,b));
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 template <size_t I, class TupleA, class TupleB>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 elem_less_impl(TupleA const& a, TupleB const& b)
 {
@@ -798,7 +798,7 @@ elem_less_impl(TupleA const& a, TupleB const& b)
     return elem_less(get<I>(a), get<I>(b)) && elem_less_impl<I+1>(a,b);
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 } // end namespace detail
@@ -806,7 +806,7 @@ elem_less_impl(TupleA const& a, TupleB const& b)
 // Lexicographical comparison
 
 template <class IntTupleA, class IntTupleB>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 lex_less(IntTupleA const& a, IntTupleB const& b)
 {
@@ -816,25 +816,25 @@ lex_less(IntTupleA const& a, IntTupleB const& b)
     return a < b;
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 template <class T, class U>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 lex_leq(T const& t, U const& u) {
   return !lex_less(u, t);
 }
 
 template <class T, class U>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 lex_gtr(T const& t, U const& u) {
   return lex_less(u, t);
 }
 
 template <class T, class U>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 lex_geq(T const& t, U const& u) {
   return !lex_less(t, u);
@@ -843,7 +843,7 @@ lex_geq(T const& t, U const& u) {
 // Colexicographical comparison
 
 template <class IntTupleA, class IntTupleB>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 colex_less(IntTupleA const& a, IntTupleB const& b)
 {
@@ -853,25 +853,25 @@ colex_less(IntTupleA const& a, IntTupleB const& b)
     return a < b;
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 template <class T, class U>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 colex_leq(T const& t, U const& u) {
   return !colex_less(u, t);
 }
 
 template <class T, class U>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 colex_gtr(T const& t, U const& u) {
   return colex_less(u, t);
 }
 
 template <class T, class U>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 colex_geq(T const& t, U const& u) {
   return !colex_less(t, u);
@@ -880,7 +880,7 @@ colex_geq(T const& t, U const& u) {
 // Elementwise [all] comparison
 
 template <class IntTupleA, class IntTupleB>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 elem_less(IntTupleA const& a, IntTupleB const& b)
 {
@@ -890,25 +890,25 @@ elem_less(IntTupleA const& a, IntTupleB const& b)
     return a < b;
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 template <class T, class U>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 elem_leq(T const& t, U const& u) {
   return !elem_less(u, t);
 }
 
 template <class T, class U>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 elem_gtr(T const& t, U const& u) {
   return elem_less(u, t);
 }
 
 template <class T, class U>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 elem_geq(T const& t, U const& u) {
   return !elem_less(t, u);

@@ -44,20 +44,20 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #if (__CUDACC_VER_MAJOR__ > 12) || (__CUDACC_VER_MAJOR__ == 12 && __CUDACC_VER_MINOR__ >= 4)
-#  define CUTLASS_RT_TM_ARCH_MMA_F32_SM89_SUPPORTED
+#  define CUTLASS_RT_TMARCH_MMA_F32_SM89_SUPPORTED
 #endif
 
 #if (__CUDACC_VER_MAJOR__ > 12) || (__CUDACC_VER_MAJOR__ == 12 && __CUDACC_VER_MINOR__ >= 8)
-#  define CUTLASS_RT_TM_ARCH_MMA_F16_SM89_SUPPORTED
+#  define CUTLASS_RT_TMARCH_MMA_F16_SM89_SUPPORTED
 #endif
 
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 890)
-#  if defined(CUTLASS_RT_TM_ARCH_MMA_F32_SM89_SUPPORTED)
-#    define CUTLASS_RT_TM_ARCH_MMA_F32_SM89_ENABLED
+#  if defined(CUTLASS_RT_TMARCH_MMA_F32_SM89_SUPPORTED)
+#    define CUTLASS_RT_TMARCH_MMA_F32_SM89_ENABLED
 #  endif
 
-#  if defined(CUTLASS_RT_TM_ARCH_MMA_F16_SM89_SUPPORTED)
-#    define CUTLASS_RT_TM_ARCH_MMA_F16_SM89_ENABLED
+#  if defined(CUTLASS_RT_TMARCH_MMA_F16_SM89_SUPPORTED)
+#    define CUTLASS_RT_TMARCH_MMA_F16_SM89_ENABLED
 #  endif
 #endif
 
@@ -136,11 +136,11 @@ struct Mma<
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_F32_SM89_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_F32_SM89_ENABLED)
 
   uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
   uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -159,11 +159,11 @@ struct Mma<
 
 #else
 
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(d);
+    CUTLASS_RT_TMUNUSED(a);
+    CUTLASS_RT_TMUNUSED(b);
+    CUTLASS_RT_TMUNUSED(c);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 
 #endif
   }
@@ -202,11 +202,11 @@ struct Mma<
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_F32_SM89_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_F32_SM89_ENABLED)
 
   uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
   uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -225,11 +225,11 @@ struct Mma<
 
 #else
 
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(d);
+    CUTLASS_RT_TMUNUSED(a);
+    CUTLASS_RT_TMUNUSED(b);
+    CUTLASS_RT_TMUNUSED(c);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 
 #endif
   }
@@ -268,11 +268,11 @@ struct Mma<
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_F32_SM89_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_F32_SM89_ENABLED)
 
   uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
   uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -291,11 +291,11 @@ struct Mma<
 
 #else
 
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(d);
+    CUTLASS_RT_TMUNUSED(a);
+    CUTLASS_RT_TMUNUSED(b);
+    CUTLASS_RT_TMUNUSED(c);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 
 #endif
   }
@@ -334,11 +334,11 @@ struct Mma<
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_F32_SM89_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_F32_SM89_ENABLED)
 
   uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
   uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -357,11 +357,11 @@ struct Mma<
 
 #else
 
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(d);
+    CUTLASS_RT_TMUNUSED(a);
+    CUTLASS_RT_TMUNUSED(b);
+    CUTLASS_RT_TMUNUSED(c);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 
 #endif
   }
@@ -406,11 +406,11 @@ struct Mma<
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_F16_SM89_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_F16_SM89_ENABLED)
 
   uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
   uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -429,11 +429,11 @@ struct Mma<
 
 #else
 
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(d);
+    CUTLASS_RT_TMUNUSED(a);
+    CUTLASS_RT_TMUNUSED(b);
+    CUTLASS_RT_TMUNUSED(c);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 
 #endif
   }
@@ -472,11 +472,11 @@ struct Mma<
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_F16_SM89_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_F16_SM89_ENABLED)
 
   uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
   uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -495,11 +495,11 @@ struct Mma<
 
 #else
 
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(d);
+    CUTLASS_RT_TMUNUSED(a);
+    CUTLASS_RT_TMUNUSED(b);
+    CUTLASS_RT_TMUNUSED(c);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 
 #endif
   }
@@ -538,11 +538,11 @@ struct Mma<
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_F16_SM89_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_F16_SM89_ENABLED)
 
   uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
   uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -561,11 +561,11 @@ struct Mma<
 
 #else
 
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(d);
+    CUTLASS_RT_TMUNUSED(a);
+    CUTLASS_RT_TMUNUSED(b);
+    CUTLASS_RT_TMUNUSED(c);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 
 #endif
   }
@@ -604,11 +604,11 @@ struct Mma<
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_F16_SM89_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_F16_SM89_ENABLED)
 
   uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
   uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -627,11 +627,11 @@ struct Mma<
 
 #else
 
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(d);
+    CUTLASS_RT_TMUNUSED(a);
+    CUTLASS_RT_TMUNUSED(b);
+    CUTLASS_RT_TMUNUSED(c);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 
 #endif
   }

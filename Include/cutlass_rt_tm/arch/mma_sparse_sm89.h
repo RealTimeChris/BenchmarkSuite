@@ -44,12 +44,12 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 #if (__CUDACC_VER_MAJOR__ > 12) || (__CUDACC_VER_MAJOR__ == 12 && __CUDACC_VER_MINOR__ >= 4)
-#  define CUTLASS_RT_TM_ARCH_SPARSE_MMA_F32_SM89_SUPPORTED
+#  define CUTLASS_RT_TMARCH_SPARSE_MMA_F32_SM89_SUPPORTED
 #endif
 
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 890)
-#  if defined(CUTLASS_RT_TM_ARCH_SPARSE_MMA_F32_SM89_SUPPORTED)
-#    define CUTLASS_RT_TM_ARCH_SPARSE_MMA_F32_SM89_ENABLED
+#  if defined(CUTLASS_RT_TMARCH_SPARSE_MMA_F32_SM89_SUPPORTED)
+#    define CUTLASS_RT_TMARCH_SPARSE_MMA_F32_SM89_ENABLED
 #  endif
 #endif
 
@@ -97,14 +97,14 @@ struct SparseMma<
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
 
-  static constexpr int kSparse = 2;
+  static int const kSparse = 2;
 
-  static constexpr int kMetaSizeInBits = 2;
+  static int const kMetaSizeInBits = 2;
 
-  static constexpr int kMaxID2 = 1;
+  static int const kMaxID2 = 1;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -114,7 +114,7 @@ struct SparseMma<
     int const id2
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_SPARSE_MMA_F32_SM89_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_SPARSE_MMA_F32_SM89_ENABLED)
 
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -134,10 +134,10 @@ struct SparseMma<
         assert(0);
       }
 #else
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_UNUSED(d);
+    CUTLASS_RT_TMUNUSED(a);
+    CUTLASS_RT_TMUNUSED(b);
+    CUTLASS_RT_TMUNUSED(c);
+    CUTLASS_RT_TMUNUSED(d);
     assert(0);
 #endif
   }
@@ -182,14 +182,14 @@ struct SparseMma<
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
 
-  static constexpr int kSparse = 2;
+  static int const kSparse = 2;
 
-  static constexpr int kMetaSizeInBits = 2;
+  static int const kMetaSizeInBits = 2;
 
-  static constexpr int kMaxID2 = 1;
+  static int const kMaxID2 = 1;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -199,7 +199,7 @@ struct SparseMma<
     int const id2
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_SPARSE_MMA_F32_SM89_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_SPARSE_MMA_F32_SM89_ENABLED)
 
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -219,10 +219,10 @@ struct SparseMma<
         assert(0);
       }
 #else
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_UNUSED(d);
+    CUTLASS_RT_TMUNUSED(a);
+    CUTLASS_RT_TMUNUSED(b);
+    CUTLASS_RT_TMUNUSED(c);
+    CUTLASS_RT_TMUNUSED(d);
     assert(0);
 #endif
   }
@@ -267,14 +267,14 @@ struct SparseMma<
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
 
-  static constexpr int kSparse = 2;
+  static int const kSparse = 2;
 
-  static constexpr int kMetaSizeInBits = 2;
+  static int const kMetaSizeInBits = 2;
 
-  static constexpr int kMaxID2 = 1;
+  static int const kMaxID2 = 1;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -284,7 +284,7 @@ struct SparseMma<
     int const id2
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_SPARSE_MMA_F32_SM89_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_SPARSE_MMA_F32_SM89_ENABLED)
 
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -304,10 +304,10 @@ struct SparseMma<
         assert(0);
       }
 #else
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_UNUSED(d);
+    CUTLASS_RT_TMUNUSED(a);
+    CUTLASS_RT_TMUNUSED(b);
+    CUTLASS_RT_TMUNUSED(c);
+    CUTLASS_RT_TMUNUSED(d);
     assert(0);
 #endif
   }
@@ -352,14 +352,14 @@ struct SparseMma<
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
 
-  static constexpr int kSparse = 2;
+  static int const kSparse = 2;
 
-  static constexpr int kMetaSizeInBits = 2;
+  static int const kMetaSizeInBits = 2;
 
-  static constexpr int kMaxID2 = 1;
+  static int const kMaxID2 = 1;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -369,7 +369,7 @@ struct SparseMma<
     int const id2
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_SPARSE_MMA_F32_SM89_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_SPARSE_MMA_F32_SM89_ENABLED)
 
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -389,10 +389,10 @@ struct SparseMma<
         assert(0);
       }
 #else
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_UNUSED(d);
+    CUTLASS_RT_TMUNUSED(a);
+    CUTLASS_RT_TMUNUSED(b);
+    CUTLASS_RT_TMUNUSED(c);
+    CUTLASS_RT_TMUNUSED(d);
     assert(0);
 #endif
   }

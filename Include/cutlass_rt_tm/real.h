@@ -35,7 +35,7 @@
 
 #pragma once
 
-#include <cutlass_rt_tm/detail/helper_macros.hpp> // CUTLASS_RT_TM_DEVICE
+#include <cutlass_rt_tm/detail/helper_macros.hpp> // CUTLASS_RT_TMDEVICE
 
 namespace cutlass_rt_tm {
 
@@ -47,14 +47,14 @@ struct RealType {
   /// Number of elements
   static constexpr int kExtent = 1;
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
   static T from_real(double x) {
     return static_cast<T>(x);
   }
 };
 
 template <typename T>
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 static T from_real(double r) {
   return T(r);
 }

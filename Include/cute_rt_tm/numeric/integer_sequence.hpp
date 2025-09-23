@@ -37,8 +37,8 @@
 namespace cute_rt_tm
 {
 
-using CUTE_RT_TM_STL_NAMESPACE::integer_sequence;
-using CUTE_RT_TM_STL_NAMESPACE::make_integer_sequence;
+using CUTE_RT_TMSTL_NAMESPACE::integer_sequence;
+using CUTE_RT_TMSTL_NAMESPACE::make_integer_sequence;
 
 namespace detail {
 
@@ -166,7 +166,7 @@ struct tuple_element<I, integer_sequence<T, Is...>>
 };
 
 template <size_t I, class T, T... Ints>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 tuple_element_t<I, integer_sequence<T, Ints...>>
 get(integer_sequence<T, Ints...>) {
   static_assert(I < sizeof...(Ints), "Index out of range");

@@ -40,13 +40,13 @@
 #include "cutlass_rt_tm/numeric_types.h"
 
 #if ((__CUDACC_VER_MAJOR__ > 10) || (__CUDACC_VER_MAJOR__ == 10 && __CUDACC_VER_MINOR__ >= 1))
-#define CUTLASS_RT_TM_ARCH_MMA_SM70_SUPPORTED
+#define CUTLASS_RT_TMARCH_MMA_SM70_SUPPORTED
 #endif
 
 #if (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 700))
 
 #if ((__CUDACC_VER_MAJOR__ > 10) || (__CUDACC_VER_MAJOR__ == 10 &&__CUDACC_VER_MINOR__ >= 1))
-#define CUTLASS_RT_TM_ARCH_MMA_SM70_ENABLED
+#define CUTLASS_RT_TMARCH_MMA_SM70_ENABLED
 #endif
 
 #endif
@@ -92,7 +92,7 @@ struct Mma<
   using Operator = OpMultiplyAdd;
   using ArchTag = arch::Sm70;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -100,7 +100,7 @@ struct Mma<
     FragmentC const &c
   ) {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM70_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_SM70_ENABLED)
 
     unsigned const *A = reinterpret_cast<unsigned const *>(&a);
     unsigned const *B = reinterpret_cast<unsigned const *>(&b);
@@ -151,7 +151,7 @@ struct Mma<
   using Operator = OpMultiplyAdd;
   using ArchTag = arch::Sm70;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -159,7 +159,7 @@ struct Mma<
     FragmentC const &c
   ) {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM70_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_SM70_ENABLED)
 
     unsigned const *A = reinterpret_cast<unsigned const *>(&a);
     unsigned const *B = reinterpret_cast<unsigned const *>(&b);
@@ -210,7 +210,7 @@ struct Mma<
   using Operator = OpMultiplyAdd;
   using ArchTag = arch::Sm70;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -218,7 +218,7 @@ struct Mma<
     FragmentC const &c
   ) {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM70_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_SM70_ENABLED)
 
     unsigned const *A = reinterpret_cast<unsigned const *>(&a);
     unsigned const *B = reinterpret_cast<unsigned const *>(&b);
@@ -269,7 +269,7 @@ struct Mma<
   using Operator = OpMultiplyAdd;
   using ArchTag = arch::Sm70;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -277,7 +277,7 @@ struct Mma<
     FragmentC const &c
   ) {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM70_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_SM70_ENABLED)
 
     unsigned const *A = reinterpret_cast<unsigned const *>(&a);
     unsigned const *B = reinterpret_cast<unsigned const *>(&b);
@@ -335,7 +335,7 @@ struct Mma<
   using ArchTag = arch::Sm70;
 
   /// Multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -343,7 +343,7 @@ struct Mma<
     FragmentC const &c
   ) {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM70_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_SM70_ENABLED)
 
   unsigned const *A = reinterpret_cast<unsigned const *>(&a);
   unsigned const *B = reinterpret_cast<unsigned const *>(&b);
@@ -414,7 +414,7 @@ struct Mma<
   using ArchTag = arch::Sm70;
 
   /// Multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -422,7 +422,7 @@ struct Mma<
     FragmentC const &c
   ) {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM70_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_SM70_ENABLED)
 
   unsigned const *A = reinterpret_cast<unsigned const *>(&a);
   unsigned const *B = reinterpret_cast<unsigned const *>(&b);
@@ -493,7 +493,7 @@ struct Mma<
   using ArchTag = arch::Sm70;
 
   /// Multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -501,7 +501,7 @@ struct Mma<
     FragmentC const &c
   ) {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM70_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_SM70_ENABLED)
 
   unsigned const *A = reinterpret_cast<unsigned const *>(&a);
   unsigned const *B = reinterpret_cast<unsigned const *>(&b);
@@ -572,7 +572,7 @@ struct Mma<
   using ArchTag = arch::Sm70;
 
   /// Multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -580,7 +580,7 @@ struct Mma<
     FragmentC const &c
   ) {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM70_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_SM70_ENABLED)
 
   unsigned const *A = reinterpret_cast<unsigned const *>(&a);
   unsigned const *B = reinterpret_cast<unsigned const *>(&b);

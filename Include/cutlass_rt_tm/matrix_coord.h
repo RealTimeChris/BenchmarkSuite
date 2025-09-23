@@ -70,100 +70,89 @@ public:
   //
 
   /// Default ctor
-  CUTLASS_RT_TM_HOST_DEVICE
-  constexpr MatrixCoord() { }
+  CUTLASS_RT_TMHOST_DEVICE
+  MatrixCoord() { }
 
   /// Constructs from Coord<2>
-  CUTLASS_RT_TM_HOST_DEVICE
-  constexpr MatrixCoord(Coord<2, Index> const& coord) : Base(coord) {
-  }
+  CUTLASS_RT_TMHOST_DEVICE
+  MatrixCoord(Coord<2, Index> const &coord): Base(coord) { }
 
   /// Helper to construct from a row and column
-  CUTLASS_RT_TM_HOST_DEVICE
-  constexpr MatrixCoord(Index row, Index column) : Base(make_Coord(row, column)) {
-  }
+  CUTLASS_RT_TMHOST_DEVICE
+  MatrixCoord(Index row, Index column): Base(make_Coord(row, column)) { }
 
   /// Helper to construct from a row and column, which are LongIndex based
-  CUTLASS_RT_TM_HOST_DEVICE
-  constexpr MatrixCoord(LongIndex row, LongIndex column) : Base(make_Coord(Index(row), Index(column))) {
-  }
+  CUTLASS_RT_TMHOST_DEVICE
+  MatrixCoord(LongIndex row, LongIndex column): Base(make_Coord(Index(row), Index(column))) { }
 
   /// Returns the row of the coordinate
-  CUTLASS_RT_TM_HOST_DEVICE
-  constexpr Index const& row() const {
-	  return this->at(kRow);
-  }
+  CUTLASS_RT_TMHOST_DEVICE
+  Index const & row() const { return this->at(kRow); }
 
   /// Returns the row of the coordinate
-  CUTLASS_RT_TM_HOST_DEVICE
-  constexpr Index& row() {
-	  return this->at(kRow);
-  }
+  CUTLASS_RT_TMHOST_DEVICE
+  Index & row() { return this->at(kRow); }
 
   /// Returns the column of the coordinate
-  CUTLASS_RT_TM_HOST_DEVICE
-  constexpr Index const& column() const {
-	  return this->at(kColumn);
-  }
+  CUTLASS_RT_TMHOST_DEVICE
+  Index const & column() const { return this->at(kColumn); }
 
   /// Returns the column of the coordinate
-  CUTLASS_RT_TM_HOST_DEVICE
-  constexpr Index& column() {
-	  return this->at(kColumn);
-  }
+  CUTLASS_RT_TMHOST_DEVICE
+  Index & column() { return this->at(kColumn); }
 
   //
   // Coord operators
   //
 
   /// Element-wise addition
-  CUTLASS_RT_TM_HOST_DEVICE
-  constexpr MatrixCoord operator+(Base const& b) const {
+  CUTLASS_RT_TMHOST_DEVICE
+  MatrixCoord operator+(Base const& b) const {
     return MatrixCoord(Base::operator+(b));
   }
 
   /// Element-wise subtraction
-  CUTLASS_RT_TM_HOST_DEVICE
-  constexpr MatrixCoord operator-(Base const& b) const {
+  CUTLASS_RT_TMHOST_DEVICE
+  MatrixCoord operator-(Base const& b) const {
     return MatrixCoord(Base::operator-(b));
   }
 
   /// Element-wise multiplication
-  CUTLASS_RT_TM_HOST_DEVICE
-  constexpr MatrixCoord operator*(Base const& b) const {
+  CUTLASS_RT_TMHOST_DEVICE
+  MatrixCoord operator*(Base const& b) const {
     return MatrixCoord(Base::operator*(b));
   }
 
   /// Element-wise division
-  CUTLASS_RT_TM_HOST_DEVICE
-  constexpr MatrixCoord operator/(Base const& b) const {
+  CUTLASS_RT_TMHOST_DEVICE
+  MatrixCoord operator/(Base const& b) const {
     return MatrixCoord(Base::operator/(b));
   }
 
   /// In-place addition
-  CUTLASS_RT_TM_HOST_DEVICE
-  constexpr MatrixCoord& operator+=(Base const& b) {
+  CUTLASS_RT_TMHOST_DEVICE
+  MatrixCoord& operator+=(Base const& b) {
     Base::operator+=(b);
     return *this;
   }
 
   /// In-place subtraction
-  CUTLASS_RT_TM_HOST_DEVICE
-  constexpr MatrixCoord& operator-=(Base const& b) {
+  CUTLASS_RT_TMHOST_DEVICE
+  MatrixCoord& operator-=(Base const& b) {
     Base::operator-=(b);
     return *this;
   }
 
   /// In-place multiplication
-  CUTLASS_RT_TM_HOST_DEVICE
-  constexpr MatrixCoord& operator*=(Base const& b) {
+  CUTLASS_RT_TMHOST_DEVICE
+  MatrixCoord& operator*=(Base const& b) {
     Base::operator*=(b);
     return *this;
   }
 
   /// In-place division
-  CUTLASS_RT_TM_HOST_DEVICE
-  constexpr MatrixCoord& operator/=(Base const& b) {
+  CUTLASS_RT_TMHOST_DEVICE
+  MatrixCoord& operator/=(Base const& b) {
     Base::operator/=(b);
     return *this;
   }

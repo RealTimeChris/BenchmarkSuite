@@ -35,7 +35,7 @@
 
 #pragma once
 
-#include <cute_rt_tm/config.hpp>                  // CUTE_RT_TM_HOST_DEVICE
+#include <cute_rt_tm/config.hpp>                  // CUTE_RT_TMHOST_DEVICE
 #include <cute_rt_tm/numeric/numeric_types.hpp>   // uint_bit_t
 #include <cute_rt_tm/util/type_traits.hpp>        // cute_rt_tm::is_same
 
@@ -84,7 +84,7 @@ public:
   storage_type data_[N];
 
   // Get value
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_RT_TMHOST_DEVICE constexpr
   value_type get() const {
     storage_type result = (data_[idx] & mask_lo) >> bit_lo;
     if constexpr (bit_hi != 0) {
@@ -94,7 +94,7 @@ public:
   }
 
   // Set value
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_RT_TMHOST_DEVICE constexpr
   void set(value_type x) {
     storage_type item = static_cast<storage_type>(x & mask);
     data_[idx] = static_cast<storage_type>((data_[idx] & ~mask_lo) | (item << bit_lo));
@@ -104,26 +104,26 @@ public:
   }
 
   // Assign value
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_RT_TMHOST_DEVICE constexpr
   bit_field& operator=(value_type x) {
     set(x);
     return *this;
   }
 
   // Cast to value
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_RT_TMHOST_DEVICE constexpr
   operator value_type () const {
     return get();
   }
 
   // Assign OtherValueType
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_RT_TMHOST_DEVICE constexpr
   bit_field& operator=(OtherValueType x) {
     return *this = *reinterpret_cast<value_type*>(&x);
   }
 
   // Cast to OtherValueType
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_RT_TMHOST_DEVICE constexpr
   operator OtherValueType () const {
     value_type x = get();
     return *reinterpret_cast<OtherValueType*>(&x);

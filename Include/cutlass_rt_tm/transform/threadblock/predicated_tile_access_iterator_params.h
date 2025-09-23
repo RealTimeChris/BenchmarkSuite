@@ -63,7 +63,7 @@ struct PredicatedTileAccessIteratorDesc {
 
   PredicatedTileAccessIteratorDesc() = default;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   PredicatedTileAccessIteratorDesc(
     int element_size_bits_,
     int advance_rank_,
@@ -104,7 +104,7 @@ template <
 struct MakePredicatedTileAccessIteratorDesc <
     Shape, Element, layout::PitchLinear, AdvanceRank, ThreadMap> {
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   PredicatedTileAccessIteratorDesc operator()() {
 
     return PredicatedTileAccessIteratorDesc(
@@ -132,7 +132,7 @@ struct MakePredicatedTileAccessIteratorDesc <
       layout::PitchLinearShape<Shape::kRow, Shape::kColumn>, Element,
       layout::PitchLinear, (kAdvanceRank == 0 ? 0 : 1), ThreadMap>;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   PredicatedTileAccessIteratorDesc operator()() {
 
     return UnderlyingMakeOperator()();
@@ -154,7 +154,7 @@ struct MakePredicatedTileAccessIteratorDesc <
       layout::PitchLinearShape<Shape::kColumn, Shape::kRow>, Element,
       layout::PitchLinear, (kAdvanceRank == 0 ? 1 : 0), ThreadMap>;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   PredicatedTileAccessIteratorDesc operator()() {
 
     return UnderlyingMakeOperator()();
@@ -177,7 +177,7 @@ struct MakePredicatedTileAccessIteratorDesc <
       layout::PitchLinearShape<Shape::kRow * kInterleavedK, Shape::kColumn / kInterleavedK>, Element,
       layout::PitchLinear, (kAdvanceRank == 0 ? 0 : 1), ThreadMap>;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   PredicatedTileAccessIteratorDesc operator()() {
 
     return UnderlyingMakeOperator()();
@@ -200,7 +200,7 @@ struct MakePredicatedTileAccessIteratorDesc <
       layout::PitchLinearShape<Shape::kColumn * kInterleavedK, Shape::kRow / kInterleavedK>, Element,
       layout::PitchLinear, (kAdvanceRank == 0 ? 1 : 0), ThreadMap>;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   PredicatedTileAccessIteratorDesc operator()() {
 
     return UnderlyingMakeOperator()();
@@ -237,10 +237,10 @@ struct PredicatedTileAccessIteratorParams {
   // Methods
   //
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Status initialize(LongIndex stride, PredicatedTileAccessIteratorDesc desc) {
-    CUTLASS_RT_TM_ASSERT(desc.element_size_bits > 0);
-    CUTLASS_RT_TM_ASSERT(desc.advance_rank == 0 || desc.advance_rank == 1);
+    CUTLASS_RT_TMASSERT(desc.element_size_bits > 0);
+    CUTLASS_RT_TMASSERT(desc.advance_rank == 0 || desc.advance_rank == 1);
 
     stride_ = stride;
 
@@ -263,19 +263,19 @@ struct PredicatedTileAccessIteratorParams {
     return Status::kSuccess;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Status initialize(Index stride, PredicatedTileAccessIteratorDesc desc) {
     return initialize(LongIndex(stride), desc);
   }
 
   PredicatedTileAccessIteratorParams() = default;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   PredicatedTileAccessIteratorParams(Index stride, PredicatedTileAccessIteratorDesc desc) {
     initialize(stride, desc);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   PredicatedTileAccessIteratorParams(LongIndex stride, PredicatedTileAccessIteratorDesc desc) {
     initialize(stride, desc);
   }

@@ -36,26 +36,26 @@
 
 #if (__CUDACC_VER_MAJOR__ >= 9)
 #if (!defined(__CUDA_ARCH__) || (__CUDA_ARCH__ >= 700))
-#define CUTLASS_RT_TM_ARCH_WMMA_ENABLED
-#define CUTLASS_RT_TM_ARCH_WMMA_SM70_ENABLED
+#define CUTLASS_RT_TMARCH_WMMA_ENABLED
+#define CUTLASS_RT_TMARCH_WMMA_SM70_ENABLED
 #endif
 #endif
 
 #if (__CUDACC_VER_MAJOR__ >= 10)
 #if (!defined(__CUDA_ARCH__) || (__CUDA_ARCH__ >= 720))
-#define CUTLASS_RT_TM_ARCH_INTEGER_MATRIX_MULTIPLY_ENABLED
-#define CUTLASS_RT_TM_ARCH_WMMA_SM72_ENABLED
+#define CUTLASS_RT_TMARCH_INTEGER_MATRIX_MULTIPLY_ENABLED
+#define CUTLASS_RT_TMARCH_WMMA_SM72_ENABLED
 #endif
 #endif
 
 #if (__CUDACC_VER_MAJOR__ >= 10)
 #if (!defined(__CUDA_ARCH__) || (__CUDA_ARCH__ >= 750))
-#define CUTLASS_RT_TM_SUBBYTE_INTEGER_MATRIX_MULTIPLY_ENABLED
-#define CUTLASS_RT_TM_ARCH_WMMA_SM75_ENABLED
+#define CUTLASS_RT_TMSUBBYTE_INTEGER_MATRIX_MULTIPLY_ENABLED
+#define CUTLASS_RT_TMARCH_WMMA_SM75_ENABLED
 #endif
 #endif
 
-#if defined(CUTLASS_RT_TM_ARCH_WMMA_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_WMMA_ENABLED)
 
 #include <mma.h>
 #include "cutlass_rt_tm/arch/mma.h"
@@ -108,7 +108,7 @@ struct CutlassToWmmaDataType<int32_t> {
   using Type = int;
 };
 
-#if defined(CUTLASS_RT_TM_SUBBYTE_INTEGER_MATRIX_MULTIPLY_ENABLED)
+#if defined(CUTLASS_RT_TMSUBBYTE_INTEGER_MATRIX_MULTIPLY_ENABLED)
 /// Statically maps cutlass_rt_tm::int4b_t => experimental::precision::s4
 template<>
 struct CutlassToWmmaDataType<cutlass_rt_tm::int4b_t> {
@@ -201,18 +201,18 @@ struct Wmma;
 //
 // Specializations for each compute capability
 //
-#ifdef CUTLASS_RT_TM_ARCH_WMMA_SM70_ENABLED
+#ifdef CUTLASS_RT_TMARCH_WMMA_SM70_ENABLED
 #include "cutlass_rt_tm/arch/wmma_sm70.h"
 #endif
 
-#ifdef CUTLASS_RT_TM_ARCH_WMMA_SM72_ENABLED
+#ifdef CUTLASS_RT_TMARCH_WMMA_SM72_ENABLED
 #include "cutlass_rt_tm/arch/wmma_sm72.h"
 #endif
 
-#ifdef CUTLASS_RT_TM_ARCH_WMMA_SM75_ENABLED
+#ifdef CUTLASS_RT_TMARCH_WMMA_SM75_ENABLED
 #include "cutlass_rt_tm/arch/wmma_sm75.h"
 #endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-#endif //CUTLASS_RT_TM_ARCH_WMMA_ENABLED
+#endif //CUTLASS_RT_TMARCH_WMMA_ENABLED

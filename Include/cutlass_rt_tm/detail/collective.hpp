@@ -61,7 +61,7 @@ using deduce_mixed_width_dtype_t = typename deduce_mixed_width_dtype<I, Tuple>::
 
 
 template <class Element>
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 static constexpr bool
 is_sm10x_runtime_f8f6f4() {
   return (cute_rt_tm::is_same_v<Element, cutlass_rt_tm::type_erased_dynamic_float8_t> ||
@@ -70,7 +70,7 @@ is_sm10x_runtime_f8f6f4() {
 }
 
 template <class ElementA, class ElementB>
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 static constexpr bool
 is_sm10x_f8f6f4_inputs() {
    return ( 
@@ -102,14 +102,14 @@ is_sm10x_f8f6f4_inputs() {
 }
 
 template <class TiledMma, class ElementA, class ElementB>
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 static constexpr bool
 is_sm100_mma_f8f6f4() {
   return (cute_rt_tm::size<2>(typename TiledMma::Shape_MNK{}) == 32) && is_sm10x_f8f6f4_inputs<ElementA, ElementB>();
 }
 
 template <class Element>
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 static constexpr bool
 is_sm10x_f8f6f4_element() {
   return (cute_rt_tm::is_same_v<Element, cute_rt_tm::float_e4m3_t> 
@@ -123,7 +123,7 @@ is_sm10x_f8f6f4_element() {
 
 
 template <class Element>
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 static constexpr bool
 is_sm10x_f4_element() {
   return (cute_rt_tm::is_same_v<Element, cute_rt_tm::float_e2m1_t> 
@@ -131,7 +131,7 @@ is_sm10x_f4_element() {
 }
 
 template <class ElementType>
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 static constexpr bool
 is_sm10x_mxf8f6f4_input() {
           // ElementType must be F8, F6, or F4
@@ -146,7 +146,7 @@ is_sm10x_mxf8f6f4_input() {
 }
 
 template <class ElementType>
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 static constexpr bool
 is_sm10x_mxf4nvf4_input() {
           // ElementType must be F4
@@ -171,14 +171,14 @@ struct sm10x_block_scale_runtime_input_t {
 
 
 template <class TiledMma, class ElementA, class ElementB>
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 static constexpr bool
 is_sm120_f8f6f4() {
   return (cute_rt_tm::size<2>(typename TiledMma::Shape_MNK{}) == 32) && is_sm10x_f8f6f4_inputs<ElementA, ElementB>();
 }
 
 template <class TiledMma, class ElementA, class ElementB>
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 static constexpr bool
 is_sm100_sparse_f8f6f4() {
   return (cute_rt_tm::size<2>(typename TiledMma::Shape_MNK{}) == 64) && is_sm10x_f8f6f4_inputs<ElementA, ElementB>();

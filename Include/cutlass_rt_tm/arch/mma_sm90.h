@@ -81,11 +81,11 @@ struct Mma<
 
   using ArchTag = arch::Sm90;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM90_F64_MMA_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_SM90_F64_MMA_ENABLED)
 
   double const *A = reinterpret_cast<double const *>(&a);
   double const *B = reinterpret_cast<double const *>(&b);
@@ -100,11 +100,11 @@ struct Mma<
         "d"(C[0]), "d"(C[1]), "d"(C[2]), "d"(C[3]));
 
 #else
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(d);
+    CUTLASS_RT_TMUNUSED(a);
+    CUTLASS_RT_TMUNUSED(b);
+    CUTLASS_RT_TMUNUSED(c);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 #endif
   }
 };
@@ -144,11 +144,11 @@ struct Mma<
 
   using ArchTag = arch::Sm90;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM90_F64_MMA_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_SM90_F64_MMA_ENABLED)
 
   double const *A = reinterpret_cast<double const *>(&a);
   double const *B = reinterpret_cast<double const *>(&b);
@@ -164,11 +164,11 @@ struct Mma<
 
 #else
 
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(d);
+    CUTLASS_RT_TMUNUSED(a);
+    CUTLASS_RT_TMUNUSED(b);
+    CUTLASS_RT_TMUNUSED(c);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 #endif
   }
 };
@@ -208,11 +208,11 @@ struct Mma<
 
   using ArchTag = arch::Sm90;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
     
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM90_F64_MMA_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_SM90_F64_MMA_ENABLED)
 
   double const *A = reinterpret_cast<double const *>(&a);
   double const *B = reinterpret_cast<double const *>(&b);
@@ -227,7 +227,7 @@ struct Mma<
         "d"(C[0]), "d"(C[1]), "d"(C[2]), "d"(C[3]));
 
 #else
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 #endif
   }
 };

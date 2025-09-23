@@ -61,7 +61,7 @@ namespace bnch_swt {
 						std::cout << "Metrics for: " << value.name << std::endl;
 						std::cout << std::fixed << std::setprecision(2);
 
-						static constexpr auto printMetric = []<typename value_type>(const std::string_view& label, const value_type& valueNew) {
+						static constexpr auto printMetric = []<typename value_type>(const std::string_view& label, value_type&& valueNew) {
 							if constexpr (internal::optional_t<value_type>) {
 								if (valueNew.has_value()) {
 									std::cout << std::left << std::setw(60ull) << label << ": " << valueNew.value() << std::endl;
@@ -86,8 +86,8 @@ namespace bnch_swt {
 							instructionCount = "Instructions per Byte";
 						}
 						printMetric("Total Iterations", maxExecutionCount);
-						printMetric("Total Iterations to Stabilize", value.totalIterationCount);
 						printMetric("Measured Iterations", value.measuredIterationCount);
+						printMetric("Total Iterations to Stabilization Window", maxExecutionCount - value.totalIterationCount.value());
 						printMetric(metricName, value.bytesProcessed);
 						printMetric("Nanoseconds per Execution", value.timeInNs);
 						printMetric("Frequency (GHz)", value.frequencyGHz);
@@ -193,7 +193,7 @@ namespace bnch_swt {
 			return results[subjectName.operator std::string_view()];
 		}
 
-		template<string_literal subjectNameNew>  BNCH_SWT_INLINE static auto sort_results(uint64_t currentGlobalIndex, auto& newPtr) {
+		template<string_literal subjectNameNew> BNCH_SWT_INLINE static auto sort_results(uint64_t currentGlobalIndex, auto& newPtr) {
 			performance_metrics lowestResults{};
 			performance_metrics resultsTemp{};
 			if constexpr (measuredIterationCount == 1) {

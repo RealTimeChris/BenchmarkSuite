@@ -31,7 +31,7 @@
 
 #pragma once
 
-#include <cute_rt_tm/config.hpp>                     // CUTE_RT_TM_HOST_DEVICE
+#include <cute_rt_tm/config.hpp>                     // CUTE_RT_TMHOST_DEVICE
 #include <cute_rt_tm/pointer_base.hpp>               // cute_rt_tm::iter_adaptor
 #include <cute_rt_tm/numeric/integral_constant.hpp>  // cute_rt_tm::false_type, cute_rt_tm::true_type
 #include <cute_rt_tm/numeric/integral_ratio.hpp>     // cute_rt_tm::ratio
@@ -48,15 +48,15 @@ struct sparse_elem
   using raw_type = T;
   T elem_;
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_RT_TMHOST_DEVICE constexpr
   explicit sparse_elem(T const& elem = {}) : elem_(elem) {}
 
-  CUTE_RT_TM_HOST_DEVICE constexpr friend bool operator==(sparse_elem const& a, sparse_elem const& b) { return a.elem_ == b.elem_; }
-  CUTE_RT_TM_HOST_DEVICE constexpr friend bool operator!=(sparse_elem const& a, sparse_elem const& b) { return a.elem_ != b.elem_; }
-  CUTE_RT_TM_HOST_DEVICE constexpr friend bool operator< (sparse_elem const& a, sparse_elem const& b) { return a.elem_ <  b.elem_; }
-  CUTE_RT_TM_HOST_DEVICE constexpr friend bool operator<=(sparse_elem const& a, sparse_elem const& b) { return a.elem_ <= b.elem_; }
-  CUTE_RT_TM_HOST_DEVICE constexpr friend bool operator> (sparse_elem const& a, sparse_elem const& b) { return a.elem_ >  b.elem_; }
-  CUTE_RT_TM_HOST_DEVICE constexpr friend bool operator>=(sparse_elem const& a, sparse_elem const& b) { return a.elem_ >= b.elem_; }
+  CUTE_RT_TMHOST_DEVICE constexpr friend bool operator==(sparse_elem const& a, sparse_elem const& b) { return a.elem_ == b.elem_; }
+  CUTE_RT_TMHOST_DEVICE constexpr friend bool operator!=(sparse_elem const& a, sparse_elem const& b) { return a.elem_ != b.elem_; }
+  CUTE_RT_TMHOST_DEVICE constexpr friend bool operator< (sparse_elem const& a, sparse_elem const& b) { return a.elem_ <  b.elem_; }
+  CUTE_RT_TMHOST_DEVICE constexpr friend bool operator<=(sparse_elem const& a, sparse_elem const& b) { return a.elem_ <= b.elem_; }
+  CUTE_RT_TMHOST_DEVICE constexpr friend bool operator> (sparse_elem const& a, sparse_elem const& b) { return a.elem_ >  b.elem_; }
+  CUTE_RT_TMHOST_DEVICE constexpr friend bool operator>=(sparse_elem const& a, sparse_elem const& b) { return a.elem_ >= b.elem_; }
 };
 
 template <class T>
@@ -110,7 +110,7 @@ struct sparse_ptr : iter_adaptor<Iterator, sparse_ptr<Sparsity, Iterator>>
   static_assert(not is_sparse_ptr<Iterator>::value, "Enforce sparse singleton");
 
   template <class Index>
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_RT_TMHOST_DEVICE constexpr
   sparse_ptr operator+(Index const& i) const {
     // Only allow offset by multiples of the sparsity factor,
     // else the misalignments become a bug. E.g. (sparse_ptr<8,I>{} + 7) + 7
@@ -120,7 +120,7 @@ struct sparse_ptr : iter_adaptor<Iterator, sparse_ptr<Sparsity, Iterator>>
   }
 
   template <class Index>
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_RT_TMHOST_DEVICE constexpr
   reference operator[](Index const& i) const {
     // Allow offset by any value and dereference.
     // Not implemented in terms of sparse_ptr::op+()
@@ -132,7 +132,7 @@ template <int S, class I>
 struct is_sparse_ptr<sparse_ptr<S,I>> : true_type {};
 
 template <int Sparsity, class Iter>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 make_sparse_ptr(Iter const& iter) {
   if constexpr (Sparsity == 1) {
@@ -140,11 +140,11 @@ make_sparse_ptr(Iter const& iter) {
   } else {
     return sparse_ptr<Sparsity, Iter>{iter};
   }
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 template <class NewT, int S, class Iter>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 recast_ptr(sparse_ptr<S,Iter> const& ptr) {
   static_assert(not is_sparse<NewT>::value);
@@ -156,14 +156,14 @@ recast_ptr(sparse_ptr<S,Iter> const& ptr) {
 //
 
 template <int S, class Iter>
-CUTE_RT_TM_HOST_DEVICE void print(sparse_ptr<S,Iter> ptr)
+CUTE_RT_TMHOST_DEVICE void print(sparse_ptr<S,Iter> ptr)
 {
   printf("sparse<%d>_", S); print(ptr.get());
 }
 
 #if !defined(__CUDACC_RTC__)
 template <int S, class Iter>
-CUTE_RT_TM_HOST std::ostream& operator<<(std::ostream& os, sparse_ptr<S,Iter> ptr)
+CUTE_RT_TMHOST std::ostream& operator<<(std::ostream& os, sparse_ptr<S,Iter> ptr)
 {
   return os << "sparse<" << S << ">_" << ptr.get();
 }

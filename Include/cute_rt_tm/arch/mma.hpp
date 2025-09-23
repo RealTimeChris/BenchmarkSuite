@@ -30,7 +30,7 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute_rt_tm/config.hpp>           // CUTE_RT_TM_HOST_DEVICE
+#include <cute_rt_tm/config.hpp>           // CUTE_RT_TMHOST_DEVICE
 #include <cute_rt_tm/numeric/complex.hpp>  // cute_rt_tm::fma
 #include <cute_rt_tm/numeric/real.hpp>     // cute_rt_tm::fma
 
@@ -49,7 +49,7 @@ struct UniversalFMA
   using BRegisters = B[1];
   using CRegisters = C[1];
 
-  CUTE_RT_TM_HOST_DEVICE static constexpr void
+  CUTE_RT_TMHOST_DEVICE static constexpr void
   fma(D      & d,
       A const& a,
       B const& b,

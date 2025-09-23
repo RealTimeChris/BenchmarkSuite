@@ -57,14 +57,14 @@ struct Transpose<ElementCount_, layout::PitchLinearShape<4,4> , int8_t> {
 
     static_assert(!(kElementCount % TransposeShape::kCount), "Shape needs to be multiple of 16 elements to do a 4x4 transpose");
 
-    CUTLASS_RT_TM_DEVICE 
+    CUTLASS_RT_TMDEVICE 
     void transform(Fragment& dst, Fragment& src) {
 
     // Expose src/dst as int arrays.
     int* src_int = reinterpret_cast<int*>(&src);
     int* dst_int = reinterpret_cast<int*>(&dst);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < kElementCount / TransposeShape::kCount; i++){
   
       int const i0 = 4 * i + 0;

@@ -95,18 +95,18 @@ public:
   using AccumulatorTile = typename Policy::AccumulatorTile;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static int const kIterations = Policy::kIterations;
 
   /// Number of elements per access
-  static constexpr int kElementsPerAccess = Policy::kElementsPerAccess;
+  static int const kElementsPerAccess = Policy::kElementsPerAccess;
 
   // Internal constants
   struct Detail {
-    static constexpr int kLanesInQuad = 4;
-    static constexpr int kRowsPerQuad = 4;
-    static constexpr int kColumnsPerQuad = 8;
-    static constexpr int kAccessesPerQuad = kColumnsPerQuad / Policy::kElementsPerAccess;
-    static constexpr int kAccessQuadDelta = 16;
+    static int const kLanesInQuad = 4;
+    static int const kRowsPerQuad = 4;
+    static int const kColumnsPerQuad = 8;
+    static int const kAccessesPerQuad = kColumnsPerQuad / Policy::kElementsPerAccess;
+    static int const kAccessQuadDelta = 16;
   };
 
   /// Padding quantity
@@ -129,11 +129,11 @@ private:
 public:
 
   /// Default constructor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   TileIteratorVoltaTensorOp(): pointer_(nullptr) { }
 
   /// Constructor from TensorRef
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   TileIteratorVoltaTensorOp(
     TensorRef const &ref,
     unsigned lane_id
@@ -154,14 +154,14 @@ public:
   }
 
   /// Adds a pointer offset
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   TileIteratorVoltaTensorOp & add_pointer_offset(Index pointer_offset) {
     pointer_ += pointer_offset / Policy::kElementsPerAccess;
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   TileIteratorVoltaTensorOp & add_tile_offset(TensorCoord const &tile_offset) {
 
     pointer_ += layout_({
@@ -172,22 +172,22 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   TileIteratorVoltaTensorOp & operator+=(TensorCoord const &tile_offset) {
     add_tile_offset(tile_offset);
     return *this;
   }
 
   /// Store
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int tile_idx = 0; tile_idx < Policy::TileIterations::kColumn; ++tile_idx) {
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int access_idx = 0; access_idx < Policy::kAccessesPerInterleavedTile; ++access_idx) {
 
         int access_quad = access_idx / 2;
@@ -207,21 +207,21 @@ public:
   }
 
   /// Store
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void store(Fragment const &frag) {
     store_with_pointer_offset(frag, 0);
   }
 
   /// Load
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void load_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int tile_idx = 0; tile_idx < Policy::TileIterations::kColumn; ++tile_idx) {
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int access_idx = 0; access_idx < Policy::kAccessesPerInterleavedTile; ++access_idx) {
 
         int access_quad = access_idx / 2;
@@ -238,13 +238,13 @@ public:
   }
 
   /// Load
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void load(Fragment const &frag) {
     load_with_pointer_offset(frag, 0);
   }
   
   /// Set smem base address
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void set_smem_base_address(Index address) {
   }
 };
@@ -286,18 +286,18 @@ public:
   using AccumulatorTile = typename Policy::AccumulatorTile;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static int const kIterations = Policy::kIterations;
 
   /// Number of elements per access
-  static constexpr int kElementsPerAccess = Policy::kElementsPerAccess;
+  static int const kElementsPerAccess = Policy::kElementsPerAccess;
 
   // Internal constants
   struct Detail {
-    static constexpr int kLanesInQuad = 4;
-    static constexpr int kRowsPerQuad = 4;
-    static constexpr int kColumnsPerQuad = 8;
-    static constexpr int kAccessesPerQuad = kColumnsPerQuad / Policy::kElementsPerAccess;
-    static constexpr int kAccessQuadDelta = 16;
+    static int const kLanesInQuad = 4;
+    static int const kRowsPerQuad = 4;
+    static int const kColumnsPerQuad = 8;
+    static int const kAccessesPerQuad = kColumnsPerQuad / Policy::kElementsPerAccess;
+    static int const kAccessQuadDelta = 16;
   };
 
   /// Padding quantity
@@ -320,11 +320,11 @@ private:
 public:
 
   /// Default constructor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   TileIteratorVoltaTensorOp(): pointer_(nullptr) { }
 
   /// Constructor from TensorRef
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   TileIteratorVoltaTensorOp(
     TensorRef const &ref,
     unsigned lane_id
@@ -351,14 +351,14 @@ public:
   }
 
   /// Adds a pointer offset
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   TileIteratorVoltaTensorOp & add_pointer_offset(Index pointer_offset) {
     pointer_ += pointer_offset / Policy::kElementsPerAccess;
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   TileIteratorVoltaTensorOp & add_tile_offset(TensorCoord const &tile_offset) {
 
     pointer_ += layout_({
@@ -369,24 +369,24 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   TileIteratorVoltaTensorOp & operator+=(TensorCoord const &tile_offset) {
     add_tile_offset(tile_offset);
     return *this;
   }
 
   /// Store
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
     int const kAccessesPerRow = Policy::TileIterations::kColumn * Policy::MmaIterations::kColumn * 2;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int row_idx = 0; row_idx < Policy::kRowsPerMmaTile; ++row_idx) {
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int access_idx = 0; access_idx < kAccessesPerRow; ++access_idx) {
 
         int frag_idx = row_idx * kAccessesPerRow + access_idx;
@@ -405,13 +405,13 @@ public:
   }
 
   /// Store
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void store(Fragment const &frag) {
     store_with_pointer_offset(frag, 0);
   }
 
   /// Load
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void load_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
@@ -420,13 +420,13 @@ public:
   }
 
   /// Load
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void load(Fragment const &frag) {
     load_with_pointer_offset(frag, 0);
   }
   
   /// Set smem base address
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void set_smem_base_address(Index address) {
   }
 };

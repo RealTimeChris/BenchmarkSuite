@@ -58,15 +58,15 @@
 #endif // defined(__CUDA_ARCH__)
 
 
-#if (defined(CUTLASS_RT_TM_ARCH_MMA_SM100A_ENABLED) || defined(CUTLASS_RT_TM_ARCH_MMA_SM101A_ENABLED) ||\
-     defined(CUTLASS_RT_TM_ARCH_MMA_SM103A_ENABLED) || defined(CUTLASS_RT_TM_ARCH_MMA_SM110A_ENABLED) ||\
-     defined(CUTLASS_RT_TM_ARCH_MMA_SM120A_ENABLED) || defined(CUTLASS_RT_TM_ARCH_MMA_SM121A_ENABLED))
+#if (defined(CUTLASS_RT_TMARCH_MMA_SM100A_ENABLED) || defined(CUTLASS_RT_TMARCH_MMA_SM101A_ENABLED) ||\
+     defined(CUTLASS_RT_TMARCH_MMA_SM103A_ENABLED) || defined(CUTLASS_RT_TMARCH_MMA_SM110A_ENABLED) ||\
+     defined(CUTLASS_RT_TMARCH_MMA_SM120A_ENABLED) || defined(CUTLASS_RT_TMARCH_MMA_SM121A_ENABLED))
 #  define CUDA_PTX_UE8M0_CVT_ENABLED 1
 #endif
 
-#if (defined(CUTLASS_RT_TM_ARCH_MMA_SM100F_ENABLED) || defined(CUTLASS_RT_TM_ARCH_MMA_SM101F_ENABLED) ||\
-     defined(CUTLASS_RT_TM_ARCH_MMA_SM103F_ENABLED) || defined(CUTLASS_RT_TM_ARCH_MMA_SM110F_ENABLED) ||\
-     defined(CUTLASS_RT_TM_ARCH_MMA_SM120F_ENABLED) || defined(CUTLASS_RT_TM_ARCH_MMA_SM121F_ENABLED))
+#if (defined(CUTLASS_RT_TMARCH_MMA_SM100F_ENABLED) || defined(CUTLASS_RT_TMARCH_MMA_SM101F_ENABLED) ||\
+     defined(CUTLASS_RT_TMARCH_MMA_SM103F_ENABLED) || defined(CUTLASS_RT_TMARCH_MMA_SM110F_ENABLED) ||\
+     defined(CUTLASS_RT_TMARCH_MMA_SM120F_ENABLED) || defined(CUTLASS_RT_TMARCH_MMA_SM121F_ENABLED))
 #  define CUDA_PTX_UE8M0_CVT_ENABLED 1
 #endif
 
@@ -171,11 +171,11 @@ struct alignas(1) float8_base {
     uint8_t storage;
 
     /// Ctors.
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     float8_base() : storage(0) { }
 
     /// Is finite implementation
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     static bool isfinite(float flt) {
         uint32_t s;
 
@@ -189,7 +189,7 @@ struct alignas(1) float8_base {
     }
 
     /// Is NaN implementation
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     static bool isnan(float flt) {
         uint32_t s;
 
@@ -203,7 +203,7 @@ struct alignas(1) float8_base {
     }
 
     /// Is infinite implementation
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     static bool isinf(float flt) {
         uint32_t s;
 
@@ -220,7 +220,7 @@ struct alignas(1) float8_base {
     }
 
     /// FP32 -> FP8 conversion - rounds to nearest even
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     static uint8_t convert_float_to_fp8(float const& flt) {
 
         // software implementation rounds toward nearest even
@@ -328,7 +328,7 @@ struct alignas(1) float8_base {
 
 
     /// Converts a fp8 value stored as a uint8_t to a float
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     static float convert_fp8_to_float(uint8_t const& x) {
 
         uint32_t constexpr kF32_NaN = 0x7fffffff;
@@ -405,7 +405,7 @@ struct alignas(1) float_e4m3_t : float8_base<FloatEncoding::E4M3> {
     //
 
     /// Constructs from an uint8_t
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     static float_e4m3_t bitcast(uint8_t x) {
         float_e4m3_t f;
         f.storage = x;
@@ -413,7 +413,7 @@ struct alignas(1) float_e4m3_t : float8_base<FloatEncoding::E4M3> {
     }
 
     /// FP32 -> FP8 conversion - rounds to nearest even
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     static float_e4m3_t from_float(float const& flt) {
     #if defined(CUDA_PTX_FP8_CVT_ENABLED)
         uint16_t tmp;
@@ -427,7 +427,7 @@ struct alignas(1) float_e4m3_t : float8_base<FloatEncoding::E4M3> {
     }
 
     /// FP16 -> E5M2 conversion - rounds to nearest even
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     static float_e4m3_t from_half(half const& flt) {
     #if defined(CUDA_PTX_FP8_CVT_ENABLED)
         uint16_t tmp = 0;
@@ -441,7 +441,7 @@ struct alignas(1) float_e4m3_t : float8_base<FloatEncoding::E4M3> {
     }
 
     // E4M3 -> half
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     static half to_half(float_e4m3_t const& x) {
     #if defined(CUDA_PTX_FP8_CVT_ENABLED)
         uint16_t bits = x.storage;
@@ -455,7 +455,7 @@ struct alignas(1) float_e4m3_t : float8_base<FloatEncoding::E4M3> {
     }
 
     // E4M3 -> Float
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     static float to_float(float_e4m3_t const& x) {
     #if defined(CUDA_PTX_FP8_CVT_ENABLED)
         uint16_t bits = x.storage;
@@ -480,44 +480,44 @@ struct alignas(1) float_e4m3_t : float8_base<FloatEncoding::E4M3> {
 
 #ifdef CUDA_FP8_ENABLED
     /// Conversion from CUDA's FP8 type
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     explicit float_e4m3_t(__nv_fp8_e4m3 x) {
         storage = x.__x;
     }
 #endif
 
     /// Floating point conversion
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     explicit float_e4m3_t(float x) {
         storage = from_float(x).storage;
     }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     explicit float_e4m3_t(half x) {
         storage = from_half(x).storage;
     }
 
     /// Floating point conversion
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     explicit float_e4m3_t(double x): float_e4m3_t(float(x)) {
     }
 
     /// Integer conversion
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     explicit float_e4m3_t(int x): float_e4m3_t(float(x)) {
     }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     explicit float_e4m3_t(unsigned x): float_e4m3_t(float(x)) {
     }
 
     /// E5M2 conversion. Defined after float_e5m2_t is defined.
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     explicit float_e4m3_t(float_e5m2_t x);
 
 #ifdef CUDA_FP8_ENABLED
     /// Assignment from CUDA's FP8 type
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     float_e4m3_t & operator=(__nv_fp8_e4m3 x) {
         storage = x.__x;
         return *this;
@@ -525,25 +525,25 @@ struct alignas(1) float_e4m3_t : float8_base<FloatEncoding::E4M3> {
 #endif
 
     /// Converts to float
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     operator float() const {
         return to_float(*this);
     }
 
     /// Converts to half
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     operator half() const {
         return to_half(*this);
     }
 
     /// Converts to float
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     explicit operator double() const {
         return double(to_float(*this));
     }
 
     /// Converts to int
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     explicit operator int() const {
     #if defined(__CUDA_ARCH__)
         return __half2int_rn(to_half(*this));
@@ -553,7 +553,7 @@ struct alignas(1) float_e4m3_t : float8_base<FloatEncoding::E4M3> {
     }
 
     /// Casts to bool
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     explicit operator bool() const {
     #if defined(__CUDA_ARCH__)
         return bool(__half2int_rn(to_half(*this)));
@@ -563,42 +563,42 @@ struct alignas(1) float_e4m3_t : float8_base<FloatEncoding::E4M3> {
     }
 
     /// Accesses raw internal state
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     uint8_t& raw() {
         return storage;
     }
 
     /// Accesses raw internal state
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     uint8_t raw() const {
         return storage;
     }
 
     /// Returns the sign bit
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     bool signbit() const {
         return ((storage & (1 << (Base::FP8_NUM_BITS - 1))) != 0);
     }
 
     /// Returns the biased exponent
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     int exponent_biased() const {
         return int((storage >> FP8_NUM_MANTISSA_BITS) & Base::FP8_EXPONENT_MASK);
     }
 
     /// Returns the unbiased exponent
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     int exponent() const {
         return exponent_biased() - 15;
     }
 
     /// Returns the mantissa
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     int mantissa() const {
         return int(storage & Base::FP8_MANTISSA_MASK);
     }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     friend bool isnan(float_e4m3_t const& x) {
       return x.storage == uint8_t(0x7f);
     }
@@ -620,7 +620,7 @@ struct alignas(1) float_e5m2_t : float8_base<FloatEncoding::E5M2> {
     //
 
     /// Constructs from an uint8_t
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     static float_e5m2_t bitcast(uint8_t x) {
         float_e5m2_t f;
         f.storage = x;
@@ -628,7 +628,7 @@ struct alignas(1) float_e5m2_t : float8_base<FloatEncoding::E5M2> {
     }
 
     /// FP32 -> FP8 conversion - rounds to nearest even
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     static float_e5m2_t from_float(float const& flt) {
     #if defined(CUDA_PTX_FP8_CVT_ENABLED)
         uint16_t tmp;
@@ -642,7 +642,7 @@ struct alignas(1) float_e5m2_t : float8_base<FloatEncoding::E5M2> {
     }
 
     /// FP16 -> E5M2 conversion - rounds to nearest even
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     static float_e5m2_t from_half(half const& flt) {
     #if defined(CUDA_PTX_FP8_CVT_ENABLED)
         uint16_t tmp = 0;
@@ -656,7 +656,7 @@ struct alignas(1) float_e5m2_t : float8_base<FloatEncoding::E5M2> {
     }
 
     // E5M2 -> half
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     static half to_half(float_e5m2_t const& x) {
     #if defined(CUDA_PTX_FP8_CVT_ENABLED)
         uint16_t bits = x.storage;
@@ -670,7 +670,7 @@ struct alignas(1) float_e5m2_t : float8_base<FloatEncoding::E5M2> {
     }
 
     // E5M2 -> Float
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     static float to_float(float_e5m2_t const& x) {
     #if defined(CUDA_PTX_FP8_CVT_ENABLED)
         uint16_t bits = x.storage;
@@ -695,44 +695,44 @@ struct alignas(1) float_e5m2_t : float8_base<FloatEncoding::E5M2> {
 
 #ifdef CUDA_FP8_ENABLED
     /// Conversion from CUDA's FP8 type
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     explicit float_e5m2_t(__nv_fp8_e5m2 x) {
         storage = x.__x;
     }
 #endif
 
     /// Floating point conversion
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     explicit float_e5m2_t(float x) {
         storage = from_float(x).storage;
     }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     explicit float_e5m2_t(half x) {
       storage = from_half(x).storage;
     }
 
     /// Floating point conversion
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     explicit float_e5m2_t(double x): float_e5m2_t(float(x)) {
     }
 
     /// Integer conversion
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     explicit float_e5m2_t(int x): float_e5m2_t(float(x)) {
     }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     explicit float_e5m2_t(unsigned x): float_e5m2_t(float(x)) {
     }
 
     /// E4M3 conversion
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     explicit float_e5m2_t(float_e4m3_t x);
 
 #ifdef CUDA_FP8_ENABLED
     /// Assignment from CUDA's FP8 type
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     float_e5m2_t & operator=(__nv_fp8_e5m2 x) {
         storage = x.__x;
         return *this;
@@ -740,25 +740,25 @@ struct alignas(1) float_e5m2_t : float8_base<FloatEncoding::E5M2> {
 #endif
 
     /// Converts to float
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     operator float() const {
         return to_float(*this);
     }
 
     /// Converts to half
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     operator half() const {
       return to_half(*this);
     }
 
     /// Converts to float
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     explicit operator double() const {
         return double(to_float(*this));
     }
 
     /// Converts to int
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     explicit operator int() const {
     #if defined(__CUDA_ARCH__)
         return __half2int_rn(to_half(*this));
@@ -768,7 +768,7 @@ struct alignas(1) float_e5m2_t : float8_base<FloatEncoding::E5M2> {
     }
 
     /// Casts to bool
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     explicit operator bool() const {
     #if defined(__CUDA_ARCH__)
         return bool(__half2int_rn(to_half(*this)));
@@ -778,42 +778,42 @@ struct alignas(1) float_e5m2_t : float8_base<FloatEncoding::E5M2> {
     }
 
     /// Accesses raw internal state
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     uint8_t& raw() {
         return storage;
     }
 
     /// Accesses raw internal state
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     uint8_t raw() const {
         return storage;
     }
 
     /// Returns the sign bit
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     bool signbit() const {
         return ((storage & (1 << (Base::FP8_NUM_BITS - 1))) != 0);
     }
 
     /// Returns the biased exponent
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     int exponent_biased() const {
         return int((storage >> FP8_NUM_MANTISSA_BITS) & Base::FP8_EXPONENT_MASK);
     }
 
     /// Returns the unbiased exponent
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     int exponent() const {
         return exponent_biased() - 15;
     }
 
     /// Returns the mantissa
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     int mantissa() const {
         return int(storage & Base::FP8_MANTISSA_MASK);
     }
     
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     friend bool isnan(float_e5m2_t const& x) {
       return x.storage == uint8_t(0x7f);
     }
@@ -825,86 +825,86 @@ struct alignas(1) float_e5m2_t : float8_base<FloatEncoding::E5M2> {
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 bool operator==(float_e4m3_t const& lhs, float_e4m3_t const& rhs) {
     return float(lhs) == float(rhs);
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 bool operator!=(float_e4m3_t const& lhs, float_e4m3_t const& rhs) {
     return float(lhs) != float(rhs);
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 bool operator<(float_e4m3_t const& lhs, float_e4m3_t const& rhs) {
     return float(lhs) < float(rhs);
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 bool operator<=(float_e4m3_t const& lhs, float_e4m3_t const& rhs) {
     return float(lhs) <= float(rhs);
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 bool operator>(float_e4m3_t const& lhs, float_e4m3_t const& rhs) {
     return float(lhs) > float(rhs);
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 bool operator>=(float_e4m3_t const& lhs, float_e4m3_t const& rhs) {
     return float(lhs) >= float(rhs);
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e4m3_t operator+(float_e4m3_t const& lhs, float_e4m3_t const& rhs) {
     return float_e4m3_t(float(lhs) + float(rhs));
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e4m3_t operator-(float_e4m3_t const& lhs) {
     return float_e4m3_t(-float(lhs));
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e4m3_t operator-(float_e4m3_t const& lhs, float_e4m3_t const& rhs) {
     return float_e4m3_t(float(lhs) - float(rhs));
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e4m3_t operator*(float_e4m3_t const& lhs, float_e4m3_t const& rhs) {
     return float_e4m3_t(float(lhs) * float(rhs));
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e4m3_t operator/(float_e4m3_t const& lhs, float_e4m3_t const& rhs) {
     return float_e4m3_t(float(lhs) / float(rhs));
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e4m3_t& operator+=(float_e4m3_t & lhs, float_e4m3_t const& rhs) {
     lhs = float_e4m3_t(float(lhs) + float(rhs));
     return lhs;
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e4m3_t& operator-=(float_e4m3_t & lhs, float_e4m3_t const& rhs) {
     lhs = float_e4m3_t(float(lhs) - float(rhs));
     return lhs;
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e4m3_t& operator*=(float_e4m3_t & lhs, float_e4m3_t const& rhs) {
     lhs = float_e4m3_t(float(lhs) * float(rhs));
     return lhs;
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e4m3_t& operator/=(float_e4m3_t & lhs, float_e4m3_t const& rhs) {
     lhs = float_e4m3_t(float(lhs) / float(rhs));
     return lhs;
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e4m3_t& operator++(float_e4m3_t & lhs) {
     float tmp(lhs);
     ++tmp;
@@ -912,7 +912,7 @@ float_e4m3_t& operator++(float_e4m3_t & lhs) {
     return lhs;
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e4m3_t& operator--(float_e4m3_t & lhs) {
     float tmp(lhs);
     --tmp;
@@ -920,7 +920,7 @@ float_e4m3_t& operator--(float_e4m3_t & lhs) {
     return lhs;
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e4m3_t operator++(float_e4m3_t & lhs, int) {
     float_e4m3_t ret(lhs);
     float tmp(lhs);
@@ -929,7 +929,7 @@ float_e4m3_t operator++(float_e4m3_t & lhs, int) {
     return ret;
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e4m3_t operator--(float_e4m3_t & lhs, int) {
     float_e4m3_t ret(lhs);
     float tmp(lhs);
@@ -938,86 +938,86 @@ float_e4m3_t operator--(float_e4m3_t & lhs, int) {
     return ret;
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 bool operator==(float_e5m2_t const& lhs, float_e5m2_t const& rhs) {
     return float(lhs) == float(rhs);
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 bool operator!=(float_e5m2_t const& lhs, float_e5m2_t const& rhs) {
     return float(lhs) != float(rhs);
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 bool operator<(float_e5m2_t const& lhs, float_e5m2_t const& rhs) {
     return float(lhs) < float(rhs);
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 bool operator<=(float_e5m2_t const& lhs, float_e5m2_t const& rhs) {
     return float(lhs) <= float(rhs);
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 bool operator>(float_e5m2_t const& lhs, float_e5m2_t const& rhs) {
     return float(lhs) > float(rhs);
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 bool operator>=(float_e5m2_t const& lhs, float_e5m2_t const& rhs) {
     return float(lhs) >= float(rhs);
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e5m2_t operator+(float_e5m2_t const& lhs, float_e5m2_t const& rhs) {
     return float_e5m2_t(float(lhs) + float(rhs));
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e5m2_t operator-(float_e5m2_t const& lhs) {
     return float_e5m2_t(-float(lhs));
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e5m2_t operator-(float_e5m2_t const& lhs, float_e5m2_t const& rhs) {
     return float_e5m2_t(float(lhs) - float(rhs));
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e5m2_t operator*(float_e5m2_t const& lhs, float_e5m2_t const& rhs) {
     return float_e5m2_t(float(lhs) * float(rhs));
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e5m2_t operator/(float_e5m2_t const& lhs, float_e5m2_t const& rhs) {
     return float_e5m2_t(float(lhs) / float(rhs));
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e5m2_t& operator+=(float_e5m2_t & lhs, float_e5m2_t const& rhs) {
     lhs = float_e5m2_t(float(lhs) + float(rhs));
     return lhs;
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e5m2_t& operator-=(float_e5m2_t & lhs, float_e5m2_t const& rhs) {
     lhs = float_e5m2_t(float(lhs) - float(rhs));
     return lhs;
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e5m2_t& operator*=(float_e5m2_t & lhs, float_e5m2_t const& rhs) {
     lhs = float_e5m2_t(float(lhs) * float(rhs));
     return lhs;
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e5m2_t& operator/=(float_e5m2_t & lhs, float_e5m2_t const& rhs) {
     lhs = float_e5m2_t(float(lhs) / float(rhs));
     return lhs;
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e5m2_t& operator++(float_e5m2_t & lhs) {
     float tmp(lhs);
     ++tmp;
@@ -1025,7 +1025,7 @@ float_e5m2_t& operator++(float_e5m2_t & lhs) {
     return lhs;
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e5m2_t& operator--(float_e5m2_t & lhs) {
     float tmp(lhs);
     --tmp;
@@ -1033,7 +1033,7 @@ float_e5m2_t& operator--(float_e5m2_t & lhs) {
     return lhs;
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e5m2_t operator++(float_e5m2_t & lhs, int) {
     float_e5m2_t ret(lhs);
     float tmp(lhs);
@@ -1042,7 +1042,7 @@ float_e5m2_t operator++(float_e5m2_t & lhs, int) {
     return ret;
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e5m2_t operator--(float_e5m2_t & lhs, int) {
     float_e5m2_t ret(lhs);
     float tmp(lhs);
@@ -1069,7 +1069,7 @@ struct float_ue4m3_t : public float_exmy_base<cutlass_rt_tm::detail::FpEncoding:
 
   float_ue4m3_t() = default;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float_ue4m3_t convert_from_float(float const &flt) const {
     #if defined(CUDA_PTX_FP8_CVT_ENABLED)
       uint16_t tmp;
@@ -1082,7 +1082,7 @@ struct float_ue4m3_t : public float_exmy_base<cutlass_rt_tm::detail::FpEncoding:
     #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float convert_to_float(float_ue4m3_t const &x) const {
     #if defined(CUDA_PTX_FP8_CVT_ENABLED)
       uint16_t bits = x.storage;
@@ -1096,27 +1096,27 @@ struct float_ue4m3_t : public float_exmy_base<cutlass_rt_tm::detail::FpEncoding:
     #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_ue4m3_t(double x) : Base(float(x)) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_ue4m3_t(float x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_ue4m3_t(int x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_ue4m3_t(unsigned x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float_ue4m3_t(Base x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   friend bool isnan(float_ue4m3_t const& x) {
     return x.storage == uint8_t(0x7f);
   }
@@ -1150,7 +1150,7 @@ struct float_ue8m0_t : public float_exmy_base<cutlass_rt_tm::detail::FpEncoding:
 
   float_ue8m0_t() = default;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float_ue8m0_t convert_from_float(float const &flt) const {
   #if defined(CUDA_PTX_UE8M0_CVT_ENABLED)
     uint16_t out;
@@ -1159,7 +1159,7 @@ struct float_ue8m0_t : public float_exmy_base<cutlass_rt_tm::detail::FpEncoding:
         : "=h"(out) : "f"(flt));      
     return bitcast(*reinterpret_cast<uint8_t *>(&out));
   #else
-    if (CUTLASS_RT_TM_CMATH_NAMESPACE::isnan(flt) || CUTLASS_RT_TM_CMATH_NAMESPACE::isinf(flt)) {
+    if (CUTLASS_RT_TMCMATH_NAMESPACE::isnan(flt) || CUTLASS_RT_TMCMATH_NAMESPACE::isinf(flt)) {
       return bitcast(0xFF);
     }
     uint32_t flt_uint32 = cutlass_rt_tm::detail::copy_bits<float, uint32_t>(flt);
@@ -1174,7 +1174,7 @@ struct float_ue8m0_t : public float_exmy_base<cutlass_rt_tm::detail::FpEncoding:
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float convert_to_float(float_ue8m0_t const &x) const {
     //////////////////////////////////////////////////////////////
     // The conversion of UE8M0 to FP32 scale can be done simply
@@ -1215,27 +1215,27 @@ struct float_ue8m0_t : public float_exmy_base<cutlass_rt_tm::detail::FpEncoding:
     #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_ue8m0_t(double x) : Base(float(x)) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_ue8m0_t(float x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_ue8m0_t(int x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_ue8m0_t(unsigned x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float_ue8m0_t(Base x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   friend bool isnan(float_ue8m0_t const& x) {
     return x.storage == uint8_t(0xff);
   }
@@ -1256,13 +1256,13 @@ struct sizeof_bits<float_ue8m0_t> {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// float_e4m3_t <= float_e5m2_t
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e4m3_t::float_e4m3_t(float_e5m2_t x) {
     storage = from_float(float_e5m2_t::to_float(x)).storage;
 }
 
 /// float_e5m2_t <= float_e4m3_t
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e5m2_t::float_e5m2_t(float_e4m3_t x) {
     storage = from_float(float_e4m3_t::to_float(x)).storage;
 }
@@ -1283,12 +1283,12 @@ union type_erased_dynamic_float8_t {
   uint8_t data;
   cutlass_rt_tm::float_e5m2_t e5m2;
   cutlass_rt_tm::float_e4m3_t e4m3;
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit operator cutlass_rt_tm::float_e5m2_t() const {
     return e5m2;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit operator cutlass_rt_tm::float_e4m3_t() const {
     return e4m3;
   }
@@ -1340,40 +1340,40 @@ public:
   static constexpr bool is_exact = false;
   static constexpr bool has_quiet_NaN = true;
   static constexpr bool has_signaling_NaN = false;
-  static constexpr std::float_denorm_style has_denorm = std::denorm_present;
+  static std::float_denorm_style const has_denorm = std::denorm_present;
   static constexpr bool has_denorm_loss = true;
-  static constexpr std::float_round_style round_style = std::round_to_nearest;
+  static std::float_round_style const round_style = std::round_to_nearest;
   static constexpr bool is_iec559 = false;
   static constexpr bool is_bounded = true;
   static constexpr bool is_modulo = false;
   static constexpr int digits = F8Type::FP8_NUM_MANTISSA_BITS;
 
   /// Least positive value
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static F8Type min() { return F8Type::bitcast(0x01); }
 
   /// Maximum finite value
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static F8Type max() { return F8Type::bitcast(F8Type::FP8_MAX_FLT); }
 
   /// Returns maximum rounding error
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static F8Type round_error() { return F8Type(0.5f); }
 
   /// Returns positive infinity value
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static F8Type infinity() { return F8Type::bitcast(F8Type::FP8_INFINITY_MASK); }
 
   /// Returns quiet NaN value
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static F8Type quiet_NaN() { return F8Type::bitcast(F8Type::FP8_NAN); }
 
   /// Returns signaling NaN value
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static F8Type signaling_NaN() { return F8Type::bitcast(F8Type::FP8_NAN); }
 
   /// Returns smallest positive subnormal value
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static F8Type denorm_min() { return F8Type::bitcast(0x01); }
 };
 
@@ -1418,8 +1418,8 @@ public:
   static constexpr bool has_quiet_NaN = true;
   static constexpr bool has_signaling_NaN = false;
   static constexpr bool has_denorm_loss = true;
-  static constexpr cutlass_rt_tm::platform::float_denorm_style has_denorm = cutlass_rt_tm::platform::denorm_present;
-  static constexpr cutlass_rt_tm::platform::float_round_style round_style  = cutlass_rt_tm::platform::round_to_nearest;
+  static cutlass_rt_tm::platform::float_denorm_style const has_denorm = cutlass_rt_tm::platform::denorm_present;
+  static cutlass_rt_tm::platform::float_round_style const round_style = cutlass_rt_tm::platform::round_to_nearest;
   static constexpr bool is_iec559 = false;
   static constexpr bool is_bounded = true;
   static constexpr bool is_modulo = false;
@@ -1427,31 +1427,31 @@ public:
   static constexpr bool has_infinity = false;
 
   /// Least positive value
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static type min() { return type::bitcast(0x01); }
 
   /// Maximum finite value
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static type max() { return type::bitcast(type::Base::BitRepresentation::MAX_VALUE); }
 
   /// Returns maximum rounding error
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static type round_error() { return type(0.5f); }
 
   /// Returns positive infinity value
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static type infinity() { return type::bitcast(type::Base::BitRepresentation::INF_MASK); }
 
   /// Returns quiet NaN value
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static type quiet_NaN() { return type::bitcast(type::Base::BitRepresentation::INF_MASK); }
 
   /// Returns signaling NaN value
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static type signaling_NaN() { return type::bitcast(type::Base::BitRepresentation::INF_MASK); }
 
   /// Returns smallest positive subnormal value
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static type denorm_min() { return type::bitcast(0x01); }
 };
 
@@ -1501,31 +1501,31 @@ public:
   static constexpr int digits = F8Type::FP8_NUM_MANTISSA_BITS;
 
   /// Least positive value
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static F8Type min() { return F8Type::bitcast(0x01); }
 
   /// Maximum finite value
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static F8Type max() { return F8Type::bitcast(F8Type::FP8_MAX_FLT); }
 
   /// Returns maximum rounding error
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static F8Type round_error() { return F8Type(0.5f); }
 
   /// Returns positive infinity value
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static F8Type infinity() { return F8Type::bitcast(F8Type::FP8_INFINITY_MASK); }
 
   /// Returns quiet NaN value
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static F8Type quiet_NaN() { return F8Type::bitcast(F8Type::FP8_NAN); }
 
   /// Returns signaling NaN value
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static F8Type signaling_NaN() { return F8Type::bitcast(F8Type::FP8_NAN); }
 
   /// Returns smallest positive subnormal value
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static F8Type denorm_min() { return F8Type::bitcast(0x01); }
 };
 
@@ -1574,8 +1574,8 @@ public:
   static constexpr bool has_quiet_NaN = true;
   static constexpr bool has_signaling_NaN = false;
   static constexpr bool has_denorm_loss = true;
-  static constexpr cutlass_rt_tm::platform::float_denorm_style has_denorm = cutlass_rt_tm::platform::denorm_present;
-  static constexpr cutlass_rt_tm::platform::float_round_style round_style = cutlass_rt_tm::platform::round_to_nearest;
+  static cutlass_rt_tm::platform::float_denorm_style const has_denorm = cutlass_rt_tm::platform::denorm_present;
+  static cutlass_rt_tm::platform::float_round_style const round_style = cutlass_rt_tm::platform::round_to_nearest;
   static constexpr bool is_iec559 = false;
   static constexpr bool is_bounded = true;
   static constexpr bool is_modulo = false;
@@ -1583,31 +1583,31 @@ public:
   static constexpr bool has_infinity = false;
 
   /// Least positive value
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static type min() { return type::bitcast(0x01); }
 
   /// Maximum finite value
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static type max() { return type::bitcast(type::Base::BitRepresentation::MAX_VALUE); }
 
   /// Returns maximum rounding error
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static type round_error() { return type(0.5f); }
 
   /// Returns positive infinity value
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static type infinity() { return type::bitcast(type::Base::BitRepresentation::INF_MASK); }
 
   /// Returns quiet NaN value
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static type quiet_NaN() { return type::bitcast(type::Base::BitRepresentation::INF_MASK); }
 
   /// Returns signaling NaN value
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static type signaling_NaN() { return type::bitcast(type::Base::BitRepresentation::INF_MASK); }
 
   /// Returns smallest positive subnormal value
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static type denorm_min() { return type::bitcast(0x01); }
 };
 
@@ -1636,46 +1636,46 @@ struct numeric_limits<cutlass_rt_tm::float_ue8m0_t> :
 // User-defined literals
 //
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 cutlass_rt_tm::float_e4m3_t operator "" _fe4m3(long double x) {
   return cutlass_rt_tm::float_e4m3_t(float(x));
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 cutlass_rt_tm::float_e4m3_t operator "" _fe4m3(unsigned long long int x) {
   return cutlass_rt_tm::float_e4m3_t(int(x));
 }
 
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 cutlass_rt_tm::float_ue4m3_t operator "" _fue4m3(long double x) {
   return cutlass_rt_tm::float_ue4m3_t(float(x));
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 cutlass_rt_tm::float_ue4m3_t operator "" _fue4m3(unsigned long long int x) {
   return cutlass_rt_tm::float_ue4m3_t(int(x));
 }
 
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 cutlass_rt_tm::float_e5m2_t operator "" _fe5m2(long double x) {
   return cutlass_rt_tm::float_e5m2_t(float(x));
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 cutlass_rt_tm::float_e5m2_t operator "" _fe5m2(unsigned long long int x) {
   return cutlass_rt_tm::float_e5m2_t(int(x));
 }
 
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 cutlass_rt_tm::float_ue8m0_t operator "" _fue8m0(long double x)
 {
   return cutlass_rt_tm::float_ue8m0_t(float(x));
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 cutlass_rt_tm::float_ue8m0_t operator "" _fue8m0(unsigned long long int x)
 {
   return cutlass_rt_tm::float_ue8m0_t(int(x));

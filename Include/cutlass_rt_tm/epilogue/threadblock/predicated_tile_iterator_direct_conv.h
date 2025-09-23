@@ -91,8 +91,8 @@ public:
   using LongIndex = typename Layout::LongIndex;
   using TensorCoord = MatrixCoord;
 
-  static constexpr int kElementsPerAccess = ThreadMap::kElementsPerAccess;
-  static constexpr int kThreads = ThreadMap::kThreads;
+  static int const kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static int const kThreads = ThreadMap::kThreads;
 
   using ConvProblemSize = typename cutlass_rt_tm::conv::Conv2dProblemSize;
 
@@ -102,7 +102,7 @@ public:
   /// Memory access size
   using AccessType = AlignedArray<Element, kElementsPerAccess>;
 
-  static constexpr int kLoadsPerAccess = AccessType::kElements / AccessType::kElements;
+  static int const kLoadsPerAccess = AccessType::kElements / AccessType::kElements;
 
   using ThreadTileCount = MatrixShape<
     ThreadBlockOutputShape::kH / ThreadOutputShape::kH,
@@ -117,10 +117,10 @@ public:
   struct Params : PredicatedTileIteratorDirect2dConvParams {
     using Base = PredicatedTileIteratorDirect2dConvParams;
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     Params() { }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     Params(Layout const &layout, cutlass_rt_tm::conv::Conv2dProblemSize const &problem_size): 
       PredicatedTileIteratorDirect2dConvParams(
         layout.stride(0) * int(sizeof(AccessType)) / kElementsPerAccess,
@@ -129,7 +129,7 @@ public:
       ) 
     { }
 
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     Params(Base const &base) : 
       Base(base) { }
   };
@@ -137,7 +137,7 @@ public:
   /// Mask object
   struct Mask {
 
-    static constexpr int kCount = ThreadMap::Iterations::kContiguous;
+    static int const kCount = ThreadMap::Iterations::kContiguous;
 
     /// Predicate state
     bool predicates[kCount];
@@ -145,22 +145,22 @@ public:
     //
     // Mask
     //
-    CUTLASS_RT_TM_HOST_DEVICE
+    CUTLASS_RT_TMHOST_DEVICE
     Mask() {
       enable();
     }
 
     ///< Efficiently disables all accesses guarded by mask
-    CUTLASS_RT_TM_HOST_DEVICE void clear() {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMHOST_DEVICE void clear() {
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int i = 0; i < kCount; ++i) {
         predicates[i] = false;
       }
     }
 
-    ///< CUTLASS_RT_TM_HOST_DEVICE enables all accesses guarded by mask
-    CUTLASS_RT_TM_DEVICE void enable() {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+    ///< CUTLASS_RT_TMHOST_DEVICE enables all accesses guarded by mask
+    CUTLASS_RT_TMDEVICE void enable() {
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int i = 0; i < kCount; ++i) {
         predicates[i] = true;
       }
@@ -227,7 +227,7 @@ public:
   //
 
   /// Constructor
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   PredicatedTileIteratorDirectConv(
     PredicatedTileIteratorDirect2dConvParams const & params,
     Element *pointer,
@@ -254,7 +254,7 @@ public:
   }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void set_tile_index(const int index) { 
    
     int residual;
@@ -266,7 +266,7 @@ public:
     thread_start_q_ *= ThreadBlockOutputShape::kW;
 
     // Initialize predicates
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
       mask_.predicates[c] = ((thread_start_column_ 
         + c * ThreadMap::Delta::kContiguous) < extent_column_);
@@ -280,17 +280,17 @@ public:
   }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     byte_pointer_ += pointer_offset * sizeof_bits<Element>::value / 8;
   }
 
   /// Loads a fragment from memory
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void load_with_byte_offset(Fragment &frag, int64_t byte_offset) const {
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
         int frag_base_idx = s * ThreadMap::Iterations::kContiguous + c;
 
@@ -326,17 +326,17 @@ public:
   }
 
   /// Loads a fragment from memory
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void load(Fragment &frag) const {
     load_with_byte_offset(frag, 0);
   }
 
   /// Stores a fragment to memory
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void store_with_byte_offset(Fragment const &frag, int64_t byte_offset) const {
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
         int frag_base_idx = s * ThreadMap::Iterations::kContiguous + c;
 
@@ -372,43 +372,43 @@ public:
   }
 
   /// Stores a fragment to memory
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void store(Fragment const &frag) const {
 
     store_with_byte_offset(frag, 0);
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   MatrixCoord thread_start() const {
     return MatrixCoord(thread_start_row_, thread_start_column_);
   }
 
   /// Need to get the thread start row from the tile iterator
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   int32_t thread_start_row() const {
     return thread_start_row_;
   }
 
   /// Need to get the thread start row from the tile iterator
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   int32_t thread_start_column() const {
     return thread_start_column_;
   }
 
   /// Extent of the matrix in rows
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   Index extent_row() const {
     return extent_row_;
   }
 
   /// Extent of the matrix in columns
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   Index extent_column() const {
     return extent_column_;
   }
 
   /// Advances to the next position to load or store
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   PredicatedTileIteratorDirectConv &operator++() {
     // do nothing
 
@@ -416,22 +416,22 @@ public:
   }
 
   ///< Efficiently disables all accesses guarded by mask
-  CUTLASS_RT_TM_DEVICE void clear_mask() {
+  CUTLASS_RT_TMDEVICE void clear_mask() {
     mask_.clear();
   }
 
   ///< Efficiently enables all accesses guarded by mask
-  CUTLASS_RT_TM_DEVICE void enable_mask() {
+  CUTLASS_RT_TMDEVICE void enable_mask() {
     mask_.enable();
   }
 
   ///< Sets the mask
-  CUTLASS_RT_TM_DEVICE void get_mask(Mask &mask) const {
+  CUTLASS_RT_TMDEVICE void get_mask(Mask &mask) const {
     mask = mask_;
   }
 
   ///< Sets the mask
-  CUTLASS_RT_TM_DEVICE void set_mask(Mask const &mask) {
+  CUTLASS_RT_TMDEVICE void set_mask(Mask const &mask) {
     mask_ = mask;
   }
 };

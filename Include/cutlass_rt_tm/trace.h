@@ -39,20 +39,20 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Tracing options
-#ifndef CUTLASS_RT_TM_DEBUG_TRACE_LEVEL
-#define CUTLASS_RT_TM_DEBUG_TRACE_LEVEL 0
+#ifndef CUTLASS_RT_TMDEBUG_TRACE_LEVEL
+#define CUTLASS_RT_TMDEBUG_TRACE_LEVEL 0
 #endif
 
-#if CUTLASS_RT_TM_DEBUG_TRACE_LEVEL
+#if CUTLASS_RT_TMDEBUG_TRACE_LEVEL
 #include <iostream>
 #include "cutlass_rt_tm/core_io.h"
 #if defined(__CUDA_ARCH__)
-#define CUTLASS_RT_TM_TRACE_HOST(x)
+#define CUTLASS_RT_TMTRACE_HOST(x)
 #else
-#define CUTLASS_RT_TM_TRACE_HOST(x) { std::cout << __FILE__ << ":" << __LINE__ << "  " << x << std::endl; }
+#define CUTLASS_RT_TMTRACE_HOST(x) { std::cout << __FILE__ << ":" << __LINE__ << "  " << x << std::endl; }
 #endif
 #else
-#define CUTLASS_RT_TM_TRACE_HOST(x)
+#define CUTLASS_RT_TMTRACE_HOST(x)
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

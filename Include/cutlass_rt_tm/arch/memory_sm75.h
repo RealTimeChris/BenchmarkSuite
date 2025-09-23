@@ -51,7 +51,7 @@ template <
   /// .x1, .x2, or .x4
   int MatrixCount
 >
-CUTLASS_RT_TM_DEVICE void ldsm(Array<unsigned, MatrixCount> & D, void const* ptr);
+CUTLASS_RT_TMDEVICE void ldsm(Array<unsigned, MatrixCount> & D, void const* ptr);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -60,25 +60,25 @@ CUTLASS_RT_TM_DEVICE void ldsm(Array<unsigned, MatrixCount> & D, void const* ptr
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// CUTLASS helper to get SMEM pointer
-CUTLASS_RT_TM_HOST_DEVICE unsigned cutlass_rt_tm_get_smem_pointer(void *ptr) {
+CUTLASS_RT_TMHOST_DEVICE unsigned cutlass_get_smem_pointer(void *ptr) {
   return cute_rt_tm::cast_smem_ptr_to_uint(ptr);
 }
 
 /// CUTLASS helper to get SMEM pointer
-CUTLASS_RT_TM_DEVICE unsigned cutlass_rt_tm_get_smem_pointer(void const *ptr) {
-  return cutlass_rt_tm_get_smem_pointer(const_cast<void *>(ptr));
+CUTLASS_RT_TMDEVICE unsigned cutlass_get_smem_pointer(void const *ptr) {
+  return cutlass_get_smem_pointer(const_cast<void *>(ptr));
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <>
-CUTLASS_RT_TM_DEVICE void ldsm<layout::RowMajor, 1>(
+CUTLASS_RT_TMDEVICE void ldsm<layout::RowMajor, 1>(
     Array<unsigned, 1> & D,
     void const* ptr) {
 
-  #if defined(CUTE_ARCH_LDSM_SM75_ACTIVATED)
+  #if defined(CUTE_RT_TMARCH_LDSM_SM75_ACTIVATED)
 
-    unsigned addr = cutlass_rt_tm_get_smem_pointer(ptr);
+    unsigned addr = cutlass_get_smem_pointer(ptr);
 
     int x;
     asm volatile ("ldmatrix.sync.aligned.x1.m8n8.shared.b16 {%0}, [%1];" : "=r"(x) : "r"(addr));
@@ -86,9 +86,9 @@ CUTLASS_RT_TM_DEVICE void ldsm<layout::RowMajor, 1>(
 
   #else
 
-    CUTLASS_RT_TM_UNUSED(D);
-    CUTLASS_RT_TM_UNUSED(ptr);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(D);
+    CUTLASS_RT_TMUNUSED(ptr);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 
   #endif
 }
@@ -96,13 +96,13 @@ CUTLASS_RT_TM_DEVICE void ldsm<layout::RowMajor, 1>(
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <>
-CUTLASS_RT_TM_DEVICE void ldsm<layout::RowMajor, 2>(
+CUTLASS_RT_TMDEVICE void ldsm<layout::RowMajor, 2>(
     Array<unsigned, 2> & D,
     void const* ptr) {
 
-  #if defined(CUTE_ARCH_LDSM_SM75_ACTIVATED)
+  #if defined(CUTE_RT_TMARCH_LDSM_SM75_ACTIVATED)
 
-    unsigned addr = cutlass_rt_tm_get_smem_pointer(ptr);
+    unsigned addr = cutlass_get_smem_pointer(ptr);
 
     int x, y;
     asm volatile ("ldmatrix.sync.aligned.x2.m8n8.shared.b16 {%0, %1}, [%2];" : "=r"(x), "=r"(y) : "r"(addr));
@@ -110,9 +110,9 @@ CUTLASS_RT_TM_DEVICE void ldsm<layout::RowMajor, 2>(
 
   #else
 
-    CUTLASS_RT_TM_UNUSED(D);
-    CUTLASS_RT_TM_UNUSED(ptr);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(D);
+    CUTLASS_RT_TMUNUSED(ptr);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 
   #endif
 }
@@ -120,13 +120,13 @@ CUTLASS_RT_TM_DEVICE void ldsm<layout::RowMajor, 2>(
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <>
-CUTLASS_RT_TM_DEVICE void ldsm<layout::RowMajor, 4>(
+CUTLASS_RT_TMDEVICE void ldsm<layout::RowMajor, 4>(
     Array<unsigned, 4> & D,
     void const* ptr) {
 
-  #if defined(CUTE_ARCH_LDSM_SM75_ACTIVATED)
+  #if defined(CUTE_RT_TMARCH_LDSM_SM75_ACTIVATED)
 
-    unsigned addr = cutlass_rt_tm_get_smem_pointer(ptr);
+    unsigned addr = cutlass_get_smem_pointer(ptr);
 
     int x, y, z, w;
     asm volatile ("ldmatrix.sync.aligned.x4.m8n8.shared.b16 {%0, %1, %2, %3}, [%4];" : "=r"(x), "=r"(y), "=r"(z), "=r"(w) : "r"(addr));
@@ -134,9 +134,9 @@ CUTLASS_RT_TM_DEVICE void ldsm<layout::RowMajor, 4>(
 
   #else
 
-    CUTLASS_RT_TM_UNUSED(D);
-    CUTLASS_RT_TM_UNUSED(ptr);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(D);
+    CUTLASS_RT_TMUNUSED(ptr);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 
   #endif
 }
@@ -148,13 +148,13 @@ CUTLASS_RT_TM_DEVICE void ldsm<layout::RowMajor, 4>(
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <>
-CUTLASS_RT_TM_DEVICE void ldsm<layout::ColumnMajor, 1>(
+CUTLASS_RT_TMDEVICE void ldsm<layout::ColumnMajor, 1>(
     Array<unsigned, 1> & D,
     void const* ptr) {
 
-  #if defined(CUTE_ARCH_LDSM_SM75_ACTIVATED)
+  #if defined(CUTE_RT_TMARCH_LDSM_SM75_ACTIVATED)
 
-    unsigned addr = cutlass_rt_tm_get_smem_pointer(ptr);
+    unsigned addr = cutlass_get_smem_pointer(ptr);
 
     int x;
     asm volatile ("ldmatrix.sync.aligned.x1.trans.m8n8.shared.b16 {%0}, [%1];" : "=r"(x) : "r"(addr));
@@ -162,9 +162,9 @@ CUTLASS_RT_TM_DEVICE void ldsm<layout::ColumnMajor, 1>(
 
   #else
 
-    CUTLASS_RT_TM_UNUSED(D);
-    CUTLASS_RT_TM_UNUSED(ptr);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(D);
+    CUTLASS_RT_TMUNUSED(ptr);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 
   #endif
 }
@@ -172,13 +172,13 @@ CUTLASS_RT_TM_DEVICE void ldsm<layout::ColumnMajor, 1>(
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <>
-CUTLASS_RT_TM_DEVICE void ldsm<layout::ColumnMajor, 2>(
+CUTLASS_RT_TMDEVICE void ldsm<layout::ColumnMajor, 2>(
     Array<unsigned, 2> & D,
     void const* ptr) {
 
-  #if defined(CUTE_ARCH_LDSM_SM75_ACTIVATED)
+  #if defined(CUTE_RT_TMARCH_LDSM_SM75_ACTIVATED)
 
-    unsigned addr = cutlass_rt_tm_get_smem_pointer(ptr);
+    unsigned addr = cutlass_get_smem_pointer(ptr);
 
     int x, y;
     asm volatile ("ldmatrix.sync.aligned.x2.trans.m8n8.shared.b16 {%0, %1}, [%2];" : "=r"(x), "=r"(y) : "r"(addr));
@@ -186,9 +186,9 @@ CUTLASS_RT_TM_DEVICE void ldsm<layout::ColumnMajor, 2>(
 
   #else
 
-    CUTLASS_RT_TM_UNUSED(D);
-    CUTLASS_RT_TM_UNUSED(ptr);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(D);
+    CUTLASS_RT_TMUNUSED(ptr);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 
   #endif
 }
@@ -196,13 +196,13 @@ CUTLASS_RT_TM_DEVICE void ldsm<layout::ColumnMajor, 2>(
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <>
-CUTLASS_RT_TM_DEVICE void ldsm<layout::ColumnMajor, 4>(
+CUTLASS_RT_TMDEVICE void ldsm<layout::ColumnMajor, 4>(
     Array<unsigned, 4> & D,
     void const* ptr) {
 
-  #if defined(CUTE_ARCH_LDSM_SM75_ACTIVATED)
+  #if defined(CUTE_RT_TMARCH_LDSM_SM75_ACTIVATED)
 
-    unsigned addr = cutlass_rt_tm_get_smem_pointer(ptr);
+    unsigned addr = cutlass_get_smem_pointer(ptr);
 
     int x, y, z, w;
     asm volatile ("ldmatrix.sync.aligned.x4.trans.m8n8.shared.b16 {%0, %1, %2, %3}, [%4];" : "=r"(x), "=r"(y), "=r"(z), "=r"(w) : "r"(addr));
@@ -210,9 +210,9 @@ CUTLASS_RT_TM_DEVICE void ldsm<layout::ColumnMajor, 4>(
 
   #else
 
-    CUTLASS_RT_TM_UNUSED(D);
-    CUTLASS_RT_TM_UNUSED(ptr);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(D);
+    CUTLASS_RT_TMUNUSED(ptr);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 
   #endif
 }
@@ -221,14 +221,14 @@ CUTLASS_RT_TM_DEVICE void ldsm<layout::ColumnMajor, 4>(
 
 template <typename AccessType, int Bytes>
 struct shared_load_op {
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   shared_load_op(AccessType &D, void const *ptr) {
     D = *reinterpret_cast<AccessType const *>(ptr);  
   }
 };
 
 template <typename AccessType>
-CUTLASS_RT_TM_DEVICE void shared_load(AccessType &D, void const *ptr) {
+CUTLASS_RT_TMDEVICE void shared_load(AccessType &D, void const *ptr) {
   shared_load_op<AccessType, int(sizeof(AccessType))>(D, ptr);
 }
 
@@ -236,9 +236,9 @@ CUTLASS_RT_TM_DEVICE void shared_load(AccessType &D, void const *ptr) {
 
 template <typename AccessType>
 struct shared_load_op<AccessType, 16> {
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   shared_load_op(AccessType &D, void const *ptr) {
-    unsigned addr = cutlass_rt_tm_get_smem_pointer(ptr);
+    unsigned addr = cutlass_get_smem_pointer(ptr);
 
     uint4 v;
     asm volatile ("ld.shared.v4.b32 {%0, %1, %2, %3}, [%4];" : 
@@ -252,9 +252,9 @@ struct shared_load_op<AccessType, 16> {
 
 template <typename AccessType>
 struct shared_load_op<AccessType, 8> {
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   shared_load_op(AccessType &D, void const *ptr) {
-    unsigned addr = cutlass_rt_tm_get_smem_pointer(ptr);
+    unsigned addr = cutlass_get_smem_pointer(ptr);
 
     uint2 v;
     asm volatile ("ld.shared.v2.b32 {%0, %1}, [%2];" : 

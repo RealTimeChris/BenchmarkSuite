@@ -114,32 +114,32 @@ private:
 public:
 
   /// Constructs an iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   FragmentIteratorWmmaTensorOp(AccumulatorTile const &accum): 
     accumulators_(reinterpret_cast<AccessType const *>(&accum)), 
     index_(0) { 
   }
 
   /// Increments
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   FragmentIteratorWmmaTensorOp &operator++() {
     ++index_;
     return *this;
   }
 
   /// Decrements
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   FragmentIteratorWmmaTensorOp &operator--() {
     --index_;
     return *this;
   }
 
   /// Loads a fragment from the referenced part of the accumulator tile
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void load(Fragment &frag, int index_offset = 0) const {
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for(int n=0; n < Policy::OperatorCount::kColumn; n++) {
       
       int accumulator_access_offset = index_ * Policy::OperatorCount::kColumn + n;

@@ -44,9 +44,9 @@
 
 #include <cuda_runtime.h>
 
-#if defined(CUTLASS_RT_TM_ARCH_WMMA_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_WMMA_ENABLED)
 #include <mma.h>
-#endif // defined(CUTLASS_RT_TM_ARCH_WMMA_ENABLED)
+#endif // defined(CUTLASS_RT_TMARCH_WMMA_ENABLED)
 
 #ifdef _MSC_VER
 // Provides support for alternate operators such as 'and', 'or', ...
@@ -54,9 +54,9 @@
 #include <intrin.h>
 #endif // _MSC_VER
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM100A_ENABLED) || defined(CUTLASS_RT_TM_ARCH_MMA_SM100F_ENABLED) ||\
-    defined(CUTLASS_RT_TM_ARCH_MMA_SM103A_ENABLED) || defined(CUTLASS_RT_TM_ARCH_MMA_SM103F_ENABLED)
-#  define CUTLASS_RT_TM_ARCH_CREDUX_ENABLED
+#if defined(CUTLASS_RT_TMARCH_MMA_SM100A_ENABLED) || defined(CUTLASS_RT_TMARCH_MMA_SM100F_ENABLED) ||\
+    defined(CUTLASS_RT_TMARCH_MMA_SM103A_ENABLED) || defined(CUTLASS_RT_TMARCH_MMA_SM103F_ENABLED)
+#  define CUTLASS_RT_TMARCH_CREDUX_ENABLED
 #endif
 
 namespace cutlass_rt_tm {
@@ -65,7 +65,7 @@ namespace cutlass_rt_tm {
 
 namespace detail {
 
-  CUTLASS_RT_TM_HOST_DEVICE int32_t popcount(int32_t x) {
+  CUTLASS_RT_TMHOST_DEVICE int32_t popcount(int32_t x) {
     #if defined(__CUDA_ARCH__)
     return __popc(x);
     #elif defined(__GNUC__) || defined(__clang__)
@@ -82,7 +82,7 @@ namespace detail {
     #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE int64_t popcount(int64_t x) {
+  CUTLASS_RT_TMHOST_DEVICE int64_t popcount(int64_t x) {
     #if defined(__CUDA_ARCH__)
     return __popcll(x);
     #elif defined(__GNUC__) || defined(__clang__)
@@ -105,7 +105,7 @@ namespace detail {
 
 template <typename T>
 struct absolute_value_op {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T lhs) const {
     return abs(lhs);
   }
@@ -113,13 +113,13 @@ struct absolute_value_op {
 
 template <>
 struct absolute_value_op<float> {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float operator()(float lhs) const { return fabs(lhs); }
 };
 
 template <typename T>
 struct plus {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T lhs, T const &rhs) const {
     lhs += rhs;
     return lhs;
@@ -128,7 +128,7 @@ struct plus {
 
 template <typename T>
 struct minus {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T lhs, T const &rhs) const {
     lhs -= rhs;
     return lhs;
@@ -137,7 +137,7 @@ struct minus {
 
 template <typename T>
 struct multiplies {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T lhs, T const &rhs) const {
     lhs *= rhs;
     return lhs;
@@ -148,7 +148,7 @@ template <typename T>
 struct scale {
   T const scaling_factor_;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   scale(float scaling_factor) : scaling_factor_(scaling_factor) {
   }
 
@@ -162,7 +162,7 @@ struct scale {
 /// Partial specializations needed when __CUDA_NO_HALF2_OPERATORS__ is set
 template<>
 struct plus<__half2> {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   __half2 operator()(__half2 lhs, __half2 const &rhs) const {
     return __hadd2(lhs, rhs);
   }
@@ -170,7 +170,7 @@ struct plus<__half2> {
 
 template<>
 struct minus<__half2> {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   __half2 operator()(__half2 lhs, __half2 const &rhs) const {
     return __hsub2(lhs, rhs);
   }
@@ -178,7 +178,7 @@ struct minus<__half2> {
 
 template<>
 struct multiplies<__half2> {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   __half2 operator()(__half2 lhs, __half2 const &rhs) const {
     return __hmul2(lhs, rhs);
   }
@@ -187,7 +187,7 @@ struct multiplies<__half2> {
 /// Partial specializations needed when __CUDA_NO_HALF_OPERATORS__ is set
 template<>
 struct plus<__half> {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   __half operator()(__half lhs, __half const &rhs) const {
     return __hadd(lhs, rhs);
   }
@@ -195,7 +195,7 @@ struct plus<__half> {
 
 template<>
 struct minus<__half> {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   __half operator()(__half lhs, __half const &rhs) const {
     return __hsub(lhs, rhs);
   }
@@ -203,7 +203,7 @@ struct minus<__half> {
 
 template<>
 struct multiplies<__half> {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   __half operator()(__half lhs, __half const &rhs) const {
     return __hmul(lhs, rhs);
   }
@@ -214,7 +214,7 @@ struct multiplies<__half> {
 /// Squares with optional conversion
 template <typename T, typename Output = T>
 struct square {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Output operator()(T lhs) const {
     multiplies<Output> mul_op;
 
@@ -226,7 +226,7 @@ struct square {
 /// Returns the magnitude squared of an element.
 template <typename T, typename Output = T>
 struct magnitude_squared {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Output operator()(T lhs) const {
     multiplies<Output> mul_op;
 
@@ -238,7 +238,7 @@ struct magnitude_squared {
 /// Computes the square of a difference with optional conversion
 template <typename T, typename Output = T>
 struct square_difference {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Output operator()(T lhs, T rhs) const {
     multiplies<Output> mul_op;
 
@@ -250,7 +250,7 @@ struct square_difference {
 /// Computes the square of a difference with optional conversion
 template <typename T, typename Output = T>
 struct magnitude_squared_difference {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Output operator()(T lhs, T rhs) const {
     multiplies<Output> mul_op;
 
@@ -265,7 +265,7 @@ struct inverse_square_root;
 
 template <>
 struct inverse_square_root<float> {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float operator()(float const &lhs) const {
 #if defined(__CUDA_ARCH__)
     return rsqrtf(lhs);
@@ -277,7 +277,7 @@ struct inverse_square_root<float> {
 
 template <>
 struct inverse_square_root<half_t> {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   half_t operator()(half_t const &lhs) const {
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ > 520)
     auto result = hrsqrt(reinterpret_cast<__half const &>(lhs));
@@ -291,7 +291,7 @@ struct inverse_square_root<half_t> {
 /// Divides
 template <typename T>
 struct divides {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T lhs, T const &rhs) const {
     lhs /= rhs;
     return lhs;
@@ -301,7 +301,7 @@ struct divides {
 /// reciprocal_approximate
 template <typename T>
 struct reciprocal_approximate {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T lhs) const {
     return divides<T>{}(T(1), lhs);
   }
@@ -309,7 +309,7 @@ struct reciprocal_approximate {
 
 template <>
 struct reciprocal_approximate <float> {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float operator()(float lhs) const {
     float ret;
     #if defined(__CUDA_ARCH__)
@@ -324,7 +324,7 @@ struct reciprocal_approximate <float> {
 
 template <>
 struct reciprocal_approximate<cutlass_rt_tm::float_ue8m0_t> {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   cutlass_rt_tm::float_ue8m0_t operator()(cutlass_rt_tm::float_ue8m0_t lhs) const {
     return cutlass_rt_tm::float_ue8m0_t::bitcast(static_cast<uint8_t>(static_cast<uint8_t>(254u) - lhs.storage));
   }
@@ -338,7 +338,7 @@ struct reciprocal_approximate_ftz :  reciprocal_approximate<T>
 
 template <>
 struct reciprocal_approximate_ftz <float> {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float operator()(float lhs) const {
     float ret;
     #if defined(__CUDA_ARCH__)
@@ -359,7 +359,7 @@ struct reciprocal_approximate_ftz <float> {
 /// Negate
 template <typename T>
 struct negate {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T lhs) const {
     return -lhs;
   }
@@ -368,7 +368,7 @@ struct negate {
 /// Greater equal
 template <typename T>
 struct greater_equal {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   bool operator()(T const &lhs, T const &rhs) const {
     return (lhs >= rhs);
   }
@@ -377,7 +377,7 @@ struct greater_equal {
 /// Greater
 template <typename T>
 struct greater {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   bool operator()(T const &lhs, T const &rhs) const {
     return (lhs > rhs);
   }
@@ -386,7 +386,7 @@ struct greater {
 /// Less equal
 template <typename T>
 struct less_equal {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   bool operator()(T const &lhs, T const &rhs) const {
     return (lhs <= rhs);
   }
@@ -395,7 +395,7 @@ struct less_equal {
 /// Less
 template <typename T>
 struct less {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   bool operator()(T const &lhs, T const &rhs) const {
     return (lhs < rhs);
   }
@@ -403,10 +403,10 @@ struct less {
 
 template <typename T, bool PropagateNaN = false>
 struct maximum {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const &lhs, T const &rhs) const {
     if constexpr (PropagateNaN && cutlass_rt_tm::platform::is_floating_point<T>::value) {
-      using CUTLASS_RT_TM_CMATH_NAMESPACE :: isnan;
+      using CUTLASS_RT_TMCMATH_NAMESPACE :: isnan;
 
       // Call isnan unqualified, so argument-dependent lookup (ADL)
       // will find overloads such as cutlass_rt_tm::isnan(half_t).
@@ -419,7 +419,7 @@ struct maximum {
       return (lhs < rhs ? rhs : lhs);
     }
 
-    CUTE_RT_TM_GCC_UNREACHABLE;
+    CUTE_RT_TMGCC_UNREACHABLE;
   }
 };
 
@@ -434,7 +434,7 @@ struct maximum_with_default_nan_propagation : public maximum<T>
 
 template <>
 struct maximum<float, false> {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float operator()(float const &lhs, float const &rhs) const {
     return fmaxf(lhs, rhs);
   }
@@ -442,14 +442,14 @@ struct maximum<float, false> {
 
 template <>
 struct maximum<float, true> {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float operator()(float lhs, float rhs) const {
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
     float res;
     asm volatile("max.NaN.f32 %0, %1, %2;\n" : "=f"(res) : "f"(lhs), "f"(rhs));
     return res;
 #else
-    using CUTLASS_RT_TM_CMATH_NAMESPACE :: isnan;
+    using CUTLASS_RT_TMCMATH_NAMESPACE :: isnan;
 
     return lhs > rhs || isnan(lhs) ? lhs : rhs;
 #endif
@@ -472,10 +472,10 @@ using maximum_with_nan_propogation = maximum_with_nan_propagation<T>;
 
 template <typename T, bool PropagateNaN = false>
 struct minimum {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const &lhs, T const &rhs) const {
     if constexpr (PropagateNaN && cutlass_rt_tm::platform::is_floating_point<T>::value) {
-      using CUTLASS_RT_TM_CMATH_NAMESPACE :: isnan;
+      using CUTLASS_RT_TMCMATH_NAMESPACE :: isnan;
 
       return lhs < rhs || isnan(lhs) ? lhs : rhs;
     }
@@ -487,7 +487,7 @@ struct minimum {
 
 template <>
 struct minimum<float, false> {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float operator()(float const &lhs, float const &rhs) const {
     return fminf(lhs, rhs);
   }
@@ -495,7 +495,7 @@ struct minimum<float, false> {
 
 template <>
 struct minimum<float, true> {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float operator()(float lhs, float rhs) const {
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
     float res;
@@ -503,7 +503,7 @@ struct minimum<float, true> {
     return res;
 #else
     // No need for ADL; call std::isnan(float) on host and ::isnan(float) on device.
-    return lhs < rhs || (CUTLASS_RT_TM_CMATH_NAMESPACE :: isnan(lhs)) ? lhs : rhs;
+    return lhs < rhs || (CUTLASS_RT_TMCMATH_NAMESPACE :: isnan(lhs)) ? lhs : rhs;
 #endif
   }
 };
@@ -514,7 +514,7 @@ struct minimum_with_nan_propagation : minimum<T, true>
 
 template <typename T, bool PropagateNaN = false>
 struct maximum_absolute_value {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float operator()(T const &lhs, T const &rhs) const {
     absolute_value_op<T> abs_op;
     maximum<T, PropagateNaN> max_op;
@@ -526,7 +526,7 @@ struct maximum_absolute_value {
 // assumes the left operand is already an absolute value
 template <typename T, bool PropagateNaN = false>
 struct maximum_absolute_value_reduction {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float operator()(T const &lhs, T const &rhs) const {
     absolute_value_op<T> abs_op;
     maximum<T, PropagateNaN> max_op;
@@ -538,7 +538,7 @@ struct maximum_absolute_value_reduction {
 /// Fused multiply-add
 template <typename A, typename B = A, typename C = A>
 struct multiply_add {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   C operator()(A const &a, B const &b, C const &c) const {
     return C(a) * C(b) + c;
   }
@@ -546,7 +546,7 @@ struct multiply_add {
 
 template <typename T>
 struct square_and_plus {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T lhs, T const &rhs) const {
     multiply_add<T> multiply_add_op;
     return multiply_add_op(rhs, rhs, lhs);
@@ -565,7 +565,7 @@ struct homogeneous_multiply_add : public multiply_add<A, A, A>
 /// Fused multiply-add
 template <typename A, typename B = A, typename C = A>
 struct multiply_add_relu0 {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   C operator()(A const &a, B const &b, C const &c) const {
     maximum<C> mx;
     return mx(C(a) * C(b) + c, C(0));
@@ -575,9 +575,9 @@ struct multiply_add_relu0 {
 /// Guarded-multiply-add
 template <typename A, typename B = A, typename C = A>
 struct guarded_multiply_add {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   C operator()(A const &a, B const &b, C const &c) const {
-    using CUTLASS_RT_TM_CMATH_NAMESPACE :: isnan;
+    using CUTLASS_RT_TMCMATH_NAMESPACE :: isnan;
 
     if (isnan(a) || isnan(b)) {
       return C(0);
@@ -589,7 +589,7 @@ struct guarded_multiply_add {
 /// Guarded-multiply-add
 template <>
 struct guarded_multiply_add<half_t, half_t, half_t> {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   half_t operator()(half_t const &a, half_t const &b, half_t const &c) const {
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 900
     half_t result;
@@ -612,9 +612,9 @@ struct guarded_multiply_add<half_t, half_t, half_t> {
 /// Guarded-multiply-add-relu0
 template <typename A, typename B = A, typename C = A>
 struct guarded_multiply_add_relu0 {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   C operator()(A const &a, B const &b, C const &c) const {
-    using CUTLASS_RT_TM_CMATH_NAMESPACE :: isnan;
+    using CUTLASS_RT_TMCMATH_NAMESPACE :: isnan;
 
     if (isnan(a) || isnan(b)) {
       return C(0);
@@ -626,7 +626,7 @@ struct guarded_multiply_add_relu0 {
 
 template <>
 struct guarded_multiply_add_relu0<half_t, half_t, half_t> {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   half_t operator()(half_t const &a, half_t const &b, half_t const &c) const {
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 900
     half_t result;
@@ -648,7 +648,7 @@ struct guarded_multiply_add_relu0<half_t, half_t, half_t> {
 /// Fused and-popc-add
 template <typename A, typename B = A, typename C = A>
 struct and_popc_add {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   C operator()(A const &a, B const &b, C const &c) const {
     A and_result = a & b;
     int32_t popc_result = detail::popcount(and_result);
@@ -659,7 +659,7 @@ struct and_popc_add {
 /// Fused and-add
 template <typename T>
 struct and_add {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const &a, T const &b, T const &c) const {
     return ((a & b) + c);
   }
@@ -670,7 +670,7 @@ struct and_add {
 /// Fused xor-popc-add
 template <typename A, typename B = A, typename C = A>
 struct xor_popc_add {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   C operator()(A const &a, B const &b, C const &c) const {
     A xor_result = a ^ b;
     int32_t popc_result = detail::popcount(xor_result);
@@ -681,7 +681,7 @@ struct xor_popc_add {
 /// Fused xor-add
 template <typename T>
 struct xor_add {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const &a, T const &b, T const &c) const {
     return ((a ^ b) + c);
   }
@@ -691,7 +691,7 @@ struct xor_add {
 /// Fused or-popc-add
 template <typename A, typename B = A, typename C = A>
 struct or_popc_add {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   C operator()(A const &a, B const &b, C const &c) const {
     A or_result = a | b;
     int32_t popc_result = detail::popcount(or_result);
@@ -703,7 +703,7 @@ struct or_popc_add {
 /// Fused or-add
 template <typename T>
 struct or_add {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const &a, T const &b, T const &c) const {
     return ((a | b) + c);
   }
@@ -734,7 +734,7 @@ constexpr bool has_unqualified_conj_v = has_unqualified_conj<T>::value;
 
 // forward declaration (needed for conjugate below)
 template<class T>
-CUTLASS_RT_TM_HOST_DEVICE T conj(T const& z);
+CUTLASS_RT_TMHOST_DEVICE T conj(T const& z);
 
 namespace detail {
 
@@ -742,18 +742,18 @@ namespace detail {
 // If so, then CUTLASS assumes that cutlass_rt_tm::conj(t)
 // returns the complex conjugate of t.
 template <typename T, typename Enable = void>
-struct has_cutlass_rt_tm_conj : cutlass_rt_tm::platform::false_type
+struct has_cutlass_conj : cutlass_rt_tm::platform::false_type
 {};
 
 template<typename T>
-struct has_cutlass_rt_tm_conj<
+struct has_cutlass_conj<
     T,
     decltype(cutlass_rt_tm::conj(cutlass_rt_tm::platform::declval<T>()), void())
   > : cutlass_rt_tm::platform::true_type
 {};
 
 template <typename T>
-constexpr bool has_cutlass_rt_tm_conj_v = has_cutlass_rt_tm_conj<T>::value;
+constexpr bool has_cutlass_conj_v = has_cutlass_conj<T>::value;
 
 } // namespace detail
   
@@ -790,12 +790,12 @@ constexpr bool has_cutlass_rt_tm_conj_v = has_cutlass_rt_tm_conj<T>::value;
 // calls to conj(T) findable via argument-dependent lookup.
 template <typename T>
 struct conjugate {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const& z) const {
     if constexpr (cutlass_rt_tm::platform::is_arithmetic_v<T>) {
       return z;
     }
-    else if constexpr (detail::has_unqualified_conj_v<T> || detail::has_cutlass_rt_tm_conj_v<T>) {
+    else if constexpr (detail::has_unqualified_conj_v<T> || detail::has_cutlass_conj_v<T>) {
       using cutlass_rt_tm::conj;
       return conj(z);
     }
@@ -807,11 +807,11 @@ struct conjugate {
 
 template <typename T>
 struct first {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const & first, T const &...) const {
     return first;
   }
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const & first) const {
     return first;
   }
@@ -821,7 +821,7 @@ struct first {
 
 template <typename T>
 struct logical_and {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const &a, T const &b) const {
     return ((static_cast<bool>(a) && static_cast<bool>(b)) ? T(1) : T());
   }
@@ -829,7 +829,7 @@ struct logical_and {
 
 template <typename T>
 struct logical_or {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const &a, T const &b) const {
     return ((static_cast<bool>(a) || static_cast<bool>(b)) ? T(1) : T());
   }
@@ -837,7 +837,7 @@ struct logical_or {
 
 template <typename T>
 struct logical_not {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const &a) const {
     return T(!(a));
   }
@@ -847,7 +847,7 @@ struct logical_not {
 
 template <typename T>
 struct bit_and {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const &a, T const &b) const {
     return a & b;
   }
@@ -855,7 +855,7 @@ struct bit_and {
 
 template <typename T>
 struct bit_or {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const &a, T const &b) const {
     return a | b;
   }
@@ -863,7 +863,7 @@ struct bit_or {
 
 template <typename T>
 struct bit_not {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const &a) const {
     return ~a;
   }
@@ -871,7 +871,7 @@ struct bit_not {
 
 template <typename T>
 struct bit_xor {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const &a, T const &b) const {
     return a ^ b;
   }
@@ -883,15 +883,15 @@ struct bit_xor {
 template <typename T>
 struct atomic_add
 {
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void operator()(T *ptr, const T &data)
   {
 #if defined(__CUDA_ARCH__)
     atomicAdd(ptr, data);
 #else
-    CUTLASS_RT_TM_UNUSED(ptr);
-    CUTLASS_RT_TM_UNUSED(data);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(ptr);
+    CUTLASS_RT_TMUNUSED(data);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 #endif
   }
 };
@@ -899,13 +899,13 @@ struct atomic_add
 template<>
 struct atomic_add<double>
 {
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void operator()(double *ptr, const double &data)
   {
 #if !defined(__CUDA_ARCH__)
-    CUTLASS_RT_TM_UNUSED(ptr);
-    CUTLASS_RT_TM_UNUSED(data);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(ptr);
+    CUTLASS_RT_TMUNUSED(data);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 #elif (__CUDA_ARCH__ >= 600)
     atomicAdd(ptr, data);
 #else
@@ -926,13 +926,13 @@ struct atomic_add<double>
 template<>
 struct atomic_add<half2>
 {
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void operator()(half2 *ptr, const half2 &data)
   {
 #if !defined(__CUDA_ARCH__) || (defined(__CUDA_ARCH__)  && (__CUDA_ARCH__ < 600))
-      CUTLASS_RT_TM_UNUSED(ptr);
-      CUTLASS_RT_TM_UNUSED(data);
-      CUTLASS_RT_TM_NOT_IMPLEMENTED();
+      CUTLASS_RT_TMUNUSED(ptr);
+      CUTLASS_RT_TMUNUSED(data);
+      CUTLASS_RT_TMNOT_IMPLEMENTED();
 #else
     // Vector-2 atomic reduction requires .target sm_60 or higher
     uint32_t word = reinterpret_cast<const uint32_t&>(data);
@@ -946,14 +946,14 @@ using red [[deprecated("use atomic_add instead")]] = atomic_add<T>;
 
 template <typename T>
 struct atomic_maximum {
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   T operator()(T *ptr, T value) const {
 #if defined(__CUDA_ARCH__)
     return atomicMax(ptr, value);
 #else
-    CUTLASS_RT_TM_UNUSED(ptr);
-    CUTLASS_RT_TM_UNUSED(value);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(ptr);
+    CUTLASS_RT_TMUNUSED(value);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
     return 0;
 #endif
   }
@@ -961,7 +961,7 @@ struct atomic_maximum {
 
 template <>
 struct atomic_maximum<float> {
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   float operator()(float *ptr, float value) const {
 #if defined(__CUDA_ARCH__)
     // In device code, make sure that we do NOT try to use
@@ -974,9 +974,9 @@ struct atomic_maximum<float> {
       __int_as_float(atomicMax((int*)ptr, __float_as_int(value))) :
       __uint_as_float(atomicMin((unsigned int*)ptr, __float_as_uint(value)));
 #else
-    CUTLASS_RT_TM_UNUSED(ptr);
-    CUTLASS_RT_TM_UNUSED(value);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(ptr);
+    CUTLASS_RT_TMUNUSED(value);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
     return 0;
 #endif
   }
@@ -998,9 +998,9 @@ struct redux_abs_max_nan_propagation_sync_warp;
 
 template <>
 struct redux_abs_max_nan_propagation_sync_warp <float>{
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   float operator()(float const &lhs) const {
-#if defined(CUTLASS_RT_TM_ARCH_CREDUX_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_CREDUX_ENABLED)
     float result;
     asm volatile("redux.sync.max.abs.NaN.f32 %0, %1, 0xffffffff;\n" : "=f"(result) : "f"(lhs));
     return result;
@@ -1008,7 +1008,7 @@ struct redux_abs_max_nan_propagation_sync_warp <float>{
     cutlass_rt_tm::maximum<float, /*PropagateNaN*/true> max_op;
     int shuffle_width = 32;
     float abs_max = cutlass_rt_tm::absolute_value_op<float>{}(lhs);
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for(int offset = shuffle_width / 2; offset > 0; offset /= 2) {
       float value = __shfl_down_sync(0xffffffff, abs_max, offset, shuffle_width);
       abs_max = max_op(abs_max,value);
@@ -1017,8 +1017,8 @@ struct redux_abs_max_nan_propagation_sync_warp <float>{
     abs_max = __shfl_sync(0xffffffff, abs_max, 0, shuffle_width);
     return abs_max;
 #else
-    CUTLASS_RT_TM_UNUSED(lhs);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(lhs);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
     return 0;
 #endif
   }
@@ -1029,9 +1029,9 @@ struct redux_abs_max_nan_propagation_sync_warp_t0t15_t16t31;
 
 template <>
 struct redux_abs_max_nan_propagation_sync_warp_t0t15_t16t31<float>{
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   float operator()(float const &max) const {
-#if defined(CUTLASS_RT_TM_ARCH_CREDUX_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_CREDUX_ENABLED)
     int half_warp_idx = threadIdx.x / (NumThreadsPerWarp / 2);
     bool first_half_threads = (half_warp_idx % 2) == 0;
     float value0 =  first_half_threads ? max : 0;
@@ -1045,7 +1045,7 @@ struct redux_abs_max_nan_propagation_sync_warp_t0t15_t16t31<float>{
     float abs_max = cutlass_rt_tm::absolute_value_op<float>{}(max);
     cutlass_rt_tm::maximum<float, /*PropagateNaN*/true> max_op;
     constexpr int shuffle_width = 16;
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for(int offset = shuffle_width/2; offset > 0; offset /= 2) {
       float value = __shfl_down_sync(0xffffffff, abs_max, offset, shuffle_width);
         abs_max  = max_op(abs_max,value);
@@ -1054,8 +1054,8 @@ struct redux_abs_max_nan_propagation_sync_warp_t0t15_t16t31<float>{
     abs_max = __shfl_sync(0xffffffff, abs_max, 0, shuffle_width);
     return abs_max;
 #else 
-    CUTLASS_RT_TM_UNUSED(max);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(max);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
     return 0;
 #endif
   }
@@ -1068,7 +1068,7 @@ struct redux_abs_max_nan_propagation_sync_warp_t0t15_t16t31<float>{
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-#if defined(CUTLASS_RT_TM_ARCH_WMMA_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_WMMA_ENABLED)
 
 template<typename Use, int m, int n, int k, typename T, typename Layout>
 struct plus<nvcuda::wmma::fragment<Use, m, n, k, T, Layout>>
@@ -1076,7 +1076,7 @@ struct plus<nvcuda::wmma::fragment<Use, m, n, k, T, Layout>>
   using Fragment = nvcuda::wmma::fragment<Use, m, n, k, T, Layout>;
   using ElementType = typename Fragment::element_type;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Fragment operator()(Fragment const &lhs, Fragment const &rhs) const
   {
     Fragment result;
@@ -1086,7 +1086,7 @@ struct plus<nvcuda::wmma::fragment<Use, m, n, k, T, Layout>>
     const ElementType *lhs_elts = reinterpret_cast<const ElementType*>(&lhs);
     const ElementType *rhs_elts = reinterpret_cast<const ElementType*>(&rhs);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < Fragment::num_elements; i++) {
       result_elts[i] = scalar_op(lhs_elts[i], rhs_elts[i]);
     }
@@ -1095,7 +1095,7 @@ struct plus<nvcuda::wmma::fragment<Use, m, n, k, T, Layout>>
   }
 };
 
-#endif // defined(CUTLASS_RT_TM_ARCH_WMMA_ENABLED)
+#endif // defined(CUTLASS_RT_TMARCH_WMMA_ENABLED)
 
 
 

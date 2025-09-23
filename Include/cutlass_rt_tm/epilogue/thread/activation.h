@@ -67,9 +67,9 @@ struct kIsHeavy_member_or_false<Op, typename cutlass_rt_tm::platform::enable_if<
 // Identity operator
 template <typename T>
 struct Identity {
-  static constexpr bool kIsHeavy = false;
+  static const bool kIsHeavy = false;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T value) const {
     return value;
   }
@@ -77,7 +77,7 @@ struct Identity {
 
 template <typename T, int N>
 struct Identity<Array<T, N> > {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T, N> operator()(Array<T, N> value) const {
     return value;
   }
@@ -91,13 +91,13 @@ struct Scale {
     T scale = T(1);
   };
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T value, T scale) const {
     multiplies<T> mul;
     return mul(scale, value);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T value, Arguments args = Arguments()) const {
     return this->operator()(value, args.scale);
   }
@@ -107,13 +107,13 @@ template <typename T, int N>
 struct Scale<Array<T, N>> {
   using Arguments = typename Scale<T>::Arguments;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T, N> operator()(Array<T, N> values, T scale) const {
     multiplies<Array<T, N>> mul;
     return mul(scale, values);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T, N> operator()(Array<T, N> values, Arguments args = Arguments()) const {
     return this->operator()(values, args.scale);
   }
@@ -125,16 +125,16 @@ template <template <class> class Activation, typename T>
 struct Scale<Activation<T>> {
   using Arguments = typename Scale<T>::Arguments;
 
-  static constexpr bool kIsHeavy = Activation<T>::kIsHeavy;
+  static const bool kIsHeavy = Activation<T>::kIsHeavy;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T value, typename Arguments::scale_type scale) const {
     multiplies<T> mul;
     Activation<T> act;
     return mul(scale, act(value));
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T value, Arguments args = Arguments()) const {
     return this->operator()(value, args.scale);
   }
@@ -143,9 +143,9 @@ struct Scale<Activation<T>> {
 /// ReLu operator - propagates NaNs
 template <typename T>
 struct ReLu {
-  static constexpr bool kIsHeavy = false;
+  static const bool kIsHeavy = false;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T threshold, T value) const {
     constexpr bool PropagateNaN = true;
     maximum<T, PropagateNaN> mx;
@@ -153,7 +153,7 @@ struct ReLu {
     return mx(value, threshold);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T value) const {
     constexpr bool PropagateNaN = true;
     maximum<T, PropagateNaN> mx;
@@ -167,9 +167,9 @@ using ReLU = ReLu<T>;
 
 template <typename T, int N>
 struct ReLu<Array<T, N>> {
-  static constexpr bool kIsHeavy = false;
+  static const bool kIsHeavy = false;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T, N> operator()(T const & threshold, Array<T, N> const &frag) const {
     constexpr bool PropagateNaN = true;
     maximum<Array<T, N>, PropagateNaN> mx;
@@ -177,7 +177,7 @@ struct ReLu<Array<T, N>> {
     return mx(frag, threshold);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &frag) const {
     constexpr bool PropagateNaN = true;
     maximum<Array<T, N>, PropagateNaN> mx;
@@ -189,11 +189,11 @@ struct ReLu<Array<T, N>> {
 template <typename T>
 struct Clamp {
   struct Arguments {
-    T lower_bound = CUTLASS_RT_TM_STL_NAMESPACE::numeric_limits<T>::lowest();
-    T upper_bound = CUTLASS_RT_TM_STL_NAMESPACE::numeric_limits<T>::max();
+    T lower_bound = CUTLASS_RT_TMSTL_NAMESPACE::numeric_limits<T>::lowest();
+    T upper_bound = CUTLASS_RT_TMSTL_NAMESPACE::numeric_limits<T>::max();
   };
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const& value, T const& lower_bound, T const& upper_bound) const {
     constexpr bool PropagateNaN = true;
     maximum<T, PropagateNaN> mx;
@@ -202,7 +202,7 @@ struct Clamp {
     return mn(mx(value, lower_bound), upper_bound);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const& value, Arguments const& args = Arguments()) const {
     return this->operator()(value, args.lower_bound, args.upper_bound);
   }
@@ -212,7 +212,7 @@ template <typename T, int N>
 struct Clamp<Array<T,N>> {
   using Arguments = typename Clamp<T>::Arguments;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T,N> operator()(Array<T,N> const& values, T const& lower_bound, T const& upper_bound) const {
     constexpr bool PropagateNaN = true;
     maximum<Array<T,N>, PropagateNaN> mx;
@@ -221,7 +221,7 @@ struct Clamp<Array<T,N>> {
     return mn(mx(values, lower_bound), upper_bound);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T,N> operator()(Array<T,N> const& values, Arguments const& args = Arguments()) const {
     return this->operator()(values, args.lower_bound, args.upper_bound);
   }
@@ -234,7 +234,7 @@ struct LowerBound {
     T lower_bound;
   };
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const& value, T const& lower_bound) const {
     constexpr bool PropagateNaN = true;
     maximum<T, PropagateNaN> mx;
@@ -242,7 +242,7 @@ struct LowerBound {
     return mx(value, lower_bound);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const& value, Arguments const& args = Arguments()) const {
     return this->operator()(value, args.lower_bound);
   }
@@ -252,7 +252,7 @@ template <typename T, int N>
 struct LowerBound<Array<T,N>> {
   using Arguments = typename LowerBound<T>::Arguments;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T,N> operator()(Array<T,N> const& values, T const& lower_bound) const {
     constexpr bool PropagateNaN = true;
     maximum<Array<T,N>, PropagateNaN> mx;
@@ -260,7 +260,7 @@ struct LowerBound<Array<T,N>> {
     return mx(values, lower_bound);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T,N> operator()(Array<T,N> const& values, Arguments const& args = Arguments()) const {
     return this->operator()(values, args.lower_bound);
   }
@@ -270,19 +270,19 @@ struct LowerBound<Array<T,N>> {
 template <typename T>
 struct LeakyReLU {
 
-  static constexpr bool kIsHeavy = false;
+  static const bool kIsHeavy = false;
 
   struct Arguments {
     T leaky_alpha = T(0);
   };
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const& value, T const& leaky_alpha) const {
     T res = value > T(0) ? value : value * leaky_alpha;
     return res;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const& value, Arguments const& args = Arguments()) const {
     return this->operator()(value, args.leaky_alpha);
   }
@@ -291,16 +291,16 @@ struct LeakyReLU {
 template <typename T, int N>
 struct LeakyReLU<Array<T, N> > {
 
-  static constexpr bool kIsHeavy = false;
+  static const bool kIsHeavy = false;
 
   using Arguments = typename LeakyReLU<T>::Arguments;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& values, T const& leaky_alpha) const {
     Array<T, N> y;
     LeakyReLU<T> leaky_op;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < int(values.size()); ++i) {
       y[i] = leaky_op(values[i], leaky_alpha);
     }
@@ -308,7 +308,7 @@ struct LeakyReLU<Array<T, N> > {
     return y;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& values, Arguments const& args = Arguments()) const {
     return this->operator()(values, args.leaky_alpha);
   }
@@ -321,17 +321,17 @@ struct ThresholdReLU {
 
   struct Arguments {
     T threshold = T(0);
-    T upper_bound = CUTLASS_RT_TM_STL_NAMESPACE::numeric_limits<T>::max();
+    T upper_bound = CUTLASS_RT_TMSTL_NAMESPACE::numeric_limits<T>::max();
   };
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T value, T threshold, T upper_bound) const {
     minimum_with_nan_propagation<T> mn;
     
     return mn((value <= threshold ? T(0) : value), upper_bound);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T value, Arguments const& args = Arguments()) const {
     return operator()(value, args.threshold, args.upper_bound);
   }
@@ -343,12 +343,12 @@ struct ThresholdReLU<Array<T,N>> {
 
   using Arguments = typename ThresholdReLU<T>::Arguments;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T,N> operator()(Array<T,N> const& values, T threshold, T upper_bound) const {
     ThresholdReLU<T> relu;
 
     Array<T,N> retvals;
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < N; ++i) {
       retvals[i] = relu(values[i], threshold, upper_bound);    
     }
@@ -356,7 +356,7 @@ struct ThresholdReLU<Array<T,N>> {
     return retvals;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T,N> operator()(Array<T,N> const& values, Arguments const& args = Arguments()) const {
     return operator()(values, args.threshold, args.upper_bound);
   }
@@ -365,9 +365,9 @@ struct ThresholdReLU<Array<T,N>> {
 // Tanh operator
 template <typename T>
 struct Tanh {
-  static constexpr bool kIsHeavy = true;
+  static const bool kIsHeavy = true;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const &value) const {
     return fast_tanh(value);
   }
@@ -375,14 +375,14 @@ struct Tanh {
 
 template <typename T, int N>
 struct Tanh<Array<T, N> > {
-  static constexpr bool kIsHeavy = true;
+  static const bool kIsHeavy = true;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &value) const {
     Array<T, N> y;
     Tanh<T> tanh_op;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < N; ++i) {
       y[i] = tanh_op(value[i]);
     }
@@ -394,9 +394,9 @@ struct Tanh<Array<T, N> > {
 template <int N>
 struct Tanh<Array<half_t, N>> {
   using T = half_t;
-  static constexpr bool kIsHeavy = true;
+  static const bool kIsHeavy = true;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& z) const {
     fast_tanh_op<Array<T, N>> tanh;
     return tanh(z);
@@ -406,11 +406,11 @@ struct Tanh<Array<half_t, N>> {
 // Sigmoid operator
 template <typename T>
 struct Sigmoid {
-  static constexpr bool kIsHeavy = true;
+  static const bool kIsHeavy = true;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const &value) const {
-#if defined(CUTLASS_RT_TM_USE_TANH_FOR_SIGMOID)
+#if defined(CUTLASS_RT_TMUSE_TANH_FOR_SIGMOID)
     return fast_tanh(value * T(0.5)) * T(0.5) + T(0.5);
 #else
     return T(1) / (T(1) + fast_exp(-value));
@@ -420,11 +420,11 @@ struct Sigmoid {
 
 template <typename T, int N>
 struct Sigmoid<Array<T, N>> {
-  static constexpr bool kIsHeavy = true;
+  static const bool kIsHeavy = true;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& z) const {
-#if defined(CUTLASS_RT_TM_USE_TANH_FOR_SIGMOID)
+#if defined(CUTLASS_RT_TMUSE_TANH_FOR_SIGMOID)
     multiplies<Array<T, N>> mul;
     multiply_add<Array<T, N>> fma;
     fast_tanh_op<Array<T, N>> tanh;
@@ -450,9 +450,9 @@ struct Sigmoid<Array<T, N>> {
 // Reference: https://pytorch.org/docs/stable/generated/torch.nn.SiLU.html
 template <typename T>
 struct SiLu {
-  static constexpr bool kIsHeavy = true;
+  static const bool kIsHeavy = true;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const &value) const {
     Sigmoid<T> sigmoid;
     return value * sigmoid(value);
@@ -461,9 +461,9 @@ struct SiLu {
 
 template <typename T, int N>
 struct SiLu<Array<T, N>> {
-  static constexpr bool kIsHeavy = true;
+  static const bool kIsHeavy = true;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &value) const {
     Sigmoid<Array<T, N>> sigmoid_op;
     multiplies<Array<T, N>>     mul;
@@ -481,9 +481,9 @@ using ScaledSiLu = Scale<SiLu<T>>;
 // Reference: https://pytorch.org/docs/stable/generated/torch.nn.Hardswish.html
 template <typename T>
 struct HardSwish {
-  static constexpr bool kIsHeavy = false;
+  static const bool kIsHeavy = false;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const &x) const {
     minimum<T> mn;
     maximum<T> mx;
@@ -495,10 +495,10 @@ struct HardSwish {
 template <>
 struct HardSwish<float> {
   using T = float;
-  static constexpr bool kIsHeavy = false;
+  static const bool kIsHeavy = false;
   static constexpr float kOneSixth = 0.16666667f;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const &x) const {
     minimum<T> mn;
     maximum<T> mx;
@@ -510,10 +510,10 @@ struct HardSwish<float> {
 template <>
 struct HardSwish<cutlass_rt_tm::half_t> {
   using T = cutlass_rt_tm::half_t;
-  static constexpr bool kIsHeavy = false;
+  static const bool kIsHeavy = false;
   static constexpr float kOneSixth = 0.16666667f;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const &x) const {
     minimum<T> mn;
     maximum<T> mx;
@@ -524,14 +524,14 @@ struct HardSwish<cutlass_rt_tm::half_t> {
 
 template <typename T, int N>
 struct HardSwish<Array<T, N> > {
-  static constexpr bool kIsHeavy = false;
+  static const bool kIsHeavy = false;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &value) const {
     Array<T, N> y;
     HardSwish<T> hardswish_op;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < N; ++i) {
       y[i] = hardswish_op(value[i]);
     }
@@ -543,10 +543,10 @@ struct HardSwish<Array<T, N> > {
 template <int N>
 struct HardSwish<Array<half_t, N> > {
   using T = half_t;
-  static constexpr bool kIsHeavy = false;
+  static const bool kIsHeavy = false;
   static constexpr float kOneSixth = 0.16666667f;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &value) const {
     minimum<Array<T, N> > mn;
     maximum<Array<T, N> > mx;
@@ -572,9 +572,9 @@ using ScaledHardSwish = Scale<HardSwish<T>>;
 // GELU operator
 template <typename T>
 struct GELU {
-  static constexpr bool kIsHeavy = true;
+  static const bool kIsHeavy = true;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const &value) const {
     return T(cutlass_rt_tm::constants::half<T>() * value *
       (cutlass_rt_tm::constants::one<T>() + (T)erff((float)(value * cutlass_rt_tm::constants::half_root_two<T>()))));
@@ -583,9 +583,9 @@ struct GELU {
 
 template <>
 struct GELU<float> {
-  static constexpr bool kIsHeavy = true;
+  static const bool kIsHeavy = true;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float operator()(float const &value) const {
     return cutlass_rt_tm::constants::half<float>() * value *
       (cutlass_rt_tm::constants::one<float>() + erff(value * cutlass_rt_tm::constants::half_root_two<float>() ));
@@ -594,9 +594,9 @@ struct GELU<float> {
 
 template <>
 struct GELU<double> {
-  static constexpr bool kIsHeavy = true;
+  static const bool kIsHeavy = true;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   double operator()(double const &value) const {
     return cutlass_rt_tm::constants::half<double>() * value *
       (cutlass_rt_tm::constants::one<double>() + erf( value * cutlass_rt_tm::constants::half_root_two<double>() ));
@@ -605,14 +605,14 @@ struct GELU<double> {
 
 template <typename T, int N>
 struct GELU<Array<T, N> > {
-  static constexpr bool kIsHeavy = true;
+  static const bool kIsHeavy = true;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &value) const {
     Array<T, N> y;
     GELU<T> gelu_op;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < N; ++i) {
       y[i] = gelu_op(value[i]);
     }
@@ -627,9 +627,9 @@ using ScaledGELU = Scale<GELU<T>>;
 // GELU operator implemented using the Taylor series approximation
 template <typename T>
 struct GELU_taylor {
-  static constexpr bool kIsHeavy = true;
+  static const bool kIsHeavy = true;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const &z) const {
 
     T k0 = T(0.7978845608028654);
@@ -642,9 +642,9 @@ struct GELU_taylor {
 
 template <>
 struct GELU_taylor <float>{
-  static constexpr bool kIsHeavy = true;
+  static const bool kIsHeavy = true;
   using T = float;
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const &z) const {
     // 0.5f * (x + x * tanh(x * (0.797885f + 0.0356774f * x * x)));
     T k0 = T(0.7978845608028654);
@@ -664,9 +664,9 @@ struct GELU_taylor <float>{
 
 template <int N>
 struct GELU_taylor<Array<half_t, N> > {
-  static constexpr bool kIsHeavy = true;
+  static const bool kIsHeavy = true;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<half_t, N> operator()(Array<half_t, N> const &z) const {
 
     using T = half_t;
@@ -691,9 +691,9 @@ struct GELU_taylor<Array<half_t, N> > {
 
 template <int N>
 struct GELU_taylor<Array<float, N> > {
-  static constexpr bool kIsHeavy = true;
+  static const bool kIsHeavy = true;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<float, N> operator()(Array<float, N> const &value) const {
     multiply_add<Array<float, N>> fma;
     multiplies<Array<float, N>> mul;
@@ -715,14 +715,14 @@ struct GELU_taylor<Array<float, N> > {
 
 template <typename T, int N>
 struct GELU_taylor<Array<T, N> > {
-  static constexpr bool kIsHeavy = true;
+  static const bool kIsHeavy = true;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &value) const {
     Array<T, N> y;
     GELU_taylor<T> gelu_op;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < N; ++i) {
       y[i] = gelu_op(value[i]);
     }
@@ -738,9 +738,9 @@ using ScaledGELU_taylor = Scale<GELU_taylor<T>>;
 /// z is computed from the forward pass.
 template <typename T>
 struct dGELU {
-  static constexpr bool kIsHeavy = true;
+  static const bool kIsHeavy = true;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const &d_t, T const &z) const {
 
     T k0 = T(0.7978845608028654);
@@ -758,14 +758,14 @@ struct dGELU {
 
 template <typename T, int N>
 struct dGELU<Array<T, N> > {
-  static constexpr bool kIsHeavy = true;
+  static const bool kIsHeavy = true;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &d_t, Array<T, N> const &z) const {
     Array<T, N> y;
     dGELU<T> gelu_op;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < N; ++i) {
       y[i] = gelu_op(d_t[i], z[i]);
     }
@@ -776,13 +776,13 @@ struct dGELU<Array<T, N> > {
 
 template <typename T>
 struct dReLU {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T d_t, bool d_relu) const {
     return d_relu ? d_t : T(0);
   }
 
   template <typename U>
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T d_t, U d_relu) const {
     return operator()(d_t, static_cast<bool>(d_relu));
   }
@@ -790,12 +790,12 @@ struct dReLU {
 
 template <typename T, int N>
 struct dReLU<Array<T, N>> {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& d_t, bool const (&d_relu)[N]) const {
     Array<T, N> y;
     dReLU<T> relu_op;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < N; ++i) {
       y[i] = relu_op(d_t[i], d_relu[i]);
     }
@@ -803,7 +803,7 @@ struct dReLU<Array<T, N>> {
     return y;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& d_t, Array<uint1b_t, N> const& d_relu) const {
     UnpackPredicates<N> unpack_op;
 
@@ -814,12 +814,12 @@ struct dReLU<Array<T, N>> {
   }
 
   template <typename U>
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& d_t, Array<U, N> const& d_relu) const {
     Array<T, N> y;
     dReLU<T> relu_op;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < N; ++i) {
       y[i] = relu_op(d_t[i], d_relu[i]);
     }
@@ -832,7 +832,7 @@ struct dReLU<Array<T, N>> {
 /// z is computed from the forward pass.
 template <typename T>
 struct dReLU_Z {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T d_t, T z) const {
     return z < 0 ? T(0) : d_t;
   }
@@ -840,12 +840,12 @@ struct dReLU_Z {
 
 template <typename T, int N>
 struct dReLU_Z<Array<T, N>> {
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& d_t, Array<T, N> const& z) const {
     Array<T, N> y;
     dReLU_Z<T> relu_op;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < N; ++i) {
       y[i] = relu_op(d_t[i], z[i]);
     }
@@ -860,20 +860,20 @@ struct dReLU_Z<Array<T, N>> {
 template <typename T>
 struct ElementwiseFilter {
 
-  static constexpr bool kIsHeavy = false;
+  static const bool kIsHeavy = false;
 
   struct Arguments {
     T value_to_filter = T(-0.0);
     T filtered_value = T(0.0);
   };
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const& value, T const& value_to_filter, T const& filtered_value) const {
     T res = value == value_to_filter ? filtered_value : value;
     return res;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   T operator()(T const& value, Arguments const& args = Arguments()) const {
     return this->operator()(value, args.value_to_filter, args.filtered_value);
   }
@@ -882,16 +882,16 @@ struct ElementwiseFilter {
 template <typename T, int N>
 struct ElementwiseFilter<Array<T, N> > {
 
-  static constexpr bool kIsHeavy = false;
+  static const bool kIsHeavy = false;
 
   using Arguments = typename ElementwiseFilter<T>::Arguments;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& values, T const& value_to_filter, T const& filtered_value) const {
     Array<T, N> y;
     ElementwiseFilter<T> filter_op;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < int(values.size()); ++i) {
       y[i] = filter_op(values[i], value_to_filter, filtered_value);
     }
@@ -899,7 +899,7 @@ struct ElementwiseFilter<Array<T, N> > {
     return y;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& values, Arguments const& args = Arguments()) const {
     return this->operator()(values, args.value_to_filter, args.filtered_value);
   }

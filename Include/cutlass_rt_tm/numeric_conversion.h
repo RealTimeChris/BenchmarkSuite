@@ -75,15 +75,15 @@ struct NumericConverter {
 
   using result_type = T;
   using source_type = S;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & s) {
 
     return static_cast<result_type>(s);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -100,9 +100,9 @@ struct NumericConverter<int32_t, float, FloatRoundStyle::round_to_nearest> {
 
   using result_type = int32_t;
   using source_type = float;
-  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle round_style = FloatRoundStyle::round_to_nearest;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & s) {
     #if __CUDA_ARCH__
     return __float2int_rn(s);
@@ -112,7 +112,7 @@ struct NumericConverter<int32_t, float, FloatRoundStyle::round_to_nearest> {
     #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -123,9 +123,9 @@ struct NumericConverter<int32_t, float, FloatRoundStyle::round_toward_zero> {
 
   using result_type = int32_t;
   using source_type = float;
-  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_zero;
+  static constexpr FloatRoundStyle round_style = FloatRoundStyle::round_toward_zero;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & s) {
     #if __CUDA_ARCH__
     return __float2int_rz(s);
@@ -135,7 +135,7 @@ struct NumericConverter<int32_t, float, FloatRoundStyle::round_toward_zero> {
     #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -152,9 +152,9 @@ struct NumericConverter<int8_t, float, FloatRoundStyle::round_to_nearest> {
 
   using result_type = int8_t;
   using source_type = float;
-  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle round_style = FloatRoundStyle::round_to_nearest;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & s) {
     #if defined(__CUDA_ARCH__)
     int32_t intermediate;
@@ -171,7 +171,7 @@ struct NumericConverter<int8_t, float, FloatRoundStyle::round_to_nearest> {
     #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -182,9 +182,9 @@ struct NumericConverter<int8_t, float, FloatRoundStyle::round_toward_zero> {
 
   using result_type = int8_t;
   using source_type = float;
-  static constexpr FloatRoundStyle  round_style =  FloatRoundStyle::round_toward_zero;
+  static constexpr FloatRoundStyle round_style =  FloatRoundStyle::round_toward_zero;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & s) {
     #if defined(__CUDA_ARCH__)
     int32_t intermediate;
@@ -201,7 +201,7 @@ struct NumericConverter<int8_t, float, FloatRoundStyle::round_toward_zero> {
     #endif 
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -212,9 +212,9 @@ struct NumericConverter<uint8_t, float, FloatRoundStyle::round_to_nearest> {
 
   using result_type = uint8_t;
   using source_type = float;
-  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle round_style = FloatRoundStyle::round_to_nearest;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & s) {
     #if defined(__CUDA_ARCH__)
     int32_t intermediate;
@@ -231,7 +231,7 @@ struct NumericConverter<uint8_t, float, FloatRoundStyle::round_to_nearest> {
     #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -242,9 +242,9 @@ struct NumericConverter<uint8_t, float, FloatRoundStyle::round_toward_zero> {
 
   using result_type = uint8_t;
   using source_type = float;
-  static constexpr FloatRoundStyle  round_style =  FloatRoundStyle::round_toward_zero;
+  static constexpr FloatRoundStyle round_style =  FloatRoundStyle::round_toward_zero;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & s) {
     #if __CUDA_ARCH__
     int32_t intermediate;
@@ -261,7 +261,7 @@ struct NumericConverter<uint8_t, float, FloatRoundStyle::round_toward_zero> {
     #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -278,9 +278,9 @@ struct NumericConverter<int8_t, cutlass_rt_tm::half_t, FloatRoundStyle::round_to
 
   using result_type = int8_t;
   using source_type = cutlass_rt_tm::half_t;
-  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle round_style = FloatRoundStyle::round_to_nearest;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & s) {
     #if defined(__CUDA_ARCH__)
     union { int8_t int8[2]; int16_t int16; };
@@ -299,7 +299,7 @@ struct NumericConverter<int8_t, cutlass_rt_tm::half_t, FloatRoundStyle::round_to
     #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -321,7 +321,7 @@ public:
   using source_type = float;
   static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE static result_type
+  CUTLASS_RT_TMHOST_DEVICE static result_type
   convert(source_type const& src) {
     using middle_type = int;
     static_assert(8 * sizeof(middle_type) > Bits, "This conversion "
@@ -332,7 +332,7 @@ public:
     return NumericConverter<result_type, middle_type, Round>::convert(middle);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE result_type
+  CUTLASS_RT_TMHOST_DEVICE result_type
   operator()(source_type const& s) const {
     return convert(s);
   }
@@ -348,7 +348,7 @@ public:
   using source_type = float;
   static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE static result_type
+  CUTLASS_RT_TMHOST_DEVICE static result_type
   convert(source_type const& src) {
     using middle_type = unsigned;
     static_assert(8 * sizeof(middle_type) > Bits, "This conversion "
@@ -359,7 +359,7 @@ public:
     return NumericConverter<result_type, middle_type, Round>::convert(middle);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE result_type  
+  CUTLASS_RT_TMHOST_DEVICE result_type  
   operator()(source_type const& s) const {
     return convert(s);
   }
@@ -373,15 +373,15 @@ struct NumericConverter<T, T, Round> {
 
   using result_type = T;
   using source_type = T;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & s) {
 
     return s;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -399,9 +399,9 @@ struct NumericConverter<float, cutlass_rt_tm::half_t, Round> {
 
   using result_type = float;
   using source_type = cutlass_rt_tm::half_t;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & s) {
 
     result_type result = static_cast<float>(s);
@@ -409,7 +409,7 @@ struct NumericConverter<float, cutlass_rt_tm::half_t, Round> {
     return result;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -421,9 +421,9 @@ struct NumericConverter<cutlass_rt_tm::half_t, float, FloatRoundStyle::round_to_
 
   using result_type = cutlass_rt_tm::half_t;
   using source_type = float;
-  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle round_style = FloatRoundStyle::round_to_nearest;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & s) {
 
     result_type result = static_cast<cutlass_rt_tm::half_t>(s);
@@ -431,7 +431,7 @@ struct NumericConverter<cutlass_rt_tm::half_t, float, FloatRoundStyle::round_to_
     return result;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -443,10 +443,10 @@ struct NumericConverter<cutlass_rt_tm::half_t, float, FloatRoundStyle::round_tow
 
   using result_type = cutlass_rt_tm::half_t;
   using source_type = float;
-  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_zero;
+  static constexpr FloatRoundStyle round_style = FloatRoundStyle::round_toward_zero;
 
   /// Round toward zero
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & flt) {
 
   #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 530)
@@ -499,7 +499,7 @@ struct NumericConverter<cutlass_rt_tm::half_t, float, FloatRoundStyle::round_tow
   #endif // defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 530)
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -517,15 +517,15 @@ struct NumericConverter<float, cutlass_rt_tm::bfloat16_t, Round> {
 
   using result_type = float;
   using source_type = cutlass_rt_tm::bfloat16_t;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & s) {
 
     return static_cast<float>(s);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -535,14 +535,14 @@ template <>
 struct NumericConverter<cutlass_rt_tm::bfloat16_t, float, FloatRoundStyle::round_to_nearest> {
   using result_type = cutlass_rt_tm::bfloat16_t;
   using source_type = float;
-  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle round_style = FloatRoundStyle::round_to_nearest;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & s) {
     return static_cast<cutlass_rt_tm::bfloat16_t>(s);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -552,9 +552,9 @@ template <>
 struct NumericConverter<cutlass_rt_tm::bfloat16_t, float, FloatRoundStyle::round_half_ulp_truncate> {
   using result_type = cutlass_rt_tm::bfloat16_t;
   using source_type = float;
-  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_half_ulp_truncate;
+  static constexpr FloatRoundStyle round_style = FloatRoundStyle::round_half_ulp_truncate;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & s) {
     uint32_t x32 = reinterpret_cast<uint32_t const &>(s);
 
@@ -572,7 +572,7 @@ struct NumericConverter<cutlass_rt_tm::bfloat16_t, float, FloatRoundStyle::round
     return cutlass_rt_tm::bfloat16_t::bitcast(x16);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -582,9 +582,9 @@ template <>
 struct NumericConverter<cutlass_rt_tm::bfloat16_t, float, FloatRoundStyle::round_toward_zero> {
   using result_type = cutlass_rt_tm::bfloat16_t;
   using source_type = float;
-  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_zero;
+  static constexpr FloatRoundStyle round_style = FloatRoundStyle::round_toward_zero;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & s) {
 
     uint32_t x32 = reinterpret_cast<uint32_t const &>(s);
@@ -593,7 +593,7 @@ struct NumericConverter<cutlass_rt_tm::bfloat16_t, float, FloatRoundStyle::round
     return cutlass_rt_tm::bfloat16_t::bitcast(x16);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -611,15 +611,15 @@ struct NumericConverter<float, cutlass_rt_tm::tfloat32_t, Round> {
 
   using result_type = float;
   using source_type = cutlass_rt_tm::tfloat32_t;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & s) {
 
     return static_cast<float>(s);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -629,9 +629,9 @@ template <>
 struct NumericConverter<cutlass_rt_tm::tfloat32_t, float, FloatRoundStyle::round_to_nearest> {
   using result_type = cutlass_rt_tm::tfloat32_t;
   using source_type = float;
-  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle round_style = FloatRoundStyle::round_to_nearest;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & s) {
 
     unsigned storage = reinterpret_cast<unsigned const &>(s);
@@ -669,7 +669,7 @@ struct NumericConverter<cutlass_rt_tm::tfloat32_t, float, FloatRoundStyle::round
     return cutlass_rt_tm::tfloat32_t::bitcast(storage);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -679,14 +679,14 @@ template <>
 struct NumericConverter<cutlass_rt_tm::tfloat32_t, float, FloatRoundStyle::round_half_ulp_truncate> {
   using result_type = cutlass_rt_tm::tfloat32_t;
   using source_type = float;
-  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_half_ulp_truncate;
+  static constexpr FloatRoundStyle round_style = FloatRoundStyle::round_half_ulp_truncate;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & s) {
     return cutlass_rt_tm::tfloat32_t::round_half_ulp_truncate(s);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -698,9 +698,9 @@ template <>
 struct NumericConverter<cutlass_rt_tm::tfloat32_t, float, FloatRoundStyle::round_half_ulp_trunc_dntz> {
   using result_type = cutlass_rt_tm::tfloat32_t;
   using source_type = float;
-  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_half_ulp_trunc_dntz;
+  static constexpr FloatRoundStyle round_style = FloatRoundStyle::round_half_ulp_trunc_dntz;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & s) {
 
     unsigned y = reinterpret_cast<unsigned const &>(s);
@@ -711,7 +711,7 @@ struct NumericConverter<cutlass_rt_tm::tfloat32_t, float, FloatRoundStyle::round
     return reinterpret_cast<result_type const &>(z);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -721,15 +721,15 @@ template <>
 struct NumericConverter<cutlass_rt_tm::tfloat32_t, float, FloatRoundStyle::round_toward_zero> {
   using result_type = cutlass_rt_tm::tfloat32_t;
   using source_type = float;
-  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_zero;
+  static constexpr FloatRoundStyle round_style = FloatRoundStyle::round_toward_zero;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & s) {
     uint32_t x = reinterpret_cast<uint32_t const &>(s);
     return cutlass_rt_tm::tfloat32_t::bitcast(x & 0xffffe000);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -753,10 +753,10 @@ struct NumericConverterFastF32 {
   using source_type = float;
 
   // rounding styles for big and small part
-  static constexpr FloatRoundStyle  kRoundBig = RoundBig;
-  static constexpr FloatRoundStyle  kRoundSmall = RoundSmall;
+  static constexpr FloatRoundStyle kRoundBig = RoundBig;
+  static constexpr FloatRoundStyle kRoundSmall = RoundSmall;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
     static result_type convert(source_type const & source) {
 
     result_type result;
@@ -772,7 +772,7 @@ struct NumericConverterFastF32 {
     return result;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
     result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -793,7 +793,7 @@ struct NumericConverterClamp {
   using result_type = T;
   using source_type = S;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
     static result_type convert(source_type const & s) {
     NumericConverter<result_type, source_type> convert_op;
     result_type const kClamp_max = cutlass_rt_tm::platform::numeric_limits<result_type>::max();
@@ -805,7 +805,7 @@ struct NumericConverterClamp {
     return convert_op(s);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -822,12 +822,12 @@ struct NumericConverterClamp<cutlass_rt_tm::half_t, S> {
   using result_type = cutlass_rt_tm::half_t;
   using source_type = S;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const &source) {
     return static_cast<cutlass_rt_tm::half_t>(source);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -851,19 +851,19 @@ struct NumericArrayConverter {
 
   using result_type = Array<T, N>;
   using source_type = Array<S, N>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
   static_assert(platform::is_same<Transform, cutlass_rt_tm::transform::thread::UnaryTransform::Identity>::value ||
                 platform::is_same<Transform, cutlass_rt_tm::transform::thread::UnaryTransform::Conjugate>::value,
                   "Unary Operator not supported.");
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & s) {
 
     result_type result;
     NumericConverter<T, S, Round> convert_;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < N; ++i) {
       if (platform::is_same<Transform, cutlass_rt_tm::transform::thread::UnaryTransform::Identity>::value) {
         result[i] = convert_(s[i]);
@@ -875,7 +875,7 @@ struct NumericArrayConverter {
     return result;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -891,13 +891,13 @@ struct NumericArrayConverter<T, T, N, Round, Transform> {
 
   using result_type = Array<T, N>;
   using source_type = Array<T, N>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
   static_assert(platform::is_same<Transform, cutlass_rt_tm::transform::thread::UnaryTransform::Identity>::value ||
                 platform::is_same<Transform, cutlass_rt_tm::transform::thread::UnaryTransform::Conjugate>::value,
                   "Unary Operator not supported.");
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const &source) {
     if (platform::is_same<Transform, cutlass_rt_tm::transform::thread::UnaryTransform::Identity>::value) {
       return source;
@@ -910,7 +910,7 @@ struct NumericArrayConverter<T, T, N, Round, Transform> {
     }
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -924,9 +924,9 @@ struct NumericArrayConverter<cutlass_rt_tm::half_t, float, 2, FloatRoundStyle::r
 
   using result_type = Array<cutlass_rt_tm::half_t, 2>;
   using source_type = Array<float, 2>;
-  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle round_style = FloatRoundStyle::round_to_nearest;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
     #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 530)
       Array<cutlass_rt_tm::half_t, 2> result;
@@ -945,7 +945,7 @@ struct NumericArrayConverter<cutlass_rt_tm::half_t, float, 2, FloatRoundStyle::r
     #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -957,9 +957,9 @@ struct NumericArrayConverter<float, cutlass_rt_tm::half_t, 2, Round> {
 
   using result_type = Array<float, 2>;
   using source_type = Array<cutlass_rt_tm::half_t, 2>;
-  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle round_style = FloatRoundStyle::round_to_nearest;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
 
     #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 530)
@@ -977,7 +977,7 @@ struct NumericArrayConverter<float, cutlass_rt_tm::half_t, 2, Round> {
     #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -994,9 +994,9 @@ struct NumericArrayConverter<cutlass_rt_tm::half_t, float, N, Round> {
 
   using result_type = Array<cutlass_rt_tm::half_t, N>;
   using source_type = Array<float, N>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
 
     NumericArrayConverter<cutlass_rt_tm::half_t, float, 2, Round> convert_vector_;
@@ -1007,7 +1007,7 @@ struct NumericArrayConverter<cutlass_rt_tm::half_t, float, N, Round> {
     Array<cutlass_rt_tm::half_t, 2> *result_ptr = reinterpret_cast<Array<cutlass_rt_tm::half_t, 2> *>(&result);
     Array<float, 2> const *source_ptr = reinterpret_cast<Array<float, 2> const *>(&source);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < N / 2; ++i) {
       result_ptr[i] = convert_vector_(source_ptr[i]);
     }
@@ -1019,7 +1019,7 @@ struct NumericArrayConverter<cutlass_rt_tm::half_t, float, N, Round> {
     return result;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -1035,9 +1035,9 @@ struct NumericArrayConverter<float, cutlass_rt_tm::half_t, N, Round> {
 
   using result_type = Array<float, N>;
   using source_type = Array<cutlass_rt_tm::half_t, N>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
 
     NumericArrayConverter<float, cutlass_rt_tm::half_t, 2, Round> convert_vector_;
@@ -1048,7 +1048,7 @@ struct NumericArrayConverter<float, cutlass_rt_tm::half_t, N, Round> {
     Array<float, 2> *result_ptr = reinterpret_cast<Array<float, 2> *>(&result);
     Array<cutlass_rt_tm::half_t, 2> const *source_ptr = reinterpret_cast<Array<cutlass_rt_tm::half_t, 2> const *>(&source);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < N / 2; ++i) {
       result_ptr[i] = convert_vector_(source_ptr[i]);
     }
@@ -1060,7 +1060,7 @@ struct NumericArrayConverter<float, cutlass_rt_tm::half_t, N, Round> {
     return result;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -1077,9 +1077,9 @@ struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, float, 2, FloatRoundStyl
 
   using result_type = Array<cutlass_rt_tm::bfloat16_t, 2>;
   using source_type = Array<float, 2>;
-  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle round_style = FloatRoundStyle::round_to_nearest;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
 
     unsigned d;
@@ -1089,7 +1089,7 @@ struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, float, 2, FloatRoundStyl
     return reinterpret_cast<result_type const &>(d);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -1102,9 +1102,9 @@ struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, float, 2, FloatRoundStyl
 
   using result_type = Array<cutlass_rt_tm::bfloat16_t, 2>;
   using source_type = Array<float, 2>;
-  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_to_nearest_satfinite;
+  static constexpr FloatRoundStyle round_style = FloatRoundStyle::round_to_nearest_satfinite;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
 
     unsigned d;
@@ -1114,7 +1114,7 @@ struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, float, 2, FloatRoundStyl
     return reinterpret_cast<result_type const &>(d);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -1132,9 +1132,9 @@ struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, float, N, Round> {
 
   using result_type = Array<cutlass_rt_tm::bfloat16_t, N>;
   using source_type = Array<float, N>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
 
     NumericArrayConverter<cutlass_rt_tm::bfloat16_t, float, 2, Round> convert_vector_;
@@ -1145,7 +1145,7 @@ struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, float, N, Round> {
     Array<cutlass_rt_tm::bfloat16_t, 2> *result_ptr = reinterpret_cast<Array<cutlass_rt_tm::bfloat16_t, 2> *>(&result);
     Array<float, 2> const *source_ptr = reinterpret_cast<Array<float, 2> const *>(&source);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < N / 2; ++i) {
       result_ptr[i] = convert_vector_(source_ptr[i]);
     }
@@ -1157,7 +1157,7 @@ struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, float, N, Round> {
     return result;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -1180,9 +1180,9 @@ struct NumericArrayConverter<int8_t, int, 1, Round> {
 
   using result_type = Array<int8_t, 1>;
   using source_type = Array<int, 1>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
     NumericConverter<int8_t, int, Round> convert_element_;
 
@@ -1193,7 +1193,7 @@ struct NumericArrayConverter<int8_t, int, 1, Round> {
     return result;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -1207,9 +1207,9 @@ struct NumericArrayConverter<int8_t, int, 2, Round> {
 
   using result_type = Array<int8_t, 2>;
   using source_type = Array<int, 2>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
 
     uint32_t tmp;
@@ -1222,7 +1222,7 @@ struct NumericArrayConverter<int8_t, int, 2, Round> {
     return reinterpret_cast<result_type const &>(out);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -1236,9 +1236,9 @@ struct NumericArrayConverter<int8_t, int, 4, Round> {
 
   using result_type = Array<int8_t, 4>;
   using source_type = Array<int, 4>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
 
     unsigned out;
@@ -1253,7 +1253,7 @@ struct NumericArrayConverter<int8_t, int, 4, Round> {
     return reinterpret_cast<result_type const &>(out);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -1269,9 +1269,9 @@ struct NumericArrayConverter<int8_t, int, N, Round> {
 
   using result_type = Array<int8_t, N>;
   using source_type = Array<int, N>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
 
     NumericArrayConverter<int8_t, int, 4, Round> convert_vector_;
@@ -1281,7 +1281,7 @@ struct NumericArrayConverter<int8_t, int, N, Round> {
     Array<int8_t, 4> *result_ptr = reinterpret_cast<Array<int8_t, 4> *>(&result);
     Array<int, 4> const *source_ptr = reinterpret_cast<Array<int, 4> const *>(&source);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < N / 4; ++i) {
       result_ptr[i] = convert_vector_(source_ptr[i]);
     }
@@ -1289,7 +1289,7 @@ struct NumericArrayConverter<int8_t, int, N, Round> {
     return result;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -1303,9 +1303,9 @@ struct NumericArrayConverter<uint8_t, int, 1, Round> {
 
   using result_type = Array<uint8_t, 1>;
   using source_type = Array<int, 1>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
     NumericConverter<uint8_t, int, Round> convert_element_;
 
@@ -1316,7 +1316,7 @@ struct NumericArrayConverter<uint8_t, int, 1, Round> {
     return result;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -1330,9 +1330,9 @@ struct NumericArrayConverter<uint8_t, int, 2, Round> {
 
   using result_type = Array<uint8_t, 2>;
   using source_type = Array<int, 2>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
 
     uint32_t tmp;
@@ -1345,7 +1345,7 @@ struct NumericArrayConverter<uint8_t, int, 2, Round> {
     return reinterpret_cast<result_type const &>(out);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -1359,9 +1359,9 @@ struct NumericArrayConverter<uint8_t, int, 4, Round> {
 
   using result_type = Array<uint8_t, 4>;
   using source_type = Array<int, 4>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
 
     unsigned out;
@@ -1376,7 +1376,7 @@ struct NumericArrayConverter<uint8_t, int, 4, Round> {
     return reinterpret_cast<result_type const &>(out);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -1392,9 +1392,9 @@ struct NumericArrayConverter<uint8_t, int, N, Round> {
 
   using result_type = Array<uint8_t, N>;
   using source_type = Array<int, N>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
 
     NumericArrayConverter<uint8_t, int, 4, Round> convert_vector_;
@@ -1404,7 +1404,7 @@ struct NumericArrayConverter<uint8_t, int, N, Round> {
     Array<uint8_t, 4> *result_ptr = reinterpret_cast<Array<uint8_t, 4> *>(&result);
     Array<int, 4> const *source_ptr = reinterpret_cast<Array<int, 4> const *>(&source);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < N / 4; ++i) {
       result_ptr[i] = convert_vector_(source_ptr[i]);
     }
@@ -1412,7 +1412,7 @@ struct NumericArrayConverter<uint8_t, int, N, Round> {
     return result;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -1436,9 +1436,9 @@ struct NumericArrayConverter<float, cutlass_rt_tm::float_e4m3_t, 2, Round> {
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -1460,7 +1460,7 @@ struct NumericArrayConverter<float, cutlass_rt_tm::float_e4m3_t, 2, Round> {
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
@@ -1469,7 +1469,7 @@ struct NumericArrayConverter<float, cutlass_rt_tm::float_e4m3_t, 2, Round> {
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -1485,9 +1485,9 @@ struct NumericArrayConverter<float_e4m3_t, float, 2, Round> {
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -1504,7 +1504,7 @@ struct NumericArrayConverter<float_e4m3_t, float, 2, Round> {
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
@@ -1513,7 +1513,7 @@ struct NumericArrayConverter<float_e4m3_t, float, 2, Round> {
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -1529,9 +1529,9 @@ struct NumericArrayConverter<float, cutlass_rt_tm::float_e5m2_t, 2, Round> {
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -1553,7 +1553,7 @@ struct NumericArrayConverter<float, cutlass_rt_tm::float_e5m2_t, 2, Round> {
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
@@ -1562,7 +1562,7 @@ struct NumericArrayConverter<float, cutlass_rt_tm::float_e5m2_t, 2, Round> {
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -1578,9 +1578,9 @@ struct NumericArrayConverter<float_e5m2_t, float, 2, Round> {
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -1597,7 +1597,7 @@ struct NumericArrayConverter<float_e5m2_t, float, 2, Round> {
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
@@ -1606,7 +1606,7 @@ struct NumericArrayConverter<float_e5m2_t, float, 2, Round> {
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -1628,9 +1628,9 @@ struct NumericArrayConverter<cutlass_rt_tm::half_t, cutlass_rt_tm::float_e4m3_t,
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -1648,7 +1648,7 @@ struct NumericArrayConverter<cutlass_rt_tm::half_t, cutlass_rt_tm::float_e4m3_t,
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
@@ -1657,7 +1657,7 @@ struct NumericArrayConverter<cutlass_rt_tm::half_t, cutlass_rt_tm::float_e4m3_t,
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -1673,9 +1673,9 @@ struct NumericArrayConverter<float_e4m3_t, cutlass_rt_tm::half_t, 2, Round> {
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -1692,7 +1692,7 @@ struct NumericArrayConverter<float_e4m3_t, cutlass_rt_tm::half_t, 2, Round> {
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
@@ -1701,7 +1701,7 @@ struct NumericArrayConverter<float_e4m3_t, cutlass_rt_tm::half_t, 2, Round> {
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -1717,9 +1717,9 @@ struct NumericArrayConverter<cutlass_rt_tm::half_t, cutlass_rt_tm::float_e5m2_t,
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -1737,7 +1737,7 @@ struct NumericArrayConverter<cutlass_rt_tm::half_t, cutlass_rt_tm::float_e5m2_t,
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
@@ -1746,7 +1746,7 @@ struct NumericArrayConverter<cutlass_rt_tm::half_t, cutlass_rt_tm::float_e5m2_t,
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -1762,9 +1762,9 @@ struct NumericArrayConverter<float_e5m2_t, cutlass_rt_tm::half_t, 2, Round> {
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -1781,7 +1781,7 @@ struct NumericArrayConverter<float_e5m2_t, cutlass_rt_tm::half_t, 2, Round> {
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
@@ -1790,7 +1790,7 @@ struct NumericArrayConverter<float_e5m2_t, cutlass_rt_tm::half_t, 2, Round> {
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -1812,9 +1812,9 @@ struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, cutlass_rt_tm::float_e4m
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -1832,7 +1832,7 @@ struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, cutlass_rt_tm::float_e4m
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
@@ -1841,7 +1841,7 @@ struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, cutlass_rt_tm::float_e4m
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -1857,9 +1857,9 @@ struct NumericArrayConverter<float_e4m3_t, cutlass_rt_tm::bfloat16_t, 2, Round> 
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -1878,7 +1878,7 @@ struct NumericArrayConverter<float_e4m3_t, cutlass_rt_tm::bfloat16_t, 2, Round> 
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
@@ -1887,7 +1887,7 @@ struct NumericArrayConverter<float_e4m3_t, cutlass_rt_tm::bfloat16_t, 2, Round> 
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -1903,9 +1903,9 @@ struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, cutlass_rt_tm::float_e5m
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -1923,7 +1923,7 @@ struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, cutlass_rt_tm::float_e5m
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
@@ -1932,7 +1932,7 @@ struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, cutlass_rt_tm::float_e5m
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -1948,9 +1948,9 @@ struct NumericArrayConverter<float_e5m2_t, cutlass_rt_tm::bfloat16_t, 2, Round> 
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -1969,7 +1969,7 @@ struct NumericArrayConverter<float_e5m2_t, cutlass_rt_tm::bfloat16_t, 2, Round> 
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
@@ -1978,7 +1978,7 @@ struct NumericArrayConverter<float_e5m2_t, cutlass_rt_tm::bfloat16_t, 2, Round> 
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -1997,18 +1997,18 @@ template <
 struct NumericArrayConverterPacked4Element {
   using result_type = Array<T, 4>;
   using source_type = Array<S, 4>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
   static_assert(platform::is_same<Transform, cutlass_rt_tm::transform::thread::UnaryTransform::Identity>::value ||
                 platform::is_same<Transform, cutlass_rt_tm::transform::thread::UnaryTransform::Conjugate>::value,
                   "Unary Operator not supported.");
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & s) {
 
     result_type result;
     NumericConverter<T, S, Round> convert_;
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
       if (platform::is_same<Transform, cutlass_rt_tm::transform::thread::UnaryTransform::Identity>::value) {
         result[i] = convert_(s[i]);
@@ -2021,7 +2021,7 @@ struct NumericArrayConverterPacked4Element {
     return result;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -2037,9 +2037,9 @@ struct NumericArrayConverterPacked4Element<float, cutlass_rt_tm::float_e4m3_t, R
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -2067,7 +2067,7 @@ struct NumericArrayConverterPacked4Element<float, cutlass_rt_tm::float_e4m3_t, R
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
@@ -2076,7 +2076,7 @@ struct NumericArrayConverterPacked4Element<float, cutlass_rt_tm::float_e4m3_t, R
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -2092,9 +2092,9 @@ struct NumericArrayConverterPacked4Element<float_e4m3_t, float, Round> {
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -2115,7 +2115,7 @@ struct NumericArrayConverterPacked4Element<float_e4m3_t, float, Round> {
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
@@ -2124,7 +2124,7 @@ struct NumericArrayConverterPacked4Element<float_e4m3_t, float, Round> {
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -2141,9 +2141,9 @@ struct NumericArrayConverterPacked4Element<float, float_ue4m3_t, Round> {
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -2171,7 +2171,7 @@ struct NumericArrayConverterPacked4Element<float, float_ue4m3_t, Round> {
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
@@ -2180,7 +2180,7 @@ struct NumericArrayConverterPacked4Element<float, float_ue4m3_t, Round> {
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -2196,9 +2196,9 @@ struct NumericArrayConverterPacked4Element<float_ue4m3_t, float, Round> {
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -2219,7 +2219,7 @@ struct NumericArrayConverterPacked4Element<float_ue4m3_t, float, Round> {
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
@@ -2228,7 +2228,7 @@ struct NumericArrayConverterPacked4Element<float_ue4m3_t, float, Round> {
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -2251,9 +2251,9 @@ struct NumericArrayConverterPacked4Element<float, float_ue8m0_t, Round> {
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
   using BfloatArr = Array<cutlass_rt_tm::bfloat16_t, 4>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_UE8M0_CVT_ENABLED)
@@ -2281,7 +2281,7 @@ struct NumericArrayConverterPacked4Element<float, float_ue8m0_t, Round> {
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
@@ -2290,7 +2290,7 @@ struct NumericArrayConverterPacked4Element<float, float_ue8m0_t, Round> {
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -2305,9 +2305,9 @@ struct NumericArrayConverterPacked4Element<float_ue8m0_t, float, FloatRoundStyle
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_infinity;
+  static constexpr FloatRoundStyle round_style = FloatRoundStyle::round_toward_infinity;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_UE8M0_CVT_ENABLED)
@@ -2327,7 +2327,7 @@ struct NumericArrayConverterPacked4Element<float_ue8m0_t, float, FloatRoundStyle
     result_type result;
     NumericConverter<result_element, source_element, FloatRoundStyle::round_toward_infinity> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
@@ -2335,7 +2335,7 @@ struct NumericArrayConverterPacked4Element<float_ue8m0_t, float, FloatRoundStyle
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -2349,9 +2349,9 @@ struct NumericArrayConverterPacked4Element<float_ue8m0_t, float, FloatRoundStyle
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_zero;
+  static constexpr FloatRoundStyle round_style = FloatRoundStyle::round_toward_zero;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_UE8M0_CVT_ENABLED)
@@ -2371,7 +2371,7 @@ struct NumericArrayConverterPacked4Element<float_ue8m0_t, float, FloatRoundStyle
     result_type result;
     NumericConverter<result_element, source_element, FloatRoundStyle::round_toward_zero> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
@@ -2380,7 +2380,7 @@ struct NumericArrayConverterPacked4Element<float_ue8m0_t, float, FloatRoundStyle
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -2395,15 +2395,15 @@ struct NumericArrayConverterPacked4Element<float_ue8m0_t, float, Round> {
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_infinity;
+  static constexpr FloatRoundStyle round_style = FloatRoundStyle::round_toward_infinity;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
     //default maps to RP mode.
     return NumericArrayConverterPacked4Element<float_ue8m0_t, float, FloatRoundStyle::round_toward_infinity>{}(source);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -2426,9 +2426,9 @@ struct NumericArrayConverterPacked4Element<cutlass_rt_tm::detail::float_e2m3_unp
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP4FP6_CVT_ENABLED)
@@ -2449,7 +2449,7 @@ struct NumericArrayConverterPacked4Element<cutlass_rt_tm::detail::float_e2m3_unp
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
@@ -2458,7 +2458,7 @@ struct NumericArrayConverterPacked4Element<cutlass_rt_tm::detail::float_e2m3_unp
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -2474,9 +2474,9 @@ struct NumericArrayConverterPacked4Element<float, cutlass_rt_tm::detail::float_e
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP4FP6_CVT_ENABLED)
@@ -2504,7 +2504,7 @@ struct NumericArrayConverterPacked4Element<float, cutlass_rt_tm::detail::float_e
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
@@ -2513,7 +2513,7 @@ struct NumericArrayConverterPacked4Element<float, cutlass_rt_tm::detail::float_e
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -2535,9 +2535,9 @@ struct NumericArrayConverterPacked4Element<cutlass_rt_tm::detail::float_e3m2_unp
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP4FP6_CVT_ENABLED)
@@ -2558,7 +2558,7 @@ struct NumericArrayConverterPacked4Element<cutlass_rt_tm::detail::float_e3m2_unp
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
@@ -2567,7 +2567,7 @@ struct NumericArrayConverterPacked4Element<cutlass_rt_tm::detail::float_e3m2_unp
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -2584,9 +2584,9 @@ struct NumericArrayConverterPacked4Element<float, cutlass_rt_tm::detail::float_e
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP4FP6_CVT_ENABLED)
@@ -2614,7 +2614,7 @@ struct NumericArrayConverterPacked4Element<float, cutlass_rt_tm::detail::float_e
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
@@ -2623,7 +2623,7 @@ struct NumericArrayConverterPacked4Element<float, cutlass_rt_tm::detail::float_e
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -2646,9 +2646,9 @@ struct NumericArrayConverterPacked4Element<float, cutlass_rt_tm::float_e5m2_t, R
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -2676,7 +2676,7 @@ struct NumericArrayConverterPacked4Element<float, cutlass_rt_tm::float_e5m2_t, R
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
@@ -2685,7 +2685,7 @@ struct NumericArrayConverterPacked4Element<float, cutlass_rt_tm::float_e5m2_t, R
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -2701,9 +2701,9 @@ struct NumericArrayConverterPacked4Element<float_e5m2_t, float, Round> {
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -2724,7 +2724,7 @@ struct NumericArrayConverterPacked4Element<float_e5m2_t, float, Round> {
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
@@ -2733,7 +2733,7 @@ struct NumericArrayConverterPacked4Element<float_e5m2_t, float, Round> {
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -2755,9 +2755,9 @@ struct NumericArrayConverterPacked4Element<cutlass_rt_tm::half_t, cutlass_rt_tm:
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -2775,7 +2775,7 @@ struct NumericArrayConverterPacked4Element<cutlass_rt_tm::half_t, cutlass_rt_tm:
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
@@ -2784,7 +2784,7 @@ struct NumericArrayConverterPacked4Element<cutlass_rt_tm::half_t, cutlass_rt_tm:
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -2800,9 +2800,9 @@ struct NumericArrayConverterPacked4Element<float_e4m3_t, cutlass_rt_tm::half_t, 
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -2824,7 +2824,7 @@ struct NumericArrayConverterPacked4Element<float_e4m3_t, cutlass_rt_tm::half_t, 
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
@@ -2833,7 +2833,7 @@ struct NumericArrayConverterPacked4Element<float_e4m3_t, cutlass_rt_tm::half_t, 
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -2855,9 +2855,9 @@ struct NumericArrayConverterPacked4Element<cutlass_rt_tm::half_t, cutlass_rt_tm:
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -2875,7 +2875,7 @@ struct NumericArrayConverterPacked4Element<cutlass_rt_tm::half_t, cutlass_rt_tm:
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
@@ -2884,7 +2884,7 @@ struct NumericArrayConverterPacked4Element<cutlass_rt_tm::half_t, cutlass_rt_tm:
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -2900,9 +2900,9 @@ struct NumericArrayConverterPacked4Element<float_e5m2_t, cutlass_rt_tm::half_t, 
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -2924,7 +2924,7 @@ struct NumericArrayConverterPacked4Element<float_e5m2_t, cutlass_rt_tm::half_t, 
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
@@ -2933,7 +2933,7 @@ struct NumericArrayConverterPacked4Element<float_e5m2_t, cutlass_rt_tm::half_t, 
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -2955,9 +2955,9 @@ struct NumericArrayConverterPacked4Element<cutlass_rt_tm::bfloat16_t, cutlass_rt
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -2978,7 +2978,7 @@ struct NumericArrayConverterPacked4Element<cutlass_rt_tm::bfloat16_t, cutlass_rt
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
@@ -2987,7 +2987,7 @@ struct NumericArrayConverterPacked4Element<cutlass_rt_tm::bfloat16_t, cutlass_rt
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -3003,9 +3003,9 @@ struct NumericArrayConverterPacked4Element<float_e4m3_t, cutlass_rt_tm::bfloat16
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -3024,7 +3024,7 @@ struct NumericArrayConverterPacked4Element<float_e4m3_t, cutlass_rt_tm::bfloat16
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
@@ -3033,7 +3033,7 @@ struct NumericArrayConverterPacked4Element<float_e4m3_t, cutlass_rt_tm::bfloat16
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -3055,9 +3055,9 @@ struct NumericArrayConverterPacked4Element<cutlass_rt_tm::bfloat16_t, cutlass_rt
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -3078,7 +3078,7 @@ struct NumericArrayConverterPacked4Element<cutlass_rt_tm::bfloat16_t, cutlass_rt
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
@@ -3087,7 +3087,7 @@ struct NumericArrayConverterPacked4Element<cutlass_rt_tm::bfloat16_t, cutlass_rt
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -3103,9 +3103,9 @@ struct NumericArrayConverterPacked4Element<float_e5m2_t, cutlass_rt_tm::bfloat16
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -3124,7 +3124,7 @@ struct NumericArrayConverterPacked4Element<float_e5m2_t, cutlass_rt_tm::bfloat16
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
@@ -3133,7 +3133,7 @@ struct NumericArrayConverterPacked4Element<float_e5m2_t, cutlass_rt_tm::bfloat16
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -3155,14 +3155,14 @@ struct NumericArrayConverterPacked4Element<float_e4m3_t, cutlass_rt_tm::float_e5
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
@@ -3170,7 +3170,7 @@ struct NumericArrayConverterPacked4Element<float_e4m3_t, cutlass_rt_tm::float_e5
     return result;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -3186,14 +3186,14 @@ struct NumericArrayConverterPacked4Element<float_e5m2_t, cutlass_rt_tm::float_e4
 
   using result_type = Array<result_element, 4>;
   using source_type = Array<source_element, 4>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
@@ -3201,7 +3201,7 @@ struct NumericArrayConverterPacked4Element<float_e5m2_t, cutlass_rt_tm::float_e4
     return result;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -3231,14 +3231,14 @@ struct PackedNumericArrayConverter {
   using result_type = Array<result_element, N>;
   using source_type = Array<source_element, N>;
 
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
 private:
   using packed_result_type = Array<result_element, 4>;
   using packed_source_type = Array<source_element, 4>;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
     result_type result;
     packed_result_type* packed_result = reinterpret_cast<packed_result_type*>(&result);
@@ -3246,14 +3246,14 @@ public:
 
     detail::NumericArrayConverterPacked4Element<result_element, source_element, Round> packed_converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < N / 4; ++i) {
       packed_result[i] = packed_converter(packed_source[i]);
     }
 
     // Handle leftovers
     NumericConverter<result_element, source_element, Round> converter;
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < N % 4; ++i) {
       int idx = ((N / 4) * 4) + i;
       result[idx] = converter(source[idx]);
@@ -3262,7 +3262,7 @@ public:
     return result;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const{
     return convert(s);
   }
@@ -3347,9 +3347,9 @@ struct NumericArrayConverter<float, float_ue8m0_t, 2, Round> {
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_UE8M0_CVT_ENABLED)
@@ -3372,7 +3372,7 @@ struct NumericArrayConverter<float, float_ue8m0_t, 2, Round> {
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
@@ -3381,7 +3381,7 @@ struct NumericArrayConverter<float, float_ue8m0_t, 2, Round> {
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -3395,9 +3395,9 @@ struct NumericArrayConverter<float_ue8m0_t, float, 2, FloatRoundStyle::round_tow
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_infinity;
+  static constexpr FloatRoundStyle round_style = FloatRoundStyle::round_toward_infinity;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_UE8M0_CVT_ENABLED)
@@ -3413,7 +3413,7 @@ struct NumericArrayConverter<float_ue8m0_t, float, 2, FloatRoundStyle::round_tow
     result_type result;
     NumericConverter<result_element, source_element, FloatRoundStyle::round_toward_infinity> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
@@ -3422,7 +3422,7 @@ struct NumericArrayConverter<float_ue8m0_t, float, 2, FloatRoundStyle::round_tow
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -3436,9 +3436,9 @@ struct NumericArrayConverter<float_ue8m0_t, float, 2, FloatRoundStyle::round_tow
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static constexpr FloatRoundStyle  round_style = FloatRoundStyle::round_toward_zero;
+  static constexpr FloatRoundStyle round_style = FloatRoundStyle::round_toward_zero;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_UE8M0_CVT_ENABLED)
@@ -3454,7 +3454,7 @@ struct NumericArrayConverter<float_ue8m0_t, float, 2, FloatRoundStyle::round_tow
     result_type result;
     NumericConverter<result_element, source_element, FloatRoundStyle::round_toward_zero> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
@@ -3463,7 +3463,7 @@ struct NumericArrayConverter<float_ue8m0_t, float, 2, FloatRoundStyle::round_tow
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -3478,14 +3478,14 @@ struct NumericArrayConverter<float_ue8m0_t, float, 2, Round> {
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
     return NumericArrayConverter<float_ue8m0_t, float, 2, FloatRoundStyle::round_toward_infinity>{}(source);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -3515,9 +3515,9 @@ struct NumericArrayConverter<float, float_ue4m3_t, 2, Round> {
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -3539,7 +3539,7 @@ struct NumericArrayConverter<float, float_ue4m3_t, 2, Round> {
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
@@ -3548,7 +3548,7 @@ struct NumericArrayConverter<float, float_ue4m3_t, 2, Round> {
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -3564,9 +3564,9 @@ struct NumericArrayConverter<float_ue4m3_t, float, 2, Round> {
 
   using result_type = Array<result_element, 2>;
   using source_type = Array<source_element, 2>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
@@ -3583,7 +3583,7 @@ struct NumericArrayConverter<float_ue4m3_t, float, 2, Round> {
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
@@ -3592,7 +3592,7 @@ struct NumericArrayConverter<float_ue4m3_t, float, 2, Round> {
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -3694,9 +3694,9 @@ struct NumericArrayConverter<float, cutlass_rt_tm::float_e2m1_t, 8, Round> {
 
   using result_type = Array<result_element, 8>;
   using source_type = Array<source_element, 8>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP4FP6_CVT_ENABLED)
@@ -3732,7 +3732,7 @@ struct NumericArrayConverter<float, cutlass_rt_tm::float_e2m1_t, 8, Round> {
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 8; ++i) {
       result[i] = converter(source[i]);
     }
@@ -3741,7 +3741,7 @@ struct NumericArrayConverter<float, cutlass_rt_tm::float_e2m1_t, 8, Round> {
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -3757,9 +3757,9 @@ struct NumericArrayConverter<float, cutlass_rt_tm::float_e2m1_t, N, Round> {
 
   using result_type = Array<float, N>;
   using source_type = Array<float_e2m1_t, N>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
 
     NumericArrayConverter<float, cutlass_rt_tm::float_e2m1_t, 8, Round> convert_vector_;
@@ -3769,7 +3769,7 @@ struct NumericArrayConverter<float, cutlass_rt_tm::float_e2m1_t, N, Round> {
     Array<float, 8> *result_ptr = reinterpret_cast<Array<float, 8> *>(&result);
     Array<float_e2m1_t, 8> const *source_ptr = reinterpret_cast<Array<float_e2m1_t, 8> const *>(&source);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < N / 8; ++i) {
       result_ptr[i] = convert_vector_(source_ptr[i]);
     }
@@ -3777,7 +3777,7 @@ struct NumericArrayConverter<float, cutlass_rt_tm::float_e2m1_t, N, Round> {
     return result;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -3794,9 +3794,9 @@ struct NumericArrayConverter<float_e2m1_t, float, 2, Round> {
 
   using result_type = Array<float_e2m1_t, 2>;
   using source_type = Array<float, 2>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
   #if defined(CUDA_PTX_FP4FP6_CVT_ENABLED)
     uint32_t tmp;
@@ -3818,7 +3818,7 @@ struct NumericArrayConverter<float_e2m1_t, float, 2, Round> {
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
@@ -3827,7 +3827,7 @@ struct NumericArrayConverter<float_e2m1_t, float, 2, Round> {
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -3843,9 +3843,9 @@ struct NumericArrayConverter<float_e2m1_t, float, 8, Round> {
 
   using result_type = Array<float_e2m1_t, 8>;
   using source_type = Array<float, 8>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP4FP6_CVT_ENABLED)
@@ -3870,7 +3870,7 @@ struct NumericArrayConverter<float_e2m1_t, float, 8, Round> {
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 8; ++i) {
       result[i] = converter(source[i]);
     }
@@ -3879,7 +3879,7 @@ struct NumericArrayConverter<float_e2m1_t, float, 8, Round> {
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -3895,9 +3895,9 @@ struct NumericArrayConverter<float_e2m1_t, float, 4, Round> {
 
   using result_type = Array<float_e2m1_t, 4>;
   using source_type = Array<float, 4>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
 
   #if defined(CUDA_PTX_FP4FP6_CVT_ENABLED)
@@ -3917,7 +3917,7 @@ struct NumericArrayConverter<float_e2m1_t, float, 4, Round> {
     result_type result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
@@ -3926,7 +3926,7 @@ struct NumericArrayConverter<float_e2m1_t, float, 4, Round> {
   #endif
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -3942,9 +3942,9 @@ struct NumericArrayConverter<float_e2m1_t, float, N, Round> {
 
   using result_type = Array<float_e2m1_t, N>;
   using source_type = Array<float, N>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
 
     NumericArrayConverter<float_e2m1_t, float, 8, Round> convert_vector_;
@@ -3954,7 +3954,7 @@ struct NumericArrayConverter<float_e2m1_t, float, N, Round> {
     Array<float_e2m1_t, 8> *result_ptr = reinterpret_cast<Array<float_e2m1_t, 8> *>(&result);
     Array<float, 8> const *source_ptr = reinterpret_cast<Array<float, 8> const *>(&source);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < N / 8; ++i) {
       result_ptr[i] = convert_vector_(source_ptr[i]);
     }
@@ -3962,7 +3962,7 @@ struct NumericArrayConverter<float_e2m1_t, float, N, Round> {
     return result;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -3980,9 +3980,9 @@ struct NumericArrayConverter<int8_t, float, 1, Round> {
 
   using result_type = Array<int8_t, 1>;
   using source_type = Array<float, 1>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
     NumericConverter<int8_t, float, Round> destination_converter;
     result_type result;
@@ -3990,7 +3990,7 @@ struct NumericArrayConverter<int8_t, float, 1, Round> {
     return result;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -4003,9 +4003,9 @@ struct NumericArrayConverter<uint8_t, float, 1, Round> {
 
   using result_type = Array<uint8_t, 1>;
   using source_type = Array<float, 1>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
     NumericConverter<uint8_t, float, Round> destination_converter;
     result_type result;
@@ -4013,7 +4013,7 @@ struct NumericArrayConverter<uint8_t, float, 1, Round> {
     return result;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -4029,11 +4029,11 @@ struct NumericArrayFP32ToIntConverter {
 
   using result_type = Array<T, N>;
   using source_type = Array<float, N>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
   static_assert(cutlass_rt_tm::platform::numeric_limits<T>::is_integer, "the dest type has to be int.");
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
     // Convert float to int
     Array<int32_t, N> temporary;
@@ -4046,7 +4046,7 @@ struct NumericArrayFP32ToIntConverter {
     return destination_converter(temporary);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -4062,13 +4062,13 @@ struct NumericArrayConverter<int8_t, float, N, Round> {
   using result_type = Array<int8_t, N>;
   using source_type = Array<float, N>;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
     NumericArrayFP32ToIntConverter<int8_t, N, Round> converter;
     return converter(source);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -4083,13 +4083,13 @@ struct NumericArrayConverter<uint8_t, float, N, Round> {
   using result_type = Array<uint8_t, N>;
   using source_type = Array<float, N>;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
     NumericArrayFP32ToIntConverter<uint8_t, N, Round> converter;
     return converter(source);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -4104,13 +4104,13 @@ struct NumericArrayConverter<int4b_t, float, N, Round> {
   using result_type = Array<int4b_t, N>;
   using source_type = Array<float, N>;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
     NumericArrayFP32ToIntConverter<int4b_t, N, Round> converter;
     return converter(source);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -4125,13 +4125,13 @@ struct NumericArrayConverter<uint4b_t, float, N, Round> {
   using result_type = Array<uint4b_t, N>;
   using source_type = Array<float, N>;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
     NumericArrayFP32ToIntConverter<uint4b_t, N, Round> converter;
     return converter(source);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -4151,9 +4151,9 @@ struct NumericArrayConverter<int4b_t, int, 8, Round> {
 
   using result_type = Array<int4b_t, 8>;
   using source_type = Array<int, 8>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
 
     unsigned out;
@@ -4172,7 +4172,7 @@ struct NumericArrayConverter<int4b_t, int, 8, Round> {
     return reinterpret_cast<result_type const &>(out);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -4188,9 +4188,9 @@ struct NumericArrayConverter<int4b_t, int, N, Round> {
 
   using result_type = Array<int4b_t, N>;
   using source_type = Array<int, N>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
 
     NumericArrayConverter<int4b_t, int, 8, Round> convert_vector_;
@@ -4200,7 +4200,7 @@ struct NumericArrayConverter<int4b_t, int, N, Round> {
     Array<int4b_t, 8> *result_ptr = reinterpret_cast<Array<int4b_t, 8> *>(&result);
     Array<int, 8> const *source_ptr = reinterpret_cast<Array<int, 8> const *>(&source);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < N / 8; ++i) {
       result_ptr[i] = convert_vector_(source_ptr[i]);
     }
@@ -4208,7 +4208,7 @@ struct NumericArrayConverter<int4b_t, int, N, Round> {
     return result;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -4222,9 +4222,9 @@ struct NumericArrayConverter<uint4b_t, int, 8, Round> {
 
   using result_type = Array<uint4b_t, 8>;
   using source_type = Array<int, 8>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
 
     unsigned out;
@@ -4243,7 +4243,7 @@ struct NumericArrayConverter<uint4b_t, int, 8, Round> {
     return reinterpret_cast<result_type const &>(out);
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -4259,9 +4259,9 @@ struct NumericArrayConverter<uint4b_t, int, N, Round> {
 
   using result_type = Array<uint4b_t, N>;
   using source_type = Array<int, N>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
 
     NumericArrayConverter<uint4b_t, int, 8, Round> convert_vector_;
@@ -4271,7 +4271,7 @@ struct NumericArrayConverter<uint4b_t, int, N, Round> {
     Array<uint4b_t, 8> *result_ptr = reinterpret_cast<Array<uint4b_t, 8> *>(&result);
     Array<int, 8> const *source_ptr = reinterpret_cast<Array<int, 8> const *>(&source);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < N / 8; ++i) {
       result_ptr[i] = convert_vector_(source_ptr[i]);
     }
@@ -4279,7 +4279,7 @@ struct NumericArrayConverter<uint4b_t, int, N, Round> {
     return result;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -4300,7 +4300,7 @@ namespace detail {
   private:
     // Base case to handle remainder elements as scalars.
     template <int Offset, size_t ParentWidth, typename ArrayConverter>
-    CUTLASS_RT_TM_DEVICE
+    CUTLASS_RT_TMDEVICE
     static void convert_helper(
       typename ArrayConverter::result_type& result,
       typename ArrayConverter::source_type const& source) {
@@ -4313,14 +4313,14 @@ namespace detail {
       static_assert(remainder == (total_elements % ParentWidth), "Unexpected remainder.");
 
       typename ArrayConverter::ScalarConverter scalar_converter;
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int i = Offset; i < ArrayConverter::result_type::kElements; ++i) {
         result[i] = scalar_converter(ElementSrc(source[i]));
       }
     }
 
     template <int Offset, size_t ParentWidth, typename ArrayConverter, typename ResultVectorArray, typename SourceVectorArray, typename... OtherVectorArrays>
-    CUTLASS_RT_TM_DEVICE
+    CUTLASS_RT_TMDEVICE
     static void convert_helper(typename ArrayConverter::result_type& result, typename ArrayConverter::source_type const& source) {
       static_assert(sizeof...(OtherVectorArrays) % 2 == 0, "Vector converters must come in {dst, src} pairs");
       static_assert(ResultVectorArray::kElements == SourceVectorArray::kElements, "Vector converters must have the same vector width");
@@ -4351,7 +4351,7 @@ namespace detail {
       // Convert the remaining elements as vectors.
       constexpr int total_elements = ArrayConverter::result_type::kElements;
       constexpr int groups_of_vec = (total_elements - Offset) / vector_width;
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int i = 0; i < groups_of_vec; ++i) {
         packed_result_vec[i] = ArrayConverter::template packed_convert<ResultVectorArray, SourceVectorArray>(packed_source_vec[i]);
       }
@@ -4368,7 +4368,7 @@ namespace detail {
         Converters using this class must implement packed convert and support 1 or more vector conversions.
       */
     template <typename ArrayConverter, typename ResultVectorArray, typename SourceVectorArray, typename... OtherVectorArrays>
-    CUTLASS_RT_TM_DEVICE
+    CUTLASS_RT_TMDEVICE
     static void convert(typename ArrayConverter::result_type& result, typename ArrayConverter::source_type const& source) {
       convert_helper<0, 0, ArrayConverter, ResultVectorArray, SourceVectorArray, OtherVectorArrays...>(result, source);
     }
@@ -4386,7 +4386,7 @@ struct NumericArrayConverter<cutlass_rt_tm::half_t, cutlass_rt_tm::float_e2m1_t,
   using source_element = cutlass_rt_tm::float_e2m1_t;
   using result_type = Array<result_element, N>;
   using source_type = Array<source_element, N>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
 private:
   using result_type_packed_8 = Array<cutlass_rt_tm::half_t, 8>;
@@ -4399,7 +4399,7 @@ private:
   using ScalarConverter = NumericConverter<cutlass_rt_tm::half_t, cutlass_rt_tm::float_e2m1_t, Round>;
 
   #if defined(CUDA_PTX_FP8_CVT_ENABLED)
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type_packed_8 ptx_convert(source_type_packed_8 const &source) {
     result_type_packed_8 out;
     uint32_t* out_fp16 = reinterpret_cast<uint32_t*>(&out);
@@ -4416,7 +4416,7 @@ private:
     return out;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type_packed_4 ptx_convert(source_type_packed_4 const &source) {
     result_type_packed_4 out;
     uint32_t* out_fp16 = reinterpret_cast<uint32_t*>(&out);
@@ -4431,7 +4431,7 @@ private:
     return out;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type_packed_2 ptx_convert(source_type_packed_2 const &source) {
     result_type_packed_2 out;
     uint32_t* out_fp16 = reinterpret_cast<uint32_t*>(&out);
@@ -4447,7 +4447,7 @@ private:
   #endif
 
   template <typename PackedResultType, typename PackedSrcType>
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static PackedResultType packed_convert(PackedSrcType const &source) {
     static_assert((platform::is_same<PackedSrcType, source_type_packed_2>::value &&
                    platform::is_same<PackedResultType, result_type_packed_2>::value) ||
@@ -4464,7 +4464,7 @@ private:
     NumericConverter<result_element, source_element, Round> converter;
 
     const int k_packed = PackedResultType::kElements;
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < k_packed; ++i) {
       result[i] = converter(source[i]);
     }
@@ -4476,7 +4476,7 @@ private:
   friend class detail::VectorizedConverter;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &source) {
     result_type result;
     using ConverterType = NumericArrayConverter<typename result_type::Element, typename source_type::Element, N, Round>;
@@ -4488,7 +4488,7 @@ public:
     return result;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -4500,7 +4500,7 @@ struct NumericArrayConverter<cutlass_rt_tm::float_e4m3_t, cutlass_rt_tm::int2b_t
   using result_type = Array<cutlass_rt_tm::float_e4m3_t, N>;
   using source_type = Array<cutlass_rt_tm::int2b_t, N>;
 
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
 private:
   using result_type_packed_16 = Array<cutlass_rt_tm::float_e4m3_t, 16>;
@@ -4510,19 +4510,19 @@ private:
 
   using ScalarConverter = NumericConverter<cutlass_rt_tm::float_e4m3_t, cutlass_rt_tm::int2b_t, Round>;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_8 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint16_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_16 const& source) {
     return reinterpret_cast<const uint32_t&>(source);
   }
 
   template <typename PackedResultType, typename PackedSrcType>
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static PackedResultType packed_convert(PackedSrcType const &source) {
 
     static_assert((platform::is_same<PackedSrcType, source_type_packed_8>::value &&
@@ -4570,7 +4570,7 @@ private:
   friend class detail::VectorizedConverter;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &source) {
     result_type result;
     using ConverterType = NumericArrayConverter<typename result_type::Element, typename source_type::Element, N, Round>;
@@ -4581,7 +4581,7 @@ public:
     return result;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -4593,7 +4593,7 @@ struct NumericArrayConverter<cutlass_rt_tm::float_e4m3_t, cutlass_rt_tm::uint2b_
   using result_type = Array<cutlass_rt_tm::float_e4m3_t, N>;
   using source_type = Array<cutlass_rt_tm::uint2b_t, N>;
 
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
 private:
   using result_type_packed_16 = Array<cutlass_rt_tm::float_e4m3_t, 16>;
@@ -4603,19 +4603,19 @@ private:
 
   using ScalarConverter = NumericConverter<cutlass_rt_tm::float_e4m3_t, cutlass_rt_tm::uint2b_t, Round>;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_8 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint16_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_16 const& source) {
     return reinterpret_cast<const uint32_t&>(source);
   }
 
   template <typename PackedResultType, typename PackedSrcType>
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static PackedResultType packed_convert(PackedSrcType const &source) {
 
     static_assert((platform::is_same<PackedSrcType, source_type_packed_8>::value &&
@@ -4663,7 +4663,7 @@ private:
   friend class detail::VectorizedConverter;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &source) {
     result_type result;
     using ConverterType = NumericArrayConverter<typename result_type::Element, typename source_type::Element, N, Round>;
@@ -4674,7 +4674,7 @@ public:
     return result;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -4686,7 +4686,7 @@ struct NumericArrayConverter<cutlass_rt_tm::float_e5m2_t, cutlass_rt_tm::int2b_t
   using result_type = Array<cutlass_rt_tm::float_e5m2_t, N>;
   using source_type = Array<cutlass_rt_tm::int2b_t, N>;
 
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
 private:
   using result_type_packed_16 = Array<cutlass_rt_tm::float_e5m2_t, 16>;
@@ -4696,19 +4696,19 @@ private:
 
   using ScalarConverter = NumericConverter<cutlass_rt_tm::float_e5m2_t, cutlass_rt_tm::int2b_t, Round>;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_8 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint16_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_16 const& source) {
     return reinterpret_cast<const uint32_t&>(source);
   }
 
   template <typename PackedResultType, typename PackedSrcType>
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static PackedResultType packed_convert(PackedSrcType const &source) {
 
     static_assert((platform::is_same<PackedSrcType, source_type_packed_8>::value &&
@@ -4756,7 +4756,7 @@ private:
   friend class detail::VectorizedConverter;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &source) {
     result_type result;
     using ConverterType = NumericArrayConverter<typename result_type::Element, typename source_type::Element, N, Round>;
@@ -4767,7 +4767,7 @@ public:
     return result;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -4779,7 +4779,7 @@ struct NumericArrayConverter<cutlass_rt_tm::float_e5m2_t, cutlass_rt_tm::uint2b_
   using result_type = Array<cutlass_rt_tm::float_e5m2_t, N>;
   using source_type = Array<cutlass_rt_tm::uint2b_t, N>;
 
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
 private:
   using result_type_packed_16 = Array<cutlass_rt_tm::float_e5m2_t, 16>;
@@ -4789,19 +4789,19 @@ private:
 
   using ScalarConverter = NumericConverter<cutlass_rt_tm::float_e5m2_t, cutlass_rt_tm::uint2b_t, Round>;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_8 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint16_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_16 const& source) {
     return reinterpret_cast<const uint32_t&>(source);
   }
 
   template <typename PackedResultType, typename PackedSrcType>
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static PackedResultType packed_convert(PackedSrcType const &source) {
 
     static_assert((platform::is_same<PackedSrcType, source_type_packed_8>::value &&
@@ -4849,7 +4849,7 @@ private:
   friend class detail::VectorizedConverter;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &source) {
     result_type result;
     using ConverterType = NumericArrayConverter<typename result_type::Element, typename source_type::Element, N, Round>;
@@ -4860,7 +4860,7 @@ public:
     return result;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -4877,9 +4877,9 @@ struct NumericArrayConverter<int8_t, int4b_t, N, Round> {
 
   using result_type = Array<int8_t, N>;
   using source_type = Array<int4b_t, N>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static result_type convert(source_type const & source) {
    
     #if defined(__CUDA_ARCH__)
@@ -4920,7 +4920,7 @@ struct NumericArrayConverter<int8_t, int4b_t, N, Round> {
       Array<int8_t, 8> *result_ptr = reinterpret_cast<Array<int8_t, 8> *>(&result);
       Array<int4b_t, 8> const *source_ptr = reinterpret_cast<Array<int4b_t, 8> const *>(&source);
       
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int i = 0; i < N / 8; ++i) {
         result_ptr[i] = convert_vector_(source_ptr[i]);
       }
@@ -4933,7 +4933,7 @@ struct NumericArrayConverter<int8_t, int4b_t, N, Round> {
     result_type result;
     NumericConverter<int8_t, int4b_t, Round> convert_;
     
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < N; ++i) {
       result[i] = convert_(source[i]);
     }
@@ -4943,7 +4943,7 @@ struct NumericArrayConverter<int8_t, int4b_t, N, Round> {
     #endif // __CUDA_ARCH__
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -4955,7 +4955,7 @@ struct NumericArrayConverter<cutlass_rt_tm::float_e4m3_t, cutlass_rt_tm::int4b_t
   using result_type = Array<cutlass_rt_tm::float_e4m3_t, N>;
   using source_type = Array<cutlass_rt_tm::int4b_t, N>;
 
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
 private:
   using result_type_packed_8 = Array<cutlass_rt_tm::float_e4m3_t, 8>;
@@ -4965,20 +4965,20 @@ private:
 
   using ScalarConverter = NumericConverter<cutlass_rt_tm::float_e4m3_t, cutlass_rt_tm::int4b_t, Round>;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_4 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint16_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_8 const& source) {
     return reinterpret_cast<const uint32_t&>(source);
   }
 
   // The core converter uses a lookup table to converts i4 -> e4m3.
   template <typename PackedResultType, typename PackedSrcType>
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static PackedResultType packed_convert(PackedSrcType const &source) {
 
     static_assert((platform::is_same<PackedSrcType, source_type_packed_4>::value &&
@@ -5038,7 +5038,7 @@ private:
   friend class detail::VectorizedConverter;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &source) {
     result_type result;
     using ConverterType = NumericArrayConverter<typename result_type::Element, typename source_type::Element, N, Round>;
@@ -5050,7 +5050,7 @@ public:
   }
 
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -5062,7 +5062,7 @@ struct NumericArrayConverter<cutlass_rt_tm::float_e5m2_t, cutlass_rt_tm::int4b_t
   using result_type = Array<cutlass_rt_tm::float_e5m2_t, N>;
   using source_type = Array<cutlass_rt_tm::int4b_t, N>;
 
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
 private:
   using result_type_packed_8 = Array<cutlass_rt_tm::float_e5m2_t, 8>;
@@ -5072,20 +5072,20 @@ private:
 
   using ScalarConverter = NumericConverter<cutlass_rt_tm::float_e5m2_t, cutlass_rt_tm::int4b_t, Round>;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_4 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint16_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_8 const& source) {
     return reinterpret_cast<const uint32_t&>(source);
   }
 
   // The core converter uses a lookup table to converts i4 -> e5m2.
   template <typename PackedResultType, typename PackedSrcType>
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static PackedResultType packed_convert(PackedSrcType const &source) {
 
     static_assert((platform::is_same<PackedSrcType, source_type_packed_4>::value &&
@@ -5145,7 +5145,7 @@ private:
   friend class detail::VectorizedConverter;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &source) {
     result_type result;
     using ConverterType = NumericArrayConverter<typename result_type::Element, typename source_type::Element, N, Round>;
@@ -5157,7 +5157,7 @@ public:
   }
 
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -5169,7 +5169,7 @@ struct NumericArrayConverter<cutlass_rt_tm::float_e4m3_t, cutlass_rt_tm::uint4b_
   using result_type = Array<cutlass_rt_tm::float_e4m3_t, N>;
   using source_type = Array<cutlass_rt_tm::uint4b_t, N>;
 
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
 private:
   using result_type_packed_8 = Array<cutlass_rt_tm::float_e4m3_t, 8>;
@@ -5179,20 +5179,20 @@ private:
 
   using ScalarConverter = NumericConverter<cutlass_rt_tm::float_e4m3_t, cutlass_rt_tm::uint4b_t, Round>;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_4 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint16_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_8 const& source) {
     return reinterpret_cast<const uint32_t&>(source);
   }
 
   // The core converter uses a lookup table to converts u4 -> e4m3.
   template <typename PackedResultType, typename PackedSrcType>
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static PackedResultType packed_convert(PackedSrcType const &source) {
 
     static_assert((platform::is_same<PackedSrcType, source_type_packed_4>::value &&
@@ -5252,7 +5252,7 @@ private:
   friend class detail::VectorizedConverter;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &source) {
     result_type result;
     using ConverterType = NumericArrayConverter<typename result_type::Element, typename source_type::Element, N, Round>;
@@ -5264,7 +5264,7 @@ public:
   }
 
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -5276,7 +5276,7 @@ struct NumericArrayConverter<float, cutlass_rt_tm::int4b_t, N, Round> {
   using result_type = Array<float, N>;
   using source_type = Array<cutlass_rt_tm::int4b_t, N>;
 
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
 private:
   using result_type_packed_8 = Array<float, 8>;
@@ -5288,25 +5288,25 @@ private:
 
   using ScalarConverter = NumericConverter<float, cutlass_rt_tm::int4b_t, Round>;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_2 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint8_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_4 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint16_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_8 const& source) {
     return reinterpret_cast<const uint32_t&>(source);
   }
 
   template <int offset, int elements_to_convert, typename PackedResultType>
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static void packed_convert_vec(PackedResultType& result, uint32_t src_reg) {
     static_assert(offset == 0 || offset == 4, "Invalid offset");
     // Selects one of the bottom int4s and constructs:
@@ -5326,7 +5326,7 @@ private:
 
     // For each operand, computes:
     // r[i] = (r[i] & and_mask) ^ xor_mask
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < elements_to_convert; ++ii) {
       asm volatile(
           "{\n"
@@ -5342,7 +5342,7 @@ private:
   // The core converter uses bit tricks to construct a known FP16 number, then does a
   // subtraction in FP16 for the final result.
   template <typename PackedResultType, typename PackedSrcType>
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static PackedResultType packed_convert(PackedSrcType const &source) {
 
     static_assert((platform::is_same<PackedSrcType, source_type_packed_2>::value &&
@@ -5372,7 +5372,7 @@ private:
   friend class detail::VectorizedConverter;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &source) {
     result_type result;
     using ConverterType = NumericArrayConverter<typename result_type::Element, typename source_type::Element, N, Round>;
@@ -5384,7 +5384,7 @@ public:
     return result;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -5395,7 +5395,7 @@ template <FloatRoundStyle Round, int N>
 struct NumericArrayConverter<float, int8_t, N, Round> {
   using result_type = Array<float, N>;
   using source_type = Array<int8_t, N>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
 private:
   using result_type_packed_4 = Array<float, 4>;
@@ -5405,29 +5405,29 @@ private:
 
   using ScalarConverter = NumericConverter<float, int8_t, Round>;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_2 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint16_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_4 const& source) {
     return reinterpret_cast<const uint32_t&>(source);
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static int32_t to_int32(source_type_packed_2 const& source) {
     return static_cast<int32_t>(reinterpret_cast<const int16_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static int32_t to_int32(source_type_packed_4 const& source) {
     return reinterpret_cast<const int32_t&>(source);
   }
 
   template <typename PackedResultType, typename PackedSrcType>
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static PackedResultType packed_convert(PackedSrcType const &source) {
 
     static_assert((platform::is_same<PackedSrcType, source_type_packed_2>::value &&
@@ -5444,12 +5444,12 @@ private:
     uint32_t const prmt_indices[4] = {0x8880, 0x9991, 0xAAA2, 0xBBB3};
 
     int* result_as_int = reinterpret_cast<int*>(&r);
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < PackedResultType::kElements; ++ii) {
       asm volatile("prmt.b32 %0,%1,%1,%2;\n" : "=r"(result_as_int[ii]) : "r"(src_reg), "r"(prmt_indices[ii]));
     }
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < PackedResultType::kElements; ++ii)
     {
       result_as_int[ii] += fp32_base;
@@ -5460,7 +5460,7 @@ private:
     int32_t t[4];
     constexpr int32_t mask[4] = {0x00000001, 0x00000100, 0x00010000, 0x01000000};
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < PackedResultType::kElements; ++ii) {
       t[ii] = __dp4a(x, mask[ii], 0);
       r[ii] = static_cast<float>(t[ii]);
@@ -5473,7 +5473,7 @@ private:
   friend class detail::VectorizedConverter;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &source) {
     result_type result;
 
@@ -5485,7 +5485,7 @@ public:
     return result;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -5496,7 +5496,7 @@ template <FloatRoundStyle Round, int N>
 struct NumericArrayConverter<float, uint8_t, N, Round> {
   using result_type = Array<float, N>;
   using source_type = Array<uint8_t, N>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
 private:
   using result_type_packed_4 = Array<float, 4>;
@@ -5506,19 +5506,19 @@ private:
 
   using ScalarConverter = NumericConverter<float, uint8_t, Round>;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_2 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint16_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_4 const& source) {
     return reinterpret_cast<const uint32_t&>(source);
   }
 
   template <typename PackedResultType, typename PackedSrcType>
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static PackedResultType packed_convert(PackedSrcType const &source) {
 
     static_assert((platform::is_same<PackedSrcType, source_type_packed_2>::value &&
@@ -5547,7 +5547,7 @@ private:
   friend class detail::VectorizedConverter;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &source) {
     result_type result;
     using ConverterType = NumericArrayConverter<typename result_type::Element, typename source_type::Element, N, Round>;
@@ -5558,7 +5558,7 @@ public:
     return result;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -5571,7 +5571,7 @@ struct NumericArrayConverter<cutlass_rt_tm::half_t, cutlass_rt_tm::int2b_t, N, R
   using result_type = Array<cutlass_rt_tm::half_t, N>;
   using source_type = Array<cutlass_rt_tm::int2b_t, N>;
 
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
 private:
   using result_type_packed_16 = Array<cutlass_rt_tm::half_t, 16>;
@@ -5583,25 +5583,25 @@ private:
 
   using ScalarConverter = NumericConverter<cutlass_rt_tm::half_t, cutlass_rt_tm::int2b_t, Round>;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_4 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint8_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_8 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint16_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_16 const& source) {
     return reinterpret_cast<const uint32_t&>(source);
   }
 
   template <typename PackedResultType, typename PackedSrcType>
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static PackedResultType packed_convert(PackedSrcType const &source) {
 
     static_assert((platform::is_same<PackedSrcType, source_type_packed_4>::value &&
@@ -5633,7 +5633,7 @@ private:
     // might be able to optimize it out since the index is a constexpr, but we choose to be safe about it here.
     uint32_t prmt_indices[4] = {0x4040, 0x4141, 0x4242, 0x4343};
     static_assert(RegArray::kElements <= 8, "Too many inputs for I2 -> FP16 vector converter");
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < RegArray::kElements; ii += 2) {
       asm volatile(
           "{ prmt.b32 %0, %1, %2, %3; }\n"
@@ -5658,7 +5658,7 @@ private:
 
     // For each operand, computes:
     // r[i] = (r[i] & and_mask[i / 2]) ^ xor_mask[i / 2]
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < RegArray::kElements; ++ii) {
       asm volatile(
           "{ lop3.b32 %0, %0, %1, %2, %3; }\n"
@@ -5672,7 +5672,7 @@ private:
     static constexpr uint32_t hfma_scale_rep = 0x34003C00;
 
     // Scale and subtract the FP16s to get the original int4 number as FP16.
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < RegArray::kElements; ++ii) {
       half2& fp16x2_val = reinterpret_cast<__half2&>(r[ii]);
       fp16x2_val = __hfma2(fp16x2_val,
@@ -5685,7 +5685,7 @@ private:
   friend class detail::VectorizedConverter;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &source) {
     result_type result;
     using ConverterType = NumericArrayConverter<typename result_type::Element, typename source_type::Element, N, Round>;
@@ -5697,7 +5697,7 @@ public:
     return result;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -5709,7 +5709,7 @@ struct NumericArrayConverter<cutlass_rt_tm::half_t, cutlass_rt_tm::uint2b_t, N, 
   using result_type = Array<cutlass_rt_tm::half_t, N>;
   using source_type = Array<cutlass_rt_tm::uint2b_t, N>;
 
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
 private:
   using result_type_packed_16 = Array<cutlass_rt_tm::half_t, 16>;
@@ -5721,25 +5721,25 @@ private:
 
   using ScalarConverter = NumericConverter<cutlass_rt_tm::half_t, cutlass_rt_tm::uint2b_t, Round>;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_4 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint8_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_8 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint16_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_16 const& source) {
     return reinterpret_cast<const uint32_t&>(source);
   }
 
   template <typename PackedResultType, typename PackedSrcType>
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static PackedResultType packed_convert(PackedSrcType const &source) {
 
     static_assert((platform::is_same<PackedSrcType, source_type_packed_4>::value &&
@@ -5771,7 +5771,7 @@ private:
     // might be able to optimize it out since the index is a constexpr, but we choose to be safe about it here.
     uint32_t prmt_indices[4] = {0x4040, 0x4141, 0x4242, 0x4343};
     static_assert(RegArray::kElements <= 8, "Too many inputs for I2 -> FP16 vector converter");
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < RegArray::kElements; ii += 2) {
       asm volatile(
           "{ prmt.b32 %0, %1, %2, %3; }\n"
@@ -5794,7 +5794,7 @@ private:
 
     // For each operand, computes:
     // r[i] = (r[i] & and_mask[i / 2]) ^ xor_mask[i / 2]
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < RegArray::kElements; ++ii) {
       asm volatile(
           "{ lop3.b32 %0, %0, %1, %2, %3; }\n"
@@ -5808,7 +5808,7 @@ private:
     static constexpr uint32_t hfma_scale_rep = 0x34003C00;
 
     // Scale and subtract the FP16s to get the original int4 number as FP16.
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < RegArray::kElements; ++ii) {
       half2& fp16x2_val = reinterpret_cast<__half2&>(r[ii]);
       fp16x2_val = __hfma2(fp16x2_val,
@@ -5821,7 +5821,7 @@ private:
   friend class detail::VectorizedConverter;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &source) {
     result_type result;
     using ConverterType = NumericArrayConverter<typename result_type::Element, typename source_type::Element, N, Round>;
@@ -5833,7 +5833,7 @@ public:
     return result;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -5845,7 +5845,7 @@ struct NumericArrayConverter<cutlass_rt_tm::half_t, cutlass_rt_tm::int4b_t, N, R
   using result_type = Array<cutlass_rt_tm::half_t, N>;
   using source_type = Array<cutlass_rt_tm::int4b_t, N>;
 
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
 private:
   using result_type_packed_8 = Array<cutlass_rt_tm::half_t, 8>;
@@ -5857,19 +5857,19 @@ private:
 
   using ScalarConverter = NumericConverter<cutlass_rt_tm::half_t, cutlass_rt_tm::int4b_t, Round>;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_2 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint8_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_4 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint16_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_8 const& source) {
     return reinterpret_cast<const uint32_t&>(source);
   }
@@ -5877,7 +5877,7 @@ private:
   // The core converter uses bit tricks to construct a known FP16 number, then does a
   // subtraction in FP16 for the final result.
   template <typename PackedResultType, typename PackedSrcType>
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static PackedResultType packed_convert(PackedSrcType const &source) {
 
     static_assert((platform::is_same<PackedSrcType, source_type_packed_2>::value &&
@@ -5904,7 +5904,7 @@ private:
     // might be able to optimize it out since the index is a constexpr, but we choose to be safe about it here.
     uint32_t prmt_indices[4] = {0x4040, 0x4141, 0x4242, 0x4343};
     static_assert(RegArray::kElements <= 4, "Too many inputs for I4 ->F16 vector converter");
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < RegArray::kElements; ++ii) {
       asm volatile(
           "{ prmt.b32 %0, %1, %2, %3; }\n"
@@ -5925,7 +5925,7 @@ private:
 
     // For each operand, computes:
     // r[i] = (r[i] & and_mask) ^ xor_mask
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < RegArray::kElements; ++ii) {
       asm volatile(
           "{\n"
@@ -5954,7 +5954,7 @@ private:
     const half2& hfma_bias = reinterpret_cast<const half2&>(hfma_bias_rep);
     const half2& hfma_scale = reinterpret_cast<const half2&>(hfma_scale_rep);
     // Scale and subtract the FP16s to get the original int4 number as FP16.
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < RegArray::kElements; ++ii) {
       half2& fp16x2_val = reinterpret_cast<__half2&>(r[ii]);
       fp16x2_val = __hfma2(hfma_scale, fp16x2_val, hfma_bias);
@@ -5964,7 +5964,7 @@ private:
 
   friend class detail::VectorizedConverter;
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &source) {
     result_type result;
     using ConverterType = NumericArrayConverter<typename result_type::Element, typename source_type::Element, N, Round>;
@@ -5976,7 +5976,7 @@ public:
     return result;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -5988,7 +5988,7 @@ struct NumericArrayConverter<cutlass_rt_tm::half_t, cutlass_rt_tm::uint4b_t, N, 
   using result_type = Array<cutlass_rt_tm::half_t, N>;
   using source_type = Array<cutlass_rt_tm::uint4b_t, N>;
 
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
 private:
   using result_type_packed_8 = Array<cutlass_rt_tm::half_t, 8>;
@@ -6000,19 +6000,19 @@ private:
 
   using ScalarConverter = NumericConverter<cutlass_rt_tm::half_t, cutlass_rt_tm::uint4b_t, Round>;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_2 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint8_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_4 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint16_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_8 const& source) {
     return reinterpret_cast<const uint32_t&>(source);
   }
@@ -6020,7 +6020,7 @@ private:
   // The core converter uses bit tricks to construct a known FP16 number, then does a
   // subtraction in FP16 for the final result.
   template <typename PackedResultType, typename PackedSrcType>
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static PackedResultType packed_convert(PackedSrcType const &source) {
 
     static_assert((platform::is_same<PackedSrcType, source_type_packed_2>::value &&
@@ -6044,7 +6044,7 @@ private:
     // fp16s_67 = {0x00, u4_67, 0x00, u4_67}
     uint32_t prmt_indices[4] = {0x4040, 0x4141, 0x4242, 0x4343};
     static_assert(RegArray::kElements <= 4, "Too many inputs for u4 -> f16 vector converter");
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < RegArray::kElements; ++ii) {
       asm volatile(
           "{ prmt.b32 %0, %1, %2, %3; }\n"
@@ -6061,7 +6061,7 @@ private:
 
     // For each operand, computes:
     // r[i] = (r[i] & and_mask) | or_mask
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < RegArray::kElements; ++ii) {
       asm volatile(
           "{\n"
@@ -6092,7 +6092,7 @@ private:
   friend class detail::VectorizedConverter;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &source) {
     result_type result;
     using ConverterType = NumericArrayConverter<typename result_type::Element, typename source_type::Element, N, Round>;
@@ -6104,7 +6104,7 @@ public:
     return result;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -6115,7 +6115,7 @@ template <FloatRoundStyle Round, int N>
 struct NumericArrayConverter<cutlass_rt_tm::half_t, int8_t, N, Round> {
   using result_type = Array<cutlass_rt_tm::half_t, N>;
   using source_type = Array<int8_t, N>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
 private:
   using result_type_packed_4 = Array<cutlass_rt_tm::half_t, 4>;
@@ -6125,13 +6125,13 @@ private:
 
   using ScalarConverter = NumericConverter<cutlass_rt_tm::half_t, int8_t, Round>;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_2 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint16_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_4 const& source) {
     return reinterpret_cast<const uint32_t&>(source);
   }
@@ -6139,7 +6139,7 @@ private:
   // The core converter uses bit tricks to construct a known FP16 number, then does a
   // subtraction in FP16 for the final result.
   template <typename PackedResultType, typename PackedSrcType>
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static PackedResultType packed_convert(PackedSrcType const &source) {
 
     static_assert((platform::is_same<PackedSrcType, source_type_packed_2>::value &&
@@ -6154,7 +6154,7 @@ private:
 
     #if 0 // Scalar conversion (Please keep this code for reference for vectorized version below)
     auto result = reinterpret_cast<PackedResultType&>(r);
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < PackedResultType::kElements; ++i) {
       int16_t tmp = source[i] + 26112 /* 0x6600 */;
       result[i] = reinterpret_cast<cutlass_rt_tm::half_t const &>(tmp) - 1536.0_hf;
@@ -6195,7 +6195,7 @@ private:
 
     static constexpr uint32_t bias_rep = 0x66006600;
     const half2& bias = reinterpret_cast<const half2&>(bias_rep);
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < RegArray::kElements; ++ii) {
       half2& fp16x2_val = reinterpret_cast<__half2&>(r[ii]);
       fp16x2_val = __hsub2(fp16x2_val, bias);
@@ -6206,7 +6206,7 @@ private:
   friend class detail::VectorizedConverter;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &source) {
     result_type result;
 
@@ -6217,7 +6217,7 @@ public:
     return result;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -6228,7 +6228,7 @@ template <FloatRoundStyle Round, int N>
 struct NumericArrayConverter<cutlass_rt_tm::half_t, uint8_t, N, Round> {
   using result_type = Array<cutlass_rt_tm::half_t, N>;
   using source_type = Array<uint8_t, N>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
 private:
   using result_type_packed_4 = Array<cutlass_rt_tm::half_t, 4>;
@@ -6238,19 +6238,19 @@ private:
 
   using ScalarConverter = NumericConverter<cutlass_rt_tm::half_t, uint8_t, Round>;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_2 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint16_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_4 const& source) {
     return reinterpret_cast<const uint32_t&>(source);
   }
 
   template <typename PackedResultType, typename PackedSrcType>
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static PackedResultType packed_convert(PackedSrcType const &source) {
 
     static_assert((platform::is_same<PackedSrcType, source_type_packed_2>::value &&
@@ -6274,7 +6274,7 @@ private:
 
     static constexpr uint32_t bias_rep = 0x64006400;
     const half2& bias = reinterpret_cast<const half2&>(bias_rep);
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < RegArray::kElements; ++ii) {
       half2& fp16x2_val = reinterpret_cast<__half2&>(r[ii]);
       fp16x2_val = __hsub2(fp16x2_val, bias);
@@ -6286,7 +6286,7 @@ private:
   friend class detail::VectorizedConverter;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &source) {
     result_type result;
 
@@ -6298,7 +6298,7 @@ public:
     return result;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -6312,7 +6312,7 @@ struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, cutlass_rt_tm::int2b_t, 
   using result_type = Array<cutlass_rt_tm::bfloat16_t, N>;
   using source_type = Array<cutlass_rt_tm::int2b_t, N>;
 
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
 private:
   using result_type_packed_16 = Array<cutlass_rt_tm::bfloat16_t, 16>;
@@ -6324,25 +6324,25 @@ private:
 
   using ScalarConverter = NumericConverter<cutlass_rt_tm::bfloat16_t, cutlass_rt_tm::int2b_t, Round>;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_4 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint8_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_8 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint16_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_16 const& source) {
     return reinterpret_cast<const uint32_t&>(source);
   }
 
   template <typename PackedResultType, typename PackedSrcType>
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static PackedResultType packed_convert(PackedSrcType const &source) {
 
     static_assert((platform::is_same<PackedSrcType, source_type_packed_4>::value &&
@@ -6368,7 +6368,7 @@ private:
     static_assert(RegArray::kElements <= 8, "Too many inputs for I2 -> BF16 vector converter");
 
     // First pass: extract and sign extend the 2-bit values
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < RegArray::kElements; ii += 2) {
       asm volatile(
           "{ prmt.b32 %0, %1, %2, %3; }\n"
@@ -6395,7 +6395,7 @@ private:
     static constexpr uint32_t xor_mask = 0x43024302;
     static constexpr uint32_t immLut = (0xf0 & 0xcc) ^ 0xaa;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < RegArray::kElements; ++ii) {
       asm volatile(
           "{\n"
@@ -6410,7 +6410,7 @@ private:
     static constexpr uint32_t bias_rep = 0x43024302;  // {130, 130} in bfloat16
     const __nv_bfloat162& bias = reinterpret_cast<const __nv_bfloat162&>(bias_rep);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < RegArray::kElements; ++ii) {
       __nv_bfloat162& bf16x2_val = reinterpret_cast<__nv_bfloat162&>(r[ii]);
       bf16x2_val = __hsub2(bf16x2_val, bias);
@@ -6422,7 +6422,7 @@ private:
   friend class detail::VectorizedConverter;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &source) {
     result_type result;
     using ConverterType = NumericArrayConverter<typename result_type::Element, typename source_type::Element, N, Round>;
@@ -6434,7 +6434,7 @@ public:
     return result;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -6446,7 +6446,7 @@ struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, cutlass_rt_tm::uint2b_t,
   using result_type = Array<cutlass_rt_tm::bfloat16_t, N>;
   using source_type = Array<cutlass_rt_tm::uint2b_t, N>;
 
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
 private:
   using result_type_packed_16 = Array<cutlass_rt_tm::bfloat16_t, 16>;
@@ -6458,25 +6458,25 @@ private:
 
   using ScalarConverter = NumericConverter<cutlass_rt_tm::bfloat16_t, cutlass_rt_tm::uint2b_t, Round>;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_4 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint8_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_8 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint16_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_16 const& source) {
     return reinterpret_cast<const uint32_t&>(source);
   }
 
   template <typename PackedResultType, typename PackedSrcType>
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static PackedResultType packed_convert(PackedSrcType const &source) {
 
     static_assert((platform::is_same<PackedSrcType, source_type_packed_4>::value &&
@@ -6502,7 +6502,7 @@ private:
     static_assert(RegArray::kElements <= 8, "Too many inputs for U2 -> BF16 vector converter");
 
     // First pass: extract and sign extend the 2-bit values
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < RegArray::kElements; ii += 2) {
       asm volatile(
           "{ prmt.b32 %0, %1, %2, %3; }\n"
@@ -6519,7 +6519,7 @@ private:
     static constexpr uint32_t xor_mask = 0x43004300;
     static constexpr uint32_t immLut = (0xf0 & 0xcc) ^ 0xaa;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < RegArray::kElements; ++ii) {
       asm volatile(
           "{ lop3.b32 %0, %0, %1, %2, %3; }"
@@ -6530,7 +6530,7 @@ private:
     static constexpr uint32_t bias_rep = xor_mask;  // {128, 128} in bfloat16
     const __nv_bfloat162& bias = reinterpret_cast<const __nv_bfloat162&>(bias_rep);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < RegArray::kElements; ++ii) {
       __nv_bfloat162& bf16x2_val = reinterpret_cast<__nv_bfloat162&>(r[ii]);
       bf16x2_val = __hsub2(bf16x2_val, bias);
@@ -6542,7 +6542,7 @@ private:
   friend class detail::VectorizedConverter;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &source) {
     result_type result;
     using ConverterType = NumericArrayConverter<typename result_type::Element, typename source_type::Element, N, Round>;
@@ -6554,7 +6554,7 @@ public:
     return result;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -6566,7 +6566,7 @@ struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, cutlass_rt_tm::int4b_t, 
   using result_type = Array<cutlass_rt_tm::bfloat16_t, N>;
   using source_type = Array<cutlass_rt_tm::int4b_t, N>;
 
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
 private:
   using result_type_packed_8 = Array<cutlass_rt_tm::bfloat16_t, 8>;
@@ -6578,19 +6578,19 @@ private:
 
   using ScalarConverter = NumericConverter<cutlass_rt_tm::bfloat16_t, cutlass_rt_tm::int4b_t, Round>;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_2 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint8_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_4 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint16_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_8 const& source) {
     return reinterpret_cast<const uint32_t&>(source);
   }
@@ -6598,7 +6598,7 @@ private:
   // The core converter uses bit tricks to construct a known FP16 number, then does a
   // subtraction in FP16 for the final result.
   template <typename PackedResultType, typename PackedSrcType>
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static PackedResultType packed_convert(PackedSrcType const &source) {
 
     static_assert((platform::is_same<PackedSrcType, source_type_packed_2>::value &&
@@ -6620,7 +6620,7 @@ private:
     // Below constructs the following temporary:
     uint32_t const prmt_indices[4] = {0xF4F0, 0xF5F1, 0xF6F2, 0xF7F3};
     static_assert(RegArray::kElements <= 4, "Too many inputs for BF16 -> I4 vector converter");
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < RegArray::kElements; ++ii) {
       asm volatile(
           "{ prmt.b32 %0, %1, %2, %3; }\n"
@@ -6637,7 +6637,7 @@ private:
 
     // For each operand, computes:
     // r[i] = (r[i] & and_mask) ^ xor_mask
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < RegArray::kElements; ++ii) {
       asm volatile(
           "{ lop3.b32 %0, %0, %1, %2, %3; }\n"
@@ -6653,7 +6653,7 @@ private:
     static constexpr uint32_t bias_rep = 0x43084308;
     const __nv_bfloat162& bias = reinterpret_cast<const __nv_bfloat162&>(bias_rep);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < RegArray::kElements; ++ii) {
       __nv_bfloat162& bf16x2_val = reinterpret_cast<__nv_bfloat162&>(r[ii]);
       bf16x2_val = __hsub2(bf16x2_val, bias);
@@ -6665,7 +6665,7 @@ private:
   friend class detail::VectorizedConverter;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &source) {
     result_type result;
     using ConverterType = NumericArrayConverter<typename result_type::Element, typename source_type::Element, N, Round>;
@@ -6677,7 +6677,7 @@ public:
     return result;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -6690,7 +6690,7 @@ struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, cutlass_rt_tm::uint4b_t,
   using result_type = Array<cutlass_rt_tm::bfloat16_t, N>;
   using source_type = Array<cutlass_rt_tm::uint4b_t, N>;
 
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
 private:
   using result_type_packed_8 = Array<cutlass_rt_tm::bfloat16_t, 8>;
@@ -6702,19 +6702,19 @@ private:
 
   using ScalarConverter = NumericConverter<cutlass_rt_tm::bfloat16_t, cutlass_rt_tm::uint4b_t, Round>;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_2 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint8_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_4 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint16_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_8 const& source) {
     return reinterpret_cast<const uint32_t&>(source);
   }
@@ -6722,7 +6722,7 @@ private:
   // The core converter uses bit tricks to construct a known FP16 number, then does a
   // subtraction in FP16 for the final result.
   template <typename PackedResultType, typename PackedSrcType>
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static PackedResultType packed_convert(PackedSrcType const &source) {
 
     static_assert((platform::is_same<PackedSrcType, source_type_packed_2>::value &&
@@ -6748,7 +6748,7 @@ private:
     // fp16s_67 = {0x000, u4_7,  0x00, u4_76}
     static constexpr uint32_t prmt_indices[4] = {0xF4F0, 0xF5F1, 0xF6F2, 0xF7F3};
     static_assert(RegArray::kElements <= 4, "Too many inputs for BF16 -> I4 vector converter");
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < RegArray::kElements; ++ii) {
       asm volatile(
           "{\n"
@@ -6764,7 +6764,7 @@ private:
 
     // For each operand, computes:
     // r[i] = (r[i] & and_mask) ^ xor_mask
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < RegArray::kElements; ++ii) {
       asm volatile(
           "{\n"
@@ -6781,7 +6781,7 @@ private:
     // This is the BF16 {128, 128} represented as an integer.
     static constexpr uint32_t bias = xor_mask;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int ii = 0; ii < RegArray::kElements; ++ii) {
       __nv_bfloat162& bf16x2_val = reinterpret_cast<__nv_bfloat162&>(r[ii]);
       bf16x2_val = __hsub2(bf16x2_val, reinterpret_cast<const __nv_bfloat162&>(bias));
@@ -6793,7 +6793,7 @@ private:
   friend class detail::VectorizedConverter;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &source) {
     result_type result;
     using ConverterType = NumericArrayConverter<typename result_type::Element, typename source_type::Element, N, Round>;
@@ -6805,7 +6805,7 @@ public:
     return result;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -6816,7 +6816,7 @@ template <FloatRoundStyle Round, int N>
 struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, int8_t, N, Round> {
   using result_type = Array<cutlass_rt_tm::bfloat16_t, N>;
   using source_type = Array<int8_t, N>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
 private:
   using result_type_packed_4 = Array<cutlass_rt_tm::bfloat16_t, 4>;
@@ -6826,19 +6826,19 @@ private:
 
   using ScalarConverter = NumericConverter<cutlass_rt_tm::bfloat16_t, int8_t, Round>;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_2 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint16_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_4 const& source) {
     return reinterpret_cast<const uint32_t&>(source);
   }
 
   template <typename PackedResultType, typename PackedSrcType>
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static PackedResultType packed_convert(PackedSrcType const &source) {
 
     static_assert((platform::is_same<PackedSrcType, source_type_packed_2>::value &&
@@ -6856,7 +6856,7 @@ private:
   friend class detail::VectorizedConverter;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &source) {
     result_type result;
 
@@ -6868,7 +6868,7 @@ public:
     return result;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -6879,7 +6879,7 @@ template <FloatRoundStyle Round, int N>
 struct NumericArrayConverter<cutlass_rt_tm::bfloat16_t, uint8_t, N, Round> {
   using result_type = Array<cutlass_rt_tm::bfloat16_t, N>;
   using source_type = Array<uint8_t, N>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
 private:
   using result_type_packed_4 = Array<cutlass_rt_tm::bfloat16_t, 4>;
@@ -6889,19 +6889,19 @@ private:
 
   using ScalarConverter = NumericConverter<cutlass_rt_tm::bfloat16_t, uint8_t, Round>;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_2 const& source) {
     return static_cast<uint32_t>(
       reinterpret_cast<const uint16_t&>(source));
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static uint32_t to_reg(source_type_packed_4 const& source) {
     return reinterpret_cast<const uint32_t&>(source);
   }
 
   template <typename PackedResultType, typename PackedSrcType>
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static PackedResultType packed_convert(PackedSrcType const &source) {
 
     static_assert((platform::is_same<PackedSrcType, source_type_packed_2>::value &&
@@ -6919,7 +6919,7 @@ private:
   friend class detail::VectorizedConverter;
 
 public:
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &source) {
     result_type result;
     using ConverterType = NumericArrayConverter<typename result_type::Element, typename source_type::Element, N, Round>;
@@ -6930,7 +6930,7 @@ public:
     return result;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   result_type operator()(source_type const &s) const {
     return convert(s);
   }
@@ -6949,16 +6949,16 @@ template <typename T, typename S, int N,
 struct FastNumericArrayConverter {
   using result_type = Array<T, N>;
   using source_type = Array<S, N>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &s) {
     NumericArrayConverter<T, S, N, Round> convert_;
 
     return convert_(s);
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   result_type operator()(source_type const &s) const { return convert(s); }
 };
 
@@ -6967,13 +6967,13 @@ template <int N, FloatRoundStyle Round>
 struct FastNumericArrayConverter<float, int, N, Round> {
   using result_type = Array<float, N>;
   using source_type = Array<int, N>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &source) {
     result_type result;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < N; ++i) {
       int tmp = source[i] + 1262485504 /*0x4B400000*/;
       result[i] = reinterpret_cast<float const &>(tmp) - 12582912.0f;
@@ -6982,7 +6982,7 @@ struct FastNumericArrayConverter<float, int, N, Round> {
     return result;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   result_type operator()(source_type const &s) const { return convert(s); }
 };
 
@@ -6991,13 +6991,13 @@ template <FloatRoundStyle Round>
 struct FastNumericArrayConverter<int8_t, float, 4, Round> {
   using result_type = Array<int8_t, 4>;
   using source_type = Array<float, 4>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &source) {
     Array<int32_t, 4> result;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < 4; ++i) {
       float tmp = source[i] + 12582912.0f;
       result[i] = reinterpret_cast<int32_t const &>(tmp);
@@ -7010,7 +7010,7 @@ struct FastNumericArrayConverter<int8_t, float, 4, Round> {
     return reinterpret_cast<result_type const &>(result[0]);
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   result_type operator()(source_type const &s) const { return convert(s); }
 };
 
@@ -7021,9 +7021,9 @@ struct FastNumericArrayConverter<int8_t, float, N, Round> {
 
   using result_type = Array<int8_t, N>;
   using source_type = Array<float, N>;
-  static constexpr FloatRoundStyle  round_style = Round;
+  static constexpr FloatRoundStyle round_style = Round;
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   static result_type convert(source_type const &source) {
     FastNumericArrayConverter<int8_t, float, 4, Round> convert_vector_;
 
@@ -7034,7 +7034,7 @@ struct FastNumericArrayConverter<int8_t, float, N, Round> {
     Array<float, 4> const *source_ptr =
         reinterpret_cast<Array<float, 4> const *>(&source);
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < N / 4; ++i) {
       result_ptr[i] = convert_vector_(source_ptr[i]);
     }
@@ -7042,7 +7042,7 @@ struct FastNumericArrayConverter<int8_t, float, N, Round> {
     return result;
   }
 
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   result_type operator()(source_type const &s) const { return convert(s); }
 };
 
@@ -7051,14 +7051,14 @@ struct FastNumericArrayConverter<int8_t, float, N, Round> {
 /// Defines preferred rounding mode for a pair of types
 template <typename T, typename S>
 struct PreferredRoundingMode {
-  static constexpr FloatRoundStyle  kRound = FloatRoundStyle::round_to_nearest;
+  static constexpr FloatRoundStyle kRound = FloatRoundStyle::round_to_nearest;
 };
 
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ < 900
 /// Defines preferred rounding mode for a pair of types
 template <>
 struct PreferredRoundingMode<cutlass_rt_tm::tfloat32_t, float> {
-  static constexpr FloatRoundStyle  kRound = FloatRoundStyle::round_half_ulp_truncate;
+  static constexpr FloatRoundStyle kRound = FloatRoundStyle::round_half_ulp_truncate;
 };
 #endif
 
@@ -7071,7 +7071,7 @@ struct PackPredicates {
 
   static_assert(!(N % 4), "Must pack predicates in a count that is a multiple of 4");
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   result_type operator()(bool const predicates[]) {
 
     result_type packed;
@@ -7080,7 +7080,7 @@ struct PackPredicates {
     int const kWordSize = 8;
     uint8_t *bytes = reinterpret_cast<uint8_t *>(packed.data());
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < N; ++i) {
       int word_idx = (i / kWordSize);
       int bit_idx = (i % kWordSize);
@@ -7099,13 +7099,13 @@ struct UnpackPredicates {
 
   static_assert(!(N % 4), "Must unpack predicates in a count that is a multiple of 4");
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(bool predicates[], result_type const &packed) {
 
     int const kWordSize = 8;
     uint8_t const *bytes = reinterpret_cast<uint8_t const *>(packed.data());
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int i = 0; i < N; ++i) {
       int word_idx = (i / kWordSize);
       int bit_idx = (i % kWordSize);

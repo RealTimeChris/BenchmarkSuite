@@ -95,7 +95,7 @@ public:
   using OutputAccumulatorTile = AccumulatorTile;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static int const kIterations = Policy::kIterations;
 
 private:
 
@@ -114,7 +114,7 @@ private:
 public:
 
   /// Constructs an iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   FragmentIteratorVoltaTensorOp(AccumulatorTile const &accum): 
     accumulators_(reinterpret_cast<AccessType const *>(&accum)), 
     index_(0) {
@@ -122,34 +122,34 @@ public:
   }
 
   /// Increments
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   FragmentIteratorVoltaTensorOp &operator++() {
     ++index_;
     return *this;
   }
 
   /// Decrements
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   FragmentIteratorVoltaTensorOp &operator--() {
     --index_;
     return *this;
   }
 
   /// Loads a fragment from the referenced part of the accumulator tile
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void load(Fragment &frag, int index_offset = 0) const {
 
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
-    static constexpr int kAccessesPerMma = Policy::kElementsPerMma / Policy::kElementsPerAccess;
+    static int const kAccessesPerMma = Policy::kElementsPerMma / Policy::kElementsPerAccess;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int tile_n = 0; tile_n < Policy::TileIterations::kColumn; ++tile_n) {
       
       int tile_access_idx = 
         (tile_n * Policy::TileIterations::kRow + (index_ & 2) / 2) * Policy::MmaIterations::kCount * kAccessesPerMma;
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int mma_n = 0; mma_n < Policy::MmaIterations::kColumn * kAccessesPerMma; ++mma_n) {
 
         int mma_access_idx = ((mma_n & 1) * 2 + (index_ & 1)) * kAccessesPerMma + (mma_n & 2) / 2;
@@ -188,7 +188,7 @@ public:
   using AccumulatorTile = typename Policy::AccumulatorTile;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static int const kIterations = Policy::kIterations;
 
 private:
 
@@ -207,41 +207,41 @@ private:
 public:
 
   /// Constructs an iterator
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   FragmentIteratorVoltaTensorOp(AccumulatorTile const &accum): 
     accumulators_(reinterpret_cast<AccessType const *>(&accum)), 
     index_(0) {
   }
 
   /// Increments
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   FragmentIteratorVoltaTensorOp &operator++() {
     ++index_;
     return *this;
   }
 
   /// Decrements
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   FragmentIteratorVoltaTensorOp &operator--() {
     --index_;
     return *this;
   }
 
   /// Loads a fragment from the referenced part of the accumulator tile
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void load(Fragment &frag, int index_offset = 0) const {
 
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
     int const kRegsPerMmaRow = 2;
       
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int reg_row = 0; reg_row < Policy::kRowsPerMmaTile; ++reg_row) {
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int tile_n = 0; tile_n < Policy::TileIterations::kColumn; ++tile_n) {
     
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_RT_TMPRAGMA_UNROLL
         for (int mma_n = 0; mma_n < Policy::MmaIterations::kColumn * 2; ++mma_n) {
 
           int mma_idx = (index_ & 1) + (index_ & 2) * Policy::MmaIterations::kCount / 2 +

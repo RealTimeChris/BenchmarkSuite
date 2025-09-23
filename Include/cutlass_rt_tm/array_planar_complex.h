@@ -65,7 +65,7 @@ public:
 
 public:
   /// Sets the array to zero efficiently
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void clear() {
     real.clear();
     imag.clear();
@@ -76,7 +76,7 @@ public:
 
 /// Helper to deduce template arguments
 template <typename Element, int N>
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 ArrayPlanarComplex<Element, N> 
 make_ArrayPlanarComplex(Array<Element, N> const &real, Array<Element, N> const &imag) {
   return ArrayPlanarComplex<Element, N>{real, imag};

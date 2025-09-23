@@ -32,7 +32,7 @@
 
 #include <cute_rt_tm/numeric/math.hpp>      // cute_rt_tm::max, etc
 #include <cute_rt_tm/util/print.hpp>        // cute_rt_tm::print
-#include <cute_rt_tm/util/type_traits.hpp>  // __CUTE_RT_TM_REQUIRES, cute_rt_tm::is_std_integral
+#include <cute_rt_tm/util/type_traits.hpp>  // __CUTE_RT_TMREQUIRES, cute_rt_tm::is_std_integral
 
 namespace cute_rt_tm
 {
@@ -43,8 +43,8 @@ struct C {
   using type = C<v>;
   static constexpr auto value = v;
   using value_type = decltype(v);
-  CUTE_RT_TM_HOST_DEVICE constexpr operator   value_type() const noexcept { return value; }
-  CUTE_RT_TM_HOST_DEVICE constexpr value_type operator()() const noexcept { return value; }
+  CUTE_RT_TMHOST_DEVICE constexpr operator   value_type() const noexcept { return value; }
+  CUTE_RT_TMHOST_DEVICE constexpr value_type operator()() const noexcept { return value; }
 };
 
 // Deprecate
@@ -64,8 +64,8 @@ struct integral_constant : C<v> {
   static constexpr T value = v;
   using value_type = T;
   // Disambiguate C<v>::operator value_type()
-  //CUTE_RT_TM_HOST_DEVICE constexpr operator   value_type() const noexcept { return value; }
-  CUTE_RT_TM_HOST_DEVICE constexpr value_type operator()() const noexcept { return value; }
+  //CUTE_RT_TMHOST_DEVICE constexpr operator   value_type() const noexcept { return value; }
+  CUTE_RT_TMHOST_DEVICE constexpr value_type operator()() const noexcept { return value; }
 };
 
 //
@@ -201,143 +201,143 @@ using _524288 = Int<524288>;
 /** Operators **/
 /***************/
 
-#define CUTE_RT_TM_LEFT_UNARY_OP(OP)                                       \
+#define CUTE_RT_TMLEFT_UNARY_OP(OP)                                       \
   template <auto t>                                                  \
-  CUTE_RT_TM_HOST_DEVICE constexpr                                         \
+  CUTE_RT_TMHOST_DEVICE constexpr                                         \
   C<(OP t)> operator OP (C<t>) {                                     \
     return {};                                                       \
   }
-#define CUTE_RT_TM_RIGHT_UNARY_OP(OP)                                      \
+#define CUTE_RT_TMRIGHT_UNARY_OP(OP)                                      \
   template <auto t>                                                  \
-  CUTE_RT_TM_HOST_DEVICE constexpr                                         \
+  CUTE_RT_TMHOST_DEVICE constexpr                                         \
   C<(t OP)> operator OP (C<t>) {                                     \
     return {};                                                       \
   }
-#define CUTE_RT_TM_BINARY_OP(OP)                                           \
+#define CUTE_RT_TMBINARY_OP(OP)                                           \
   template <auto t, auto u>                                          \
-  CUTE_RT_TM_HOST_DEVICE constexpr                                         \
+  CUTE_RT_TMHOST_DEVICE constexpr                                         \
   C<(t OP u)> operator OP (C<t>, C<u>) {                             \
     return {};                                                       \
   }
 
-CUTE_RT_TM_LEFT_UNARY_OP(+);
-CUTE_RT_TM_LEFT_UNARY_OP(-);
-CUTE_RT_TM_LEFT_UNARY_OP(~);
-CUTE_RT_TM_LEFT_UNARY_OP(!);
-CUTE_RT_TM_LEFT_UNARY_OP(*);
+CUTE_RT_TMLEFT_UNARY_OP(+);
+CUTE_RT_TMLEFT_UNARY_OP(-);
+CUTE_RT_TMLEFT_UNARY_OP(~);
+CUTE_RT_TMLEFT_UNARY_OP(!);
+CUTE_RT_TMLEFT_UNARY_OP(*);
 
-CUTE_RT_TM_BINARY_OP( +);
-CUTE_RT_TM_BINARY_OP( -);
-CUTE_RT_TM_BINARY_OP( *);
-CUTE_RT_TM_BINARY_OP( /);
-CUTE_RT_TM_BINARY_OP( %);
-CUTE_RT_TM_BINARY_OP( &);
-CUTE_RT_TM_BINARY_OP( |);
-CUTE_RT_TM_BINARY_OP( ^);
-CUTE_RT_TM_BINARY_OP(<<);
-CUTE_RT_TM_BINARY_OP(>>);
+CUTE_RT_TMBINARY_OP( +);
+CUTE_RT_TMBINARY_OP( -);
+CUTE_RT_TMBINARY_OP( *);
+CUTE_RT_TMBINARY_OP( /);
+CUTE_RT_TMBINARY_OP( %);
+CUTE_RT_TMBINARY_OP( &);
+CUTE_RT_TMBINARY_OP( |);
+CUTE_RT_TMBINARY_OP( ^);
+CUTE_RT_TMBINARY_OP(<<);
+CUTE_RT_TMBINARY_OP(>>);
 
-CUTE_RT_TM_BINARY_OP(&&);
-CUTE_RT_TM_BINARY_OP(||);
+CUTE_RT_TMBINARY_OP(&&);
+CUTE_RT_TMBINARY_OP(||);
 
-CUTE_RT_TM_BINARY_OP(==);
-CUTE_RT_TM_BINARY_OP(!=);
-CUTE_RT_TM_BINARY_OP( >);
-CUTE_RT_TM_BINARY_OP( <);
-CUTE_RT_TM_BINARY_OP(>=);
-CUTE_RT_TM_BINARY_OP(<=);
+CUTE_RT_TMBINARY_OP(==);
+CUTE_RT_TMBINARY_OP(!=);
+CUTE_RT_TMBINARY_OP( >);
+CUTE_RT_TMBINARY_OP( <);
+CUTE_RT_TMBINARY_OP(>=);
+CUTE_RT_TMBINARY_OP(<=);
 
-#undef CUTE_RT_TM_BINARY_OP
-#undef CUTE_RT_TM_LEFT_UNARY_OP
-#undef CUTE_RT_TM_RIGHT_UNARY_OP
+#undef CUTE_RT_TMBINARY_OP
+#undef CUTE_RT_TMLEFT_UNARY_OP
+#undef CUTE_RT_TMRIGHT_UNARY_OP
 
 //
 // Mixed static-dynamic special cases
 //
 
 template <auto t, class U,
-          __CUTE_RT_TM_REQUIRES(is_std_integral<U>::value && t == 0)>
-CUTE_RT_TM_HOST_DEVICE constexpr
+          __CUTE_RT_TMREQUIRES(is_std_integral<U>::value && t == 0)>
+CUTE_RT_TMHOST_DEVICE constexpr
 C<0>
 operator*(C<t>, U) {
   return {};
 }
 
 template <class U, auto t,
-          __CUTE_RT_TM_REQUIRES(is_std_integral<U>::value && t == 0)>
-CUTE_RT_TM_HOST_DEVICE constexpr
+          __CUTE_RT_TMREQUIRES(is_std_integral<U>::value && t == 0)>
+CUTE_RT_TMHOST_DEVICE constexpr
 C<0>
 operator*(U, C<t>) {
   return {};
 }
 
 template <auto t, class U,
-          __CUTE_RT_TM_REQUIRES(is_std_integral<U>::value && t == 0)>
-CUTE_RT_TM_HOST_DEVICE constexpr
+          __CUTE_RT_TMREQUIRES(is_std_integral<U>::value && t == 0)>
+CUTE_RT_TMHOST_DEVICE constexpr
 C<0>
 operator/(C<t>, U) {
   return {};
 }
 
 template <class U, auto t,
-          __CUTE_RT_TM_REQUIRES(is_std_integral<U>::value && (t == 1 || t == -1))>
-CUTE_RT_TM_HOST_DEVICE constexpr
+          __CUTE_RT_TMREQUIRES(is_std_integral<U>::value && (t == 1 || t == -1))>
+CUTE_RT_TMHOST_DEVICE constexpr
 C<0>
 operator%(U, C<t>) {
   return {};
 }
 
 template <auto t, class U,
-          __CUTE_RT_TM_REQUIRES(is_std_integral<U>::value && t == 0)>
-CUTE_RT_TM_HOST_DEVICE constexpr
+          __CUTE_RT_TMREQUIRES(is_std_integral<U>::value && t == 0)>
+CUTE_RT_TMHOST_DEVICE constexpr
 C<0>
 operator%(C<t>, U) {
   return {};
 }
 
 template <auto t, class U,
-          __CUTE_RT_TM_REQUIRES(is_std_integral<U>::value && t == 0)>
-CUTE_RT_TM_HOST_DEVICE constexpr
+          __CUTE_RT_TMREQUIRES(is_std_integral<U>::value && t == 0)>
+CUTE_RT_TMHOST_DEVICE constexpr
 C<0>
 operator&(C<t>, U) {
   return {};
 }
 
 template <class U, auto t,
-          __CUTE_RT_TM_REQUIRES(is_std_integral<U>::value && t == 0)>
-CUTE_RT_TM_HOST_DEVICE constexpr
+          __CUTE_RT_TMREQUIRES(is_std_integral<U>::value && t == 0)>
+CUTE_RT_TMHOST_DEVICE constexpr
 C<0>
 operator&(U, C<t>) {
   return {};
 }
 
 template <auto t, class U,
-          __CUTE_RT_TM_REQUIRES(is_std_integral<U>::value && !bool(t))>
-CUTE_RT_TM_HOST_DEVICE constexpr
+          __CUTE_RT_TMREQUIRES(is_std_integral<U>::value && !bool(t))>
+CUTE_RT_TMHOST_DEVICE constexpr
 C<false>
 operator&&(C<t>, U) {
   return {};
 }
 
 template <auto t, class U,
-          __CUTE_RT_TM_REQUIRES(is_std_integral<U>::value && !bool(t))>
-CUTE_RT_TM_HOST_DEVICE constexpr
+          __CUTE_RT_TMREQUIRES(is_std_integral<U>::value && !bool(t))>
+CUTE_RT_TMHOST_DEVICE constexpr
 C<false>
 operator&&(U, C<t>) {
   return {};
 }
 
 template <class U, auto t,
-          __CUTE_RT_TM_REQUIRES(is_std_integral<U>::value && bool(t))>
-CUTE_RT_TM_HOST_DEVICE constexpr
+          __CUTE_RT_TMREQUIRES(is_std_integral<U>::value && bool(t))>
+CUTE_RT_TMHOST_DEVICE constexpr
 C<true>
 operator||(C<t>, U) {
   return {};
 }
 
 template <class U, auto t,
-          __CUTE_RT_TM_REQUIRES(is_std_integral<U>::value && bool(t))>
-CUTE_RT_TM_HOST_DEVICE constexpr
+          __CUTE_RT_TMREQUIRES(is_std_integral<U>::value && bool(t))>
+CUTE_RT_TMHOST_DEVICE constexpr
 C<true>
 operator||(U, C<t>) {
   return {};
@@ -347,51 +347,51 @@ operator||(U, C<t>) {
 // Named functions from math.hpp
 //
 
-#define CUTE_RT_TM_NAMED_UNARY_FN(OP)                                      \
+#define CUTE_RT_TMNAMED_UNARY_FN(OP)                                      \
   template <auto t>                                                  \
-  CUTE_RT_TM_HOST_DEVICE constexpr                                         \
+  CUTE_RT_TMHOST_DEVICE constexpr                                         \
   auto OP (C<t>) {                                                   \
     return C<OP(t)>{};                                               \
   }
-#define CUTE_RT_TM_NAMED_BINARY_FN(OP)                                     \
+#define CUTE_RT_TMNAMED_BINARY_FN(OP)                                     \
   template <auto t, auto u>                                          \
-  CUTE_RT_TM_HOST_DEVICE constexpr                                         \
+  CUTE_RT_TMHOST_DEVICE constexpr                                         \
   auto OP (C<t>, C<u>) {                                             \
     return C<OP(t,u)>{};                                             \
   }                                                                  \
   template <auto t, class U,                                         \
-            __CUTE_RT_TM_REQUIRES(is_std_integral<U>::value)>              \
-  CUTE_RT_TM_HOST_DEVICE constexpr                                         \
+            __CUTE_RT_TMREQUIRES(is_std_integral<U>::value)>              \
+  CUTE_RT_TMHOST_DEVICE constexpr                                         \
   auto OP (C<t>, U u) {                                              \
     return OP(t,u);                                                  \
   }                                                                  \
   template <class T, auto u,                                         \
-            __CUTE_RT_TM_REQUIRES(is_std_integral<T>::value)>              \
-  CUTE_RT_TM_HOST_DEVICE constexpr                                         \
+            __CUTE_RT_TMREQUIRES(is_std_integral<T>::value)>              \
+  CUTE_RT_TMHOST_DEVICE constexpr                                         \
   auto OP (T t, C<u>) {                                              \
     return OP(t,u);                                                  \
   }
 
-CUTE_RT_TM_NAMED_UNARY_FN(abs);
-CUTE_RT_TM_NAMED_UNARY_FN(signum);
-CUTE_RT_TM_NAMED_UNARY_FN(has_single_bit);
+CUTE_RT_TMNAMED_UNARY_FN(abs);
+CUTE_RT_TMNAMED_UNARY_FN(signum);
+CUTE_RT_TMNAMED_UNARY_FN(has_single_bit);
 
-CUTE_RT_TM_NAMED_BINARY_FN(max);
-CUTE_RT_TM_NAMED_BINARY_FN(min);
-CUTE_RT_TM_NAMED_BINARY_FN(shiftl);
-CUTE_RT_TM_NAMED_BINARY_FN(shiftr);
-CUTE_RT_TM_NAMED_BINARY_FN(gcd);
-CUTE_RT_TM_NAMED_BINARY_FN(lcm);
+CUTE_RT_TMNAMED_BINARY_FN(max);
+CUTE_RT_TMNAMED_BINARY_FN(min);
+CUTE_RT_TMNAMED_BINARY_FN(shiftl);
+CUTE_RT_TMNAMED_BINARY_FN(shiftr);
+CUTE_RT_TMNAMED_BINARY_FN(gcd);
+CUTE_RT_TMNAMED_BINARY_FN(lcm);
 
-#undef CUTE_RT_TM_NAMED_UNARY_FN
-#undef CUTE_RT_TM_NAMED_BINARY_FN
+#undef CUTE_RT_TMNAMED_UNARY_FN
+#undef CUTE_RT_TMNAMED_BINARY_FN
 
 //
 // Other functions
 //
 
 template <auto t, auto u>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 C<t / u>
 safe_div(C<t>, C<u>) {
   static_assert(t % u == 0, "Static safe_div requires t % u == 0");
@@ -399,44 +399,44 @@ safe_div(C<t>, C<u>) {
 }
 
 template <auto t, class U,
-          __CUTE_RT_TM_REQUIRES(is_std_integral<U>::value)>
-CUTE_RT_TM_HOST_DEVICE constexpr
+          __CUTE_RT_TMREQUIRES(is_std_integral<U>::value)>
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 safe_div(C<t>, U u) {
   return t / u;
 }
 
 template <class T, auto u,
-          __CUTE_RT_TM_REQUIRES(is_std_integral<T>::value)>
-CUTE_RT_TM_HOST_DEVICE constexpr
+          __CUTE_RT_TMREQUIRES(is_std_integral<T>::value)>
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 safe_div(T t, C<u>) {
   return t / u;
 }
 
 template <class TrueType, class FalseType>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 decltype(auto)
 conditional_return(true_type, TrueType&& t, FalseType&&) {
   return static_cast<TrueType&&>(t);
 }
 
 template <class TrueType, class FalseType>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 decltype(auto)
 conditional_return(false_type, TrueType&&, FalseType&& f) {
   return static_cast<FalseType&&>(f);
 }
 
 template <auto v>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 conditional_return(bool b, C<v> const&, C<v> const&) {
   return C<v>{};
 }
 
 template <auto v, auto u>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 conditional_return(bool b, C<v> const&, C<u> const&) {
   return b ? v : u;
@@ -444,7 +444,7 @@ conditional_return(bool b, C<v> const&, C<u> const&) {
 
 // TrueType and FalseType must have a common type
 template <class TrueType, class FalseType>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 conditional_return(bool b, TrueType const& t, FalseType const& f) {
   return b ? t : f;
@@ -452,7 +452,7 @@ conditional_return(bool b, TrueType const& t, FalseType const& f) {
 
 // TrueType and FalseType don't require a common type
 template <bool b, class TrueType, class FalseType>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 conditional_return(TrueType const& t, FalseType const& f) {
   if constexpr (b) {
@@ -463,7 +463,7 @@ conditional_return(TrueType const& t, FalseType const& f) {
 }
 
 template <class Trait>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_RT_TMHOST_DEVICE constexpr
 auto
 static_value()
 {
@@ -472,7 +472,7 @@ static_value()
   } else {
     return Trait::value;
   }
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_RT_TMGCC_UNREACHABLE;
 }
 
 //
@@ -480,14 +480,14 @@ static_value()
 //
 
 template <auto Value>
-CUTE_RT_TM_HOST_DEVICE void print(C<Value>) {
+CUTE_RT_TMHOST_DEVICE void print(C<Value>) {
   printf("_");
   ::cute_rt_tm::print(Value);
 }
 
 #if !defined(__CUDACC_RTC__)
 template <auto t>
-CUTE_RT_TM_HOST std::ostream& operator<<(std::ostream& os, C<t> const&) {
+CUTE_RT_TMHOST std::ostream& operator<<(std::ostream& os, C<t> const&) {
   return os << "_" << t;
 }
 #endif

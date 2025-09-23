@@ -140,23 +140,23 @@ template <
   int C = 1
 >
 struct TensorNHWCShape {
-  static constexpr int kN = N;
-  static constexpr int kH = H;
-  static constexpr int kW = W;
-  static constexpr int kC = C;
+  static int const kN = N;
+  static int const kH = H;
+  static int const kW = W;
+  static int const kC = C;
 
-  static constexpr int kHW = H * W;
-  static constexpr int kNHW = N * kHW;
-  static constexpr int kNHWC = N * H * W * C;
+  static int const kHW = H * W;
+  static int const kNHW = N * kHW;
+  static int const kNHWC = N * H * W * C;
 
-  static constexpr int kCount = kNHWC;
+  static int const kCount = kNHWC;
 
   //
   // Static member functions
   //
 
   /// Returns a Coord object
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static Coord<4> toCoord() {
     return make_Coord(kN, kH, kW, kC);
   }
@@ -172,15 +172,15 @@ template <
   int v = 1
 >
 struct Stride2D {
-  static constexpr int kU = u;
-  static constexpr int kV = v;
+  static int const kU = u;
+  static int const kV = v;
 
   //
   // Static member functions
   //
 
   /// Returns a Coord object
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static Coord<2> toCoord() {
     return make_Coord(kU, kV);
   }

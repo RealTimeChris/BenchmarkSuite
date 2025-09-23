@@ -72,8 +72,8 @@
 //
 // Macro-level guard for CUDA Host Adapter
 //
-#if !defined(CUTLASS_RT_TM_ENABLE_CUDA_HOST_ADAPTER)
-#define CUTLASS_RT_TM_ENABLE_CUDA_HOST_ADAPTER false
+#if !defined(CUTLASS_RT_TMENABLE_CUDA_HOST_ADAPTER)
+#define CUTLASS_RT_TMENABLE_CUDA_HOST_ADAPTER false
 #endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -92,27 +92,27 @@ namespace cutlass_rt_tm {
 
 #include <driver_types.h>
 
-#define CUTLASS_RT_TM_CUDA_DRIVER_STRINGIFY(tok) #tok
+#define CUTLASS_RT_TMCUDA_DRIVER_STRINGIFY(tok) #tok
 
-#if defined(CUTLASS_RT_TM_ENABLE_DIRECT_CUDA_DRIVER_CALL)
+#if defined(CUTLASS_RT_TMENABLE_DIRECT_CUDA_DRIVER_CALL)
 
-#define CUTLASS_RT_TM_CUDA_DRIVER_WRAPPER_DECL(func, ver) \
+#define CUTLASS_RT_TMCUDA_DRIVER_WRAPPER_DECL(func, ver) \
   template <typename... Args>                       \
   CUresult call_##func(Args... args) {              \
     return func(args...);                           \
   }
 
-#else // defined(CUTLASS_RT_TM_ENABLE_DIRECT_CUDA_DRIVER_CALL)
+#else // defined(CUTLASS_RT_TMENABLE_DIRECT_CUDA_DRIVER_CALL)
 
 #if (__CUDACC_VER_MAJOR__ > 12)
 
-#define CUTLASS_RT_TM_CUDA_DRIVER_WRAPPER_DECL(func, ver)             \
+#define CUTLASS_RT_TMCUDA_DRIVER_WRAPPER_DECL(func, ver)             \
   template <typename... Args>                                   \
   CUresult call_##func(Args... args) {                          \
     cudaDriverEntryPointQueryResult cuda_status;                \
     void* pfn = nullptr;                                        \
     cudaError_t cuda_err = cudaGetDriverEntryPointByVersion(    \
-        CUTLASS_RT_TM_CUDA_DRIVER_STRINGIFY(func),                    \
+        CUTLASS_RT_TMCUDA_DRIVER_STRINGIFY(func),                    \
         &pfn, ver,                                              \
         cudaEnableDefault,                                      \
         &cuda_status);                                          \
@@ -125,13 +125,13 @@ namespace cutlass_rt_tm {
 
 #else
 
-#define CUTLASS_RT_TM_CUDA_DRIVER_WRAPPER_DECL(func, ver)             \
+#define CUTLASS_RT_TMCUDA_DRIVER_WRAPPER_DECL(func, ver)             \
   template <typename... Args>                                   \
   CUresult call_##func(Args... args) {                          \
     cudaDriverEntryPointQueryResult cuda_status;                \
     void* pfn = nullptr;                                        \
     cudaError_t cuda_err = cudaGetDriverEntryPoint(             \
-        CUTLASS_RT_TM_CUDA_DRIVER_STRINGIFY(func),                    \
+        CUTLASS_RT_TMCUDA_DRIVER_STRINGIFY(func),                    \
         &pfn,                                                   \
         cudaEnableDefault,                                      \
         &cuda_status);                                          \
@@ -144,16 +144,16 @@ namespace cutlass_rt_tm {
 
 #endif // (__CUDACC_VER_MAJOR__ > 12)
 
-#endif // defined(CUTLASS_RT_TM_ENABLE_DIRECT_CUDA_DRIVER_CALL)
+#endif // defined(CUTLASS_RT_TMENABLE_DIRECT_CUDA_DRIVER_CALL)
 
 #if (__CUDACC_VER_MAJOR__ >= 12)
-CUTLASS_RT_TM_CUDA_DRIVER_WRAPPER_DECL(cuTensorMapEncodeTiled, 12000);
-CUTLASS_RT_TM_CUDA_DRIVER_WRAPPER_DECL(cuTensorMapEncodeIm2col, 12000);
+CUTLASS_RT_TMCUDA_DRIVER_WRAPPER_DECL(cuTensorMapEncodeTiled, 12000);
+CUTLASS_RT_TMCUDA_DRIVER_WRAPPER_DECL(cuTensorMapEncodeIm2col, 12000);
 #endif
 
-#undef CUTLASS_RT_TM_CUDA_DRIVER_STRINGIFY
+#undef CUTLASS_RT_TMCUDA_DRIVER_STRINGIFY
 
-#define CUTLASS_RT_TM_CUDA_DRIVER_WRAPPER_CALL(func) cutlass_rt_tm::call_##func
+#define CUTLASS_RT_TMCUDA_DRIVER_WRAPPER_CALL(func) cutlass_rt_tm::call_##func
 
 #endif // !defined(__CUDACC_RTC__)
 
@@ -174,22 +174,22 @@ struct CudaHostLaunchAttributes {
   CUlaunchAttribute launch_attributes[kMaximumAttributeCount];
   int32_t      attribute_count = 0;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   CudaHostLaunchAttributes(CUlaunchAttribute *launch_attributes_ = nullptr,
                            int32_t attribute_count_ = 0) {
-    CUTLASS_RT_TM_ASSERT(attribute_count_ >= 0 && attribute_count_ < kMaximumAttributeCount);
+    CUTLASS_RT_TMASSERT(attribute_count_ >= 0 && attribute_count_ < kMaximumAttributeCount);
     for (int32_t i = 0; i < attribute_count_ && i < kMaximumAttributeCount; ++i) {
       launch_attributes[i] = launch_attributes_[i];
     }
     attribute_count = attribute_count_;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   CUlaunchAttribute const* data() const {
     return launch_attributes;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   size_t size() const {
     return attribute_count;
   }
@@ -230,11 +230,11 @@ struct CudaHostAdapter {
   virtual ~CudaHostAdapter() = default;
 
   /// Copy Ctor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   CudaHostAdapter(const CudaHostAdapter & rhs)
       : kernel_count(rhs.kernel_count),
         launch_attributes(rhs.launch_attributes) {
-    CUTLASS_RT_TM_ASSERT(rhs.kernel_count >= 0 && rhs.kernel_count < kMaximumKernelCount);
+    CUTLASS_RT_TMASSERT(rhs.kernel_count >= 0 && rhs.kernel_count < kMaximumKernelCount);
 
     for (int32_t i = 0; i < rhs.kernel_count && i < kMaximumKernelCount; ++i) {
       kernel_handles[i] = rhs.kernel_handles[i];
@@ -242,9 +242,9 @@ struct CudaHostAdapter {
   }
 
   /// Copy Assignment
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   CudaHostAdapter& operator=(const CudaHostAdapter & rhs) {
-    CUTLASS_RT_TM_ASSERT(rhs.kernel_count >= 0 && rhs.kernel_count < kMaximumKernelCount);
+    CUTLASS_RT_TMASSERT(rhs.kernel_count >= 0 && rhs.kernel_count < kMaximumKernelCount);
     for (int32_t i = 0; i < rhs.kernel_count && i < kMaximumKernelCount; ++i) {
       kernel_handles[i] = rhs.kernel_handles[i];
     }
@@ -257,11 +257,11 @@ struct CudaHostAdapter {
 
 
   /// Move ctor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   CudaHostAdapter(CudaHostAdapter && rhs)
       : kernel_count(rhs.kernel_count),
         launch_attributes(std::move(rhs.launch_attributes)) {
-    CUTLASS_RT_TM_ASSERT(rhs.kernel_count >= 0 && rhs.kernel_count < kMaximumKernelCount);
+    CUTLASS_RT_TMASSERT(rhs.kernel_count >= 0 && rhs.kernel_count < kMaximumKernelCount);
 
     for (int32_t i = 0; i < rhs.kernel_count && i < kMaximumKernelCount; ++i) {
       kernel_handles[i] = rhs.kernel_handles[i];
@@ -269,9 +269,9 @@ struct CudaHostAdapter {
   }
 
   // / Move assignment
-  CUTLASS_RT_TM_HOST_DEVICE 
+  CUTLASS_RT_TMHOST_DEVICE 
   CudaHostAdapter& operator=(CudaHostAdapter && rhs) {
-    CUTLASS_RT_TM_ASSERT(rhs.kernel_count >= 0 && rhs.kernel_count < kMaximumKernelCount);
+    CUTLASS_RT_TMASSERT(rhs.kernel_count >= 0 && rhs.kernel_count < kMaximumKernelCount);
     for (int32_t i = 0; i < rhs.kernel_count && i < kMaximumKernelCount; ++i) {
       kernel_handles[i] = rhs.kernel_handles[i];
     }
@@ -281,13 +281,13 @@ struct CudaHostAdapter {
   }
 
   /// Ctor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   CudaHostAdapter(void **kernel_handles_, 
                   int32_t kernel_count_,
                   CudaHostLaunchAttributes const &launch_attributes_ = { })
       : kernel_count(kernel_count_),
         launch_attributes(launch_attributes_) {
-    CUTLASS_RT_TM_ASSERT(kernel_count >= 0 && kernel_count < kMaximumKernelCount);
+    CUTLASS_RT_TMASSERT(kernel_count >= 0 && kernel_count < kMaximumKernelCount);
 
     for (int32_t i = 0; i < kernel_count && i < kMaximumKernelCount; ++i) {
       kernel_handles[i] = kernel_handles_[i];
@@ -295,11 +295,11 @@ struct CudaHostAdapter {
   }
 
   /// Returns true if the CudaHostAdapter is empty (kernel_count == 0)
-  CUTLASS_RT_TM_HOST_DEVICE 
+  CUTLASS_RT_TMHOST_DEVICE 
   bool empty() const { return !kernel_count; }
 
   /// Returns kernel_count
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   size_t size() const { return static_cast<size_t>(kernel_count); }
 
   /// Queries the occupancy of a kernel
@@ -405,7 +405,7 @@ public:
 
   /// Fills a buffer in Global Memory with a byte sequence copied from host memory
   template<class FillValueType>
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Status memsetDevice(
       void* destination,
       FillValueType fill_value, 

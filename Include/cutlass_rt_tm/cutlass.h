@@ -64,8 +64,8 @@ enum class Status {
 };
 
 /// Convert cutlass_rt_tm status to status strings
-CUTLASS_RT_TM_HOST_DEVICE
-static constexpr const char* cutlass_rt_tmGetStatusString(cutlass_rt_tm::Status status) {
+CUTLASS_RT_TMHOST_DEVICE
+static constexpr const char* cutlassGetStatusString(cutlass_rt_tm::Status status) {
   switch (status) {
     case cutlass_rt_tm::Status::kSuccess:
       return "Success";
@@ -107,7 +107,7 @@ static constexpr int NumThreadsPerQuadPair = NumThreadsPerQuad * 2;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Helper function to return true when called by thread 0 of threadblock 0.
-CUTLASS_RT_TM_HOST_DEVICE bool thread0() {
+CUTLASS_RT_TMHOST_DEVICE bool thread0() {
   #if defined(__CUDA_ARCH__)
     return (!threadIdx.x && !threadIdx.y && !threadIdx.z) && (!blockIdx.x && !blockIdx.y && !blockIdx.z);
   #else
@@ -116,7 +116,7 @@ CUTLASS_RT_TM_HOST_DEVICE bool thread0() {
 }
 
 /// Returns a lane index in the warp. The threads in warp may not be convergent
-CUTLASS_RT_TM_DEVICE
+CUTLASS_RT_TMDEVICE
 int canonical_lane_idx() { 
   #if defined(__CUDA_ARCH__)
     return threadIdx.x % NumThreadsPerWarp;
@@ -127,7 +127,7 @@ int canonical_lane_idx() {
 
 /// Returns a warp-uniform value indicating the canonical warp index of the calling threads.
 /// Threads within the warp must be converged.
-CUTLASS_RT_TM_DEVICE
+CUTLASS_RT_TMDEVICE
 int canonical_warp_idx_sync() { 
   #if defined(__CUDA_ARCH__)
     return __shfl_sync(0xffffffff, threadIdx.x / NumThreadsPerWarp, 0);
@@ -138,7 +138,7 @@ int canonical_warp_idx_sync() {
 
 /// Returns a warp index in the CTA. The threads in warp may not be convergent
 /// As it doesn't sync the warp, it faster and allows forward progress
-CUTLASS_RT_TM_DEVICE
+CUTLASS_RT_TMDEVICE
 int canonical_warp_idx() { 
   #if defined(__CUDA_ARCH__)
     return threadIdx.x / NumThreadsPerWarp;
@@ -149,7 +149,7 @@ int canonical_warp_idx() {
 
 /// Returns a warp-uniform value indicating the canonical warp group index of the calling threads.
 /// Threads within the warp must be converged.
-CUTLASS_RT_TM_DEVICE
+CUTLASS_RT_TMDEVICE
 int canonical_warp_group_idx() {
   #if defined(__CUDA_ARCH__)
     return __shfl_sync(0xffffffff, threadIdx.x / NumThreadsPerWarpGroup, 0);

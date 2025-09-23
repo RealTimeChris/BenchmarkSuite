@@ -40,6 +40,7 @@
 #include "cutlass_rt_tm/gemm/gemm.h"
 #include "cutlass_rt_tm/gemm/thread/mma.h"
 #include "cutlass_rt_tm/functional.h"
+#include "cutlass_rt_tm/reduction/thread/reduce.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -109,7 +110,7 @@ struct Mma_HFMA2 <
   //
 
   /// Computes a matrix product D = A * B + C
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC & D,
     FragmentA const & A,
@@ -137,13 +138,13 @@ struct Mma_HFMA2 <
 
     Mma mma;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for(auto k=0; k <  Shape::kK / Mma::Shape::kK; k++){
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for(auto m=0; m < Shape::kM / Mma::Shape::kM; m++){
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_RT_TMPRAGMA_UNROLL
         for(auto n=0; n < Shape::kN / Mma::Shape::kN; n++){
 
             Array<half_t, 2> tmp { ptr_D[n*Shape::kM/2 + m] };
@@ -199,7 +200,7 @@ struct Mma_HFMA2<
   //
 
   /// Computes a matrix product D = A * B + C
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC & D,
     FragmentA const & A,
@@ -227,13 +228,13 @@ struct Mma_HFMA2<
 
     Mma mma;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for(auto k=0; k <  Shape::kK / Mma::Shape::kK; k++){
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_RT_TMPRAGMA_UNROLL
         for(auto n=0; n < Shape::kN / Mma::Shape::kN; n++){
 
-          CUTLASS_RT_TM_PRAGMA_UNROLL
+          CUTLASS_RT_TMPRAGMA_UNROLL
           for(auto m=0; m < Shape::kM / Mma::Shape::kM; m++){
 
             Array<half_t, 2> tmp { ptr_D[m*Shape::kN/2 + n] };
@@ -294,7 +295,7 @@ struct Mma_HFMA2 <
   //
 
   /// Computes a matrix product D = A * B + C
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC & D,
     FragmentA const & A,
@@ -321,13 +322,13 @@ struct Mma_HFMA2 <
 
     Mma mma;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int k = 0; k < Shape::kK / Mma::Shape::kK; ++k) {
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_RT_TMPRAGMA_UNROLL
         for (int m = 0; m < Shape::kM / Mma::Shape::kM; ++m) {
 
-          CUTLASS_RT_TM_PRAGMA_UNROLL
+          CUTLASS_RT_TMPRAGMA_UNROLL
           for (int n = 0; n < Shape::kN / Mma::Shape::kN; ++n) {
 
           Array<half_t, 2> tmp { ptr_D[m + n * Shape::kM/2] };
@@ -383,7 +384,7 @@ struct Mma_HFMA2<
   //
 
   /// Computes a matrix product D = A * B + C
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC & D,
     FragmentA const & A,
@@ -411,13 +412,13 @@ struct Mma_HFMA2<
 
     Mma mma;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for(auto k=0; k <  Shape::kK / Mma::Shape::kK; k++){
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_RT_TMPRAGMA_UNROLL
         for(auto n=0; n < Shape::kN / Mma::Shape::kN; n++){
 
-          CUTLASS_RT_TM_PRAGMA_UNROLL
+          CUTLASS_RT_TMPRAGMA_UNROLL
           for(auto m=0; m < Shape::kM / Mma::Shape::kM; m++){
 
             Array<half_t, 2> tmp { ptr_D[m*Shape::kN/2 + n] };
@@ -474,7 +475,7 @@ struct Mma_HFMA2 <
   //
 
   /// Computes a matrix product D = A * B + C
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC & D,
     FragmentA const & A,
@@ -502,13 +503,13 @@ struct Mma_HFMA2 <
 
     Mma mma;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for(auto k=0; k <  Shape::kK / Mma::Shape::kK; k++){
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for(auto m=0; m < Shape::kM / Mma::Shape::kM; m++){
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_RT_TMPRAGMA_UNROLL
         for(auto n=0; n < Shape::kN / Mma::Shape::kN; n++){
 
             Array<half_t, 2> tmp { ptr_D[n*Shape::kM/2 + m] };
@@ -568,7 +569,7 @@ struct Mma_HFMA2 <
   //
 
   /// Computes a matrix product D = A * B + C
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC & D,
     FragmentA const & A,
@@ -596,13 +597,13 @@ struct Mma_HFMA2 <
 
     Mma mma;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for(auto k=0; k <  Shape::kK / Mma::Shape::kK; k++){
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_RT_TMPRAGMA_UNROLL
         for(auto n=0; n < Shape::kN / Mma::Shape::kN; n++){
 
-          CUTLASS_RT_TM_PRAGMA_UNROLL
+          CUTLASS_RT_TMPRAGMA_UNROLL
           for(auto m=0; m < Shape::kM / Mma::Shape::kM; m++){
 
             Array<half_t, 2> tmp { ptr_D[m*Shape::kN/2 + n] };
@@ -662,7 +663,7 @@ struct Mma_HFMA2 <
   //
 
   /// Computes a matrix product D = A * B + C
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC & D,
     FragmentA const & A,
@@ -690,13 +691,13 @@ struct Mma_HFMA2 <
 
     Mma mma;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for(auto k=0; k <  Shape::kK / Mma::Shape::kK; k++){
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for(auto m=0; m < Shape::kM / Mma::Shape::kM; m++){
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_RT_TMPRAGMA_UNROLL
         for(auto n=0; n < Shape::kN / Mma::Shape::kN; n++){
 
             Array<half_t, 2> tmp { ptr_D[n*Shape::kM/2 + m] };
@@ -757,7 +758,7 @@ struct Mma_HFMA2<
   //
 
   /// Computes a matrix product D = A * B + C
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC & D,
     FragmentA const & A,
@@ -785,13 +786,13 @@ struct Mma_HFMA2<
 
     Mma mma;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for(auto k=0; k <  Shape::kK / Mma::Shape::kK; k++){
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_RT_TMPRAGMA_UNROLL
         for(auto n=0; n < Shape::kN / Mma::Shape::kN; n++){
 
-          CUTLASS_RT_TM_PRAGMA_UNROLL
+          CUTLASS_RT_TMPRAGMA_UNROLL
           for(auto m=0; m < Shape::kM / Mma::Shape::kM; m++){
 
             Array<half_t, 2> tmp { ptr_D[m*Shape::kN/2 + n] };
@@ -847,7 +848,7 @@ struct Mma_HFMA2<
   //
 
   /// Computes a matrix product D = A * B + C
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC & D,
     FragmentA const & A,
@@ -866,11 +867,12 @@ struct Mma_HFMA2<
 
     // Inner product is calculated using MACs, followed by final reduction
     multiply_add<Array<half_t, 2>> mac;
+    cutlass_rt_tm::reduction::thread::Reduce< plus<half_t>, Array<half_t, 2> > reduce;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for(auto n=0; n < Shape::kN / GemmShape::kN; n++){ 
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for(auto m=0; m < Shape::kM / GemmShape::kM; m++){
 
         Array<half_t, 2> tmp_C;
@@ -878,14 +880,14 @@ struct Mma_HFMA2<
         Array<half_t, 1> *ptr_tmp_C = reinterpret_cast<Array<half_t, 1> *>(&tmp_C);
         ptr_tmp_C[0] = ptr_D[n*Shape::kM + m];
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_RT_TMPRAGMA_UNROLL
         for(auto k=0; k <  Shape::kK / GemmShape::kK; k++){ 
           tmp_C = mac(ptr_A[m*Shape::kK/2 + k], ptr_B[n*Shape::kK/2 + k], tmp_C);
         }
 
         Array<half_t, 1> res;
         Array<half_t, 1> *ptr_res = &res;
-        //res = reduce(tmp_C);
+        res = reduce(tmp_C);
 
         ptr_D[m*Shape::kN + n] = ptr_res[0];
       }
@@ -931,7 +933,7 @@ struct Mma_HFMA2<
   //
 
   /// Computes a matrix product D = A * B + C
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC & D,
     FragmentA const & A,
@@ -950,11 +952,12 @@ struct Mma_HFMA2<
 
     // Inner product is calculated using MACs, followed by final reduction
     multiply_add<Array<half_t, 2>> mac;
+    cutlass_rt_tm::reduction::thread::Reduce< plus<half_t>, Array<half_t, 2> > reduce;
 
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for(auto n=0; n < Shape::kN / GemmShape::kN; n++){ 
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for(auto m=0; m < Shape::kM / GemmShape::kM; m++){
 
         Array<half_t, 2> tmp_C;
@@ -962,7 +965,7 @@ struct Mma_HFMA2<
         Array<half_t, 1> *ptr_tmp_C = reinterpret_cast<Array<half_t, 1> *>(&tmp_C);
         ptr_tmp_C[0] = ptr_D[n*Shape::kM + m];
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_RT_TMPRAGMA_UNROLL
         for(auto k=0; k <  Shape::kK / GemmShape::kK; k++){ 
 
           tmp_C = mac(ptr_A[m*Shape::kK/2 + k], ptr_B[n*Shape::kK/2 + k], tmp_C);
@@ -971,7 +974,7 @@ struct Mma_HFMA2<
 
         Array<half_t, 1> res;
         Array<half_t, 1> *ptr_res = &res;
-        //res = reduce(tmp_C);
+        res = reduce(tmp_C);
 
         ptr_D[n*Shape::kM + m] = ptr_res[0];
       }
@@ -1052,7 +1055,7 @@ struct Mma<
   //
 
   /// Computes a matrix product D = A * B + C
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC & D,
     FragmentA const & A,
@@ -1136,7 +1139,7 @@ struct Mma<
 
   using ArchMmaOperator = typename TransposeMma::ArchMmaOperator;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC & D,
     FragmentA const & A,

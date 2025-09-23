@@ -74,9 +74,9 @@ struct TensorOpPolicy<WarpShape, OperatorShape, layout::RowMajor> {
   // Hard-coded constants regarding Tensor Operations
   //
 
-  static constexpr int kElementsPerAccess = 2;
-  static constexpr int kRowsPerIteration = 8;
-  static constexpr bool kDivisible = 
+  static int const kElementsPerAccess = 2;
+  static int const kRowsPerIteration = 8;
+  static bool const kDivisible = 
     !(WarpShape::kM % OperatorShape::kM) && !(WarpShape::kN % OperatorShape::kN);
 
   //
@@ -84,15 +84,15 @@ struct TensorOpPolicy<WarpShape, OperatorShape, layout::RowMajor> {
   //
 
   // Number of 'externally visible' iterations per actual instruction
-  static constexpr int kIterationsPerInstruction = OperatorShape::kM / kRowsPerIteration;
+  static int const kIterationsPerInstruction = OperatorShape::kM / kRowsPerIteration;
 
   // Number of externally visible iterations
-  static constexpr int kIterations = OperatorCount::kRow * kIterationsPerInstruction;
+  static int const kIterations = OperatorCount::kRow * kIterationsPerInstruction;
 
   using TileIterations = MatrixShape<kIterations, 1>;
 
-  static constexpr int kAccumulatorRowStride = kElementsPerAccess;
-  static constexpr int kAccumulatorColumnStride = kElementsPerAccess * OperatorCount::kRow * kIterationsPerInstruction;
+  static int const kAccumulatorRowStride = kElementsPerAccess;
+  static int const kAccumulatorColumnStride = kElementsPerAccess * OperatorCount::kRow * kIterationsPerInstruction;
 
 };
 
@@ -115,9 +115,9 @@ struct TensorOpPolicy<WarpShape, OperatorShape, layout::ColumnMajor> {
   // Hard-coded constants regarding Tensor Operations
   //
 
-  static constexpr int kElementsPerAccess = 1;
-  static constexpr int kColumnsPerIteration = 8;
-  static constexpr bool kDivisible = 
+  static int const kElementsPerAccess = 1;
+  static int const kColumnsPerIteration = 8;
+  static bool const kDivisible = 
     !(WarpShape::kM % OperatorShape::kM) && !(WarpShape::kN % OperatorShape::kN);
 
   //
@@ -125,16 +125,16 @@ struct TensorOpPolicy<WarpShape, OperatorShape, layout::ColumnMajor> {
   //
 
   // Number of 'externally visible' iterations per actual instruction
-  static constexpr int kIterationsPerInstruction = OperatorShape::kN / kColumnsPerIteration;
+  static int const kIterationsPerInstruction = OperatorShape::kN / kColumnsPerIteration;
 
   // Number of externally visible iterations
-  static constexpr int kIterations = OperatorCount::kColumn * kIterationsPerInstruction;
+  static int const kIterations = OperatorCount::kColumn * kIterationsPerInstruction;
 
   using TileIterations = MatrixShape<kIterations, 1>;
 
   // Hard code for 16x8
-  static constexpr int kAccumulatorRowStride = 2;
-  static constexpr int kAccumulatorColumnStride = 4 * OperatorCount::kRow;
+  static int const kAccumulatorRowStride = 2;
+  static int const kAccumulatorColumnStride = 4 * OperatorCount::kRow;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -155,28 +155,28 @@ struct TensorOpPolicy<WarpShape, OperatorShape,
   // Hard-coded constants regarding Tensor Operations
   //
 
-  static constexpr int kElementsPerAccess = 2;
-  static constexpr int kRowsPerIteration = 8;
+  static int const kElementsPerAccess = 2;
+  static int const kRowsPerIteration = 8;
 
   //
   // Derived quantities
   //
 
   // Number of 'externally visible' iterations per actual instruction
-  static constexpr int kIterationsPerInstruction =
+  static int const kIterationsPerInstruction =
       OperatorShape::kM / kRowsPerIteration;
 
   // Number of externally visible iterations
-  static constexpr int kIterations = WarpShape::kN / InterleavedK *
+  static int const kIterations = WarpShape::kN / InterleavedK *
                                  OperatorCount::kRow *
                                  kIterationsPerInstruction;
 
-  static constexpr int kElementsPerIteration = InterleavedK / OperatorShape::kN * kElementsPerAccess;
+  static int const kElementsPerIteration = InterleavedK / OperatorShape::kN * kElementsPerAccess;
 
-  static constexpr int kAccessPerIteration = kElementsPerIteration / kElementsPerAccess;
+  static int const kAccessPerIteration = kElementsPerIteration / kElementsPerAccess;
 
   // Number of externally visible iterations
-  //static constexpr int kTileIterations = OperatorCount::kRow * kIterationsPerInstruction;
+  //static int const kTileIterations = OperatorCount::kRow * kIterationsPerInstruction;
   using TileIterations = MatrixShape<1, WarpShape::kN / InterleavedK>;
 };
 

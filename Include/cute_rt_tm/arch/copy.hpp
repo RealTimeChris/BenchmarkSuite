@@ -52,7 +52,7 @@ struct UniversalCopy
   static_assert(sizeof_bits_v<S> >= 8);
   static_assert(sizeof_bits_v<D> >= 8);
 
-  CUTE_RT_TM_HOST_DEVICE static constexpr void
+  CUTE_RT_TMHOST_DEVICE static constexpr void
   copy(S const& src,
        D      & dst)
   {
@@ -96,7 +96,7 @@ struct AutoCopyAsync {};
 // Global memory prefetch into L2
 //
 
-CUTE_RT_TM_HOST_DEVICE static void
+CUTE_RT_TMHOST_DEVICE static void
 prefetch(void const* gmem_ptr)
 {
 #if defined(__CUDA_ARCH__)

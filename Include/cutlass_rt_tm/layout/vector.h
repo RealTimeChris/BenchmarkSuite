@@ -72,30 +72,30 @@ public:
   // Methods
   //
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   PackedVectorLayout() { }
 
   /// Helper returns a layout to a tightly packed tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   static PackedVectorLayout packed(TensorCoord const &size) {
-    CUTLASS_RT_TM_UNUSED(size);
+    CUTLASS_RT_TMUNUSED(size);
     return PackedVectorLayout();
   }
 
   /// Returns the offset of a coordinate in linear memory
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   LongIndex operator()(TensorCoord const &coord) const {
     return coord[0];
   }
 
   /// Returns the stride of the layout
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Stride stride() const {
     return make_Coord(1);
   }
 
   /// Compute the number of contiguous elements needed to store a tensor with the given size
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   LongIndex capacity(TensorCoord const &size) const {
     return size[0];
   }

@@ -117,7 +117,7 @@ public:
 
   using Shape = Shape_;
   using WarpMmaOperator = WarpMmaOperator_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static int const kPartitionsK = PartitionsK;
   using OutputTileIterator = OutputTileIterator_;
   using AccumulatorFragmentIterator = AccumulatorFragmentIterator_;
   using WarpTileIterator = WarpTileIterator_;
@@ -131,7 +131,7 @@ public:
   using WarpCount = typename Base::WarpCount;
 
   /// Number of threads per block
-  static constexpr int kBlockThreads = 32 * WarpCount::kCount;
+  static int const kBlockThreads = 32 * WarpCount::kCount;
 
   /// Per-thread accumulator tile type
   using AccumulatorTile = typename Base::AccumulatorTile;
@@ -146,7 +146,7 @@ public:
   using ElementOutput = typename OutputTileIterator::Element;
 
   /// Output access size
-  static constexpr int kElementsPerAccess = OutputTileIterator::kElementsPerAccess;
+  static int const kElementsPerAccess = OutputTileIterator::kElementsPerAccess;
 
   /// Tensor reference to destination tensor
   using TensorRef = typename OutputTileIterator::TensorRef;
@@ -164,9 +164,9 @@ public:
   /// Vector type used by the shared output iterator
   using AccumulatorAccessType = Array<typename WarpTileIterator::Element, OutputTileIterator::kElementsPerAccess>;
 
-  static constexpr int kSmemTiles = Base::kFragmentsPerIteration > 1 ? Base::kFragmentsPerIteration : kPartitionsK;
+  static int constexpr kSmemTiles = Base::kFragmentsPerIteration > 1 ? Base::kFragmentsPerIteration : kPartitionsK;
 
-  static constexpr int kSmemPointerOffset = Base::SharedStorage::StorageShape::kCount / kSmemTiles;
+  static int constexpr kSmemPointerOffset = Base::SharedStorage::StorageShape::kCount / kSmemTiles;
 
 
 public:
@@ -188,16 +188,16 @@ public:
   struct SourceAspectNotNeeded
   {
     /// Constructor
-    CUTLASS_RT_TM_DEVICE
+    CUTLASS_RT_TMDEVICE
     SourceAspectNotNeeded()
     {}
 
     // No-op
-    CUTLASS_RT_TM_DEVICE
+    CUTLASS_RT_TMDEVICE
     void load() { }
 
     /// Invoke the output functor over each vector of output
-    CUTLASS_RT_TM_DEVICE
+    CUTLASS_RT_TMDEVICE
     void apply_output_operator(
       typename OutputTileIterator::Fragment &output_fragment,
       OutputOp const &output_op,
@@ -212,7 +212,7 @@ public:
       int const kOutputOpIterations =
         OutputTileIterator::Fragment::kElements / OutputTileIterator::kElementsPerAccess;
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int i = 0; i < kOutputOpIterations; ++i)
       {
         // Call the output operator
@@ -230,7 +230,7 @@ public:
     typename OutputTileIterator::Fragment source_fragment;
 
     /// Invoke the output functor over each vector of output
-    CUTLASS_RT_TM_DEVICE
+    CUTLASS_RT_TMDEVICE
     static void apply_output_operator(
       typename OutputTileIterator::Fragment &output_fragment,
       OutputOp const &output_op,
@@ -249,7 +249,7 @@ public:
       int const kOutputOpIterations =
         OutputTileIterator::Fragment::kElements / OutputTileIterator::kElementsPerAccess;
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int i = 0; i < kOutputOpIterations; ++i)
       {
         // Call the output operator
@@ -258,7 +258,7 @@ public:
     }
 
     /// Constructor
-    CUTLASS_RT_TM_DEVICE
+    CUTLASS_RT_TMDEVICE
     SourceAspectNeeded(OutputTileIterator source_iterator) :
       source_iterator(source_iterator)
     {
@@ -266,14 +266,14 @@ public:
     }
 
     // Load addend source fragment from global memory
-    CUTLASS_RT_TM_DEVICE
+    CUTLASS_RT_TMDEVICE
     void load() {
       source_iterator.load(source_fragment);
       ++source_iterator;
     }
 
     /// Invoke the output functor over each vector of output
-    CUTLASS_RT_TM_DEVICE
+    CUTLASS_RT_TMDEVICE
     void apply_output_operator(
       typename OutputTileIterator::Fragment &output_fragment,
       OutputOp const &output_op,
@@ -298,7 +298,7 @@ private:
 public:
 
   /// Constructor
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   Epilogue(
       typename Base::SharedStorage &shared_storage,   ///< Shared storage object
       int thread_idx,                                 ///< ID of a thread within the threadblock
@@ -315,7 +315,7 @@ public:
 
   /// Aggregates the accumulator sets shared by peer blocks in the global workspace,
   /// performing epilogue computations, writing to output
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void reduce(
       int peer_idx_begin,
       int peer_idx_end,
@@ -353,7 +353,7 @@ public:
     {
       plus <typename SharedLoadIterator::Fragment> add_fragments;
 
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for ( int i = 1; i < kPartitionsK; ++i) {
         typename SharedLoadIterator::Fragment aligned_addend_fragment;
         shared_load_iterator_.add_pointer_offset(kSmemPointerOffset);
@@ -379,7 +379,7 @@ public:
 
 
   /// Perform the epilogue computations and stream the result to global memory.
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void operator()(
     OutputOp const &output_op,                      ///< Output operator
     OutputTileIterator destination_iterator,        ///< Tile iterator for destination
@@ -391,7 +391,7 @@ public:
 
   /// Perform the epilogue computations and stream the result to global memory.  Implements
   /// two alternative codepaths, depending on whether the output op requires addend data to be loaded.
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void operator()(
     OutputOp const &output_op,                      ///< Output operator
     OutputTileIterator destination_iterator,        ///< Tile iterator for destination
@@ -411,7 +411,7 @@ public:
 
   /// Perform the epilogue computations and stream the result to global memory.  Implements a
   /// single codepath, regardless of whether the output op requires addend data to be loaded
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void unified(
     OutputOp const &output_op,                      ///< Output operator
     OutputTileIterator destination_iterator,        ///< Tile iterator for destination
@@ -433,10 +433,10 @@ public:
   template <size_t... Seq>
   struct acc2smem<cutlass_rt_tm::index_sequence<Seq...>> {
     template<int Advance>
-    CUTLASS_RT_TM_DEVICE
+    CUTLASS_RT_TMDEVICE
     static void helper(AccumulatorFragmentIterator accum_fragment_iterator,
                       WarpTileIterator &warp_tile_iterator) {
-      CUTLASS_RT_TM_PRAGMA_UNROLL
+      CUTLASS_RT_TMPRAGMA_UNROLL
       for (int i = 0; i < Advance; i++) {
         ++accum_fragment_iterator;
       }
@@ -448,7 +448,7 @@ public:
       warp_tile_iterator.store(accum_fragment);
     }
 
-    CUTLASS_RT_TM_DEVICE
+    CUTLASS_RT_TMDEVICE
     static void push(size_t pos,
                     AccumulatorFragmentIterator const &iterator_begin,
                     WarpTileIterator &warp_tile_iterator) {
@@ -459,7 +459,7 @@ public:
 
   /// Streams the result to global memory
   template <typename SourceAspect>
-  CUTLASS_RT_TM_DEVICE
+  CUTLASS_RT_TMDEVICE
   void operator()(
     OutputOp const &output_op,                      ///< Output operator
     OutputTileIterator destination_iterator,        ///< Tile iterator for destination
@@ -508,7 +508,7 @@ public:
       if (kPartitionsK > 1) {
         plus <typename SharedLoadIterator::Fragment> add_fragments;
 
-        CUTLASS_RT_TM_PRAGMA_UNROLL
+        CUTLASS_RT_TMPRAGMA_UNROLL
         for ( int i = 1; i < kPartitionsK; ++i) {
           shared_load_iterator_.add_pointer_offset(kSmemPointerOffset);
           shared_load_iterator_.load(aligned_accum_fragment[i]);

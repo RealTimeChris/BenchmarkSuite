@@ -122,11 +122,11 @@ class TensorView : public TensorRef<Element_, Layout_> {
   //
 
   /// Constructs a TensorView object
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   TensorView() { }
 
   /// Constructs a TensorView object
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   TensorView(
     Element *ptr,                         ///< pointer to start of tensor
     Layout const &layout,                 ///< layout object containing stride and mapping function
@@ -137,7 +137,7 @@ class TensorView : public TensorRef<Element_, Layout_> {
   }
 
   /// Constructs a TensorView object
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   TensorView(
     TensorRef const &ref,                 ///< pointer and layout object referencing a tensor
     TensorCoord const &extent             ///< logical size of tensor
@@ -147,49 +147,49 @@ class TensorView : public TensorRef<Element_, Layout_> {
   }
 
   /// Converting constructor from TensorRef to non-constant data.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   TensorView(
     NonConstTensorView const &view        ///< TensorView to non-const data
   ):
     Base(view), extent_(view.extent_) { }
 
   /// Updates the pointer and layout object
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void reset(Element* ptr, Layout const &layout, TensorCoord const &extent) {
     Base::reset(ptr, layout);
     this->resize(extent);
   }
 
   /// Updates the pointer
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void reset(Element* ptr) {
     Base::reset(ptr);
   }
 
   /// Changes the size of the view without affecting pointer or layout
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void resize(TensorCoord const &extent) {
     this->extent_ = extent;
   }
 
   /// Returns the extent of the view (the size along each logical dimension).
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   TensorCoord const& extent() const { return extent_; }
 
   /// Returns the extent along a particular logical dimension.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   Index extent(int dim) const { return extent_.at(dim); }
 
   /// Returns the number of logical elements
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   LongIndex size() const {
     return extent_.product();
   }
 
   /// Determines whether a location is within a tensor
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   bool contains(TensorCoord const& coord) const {
-    CUTLASS_RT_TM_PRAGMA_UNROLL
+    CUTLASS_RT_TMPRAGMA_UNROLL
     for (int dim = 0; dim < kRank; ++dim) {
       if (!(coord[dim] >= 0 && coord[dim] < extent(dim))) {
         return false;
@@ -199,25 +199,25 @@ class TensorView : public TensorRef<Element_, Layout_> {
   }
 
   /// Returns a TensorRef pointing to the first element of the tensor.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   TensorRef ref() const {
     return TensorRef(this->data(), this->layout());
   }
 
   /// Returns a TensorRef pointing to the first element of the tensor.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   ConstTensorRef const_ref() const {
     return ConstTensorRef(this->data(), this->layout());
   }
 
   /// Returns a TensorView to const data
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   ConstTensorView const_view() const {
     return ConstTensorView(const_ref(), extent_);
   }
 
   /// Returns a Tensor_view given location and size quantities
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   TensorView subview(
     TensorCoord extent,                               ///< extent of the resulting view
     TensorCoord const& location = TensorCoord()       ///< resulting view's origin within the old view
@@ -229,13 +229,13 @@ class TensorView : public TensorRef<Element_, Layout_> {
   }
 
   /// Returns the number of scalar elements needed to store tensor.
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   size_t capacity() const {
     return Base::layout().capacity(extent_);
   }
 
   /// Returns a TensorView offset by a given amount
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   TensorView operator+(
     TensorCoord const& b            ///< offset in the logical coordinate space of the tensor
   ) const {
@@ -246,7 +246,7 @@ class TensorView : public TensorRef<Element_, Layout_> {
   }
 
   /// Returns a TensorRef offset by a given amount
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   TensorView& operator+=(
     TensorCoord const& b            ///< offset in the logical coordinate space of the tensor
   ) {
@@ -256,7 +256,7 @@ class TensorView : public TensorRef<Element_, Layout_> {
   }
 
   /// Returns a TensorRef offset by a given amount
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   TensorView operator-(
     TensorCoord const& b            ///< offset in the logical coordinate space of the tensor
   ) const {
@@ -267,7 +267,7 @@ class TensorView : public TensorRef<Element_, Layout_> {
   }
 
   /// Returns a TensorRef offset by a given amount
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   TensorView& operator-=(
     TensorCoord const& b            ///< offset in the logical coordinate space of the tensor
   ) {
@@ -284,7 +284,7 @@ template <
   typename Element,
   typename Layout
 >
-CUTLASS_RT_TM_HOST_DEVICE TensorView<Element, Layout> make_TensorView(
+CUTLASS_RT_TMHOST_DEVICE TensorView<Element, Layout> make_TensorView(
   Element *ptr, 
   Layout const &layout,
   typename Layout::TensorCoord const &extent) {

@@ -137,7 +137,7 @@ private:
       ThreadblockShape, WarpShape, InstructionShape, Stages, kInternalTranspose,
       Operator, false, SharedMemoryClear>::ThreadblockMma;
 
-  static constexpr  int kPartitionsK = ThreadblockShape::kK / WarpShape::kK;
+  static constexpr int kPartitionsK = ThreadblockShape::kK / WarpShape::kK;
 
   /// Define the epilogue
   using Epilogue =

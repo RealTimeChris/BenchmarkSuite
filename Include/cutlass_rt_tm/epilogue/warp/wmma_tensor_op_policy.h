@@ -40,7 +40,7 @@
 #include "cutlass_rt_tm/matrix_shape.h"
 #include "cutlass_rt_tm/layout/matrix.h"
 
-#if defined(CUTLASS_RT_TM_ARCH_WMMA_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_WMMA_ENABLED)
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -76,16 +76,16 @@ struct WmmaTensorOpPolicy<WarpShape, OperatorShape, layout::RowMajor> {
   //
   // Hard-coded constants regarding Tensor Operations
   //
-  static constexpr int kElementsPerAccess = 2;
-  static constexpr int kRowsPerIteration = OperatorShape::kM;
-  static constexpr int kWmmaFragmentsPerAccess = 1;
+  static int const kElementsPerAccess = 2;
+  static int const kRowsPerIteration = OperatorShape::kM;
+  static int const kWmmaFragmentsPerAccess = 1;
 
   //
   // Derived quantities
   //
 
   // Number of externally visible iterations
-  static constexpr int kIterations = OperatorCount::kRow;
+  static int const kIterations = OperatorCount::kRow;
 
 };
 

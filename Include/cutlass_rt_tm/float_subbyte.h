@@ -44,15 +44,15 @@
 #define CUDA_FP4_ENABLED 1
 #endif
 
-#if (defined(CUTLASS_RT_TM_ARCH_MMA_SM100A_ENABLED) || defined(CUTLASS_RT_TM_ARCH_MMA_SM101A_ENABLED) ||\
-     defined(CUTLASS_RT_TM_ARCH_MMA_SM103A_ENABLED) || defined(CUTLASS_RT_TM_ARCH_MMA_SM110A_ENABLED) ||\
-     defined(CUTLASS_RT_TM_ARCH_MMA_SM120A_ENABLED) || defined(CUTLASS_RT_TM_ARCH_MMA_SM121A_ENABLED))
+#if (defined(CUTLASS_RT_TMARCH_MMA_SM100A_ENABLED) || defined(CUTLASS_RT_TMARCH_MMA_SM101A_ENABLED) ||\
+     defined(CUTLASS_RT_TMARCH_MMA_SM103A_ENABLED) || defined(CUTLASS_RT_TMARCH_MMA_SM110A_ENABLED) ||\
+     defined(CUTLASS_RT_TMARCH_MMA_SM120A_ENABLED) || defined(CUTLASS_RT_TMARCH_MMA_SM121A_ENABLED))
 #  define CUDA_PTX_FP4FP6_CVT_ENABLED 1
 #endif
 
-#if (defined(CUTLASS_RT_TM_ARCH_MMA_SM100F_ENABLED) || defined(CUTLASS_RT_TM_ARCH_MMA_SM101F_ENABLED) ||\
-     defined(CUTLASS_RT_TM_ARCH_MMA_SM103F_ENABLED) || defined(CUTLASS_RT_TM_ARCH_MMA_SM110F_ENABLED) ||\
-     defined(CUTLASS_RT_TM_ARCH_MMA_SM120F_ENABLED) || defined(CUTLASS_RT_TM_ARCH_MMA_SM121F_ENABLED))
+#if (defined(CUTLASS_RT_TMARCH_MMA_SM100F_ENABLED) || defined(CUTLASS_RT_TMARCH_MMA_SM101F_ENABLED) ||\
+     defined(CUTLASS_RT_TMARCH_MMA_SM103F_ENABLED) || defined(CUTLASS_RT_TMARCH_MMA_SM110F_ENABLED) ||\
+     defined(CUTLASS_RT_TMARCH_MMA_SM120F_ENABLED) || defined(CUTLASS_RT_TMARCH_MMA_SM121F_ENABLED))
 #  define CUDA_PTX_FP4FP6_CVT_ENABLED 1
 #endif
 
@@ -82,19 +82,19 @@ struct float_e2m1_t : public float_exmy_base<cutlass_rt_tm::detail::FpEncoding::
 
   float_e2m1_t() = default;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_e2m1_t(double x) : Base(float(x)) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_e2m1_t(float x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_e2m1_t(int x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float_e2m1_t(Base x) : Base(x) {
   }
 };
@@ -108,23 +108,23 @@ struct float_e2m1_unpacksmem_t : public float_exmy_base<cutlass_rt_tm::detail::F
 
   float_e2m1_unpacksmem_t() = default;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float_e2m1_unpacksmem_t(float_e2m1_unpacksmem_t const& x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_e2m1_unpacksmem_t(double x) : Base(float(x)) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_e2m1_unpacksmem_t(float x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_e2m1_unpacksmem_t(int x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float_e2m1_unpacksmem_t(Base x) : Base(x) {
   }
 };
@@ -142,7 +142,7 @@ struct sizeof_bits<detail::float_e2m1_unpacksmem_t> {
   static constexpr int value = 4;
 };
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e2m1_t abs(float_e2m1_t const& val) {
   using BaseType = typename float_e2m1_t::Base;
   return float_e2m1_t(abs(BaseType{val.raw()}));
@@ -163,23 +163,23 @@ struct float_e2m3_t : public float_exmy_base<cutlass_rt_tm::detail::FpEncoding::
 
   float_e2m3_t() = default;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_e2m3_t(double x) : Base(float(x)) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_e2m3_t(float x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_e2m3_t(int x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float_e2m3_t(Base x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_e2m3_t(float_e3m2_t x);
 };
 
@@ -191,19 +191,19 @@ struct float_e2m3_unpack8bits_t: public float_exmy_base<cutlass_rt_tm::detail::F
 
   float_e2m3_unpack8bits_t() = default;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_e2m3_unpack8bits_t(double x) : Base(float(x)) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_e2m3_unpack8bits_t(float x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_e2m3_unpack8bits_t(int x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float_e2m3_unpack8bits_t(Base x) : Base(x) {
   }
 };
@@ -215,23 +215,23 @@ struct float_e2m3_unpacksmem_t : public float_exmy_base<cutlass_rt_tm::detail::F
 
   float_e2m3_unpacksmem_t() = default;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float_e2m3_unpacksmem_t(float_e2m3_unpacksmem_t const& x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_e2m3_unpacksmem_t(double x) : Base(float(x)) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_e2m3_unpacksmem_t(float x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_e2m3_unpacksmem_t(int x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float_e2m3_unpacksmem_t(Base x) : Base(x) {
   }
 };
@@ -250,7 +250,7 @@ struct sizeof_bits<detail::float_e2m3_unpacksmem_t> {
   static constexpr int value = 6;
 };
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e2m3_t abs(float_e2m3_t const& val) {
   using BaseType = typename float_e2m3_t::Base;
   return float_e2m3_t(abs(BaseType{val.raw()}));
@@ -270,23 +270,23 @@ struct float_e3m2_t : public float_exmy_base<cutlass_rt_tm::detail::FpEncoding::
 
   float_e3m2_t() = default;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_e3m2_t(double x) : Base(float(x)) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_e3m2_t(float x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_e3m2_t(int x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float_e3m2_t(Base x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_e3m2_t(float_e2m3_t x);
 };
 
@@ -298,19 +298,19 @@ struct float_e3m2_unpack8bits_t : public float_exmy_base<cutlass_rt_tm::detail::
 
   float_e3m2_unpack8bits_t() = default;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_e3m2_unpack8bits_t(double x) : Base(float(x)) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_e3m2_unpack8bits_t(float x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_e3m2_unpack8bits_t(int x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float_e3m2_unpack8bits_t(Base x) : Base(x) {
   }
 };
@@ -322,23 +322,23 @@ struct float_e3m2_unpacksmem_t : public float_exmy_base<cutlass_rt_tm::detail::F
 
   float_e3m2_unpacksmem_t() = default;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float_e3m2_unpacksmem_t(float_e3m2_unpacksmem_t const& x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_e3m2_unpacksmem_t(double x) : Base(float(x)) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_e3m2_unpacksmem_t(float x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit float_e3m2_unpacksmem_t(int x) : Base(x) {
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   float_e3m2_unpacksmem_t(Base x) : Base(x) {
   }
 };
@@ -357,7 +357,7 @@ struct sizeof_bits<detail::float_e3m2_unpacksmem_t> {
   static constexpr int value = 6;
 };
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e3m2_t abs(float_e3m2_t const& val) {
   using BaseType = typename float_e3m2_t::Base;
   return float_e3m2_t(abs(BaseType{val.raw()}));
@@ -402,13 +402,13 @@ struct get_unpacked_element_type<float_e3m2_t> {
 // //
 // ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e2m3_t::float_e2m3_t(float_e3m2_t x)
 {
   storage = convert_from_float(float(x)).storage;
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 float_e3m2_t::float_e3m2_t(float_e2m3_t x)
 {
   storage = convert_from_float(float(x)).storage;
@@ -431,12 +431,12 @@ union type_erased_dynamic_float6_t {
   cutlass_rt_tm::float_e2m3_t e2m3;
   cutlass_rt_tm::float_e3m2_t e3m2;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit operator cutlass_rt_tm::float_e2m3_t() const { 
     return e2m3;
   }
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit operator cutlass_rt_tm::float_e3m2_t() const { 
     return e3m2;
   }
@@ -460,7 +460,7 @@ struct sizeof_bits<type_erased_dynamic_float6_t> {
 
 union type_erased_dynamic_float4_t {
   cutlass_rt_tm::float_e2m1_t e2m1;
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit operator cutlass_rt_tm::float_e2m1_t() const { 
     return e2m1;
   }
@@ -521,12 +521,12 @@ union type_erased_dynamic_float6_unpacksmem_t {
   cutlass_rt_tm::detail::float_e2m3_unpacksmem_t e2m3_unpacksmem;
   cutlass_rt_tm::detail::float_e3m2_unpacksmem_t e3m2_unpacksmem;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit operator cutlass_rt_tm::detail::float_e2m3_unpacksmem_t() const { 
     return e2m3_unpacksmem;
   }
   
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit operator cutlass_rt_tm::detail::float_e3m2_unpacksmem_t() const { 
     return e3m2_unpacksmem;
   }
@@ -535,7 +535,7 @@ union type_erased_dynamic_float6_unpacksmem_t {
 union type_erased_dynamic_float4_unpacksmem_t {
   cutlass_rt_tm::detail::float_e2m1_unpacksmem_t e2m1_unpacksmem;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   explicit operator cutlass_rt_tm::detail::float_e2m1_unpacksmem_t() const { 
     return e2m1_unpacksmem;
   }
@@ -673,7 +673,7 @@ public:
   static type min() { return type::bitcast(0x01); }
 
   /// Maximum finite value
-  CUTLASS_RT_TM_HOST_DEVICE static type max() { return type::bitcast(type::Base::BitRepresentation::MAX_VALUE); }
+  CUTLASS_RT_TMHOST_DEVICE static type max() { return type::bitcast(type::Base::BitRepresentation::MAX_VALUE); }
 
   /// Returns maximum rounding error
   static type round_error() { return type(0.5f); }
@@ -759,36 +759,36 @@ struct numeric_limits<cutlass_rt_tm::detail::float_e3m2_unpack8bits_t> : public 
 //
 // User-defined literals
 //
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 cutlass_rt_tm::float_e2m1_t operator"" _fe2m1(long double x)
 {
   return cutlass_rt_tm::float_e2m1_t(float(x));
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 cutlass_rt_tm::float_e2m1_t operator"" _fe2m1(unsigned long long int x)
 {
   return cutlass_rt_tm::float_e2m1_t(int(x));
 }
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 cutlass_rt_tm::float_e2m3_t operator"" _fe2m3(long double x)
 {
   return cutlass_rt_tm::float_e2m3_t(float(x));
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 cutlass_rt_tm::float_e2m3_t operator"" _fe2m3(unsigned long long int x)
 {
   return cutlass_rt_tm::float_e2m3_t(int(x));
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 cutlass_rt_tm::float_e3m2_t operator"" _fe3m2(long double x)
 {
   return cutlass_rt_tm::float_e3m2_t(float(x));
 }
 
-CUTLASS_RT_TM_HOST_DEVICE
+CUTLASS_RT_TMHOST_DEVICE
 cutlass_rt_tm::float_e3m2_t operator"" _fe3m2(unsigned long long int x)
 {
   return cutlass_rt_tm::float_e3m2_t(int(x));

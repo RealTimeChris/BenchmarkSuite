@@ -38,7 +38,7 @@
 
 #include "cutlass_rt_tm/arch/wmma.h"
 
-#if defined(CUTLASS_RT_TM_ARCH_WMMA_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_WMMA_ENABLED)
 // CUDA Toolkit includes for nvcuda::wmma needed for binarized matrix multiply.
 #include <mma.h>
 #include "cutlass_rt_tm/wmma_array.h"
@@ -53,10 +53,10 @@
 
 #if ((__CUDACC_VER_MAJOR__ > 10) || (__CUDACC_VER_MAJOR__ == 10 && __CUDACC_VER_MINOR__ >= 2))
 
-#define CUTLASS_RT_TM_ARCH_MMA_SM75_SUPPORTED 1
+#define CUTLASS_RT_TMARCH_MMA_SM75_SUPPORTED 1
 
 #if (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 750))
-#define CUTLASS_RT_TM_ARCH_MMA_SM75_ENABLED
+#define CUTLASS_RT_TMARCH_MMA_SM75_ENABLED
 #endif
 #endif
 
@@ -101,7 +101,7 @@ struct Mma<
   using Operator = OpMultiplyAdd;
   using ArchTag = arch::Sm75;
 
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -109,7 +109,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM75_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_SM75_ENABLED)
 
   unsigned const *A = reinterpret_cast<unsigned const *>(&a);
   unsigned const *B = reinterpret_cast<unsigned const *>(&b);
@@ -122,11 +122,11 @@ struct Mma<
       : "r"(A[0]), "r"(A[1]), "r"(B[0]), "r"(C[0]), "r"(C[1]));
 
 #else
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(a);
+    CUTLASS_RT_TMUNUSED(b);
+    CUTLASS_RT_TMUNUSED(c);
+    CUTLASS_RT_TMUNUSED(d);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 #endif
   }
 };
@@ -168,11 +168,11 @@ struct Mma<
   using ArchTag = arch::Sm75;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM75_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_SM75_ENABLED)
 
   unsigned const *A = reinterpret_cast<unsigned const *>(&a);
   unsigned const *B = reinterpret_cast<unsigned const *>(&b);
@@ -188,11 +188,11 @@ struct Mma<
   );
 
 #else
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(a);
+    CUTLASS_RT_TMUNUSED(b);
+    CUTLASS_RT_TMUNUSED(c);
+    CUTLASS_RT_TMUNUSED(d);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 #endif
   }
 };
@@ -234,7 +234,7 @@ struct Mma<
   using ArchTag = arch::Sm75;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -242,7 +242,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM75_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_SM75_ENABLED)
 
   unsigned const & A = reinterpret_cast<unsigned const &>(a);
   unsigned const & B = reinterpret_cast<unsigned const &>(b);
@@ -254,11 +254,11 @@ struct Mma<
       : "=r"(D[0]), "=r"(D[1])
       : "r"(A), "r"(B), "r"(C[0]), "r"(C[1]));
 #else
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(a);
+    CUTLASS_RT_TMUNUSED(b);
+    CUTLASS_RT_TMUNUSED(c);
+    CUTLASS_RT_TMUNUSED(d);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 #endif
   }
 };
@@ -294,7 +294,7 @@ struct Mma<
   using ArchTag = arch::Sm75;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -302,7 +302,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM75_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_SM75_ENABLED)
 
   unsigned const & A = reinterpret_cast<unsigned const &>(a);
   unsigned const & B = reinterpret_cast<unsigned const &>(b);
@@ -314,11 +314,11 @@ struct Mma<
       : "=r"(D[0]), "=r"(D[1])
       : "r"(A), "r"(B), "r"(C[0]), "r"(C[1]));
 #else
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(a);
+    CUTLASS_RT_TMUNUSED(b);
+    CUTLASS_RT_TMUNUSED(c);
+    CUTLASS_RT_TMUNUSED(d);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 #endif
   }
 };
@@ -354,7 +354,7 @@ struct Mma<
   using ArchTag = arch::Sm75;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -362,7 +362,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM75_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_SM75_ENABLED)
 
   unsigned const & A = reinterpret_cast<unsigned const &>(a);
   unsigned const & B = reinterpret_cast<unsigned const &>(b);
@@ -374,11 +374,11 @@ struct Mma<
       : "=r"(D[0]), "=r"(D[1])
       : "r"(A), "r"(B), "r"(C[0]), "r"(C[1]));
 #else
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(a);
+    CUTLASS_RT_TMUNUSED(b);
+    CUTLASS_RT_TMUNUSED(c);
+    CUTLASS_RT_TMUNUSED(d);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 #endif
   }
 };
@@ -414,7 +414,7 @@ struct Mma<
   using ArchTag = arch::Sm75;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -422,7 +422,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM75_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_SM75_ENABLED)
 
   unsigned const & A = reinterpret_cast<unsigned const &>(a);
   unsigned const & B = reinterpret_cast<unsigned const &>(b);
@@ -434,11 +434,11 @@ struct Mma<
       : "=r"(D[0]), "=r"(D[1])
       : "r"(A), "r"(B), "r"(C[0]), "r"(C[1]));
 #else
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(a);
+    CUTLASS_RT_TMUNUSED(b);
+    CUTLASS_RT_TMUNUSED(c);
+    CUTLASS_RT_TMUNUSED(d);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 #endif
   }
 };
@@ -480,7 +480,7 @@ struct Mma<
   using ArchTag = arch::Sm75;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -488,7 +488,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM75_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_SM75_ENABLED)
 
   unsigned const & A = reinterpret_cast<unsigned const &>(a);
   unsigned const & B = reinterpret_cast<unsigned const &>(b);
@@ -500,11 +500,11 @@ struct Mma<
       : "=r"(D[0]), "=r"(D[1])
       : "r"(A), "r"(B), "r"(C[0]), "r"(C[1]));
 #else
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(a);
+    CUTLASS_RT_TMUNUSED(b);
+    CUTLASS_RT_TMUNUSED(c);
+    CUTLASS_RT_TMUNUSED(d);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 #endif
   }
 };
@@ -540,7 +540,7 @@ struct Mma<
   using ArchTag = arch::Sm75;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -548,7 +548,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM75_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_SM75_ENABLED)
 
   unsigned const & A = reinterpret_cast<unsigned const &>(a);
   unsigned const & B = reinterpret_cast<unsigned const &>(b);
@@ -560,11 +560,11 @@ struct Mma<
       : "=r"(D[0]), "=r"(D[1])
       : "r"(A), "r"(B), "r"(C[0]), "r"(C[1]));
 #else
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(a);
+    CUTLASS_RT_TMUNUSED(b);
+    CUTLASS_RT_TMUNUSED(c);
+    CUTLASS_RT_TMUNUSED(d);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 #endif
   }
 };
@@ -600,7 +600,7 @@ struct Mma<
   using ArchTag = arch::Sm75;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -608,7 +608,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM75_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_SM75_ENABLED)
 
   unsigned const & A = reinterpret_cast<unsigned const &>(a);
   unsigned const & B = reinterpret_cast<unsigned const &>(b);
@@ -620,11 +620,11 @@ struct Mma<
       : "=r"(D[0]), "=r"(D[1])
       : "r"(A), "r"(B), "r"(C[0]), "r"(C[1]));
 #else
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(a);
+    CUTLASS_RT_TMUNUSED(b);
+    CUTLASS_RT_TMUNUSED(c);
+    CUTLASS_RT_TMUNUSED(d);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 #endif
   }
 };
@@ -660,7 +660,7 @@ struct Mma<
   using ArchTag = arch::Sm75;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -668,7 +668,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM75_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_SM75_ENABLED)
 
   unsigned const & A = reinterpret_cast<unsigned const &>(a);
   unsigned const & B = reinterpret_cast<unsigned const &>(b);
@@ -680,11 +680,11 @@ struct Mma<
       : "=r"(D[0]), "=r"(D[1])
       : "r"(A), "r"(B), "r"(C[0]), "r"(C[1]));
 #else
-    CUTLASS_RT_TM_UNUSED(a);
-    CUTLASS_RT_TM_UNUSED(b);
-    CUTLASS_RT_TM_UNUSED(c);
-    CUTLASS_RT_TM_UNUSED(d);
-    CUTLASS_RT_TM_NOT_IMPLEMENTED();
+    CUTLASS_RT_TMUNUSED(a);
+    CUTLASS_RT_TMUNUSED(b);
+    CUTLASS_RT_TMUNUSED(c);
+    CUTLASS_RT_TMUNUSED(d);
+    CUTLASS_RT_TMNOT_IMPLEMENTED();
 #endif
   }
 };
@@ -726,7 +726,7 @@ struct Mma<
   using ArchTag = arch::Sm75;
 
   /// Computes multiply-add
-  CUTLASS_RT_TM_HOST_DEVICE
+  CUTLASS_RT_TMHOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -734,9 +734,9 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_RT_TM_ARCH_MMA_SM75_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_MMA_SM75_ENABLED)
 
-#if defined(CUTLASS_RT_TM_ARCH_WMMA_ENABLED)
+#if defined(CUTLASS_RT_TMARCH_WMMA_ENABLED)
   using WmmaFragmentA = nvcuda::wmma::fragment<
           nvcuda::wmma::matrix_a,
           Shape::kM,
@@ -771,13 +771,13 @@ struct Mma<
 
 #else
 
-  CUTLASS_RT_TM_UNUSED(a);
-  CUTLASS_RT_TM_UNUSED(b);
-  CUTLASS_RT_TM_UNUSED(c);
-  CUTLASS_RT_TM_UNUSED(d);
-  CUTLASS_RT_TM_NOT_IMPLEMENTED(); // WMMA must be supported to issue binary matrix multiply-accumulate instructions.
+  CUTLASS_RT_TMUNUSED(a);
+  CUTLASS_RT_TMUNUSED(b);
+  CUTLASS_RT_TMUNUSED(c);
+  CUTLASS_RT_TMUNUSED(d);
+  CUTLASS_RT_TMNOT_IMPLEMENTED(); // WMMA must be supported to issue binary matrix multiply-accumulate instructions.
 
-#endif // defined(CUTLASS_RT_TM_ARCH_WMMA_ENABLED)
+#endif // defined(CUTLASS_RT_TMARCH_WMMA_ENABLED)
 
 #endif
   }
