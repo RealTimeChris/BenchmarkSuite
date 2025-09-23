@@ -37,9 +37,9 @@
 
 #include <cuda_runtime_api.h>
 
-#include <cute_rt_tm/config.hpp>
+#include <cute/config.hpp>
 
-namespace cute_rt_tm
+namespace cute
 {
 
 /******************************************************************************
@@ -49,11 +49,11 @@ namespace cute_rt_tm
 /**
  * Formats and prints the given message to stdout
  */
-#if !defined(CUTE_RT_TM_LOG)
+#if !defined(CUTE_LOG)
 #  if !defined(__CUDA_ARCH__)
-#    define CUTE_RT_TM_LOG(format, ...) printf(format, __VA_ARGS__)
+#    define CUTE_LOG(format, ...) printf(format, __VA_ARGS__)
 #  else
-#    define CUTE_RT_TM_LOG(format, ...)                                \
+#    define CUTE_LOG(format, ...)                                \
         printf("[block (%d,%d,%d), thread (%d,%d,%d)]: " format, \
                blockIdx.x,  blockIdx.y,  blockIdx.z,             \
                threadIdx.x, threadIdx.y, threadIdx.z,            \
@@ -64,19 +64,19 @@ namespace cute_rt_tm
 /**
  * Formats and prints the given message to stdout only if DEBUG is defined
  */
-#if !defined(CUTE_RT_TM_LOG_DEBUG)
+#if !defined(CUTE_LOG_DEBUG)
 #  ifdef DEBUG
-#    define CUTE_RT_TM_LOG_DEBUG(format, ...) CUTE_RT_TM_LOG(format, __VA_ARGS__)
+#    define CUTE_LOG_DEBUG(format, ...) CUTE_LOG(format, __VA_ARGS__)
 #  else
-#    define CUTE_RT_TM_LOG_DEBUG(format, ...)
+#    define CUTE_LOG_DEBUG(format, ...)
 #  endif
 #endif
 
 /**
  * \brief Perror macro with exit
  */
-#if !defined(CUTE_RT_TM_ERROR_EXIT)
-#  define CUTE_RT_TM_ERROR_EXIT(e)                                         \
+#if !defined(CUTE_ERROR_EXIT)
+#  define CUTE_ERROR_EXIT(e)                                         \
       do {                                                           \
         cudaError_t code = (e);                                      \
         if (code != cudaSuccess) {                                   \
@@ -89,23 +89,23 @@ namespace cute_rt_tm
       } while (0)
 #endif
 
-#if !defined(CUTE_RT_TM_CHECK_LAST)
-#  define CUTE_RT_TM_CHECK_LAST() CUTE_RT_TM_ERROR_EXIT(cudaPeekAtLastError()); CUTE_RT_TM_ERROR_EXIT(cudaDeviceSynchronize())
+#if !defined(CUTE_CHECK_LAST)
+#  define CUTE_CHECK_LAST() CUTE_ERROR_EXIT(cudaPeekAtLastError()); CUTE_ERROR_EXIT(cudaDeviceSynchronize())
 #endif
 
-#if !defined(CUTE_RT_TM_CHECK_ERROR)
-#  define CUTE_RT_TM_CHECK_ERROR(e) CUTE_RT_TM_ERROR_EXIT(e)
+#if !defined(CUTE_CHECK_ERROR)
+#  define CUTE_CHECK_ERROR(e) CUTE_ERROR_EXIT(e)
 #endif
 
 // A dummy function that uses compilation failure to print a type
 template <class... T>
-CUTE_RT_TM_HOST_DEVICE void
+CUTE_HOST_DEVICE void
 print_type() {
   static_assert(sizeof...(T) < 0, "Printing type T.");
 }
 
 template <class... T>
-CUTE_RT_TM_HOST_DEVICE void
+CUTE_HOST_DEVICE void
 print_type(T&&...) {
   static_assert(sizeof...(T) < 0, "Printing type T.");
 }
@@ -118,7 +118,7 @@ print_type(T&&...) {
 // if (block0()) print(...);
 // if (thread(42)) print(...);
 
-CUTE_RT_TM_HOST_DEVICE
+CUTE_HOST_DEVICE
 bool
 block([[maybe_unused]] int bid)
 {
@@ -129,7 +129,7 @@ block([[maybe_unused]] int bid)
 #endif
 }
 
-CUTE_RT_TM_HOST_DEVICE
+CUTE_HOST_DEVICE
 bool
 thread([[maybe_unused]] int tid, [[maybe_unused]] int bid)
 {
@@ -140,25 +140,25 @@ thread([[maybe_unused]] int tid, [[maybe_unused]] int bid)
 #endif
 }
 
-CUTE_RT_TM_HOST_DEVICE
+CUTE_HOST_DEVICE
 bool
 thread(int tid)
 {
   return thread(tid,0);
 }
 
-CUTE_RT_TM_HOST_DEVICE
+CUTE_HOST_DEVICE
 bool
 thread0()
 {
   return thread(0,0);
 }
 
-CUTE_RT_TM_HOST_DEVICE
+CUTE_HOST_DEVICE
 bool
 block0()
 {
   return block(0);
 }
 
-}  // end namespace cute_rt_tm
+}  // end namespace cute

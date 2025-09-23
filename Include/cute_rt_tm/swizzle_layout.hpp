@@ -30,10 +30,10 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute_rt_tm/config.hpp>           // CUTE_RT_TM_HOST_DEVICE
-#include <cute_rt_tm/layout.hpp>           // cute_rt_tm::Layout
-#include <cute_rt_tm/layout_composed.hpp>  // cute_rt_tm::ComposedLayout
-#include <cute_rt_tm/swizzle.hpp>          // cute_rt_tm::Swizzle, cute_rt_tm::get_swizzle primary template
+#include <cute/config.hpp>           // CUTE_HOST_DEVICE
+#include <cute/layout.hpp>           // cute::Layout
+#include <cute/layout_composed.hpp>  // cute::ComposedLayout
+#include <cute/swizzle.hpp>          // cute::Swizzle, cute::get_swizzle primary template
 
 /* Specialized functionality for a ComposedLayout of the form
  *   InvolutionFn o Offset o LayoutB
@@ -51,7 +51,7 @@
  * statically-vs-dynamically known bits in the Offset to improve the decay to static or dynamic normal layouts.
  */
 
-namespace cute_rt_tm
+namespace cute
 {
 
 //
@@ -65,7 +65,7 @@ struct get_swizzle<ComposedLayout<Swizzle<B,M,S>,Offset,LayoutB>> { using type =
 //
 
 template <int B, int M, int S>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 make_layout(Swizzle<B,M,S> const& sxor)
 {
@@ -75,7 +75,7 @@ make_layout(Swizzle<B,M,S> const& sxor)
 namespace detail {
 
 template <int B, int M, int S, class OldShape, class OldStride, class NewShape, class NewStride>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 transfer_swizzle(Layout<OldShape,OldStride> const& old_layout,
                  Layout<NewShape,NewStride> const& new_layout)
@@ -117,7 +117,7 @@ transfer_swizzle(Layout<OldShape,OldStride> const& old_layout,
 } // end namespace detail
 
 template <int B, int M, int S, class Offset, class Layout>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 make_fragment_like(ComposedLayout<Swizzle<B,M,S>,Offset,Layout> const& layout)
 {
@@ -130,7 +130,7 @@ make_fragment_like(ComposedLayout<Swizzle<B,M,S>,Offset,Layout> const& layout)
 
 // Get just the Swizzle part of a composed layout.
 template <int B, int M, int S, class Offset, class LayoutB>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 get_swizzle_portion(ComposedLayout<Swizzle<B,M,S>,Offset,LayoutB>)
 {
@@ -139,7 +139,7 @@ get_swizzle_portion(ComposedLayout<Swizzle<B,M,S>,Offset,LayoutB>)
 
 // A non-swizzled layout's "Swizzle part" is the identity swizzle.
 template <class Shape, class Stride>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 get_swizzle_portion(Layout<Shape,Stride>)
 {
@@ -149,7 +149,7 @@ get_swizzle_portion(Layout<Shape,Stride>)
 // Get the "non-swizzle" part of a composed layout,
 // which is the underlying (non-composed) Layout.
 template <int B, int M, int S, class Offset, class LayoutB>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 get_nonswizzle_portion(ComposedLayout<Swizzle<B,M,S>,Offset,LayoutB> const& slayout)
 {
@@ -158,7 +158,7 @@ get_nonswizzle_portion(ComposedLayout<Swizzle<B,M,S>,Offset,LayoutB> const& slay
 
 // The non-swizzle part of a non-swizzled layout is just the Layout.
 template <class Shape, class Stride>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 get_nonswizzle_portion(Layout<Shape,Stride> const& slayout)
 {
@@ -167,7 +167,7 @@ get_nonswizzle_portion(Layout<Shape,Stride> const& slayout)
 
 // Return the codomain size of a Swizzled ComposedLayout
 template <int... Is, int B, int M, int S, class Offset, class LayoutB>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 cosize(ComposedLayout<Swizzle<B,M,S>,Offset,LayoutB> const& layout)
 {
@@ -181,7 +181,7 @@ cosize(ComposedLayout<Swizzle<B,M,S>,Offset,LayoutB> const& layout)
 namespace detail {
 
 template <class IntZ, class IntY, class Offset, int... I>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 make_swizzle_strides(true_type,
                      IntZ   const& Z,
@@ -190,7 +190,7 @@ make_swizzle_strides(true_type,
                      int_sequence<I...>)
 {
   // Below is an optimized/compressed version of:
-  //return cute_rt_tm::make_tuple((swizzle(offset + Z*Int<(1 << I)>{}) - swizzle(offset))...);
+  //return cute::make_tuple((swizzle(offset + Z*Int<(1 << I)>{}) - swizzle(offset))...);
   // with knowledge of Swizzle, I... ranges for each B bits,
   //    and the layout won't slice along z-bits that are already set
 
@@ -198,11 +198,11 @@ make_swizzle_strides(true_type,
   //   0  Z  DC
   //   1 -Z  DC
 
-  return cute_rt_tm::make_tuple(conditional_return((offset & (Y << Int<I>{})) == Int<0>{}, Z * Int<(1 << I)>{}, -Z * Int<(1 << I)>{})...);
+  return cute::make_tuple(conditional_return((offset & (Y << Int<I>{})) == Int<0>{}, Z * Int<(1 << I)>{}, -Z * Int<(1 << I)>{})...);
 }
 
 template <class IntZ, class IntY, class Offset, int... I>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 make_swizzle_strides(false_type,
                      IntZ   const& Z,
@@ -211,7 +211,7 @@ make_swizzle_strides(false_type,
                      int_sequence<I...>)
 {
   // Below is an optimized/compressed version of:
-  //return cute_rt_tm::make_tuple((swizzle(offset + Y*Int<(1 << I)>{}) - swizzle(offset))...);
+  //return cute::make_tuple((swizzle(offset + Y*Int<(1 << I)>{}) - swizzle(offset))...);
   // with knowledge of Swizzle, I... ranges for each B bits,
   //    and the layout won't slice along y-bits that are already set
 
@@ -219,19 +219,19 @@ make_swizzle_strides(false_type,
   //   0 Y+Z Y-Z
   //   1 DC  DC
 
-  return cute_rt_tm::make_tuple(conditional_return((offset & (Z << Int<I>{})) == Int<0>{}, (Y+Z) * Int<(1 << I)>{}, (Y-Z) * Int<(1 << I)>{})...);
+  return cute::make_tuple(conditional_return((offset & (Z << Int<I>{})) == Int<0>{}, (Y+Z) * Int<(1 << I)>{}, (Y-Z) * Int<(1 << I)>{})...);
 }
 
 } // end namespace detail
 
 template <class Coord, int B, int M, int S, class Offset, class Layout>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 slice_and_offset(Coord const& coord, ComposedLayout<Swizzle<B,M,S>,Offset,Layout> const& layout)
 {
   if constexpr (all_underscore<Coord>::value) {
     // Skip the expensive/complicated attempt to decay to a normal layout and just reshape
-    return cute_rt_tm::make_tuple(composition(layout.layout_a(), layout.offset(), slice(coord, layout.layout_b())), Int<0>{});
+    return cute::make_tuple(composition(layout.layout_a(), layout.offset(), slice(coord, layout.layout_b())), Int<0>{});
   } else {
 
     // Projections of the swizzle layout for composition
@@ -275,7 +275,7 @@ slice_and_offset(Coord const& coord, ComposedLayout<Swizzle<B,M,S>,Offset,Layout
     // Determine if any active bits collide under the swizzle for potential decay
     if constexpr (is_constant<0, decltype(not (swizzle_active_bits & ~swizzle(swizzle_active_bits)))>::value)
     { // Hits on Y AND Z, so it's not reducible
-      return cute_rt_tm::make_tuple(composition(swizzle, offset_only_zy, sliced_layout), offset_anti_zy);
+      return cute::make_tuple(composition(swizzle, offset_only_zy, sliced_layout), offset_anti_zy);
     } else
     { // Misses on Y or Z, so it's static-normal or dynamic-normal
 
@@ -290,12 +290,12 @@ slice_and_offset(Coord const& coord, ComposedLayout<Swizzle<B,M,S>,Offset,Layout
                                         make_stride(Int<       1>{},           stride_lo, Int<(1 <<      (M+B))>{},          stride_hi , Int<(1 << (M+B+abs(S)))>{}));
 
       // Decay to a normal layout with offset
-      return cute_rt_tm::make_tuple(composition(swizzle_layout, sliced_layout),
+      return cute::make_tuple(composition(swizzle_layout, sliced_layout),
                               swizzle(offset_only_zy) + offset_anti_zy);
     }
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_GCC_UNREACHABLE;
 }
 
 //
@@ -305,7 +305,7 @@ slice_and_offset(Coord const& coord, ComposedLayout<Swizzle<B,M,S>,Offset,Layout
 // Ignore identity case
 template <int M, int S,
           class Shape, class Stride>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 composition(Swizzle<0,M,S> const&,
             Int<0> const&,
@@ -316,7 +316,7 @@ composition(Swizzle<0,M,S> const&,
 
 template <int B, int M, int S,
           class Shape, class Stride>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 composition(Swizzle<B,M,S> const& sxor,
             Layout<Shape,Stride> const& layout)
@@ -326,7 +326,7 @@ composition(Swizzle<B,M,S> const& sxor,
 
 template <class ShapeA, class StrideA,
           int B, int M, int S>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 composition(Layout<ShapeA,StrideA> const& a,
             Swizzle<B,M,S>         const& b)
@@ -346,7 +346,7 @@ composition(Layout<ShapeA,StrideA> const& a,
 
 // Specialization to attempt to pass-through the Swizzle back to the left -- Needed?
 template <int B, int M, int S, class Offset, class Layout>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 right_inverse(ComposedLayout<Swizzle<B,M,S>,Offset,Layout> const& layout)
 {
@@ -359,7 +359,7 @@ right_inverse(ComposedLayout<Swizzle<B,M,S>,Offset,Layout> const& layout)
 
 // Specialization to attempt to pass-through the Swizzle back to the left -- Needed?
 template <int B, int M, int S, class Offset, class Layout>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 left_inverse(ComposedLayout<Swizzle<B,M,S>,Offset,Layout> const& layout)
 {
@@ -371,7 +371,7 @@ left_inverse(ComposedLayout<Swizzle<B,M,S>,Offset,Layout> const& layout)
 }
 
 template <int B, int M, int S>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 Swizzle<B,M,S>
 right_inverse(Swizzle<B,M,S> const& sw)
 {
@@ -379,7 +379,7 @@ right_inverse(Swizzle<B,M,S> const& sw)
 }
 
 template <int B, int M, int S>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 Swizzle<B,M,S>
 left_inverse(Swizzle<B,M,S> const& sw)
 {
@@ -387,8 +387,8 @@ left_inverse(Swizzle<B,M,S> const& sw)
 }
 
 // Kludge -- Probably want an OffsetFn<T> here instead
-template <class T, __CUTE_RT_TM_REQUIRES(is_integral<T>::value)>
-CUTE_RT_TM_HOST_DEVICE constexpr
+template <class T, __CUTE_REQUIRES(is_integral<T>::value)>
+CUTE_HOST_DEVICE constexpr
 auto
 right_inverse(T const& t)
 {
@@ -396,8 +396,8 @@ right_inverse(T const& t)
 }
 
 // Kludge -- Probably want an OffsetFn<T> here instead
-template <class T, __CUTE_RT_TM_REQUIRES(is_integral<T>::value)>
-CUTE_RT_TM_HOST_DEVICE constexpr
+template <class T, __CUTE_REQUIRES(is_integral<T>::value)>
+CUTE_HOST_DEVICE constexpr
 auto
 left_inverse(T const& t)
 {
@@ -409,7 +409,7 @@ left_inverse(T const& t)
 //
 
 template <int N, int B, int M, int S>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 upcast(Swizzle<B,M,S> const& swizzle)
 {
@@ -419,14 +419,14 @@ upcast(Swizzle<B,M,S> const& swizzle)
   if constexpr (NewM >= 0) {
     return Swizzle<B,NewM,S>{};
   } else {
-    return Swizzle<cute_rt_tm::max(B+NewM,0), 0, S>{};
+    return Swizzle<cute::max(B+NewM,0), 0, S>{};
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_GCC_UNREACHABLE;
 }
 
 template <int N, int B, int M, int S>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 downcast(Swizzle<B,M,S> const& swizzle)
 {
@@ -437,7 +437,7 @@ downcast(Swizzle<B,M,S> const& swizzle)
 
 template <class OldType, class NewType,
           int B, int M, int S>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 recast_layout(Swizzle<B,M,S> const& swizzle)
 {
@@ -454,11 +454,11 @@ recast_layout(Swizzle<B,M,S> const& swizzle)
   else {
     return downcast<scale::den>(upcast<scale::num>(layout));
   }
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_GCC_UNREACHABLE;
 }
 
 template <int B, int M, int S>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 max_alignment(Swizzle<B,M,S> const&)
 {
@@ -466,7 +466,7 @@ max_alignment(Swizzle<B,M,S> const&)
 }
 
 template <int B, int M, int S, class Offset, class LayoutB>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 max_alignment(ComposedLayout<Swizzle<B,M,S>,Offset,LayoutB> const& layout)
 {
@@ -480,7 +480,7 @@ max_alignment(ComposedLayout<Swizzle<B,M,S>,Offset,LayoutB> const& layout)
 //
 
 template <int B, int M, int S, class Offset, class LayoutB, class Shape, class Stride>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 max_common_layout(ComposedLayout<Swizzle<B,M,S>,Offset,LayoutB> const& a,
                   Layout<Shape,Stride>                          const& b)
@@ -495,7 +495,7 @@ max_common_layout(ComposedLayout<Swizzle<B,M,S>,Offset,LayoutB> const& a,
 }
 
 template <class Shape, class Stride, int B, int M, int S, class Offset, class LayoutB>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 max_common_layout(Layout<Shape,Stride>                          const& a,
                   ComposedLayout<Swizzle<B,M,S>,Offset,LayoutB> const& b)
@@ -504,17 +504,17 @@ max_common_layout(Layout<Shape,Stride>                          const& a,
 }
 
 template <int B, int M, int S, class Offset, class LayoutB, class Shape, class Stride>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 max_common_vector(ComposedLayout<Swizzle<B,M,S>,Offset,LayoutB> const& a,
                   Layout<Shape,Stride>                          const& b)
 {
   // This assumes that Offset is in the YZ domain of the Swizzle...
-  return cute_rt_tm::min(max_common_vector(a.layout_b(), b), Int<(1 << M)>{});
+  return cute::min(max_common_vector(a.layout_b(), b), Int<(1 << M)>{});
 }
 
 template <class Shape, class Stride, int B, int M, int S, class Offset, class LayoutB>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 max_common_vector(Layout<Shape,Stride>                          const& a,
                   ComposedLayout<Swizzle<B,M,S>,Offset,LayoutB> const& b)
@@ -524,7 +524,7 @@ max_common_vector(Layout<Shape,Stride>                          const& a,
 
 template <int B0, int M0, int S0, class Offset0, class LayoutB0,
           int B1, int M1, int S1, class Offset1, class LayoutB1>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 max_common_vector(ComposedLayout<Swizzle<B0,M0,S0>,Offset0,LayoutB0> const& a,
                   ComposedLayout<Swizzle<B1,M1,S1>,Offset1,LayoutB1> const& b)
@@ -537,10 +537,10 @@ max_common_vector(ComposedLayout<Swizzle<B0,M0,S0>,Offset0,LayoutB0> const& a,
   if constexpr (Swizzle<B0,M0,S0>{} == Swizzle<B1,M1,S1>{}) {
     return vec;
   } else {
-    return cute_rt_tm::min(vec, Int<(1 << M0)>{}, Int<(1 << M1)>{});
+    return cute::min(vec, Int<(1 << M0)>{}, Int<(1 << M1)>{});
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_GCC_UNREACHABLE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -548,12 +548,12 @@ max_common_vector(ComposedLayout<Swizzle<B0,M0,S0>,Offset0,LayoutB0> const& a,
 
 template <class Shape, class Stride,
           int B, int M, int S, class Offset, class LayoutT>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 logical_product(Layout<Shape,Stride>                          const& layout,
                 ComposedLayout<Swizzle<B,M,S>,Offset,LayoutT> const& tiler)
 {
-  CUTE_RT_TM_STATIC_ASSERT_V(tiler.offset() == Int<0>{}, "Require Swizzle offset == 0.");
+  CUTE_STATIC_ASSERT_V(tiler.offset() == Int<0>{}, "Require Swizzle offset == 0.");
   // The new layout -- if swizzle wasn't an issue, this is the result
   //   our goal is to determine a new swizzle for these strides
   auto new_layout = logical_product(layout, tiler.layout_b());
@@ -586,4 +586,4 @@ logical_product(Layout<Shape,Stride>                          const& layout,
   return composition(make_swizzle<new_active_Y,new_active_Z>(), new_layout);
 }
 
-} // end namespace cute_rt_tm
+} // end namespace cute

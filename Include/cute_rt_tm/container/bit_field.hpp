@@ -35,11 +35,11 @@
 
 #pragma once
 
-#include <cute_rt_tm/config.hpp>                  // CUTE_RT_TM_HOST_DEVICE
-#include <cute_rt_tm/numeric/numeric_types.hpp>   // uint_bit_t
-#include <cute_rt_tm/util/type_traits.hpp>        // cute_rt_tm::is_same
+#include <cute/config.hpp>                  // CUTE_HOST_DEVICE
+#include <cute/numeric/numeric_types.hpp>   // uint_bit_t
+#include <cute/util/type_traits.hpp>        // cute::is_same
 
-namespace cute_rt_tm
+namespace cute
 {
 
 class dummy_type {};
@@ -53,12 +53,12 @@ struct bit_field
   static constexpr uint32_t value_type_bits = (NumBits <=  8) ?  8 :
                                               (NumBits <= 16) ? 16 :
                                               (NumBits <= 32) ? 32 : 64;
-  using value_type   = cute_rt_tm::uint_bit_t<value_type_bits>;
+  using value_type   = cute::uint_bit_t<value_type_bits>;
   // storage_type: Use the smallest storage_type that avoids boundary crossing
   static constexpr uint32_t storage_type_bits = (BitStart /  8 == (BitStart + NumBits - 1) /  8) ?  8 :
                                                 (BitStart / 16 == (BitStart + NumBits - 1) / 16) ? 16 :
                                                 (BitStart / 32 == (BitStart + NumBits - 1) / 32) ? 32 : 64;
-  using storage_type = cute_rt_tm::uint_bit_t<storage_type_bits>;
+  using storage_type = cute::uint_bit_t<storage_type_bits>;
 
   static_assert(sizeof(OtherValueType) == sizeof(value_type) || is_same<OtherValueType,dummy_type>::value,
                 "sizeof(OtherValueType) must be same as sizeof(value_type).");
@@ -84,7 +84,7 @@ public:
   storage_type data_[N];
 
   // Get value
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   value_type get() const {
     storage_type result = (data_[idx] & mask_lo) >> bit_lo;
     if constexpr (bit_hi != 0) {
@@ -94,7 +94,7 @@ public:
   }
 
   // Set value
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   void set(value_type x) {
     storage_type item = static_cast<storage_type>(x & mask);
     data_[idx] = static_cast<storage_type>((data_[idx] & ~mask_lo) | (item << bit_lo));
@@ -104,30 +104,30 @@ public:
   }
 
   // Assign value
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   bit_field& operator=(value_type x) {
     set(x);
     return *this;
   }
 
   // Cast to value
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   operator value_type () const {
     return get();
   }
 
   // Assign OtherValueType
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   bit_field& operator=(OtherValueType x) {
     return *this = *reinterpret_cast<value_type*>(&x);
   }
 
   // Cast to OtherValueType
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   operator OtherValueType () const {
     value_type x = get();
     return *reinterpret_cast<OtherValueType*>(&x);
   }
 };
 
-} // end namespace cute_rt_tm
+} // end namespace cute

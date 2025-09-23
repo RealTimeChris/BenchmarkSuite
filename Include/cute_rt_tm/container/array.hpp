@@ -30,12 +30,12 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute_rt_tm/config.hpp>
+#include <cute/config.hpp>
 
-#include <cute_rt_tm/numeric/integral_constant.hpp>
-#include <cute_rt_tm/util/type_traits.hpp>
+#include <cute/numeric/integral_constant.hpp>
+#include <cute/util/type_traits.hpp>
 
-namespace cute_rt_tm
+namespace cute
 {
 
 template <class T, size_t N>
@@ -52,123 +52,123 @@ struct array
   using iterator = pointer;
   using const_iterator = const_pointer;
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   reference operator[](size_type pos)
   {
     return begin()[pos];
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   const_reference operator[](size_type pos) const
   {
     return begin()[pos];
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   reference front()
   {
     return *begin();
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   const_reference front() const
   {
     return *begin();
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   reference back()
   {
     // return *rbegin();
     return operator[](N-1);
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   const_reference back() const
   {
     // return *rbegin();
     return operator[](N-1);
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   T* data()
   {
     return __elems_;
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   T const* data() const
   {
     return __elems_;
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   iterator begin()
   {
     return data();
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   const_iterator begin() const
   {
     return data();
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   const_iterator cbegin()
   {
     return begin();
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   const_iterator cbegin() const
   {
     return begin();
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   iterator end()
   {
     return data() + size();
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   const_iterator end() const
   {
     return data() + size();
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   const_iterator cend()
   {
     return end();
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   const_iterator cend() const
   {
     return end();
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   bool empty() const
   {
     return size() == 0;
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   size_type size() const
   {
     return N;
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   size_type max_size() const
   {
     return size();
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   void fill(const T& value)
   {
     for (auto& e : *this) {
@@ -176,16 +176,16 @@ struct array
     }
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   void clear()
   {
     fill(T(0));
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   void swap(array& other)
   {
-    using CUTE_RT_TM_STL_NAMESPACE::swap;
+    using CUTE_STL_NAMESPACE::swap;
     for (size_type i = 0; i < size(); ++i) {
       swap((*this)[i], other[i]);
     }
@@ -209,135 +209,135 @@ struct array<T, 0>
   using const_iterator = const_pointer;
   using iterator = pointer;
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   reference operator[](size_type pos)
   {
     return begin()[pos];
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   const_reference operator[](size_type pos) const
   {
     return begin()[pos];
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   reference front()
   {
     return *begin();
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   const_reference front() const
   {
     return *begin();
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   reference back()
   {
     return *begin();
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   const_reference back() const
   {
     return *begin();
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   T* data()
   {
     return nullptr;
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   T const* data() const
   {
     return nullptr;
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   iterator begin()
   {
     return nullptr;
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   const_iterator begin() const
   {
     return nullptr;
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   const_iterator cbegin()
   {
     return nullptr;
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   const_iterator cbegin() const
   {
     return nullptr;
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   iterator end()
   {
     return nullptr;
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   const_iterator end() const
   {
     return nullptr;
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   const_iterator cend()
   {
     return nullptr;
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   const_iterator cend() const
   {
     return nullptr;
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   bool empty() const
   {
     return true;
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   size_type size() const
   {
     return 0;
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   size_type max_size() const
   {
     return 0;
   }
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   void fill(const T& value)
   {}
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   void clear()
   {}
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   void swap(array& other)
   {}
 };
 
 template <class T, size_t N>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 bool operator==(array<T,N> const& lhs, array<T,N> const& rhs)
 {
   for (size_t i = 0; i < N; ++i) {
@@ -349,35 +349,35 @@ bool operator==(array<T,N> const& lhs, array<T,N> const& rhs)
 }
 
 template <class T, size_t N>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 void clear(array<T,N>& a)
 {
   a.fill(T(0));
 }
 
 template <class T, size_t N>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 void fill(array<T,N>& a, T const& value)
 {
   a.fill(value);
 }
 
 template <class T, size_t N>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 void swap(array<T,N>& a, array<T,N>& b)
 {
   a.swap(b);
 }
 
-/// @return A cute_rt_tm::array of the elements of @c t in reverse order.
+/// @return A cute::array of the elements of @c t in reverse order.
 template <class T, size_t N>
-CUTE_RT_TM_HOST_DEVICE constexpr
-cute_rt_tm::array<T,N> reverse(cute_rt_tm::array<T,N> const& t)
+CUTE_HOST_DEVICE constexpr
+cute::array<T,N> reverse(cute::array<T,N> const& t)
 {
   if constexpr (N == 0u) {
     return t;
   } else {
-    cute_rt_tm::array<T,N> t_r{};
+    cute::array<T,N> t_r{};
     for (size_t k = 0; k < N; ++k) {
       t_r[k] = t[N - k - 1];
     }
@@ -385,24 +385,24 @@ cute_rt_tm::array<T,N> reverse(cute_rt_tm::array<T,N> const& t)
   }
 }
 
-} // end cute_rt_tm
+} // end cute
 
 
 //
-// Specialize tuple-related functionality for cute_rt_tm::array
+// Specialize tuple-related functionality for cute::array
 //
-#include "nihilus_gemm/cutlass.h"
+#include "cutlass/cutlass.h"
 #if defined(__CUDACC_RTC__)
 #include CUDA_STD_HEADER(tuple)
 #else
 #include <tuple>
 #endif
 
-namespace cute_rt_tm
+namespace cute
 {
 
 template <size_t I, class T, size_t N>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 T& get(array<T,N>& a)
 {
   static_assert(I < N, "Index out of range");
@@ -410,7 +410,7 @@ T& get(array<T,N>& a)
 }
 
 template <size_t I, class T, size_t N>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 T const& get(array<T,N> const& a)
 {
   static_assert(I < N, "Index out of range");
@@ -418,32 +418,32 @@ T const& get(array<T,N> const& a)
 }
 
 template <size_t I, class T, size_t N>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 T&& get(array<T,N>&& a)
 {
   static_assert(I < N, "Index out of range");
-  return cute_rt_tm::move(a[I]);
+  return cute::move(a[I]);
 }
 
-} // end namespace cute_rt_tm
+} // end namespace cute
 
-namespace CUTE_RT_TM_STL_NAMESPACE
+namespace CUTE_STL_NAMESPACE
 {
 
 template <class T, size_t N>
-struct tuple_size<cute_rt_tm::array<T,N>>
-    : CUTE_RT_TM_STL_NAMESPACE::integral_constant<size_t, N>
+struct tuple_size<cute::array<T,N>>
+    : CUTE_STL_NAMESPACE::integral_constant<size_t, N>
 {};
 
 template <size_t I, class T, size_t N>
-struct tuple_element<I, cute_rt_tm::array<T,N>>
+struct tuple_element<I, cute::array<T,N>>
 {
   using type = T;
 };
 
-} // end namespace CUTE_RT_TM_STL_NAMESPACE
+} // end namespace CUTE_STL_NAMESPACE
 
-#ifdef CUTE_RT_TM_STL_NAMESPACE_IS_CUDA_STD
+#ifdef CUTE_STL_NAMESPACE_IS_CUDA_STD
 namespace std
 {
 
@@ -456,15 +456,15 @@ struct tuple_element;
 #endif
 
 template <class T, size_t N>
-struct tuple_size<cute_rt_tm::array<T,N>>
-    : CUTE_RT_TM_STL_NAMESPACE::integral_constant<size_t, N>
+struct tuple_size<cute::array<T,N>>
+    : CUTE_STL_NAMESPACE::integral_constant<size_t, N>
 {};
 
 template <size_t I, class T, size_t N>
-struct tuple_element<I, cute_rt_tm::array<T,N>>
+struct tuple_element<I, cute::array<T,N>>
 {
   using type = T;
 };
 
 } // end namespace std
-#endif // CUTE_RT_TM_STL_NAMESPACE_IS_CUDA_STD
+#endif // CUTE_STL_NAMESPACE_IS_CUDA_STD

@@ -30,12 +30,12 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute_rt_tm/config.hpp>
+#include <cute/config.hpp>
 
-#include <cute_rt_tm/arch/util.hpp>
-#include <cute_rt_tm/numeric/numeric_types.hpp>
+#include <cute/arch/util.hpp>
+#include <cute/numeric/numeric_types.hpp>
 
-namespace cute_rt_tm
+namespace cute
 {
 
 //
@@ -52,7 +52,7 @@ struct UniversalCopy
   static_assert(sizeof_bits_v<S> >= 8);
   static_assert(sizeof_bits_v<D> >= 8);
 
-  CUTE_RT_TM_HOST_DEVICE static constexpr void
+  CUTE_HOST_DEVICE static constexpr void
   copy(S const& src,
        D      & dst)
   {
@@ -96,7 +96,7 @@ struct AutoCopyAsync {};
 // Global memory prefetch into L2
 //
 
-CUTE_RT_TM_HOST_DEVICE static void
+CUTE_HOST_DEVICE static void
 prefetch(void const* gmem_ptr)
 {
 #if defined(__CUDA_ARCH__)
@@ -104,4 +104,4 @@ prefetch(void const* gmem_ptr)
 #endif
 }
 
-} // end namespace cute_rt_tm
+} // end namespace cute

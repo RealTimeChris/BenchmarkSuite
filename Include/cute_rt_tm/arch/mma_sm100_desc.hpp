@@ -38,16 +38,16 @@
 #include <cinttypes>
 #endif
 
-#include <cute_rt_tm/arch/config.hpp>
+#include <cute/arch/config.hpp>
 
-#include <cute_rt_tm/arch/mma.hpp>
+#include <cute/arch/mma.hpp>
 
-#include <cute_rt_tm/container/bit_field.hpp>
-#include <cute_rt_tm/container/array.hpp> // cute_rt_tm::array
+#include <cute/container/bit_field.hpp>
+#include <cute/container/array.hpp> // cute::array
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cute_rt_tm {
+namespace cute {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // UMMA Descriptor and utilities
@@ -84,7 +84,7 @@ enum class LayoutType : uint8_t {
   SWIZZLE_32B = 6
 };
 
-CUTE_RT_TM_HOST_DEVICE char const* to_string(LayoutType const& t) {
+CUTE_HOST_DEVICE char const* to_string(LayoutType const& t) {
   switch (t) {
     case LayoutType::SWIZZLE_NONE:         return "SWIZZLE_NONE";
     case LayoutType::SWIZZLE_128B_BASE32B: return "SWIZZLE_128B_BASE32B";
@@ -118,7 +118,7 @@ union SmemDescriptor
   };
 
   // Decay to a uint64_t
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   operator uint64_t() const noexcept { return desc_; }
 };
 
@@ -128,7 +128,7 @@ enum class F16F32Format : uint8_t {
   TF32 = 2,
 };
 
-CUTE_RT_TM_HOST_DEVICE char const* to_string(F16F32Format const& t) {
+CUTE_HOST_DEVICE char const* to_string(F16F32Format const& t) {
   switch (t) {
     case F16F32Format::F16:  return "F16";
     case F16F32Format::BF16: return "BF16";
@@ -138,7 +138,7 @@ CUTE_RT_TM_HOST_DEVICE char const* to_string(F16F32Format const& t) {
 }
 
 template <class T>
-CUTE_RT_TM_HOST_DEVICE constexpr F16F32Format to_F16F32Format() {
+CUTE_HOST_DEVICE constexpr F16F32Format to_F16F32Format() {
   if constexpr (is_same_v<T,     half_t>) { return F16F32Format::F16;  } else
   if constexpr (is_same_v<T, bfloat16_t>) { return F16F32Format::BF16; } else
   if constexpr (is_same_v<T, tfloat32_t>) { return F16F32Format::TF32; } else
@@ -150,7 +150,7 @@ enum class S8Format : uint8_t {
   INT8  = 1,
 };
 
-CUTE_RT_TM_HOST_DEVICE char const* to_string(S8Format const& t) {
+CUTE_HOST_DEVICE char const* to_string(S8Format const& t) {
   switch (t) {
     case S8Format::UINT8:   return "UINT8";
     case S8Format::INT8:    return "INT8";
@@ -159,7 +159,7 @@ CUTE_RT_TM_HOST_DEVICE char const* to_string(S8Format const& t) {
 }
 
 template <class T>
-CUTE_RT_TM_HOST_DEVICE constexpr S8Format to_S8Format() {
+CUTE_HOST_DEVICE constexpr S8Format to_S8Format() {
   if constexpr (is_same_v<T, uint8_t>) { return S8Format::UINT8;  } else
   if constexpr (is_same_v<T,  int8_t>) { return S8Format::INT8;   } else
   { static_assert(sizeof(T) == 0, "Unknown type for S8Format"); }
@@ -174,7 +174,7 @@ enum class MXF8F6F4Format : uint8_t {
   INVALID = 7 // an invalid datatype for runtime proxy type
 };
 
-CUTE_RT_TM_HOST_DEVICE char const* to_string(MXF8F6F4Format const& t) {
+CUTE_HOST_DEVICE char const* to_string(MXF8F6F4Format const& t) {
   switch (t) {
     case MXF8F6F4Format::E4M3:   return "E4M3";
     case MXF8F6F4Format::E5M2:   return "E5M2";
@@ -187,7 +187,7 @@ CUTE_RT_TM_HOST_DEVICE char const* to_string(MXF8F6F4Format const& t) {
 }
 
 template <class T>
-CUTE_RT_TM_HOST_DEVICE constexpr MXF8F6F4Format to_MXF8F6F4Format() {
+CUTE_HOST_DEVICE constexpr MXF8F6F4Format to_MXF8F6F4Format() {
   if constexpr (is_same_v<T, float_e4m3_t>) { return MXF8F6F4Format::E4M3;  } else
   if constexpr (is_same_v<T, float_e5m2_t>) { return MXF8F6F4Format::E5M2;  } else
   if constexpr (is_same_v<T, detail::float_e2m3_unpacksmem_t>) { return MXF8F6F4Format::E2M3;  } else 
@@ -200,7 +200,7 @@ enum class MXF4Format : uint8_t {
   E2M1 = 1,
 };
 
-CUTE_RT_TM_HOST_DEVICE char const* to_string(MXF4Format const& t) {
+CUTE_HOST_DEVICE char const* to_string(MXF4Format const& t) {
   switch (t) {
     case MXF4Format::E2M1:   return "E2M1";
   }
@@ -208,7 +208,7 @@ CUTE_RT_TM_HOST_DEVICE char const* to_string(MXF4Format const& t) {
 }
 
 template <class T>
-CUTE_RT_TM_HOST_DEVICE constexpr MXF4Format to_MXF4Format() {
+CUTE_HOST_DEVICE constexpr MXF4Format to_MXF4Format() {
   if constexpr (is_same_v<T, float_e2m1_t>) { return MXF4Format::E2M1;  } else
   { static_assert(sizeof(T) == 0, "Unknown type for MXF4Format"); }
 }
@@ -218,7 +218,7 @@ enum class ScaleFormat : uint8_t {
   UE8M0 = 1,
 };
 
-CUTE_RT_TM_HOST_DEVICE char const* to_string(ScaleFormat const& t) {
+CUTE_HOST_DEVICE char const* to_string(ScaleFormat const& t) {
   switch (t) {
     case ScaleFormat::UE4M3:   return "UE4M3"; 
     case ScaleFormat::UE8M0:   return "UE8M0";
@@ -227,7 +227,7 @@ CUTE_RT_TM_HOST_DEVICE char const* to_string(ScaleFormat const& t) {
 }
 
 template <class T>
-CUTE_RT_TM_HOST_DEVICE constexpr ScaleFormat to_ScaleFormat() {
+CUTE_HOST_DEVICE constexpr ScaleFormat to_ScaleFormat() {
   if constexpr (is_same_v<T, float_ue4m3_t>) { return ScaleFormat::UE4M3;  } else
   if constexpr (is_same_v<T, float_ue8m0_t>) { return ScaleFormat::UE8M0;  } else
   { static_assert(sizeof(T) == 0, "Unknown type for ScaleFormat"); }
@@ -239,7 +239,7 @@ enum class CFormat : uint8_t {
   S32 = 2,
 };
 
-CUTE_RT_TM_HOST_DEVICE char const* to_string(CFormat const& t) {
+CUTE_HOST_DEVICE char const* to_string(CFormat const& t) {
   switch (t) {
     case CFormat::F16:  return "F16";
     case CFormat::F32:  return "F32";
@@ -287,12 +287,12 @@ union MaskAndShiftB
 };
 
 template <typename ShapeType, int FLT_S, int CTA_M, int CTA_N>
-CUTE_RT_TM_HOST_DEVICE constexpr auto
+CUTE_HOST_DEVICE constexpr auto
 make_column_zero_mask(ShapeType conv_q, int32_t cta_coord_q, int32_t num_pixels_skip_left) {
 
-  static_assert(cute_rt_tm::is_same_v<ShapeType, nihilus_gemm::FastDivmod> || cute_rt_tm::is_integral<ShapeType>::value);
+  static_assert(cute::is_same_v<ShapeType, cutlass::FastDivmod> || cute::is_integral<ShapeType>::value);
 
-  cute_rt_tm::array<MaskAndShiftB, FLT_S> column_zero_masks{};
+  cute::array<MaskAndShiftB, FLT_S> column_zero_masks{};
 
   static_assert(FLT_S == 3, "Filter size not supported.");
   constexpr int MAX_USE_SPAN_COUNT = 256;
@@ -345,8 +345,8 @@ make_column_zero_mask(ShapeType conv_q, int32_t cta_coord_q, int32_t num_pixels_
       } else {
         nzm = 0;
       }
-      skip_span = cute_rt_tm::max(cute_rt_tm::abs(skip_span_), 1);
-      use_span = cute_rt_tm::min(conv_q_int - static_cast<int32_t>(skip_span), MAX_USE_SPAN_COUNT);
+      skip_span = cute::max(cute::abs(skip_span_), 1);
+      use_span = cute::min(conv_q_int - static_cast<int32_t>(skip_span), MAX_USE_SPAN_COUNT);
       if (use_span > 0) {
         first_span = index >= skip_span ? 0 : 1;
         if ((first_span == 0) && (index + CTA_N < conv_q_int + skip_span)) {
@@ -377,7 +377,7 @@ make_column_zero_mask(ShapeType conv_q, int32_t cta_coord_q, int32_t num_pixels_
 }
 
 template <class T>
-CUTE_RT_TM_HOST_DEVICE constexpr auto to_UMMAFormat() {
+CUTE_HOST_DEVICE constexpr auto to_UMMAFormat() {
   if constexpr (is_same_v<T,       half_t>) { return F16F32Format::F16;   } else
   if constexpr (is_same_v<T,   bfloat16_t>) { return F16F32Format::BF16;  } else
   if constexpr (is_same_v<T,   tfloat32_t>) { return F16F32Format::TF32;  } else
@@ -402,7 +402,7 @@ CUTE_RT_TM_HOST_DEVICE constexpr auto to_UMMAFormat() {
 }
 
 template <class T>
-CUTE_RT_TM_HOST_DEVICE constexpr CFormat to_CFormat() {
+CUTE_HOST_DEVICE constexpr CFormat to_CFormat() {
   if constexpr (is_same_v<T,  half_t>) { return CFormat::F16; } else
   if constexpr (is_same_v<T,   float>) { return CFormat::F32; } else
   if constexpr (is_same_v<T, int32_t>) { return CFormat::S32; } else
@@ -434,7 +434,7 @@ union InstrDescriptor
   };
 
   // Decay to a uint32_t
-  CUTE_RT_TM_HOST_DEVICE constexpr explicit
+  CUTE_HOST_DEVICE constexpr explicit
   operator uint32_t() const noexcept { return desc_; }
 };
 
@@ -463,7 +463,7 @@ union InstrDescriptorBlockScaled
   };
 
   // Decay to a uint32_t
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   operator uint32_t() const noexcept { return desc_; }
 };
 
@@ -473,7 +473,7 @@ template <class a_type, class b_type, class c_type,
           UMMA::Saturate c_sat = UMMA::Saturate::False,
           bool is_sparse = false,
           UMMA::MaxShift max_shift = UMMA::MaxShift::NoShift>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 UMMA::InstrDescriptor
 make_instr_desc()
 {
@@ -507,7 +507,7 @@ template <class a_type, class b_type, class c_type,
           UMMA::Saturate c_sat = UMMA::Saturate::False,
           bool is_sparse = false,
           UMMA::MaxShift max_shift = UMMA::MaxShift::NoShift>
-CUTE_RT_TM_HOST_DEVICE
+CUTE_HOST_DEVICE
 constexpr uint64_t
 make_runtime_instr_desc(uint16_t sparse_id2 = 0u, uint32_t tmem_e = 0u) {
   UMMA::InstrDescriptor desc_i = UMMA::make_instr_desc<
@@ -530,7 +530,7 @@ make_runtime_instr_desc(uint16_t sparse_id2 = 0u, uint32_t tmem_e = 0u) {
 }
 
 template <bool is_sparse = false>
-CUTE_RT_TM_HOST_DEVICE
+CUTE_HOST_DEVICE
 constexpr uint64_t
 make_runtime_instr_desc(UMMA::InstrDescriptor desc_i, uint16_t sparse_id2 = 0u, uint32_t tmem_e = 0u)
 {
@@ -554,7 +554,7 @@ template <class a_type, class b_type, class c_type, class sf_type,
           UMMA::ScaleIn a_neg = UMMA::ScaleIn::One, UMMA::ScaleIn b_neg = UMMA::ScaleIn::One,
           bool is_sparse = false
           >
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 UMMA::InstrDescriptorBlockScaled
 make_instr_desc_block_scaled()
 {
@@ -589,7 +589,7 @@ template <class a_type, class b_type, class c_type, class sf_type,
           int M, int N, UMMA::Major a_major, UMMA::Major b_major,
           UMMA::ScaleIn a_neg = UMMA::ScaleIn::One, UMMA::ScaleIn b_neg = UMMA::ScaleIn::One,
           bool is_sparse = false>
-CUTE_RT_TM_HOST_DEVICE
+CUTE_HOST_DEVICE
 constexpr uint64_t
 make_runtime_instr_desc_block_scaled(uint32_t const tmem_sfa_addr, uint32_t const tmem_sfb_addr,
                                      uint16_t const sparse_id2 = 0u, uint32_t const tmem_e = 0u)
@@ -621,7 +621,7 @@ make_runtime_instr_desc_block_scaled(uint32_t const tmem_sfa_addr, uint32_t cons
 }
 
 template <bool is_sparse = false>
-CUTE_RT_TM_HOST_DEVICE
+CUTE_HOST_DEVICE
 constexpr uint64_t
 make_runtime_instr_desc_block_scaled(UMMA::InstrDescriptorBlockScaled desc_i,
                                      uint32_t const tmem_sfa_addr, uint32_t const tmem_sfb_addr,
@@ -648,4 +648,4 @@ make_runtime_instr_desc_block_scaled(UMMA::InstrDescriptorBlockScaled desc_i,
 }
 
 } // end namespace UMMA
-} // namespace cute_rt_tm
+} // namespace cute

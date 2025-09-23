@@ -30,11 +30,11 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute_rt_tm/config.hpp>           // CUTE_RT_TM_HOST_DEVICE
-#include <cute_rt_tm/numeric/complex.hpp>  // cute_rt_tm::fma
-#include <cute_rt_tm/numeric/real.hpp>     // cute_rt_tm::fma
+#include <cute/config.hpp>           // CUTE_HOST_DEVICE
+#include <cute/numeric/complex.hpp>  // cute::fma
+#include <cute/numeric/real.hpp>     // cute::fma
 
-namespace cute_rt_tm
+namespace cute
 {
 
 //
@@ -49,16 +49,16 @@ struct UniversalFMA
   using BRegisters = B[1];
   using CRegisters = C[1];
 
-  CUTE_RT_TM_HOST_DEVICE static constexpr void
+  CUTE_HOST_DEVICE static constexpr void
   fma(D      & d,
       A const& a,
       B const& b,
       C const& c)
   {
-    // Forward to an ADL/cute_rt_tm free function for these types
-    using cute_rt_tm::fma;
+    // Forward to an ADL/cute free function for these types
+    using cute::fma;
     fma(d, a, b, c);
   }
 };
 
-} // end namespace cute_rt_tm
+} // end namespace cute

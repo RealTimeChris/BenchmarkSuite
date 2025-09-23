@@ -30,15 +30,15 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute_rt_tm/config.hpp>
-#include <cute_rt_tm/util/type_traits.hpp>
-#include <cute_rt_tm/numeric/integral_constant.hpp>
+#include <cute/config.hpp>
+#include <cute/util/type_traits.hpp>
+#include <cute/numeric/integral_constant.hpp>
 
-namespace cute_rt_tm
+namespace cute
 {
 
-using CUTE_RT_TM_STL_NAMESPACE::integer_sequence;
-using CUTE_RT_TM_STL_NAMESPACE::make_integer_sequence;
+using CUTE_STL_NAMESPACE::integer_sequence;
+using CUTE_STL_NAMESPACE::make_integer_sequence;
 
 namespace detail {
 
@@ -150,27 +150,27 @@ template <class T>
 using to_seq_t = typename to_seq<T>::type;
 
 //
-// Specialize cute_rt_tm::tuple-traits for std::integer_sequence
+// Specialize cute::tuple-traits for std::integer_sequence
 //
 
 template <class T, T... Ints>
 struct tuple_size<integer_sequence<T, Ints...>>
-    : cute_rt_tm::integral_constant<size_t, sizeof...(Ints)>
+    : cute::integral_constant<size_t, sizeof...(Ints)>
 {};
 
 template <size_t I, class T, T... Is>
 struct tuple_element<I, integer_sequence<T, Is...>>
 {
   constexpr static T idx[sizeof...(Is)] = {Is...};
-  using type = cute_rt_tm::integral_constant<T, idx[I]>;
+  using type = cute::integral_constant<T, idx[I]>;
 };
 
 template <size_t I, class T, T... Ints>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 tuple_element_t<I, integer_sequence<T, Ints...>>
 get(integer_sequence<T, Ints...>) {
   static_assert(I < sizeof...(Ints), "Index out of range");
   return {};
 }
 
-} // end namespace cute_rt_tm
+} // end namespace cute

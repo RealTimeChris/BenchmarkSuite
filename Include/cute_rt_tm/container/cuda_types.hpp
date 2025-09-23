@@ -30,10 +30,10 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute_rt_tm/config.hpp>                     // CUTE_RT_TM_HOST_DEVICE, CUTE_RT_TM_GCC_UNREACHABLE
-#include <cute_rt_tm/numeric/integral_constant.hpp>  // cute_rt_tm::integral_constant
+#include <cute/config.hpp>                     // CUTE_HOST_DEVICE, CUTE_GCC_UNREACHABLE
+#include <cute/numeric/integral_constant.hpp>  // cute::integral_constant
 
-namespace cute_rt_tm
+namespace cute
 {
 
 //
@@ -46,7 +46,7 @@ using dim3 = ::dim3;
 // its C++ language version.  This means that when
 // building with MSVC, dim3 isn't constexpr-friendly.
 template <size_t I>
-CUTE_RT_TM_HOST_DEVICE
+CUTE_HOST_DEVICE
 #if ! defined(_MSC_VER)
 constexpr
 #endif
@@ -61,11 +61,11 @@ uint32_t& get(dim3& a)
     return a.z;
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_GCC_UNREACHABLE;
 }
 
 template <size_t I>
-CUTE_RT_TM_HOST_DEVICE
+CUTE_HOST_DEVICE
 #if ! defined(_MSC_VER)
 constexpr
 #endif
@@ -80,11 +80,11 @@ uint32_t const& get(dim3 const& a)
     return a.z;
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_GCC_UNREACHABLE;
 }
 
 template <size_t I>
-CUTE_RT_TM_HOST_DEVICE
+CUTE_HOST_DEVICE
 #if ! defined(_MSC_VER)
 constexpr
 #endif
@@ -92,17 +92,17 @@ uint32_t&& get(dim3&& a)
 {
   static_assert(I < 3, "Index out of range");
   if constexpr (I == 0) {
-    return cute_rt_tm::move(a.x);
+    return cute::move(a.x);
   } else if constexpr (I == 1) {
-    return cute_rt_tm::move(a.y);
+    return cute::move(a.y);
   } else if constexpr (I == 2) {
-    return cute_rt_tm::move(a.z);
+    return cute::move(a.z);
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_GCC_UNREACHABLE;
 }
 
-// Specialize cute_rt_tm::tuple-traits for external types
+// Specialize cute::tuple-traits for external types
 template <>
 struct tuple_size<dim3>
     : integral_constant<size_t, 3>
@@ -121,7 +121,7 @@ struct tuple_element<I, dim3>
 using uint3 = ::uint3;
 
 template <size_t I>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 uint32_t& get(uint3& a)
 {
   static_assert(I < 3, "Index out of range");
@@ -133,11 +133,11 @@ uint32_t& get(uint3& a)
     return a.z;
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_GCC_UNREACHABLE;
 }
 
 template <size_t I>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 uint32_t const& get(uint3 const& a)
 {
   static_assert(I < 3, "Index out of range");
@@ -149,26 +149,26 @@ uint32_t const& get(uint3 const& a)
     return a.z;
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_GCC_UNREACHABLE;
 }
 
 template <size_t I>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 uint32_t&& get(uint3&& a)
 {
   static_assert(I < 3, "Index out of range");
   if constexpr (I == 0) {
-    return cute_rt_tm::move(a.x);
+    return cute::move(a.x);
   } else if constexpr (I == 1) {
-    return cute_rt_tm::move(a.y);
+    return cute::move(a.y);
   } else if constexpr (I == 2) {
-    return cute_rt_tm::move(a.z);
+    return cute::move(a.z);
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_GCC_UNREACHABLE;
 }
 
-// Specialize cute_rt_tm::tuple-traits for external types
+// Specialize cute::tuple-traits for external types
 template <>
 struct tuple_size<uint3>
     : integral_constant<size_t, 3>
@@ -180,4 +180,4 @@ struct tuple_element<I, uint3>
   using type = uint32_t;
 };
 
-} // end namespace cute_rt_tm
+} // end namespace cute

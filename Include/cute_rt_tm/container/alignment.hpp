@@ -30,17 +30,17 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute_rt_tm/config.hpp>
+#include <cute/config.hpp>
 
-#include <cute_rt_tm/numeric/numeric_types.hpp>
-#include <cute_rt_tm/numeric/math.hpp>
+#include <cute/numeric/numeric_types.hpp>
+#include <cute/numeric/math.hpp>
 
-namespace cute_rt_tm
+namespace cute
 {
 
 // Test if a pointer is aligned to N bytes
 template <int N>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 bool
 is_byte_aligned(void const* const ptr)
 {
@@ -49,22 +49,22 @@ is_byte_aligned(void const* const ptr)
 }
 
 #if defined(__CUDACC__)
-#  define CUTE_RT_TM_ALIGNAS(n) __align__(n)
+#  define CUTE_ALIGNAS(n) __align__(n)
 #else
-#  define CUTE_RT_TM_ALIGNAS(n) alignas(n)
+#  define CUTE_ALIGNAS(n) alignas(n)
 #endif
 
 template <size_t Alignment, class Child = void>
 struct aligned_struct {};
 
-template <class Child> struct CUTE_RT_TM_ALIGNAS(  1) aligned_struct<  1, Child> {};
-template <class Child> struct CUTE_RT_TM_ALIGNAS(  2) aligned_struct<  2, Child> {};
-template <class Child> struct CUTE_RT_TM_ALIGNAS(  4) aligned_struct<  4, Child> {};
-template <class Child> struct CUTE_RT_TM_ALIGNAS(  8) aligned_struct<  8, Child> {};
-template <class Child> struct CUTE_RT_TM_ALIGNAS( 16) aligned_struct< 16, Child> {};
-template <class Child> struct CUTE_RT_TM_ALIGNAS( 32) aligned_struct< 32, Child> {};
-template <class Child> struct CUTE_RT_TM_ALIGNAS( 64) aligned_struct< 64, Child> {};
-template <class Child> struct CUTE_RT_TM_ALIGNAS(128) aligned_struct<128, Child> {};
-template <class Child> struct CUTE_RT_TM_ALIGNAS(256) aligned_struct<256, Child> {};
+template <class Child> struct CUTE_ALIGNAS(  1) aligned_struct<  1, Child> {};
+template <class Child> struct CUTE_ALIGNAS(  2) aligned_struct<  2, Child> {};
+template <class Child> struct CUTE_ALIGNAS(  4) aligned_struct<  4, Child> {};
+template <class Child> struct CUTE_ALIGNAS(  8) aligned_struct<  8, Child> {};
+template <class Child> struct CUTE_ALIGNAS( 16) aligned_struct< 16, Child> {};
+template <class Child> struct CUTE_ALIGNAS( 32) aligned_struct< 32, Child> {};
+template <class Child> struct CUTE_ALIGNAS( 64) aligned_struct< 64, Child> {};
+template <class Child> struct CUTE_ALIGNAS(128) aligned_struct<128, Child> {};
+template <class Child> struct CUTE_ALIGNAS(256) aligned_struct<256, Child> {};
 
-} // end namespace cute_rt_tm
+} // end namespace cute

@@ -33,13 +33,13 @@
 
 #pragma once
 
-#include <cute_rt_tm/arch/config.hpp>
+#include <cute/arch/config.hpp>
 
-#include <cute_rt_tm/arch/copy.hpp>
-#include <cute_rt_tm/arch/copy_sm90.hpp>
-#include "nihilus_gemm/arch/synclog.hpp"
+#include <cute/arch/copy.hpp>
+#include <cute/arch/copy_sm90.hpp>
+#include "cutlass/arch/synclog.hpp"
 
-namespace cute_rt_tm
+namespace cute
 {
 
 constexpr uint32_t Sm100MmaPeerBitMask = 0xFEFFFFFF;
@@ -51,12 +51,12 @@ constexpr uint64_t Sm100MemDescDefault = uint64_t(0x1000000000000000);
 
 struct SM100_TMA_2SM_LOAD_1D
 {
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy([[maybe_unused]] void const* desc_ptr, [[maybe_unused]] uint64_t* mbar_ptr, [[maybe_unused]] uint64_t cache_hint,
        [[maybe_unused]] void      * smem_ptr,
        [[maybe_unused]] int32_t const& crd0)
   {
-#if defined(CUTE_RT_TM_ARCH_TMA_SM100_ENABLED)
+#if defined(CUTE_ARCH_TMA_SM100_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     // Executed by both CTAs. Set peer bit to 0 so that the
     // transaction bytes will update CTA0's barrier.
@@ -70,19 +70,19 @@ struct SM100_TMA_2SM_LOAD_1D
         "r"(crd0), "l"(cache_hint)
       : "memory");
 #else
-    CUTE_RT_TM_INVALID_CONTROL_PATH("Trying to use tma without CUTE_RT_TM_ARCH_TMA_SM100_ENABLED.");
+    CUTE_INVALID_CONTROL_PATH("Trying to use tma without CUTE_ARCH_TMA_SM100_ENABLED.");
 #endif
   }
 };
 
 struct SM100_TMA_2SM_LOAD_2D
 {
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy([[maybe_unused]] void const* desc_ptr, [[maybe_unused]] uint64_t* mbar_ptr, [[maybe_unused]] uint64_t cache_hint,
        [[maybe_unused]] void      * smem_ptr,
        [[maybe_unused]] int32_t const& crd0, int32_t const& crd1)
   {
-#if defined(CUTE_RT_TM_ARCH_TMA_SM100_ENABLED)
+#if defined(CUTE_ARCH_TMA_SM100_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     // Executed by both CTAs. Set peer bit to 0 so that the
     // transaction bytes will update CTA0's barrier.
@@ -96,19 +96,19 @@ struct SM100_TMA_2SM_LOAD_2D
         "r"(crd0), "r"(crd1), "l"(cache_hint)
       : "memory");
 #else
-    CUTE_RT_TM_INVALID_CONTROL_PATH("Trying to use tma without CUTE_RT_TM_ARCH_TMA_SM100_ENABLED.");
+    CUTE_INVALID_CONTROL_PATH("Trying to use tma without CUTE_ARCH_TMA_SM100_ENABLED.");
 #endif
   }
 };
 
 struct SM100_TMA_2SM_LOAD_3D
 {
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy([[maybe_unused]] void const* desc_ptr, [[maybe_unused]] uint64_t* mbar_ptr, [[maybe_unused]] uint64_t cache_hint,
        [[maybe_unused]] void      * smem_ptr,
        [[maybe_unused]] int32_t const& crd0, int32_t const& crd1, int32_t const& crd2)
   {
-#if defined(CUTE_RT_TM_ARCH_TMA_SM100_ENABLED)
+#if defined(CUTE_ARCH_TMA_SM100_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     // Executed by both CTAs. Set peer bit to 0 so that the
     // transaction bytes will update CTA0's barrier.
@@ -122,19 +122,19 @@ struct SM100_TMA_2SM_LOAD_3D
         "r"(crd0), "r"(crd1), "r"(crd2), "l"(cache_hint)
       : "memory");
 #else
-    CUTE_RT_TM_INVALID_CONTROL_PATH("Trying to use tma without CUTE_RT_TM_ARCH_TMA_SM100_ENABLED.");
+    CUTE_INVALID_CONTROL_PATH("Trying to use tma without CUTE_ARCH_TMA_SM100_ENABLED.");
 #endif
   }
 };
 
 struct SM100_TMA_2SM_LOAD_4D
 {
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr, uint64_t cache_hint,
        void      * smem_ptr,
        int32_t const& crd0, int32_t const& crd1, int32_t const& crd2, int32_t const& crd3)
   {
-#if defined(CUTE_RT_TM_ARCH_TMA_SM100_ENABLED)
+#if defined(CUTE_ARCH_TMA_SM100_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     // Executed by both CTAs. Set peer bit to 0 so that the
     // transaction bytes will update CTA0's barrier.
@@ -148,19 +148,19 @@ struct SM100_TMA_2SM_LOAD_4D
         "r"(crd0), "r"(crd1), "r"(crd2), "r"(crd3), "l"(cache_hint)
       : "memory");
 #else
-    CUTE_RT_TM_INVALID_CONTROL_PATH("Trying to use tma without CUTE_RT_TM_ARCH_TMA_SM100_ENABLED.");
+    CUTE_INVALID_CONTROL_PATH("Trying to use tma without CUTE_ARCH_TMA_SM100_ENABLED.");
 #endif
   }
 };
 
 struct SM100_TMA_2SM_LOAD_5D
 {
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr, uint64_t cache_hint,
        void      * smem_ptr,
        int32_t const& crd0, int32_t const& crd1, int32_t const& crd2, int32_t const& crd3, int32_t const& crd4)
   {
-#if defined(CUTE_RT_TM_ARCH_TMA_SM100_ENABLED)
+#if defined(CUTE_ARCH_TMA_SM100_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     // Executed by both CTAs. Set peer bit to 0 so that the
     // transaction bytes will update CTA0's barrier.
@@ -174,42 +174,42 @@ struct SM100_TMA_2SM_LOAD_5D
         "r"(crd0), "r"(crd1), "r"(crd2), "r"(crd3), "r"(crd4), "l"(cache_hint)
       : "memory");
 #else
-    CUTE_RT_TM_INVALID_CONTROL_PATH("Trying to use tma without CUTE_RT_TM_ARCH_TMA_SM100_ENABLED.");
+    CUTE_INVALID_CONTROL_PATH("Trying to use tma without CUTE_ARCH_TMA_SM100_ENABLED.");
 #endif
   }
 };
 
 struct SM100_TMA_2SM_LOAD
 {
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr, uint64_t cache_hint,
        void      * smem_ptr,
        int32_t const& crd0)
   {
     return SM100_TMA_2SM_LOAD_1D::copy(desc_ptr, mbar_ptr, cache_hint, smem_ptr, crd0);
   }
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr, uint64_t cache_hint,
        void      * smem_ptr,
        int32_t const& crd0, int32_t const& crd1)
   {
     return SM100_TMA_2SM_LOAD_2D::copy(desc_ptr, mbar_ptr, cache_hint, smem_ptr, crd0, crd1);
   }
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr, uint64_t cache_hint,
        void      * smem_ptr,
        int32_t const& crd0, int32_t const& crd1, int32_t const& crd2)
   {
     return SM100_TMA_2SM_LOAD_3D::copy(desc_ptr, mbar_ptr, cache_hint, smem_ptr, crd0, crd1, crd2);
   }
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr, uint64_t cache_hint,
        void      * smem_ptr,
        int32_t const& crd0, int32_t const& crd1, int32_t const& crd2, int32_t const& crd3)
   {
     return SM100_TMA_2SM_LOAD_4D::copy(desc_ptr, mbar_ptr, cache_hint, smem_ptr, crd0, crd1, crd2, crd3);
   }
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr, uint64_t cache_hint,
        void      * smem_ptr,
        int32_t const& crd0, int32_t const& crd1, int32_t const& crd2, int32_t const& crd3, int32_t const& crd4)
@@ -228,12 +228,12 @@ struct SM100_TMA_2SM_LOAD
 
 struct SM100_TMA_2SM_LOAD_MULTICAST_1D
 {
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr, uint16_t multicast_mask, uint64_t cache_hint,
        void      * smem_ptr,
        int32_t const& crd0)
   {
-#if defined(CUTE_RT_TM_ARCH_TMA_SM100_ENABLED)
+#if defined(CUTE_ARCH_TMA_SM100_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     // Executed by both CTAs. Set peer bit to 0 so that the
     // transaction bytes will update CTA0's barrier.
@@ -247,19 +247,19 @@ struct SM100_TMA_2SM_LOAD_MULTICAST_1D
         "r"(crd0), "l"(cache_hint)
       : "memory");
 #else
-    CUTE_RT_TM_INVALID_CONTROL_PATH("Trying to use tma without CUTE_RT_TM_ARCH_TMA_SM100_ENABLED.");
+    CUTE_INVALID_CONTROL_PATH("Trying to use tma without CUTE_ARCH_TMA_SM100_ENABLED.");
 #endif
   }
 };
 
 struct SM100_TMA_2SM_LOAD_MULTICAST_2D
 {
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr, uint16_t multicast_mask, uint64_t cache_hint,
        void      * smem_ptr,
        int32_t const& crd0, int32_t const& crd1)
   {
-#if defined(CUTE_RT_TM_ARCH_TMA_SM100_ENABLED)
+#if defined(CUTE_ARCH_TMA_SM100_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     // Executed by both CTAs. Set peer bit to 0 so that the
     // transaction bytes will update CTA0's barrier.
@@ -273,19 +273,19 @@ struct SM100_TMA_2SM_LOAD_MULTICAST_2D
         "r"(crd0), "r"(crd1), "l"(cache_hint)
       : "memory");
 #else
-    CUTE_RT_TM_INVALID_CONTROL_PATH("Trying to use tma without CUTE_RT_TM_ARCH_TMA_SM100_ENABLED.");
+    CUTE_INVALID_CONTROL_PATH("Trying to use tma without CUTE_ARCH_TMA_SM100_ENABLED.");
 #endif
   }
 };
 
 struct SM100_TMA_2SM_LOAD_MULTICAST_3D
 {
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr, uint16_t multicast_mask, uint64_t cache_hint,
        void      * smem_ptr,
        int32_t const& crd0, int32_t const& crd1, int32_t const& crd2)
   {
-#if defined(CUTE_RT_TM_ARCH_TMA_SM100_ENABLED)
+#if defined(CUTE_ARCH_TMA_SM100_ENABLED)
 uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     // Executed by both CTAs. Set peer bit to 0 so that the
     // transaction bytes will update CTA0's barrier.
@@ -299,19 +299,19 @@ uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
         "r"(crd0), "r"(crd1), "r"(crd2), "l"(cache_hint)
       : "memory");
 #else
-    CUTE_RT_TM_INVALID_CONTROL_PATH("Trying to use tma without CUTE_RT_TM_ARCH_TMA_SM100_ENABLED.");
+    CUTE_INVALID_CONTROL_PATH("Trying to use tma without CUTE_ARCH_TMA_SM100_ENABLED.");
 #endif
   }
 };
 
 struct SM100_TMA_2SM_LOAD_MULTICAST_4D
 {
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr, uint16_t multicast_mask, uint64_t cache_hint,
        void      * smem_ptr,
        int32_t const& crd0, int32_t const& crd1, int32_t const& crd2, int32_t const& crd3)
   {
-#if defined(CUTE_RT_TM_ARCH_TMA_SM100_ENABLED)
+#if defined(CUTE_ARCH_TMA_SM100_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     // Executed by both CTAs. Set peer bit to 0 so that the
     // transaction bytes will update CTA0's barrier.
@@ -325,19 +325,19 @@ struct SM100_TMA_2SM_LOAD_MULTICAST_4D
         "r"(crd0), "r"(crd1), "r"(crd2),  "r"(crd3), "l"(cache_hint)
       : "memory");
 #else
-    CUTE_RT_TM_INVALID_CONTROL_PATH("Trying to use tma without CUTE_RT_TM_ARCH_TMA_SM100_ENABLED.");
+    CUTE_INVALID_CONTROL_PATH("Trying to use tma without CUTE_ARCH_TMA_SM100_ENABLED.");
 #endif
   }
 };
 
 struct SM100_TMA_2SM_LOAD_MULTICAST_5D
 {
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr, uint16_t multicast_mask, uint64_t cache_hint,
        void      * smem_ptr,
        int32_t const& crd0, int32_t const& crd1, int32_t const& crd2, int32_t const& crd3, int32_t const& crd4)
   {
-#if defined(CUTE_RT_TM_ARCH_TMA_SM100_ENABLED)
+#if defined(CUTE_ARCH_TMA_SM100_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     // Executed by both CTAs. Set peer bit to 0 so that the
     // transaction bytes will update CTA0's barrier.
@@ -351,42 +351,42 @@ struct SM100_TMA_2SM_LOAD_MULTICAST_5D
         "r"(crd0), "r"(crd1), "r"(crd2), "r"(crd3), "r"(crd4), "l"(cache_hint)
       : "memory");
 #else
-    CUTE_RT_TM_INVALID_CONTROL_PATH("Trying to use tma without CUTE_RT_TM_ARCH_TMA_SM0_ENABLED.");
+    CUTE_INVALID_CONTROL_PATH("Trying to use tma without CUTE_ARCH_TMA_SM0_ENABLED.");
 #endif
   }
 };
 
 struct SM100_TMA_2SM_LOAD_MULTICAST
 {
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr, uint16_t multicast_mask, uint64_t cache_hint,
        void      * smem_ptr,
        int32_t const& crd0)
   {
     return SM100_TMA_2SM_LOAD_MULTICAST_1D::copy(desc_ptr, mbar_ptr, multicast_mask, cache_hint, smem_ptr, crd0);
   }
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr, uint16_t multicast_mask, uint64_t cache_hint,
        void      * smem_ptr,
        int32_t const& crd0, int32_t const& crd1)
   {
     return SM100_TMA_2SM_LOAD_MULTICAST_2D::copy(desc_ptr, mbar_ptr, multicast_mask, cache_hint, smem_ptr, crd0, crd1);
   }
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr, uint16_t multicast_mask, uint64_t cache_hint,
        void      * smem_ptr,
        int32_t const& crd0, int32_t const& crd1, int32_t const& crd2)
   {
     return SM100_TMA_2SM_LOAD_MULTICAST_3D::copy(desc_ptr, mbar_ptr, multicast_mask, cache_hint, smem_ptr, crd0, crd1, crd2);
   }
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr, uint16_t multicast_mask, uint64_t cache_hint,
        void      * smem_ptr,
        int32_t const& crd0, int32_t const& crd1, int32_t const& crd2, int32_t const& crd3)
   {
     return SM100_TMA_2SM_LOAD_MULTICAST_4D::copy(desc_ptr, mbar_ptr, multicast_mask, cache_hint, smem_ptr, crd0, crd1, crd2, crd3);
   }
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr, uint16_t multicast_mask, uint64_t cache_hint,
        void      * smem_ptr,
        int32_t const& crd0, int32_t const& crd1, int32_t const& crd2, int32_t const& crd3, int32_t const& crd4)
@@ -401,13 +401,13 @@ struct SM100_TMA_2SM_LOAD_MULTICAST
 
 struct SM100_TMA_2SM_LOAD_IM2COL_3D
 {
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr,
        void      * smem_ptr,
        int32_t const& coord_c, int32_t const& coord_w, int32_t const& coord_n,
        uint16_t const& offset_w)
   {
-#if defined(CUTE_RT_TM_ARCH_TMA_SM100_ENABLED)
+#if defined(CUTE_ARCH_TMA_SM100_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     // Executed by both CTAs. Set peer bit to 0 so that the
     // transaction bytes will update CTA0's barrier.
@@ -422,21 +422,21 @@ struct SM100_TMA_2SM_LOAD_IM2COL_3D
         "h"(offset_w), "l"(Sm100MemDescDefault)
       : "memory");
 #else
-    CUTE_RT_TM_INVALID_CONTROL_PATH("Trying to use tma without CUTE_RT_TM_ARCH_TMA_SM100_ENABLED.");
+    CUTE_INVALID_CONTROL_PATH("Trying to use tma without CUTE_ARCH_TMA_SM100_ENABLED.");
 #endif
   }
 };
 
 struct SM100_TMA_2SM_LOAD_IM2COL_4D
 {
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr,
        void      * smem_ptr,
        int32_t const& coord_c, int32_t const& coord_w, int32_t const& coord_h, int32_t const& coord_n,
        uint16_t const& offset_w,
        uint16_t const& offset_h)
   {
-#if defined(CUTE_RT_TM_ARCH_TMA_SM100_ENABLED)
+#if defined(CUTE_ARCH_TMA_SM100_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     // Executed by both CTAs. Set peer bit to 0 so that the
     // transaction bytes will update CTA0's barrier.
@@ -451,14 +451,14 @@ struct SM100_TMA_2SM_LOAD_IM2COL_4D
         "h"(offset_w), "h"(offset_h), "l"(Sm100MemDescDefault)
       : "memory");
 #else
-    CUTE_RT_TM_INVALID_CONTROL_PATH("Trying to use tma without CUTE_RT_TM_ARCH_TMA_SM100_ENABLED.");
+    CUTE_INVALID_CONTROL_PATH("Trying to use tma without CUTE_ARCH_TMA_SM100_ENABLED.");
 #endif
   }
 };
 
 struct SM100_TMA_2SM_LOAD_IM2COL_5D
 {
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr,
        void      * smem_ptr,
        int32_t const& coord_c, int32_t const& coord_w, int32_t const& coord_h, int32_t const& coord_d, int32_t const& coord_n,
@@ -466,7 +466,7 @@ struct SM100_TMA_2SM_LOAD_IM2COL_5D
        uint16_t const& offset_h,
        uint16_t const& offset_d)
   {
-#if defined(CUTE_RT_TM_ARCH_TMA_SM100_ENABLED)
+#if defined(CUTE_ARCH_TMA_SM100_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     // Executed by both CTAs. Set peer bit to 0 so that the
     // transaction bytes will update CTA0's barrier.
@@ -481,14 +481,14 @@ struct SM100_TMA_2SM_LOAD_IM2COL_5D
         "h"(offset_w), "h"(offset_h), "h"(offset_d), "l"(Sm100MemDescDefault)
       : "memory");
 #else
-    CUTE_RT_TM_INVALID_CONTROL_PATH("Trying to use tma without CUTE_RT_TM_ARCH_TMA_SM100_ENABLED.");
+    CUTE_INVALID_CONTROL_PATH("Trying to use tma without CUTE_ARCH_TMA_SM100_ENABLED.");
 #endif
   }
 };
 
 struct SM100_TMA_2SM_LOAD_IM2COL
 {
- CUTE_RT_TM_HOST_DEVICE static void
+ CUTE_HOST_DEVICE static void
  copy(void const* desc_ptr, uint64_t* mbar_ptr,
       void      * smem_ptr,
       int32_t const& coord_c, int32_t const& coord_w, int32_t const& coord_n,
@@ -498,7 +498,7 @@ struct SM100_TMA_2SM_LOAD_IM2COL
                                              coord_c, coord_w, coord_n,
                                              offset_w);
  }
- CUTE_RT_TM_HOST_DEVICE static void
+ CUTE_HOST_DEVICE static void
  copy(void const* desc_ptr, uint64_t* mbar_ptr,
       void      * smem_ptr,
       int32_t const& coord_c, int32_t const& coord_w, int32_t const& coord_h, int32_t const& coord_n,
@@ -509,7 +509,7 @@ struct SM100_TMA_2SM_LOAD_IM2COL
                                              coord_c, coord_w, coord_h, coord_n,
                                              offset_w, offset_h);
  }
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr,
        void      * smem_ptr,
        int32_t const& coord_c, int32_t const& coord_w, int32_t const& coord_h, int32_t const& coord_d, int32_t const& coord_n,
@@ -529,13 +529,13 @@ struct SM100_TMA_2SM_LOAD_IM2COL
 
 struct SM100_TMA_2SM_LOAD_IM2COL_MULTICAST_3D
 {
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr, uint16_t multicast_mask,
        void      * smem_ptr,
        int32_t const& coord_c, int32_t const& coord_w, int32_t const& coord_n,
        uint16_t const& offset_w)
   {
-#if defined(CUTE_RT_TM_ARCH_TMA_SM100_ENABLED)
+#if defined(CUTE_ARCH_TMA_SM100_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     // Executed by both CTAs. Set peer bit to 0 so that the
     // transaction bytes will update CTA0's barrier.
@@ -552,21 +552,21 @@ struct SM100_TMA_2SM_LOAD_IM2COL_MULTICAST_3D
         "l"(Sm100MemDescDefault)
       : "memory");
 #else
-    CUTE_RT_TM_INVALID_CONTROL_PATH("Trying to use tma without CUTE_RT_TM_ARCH_TMA_SM100_ENABLED.");
+    CUTE_INVALID_CONTROL_PATH("Trying to use tma without CUTE_ARCH_TMA_SM100_ENABLED.");
 #endif
   }
 };
 
 struct SM100_TMA_2SM_LOAD_IM2COL_MULTICAST_4D
 {
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr, uint16_t multicast_mask,
        void      * smem_ptr,
        int32_t const& coord_c, int32_t const& coord_w, int32_t const& coord_h, int32_t const& coord_n,
        uint16_t const& offset_w,
        uint16_t const& offset_h)
   {
-#if defined(CUTE_RT_TM_ARCH_TMA_SM100_ENABLED)
+#if defined(CUTE_ARCH_TMA_SM100_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     // Executed by both CTAs. Set peer bit to 0 so that the
     // transaction bytes will update CTA0's barrier.
@@ -583,14 +583,14 @@ struct SM100_TMA_2SM_LOAD_IM2COL_MULTICAST_4D
         "l"(Sm100MemDescDefault)
       : "memory");
 #else
-    CUTE_RT_TM_INVALID_CONTROL_PATH("Trying to use tma without CUTE_RT_TM_ARCH_TMA_SM100_ENABLED.");
+    CUTE_INVALID_CONTROL_PATH("Trying to use tma without CUTE_ARCH_TMA_SM100_ENABLED.");
 #endif
   }
 };
 
 struct SM100_TMA_2SM_LOAD_IM2COL_MULTICAST_5D
 {
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr, uint16_t multicast_mask,
        void      * smem_ptr,
        int32_t const& coord_c, int32_t const& coord_w, int32_t const& coord_h, int32_t const& coord_d, int32_t const& coord_n,
@@ -598,7 +598,7 @@ struct SM100_TMA_2SM_LOAD_IM2COL_MULTICAST_5D
        uint16_t const& offset_h,
        uint16_t const& offset_d)
   {
-#if defined(CUTE_RT_TM_ARCH_TMA_SM100_ENABLED)
+#if defined(CUTE_ARCH_TMA_SM100_ENABLED)
     uint64_t gmem_int_desc = reinterpret_cast<uint64_t>(desc_ptr);
     // Executed by both CTAs. Set peer bit to 0 so that the
     // transaction bytes will update CTA0's barrier.
@@ -615,14 +615,14 @@ struct SM100_TMA_2SM_LOAD_IM2COL_MULTICAST_5D
         "l"(Sm100MemDescDefault)
       : "memory");
 #else
-    CUTE_RT_TM_INVALID_CONTROL_PATH("Trying to use tma without CUTE_RT_TM_ARCH_TMA_SM100_ENABLED.");
+    CUTE_INVALID_CONTROL_PATH("Trying to use tma without CUTE_ARCH_TMA_SM100_ENABLED.");
 #endif
   }
 };
 
 struct SM100_TMA_2SM_LOAD_IM2COL_MULTICAST
 {
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr, uint16_t multicast_mask,
        void      * smem_ptr,
        int32_t const& coord_c, int32_t const& coord_w, int32_t const& coord_n,
@@ -633,7 +633,7 @@ struct SM100_TMA_2SM_LOAD_IM2COL_MULTICAST
                                                         coord_c, coord_w, coord_n,
                                                         offset_w);
   }
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr, uint16_t multicast_mask,
        void      * smem_ptr,
        int32_t const& coord_c, int32_t const& coord_w, int32_t const& coord_h, int32_t const& coord_n,
@@ -644,7 +644,7 @@ struct SM100_TMA_2SM_LOAD_IM2COL_MULTICAST
                                                         coord_c, coord_w, coord_h, coord_n,
                                                         offset_w, offset_h);
   }
-  CUTE_RT_TM_HOST_DEVICE static void
+  CUTE_HOST_DEVICE static void
   copy(void const* desc_ptr, uint64_t* mbar_ptr, uint16_t multicast_mask,
        void      * smem_ptr,
        int32_t const& coord_c, int32_t const& coord_w, int32_t const& coord_h, int32_t const& coord_d, int32_t const& coord_n,
@@ -663,4 +663,4 @@ struct SM100_TMA_2SM_LOAD_IM2COL_MULTICAST
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-} // end namespace cute_rt_tm
+} // end namespace cute

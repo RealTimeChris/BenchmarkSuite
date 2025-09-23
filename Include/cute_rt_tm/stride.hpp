@@ -30,18 +30,18 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute_rt_tm/config.hpp>                     // CUTE_RT_TM_HOST_DEVICE
-#include <cute_rt_tm/util/type_traits.hpp>           // cute_rt_tm::__CUTE_RT_TM_REQUIRES
-#include <cute_rt_tm/container/tuple.hpp>            // cute_rt_tm::is_tuple
-#include <cute_rt_tm/numeric/integral_constant.hpp>  // cute_rt_tm::is_integral
-#include <cute_rt_tm/numeric/integer_sequence.hpp>   // cute_rt_tm::seq
-#include <cute_rt_tm/numeric/math.hpp>               // cute_rt_tm::divmod
-#include <cute_rt_tm/numeric/arithmetic_tuple.hpp>   // cute_rt_tm::basis_get
-#include <cute_rt_tm/algorithm/functional.hpp>       // cute_rt_tm::identity
-#include <cute_rt_tm/algorithm/tuple_algorithms.hpp> // cute_rt_tm::fold
-#include <cute_rt_tm/int_tuple.hpp>                  // cute_rt_tm::is_congruent
+#include <cute/config.hpp>                     // CUTE_HOST_DEVICE
+#include <cute/util/type_traits.hpp>           // cute::__CUTE_REQUIRES
+#include <cute/container/tuple.hpp>            // cute::is_tuple
+#include <cute/numeric/integral_constant.hpp>  // cute::is_integral
+#include <cute/numeric/integer_sequence.hpp>   // cute::seq
+#include <cute/numeric/math.hpp>               // cute::divmod
+#include <cute/numeric/arithmetic_tuple.hpp>   // cute::basis_get
+#include <cute/algorithm/functional.hpp>       // cute::identity
+#include <cute/algorithm/tuple_algorithms.hpp> // cute::fold
+#include <cute/int_tuple.hpp>                  // cute::is_congruent
 
-namespace cute_rt_tm
+namespace cute
 {
 
 /** crd2idx(c,s,d) maps a coordinate within <Shape,Stride> to an index
@@ -55,7 +55,7 @@ namespace cute_rt_tm
  * op((c,C), (s,S), (d,D)) => op(c, s, d) + op((C), (S), (D))
  */
 template <class Coord, class Shape, class Stride>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 crd2idx(Coord  const& coord,
         Shape  const& shape,
@@ -64,7 +64,7 @@ crd2idx(Coord  const& coord,
 namespace detail {
 
 template <class Coord, class Shape, class Stride, int... Is>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 crd2idx_ttt(Coord  const& coord,
             Shape  const& shape,
@@ -74,7 +74,7 @@ crd2idx_ttt(Coord  const& coord,
 }
 
 template <class CInt, class STuple, class DTuple, int I0, int... Is>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 crd2idx_itt(CInt   const& coord,
             STuple const& shape,
@@ -91,13 +91,13 @@ crd2idx_itt(CInt   const& coord,
          + crd2idx_itt(div, shape, stride, seq<Is...>{});
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_GCC_UNREACHABLE;
 }
 
 } // end namespace detail
 
 template <class Coord, class Shape, class Stride>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 crd2idx(Coord  const& coord,
         Shape  const& shape,
@@ -120,13 +120,13 @@ crd2idx(Coord  const& coord,
     }
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_GCC_UNREACHABLE;
 }
 
 namespace detail {
 
 template <class CTuple, class STuple, int I0, int... Is>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 crd2idx_horner(CTuple const& coord,
                STuple const& shape, seq<I0,Is...>)
@@ -137,7 +137,7 @@ crd2idx_horner(CTuple const& coord,
     return get<I0>(coord) + get<I0>(shape) * crd2idx_horner(coord, shape, seq<Is...>{});
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_GCC_UNREACHABLE;
 }
 
 } // end namespace detail
@@ -147,7 +147,7 @@ crd2idx_horner(CTuple const& coord,
  * i = c0 + s0 * (c1 + s1 * (c2 + s2 * ...))
  */
 template <class Coord, class Shape>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 crd2idx(Coord const& coord,
         Shape const& shape)
@@ -163,7 +163,7 @@ crd2idx(Coord const& coord,
     return detail::crd2idx_horner(flat_coord, flat_shape, tuple_seq<decltype(flat_shape)>{});
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_GCC_UNREACHABLE;
 }
 
 /** idx2crd(i,s,d) splits an index into a coordinate within <Shape,Stride>.
@@ -180,7 +180,7 @@ crd2idx(Coord const& coord,
  *       apply to all surjective layouts
  */
 template <class Index, class Shape, class Stride>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 idx2crd(Index  const& idx,
         Shape  const& shape,
@@ -212,7 +212,7 @@ idx2crd(Index  const& idx,
     }
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_GCC_UNREACHABLE;
 }
 
 /** idx2crd(i,s) splits an index into a coordinate within Shape
@@ -223,7 +223,7 @@ idx2crd(Index  const& idx,
  * ...
  */
 template <class Index, class Shape>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 idx2crd(Index const& idx,
         Shape const& shape)
@@ -243,7 +243,7 @@ idx2crd(Index const& idx,
     }
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_GCC_UNREACHABLE;
 }
 
 //
@@ -251,7 +251,7 @@ idx2crd(Index const& idx,
 //
 
 template <class Coord, class SShape, class DShape>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 crd2crd(Coord  const& coord,
         SShape const& src_shape,
@@ -266,7 +266,7 @@ crd2crd(Coord  const& coord,
     return idx2crd(crd2idx(coord, src_shape), dst_shape);
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_GCC_UNREACHABLE;
 }
 
 //
@@ -289,7 +289,7 @@ struct CompactLambda;
 // @pre is_integral<Current>
 // Return (result, current * product(shape)) to enable recurrence
 template <class Major, class Shape, class Current>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 compact(Shape   const& shape,
         Current const& current)
@@ -297,16 +297,16 @@ compact(Shape   const& shape,
   if constexpr (is_tuple<Shape>::value) { // Shape::tuple Current::int
     using Lambda = CompactLambda<Major>;                  // Append or Prepend
     using Seq    = typename Lambda::template seq<Shape>;  // Seq or RSeq
-    return cute_rt_tm::detail::fold(shape, cute_rt_tm::make_tuple(cute_rt_tm::make_tuple(), current), Lambda{}, Seq{});
+    return cute::detail::fold(shape, cute::make_tuple(cute::make_tuple(), current), Lambda{}, Seq{});
   } else {                                // Shape::int Current::int
     if constexpr (is_constant<1, Shape>::value) {
-      return cute_rt_tm::make_tuple(Int<0>{}, current); // If current is dynamic, this could save a reg
+      return cute::make_tuple(Int<0>{}, current); // If current is dynamic, this could save a reg
     } else {
-      return cute_rt_tm::make_tuple(current, current * shape);
+      return cute::make_tuple(current, current * shape);
     }
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_GCC_UNREACHABLE;
 }
 
 // For GCC8.5 -- Specialization LayoutLeft
@@ -314,10 +314,10 @@ template <>
 struct CompactLambda<LayoutLeft>
 {
   template <class Init, class Shape>
-  CUTE_RT_TM_HOST_DEVICE constexpr auto
+  CUTE_HOST_DEVICE constexpr auto
   operator()(Init const& init, Shape const& si) {
     auto result = detail::compact<LayoutLeft>(si, get<1>(init));
-    return cute_rt_tm::make_tuple(append(get<0>(init), get<0>(result)), get<1>(result));  // Append
+    return cute::make_tuple(append(get<0>(init), get<0>(result)), get<1>(result));  // Append
   }
 
   template <class Shape>
@@ -329,10 +329,10 @@ template <>
 struct CompactLambda<LayoutRight>
 {
   template <class Init, class Shape>
-  CUTE_RT_TM_HOST_DEVICE constexpr auto
+  CUTE_HOST_DEVICE constexpr auto
   operator()(Init const& init, Shape const& si) {
     auto result = detail::compact<LayoutRight>(si, get<1>(init));
-    return cute_rt_tm::make_tuple(prepend(get<0>(init), get<0>(result)), get<1>(result));  // Prepend
+    return cute::make_tuple(prepend(get<0>(init), get<0>(result)), get<1>(result));  // Prepend
   }
 
   template <class Shape>
@@ -342,8 +342,8 @@ struct CompactLambda<LayoutRight>
 } // end namespace detail
 
 template <class Major, class Shape, class Current = Int<1>,
-          __CUTE_RT_TM_REQUIRES(is_tuple<Shape>::value || is_integral<Shape>::value)>
-CUTE_RT_TM_HOST_DEVICE constexpr
+          __CUTE_REQUIRES(is_tuple<Shape>::value || is_integral<Shape>::value)>
+CUTE_HOST_DEVICE constexpr
 auto
 compact_major(Shape   const& shape,
               Current const& current = {})
@@ -357,7 +357,7 @@ compact_major(Shape   const& shape,
     return get<0>(detail::compact<Major>(shape, current));
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_GCC_UNREACHABLE;
 }
 
 //
@@ -370,7 +370,7 @@ struct LayoutLeft {
 };
 
 template <class Shape, class Current = Int<1>>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 compact_col_major(Shape   const& shape,
                   Current const& current = {})
@@ -388,7 +388,7 @@ struct LayoutRight {
 };
 
 template <class Shape, class Current = Int<1>>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 compact_row_major(Shape   const& shape,
                   Current const& current = {})
@@ -407,7 +407,7 @@ namespace detail {
 // @pre is_static<Order>
 // @pre is_static<RefOrder>
 template <class Shape, class Order, class RefShape, class RefOrder>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 compact_order(Shape const& shape, Order const& order,
               RefShape const& ref_shape, RefOrder const& ref_order)
@@ -424,13 +424,13 @@ compact_order(Shape const& shape, Order const& order,
     return compact_col_major(shape, stride_start);
   }
 
-  CUTE_RT_TM_GCC_UNREACHABLE;
+  CUTE_GCC_UNREACHABLE;
 }
 
 } // end namespace detail
 
 template <class Shape, class Order>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 compact_order(Shape const& shape, Order const& order)
 {
@@ -438,25 +438,25 @@ compact_order(Shape const& shape, Order const& order)
 
   auto flat_order = flatten_to_tuple(order);
   // Find the largest static element of order
-  auto max_order = cute_rt_tm::fold(flat_order, Int<0>{}, [](auto v, auto order) {
+  auto max_order = cute::fold(flat_order, Int<0>{}, [](auto v, auto order) {
     if constexpr (is_constant<true, decltype(v < order)>::value) {
       return order;
     } else {
       return v;
     }
 
-    CUTE_RT_TM_GCC_UNREACHABLE;
+    CUTE_GCC_UNREACHABLE;
   });
   // Replace any dynamic elements within order with large-static elements
   auto max_seq = make_range<max_order+1, max_order+1+rank(flat_order)>{};
-  auto ref_order = cute_rt_tm::transform(max_seq, flat_order, [](auto seq_v, auto order) {
+  auto ref_order = cute::transform(max_seq, flat_order, [](auto seq_v, auto order) {
     if constexpr (is_static<decltype(order)>::value) {
       return order;
     } else {
       return seq_v;
     }
 
-    CUTE_RT_TM_GCC_UNREACHABLE;
+    CUTE_GCC_UNREACHABLE;
   });
 
   auto new_order = unflatten(ref_order, order);
@@ -465,7 +465,7 @@ compact_order(Shape const& shape, Order const& order)
 }
 
 template <class Shape>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 compact_order(Shape const& shape, GenColMajor const& major)
 {
@@ -473,7 +473,7 @@ compact_order(Shape const& shape, GenColMajor const& major)
 }
 
 template <class Shape>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 compact_order(Shape const& shape, GenRowMajor const& major)
 {
@@ -487,12 +487,12 @@ compact_order(Shape const& shape, GenRowMajor const& major)
 namespace detail {
 
 template <class Coord, class Shape, class Order>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 void
 increment(Coord& coord, Shape const& shape, Order const& order)
 {
   ++basis_get(get<0>(order), coord);
-  cute_rt_tm::for_each(make_range<1, tuple_size<Order>::value>{}, [&](auto i){
+  cute::for_each(make_range<1, tuple_size<Order>::value>{}, [&](auto i){
     if (basis_get(get<i-1>(order), coord) == basis_get(get<i-1>(order), shape)) {
       basis_get(get<i-1>(order), coord) = 0;
       ++basis_get(get<i>(order), coord);
@@ -513,7 +513,7 @@ increment(Coord& coord, Shape const& shape, Order const& order)
  * \endcode
  */
 template <class Coord, class Shape>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 void
 increment(Coord& coord, Shape const& shape)
 {
@@ -532,19 +532,19 @@ struct ForwardCoordIterator
 {
   static_assert(is_congruent<Coord, Shape>::value);
 
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   Coord const& operator*() const { return coord; }
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   ForwardCoordIterator& operator++() { detail::increment(coord, shape, Order{}); return *this; }
   // Sentinel for the end of the implied range
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   bool operator==(ForwardCoordIteratorSentinel const&) const { return basis_get(back(Order{}), coord) == basis_get(back(Order{}), shape); }
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   bool operator!=(ForwardCoordIteratorSentinel const&) const { return basis_get(back(Order{}), coord) != basis_get(back(Order{}), shape); }
   // NOTE: These are expensive, avoid use
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   bool operator==(ForwardCoordIterator const& other) const { return coord == other.coord; }
-  CUTE_RT_TM_HOST_DEVICE constexpr
+  CUTE_HOST_DEVICE constexpr
   bool operator!=(ForwardCoordIterator const& other) const { return coord != other.coord; }
 
   Coord coord;
@@ -553,7 +553,7 @@ struct ForwardCoordIterator
 
 // A forward iterator for a coordinate that starts from a provided coordinate and increments in a prescribed order
 template <class Order, class Shape, class Coord>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 make_coord_iterator(Coord const& coord, Shape const& shape)
 {
@@ -568,7 +568,7 @@ make_coord_iterator(Coord const& coord, Shape const& shape)
 
 // A forward iterator for a coordinate that starts from a provided coordinate and increments colex
 template <class Shape, class Coord>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 make_coord_iterator(Coord const& coord, Shape const& shape)
 {
@@ -579,7 +579,7 @@ make_coord_iterator(Coord const& coord, Shape const& shape)
 
 // A forward iterator for a coordinate that starts from zero and increments in a prescribed order
 template <class Order, class Shape>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 make_coord_iterator(Shape const& shape)
 {
@@ -588,11 +588,11 @@ make_coord_iterator(Shape const& shape)
 
 // A forward iterator for a coordinate that starts from zero and increments colex
 template <class Shape>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 auto
 make_coord_iterator(Shape const& shape)
 {
   return make_coord_iterator(repeat_like(shape, int(0)), shape);
 }
 
-} // end namespace cute_rt_tm
+} // end namespace cute

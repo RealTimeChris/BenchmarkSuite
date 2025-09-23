@@ -30,26 +30,26 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute_rt_tm/config.hpp>    // CUTE_RT_TM_HOST_DEVICE
+#include <cute/config.hpp>    // CUTE_HOST_DEVICE
 
-#include <nihilus_gemm/complex.h>  // nihilus_gemm::complexm, nihilus_gemm::real, nihilus_gemm::imag, nihilus_gemm::is_complex
+#include <cutlass/complex.h>  // cutlass::complexm, cutlass::real, cutlass::imag, cutlass::is_complex
 
-namespace cute_rt_tm
+namespace cute
 {
 
-using nihilus_gemm::complex;
-using nihilus_gemm::is_complex;
-using nihilus_gemm::RealType;
-using nihilus_gemm::real;
-using nihilus_gemm::imag;
-using nihilus_gemm::conj;
+using cutlass::complex;
+using cutlass::is_complex;
+using cutlass::RealType;
+using cutlass::real;
+using cutlass::imag;
+using cutlass::conj;
 
 template <class T>
 static constexpr auto is_complex_v = is_complex<T>::value;
 
 /// Fused multiply-add for complex numbers
 template <class D, class A, class B, class C>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 void
 fma(complex<D>      & d,
     complex<A> const& a,
@@ -64,7 +64,7 @@ fma(complex<D>      & d,
 
 /// Fused multiply-add for triplets
 template <class A, class B, class C>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 void
 fma(complex<A> const& a,
     complex<B> const& b,
@@ -73,4 +73,4 @@ fma(complex<A> const& a,
   return fma(c, a, b, c);
 }
 
-} // end namespace cute_rt_tm
+} // end namespace cute

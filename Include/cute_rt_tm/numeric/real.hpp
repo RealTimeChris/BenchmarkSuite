@@ -30,14 +30,14 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute_rt_tm/config.hpp>
+#include <cute/config.hpp>
 
-namespace cute_rt_tm
+namespace cute
 {
 
 /// Generic add
 template <class C, class A, class B>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 void
 add(C& c, A const& a, B const& b)
 {
@@ -46,7 +46,7 @@ add(C& c, A const& a, B const& b)
 
 /// Generic multiply
 template <class C, class A, class B>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 void
 mul(C& c, A const& a, B const& b)
 {
@@ -55,7 +55,7 @@ mul(C& c, A const& a, B const& b)
 
 /// Generic fused multiply-add
 template <class D, class A, class B, class C>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 void
 fma(D& d, A const& a, B const& b, C const& c)
 {
@@ -64,11 +64,11 @@ fma(D& d, A const& a, B const& b, C const& c)
 
 /// Fused multiply-add for triplets
 template <class A, class B, class C>
-CUTE_RT_TM_HOST_DEVICE constexpr
+CUTE_HOST_DEVICE constexpr
 void
 fma(A const& a, B const& b, C& c)
 {
   return fma(c, a, b, c);
 }
 
-} // end namespace cute_rt_tm
+} // end namespace cute
