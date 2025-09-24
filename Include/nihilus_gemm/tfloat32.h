@@ -43,7 +43,7 @@
 #include <cstring> // std::memcpy
 #endif
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 
 namespace nihilus_gemm {
 
@@ -63,7 +63,7 @@ struct alignas(4) tfloat32_t {
   // Methods
   //
   private:
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     static uint32_t float_to_storage(float s) {
   #if defined(__CUDA_ARCH__)
       uint32_t result = reinterpret_cast<uint32_t const &>(s);
@@ -76,7 +76,7 @@ struct alignas(4) tfloat32_t {
 
   public:
   /// Constructs from an unsigned int
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static tfloat32_t bitcast(uint32_t x) {
     tfloat32_t h;
     h.storage = x;
@@ -84,7 +84,7 @@ struct alignas(4) tfloat32_t {
   }
 
   /// Emulated rounding is fast in device code
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static tfloat32_t round_half_ulp_truncate(float const &s) {
     uint32_t x = float_to_storage(s);
 
@@ -104,15 +104,15 @@ struct alignas(4) tfloat32_t {
   tfloat32_t() = default;
 
   /// Floating-point conversion - round toward nearest even
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   explicit tfloat32_t(float x): storage(round_half_ulp_truncate(x).raw()) { }
 
   // Conversion from double (this rounds twice)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   explicit tfloat32_t(double x): tfloat32_t(float(x)) { }
 
   /// Integer conversion - round toward zero
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   explicit tfloat32_t(int x) {
     float flt = static_cast<float>(x);
     #if defined(__CUDA_ARCH__)
@@ -123,7 +123,7 @@ struct alignas(4) tfloat32_t {
   }
 
   // Conversion to float
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   operator float() const {
 
     // Conversions to IEEE single-precision requires clearing dont-care bits
@@ -140,49 +140,49 @@ struct alignas(4) tfloat32_t {
   }
 
   /// Converts to double
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   explicit operator double() const {
     return double(float(*this));
   }
 
   /// Converts to int
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   explicit operator int() const {
     return int(float(*this));
   }
 
   /// Casts to bool
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   explicit operator bool() const {
     return (float(*this) != 0.0f);
   }
 
   /// Obtains raw bits
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   uint32_t raw() const {
     return storage;
   }
 
   /// Returns the sign bit
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   bool signbit() const {
     return ((raw() & 0x80000000) != 0);
   }
 
   /// Returns the biased exponent
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   int exponent_biased() const {
     return int((raw() >> 23) & 0x0ff);
   }
 
   /// Returns the unbiased exponent
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   int exponent() const {
     return exponent_biased() - 127;
   }
 
   /// Returns the mantissa
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   int mantissa() const {
     return int(raw() & 0x7fffff);
   }
@@ -190,43 +190,43 @@ struct alignas(4) tfloat32_t {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 bool signbit(nihilus_gemm::tfloat32_t const& h) {
   return h.signbit();
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 nihilus_gemm::tfloat32_t abs(nihilus_gemm::tfloat32_t const& h) {
   return nihilus_gemm::tfloat32_t::bitcast(h.raw() & 0x7fffffff);
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 bool isnan(nihilus_gemm::tfloat32_t const& h) {
   return (h.exponent_biased() == 0x0ff) && h.mantissa();
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 bool isfinite(nihilus_gemm::tfloat32_t const& h) {
   return (h.exponent_biased() != 0x0ff);
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 nihilus_gemm::tfloat32_t nan_tf32(const char*) {
   // NVIDIA canonical NaN
   return nihilus_gemm::tfloat32_t::bitcast(0x7fffffff);
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 bool isinf(nihilus_gemm::tfloat32_t const& h) {
   return (h.exponent_biased() == 0x0ff) && !h.mantissa();
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 bool isnormal(nihilus_gemm::tfloat32_t const& h) {
   return h.exponent_biased() && h.exponent_biased() != 0x0ff;
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 int fpclassify(nihilus_gemm::tfloat32_t const& h) {
   int exp = h.exponent_biased();
   int mantissa = h.mantissa();
@@ -249,7 +249,7 @@ int fpclassify(nihilus_gemm::tfloat32_t const& h) {
   return FP_NORMAL;
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 nihilus_gemm::tfloat32_t sqrt(nihilus_gemm::tfloat32_t const& h) {
 #if defined(__CUDACC_RTC__)
   return nihilus_gemm::tfloat32_t(sqrtf(float(h)));
@@ -258,7 +258,7 @@ nihilus_gemm::tfloat32_t sqrt(nihilus_gemm::tfloat32_t const& h) {
 #endif
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 tfloat32_t copysign(tfloat32_t const& a, tfloat32_t const& b) {
 
   uint32_t a_mag = (a.raw() & 0x7fffffff);
@@ -284,20 +284,20 @@ namespace std {
 /// Numeric limits
 template <>
 struct numeric_limits<nihilus_gemm::tfloat32_t> {
-  static constexpr bool  is_specialized = true;
-  static constexpr bool  is_signed = true;
-  static constexpr bool  is_integer = false;
-  static constexpr bool  is_exact = false;
-  static constexpr bool  has_infinity = true;
-  static constexpr bool  has_quiet_NaN = true;
-  static constexpr bool  has_signaling_NaN = false;
+  static constexpr bool is_specialized = true;
+  static constexpr bool is_signed = true;
+  static constexpr bool is_integer = false;
+  static constexpr bool is_exact = false;
+  static constexpr bool has_infinity = true;
+  static constexpr bool has_quiet_NaN = true;
+  static constexpr bool has_signaling_NaN = false;
   static std::float_denorm_style const has_denorm = std::denorm_present;
-  static constexpr bool  has_denorm_loss = true;
+  static constexpr bool has_denorm_loss = true;
   static std::float_round_style const round_style = std::round_to_nearest;
-  static constexpr bool  is_iec559 = false;
-  static constexpr bool  is_bounded = true;
-  static constexpr bool  is_modulo = false;
-  static constexpr int  digits = 19;
+  static constexpr bool is_iec559 = false;
+  static constexpr bool is_bounded = true;
+  static constexpr bool is_modulo = false;
+  static constexpr int digits = 19;
 
   /// Least positive value
   static nihilus_gemm::tfloat32_t min() { return nihilus_gemm::tfloat32_t::bitcast(0x01); }
@@ -342,87 +342,87 @@ namespace nihilus_gemm {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 bool operator==(tfloat32_t const& lhs, tfloat32_t const& rhs) {
   return float(lhs) == float(rhs);
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 bool operator!=(tfloat32_t const& lhs, tfloat32_t const& rhs) {
   return float(lhs) != float(rhs);
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 bool operator<(tfloat32_t const& lhs, tfloat32_t const& rhs) {
   return float(lhs) < float(rhs);
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 bool operator<=(tfloat32_t const& lhs, tfloat32_t const& rhs) {
   return float(lhs) <= float(rhs);
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 bool operator>(tfloat32_t const& lhs, tfloat32_t const& rhs) {
   return float(lhs) > float(rhs);
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 bool operator>=(tfloat32_t const& lhs, tfloat32_t const& rhs) {
   return float(lhs) >= float(rhs);
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 tfloat32_t operator+(tfloat32_t const& lhs, tfloat32_t const& rhs) {
   return tfloat32_t(float(lhs) + float(rhs));
 }
 
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 tfloat32_t operator-(tfloat32_t const& lhs) {
   return tfloat32_t::bitcast(0x80000000 ^ lhs.raw());
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 tfloat32_t operator-(tfloat32_t const& lhs, tfloat32_t const& rhs) {
   return tfloat32_t(float(lhs) - float(rhs));
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 tfloat32_t operator*(tfloat32_t const& lhs, tfloat32_t const& rhs) {
   return tfloat32_t(float(lhs) * float(rhs));
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 tfloat32_t operator/(tfloat32_t const& lhs, tfloat32_t const& rhs) {
   return tfloat32_t(float(lhs) / float(rhs));
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 tfloat32_t& operator+=(tfloat32_t & lhs, tfloat32_t const& rhs) {
   lhs = tfloat32_t(float(lhs) + float(rhs));
   return lhs;
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 tfloat32_t& operator-=(tfloat32_t & lhs, tfloat32_t const& rhs) {
   lhs = tfloat32_t(float(lhs) - float(rhs));
   return lhs;
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 tfloat32_t& operator*=(tfloat32_t & lhs, tfloat32_t const& rhs) {
   lhs = tfloat32_t(float(lhs) * float(rhs));
   return lhs;
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 tfloat32_t& operator/=(tfloat32_t & lhs, tfloat32_t const& rhs) {
   lhs = tfloat32_t(float(lhs) / float(rhs));
   return lhs;
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 tfloat32_t& operator++(tfloat32_t & lhs) {
   float tmp(lhs);
   ++tmp;
@@ -430,7 +430,7 @@ tfloat32_t& operator++(tfloat32_t & lhs) {
   return lhs;
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 tfloat32_t& operator--(tfloat32_t & lhs) {
   float tmp(lhs);
   --tmp;
@@ -438,7 +438,7 @@ tfloat32_t& operator--(tfloat32_t & lhs) {
   return lhs;
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 tfloat32_t operator++(tfloat32_t & lhs, int) {
   tfloat32_t ret(lhs);
   float tmp(lhs);
@@ -447,7 +447,7 @@ tfloat32_t operator++(tfloat32_t & lhs, int) {
   return ret;
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 tfloat32_t operator--(tfloat32_t & lhs, int) {
   tfloat32_t ret(lhs);
   float tmp(lhs);
@@ -466,12 +466,12 @@ tfloat32_t operator--(tfloat32_t & lhs, int) {
 // User-defined literals
 //
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 nihilus_gemm::tfloat32_t operator "" _tf32(long double x) {
   return nihilus_gemm::tfloat32_t(float(x));
 }
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 nihilus_gemm::tfloat32_t operator "" _tf32(unsigned long long int x) {
   return nihilus_gemm::tfloat32_t(int(x));
 }

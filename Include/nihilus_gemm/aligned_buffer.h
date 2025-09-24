@@ -35,7 +35,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/array.h"
 
 namespace nihilus_gemm {
@@ -86,38 +86,38 @@ public:
 
 public:
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   pointer data() {
     return reinterpret_cast<pointer>(storage); 
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   const_pointer data() const {
     return reinterpret_cast<pointer>(storage); 
   }
   
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Storage * raw_data() {
     return storage;
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Storage const * raw_data() const {
     return storage;
   }
 
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   constexpr bool empty() const {
     return !kCount;
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   constexpr size_type size() const {
     return kCount;
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   constexpr size_type max_size() const {
     return kCount;
   }

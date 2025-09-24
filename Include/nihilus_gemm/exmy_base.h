@@ -37,11 +37,11 @@
 */
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/numeric_size.h"
 #include "nihilus_gemm/platform/platform.h"
 
-// #define CUTLASS_DEBUG_TRACE_LEVEL 2
+// #define NIHILUS_DEBUG_TRACE_LEVEL 2
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace nihilus_gemm {
@@ -49,7 +49,7 @@ namespace nihilus_gemm {
 namespace detail {
 
 template <class Src, class Dst>
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 Dst copy_bits(Src src)
 {
   Dst dst;
@@ -88,10 +88,10 @@ enum class FpEncoding
 
 //////
 
-#if (CUTLASS_CXX17_OR_LATER)
+#if (NIHILUS_CXX17_OR_LATER)
 template<uint32_t NumExpBits, uint32_t NumMantissaBits>
 constexpr int exponent_bias_cxx17() {
-  if CUTLASS_CONSTEXPR_IF_CXX17 (NumExpBits == 0) {
+  if NIHILUS_CONSTEXPR_IF_CXX17 (NumExpBits == 0) {
     static_assert(NumMantissaBits <= static_cast<uint32_t>(nihilus_gemm::platform::numeric_limits<int32_t>::max()));
     return -1 * static_cast<int>(NumMantissaBits);
   }
@@ -99,14 +99,14 @@ constexpr int exponent_bias_cxx17() {
     return static_cast<int>((1 << (NumExpBits - 1))) - 1;
   }
 
-  CUTLASS_GCC_UNREACHABLE;
+  NIHILUS_GCC_UNREACHABLE;
 }
 #endif
 
 namespace impl {
 template<uint32_t NumExpBitsMinusOne>
 constexpr int shift_num_bits_expression_cxx11() {
-#if (CUTLASS_CXX17_OR_LATER)
+#if (NIHILUS_CXX17_OR_LATER)
   static_assert(NumExpBitsMinusOne <= 31u);
 #endif
   return NumExpBitsMinusOne > 31u ? 31u : NumExpBitsMinusOne;
@@ -122,7 +122,7 @@ constexpr int inner_shift_expression_cxx11() {
 // C++11 equivalent of exponent_bias_cxx17()
 template<uint32_t NumExpBits, uint32_t NumMantissaBits>
 constexpr int exponent_bias_cxx11() {
-#if (CUTLASS_CXX17_OR_LATER)
+#if (NIHILUS_CXX17_OR_LATER)
   return exponent_bias_cxx17<NumExpBits, NumMantissaBits>();
 #else
   return (NumExpBits == 0) ?
@@ -149,16 +149,16 @@ constexpr int maximum_exponent_cxx11() {
     );
 }
 
-#if (CUTLASS_CXX17_OR_LATER)
+#if (NIHILUS_CXX17_OR_LATER)
 template<uint32_t NumExpBits, uint32_t NumMantissaBits, NanInfEncoding NaNEncoding>
 constexpr int maximum_exponent_cxx17() {
   constexpr int exp_bias = exponent_bias_cxx17<NumExpBits, NumMantissaBits>();
-  if CUTLASS_CONSTEXPR_IF_CXX17 (NumExpBits == 0) {
+  if NIHILUS_CONSTEXPR_IF_CXX17 (NumExpBits == 0) {
     // If no exponent bits, return fixed hidden bias
     return 0 - exp_bias;
   }
   else {
-    if CUTLASS_CONSTEXPR_IF_CXX17 (NaNEncoding == NanInfEncoding::IEEE_754) {
+    if NIHILUS_CONSTEXPR_IF_CXX17 (NaNEncoding == NanInfEncoding::IEEE_754) {
       // We have IEEE style NaN and infinity
       // All values when exp_bits = 1...1s are used.
       int max_exp_bits = static_cast<int>((1 << NumExpBits)) - 2;
@@ -170,8 +170,8 @@ constexpr int maximum_exponent_cxx17() {
       // If we have a canonical NaN. Only exp=1..1 and mantissa=1..1
       // value has a special meaning. If we also have at least one mantissa
       // bit, then maximum exponent is 1...1 - exponent_bias
-      if CUTLASS_CONSTEXPR_IF_CXX17 (NaNEncoding == NanInfEncoding::CANONICAL_ONLY) {
-        if CUTLASS_CONSTEXPR_IF_CXX17 (NumMantissaBits > 0) {
+      if NIHILUS_CONSTEXPR_IF_CXX17 (NaNEncoding == NanInfEncoding::CANONICAL_ONLY) {
+        if NIHILUS_CONSTEXPR_IF_CXX17 (NumMantissaBits > 0) {
           int max_exp_bits = static_cast<int>((1 << NumExpBits)) - 1;
           return max_exp_bits - exp_bias;
         }
@@ -186,7 +186,7 @@ constexpr int maximum_exponent_cxx17() {
     }
   }
 
-  CUTLASS_GCC_UNREACHABLE;
+  NIHILUS_GCC_UNREACHABLE;
 }
 #endif
 
@@ -201,18 +201,18 @@ constexpr int minimum_exponent_cxx11() {
     );
 }
 
-#if (CUTLASS_CXX17_OR_LATER)
+#if (NIHILUS_CXX17_OR_LATER)
 template<uint32_t NumExpBits, uint32_t NumMantissaBits>
 constexpr int minimum_exponent_cxx17() {
   constexpr int exp_bias = exponent_bias_cxx17<NumExpBits, NumMantissaBits>();
   constexpr bool has_denorm = (NumMantissaBits > 0);
-  if CUTLASS_CONSTEXPR_IF_CXX17 (NumExpBits == 0) {
+  if NIHILUS_CONSTEXPR_IF_CXX17 (NumExpBits == 0) {
     // If no exponent bits, return fixed hidden bias
     // Note that minimum and maximum exponents are the same.
     return 0 - exp_bias;
   }
 
-  if CUTLASS_CONSTEXPR_IF_CXX17 (has_denorm) {
+  if NIHILUS_CONSTEXPR_IF_CXX17 (has_denorm) {
     // Exp = 0...0s is reserved for denorm values.
     return 1 - exp_bias;
   }
@@ -227,12 +227,12 @@ constexpr Storage max_pos_denormal_value_cxx11() {
     (!(NumMantissaBits > 0) ? Storage(0) : Storage((1ull << NumMantissaBits) - 1));
 }
 
-#if (CUTLASS_CXX17_OR_LATER)
+#if (NIHILUS_CXX17_OR_LATER)
 template<class Storage, uint32_t NumExpBits, uint32_t NumMantissaBits, NanInfEncoding NaNEncoding>
 constexpr Storage max_pos_denormal_value_cxx17() {
   static_assert(NumExpBits > 0 || NumMantissaBits > 0, "Both NumExpBits and NumMantissaBits can't be zero");
   constexpr bool has_denorm = (NumMantissaBits > 0);
-  if CUTLASS_CONSTEXPR_IF_CXX17 (!has_denorm) {
+  if NIHILUS_CONSTEXPR_IF_CXX17 (!has_denorm) {
     // If we don't have denormal values, return all 0s
     return Storage(0);
   }
@@ -241,7 +241,7 @@ constexpr Storage max_pos_denormal_value_cxx17() {
     return Storage((1ull << NumMantissaBits) - 1);
   }
 
-  CUTLASS_GCC_UNREACHABLE;
+  NIHILUS_GCC_UNREACHABLE;
 }
 #endif
 
@@ -251,11 +251,11 @@ constexpr Storage min_pos_denormal_value_cxx11() {
   return (!(NumMantissaBits > 0) ? Storage(0) : Storage(1));
 }
 
-#if (CUTLASS_CXX17_OR_LATER)
+#if (NIHILUS_CXX17_OR_LATER)
 template<class Storage, uint32_t NumExpBits, uint32_t NumMantissaBits, NanInfEncoding NaNEncoding>
 constexpr Storage min_pos_denormal_value_cxx17() {
   constexpr bool has_denorm = (NumMantissaBits > 0);
-  if CUTLASS_CONSTEXPR_IF_CXX17 (!has_denorm) {
+  if NIHILUS_CONSTEXPR_IF_CXX17 (!has_denorm) {
     // If we don't have denormal values, return all 0s
     return Storage(0);
   }
@@ -281,10 +281,10 @@ constexpr Storage max_pos_normal_value_cxx11() {
     );
 }
 
-#if (CUTLASS_CXX17_OR_LATER)
+#if (NIHILUS_CXX17_OR_LATER)
 template<class Storage, uint32_t NumExpBits, uint32_t NumMantissaBits, NanInfEncoding NaNEncoding>
 constexpr Storage max_pos_normal_value_cxx17() {
-  if CUTLASS_CONSTEXPR_IF_CXX17 (NumExpBits == 0) {
+  if NIHILUS_CONSTEXPR_IF_CXX17 (NumExpBits == 0) {
     // if there are no exponent bits, we don't have normal values.
     return Storage(0);
   }
@@ -295,12 +295,12 @@ constexpr Storage max_pos_normal_value_cxx17() {
   // place the exponent
   Storage val = static_cast<Storage>(exp) << NumMantissaBits;
   // If there are no mantissa bits return the exponent
-  if CUTLASS_CONSTEXPR_IF_CXX17 (NumMantissaBits == 0) {
+  if NIHILUS_CONSTEXPR_IF_CXX17 (NumMantissaBits == 0) {
     return val;
   }
   else {
     // If the NaN Inf encoding follows IEEE 754 or there is no (NaN and Inf) then mantissa can be all 1..1s
-    if CUTLASS_CONSTEXPR_IF_CXX17 (NaNEncoding == NanInfEncoding::IEEE_754 ||
+    if NIHILUS_CONSTEXPR_IF_CXX17 (NaNEncoding == NanInfEncoding::IEEE_754 ||
                   NaNEncoding == NanInfEncoding::NONE  ) {
       Storage mantissa = (1ull << NumMantissaBits) - 1;
       val |= mantissa;
@@ -314,7 +314,7 @@ constexpr Storage max_pos_normal_value_cxx17() {
     return val;
   }
 
-  CUTLASS_GCC_UNREACHABLE;
+  NIHILUS_GCC_UNREACHABLE;
 }
 #endif
 
@@ -327,17 +327,17 @@ constexpr Storage min_pos_normal_value_cxx11() {
     );
 }
 
-#if (CUTLASS_CXX17_OR_LATER)
+#if (NIHILUS_CXX17_OR_LATER)
 template<class Storage, uint32_t NumExpBits, uint32_t NumMantissaBits, NanInfEncoding NaNEncoding>
 constexpr Storage min_pos_normal_value_cxx17() {
   constexpr bool has_denorm = (NumMantissaBits > 0);
 
-  if CUTLASS_CONSTEXPR_IF_CXX17 (NumExpBits == 0) {
+  if NIHILUS_CONSTEXPR_IF_CXX17 (NumExpBits == 0) {
     // if there are no exponent bits, we don't have normal values.
     return Storage(0);
   }
   Storage exp = 0;
-  if CUTLASS_CONSTEXPR_IF_CXX17 (has_denorm) {
+  if NIHILUS_CONSTEXPR_IF_CXX17 (has_denorm) {
     exp = 1;
   }
   return static_cast<Storage>(exp << NumMantissaBits);
@@ -353,18 +353,18 @@ constexpr Storage max_value_cxx11() {
     );
 }
 
-#if (CUTLASS_CXX17_OR_LATER)
+#if (NIHILUS_CXX17_OR_LATER)
 template<class Storage, uint32_t NumExpBits, uint32_t NumMantissaBits, NanInfEncoding NaNEncoding>
 constexpr Storage max_value_cxx17() {
   constexpr bool has_normal = (NumExpBits > 0);
-  if CUTLASS_CONSTEXPR_IF_CXX17 (has_normal) {
+  if NIHILUS_CONSTEXPR_IF_CXX17 (has_normal) {
     return max_pos_normal_value_cxx17<Storage, NumExpBits, NumMantissaBits, NaNEncoding>();
   }
   else {
     return max_pos_denormal_value_cxx17<Storage, NumExpBits, NumMantissaBits, NaNEncoding>();
   }
 
-  CUTLASS_GCC_UNREACHABLE;
+  NIHILUS_GCC_UNREACHABLE;
 }
 #endif
 
@@ -377,7 +377,7 @@ constexpr Storage min_value_cxx11() {
     );
 }
 
-#if (CUTLASS_CXX17_OR_LATER)
+#if (NIHILUS_CXX17_OR_LATER)
 template<class Storage, uint32_t NumExpBits, uint32_t NumMantissaBits, NanInfEncoding NaNEncoding, bool IsSigned>
 constexpr Storage min_value_cxx17() {
   if (IsSigned) {
@@ -387,7 +387,7 @@ constexpr Storage min_value_cxx17() {
     return Storage(0);
   }
 
-  CUTLASS_GCC_UNREACHABLE;
+  NIHILUS_GCC_UNREACHABLE;
 }
 #endif
 
@@ -400,7 +400,7 @@ public:
 
   using Storage = StorageType;
 
-#if (CUTLASS_CXX17_OR_LATER)
+#if (NIHILUS_CXX17_OR_LATER)
   static_assert(nihilus_gemm::platform::is_unsigned_v<Storage>, "Use an unsigned integer for StorageType");
 #endif
   static constexpr bool IS_SIGNED = IsSigned;
@@ -445,7 +445,7 @@ public:
   //
   // C++17 Verification
   //
-#if (CUTLASS_CXX17_OR_LATER)
+#if (NIHILUS_CXX17_OR_LATER)
   static_assert(EXP_BIAS == detail::exponent_bias_cxx17<NUM_EXPONENT_BITS, NUM_MANTISSA_BITS>(),                "Error");
   static_assert(MAX_EXP  == detail::maximum_exponent_cxx17<NUM_EXPONENT_BITS, NUM_MANTISSA_BITS, NAN_TYPE>(),   "Error");
   static_assert(MIN_EXP  == detail::minimum_exponent_cxx17<NUM_EXPONENT_BITS, NUM_MANTISSA_BITS>(),             "Error");
@@ -463,9 +463,9 @@ public:
       (Storage(EXPONENT_MASK) << Storage(NUM_MANTISSA_BITS)) : MAX_VALUE;
   static constexpr Storage NAN_MASK = (Storage(EXPONENT_MASK) << Storage(NUM_MANTISSA_BITS)) | MANTISSA_MASK;
 
-  CUTLASS_HOST_DEVICE
-  static CUTLASS_CONSTEXPR_IF_CXX17 bool is_inf(Storage flt) {
-    if CUTLASS_CONSTEXPR_IF_CXX17 (!HAS_INF) {
+  NIHILUS_HOST_DEVICE
+  static NIHILUS_CONSTEXPR_IF_CXX17 bool is_inf(Storage flt) {
+    if NIHILUS_CONSTEXPR_IF_CXX17 (!HAS_INF) {
       return false;
     }
     bool exp_all_ones = (exponent_bits(flt) ^ EXPONENT_MASK) == 0;
@@ -473,9 +473,9 @@ public:
     return exp_all_ones && mantissa_all_zeros;
   }
 
-  CUTLASS_HOST_DEVICE
-  static CUTLASS_CONSTEXPR_IF_CXX17 bool is_canonical_nan(Storage flt) {
-    if CUTLASS_CONSTEXPR_IF_CXX17 (NAN_TYPE == NanInfEncoding::NONE) {
+  NIHILUS_HOST_DEVICE
+  static NIHILUS_CONSTEXPR_IF_CXX17 bool is_canonical_nan(Storage flt) {
+    if NIHILUS_CONSTEXPR_IF_CXX17 (NAN_TYPE == NanInfEncoding::NONE) {
       return false;
     }
     bool exp_all_ones = (exponent_bits(flt) ^ EXPONENT_MASK) == ZERO;
@@ -483,13 +483,13 @@ public:
     return exp_all_ones && mantissa_all_ones;
   }
 
-  CUTLASS_HOST_DEVICE
-  static CUTLASS_CONSTEXPR_IF_CXX17 bool is_nan(Storage flt) {
-    if CUTLASS_CONSTEXPR_IF_CXX17 (NAN_TYPE == NanInfEncoding::NONE) {
+  NIHILUS_HOST_DEVICE
+  static NIHILUS_CONSTEXPR_IF_CXX17 bool is_nan(Storage flt) {
+    if NIHILUS_CONSTEXPR_IF_CXX17 (NAN_TYPE == NanInfEncoding::NONE) {
       return false;
     }
 
-    if CUTLASS_CONSTEXPR_IF_CXX17 (NAN_TYPE == NanInfEncoding::CANONICAL_ONLY) {
+    if NIHILUS_CONSTEXPR_IF_CXX17 (NAN_TYPE == NanInfEncoding::CANONICAL_ONLY) {
       return is_canonical_nan(flt);
     }
 
@@ -498,9 +498,9 @@ public:
     return exp_all_ones && mantissa_has_ones;
   }
 
-  CUTLASS_HOST_DEVICE
-  static CUTLASS_CONSTEXPR_IF_CXX17 bool is_denorm(Storage flt) {
-    if CUTLASS_CONSTEXPR_IF_CXX17 (!HAS_DENORM) {
+  NIHILUS_HOST_DEVICE
+  static NIHILUS_CONSTEXPR_IF_CXX17 bool is_denorm(Storage flt) {
+    if NIHILUS_CONSTEXPR_IF_CXX17 (!HAS_DENORM) {
       return false;
     }
     else if (exponent_bits(flt) == ZERO) {
@@ -511,34 +511,34 @@ public:
   }
 
   template<typename T = Storage>
-  CUTLASS_HOST_DEVICE
-  static CUTLASS_CONSTEXPR_IF_CXX17 T sign_bit(T flt) {
-    if CUTLASS_CONSTEXPR_IF_CXX17 (!IS_SIGNED) {
+  NIHILUS_HOST_DEVICE
+  static NIHILUS_CONSTEXPR_IF_CXX17 T sign_bit(T flt) {
+    if NIHILUS_CONSTEXPR_IF_CXX17 (!IS_SIGNED) {
       return T(0);
     }
     return static_cast<T>(flt >> T(SIGN_SHIFT));
   }
 
   template<typename T = Storage>
-  CUTLASS_HOST_DEVICE
-  static CUTLASS_CONSTEXPR_IF_CXX17 T set_sign_bit(T flt, T sign) {
-    if CUTLASS_CONSTEXPR_IF_CXX17 (!IS_SIGNED) {
+  NIHILUS_HOST_DEVICE
+  static NIHILUS_CONSTEXPR_IF_CXX17 T set_sign_bit(T flt, T sign) {
+    if NIHILUS_CONSTEXPR_IF_CXX17 (!IS_SIGNED) {
       return flt;
     }
     return static_cast<T>(flt | (sign << T(SIGN_SHIFT)));
   }
 
-  CUTLASS_HOST_DEVICE
-  static CUTLASS_CONSTEXPR_IF_CXX17 Storage exponent_bits(Storage flt) {
-    if CUTLASS_CONSTEXPR_IF_CXX17 (NUM_EXPONENT_BITS == ZERO) {
+  NIHILUS_HOST_DEVICE
+  static NIHILUS_CONSTEXPR_IF_CXX17 Storage exponent_bits(Storage flt) {
+    if NIHILUS_CONSTEXPR_IF_CXX17 (NUM_EXPONENT_BITS == ZERO) {
       return ZERO;
     }
     return (flt >> (NUM_MANTISSA_BITS)) & EXPONENT_MASK;
   }
 
-  CUTLASS_HOST_DEVICE
-  static CUTLASS_CONSTEXPR_IF_CXX17 int exponent(Storage flt) {
-    if CUTLASS_CONSTEXPR_IF_CXX17 (NUM_EXPONENT_BITS == ZERO) {
+  NIHILUS_HOST_DEVICE
+  static NIHILUS_CONSTEXPR_IF_CXX17 int exponent(Storage flt) {
+    if NIHILUS_CONSTEXPR_IF_CXX17 (NUM_EXPONENT_BITS == ZERO) {
       return -int(EXP_BIAS);
     }
 
@@ -549,30 +549,30 @@ public:
     return int(flt >> (NUM_MANTISSA_BITS) & EXPONENT_MASK) - int(EXP_BIAS);
   }
 
-  CUTLASS_HOST_DEVICE
-  static CUTLASS_CONSTEXPR_IF_CXX17 Storage mantissa_bits(Storage flt) {
-    if CUTLASS_CONSTEXPR_IF_CXX17 (NUM_MANTISSA_BITS == ZERO) {
+  NIHILUS_HOST_DEVICE
+  static NIHILUS_CONSTEXPR_IF_CXX17 Storage mantissa_bits(Storage flt) {
+    if NIHILUS_CONSTEXPR_IF_CXX17 (NUM_MANTISSA_BITS == ZERO) {
       return ZERO;
     }
     return (flt & MANTISSA_MASK);
   }
 
   template <class FpType>
-  CUTLASS_HOST_DEVICE
-  static CUTLASS_CONSTEXPR_IF_CXX17 Storage to_bits(FpType flt) {
+  NIHILUS_HOST_DEVICE
+  static NIHILUS_CONSTEXPR_IF_CXX17 Storage to_bits(FpType flt) {
     return copy_bits<FpType, Storage>(flt);
   }
 
   template <class DstFpBits>
-  CUTLASS_HOST_DEVICE static typename DstFpBits::Storage convert_to(
+  NIHILUS_HOST_DEVICE static typename DstFpBits::Storage convert_to(
       Storage src_val,
       DstFpBits dst_encoding) {
     return convert(FpBitRepresentation{}, src_val, dst_encoding);
   }
 
   template <class SrcFpBits>
-  CUTLASS_HOST_DEVICE
-  static CUTLASS_CONSTEXPR_IF_CXX17 Storage convert_from(
+  NIHILUS_HOST_DEVICE
+  static NIHILUS_CONSTEXPR_IF_CXX17 Storage convert_from(
       typename SrcFpBits::Storage src_val,
       SrcFpBits src_encoding) {
     return convert(src_encoding, src_val, FpBitRepresentation{});
@@ -581,11 +581,11 @@ public:
 private:
 
   template<typename T = Storage>
-  CUTLASS_HOST_DEVICE
-  static CUTLASS_CONSTEXPR_IF_CXX17 T make_fp_from_bits(T sign, T exp, T mantissa) {
+  NIHILUS_HOST_DEVICE
+  static NIHILUS_CONSTEXPR_IF_CXX17 T make_fp_from_bits(T sign, T exp, T mantissa) {
     T fp_bits = T(ZERO);
-    CUTLASS_UNUSED(sign);
-    if CUTLASS_CONSTEXPR_IF_CXX17 (IS_SIGNED) {
+    NIHILUS_UNUSED(sign);
+    if NIHILUS_CONSTEXPR_IF_CXX17 (IS_SIGNED) {
       fp_bits = sign << SIGN_SHIFT;
     }
     fp_bits |= (exp << T(NUM_MANTISSA_BITS));
@@ -593,15 +593,15 @@ private:
     return fp_bits;
   }
 
-  CUTLASS_HOST_DEVICE
-  static CUTLASS_CONSTEXPR_IF_CXX17 Storage nan_with_sign(Storage sign) {
+  NIHILUS_HOST_DEVICE
+  static NIHILUS_CONSTEXPR_IF_CXX17 Storage nan_with_sign(Storage sign) {
     Storage fp_bits = NAN_MASK;
     return set_sign_bit(fp_bits, sign);
   }
 
-  CUTLASS_HOST_DEVICE
-  static CUTLASS_CONSTEXPR_IF_CXX17 Storage inf_with_sign(Storage sign) {
-    if CUTLASS_CONSTEXPR_IF_CXX17 (HAS_INF) {
+  NIHILUS_HOST_DEVICE
+  static NIHILUS_CONSTEXPR_IF_CXX17 Storage inf_with_sign(Storage sign) {
+    if NIHILUS_CONSTEXPR_IF_CXX17 (HAS_INF) {
       Storage fp_bits = INF_MASK;
       return set_sign_bit(fp_bits, sign);
     }
@@ -610,11 +610,11 @@ private:
       return (sign == ZERO) ? MAX_VALUE : MIN_VALUE;
     }
 
-    CUTLASS_GCC_UNREACHABLE;
+    NIHILUS_GCC_UNREACHABLE;
   }
 
-  CUTLASS_HOST_DEVICE
-  static CUTLASS_CONSTEXPR_IF_CXX17 Storage significand(Storage flt) {
+  NIHILUS_HOST_DEVICE
+  static NIHILUS_CONSTEXPR_IF_CXX17 Storage significand(Storage flt) {
     if (is_denorm(flt)) {
       return mantissa_bits(flt);
     }
@@ -622,13 +622,13 @@ private:
       return (ONE << Storage(NUM_MANTISSA_BITS)) | mantissa_bits(flt);
     }
 
-    CUTLASS_GCC_UNREACHABLE;
+    NIHILUS_GCC_UNREACHABLE;
   }
 
   template<typename T>
-  CUTLASS_HOST_DEVICE
-  static CUTLASS_CONSTEXPR_IF_CXX17 T significand_hidden_bits(T significand) {
-    if CUTLASS_CONSTEXPR_IF_CXX17 (NUM_MANTISSA_BITS == 0) {
+  NIHILUS_HOST_DEVICE
+  static NIHILUS_CONSTEXPR_IF_CXX17 T significand_hidden_bits(T significand) {
+    if NIHILUS_CONSTEXPR_IF_CXX17 (NUM_MANTISSA_BITS == 0) {
       return T(1);
     }
     return ((T(0b11) << T(NUM_MANTISSA_BITS)) & significand) >> T(NUM_MANTISSA_BITS);
@@ -636,8 +636,8 @@ private:
 
   // Current assumption round to nearest even
   template<class T>
-  CUTLASS_HOST_DEVICE
-  static CUTLASS_CONSTEXPR_IF_CXX17 T round_significand(T src, int shift_amount) {
+  NIHILUS_HOST_DEVICE
+  static NIHILUS_CONSTEXPR_IF_CXX17 T round_significand(T src, int shift_amount) {
     T dst_mantissa = src;
     // If the shift amount is positive, we are shifting left
     // Type with less mantissa bits is rounded to a type with more
@@ -676,7 +676,7 @@ private:
   }
 
   template <class SrcFpBits, class DstFpBits>
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static typename DstFpBits::Storage convert(
       SrcFpBits src_encoding,
       typename SrcFpBits::Storage src_val,
@@ -707,7 +707,7 @@ private:
       return dst_encoding.set_sign_bit(DstT(0), DstT(src_sign_bit));
     }
 
-#if (CUTLASS_DEBUG_TRACE_LEVEL > 1)
+#if (NIHILUS_DEBUG_TRACE_LEVEL > 1)
     printf("(1) src_sign: %llu src_exp_bits %llx src_exp %d src_significand %llx\n",
       static_cast<unsigned long long>(src_sign_bit), static_cast<unsigned long long>(src_exp_bits), src_exp, static_cast<unsigned long long>(src_significand));
 #endif
@@ -725,7 +725,7 @@ private:
       src_exp--;
     }
 
-#if (CUTLASS_DEBUG_TRACE_LEVEL > 1)
+#if (NIHILUS_DEBUG_TRACE_LEVEL > 1)
     printf("(2) src_sign: %llu src_exp_bits %llx src_exp %d src_significand %llx\n",
       static_cast<unsigned long long>(src_sign_bit), static_cast<unsigned long long>(src_exp_bits), src_exp, static_cast<unsigned long long>(src_significand));
 #endif
@@ -736,7 +736,7 @@ private:
       return dst_encoding.set_sign_bit(DstFpBits::INF_MASK, DstT(src_sign_bit));
     }
     else if (src_exp <= DstFpBits::MAX_EXP && src_exp >= DstFpBits::MIN_EXP) {
-#if (CUTLASS_DEBUG_TRACE_LEVEL > 1)
+#if (NIHILUS_DEBUG_TRACE_LEVEL > 1)
       printf("(3) Exp match: src_sign: %d src_exp_bits: %x src_exp: %d src_significand: %x\n",
         src_sign_bit, src_exp_bits, src_exp, src_significand);
 #endif
@@ -756,7 +756,7 @@ private:
       // Round to nearest even
       dst_mantissa = round_significand(dst_mantissa, shift_amount);
 
-#if (CUTLASS_DEBUG_TRACE_LEVEL > 1)
+#if (NIHILUS_DEBUG_TRACE_LEVEL > 1)
       printf("(4) after rounding src_sign: %d dst_exponent: %d dst_mantissa: %x\n",
         src_sign_bit, dst_exponent, dst_mantissa);
 #endif
@@ -769,7 +769,7 @@ private:
           dst_exponent++;
         }
 
-#if (CUTLASS_DEBUG_TRACE_LEVEL > 1)
+#if (NIHILUS_DEBUG_TRACE_LEVEL > 1)
         printf("(5) after rounding  max_exp: %d src_sign: %d dst_exponent: %d dst_mantissa: %x\n",
           DstFpBits::MAX_EXP,src_sign_bit, dst_exponent, dst_mantissa);
 #endif
@@ -786,7 +786,7 @@ private:
 
       DstT final_val = static_cast<DstT>(dst_encoding.template make_fp_from_bits<LargeStorage>(src_sign_bit, dst_exponent_bits, dst_mantissa));
 
-#if (CUTLASS_DEBUG_TRACE_LEVEL > 1)
+#if (NIHILUS_DEBUG_TRACE_LEVEL > 1)
       printf("(6) Final Value src_sign: %d dst_exp_bits: %x dst_mantissa: %x\n",
         src_sign_bit, dst_exponent_bits, dst_mantissa);
 #endif
@@ -805,7 +805,7 @@ private:
     }
     else {
       // Result is denormal
-#if (CUTLASS_DEBUG_TRACE_LEVEL > 1)
+#if (NIHILUS_DEBUG_TRACE_LEVEL > 1)
       printf("(7) Denormal case src_sign: %d src_exp: %d src_significand: %x MIN_EXP: %d\n",
         src_sign_bit, src_exp, src_significand, DstFpBits::MIN_EXP);
 #endif
@@ -817,7 +817,7 @@ private:
       dst_mantissa = round_significand(dst_mantissa, shift_amount);
 
       if (dst_encoding.significand_hidden_bits(dst_mantissa) >= LargeStorage(0b1)) {
-        if CUTLASS_CONSTEXPR_IF_CXX17 (DstFpBits::NUM_EXPONENT_BITS == 0) {
+        if NIHILUS_CONSTEXPR_IF_CXX17 (DstFpBits::NUM_EXPONENT_BITS == 0) {
           return dst_encoding.inf_with_sign(DstT(src_sign_bit));
         }
         else {
@@ -827,12 +827,12 @@ private:
           return final_val;
         }
       }
-#if (CUTLASS_DEBUG_TRACE_LEVEL > 1)
+#if (NIHILUS_DEBUG_TRACE_LEVEL > 1)
       printf("(7.1) Denormal case exp_diff: %d shift_amount: %d dst_mantissa %d\n", exp_diff, shift_amount, dst_mantissa);
 #endif
       dst_mantissa &= DstFpBits::MANTISSA_MASK;
 
-#if (CUTLASS_DEBUG_TRACE_LEVEL > 1)
+#if (NIHILUS_DEBUG_TRACE_LEVEL > 1)
       printf("(8) Final Value src_sign: %d src_exp: %d dst_mantissa: %x\n",
         src_sign_bit, src_exp, dst_mantissa);
 #endif
@@ -849,40 +849,40 @@ private:
             friend struct FpBitRepresentation;
 };
 
-#if (CUTLASS_CXX17_OR_LATER)
+#if (NIHILUS_CXX17_OR_LATER)
 
 template<FpEncoding FpExMyCode>
-CUTLASS_CONSTEXPR_IF_CXX17 auto fp_encoding_selector() {
-  if CUTLASS_CONSTEXPR_IF_CXX17      (FpExMyCode == FpEncoding::E11M52) { // double
+NIHILUS_CONSTEXPR_IF_CXX17 auto fp_encoding_selector() {
+  if NIHILUS_CONSTEXPR_IF_CXX17      (FpExMyCode == FpEncoding::E11M52) { // double
     return nihilus_gemm::detail::FpBitRepresentation<uint64_t, 64, 11, 52, nihilus_gemm::detail::NanInfEncoding::IEEE_754>{};
   }
-  else if CUTLASS_CONSTEXPR_IF_CXX17 (FpExMyCode == FpEncoding::E8M23)  { // float
+  else if NIHILUS_CONSTEXPR_IF_CXX17 (FpExMyCode == FpEncoding::E8M23)  { // float
     return nihilus_gemm::detail::FpBitRepresentation<uint32_t, 32, 8, 23, nihilus_gemm::detail::NanInfEncoding::IEEE_754>{};
   }
-  else if CUTLASS_CONSTEXPR_IF_CXX17 (FpExMyCode == FpEncoding::E5M2)   {   // FP8
+  else if NIHILUS_CONSTEXPR_IF_CXX17 (FpExMyCode == FpEncoding::E5M2)   {   // FP8
     return nihilus_gemm::detail::FpBitRepresentation<uint8_t, 8, 5, 2, nihilus_gemm::detail::NanInfEncoding::IEEE_754>{};
   }
-  else if CUTLASS_CONSTEXPR_IF_CXX17 (FpExMyCode == FpEncoding::E4M3)   {   // FP8
+  else if NIHILUS_CONSTEXPR_IF_CXX17 (FpExMyCode == FpEncoding::E4M3)   {   // FP8
     return nihilus_gemm::detail::FpBitRepresentation<uint8_t, 8, 4, 3, nihilus_gemm::detail::NanInfEncoding::CANONICAL_ONLY>{};
   }
   
-  else if CUTLASS_CONSTEXPR_IF_CXX17 (FpExMyCode == FpEncoding::UE4M3)   {   // FP8
+  else if NIHILUS_CONSTEXPR_IF_CXX17 (FpExMyCode == FpEncoding::UE4M3)   {   // FP8
     return nihilus_gemm::detail::FpBitRepresentation<uint8_t, 8, 4, 3, nihilus_gemm::detail::NanInfEncoding::CANONICAL_ONLY, false>{};
   }
   
-  else if CUTLASS_CONSTEXPR_IF_CXX17 (FpExMyCode == FpEncoding::UE8M0)   {   // FP8
+  else if NIHILUS_CONSTEXPR_IF_CXX17 (FpExMyCode == FpEncoding::UE8M0)   {   // FP8
     return nihilus_gemm::detail::FpBitRepresentation<uint8_t, 8, 8, 0, nihilus_gemm::detail::NanInfEncoding::CANONICAL_ONLY, false>{};
   }
-  else if CUTLASS_CONSTEXPR_IF_CXX17 (FpExMyCode == FpEncoding::E3M2)   {   // FP6
+  else if NIHILUS_CONSTEXPR_IF_CXX17 (FpExMyCode == FpEncoding::E3M2)   {   // FP6
     return nihilus_gemm::detail::FpBitRepresentation<uint8_t, 6, 3, 2, nihilus_gemm::detail::NanInfEncoding::NONE>{};
   }
-  else if CUTLASS_CONSTEXPR_IF_CXX17 (FpExMyCode == FpEncoding::E2M3)   {   // FP6
+  else if NIHILUS_CONSTEXPR_IF_CXX17 (FpExMyCode == FpEncoding::E2M3)   {   // FP6
     return nihilus_gemm::detail::FpBitRepresentation<uint8_t, 6, 2, 3, nihilus_gemm::detail::NanInfEncoding::NONE>{};
   }
-  else if CUTLASS_CONSTEXPR_IF_CXX17 (FpExMyCode == FpEncoding::E2M1)   {   // FP4
+  else if NIHILUS_CONSTEXPR_IF_CXX17 (FpExMyCode == FpEncoding::E2M1)   {   // FP4
     return nihilus_gemm::detail::FpBitRepresentation<uint8_t, 4, 2, 1, nihilus_gemm::detail::NanInfEncoding::NONE>{};
   }
-  CUTLASS_GCC_UNREACHABLE;
+  NIHILUS_GCC_UNREACHABLE;
 }
 
 #else
@@ -938,7 +938,7 @@ struct float_exmy_base
 
   static constexpr detail::FpEncoding Encoding = T;
   using BitRepresentation =
-    #if (CUTLASS_CXX17_OR_LATER)
+    #if (NIHILUS_CXX17_OR_LATER)
       decltype(detail::fp_encoding_selector<T>())
     #else
       typename detail::FpEncodingSelector<T>::type
@@ -946,7 +946,7 @@ struct float_exmy_base
       ;
 
   using FP32BitRepresentation =
-    #if (CUTLASS_CXX17_OR_LATER)
+    #if (NIHILUS_CXX17_OR_LATER)
       decltype(nihilus_gemm::detail::fp_encoding_selector<nihilus_gemm::detail::FpEncoding::E8M23>())
     #else
       typename detail::FpEncodingSelector<nihilus_gemm::detail::FpEncoding::E8M23>::type
@@ -965,42 +965,42 @@ struct float_exmy_base
   /// Ctors.
   float_exmy_base() = default;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   float_exmy_base(Storage s) : storage(s) {
   }
 
   /// Is finite implementation
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static bool isfinite(float_exmy_base flt) {
     return !BitRepresentation::is_inf(flt.storage);
   }
 
   /// Is NaN implementation
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static bool isnan(float_exmy_base flt) {
     return BitRepresentation::is_nan(flt.storage);
   }
 
   /// Is infinite implementation
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static bool isinf(float_exmy_base flt) {
     return BitRepresentation::is_inf(flt.storage);
   }
 
   /// Is infinite implementation
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static bool isnormal(float_exmy_base flt) {
     return !BitRepresentation::is_denorm(flt.storage);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static float_exmy_base<T, Derived> bitcast(Storage x) {
     float_exmy_base f;
     f.storage = x;
     return f;
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   float_exmy_base convert_from_float(float const &flt) const {
     FP32BitRepresentation::Storage fp32_bits = FP32BitRepresentation::to_bits(flt);
     float_exmy_base float_exmy;
@@ -1008,7 +1008,7 @@ struct float_exmy_base
     return float_exmy;
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   float convert_to_float(float_exmy_base<T, Derived> const &x) const {
     FP32BitRepresentation::Storage fp32_bits;
     fp32_bits = BitRepresentation::convert_to(x.storage, FP32BitRepresentation{});
@@ -1020,66 +1020,66 @@ struct float_exmy_base
   // specialized type conversions
 
   /// Floating point conversion
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   explicit float_exmy_base<T, Derived>(float x) {
     storage = static_cast<Derived*>(this)->convert_from_float(x).storage;
   }
 
   // Integer conversion
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   explicit float_exmy_base<T, Derived>(int x) {
     storage = static_cast<Derived*>(this)->convert_from_float(float(x)).storage;
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   explicit float_exmy_base<T, Derived>(unsigned x) {
     storage = static_cast<Derived*>(this)->convert_from_float(float(x)).storage;
   }
 
   /// Converts to float
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   operator float() const {
     return static_cast<const Derived*>(this)->convert_to_float(*this);
   }
 
   /// Converts to int
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   explicit operator int() const {
     return int(static_cast<const Derived*>(this)->convert_to_float(*this));
   }
 
   /// Accesses raw internal state
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Storage &raw() {
     return storage;
   }
 
   /// Accesses raw internal state
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Storage raw() const {
     return storage;
   }
 
   /// Returns the sign bit
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   bool signbit() const {
     return bool(BitRepresentation::sign_bit(storage));
   }
 
   /// Returns the biased exponent
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   int exponent_biased() const {
     return int(BitRepresentation::exponent_bits(storage));
   }
 
   /// Returns the unbiased exponent
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   int exponent() const {
     return int(BitRepresentation::exponent(storage));
   }
 
   /// Returns the mantissa
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   int mantissa() const {
     return int(BitRepresentation::mantissa_bits(storage));
   }
@@ -1095,86 +1095,86 @@ struct float_exmy_base
   // in HW (e.g. half_t)
 
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   friend bool operator==(float_exmy_base const &lhs, float_exmy_base const &rhs) {
     return float(lhs) == float(rhs);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   friend bool operator!=(float_exmy_base const &lhs, float_exmy_base const &rhs) {
     return float(lhs) != float(rhs);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   friend bool operator<(float_exmy_base const &lhs, float_exmy_base const &rhs) {
     return float(lhs) < float(rhs);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   friend bool operator<=(float_exmy_base const &lhs, float_exmy_base const &rhs) {
     return float(lhs) <= float(rhs);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   friend bool operator>(float_exmy_base const &lhs, float_exmy_base const &rhs) {
     return float(lhs) > float(rhs);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   friend bool operator>=(float_exmy_base const &lhs, float_exmy_base const &rhs) {
     return float(lhs) >= float(rhs);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   friend float_exmy_base operator+(float_exmy_base const &lhs, float_exmy_base const &rhs) {
     return float_exmy_base(float(lhs) + float(rhs));
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   friend float_exmy_base operator-(float_exmy_base const &lhs) {
     return float_exmy_base(-float(lhs));
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   friend float_exmy_base operator-(float_exmy_base const &lhs, float_exmy_base const &rhs) {
     return float_exmy_base(float(lhs) - float(rhs));
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   friend float_exmy_base operator*(float_exmy_base const &lhs, float_exmy_base const &rhs) {
     return float_exmy_base(float(lhs) * float(rhs));
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   friend float_exmy_base operator/(float_exmy_base const &lhs, float_exmy_base const &rhs) {
     return float_exmy_base(float(lhs) / float(rhs));
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   friend float_exmy_base &operator+=(float_exmy_base &lhs, float_exmy_base const &rhs) {
     lhs = float_exmy_base(float(lhs) + float(rhs));
     return lhs;
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   friend float_exmy_base &operator-=(float_exmy_base &lhs, float_exmy_base const &rhs) {
     lhs = float_exmy_base(float(lhs) - float(rhs));
     return lhs;
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   friend float_exmy_base &operator*=(float_exmy_base &lhs, float_exmy_base const &rhs) {
     lhs = float_exmy_base(float(lhs) * float(rhs));
     return lhs;
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   friend float_exmy_base &operator/=(float_exmy_base &lhs, float_exmy_base const &rhs) {
     lhs = float_exmy_base(float(lhs) / float(rhs));
     return lhs;
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   friend float_exmy_base &operator++(float_exmy_base &lhs) {
     float tmp(lhs);
     ++tmp;
@@ -1182,7 +1182,7 @@ struct float_exmy_base
     return lhs;
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   friend float_exmy_base &operator--(float_exmy_base &lhs) {
     float tmp(lhs);
     --tmp;
@@ -1190,7 +1190,7 @@ struct float_exmy_base
     return lhs;
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   friend float_exmy_base operator++(float_exmy_base &lhs, int) {
     float_exmy_base ret(lhs);
     float tmp(lhs);
@@ -1199,7 +1199,7 @@ struct float_exmy_base
     return ret;
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   friend float_exmy_base operator--(float_exmy_base &lhs, int) {
     float_exmy_base ret(lhs);
     float tmp(lhs);
@@ -1211,7 +1211,7 @@ struct float_exmy_base
 };
 
 template <detail::FpEncoding T, class Derived>
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 nihilus_gemm::float_exmy_base<T, Derived> abs(nihilus_gemm::float_exmy_base<T, Derived> const& h) {
   using BitRepresentation = typename nihilus_gemm::float_exmy_base<T, Derived>::BitRepresentation;
   using Storage = typename nihilus_gemm::float_exmy_base<T, Derived>::Storage;

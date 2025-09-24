@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/epilogue/thread/activation.h"
 #include "nihilus_gemm/epilogue/thread/linear_combination_generic.h"
 

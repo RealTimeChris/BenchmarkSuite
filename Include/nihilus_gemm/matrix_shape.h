@@ -33,7 +33,7 @@
 */
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/coord.h"
 
 namespace nihilus_gemm {
@@ -46,15 +46,15 @@ template <
   int Column_      ///< columns of a matrix
 >
 struct MatrixShape {
-  static constexpr int  kRow = Row_;           ///< rows of a matrix
-  static constexpr int  kColumn = Column_;           ///< columns of a matrix
-  static constexpr int  kCount = Row_ * Column_;  ///< total number of elements in a matrix
+  static constexpr int kRow = Row_;           ///< rows of a matrix
+  static constexpr int kColumn = Column_;           ///< columns of a matrix
+  static constexpr int kCount = Row_ * Column_;  ///< total number of elements in a matrix
 
   //
   // Static member functions
   //
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Coord<2> toCoord() {
     return make_Coord(kRow, kColumn);
   }

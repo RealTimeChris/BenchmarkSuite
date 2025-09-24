@@ -39,7 +39,7 @@
 #pragma once
 
 #include "nihilus_gemm/array.h"
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/epilogue/thread/conversion_op.h"
 #include "nihilus_gemm/epilogue/thread/linear_combination.h"
 #include "nihilus_gemm/epilogue/thread/reduction_op.h"
@@ -95,7 +95,7 @@ class EpilogueDepthwise {
   using ElementOutput = typename OutputTileIterator::Element;
 
   /// Output access size
-  static constexpr int  kElementsPerAccess = OutputTileIterator::kElementsPerAccess;
+  static constexpr int kElementsPerAccess = OutputTileIterator::kElementsPerAccess;
 
   /// Tensor reference to destination tensor
   using TensorRef = typename OutputTileIterator::TensorRef;
@@ -161,11 +161,11 @@ class EpilogueDepthwise {
     //
 
     /// Returns a pointer to the shared memory buffer
-    CUTLASS_DEVICE
+    NIHILUS_DEVICE
     Element *data() { return storage.data(); }
 
     /// Returns a tensor reference to the shared memory buffer
-    CUTLASS_DEVICE
+    NIHILUS_DEVICE
     TensorRef reference() {
       return TensorRef(storage.data(), Layout::packed({StorageShape::kRow, StorageShape::kColumn}));
     }
@@ -187,7 +187,7 @@ class EpilogueDepthwise {
 
  public:
   /// Constructor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   EpilogueDepthwise(SharedStorage &shared_storage,  ///< Shared storage object
                     int thread_idx_,                ///< ID of a thread within the threadblock
                     int warp_idx_,                  ///< ID of warp within threadblock
@@ -200,7 +200,7 @@ class EpilogueDepthwise {
         warp_tile_iterator_(shared_storage.reference(), thread_idx_, lane_idx_) {}
 
   /// Streams the result to global memory
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void operator()(OutputOp const &output_op,                ///< Output operator
                   OutputTileIterator destination_iterator,  ///< Tile iterator for destination
                   AccumulatorTile const &accumulators,  ///< Complete warp-level accumulator tile
@@ -221,7 +221,7 @@ class EpilogueDepthwise {
 
  private:
   /// Streams the result to global memory
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void compute_source_needed_(
       OutputOp const &output_op,                ///< Output operator
       OutputTileIterator destination_iterator,  ///< Tile iterator for destination
@@ -253,7 +253,7 @@ class EpilogueDepthwise {
   }
 
   /// Streams the result to global memory
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void compute_source_not_needed_(
       OutputOp const &output_op,                ///< Output operator
       OutputTileIterator destination_iterator,  ///< Tile iterator for destination
@@ -278,7 +278,7 @@ class EpilogueDepthwise {
   }
 
   /// Helper to invoke the output functor over each vector of output
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void apply_output_operator_(
     typename OutputTileIterator::Fragment &output_fragment,
     OutputOp const &output_op,                    ///< Output operator
@@ -297,7 +297,7 @@ class EpilogueDepthwise {
     int const kOutputOpIterations = 
       OutputTileIterator::Fragment::kElements / OutputTileIterator::kElementsPerAccess;
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < kOutputOpIterations; ++i) {
       // Call the output operator
       output_frag_ptr[i] = output_op(compute_frag_ptr[i], source_frag_ptr[i]);
@@ -305,7 +305,7 @@ class EpilogueDepthwise {
   }
 
   /// Helper to invoke the output functor over each vector of output
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void apply_output_operator_source_not_needed_(
       typename OutputTileIterator::Fragment &output_fragment,
       OutputOp const &output_op,  ///< Output operator
@@ -318,7 +318,7 @@ class EpilogueDepthwise {
     int const kOutputOpIterations =
         OutputTileIterator::Fragment::kElements / OutputTileIterator::kElementsPerAccess;
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < kOutputOpIterations; ++i) {
       // Call the output operator
       output_frag_ptr[i] = output_op(compute_frag_ptr[i]);

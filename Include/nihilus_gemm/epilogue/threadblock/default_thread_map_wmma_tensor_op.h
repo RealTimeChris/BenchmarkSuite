@@ -61,9 +61,9 @@ struct DefaultThreadMapWmmaTensorOp {
   using ThreadblockShape = ThreadblockShape_;
   using WarpShape = WarpShape_;
   using InstructionShape = InstructionShape_;
-  static constexpr int  kPartitionsK = PartitionsK;
+  static constexpr int kPartitionsK = PartitionsK;
   using Element = Element_;
-  static constexpr int  kElementsPerAccess = ElementsPerAccess;
+  static constexpr int kElementsPerAccess = ElementsPerAccess;
 
   //
   // Definitions
@@ -72,8 +72,8 @@ struct DefaultThreadMapWmmaTensorOp {
   struct Detail {
 
     /// Wmma Tensor Operations fundamentally perform operations on InstructionShape::kM rows
-    static constexpr int  kTensorOpRows = InstructionShape::kM;
-    static constexpr int  kWarpSize = 32;
+    static constexpr int kTensorOpRows = InstructionShape::kM;
+    static constexpr int kWarpSize = 32;
 
     static_assert(
       !(ThreadblockShape::kM % WarpShape::kM) &&
@@ -87,7 +87,7 @@ struct DefaultThreadMapWmmaTensorOp {
     >;
 
     /// Number of participating threads
-    static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
+    static constexpr int kThreads = WarpCount::kCount * kWarpSize;
   };
 
   //

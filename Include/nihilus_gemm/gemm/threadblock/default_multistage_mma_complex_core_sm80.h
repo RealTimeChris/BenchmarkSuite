@@ -40,7 +40,7 @@
 #pragma once
 
 #include "nihilus_gemm/array.h"
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 
 #include "nihilus_gemm/layout/tensor_op_multiplicand_sm75.h"
 #include "nihilus_gemm/layout/tensor_op_multiplicand_sm80.h"
@@ -117,9 +117,9 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::RowMajor;
   using ElementC = complex<double>;
   using LayoutC = LayoutC_;
-  static constexpr int  kStages = Stages;
-  static constexpr ComplexTransform  kTransformA = TransformA;
-  static constexpr ComplexTransform  kTransformB = TransformB;
+  static constexpr int kStages = Stages;
+  static constexpr ComplexTransform kTransformA = TransformA;
+  static constexpr ComplexTransform kTransformB = TransformB;
   using Operator = Operator_;
   static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
   static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
@@ -138,13 +138,13 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped 128
-  static constexpr int  kAccessSizeInBits = 128;
+  static constexpr int kAccessSizeInBits = 128;
 
   //
   // Shared memory layouts
@@ -248,10 +248,10 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::ColumnMajor;
   using ElementC = complex<double>;
   using LayoutC = LayoutC_;
-  static constexpr int  kStages = Stages;
+  static constexpr int kStages = Stages;
   using Operator = Operator_;
-  static constexpr ComplexTransform  kTransformA = TransformA;
-  static constexpr ComplexTransform  kTransformB = TransformB;
+  static constexpr ComplexTransform kTransformA = TransformA;
+  static constexpr ComplexTransform kTransformB = TransformB;
   static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
   static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
 
@@ -269,13 +269,13 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped 128
-  static constexpr int  kAccessSizeInBits = 128;
+  static constexpr int kAccessSizeInBits = 128;
 
   //
   // Shared memory layouts
@@ -379,9 +379,9 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::ColumnMajor;
   using ElementC = complex<double>;
   using LayoutC = LayoutC_;
-  static constexpr int  kStages = Stages;
-  static constexpr ComplexTransform  kTransformA = TransformA;
-  static constexpr ComplexTransform  kTransformB = TransformB;
+  static constexpr int kStages = Stages;
+  static constexpr ComplexTransform kTransformA = TransformA;
+  static constexpr ComplexTransform kTransformB = TransformB;
   using Operator = Operator_;
   static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
   static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
@@ -401,13 +401,13 @@ struct DefaultMultistageMmaComplexCore<
 
 
   /// Number of threads per warp
-  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped 128
-  static constexpr int  kAccessSizeInBits = 128;
+  static constexpr int kAccessSizeInBits = 128;
 
 
   //
@@ -511,9 +511,9 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::RowMajor;
   using ElementC = complex<double>;
   using LayoutC = LayoutC_;
-  static constexpr int  kStages = Stages;
-  static constexpr ComplexTransform  kTransformA = TransformA;
-  static constexpr ComplexTransform  kTransformB = TransformB;
+  static constexpr int kStages = Stages;
+  static constexpr ComplexTransform kTransformA = TransformA;
+  static constexpr ComplexTransform kTransformB = TransformB;
   using Operator = Operator_;
   static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
   static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
@@ -533,13 +533,13 @@ struct DefaultMultistageMmaComplexCore<
 
 
   /// Number of threads per warp
-  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped 128
-  static constexpr int  kAccessSizeInBits = 128;
+  static constexpr int kAccessSizeInBits = 128;
 
 
   //
@@ -643,9 +643,9 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::ColumnMajor;
   using ElementC = complex<float>;
   using LayoutC = LayoutC_;
-  static constexpr int  kStages = Stages;
-  static constexpr ComplexTransform  kTransformA = TransformA;
-  static constexpr ComplexTransform  kTransformB = TransformB;
+  static constexpr int kStages = Stages;
+  static constexpr ComplexTransform kTransformA = TransformA;
+  static constexpr ComplexTransform kTransformB = TransformB;
   using Operator = Operator_;
   static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
   static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
@@ -664,13 +664,13 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped
-  static constexpr int  kAccessSizeInBits = 64;
+  static constexpr int kAccessSizeInBits = 64;
 
   //
   // Shared memory layouts
@@ -773,9 +773,9 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::RowMajor;
   using ElementC = complex<float>;
   using LayoutC = LayoutC_;
-  static constexpr int  kStages = Stages;
-  static constexpr ComplexTransform  kTransformA = TransformA;
-  static constexpr ComplexTransform  kTransformB = TransformB;
+  static constexpr int kStages = Stages;
+  static constexpr ComplexTransform kTransformA = TransformA;
+  static constexpr ComplexTransform kTransformB = TransformB;
   using Operator = Operator_;
   static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
   static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
@@ -794,13 +794,13 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped
-  static constexpr int  kAccessSizeInBits = 64;
+  static constexpr int kAccessSizeInBits = 64;
 
   //
   // Shared memory layouts
@@ -904,9 +904,9 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::ColumnMajor;
   using ElementC = complex<float>;
   using LayoutC = LayoutC_;
-  static constexpr int  kStages = Stages;
-  static constexpr ComplexTransform  kTransformA = TransformA;
-  static constexpr ComplexTransform  kTransformB = TransformB;
+  static constexpr int kStages = Stages;
+  static constexpr ComplexTransform kTransformA = TransformA;
+  static constexpr ComplexTransform kTransformB = TransformB;
   using Operator = Operator_;
   static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
   static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
@@ -925,13 +925,13 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped
-  static constexpr int  kAccessSizeInBits = 64;
+  static constexpr int kAccessSizeInBits = 64;
 
   //
   // Shared memory layouts
@@ -1035,9 +1035,9 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::RowMajor;
   using ElementC = complex<float>;
   using LayoutC = LayoutC_;
-  static constexpr int  kStages = Stages;
-  static constexpr ComplexTransform  kTransformA = TransformA;
-  static constexpr ComplexTransform  kTransformB = TransformB;
+  static constexpr int kStages = Stages;
+  static constexpr ComplexTransform kTransformA = TransformA;
+  static constexpr ComplexTransform kTransformB = TransformB;
   using Operator = Operator_;
   static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
   static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
@@ -1056,13 +1056,13 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped
-  static constexpr int  kAccessSizeInBits = 64;
+  static constexpr int kAccessSizeInBits = 64;
 
   //
   // Shared memory layouts
@@ -1168,9 +1168,9 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::ColumnMajor;
   using ElementC = complex<RealC>;
   using LayoutC = LayoutC_;
-  static constexpr int  kStages = Stages;
-  static constexpr ComplexTransform  kTransformA = TransformA;
-  static constexpr ComplexTransform  kTransformB = TransformB;
+  static constexpr int kStages = Stages;
+  static constexpr ComplexTransform kTransformA = TransformA;
+  static constexpr ComplexTransform kTransformB = TransformB;
   using Operator = Operator_;
   static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
   static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
@@ -1189,16 +1189,16 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of access
-  static constexpr int  kAccessSizeInBits = sizeof_bits<ElementA>::value;
+  static constexpr int kAccessSizeInBits = sizeof_bits<ElementA>::value;
 
   /// No vectorized accesses
-  static constexpr int  kElementsPerAccess = 1;
+  static constexpr int kElementsPerAccess = 1;
 
   //
   // Shared memory layouts
@@ -1338,9 +1338,9 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::RowMajor;
   using ElementC = complex<RealC>;
   using LayoutC = LayoutC_;
-  static constexpr int  kStages = Stages;
-  static constexpr ComplexTransform  kTransformA = TransformA;
-  static constexpr ComplexTransform  kTransformB = TransformB;
+  static constexpr int kStages = Stages;
+  static constexpr ComplexTransform kTransformA = TransformA;
+  static constexpr ComplexTransform kTransformB = TransformB;
   using Operator = Operator_;
   static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
   static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
@@ -1359,16 +1359,16 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of access
-  static constexpr int  kAccessSizeInBits = sizeof_bits<ElementA>::value;
+  static constexpr int kAccessSizeInBits = sizeof_bits<ElementA>::value;
 
   /// No vectorized accesses
-  static constexpr int  kElementsPerAccess = 1;
+  static constexpr int kElementsPerAccess = 1;
 
   //
   // Shared memory layouts
@@ -1505,9 +1505,9 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::ColumnMajor;
   using ElementC = complex<RealC>;
   using LayoutC = LayoutC_;
-  static constexpr int  kStages = Stages;
-  static constexpr ComplexTransform  kTransformA = TransformA;
-  static constexpr ComplexTransform  kTransformB = TransformB;
+  static constexpr int kStages = Stages;
+  static constexpr ComplexTransform kTransformA = TransformA;
+  static constexpr ComplexTransform kTransformB = TransformB;
   using Operator = Operator_;
   static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
   static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
@@ -1526,16 +1526,16 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of access
-  static constexpr int  kAccessSizeInBits = sizeof_bits<ElementA>::value;
+  static constexpr int kAccessSizeInBits = sizeof_bits<ElementA>::value;
 
   /// No vectorized accesses
-  static constexpr int  kElementsPerAccess = 1;
+  static constexpr int kElementsPerAccess = 1;
 
   //
   // Shared memory layouts
@@ -1678,9 +1678,9 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::RowMajor;
   using ElementC = complex<RealC>;
   using LayoutC = LayoutC_;
-  static constexpr int  kStages = Stages;
-  static constexpr ComplexTransform  kTransformA = TransformA;
-  static constexpr ComplexTransform  kTransformB = TransformB;
+  static constexpr int kStages = Stages;
+  static constexpr ComplexTransform kTransformA = TransformA;
+  static constexpr ComplexTransform kTransformB = TransformB;
   using Operator = Operator_;
   static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
   static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
@@ -1699,16 +1699,16 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of access
-  static constexpr int  kAccessSizeInBits = sizeof_bits<ElementA>::value;
+  static constexpr int kAccessSizeInBits = sizeof_bits<ElementA>::value;
 
   /// No vectorized accesses
-  static constexpr int  kElementsPerAccess = 1;
+  static constexpr int kElementsPerAccess = 1;
 
   //
   // Shared memory layouts

@@ -37,7 +37,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/fast_math.h"
 
@@ -118,7 +118,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 1>, ElementA_,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   using OperatorClass = arch::OpClassSimt;
-  static constexpr int  PartitionsK = Shape::kK / WarpShape::kK;
+  static constexpr int PartitionsK = Shape::kK / WarpShape::kK;
 
   /// Default Operator
   using Operator = Operator_;
@@ -138,12 +138,12 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 1>, ElementA_,
   );
 
   /// Number of threads per warp
-  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
+  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
 
   /// Number of threads total
-  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
 
-  static constexpr int  kElementsPerAccess = 1;
+  static constexpr int kElementsPerAccess = 1;
 
   //
   // Shared memory layouts
@@ -274,7 +274,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 1>, ElementA_,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   using OperatorClass = arch::OpClassSimt;
-  static constexpr int  PartitionsK = Shape::kK / WarpShape::kK;
+  static constexpr int PartitionsK = Shape::kK / WarpShape::kK;
 
   /// Default Operator
   using Operator = Operator_;
@@ -294,12 +294,12 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 1>, ElementA_,
   );
 
   /// Number of threads per warp
-  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
+  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
 
   /// Number of threads total
-  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
   
-  static constexpr int  kElementsPerAccess = 1;
+  static constexpr int kElementsPerAccess = 1;
 
   //
   // Shared memory layouts
@@ -367,8 +367,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 1>, ElementA_,
   static constexpr int LaneM = nihilus_gemm::const_min(numElementsA, ThreadTileM);
   static constexpr int LaneN = nihilus_gemm::const_min(numElementsB, ThreadTileN);
 
-  static constexpr int  kPaddingM = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementA>::value);
-  static constexpr int  kPaddingN = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementB>::value);
+  static constexpr int kPaddingM = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementA>::value);
+  static constexpr int kPaddingN = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementB>::value);
 
   static_assert(!(kPaddingM % LaneM) && !(kPaddingN % LaneN),
                 "Padding must be divisible by Lane");
@@ -443,7 +443,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 1>, ElementA_,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   using OperatorClass = arch::OpClassSimt;
-  static constexpr int  PartitionsK = Shape::kK / WarpShape::kK;
+  static constexpr int PartitionsK = Shape::kK / WarpShape::kK;
 
   /// Default Operator
   using Operator = Operator_;
@@ -463,12 +463,12 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 1>, ElementA_,
   );
 
   /// Number of threads per warp
-  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
+  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
 
   /// Number of threads total
-  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
 
-  static constexpr int  kElementsPerAccess = 1;
+  static constexpr int kElementsPerAccess = 1;
 
   //
   // Shared memory layouts
@@ -533,7 +533,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 1>, ElementA_,
   static constexpr int LaneM = nihilus_gemm::const_min(numElementsA, ThreadTileM);
   static constexpr int LaneN = nihilus_gemm::const_min(numElementsB, ThreadTileN);
 
-  static constexpr int  kPaddingM = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementA>::value);
+  static constexpr int kPaddingM = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementA>::value);
 
   static_assert(!(kPaddingM % LaneM),
                 "Padding must be divisible by Lane");
@@ -608,7 +608,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 1>, ElementA_,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   using OperatorClass = arch::OpClassSimt;
-  static constexpr int  PartitionsK = Shape::kK / WarpShape::kK;
+  static constexpr int PartitionsK = Shape::kK / WarpShape::kK;
 
   /// Default Operator
   using Operator = Operator_;
@@ -628,12 +628,12 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 1>, ElementA_,
   );
 
   /// Number of threads per warp
-  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
+  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
 
   /// Number of threads total
-  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
 
-  static constexpr int  kElementsPerAccess = 1;
+  static constexpr int kElementsPerAccess = 1;
 
   //
   // Shared memory layouts
@@ -698,7 +698,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 1>, ElementA_,
   static constexpr int LaneM = nihilus_gemm::const_min(numElementsA, ThreadTileM);
   static constexpr int LaneN = nihilus_gemm::const_min(numElementsB, ThreadTileN);
 
-  static constexpr int  kPaddingN = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementB>::value);
+  static constexpr int kPaddingN = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementB>::value);
 
   static_assert(!(kPaddingN % LaneN),
                 "Padding must be divisible by Lane");
@@ -1118,7 +1118,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 4>, int8_t,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   using OperatorClass = arch::OpClassSimt;
-  static constexpr int  PartitionsK = Shape::kK / WarpShape::kK;
+  static constexpr int PartitionsK = Shape::kK / WarpShape::kK;
 
   /// Default Operator
   using Operator = Operator_;
@@ -1138,10 +1138,10 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 4>, int8_t,
   );
 
   /// Number of threads per warp
-  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
+  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
 
   /// Number of threads total
-  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
 
   //
   // Shared memory layouts
@@ -1272,7 +1272,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 4>, int8_t,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   using OperatorClass = arch::OpClassSimt;
-  static constexpr int  PartitionsK = Shape::kK / WarpShape::kK;
+  static constexpr int PartitionsK = Shape::kK / WarpShape::kK;
 
   /// Default Operator
   using Operator = Operator_;
@@ -1292,10 +1292,10 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 4>, int8_t,
   );
 
   /// Number of threads per warp
-  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
+  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
 
   /// Number of threads total
-  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
 
   //
   // Shared memory layouts
@@ -1387,8 +1387,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 4>, int8_t,
     PartitionsK   /// Number of partitions along K dimension
     >;
 
-  static constexpr int  kPaddingM = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementA>::value);
-  static constexpr int  kPaddingN = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementB>::value);
+  static constexpr int kPaddingM = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementA>::value);
+  static constexpr int kPaddingN = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementB>::value);
 
   /// Policy used to define MmaPipelined
   using MmaPolicy = MmaPolicy<
@@ -1435,7 +1435,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 4>, int8_t,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   using OperatorClass = arch::OpClassSimt;
-  static constexpr int  PartitionsK = Shape::kK / WarpShape::kK;
+  static constexpr int PartitionsK = Shape::kK / WarpShape::kK;
 
   /// Default Operator
   using Operator = Operator_;
@@ -1455,10 +1455,10 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 4>, int8_t,
   );
 
   /// Number of threads per warp
-  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
+  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
 
   /// Number of threads total
-  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
 
   //
   // Shared memory layouts
@@ -1546,8 +1546,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 4>, int8_t,
     PartitionsK   /// Number of partitions along K dimension
     >;
 
-  static constexpr int  kPaddingM = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementA>::value);
-  static constexpr int  kPaddingN = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementB>::value);
+  static constexpr int kPaddingM = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementA>::value);
+  static constexpr int kPaddingN = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementB>::value);
 
   /// Policy used to define MmaPipelined
   using MmaPolicy = MmaPolicy<
@@ -1594,7 +1594,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 4>, int8_t,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   using OperatorClass = arch::OpClassSimt;
-  static constexpr int  PartitionsK = Shape::kK / WarpShape::kK;
+  static constexpr int PartitionsK = Shape::kK / WarpShape::kK;
 
   /// Default Operator
   using Operator = Operator_;
@@ -1614,10 +1614,10 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 4>, int8_t,
   );
 
   /// Number of threads per warp
-  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
+  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
 
   /// Number of threads total
-  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
 
   //
   // Shared memory layouts
@@ -1706,8 +1706,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 4>, int8_t,
     PartitionsK   /// Number of partitions along K dimension
     >;
 
-  static constexpr int  kPaddingM = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementA>::value);
-  static constexpr int  kPaddingN = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementB>::value);
+  static constexpr int kPaddingM = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementA>::value);
+  static constexpr int kPaddingN = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementB>::value);
 
   /// Policy used to define MmaPipelined
   using MmaPolicy = MmaPolicy<

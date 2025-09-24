@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 
 #include "nihilus_gemm/aligned_buffer.h"
 #include "nihilus_gemm/array.h"
@@ -53,7 +53,7 @@ namespace kernel {
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename Mma, typename Epilogue, typename ThreadblockSwizzle>
-CUTLASS_GLOBAL void GemmPipelined(
+NIHILUS_GLOBAL void GemmPipelined(
   nihilus_gemm::gemm::GemmCoord problem_size,
   nihilus_gemm::gemm::GemmCoord grid_tiled_shape,
   typename Mma::IteratorA::Params params_A,

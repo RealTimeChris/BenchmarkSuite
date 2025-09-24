@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/functional.h"
@@ -76,14 +76,14 @@ public:
   using ElementC = ElementSource_;
   using ElementD = ElementOutput_;
 
-  static constexpr int  kCount = Count;
-  static constexpr ScaleType::Kind kScale = Scale;
+  static constexpr int kCount = Count;
+  static const ScaleType::Kind kScale = Scale;
   using FragmentOutput = Array<ElementOutput, kCount>;
   using FragmentSource = Array<ElementSource, kCount>;
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
   using FragmentCompute = Array<ElementCompute, kCount>;
 
-  static constexpr FloatRoundStyle  kRound = Round;
+  static constexpr FloatRoundStyle kRound = Round;
 
   /// Host-constructable parameters structure
   struct Params 
@@ -95,7 +95,7 @@ public:
     ElementCompute const* const* alpha_ptr_array; ///< array of pointers to accumulator scalar per group/batch
     ElementCompute const* const* beta_ptr_array;  ///< array of pointers to source scalar per group/batch
 
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params():
       alpha(ElementCompute(1)),
       beta(ElementCompute(0)),
@@ -104,7 +104,7 @@ public:
       alpha_ptr_array(nullptr),
       beta_ptr_array(nullptr) { }
 
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params(
       ElementCompute alpha,
       ElementCompute beta
@@ -113,7 +113,7 @@ public:
       alpha_ptr(nullptr), beta_ptr(nullptr),
       alpha_ptr_array(nullptr), beta_ptr_array(nullptr) { }
 
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params(
       ElementCompute alpha
     ):
@@ -121,7 +121,7 @@ public:
       alpha_ptr(nullptr), beta_ptr(nullptr),
       alpha_ptr_array(nullptr), beta_ptr_array(nullptr) { }
 
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params(
       ElementCompute const *alpha_ptr,
       ElementCompute const *beta_ptr
@@ -130,7 +130,7 @@ public:
       alpha_ptr(alpha_ptr), beta_ptr(beta_ptr),
       alpha_ptr_array(nullptr), beta_ptr_array(nullptr) { }
 
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params(
       ElementCompute const *alpha_ptr
     ):
@@ -138,7 +138,7 @@ public:
       alpha_ptr(alpha_ptr), beta_ptr(nullptr),
       alpha_ptr_array(nullptr), beta_ptr_array(nullptr) { }
 
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params(
       ElementCompute const* const* alpha_ptr_array,
       ElementCompute const* const* beta_ptr_array
@@ -147,7 +147,7 @@ public:
       alpha_ptr(nullptr), beta_ptr(nullptr),
       alpha_ptr_array(alpha_ptr_array), beta_ptr_array(beta_ptr_array) { }
 
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params(
       ElementCompute const* const* alpha_ptr_array
     ):
@@ -168,7 +168,7 @@ private:
 public:
 
   /// Constructs the function object, possibly loading from pointers in host memory
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   explicit LinearCombination(Params const &params, int group_idx) {
     if (params.alpha_ptr_array != nullptr && params.alpha_ptr_array[group_idx] != nullptr) {
       alpha_ = *(params.alpha_ptr_array[group_idx]);
@@ -190,12 +190,12 @@ public:
     }
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   explicit LinearCombination(const Params & params) 
   : LinearCombination(params, /* group_idx */ 0) { }
 
   /// Returns true if source is needed
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   bool is_source_needed() const {
     if (Scale == ScaleType::NoBetaScaling) return true;
 
@@ -207,7 +207,7 @@ public:
   }
 
   /// Functionally required for serial reduction in the epilogue
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void set_k_partition(int k_partition, int k_partition_count) {
     if (k_partition) {
       beta_ = ElementCompute(1);
@@ -215,7 +215,7 @@ public:
   }
 
   /// Computes linear scaling with source: D = alpha * accumulator + beta * source
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   FragmentOutput operator()(
       FragmentAccumulator const &accumulator,
       FragmentSource const &source) const {
@@ -250,7 +250,7 @@ public:
   }
 
   /// Computes linear scaling: D = alpha * accumulator
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   FragmentOutput operator()(
       FragmentAccumulator const &accumulator) const {
 
@@ -275,9 +275,9 @@ public:
   }
 
   //
-  // Specializations for scalar (for use with cute_rt_tm::collective::DefaultEpilogue)
+  // Specializations for scalar (for use with nihilus_cute::collective::DefaultEpilogue)
   //
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   ElementD operator()(ElementAccumulator const accumulator, ElementC const source) const {
     // Convert everything to Compute type, do compute, and then store to output type
     NumericConverter<ElementCompute, ElementAccumulator, Round> accumulator_converter;
@@ -307,7 +307,7 @@ public:
     return destination_converter(intermediate);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   ElementD operator()(ElementAccumulator const accumulator) const {
     // Convert everything to Compute type, do compute, and then store to output type
     NumericConverter<ElementCompute, ElementAccumulator, Round> accumulator_converter;
@@ -356,8 +356,8 @@ public:
   using ElementC = ElementSource_;
   using ElementD = ElementOutput_;
 
-  static constexpr int  kCount = Count;
-  static constexpr ScaleType::Kind kScale = ScaleType::PerChannelScaling;
+  static constexpr int kCount = Count;
+  static const ScaleType::Kind kScale = ScaleType::PerChannelScaling;
   static constexpr bool IsPerChannelScalingSupported = true;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
@@ -365,7 +365,7 @@ public:
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
   using FragmentCompute = Array<ElementCompute, kCount>;
 
-  static constexpr FloatRoundStyle  kRound = Round;
+  static constexpr FloatRoundStyle kRound = Round;
 
   /// Host-constructable parameters structure
   struct Params
@@ -374,26 +374,26 @@ public:
     ElementCompute const *beta_ptr;        ///< pointer to source vector
     ElementCompute beta;                   ///< scales source tensor
 
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params():
       alpha_ptr(nullptr),
       beta_ptr(nullptr),
       beta(ElementCompute(0)) { }
 
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params(
       ElementCompute const *alpha_ptr,
       ElementCompute const *beta_ptr
     ):
       alpha_ptr(alpha_ptr), beta_ptr(beta_ptr), beta(ElementCompute(0)) { }
 
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params(
       ElementCompute const *alpha_ptr
     ):
       alpha_ptr(alpha_ptr), beta_ptr(nullptr), beta(ElementCompute(0)) { }
 
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params(
       ElementCompute const *alpha_ptr,
       ElementCompute beta
@@ -414,7 +414,7 @@ private:
 public:
 
   /// Constructs the function object
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LinearCombination(Params const& params) {
     if (params.beta_ptr) {
       beta_ptr_ = params.beta_ptr;
@@ -425,18 +425,18 @@ public:
   }
 
   /// Returns true if source is needed
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   bool is_source_needed() const {
     return beta_ptr_ != nullptr || beta_ != ElementCompute(0);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   bool is_beta_vector() const {
     return beta_ptr_ != nullptr;
   }
 
   /// Computes linear scaling with source: D = vector_alpha * accumulator + vector_beta * source
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   FragmentOutput operator()(
       FragmentAccumulator const& accumulator,
       FragmentSource const& source,
@@ -466,7 +466,7 @@ public:
   }
 
   /// Computes linear scaling with source: D = vector_alpha * accumulator + scalar_beta(from host) * source 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   FragmentOutput operator()(
       FragmentAccumulator const& accumulator,
       FragmentSource const& source,
@@ -496,7 +496,7 @@ public:
   }
 
   /// Computes linear scaling: D = vector_alpha * accumulator
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   FragmentOutput operator()(
       FragmentAccumulator const& accumulator,
       FragmentCompute const& valpha) const {

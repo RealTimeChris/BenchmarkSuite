@@ -36,7 +36,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/complex.h"
@@ -45,8 +45,7 @@
 #include "nihilus_gemm/functional.h"
 
 #include "nihilus_gemm/arch/memory_sm75.h"
-#include "nihilus_gemm/arch/mma_sm75.h"
-#include "nihilus_gemm/arch/mma_sm80.h"
+
 
 #include "nihilus_gemm/gemm/gemm.h"
 #include "nihilus_gemm/gemm/warp/mma.h"
@@ -111,10 +110,10 @@ struct UnpackComplexConvertAndPackForMmaFastF32 <
   //
   // Type definitions
   //
-  static constexpr Operand  kOperand = Operand::kA;
-  static constexpr ComplexTransform  kTransform = Transform_;
-  static constexpr FloatRoundStyle  kRoundBig = RoundBig_;
-  static constexpr FloatRoundStyle  kRoundSmall = RoundSmall_;
+  static constexpr Operand kOperand = Operand::kA;
+  static constexpr ComplexTransform kTransform = Transform_;
+  static constexpr FloatRoundStyle kRoundBig = RoundBig_;
+  static constexpr FloatRoundStyle kRoundSmall = RoundSmall_;
 
   // Data type of elements in the destination fragment
   using MmaElement = typename DestinationFragment::Element;
@@ -124,20 +123,20 @@ struct UnpackComplexConvertAndPackForMmaFastF32 <
 
   // Operand layout parameters
   using SourceFragmentLayout = layout::ColumnMajor;
-  static constexpr int  kLdm = MmaIterations::kRow * MmaOperandShape::kRow;
+  static constexpr int kLdm = MmaIterations::kRow * MmaOperandShape::kRow;
 
   // BigSmall Fragment holding two TF32 elements (big, small) for every float
   using BigSmallFragment = Array<MmaElement, 2>;
 
   /// Index in fargments for the big and small part
-  static constexpr int  kBigIndex = 0;
-  static constexpr int  kSmallIndex = 1;
+  static constexpr int kBigIndex = 0;
+  static constexpr int kSmallIndex = 1;
 
   /// Ctor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   UnpackComplexConvertAndPackForMmaFastF32() {}
 
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void operator()(DestinationFragment *dest, SourceFragment const &source) {
     
     Converter convert_op;
@@ -146,12 +145,12 @@ struct UnpackComplexConvertAndPackForMmaFastF32 <
     DestinationFragment *dest_big_ = reinterpret_cast<DestinationFragment*>(dest);
     DestinationFragment *dest_small_ = reinterpret_cast<DestinationFragment*>(&dest[MmaIterations::kRow * 2]);
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for(int i=0; i<MmaIterations::kRow; i++) {
       int pos = 0;
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for(int c=0; c<MmaOperandShape::kColumn; c++) {
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for(int r=0; r<MmaOperandShape::kRow; r++) {
           // Logical position of element in source fragment
           int row = r + i * MmaOperandShape::kRow;
@@ -201,10 +200,10 @@ struct UnpackComplexConvertAndPackForMmaFastF32 <
   //
   // Type definitions
   //
-  static constexpr Operand  kOperand = Operand::kB;
-  static constexpr ComplexTransform  kTransform = Transform_;
-  static constexpr FloatRoundStyle  kRoundBig = RoundBig_;
-  static constexpr FloatRoundStyle  kRoundSmall = RoundSmall_;
+  static constexpr Operand kOperand = Operand::kB;
+  static constexpr ComplexTransform kTransform = Transform_;
+  static constexpr FloatRoundStyle kRoundBig = RoundBig_;
+  static constexpr FloatRoundStyle kRoundSmall = RoundSmall_;
 
   // Data type of elements in the destination fragment
   using MmaElement = typename DestinationFragment::Element;
@@ -214,20 +213,20 @@ struct UnpackComplexConvertAndPackForMmaFastF32 <
 
   // Operand layout parameters
   using SourceFragmentLayout = layout::RowMajor;
-  static constexpr int  kLdm = MmaIterations::kColumn * MmaOperandShape::kColumn;
+  static constexpr int kLdm = MmaIterations::kColumn * MmaOperandShape::kColumn;
 
   // BigSmall Fragment holding two TF32 elements (big, small) for every float
   using BigSmallFragment = Array<MmaElement, 2>;
 
   /// Index in fargments for the big and small part
-  static constexpr int  kBigIndex = 0;
-  static constexpr int  kSmallIndex = 1;
+  static constexpr int kBigIndex = 0;
+  static constexpr int kSmallIndex = 1;
 
   /// Ctor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   UnpackComplexConvertAndPackForMmaFastF32() {}
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(DestinationFragment *dest, SourceFragment const &source) {
     
     Converter convert_op;
@@ -236,12 +235,12 @@ struct UnpackComplexConvertAndPackForMmaFastF32 <
     DestinationFragment *dest_big_ = reinterpret_cast<DestinationFragment*>(dest);
     DestinationFragment *dest_small_ = reinterpret_cast<DestinationFragment*>(&dest[MmaIterations::kColumn * 2]);
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for(int i=0; i<MmaIterations::kColumn; i++) {
       int pos = 0;
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for(int c=0; c<MmaOperandShape::kColumn; c++) {
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for(int r=0; r<MmaOperandShape::kRow; r++) {
           // Logical position of element in source fragment
           int row = r;
@@ -385,13 +384,13 @@ public:
   using MathOperator = arch::OpMultiplyAddComplexFastF32;
   
   /// Complex transform on A operand
-  static constexpr ComplexTransform  kTransformA = TransformA;
+  static constexpr ComplexTransform kTransformA = TransformA;
 
   /// Complex transform on B operand
-  static constexpr ComplexTransform  kTransformB = TransformB;
+  static constexpr ComplexTransform kTransformB = TransformB;
 
   /// Number of threads participating in warp-level matrix product
-  static constexpr int  kThreadCount = 32;
+  static constexpr int kThreadCount = 32;
 
 
   /// Tune F32 to TF32 big small conversion for complex<float> operation
@@ -407,8 +406,8 @@ public:
   >;
 
   /// Index in fargments for the big and small part
-  static constexpr int  kBigIndex = 0;
-  static constexpr int  kSmallIndex = 1;
+  static constexpr int kBigIndex = 0;
+  static constexpr int kSmallIndex = 1;
 
 public:
 
@@ -523,11 +522,11 @@ public:
   //
 
   /// Ctor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaComplexTensorOpFastF32() {}
 
   /// Performs a warp-level matrix multiply-accumulate operation
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void operator()(
     FragmentC &D, 
     TransformedFragmentA const &A, 
@@ -555,7 +554,7 @@ public:
   }
 
   /// Performs a warp-level matrix multiply-accumulate operation
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void complex_mma_operator(
     FragmentC &D, 
     AccessTypeFragmentA const &complex_A, 
@@ -568,11 +567,11 @@ public:
     InstMmaOperandB const *operand_B = reinterpret_cast<InstMmaOperandB const *>(&complex_B);
 
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int m = 0; m < MmaIterations::kRow; ++m) {
 
       // mma(accum.real(), a.real(), b.real(), accum.real());
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int n = 0; n < MmaIterations::kColumn; ++n) {
 
         // Real-valued accumulator part
@@ -583,7 +582,7 @@ public:
       }
 
       // mma(accum.imag(), a.real(), b.imag(), accum.imag()); 
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int n = MmaIterations::kColumn - 1; n >= 0; --n) {
 
         // Complex-valued accumulator part
@@ -594,7 +593,7 @@ public:
       }
 
       // mma(accum.real(), a.imag(), -b.imag(), accum.real())
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int n = 0; n < MmaIterations::kColumn; ++n) {
 
         // negate OperandB to accumulate  -(a.imag()*b.imag())
@@ -609,7 +608,7 @@ public:
       }
 
       // mma(accum.imag(), a.imag(), b.real(), accum.imag())
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int n = MmaIterations::kColumn - 1; n >= 0; --n) {
 
         // Complex-valued accumulator part
@@ -622,7 +621,7 @@ public:
   }
 
   /// Transform the mma operands to the required types
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void transform(TransformedFragmentA &dst_A, TransformedFragmentB &dst_B,
                  FragmentA const &A, FragmentB const &B) const {
 

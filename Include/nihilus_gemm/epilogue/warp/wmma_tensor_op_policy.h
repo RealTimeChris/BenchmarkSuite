@@ -40,7 +40,7 @@
 #include "nihilus_gemm/matrix_shape.h"
 #include "nihilus_gemm/layout/matrix.h"
 
-#if defined(CUTLASS_ARCH_WMMA_ENABLED)
+#if defined(NIHILUS_ARCH_WMMA_ENABLED)
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -76,16 +76,16 @@ struct WmmaTensorOpPolicy<WarpShape, OperatorShape, layout::RowMajor> {
   //
   // Hard-coded constants regarding Tensor Operations
   //
-  static constexpr int  kElementsPerAccess = 2;
-  static constexpr int  kRowsPerIteration = OperatorShape::kM;
-  static constexpr int  kWmmaFragmentsPerAccess = 1;
+  static constexpr int kElementsPerAccess = 2;
+  static constexpr int kRowsPerIteration = OperatorShape::kM;
+  static constexpr int kWmmaFragmentsPerAccess = 1;
 
   //
   // Derived quantities
   //
 
   // Number of externally visible iterations
-  static constexpr int  kIterations = OperatorCount::kRow;
+  static constexpr int kIterations = OperatorCount::kRow;
 
 };
 

@@ -33,7 +33,7 @@
       of boolean predicates.
 */
 #pragma once
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #if defined(__CUDACC_RTC__)
 #include CUDA_STD_HEADER(cstdint)
 #else
@@ -151,8 +151,8 @@ struct PredicateVector {
   //
 
   /// Computes the word and bit corresponding to a logical predicate index
-  CUTLASS_HOST_DEVICE void computeStorageOffset(int &word, int &bit, int idx) const {
-    CUTLASS_ASSERT(idx < kPredicates);
+  NIHILUS_HOST_DEVICE void computeStorageOffset(int &word, int &bit, int idx) const {
+    NIHILUS_ASSERT(idx < kPredicates);
 
     int byte = (idx / kPredicatesPerByte);
     int bit_offset = (idx % kPredicatesPerByte);
@@ -164,9 +164,9 @@ struct PredicateVector {
   }
 
   /// Returns word mask.
-  CUTLASS_HOST_DEVICE static constexpr bool computeWordMask() {
+  NIHILUS_HOST_DEVICE static constexpr bool computeWordMask() {
     Storage mask(0);
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (size_t byte = 0; byte < sizeof(Storage); ++byte) {
       mask |= (kByteMask << (byte * 8));
     }
@@ -174,9 +174,9 @@ struct PredicateVector {
   }
 
   /// Returns mask of last word.
-  CUTLASS_HOST_DEVICE static constexpr bool computeLastWordMask() {
+  NIHILUS_HOST_DEVICE static constexpr bool computeLastWordMask() {
     Storage mask(0);
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int byte = 0; byte < kBytes % sizeof(Storage); ++byte) {
       mask |= (kByteMask << (byte * 8));
     }
@@ -184,14 +184,14 @@ struct PredicateVector {
   }
 
   /// Accesses a given word with optional assertions
-  CUTLASS_HOST_DEVICE Storage &storage(int word) {
-    CUTLASS_ASSERT(word < kWordCount);
+  NIHILUS_HOST_DEVICE Storage &storage(int word) {
+    NIHILUS_ASSERT(word < kWordCount);
     return storageData[word];
   }
 
   /// Accesses a given word with optional assertions
-  CUTLASS_HOST_DEVICE Storage const &storage(int word) const {
-    CUTLASS_ASSERT(word < kWordCount);
+  NIHILUS_HOST_DEVICE Storage const &storage(int word) const {
+    NIHILUS_ASSERT(word < kWordCount);
     return storageData[word];
   }
 
@@ -214,43 +214,43 @@ struct PredicateVector {
 
    public:
     /// Copy constructor
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Iterator(Iterator const &it) : vec_(it.vec_), bit_(it.bit_) {}
 
     /// Constructs an iterator from a PredicateVector
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Iterator(PredicateVector &vec, int _start = 0) : vec_(vec), bit_(_start) {}
 
     /// Pre-increment
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Iterator &operator++() {
       ++bit_;
       return *this;
     }
 
     /// Increment
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Iterator &operator+=(int offset) {
       bit_ += offset;
       return *this;
     }
 
     /// Pre-decrement
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Iterator &operator--() {
       --bit_;
       return *this;
     }
 
     /// Decrement
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Iterator &operator-=(int offset) {
       bit_ -= offset;
       return *this;
     }
 
     /// Post-increment
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Iterator operator++(int) {
       Iterator ret(*this);
       ret.bit_++;
@@ -258,7 +258,7 @@ struct PredicateVector {
     }
 
     /// Post-decrement
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Iterator operator--(int) {
       Iterator ret(*this);
       ret.bit_--;
@@ -266,7 +266,7 @@ struct PredicateVector {
     }
 
     /// Iterator advances by some amount
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Iterator operator+(int offset) {
       Iterator ret(*this);
       ret.bit_ += offset;
@@ -274,7 +274,7 @@ struct PredicateVector {
     }
 
     /// Iterator recedes by some amount
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Iterator operator-(int offset) {
       ConstIterator ret(*this);
       ret.bit_ -= offset;
@@ -282,27 +282,27 @@ struct PredicateVector {
     }
 
     /// Returns true if iterators point to the same bit
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     bool operator==(Iterator const &it) const { return bit_ == it.bit_; }
 
     /// Returns false if iterators point to the same bit
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     bool operator!=(Iterator const &it) const { return bit_ != it.bit_; }
 
     /// Gets the bit at the pointed to location
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     bool get() { return vec_.at(bit_); }
 
     /// Gets the bit at the pointed to location
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     bool at() const { return vec_.at(bit_); }
 
     /// Dereferences iterator
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     bool operator*() const { return at(); }
 
     /// Sets the bit at the pointed to location
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     void set(bool value = true) { vec_.set(bit_, value); }
   };
 
@@ -320,43 +320,43 @@ struct PredicateVector {
 
    public:
     /// Copy constructor
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     ConstIterator(ConstIterator const &it) : vec_(it.vec_), bit_(it.bit_) {}
 
     /// Constructs an iterator from a PredicateVector
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     ConstIterator(PredicateVector const &vec, int _start = 0) : vec_(vec), bit_(_start) {}
 
     /// Pre-increment
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     ConstIterator &operator++() {
       ++bit_;
       return *this;
     }
 
     /// Increment
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     ConstIterator &operator+=(int offset) {
       bit_ += offset;
       return *this;
     }
 
     /// Pre-decrement
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     ConstIterator &operator--() {
       --bit_;
       return *this;
     }
 
     /// Decrement
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     ConstIterator &operator-=(int offset) {
       bit_ -= offset;
       return *this;
     }
 
     /// Post-increment
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     ConstIterator operator++(int) {
       ConstIterator ret(*this);
       ret.bit_++;
@@ -364,7 +364,7 @@ struct PredicateVector {
     }
 
     /// Post-decrement
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     ConstIterator operator--(int) {
       ConstIterator ret(*this);
       ret.bit_--;
@@ -372,7 +372,7 @@ struct PredicateVector {
     }
 
     /// Iterator advances by some amount
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     ConstIterator operator+(int offset) {
       ConstIterator ret(*this);
       ret.bit_ += offset;
@@ -380,7 +380,7 @@ struct PredicateVector {
     }
 
     /// Iterator recedes by some amount
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     ConstIterator operator-(int offset) {
       ConstIterator ret(*this);
       ret.bit_ -= offset;
@@ -388,50 +388,50 @@ struct PredicateVector {
     }
 
     /// Returns true if iterators point to the same bit
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     bool operator==(ConstIterator const &it) const { return bit_ == it.bit_; }
 
     /// Returns false if iterators point to the same bit
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     bool operator!=(ConstIterator const &it) const { return bit_ != it.bit_; }
 
     /// Gets the bit at the pointed to location
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     bool get() { return vec_.at(bit_); }
 
     /// Gets the bit at the pointed to location
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     bool at() const { return vec_.at(bit_); }
 
     /// Dereferences iterator
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     bool operator*() const { return at(); }
   };
 
   /// Iterator that always returns true
   struct TrivialIterator {
     /// Constructor
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     TrivialIterator() {}
 
     /// Copy constructor
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     TrivialIterator(Iterator const &it) {}
 
     /// Constructs an iterator from a PredicateVector
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     TrivialIterator(PredicateVector const &_vec) {}
 
     /// Pre-increment
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     TrivialIterator &operator++() { return *this; }
 
     /// Post-increment
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     TrivialIterator operator++(int) { return *this; }
 
     /// Dereferences iterator
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     bool operator*() const { return true; }
   };
 
@@ -441,39 +441,39 @@ struct PredicateVector {
   //
 
   /// Initialize the predicate vector
-  CUTLASS_HOST_DEVICE PredicateVector(bool value = true) { fill(value); }
+  NIHILUS_HOST_DEVICE PredicateVector(bool value = true) { fill(value); }
 
   /// Fills all predicates with a given value
-  CUTLASS_HOST_DEVICE void fill(bool value = true) {
+  NIHILUS_HOST_DEVICE void fill(bool value = true) {
     Storage item = (value ? ~Storage(0) : Storage(0));
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < kWordCount; ++i) {
       storage(i) = item;
     }
   }
 
   /// Clears all predicates
-  CUTLASS_HOST_DEVICE void clear() {
-    CUTLASS_PRAGMA_UNROLL
+  NIHILUS_HOST_DEVICE void clear() {
+    NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < kWordCount; ++i) {
       storage(i) = 0;
     }
   }
 
   /// Sets all predicates to true
-  CUTLASS_HOST_DEVICE void enable() {
-    CUTLASS_PRAGMA_UNROLL
+  NIHILUS_HOST_DEVICE void enable() {
+    NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < kWordCount; ++i) {
       storage(i) = ~Storage(0);
     }
   }
 
   /// Accesses a bit within the predicate vector.
-  CUTLASS_HOST_DEVICE bool operator[](int idx) const { return at(idx); }
+  NIHILUS_HOST_DEVICE bool operator[](int idx) const { return at(idx); }
 
   /// Accesses a bit within the predicate vector.
-  CUTLASS_HOST_DEVICE bool at(int idx) const {
+  NIHILUS_HOST_DEVICE bool at(int idx) const {
     int bit, word;
     computeStorageOffset(word, bit, idx);
 
@@ -481,7 +481,7 @@ struct PredicateVector {
   }
 
   /// Set a bit within the predicate vector.
-  CUTLASS_HOST_DEVICE void set(int idx, bool value = true) {
+  NIHILUS_HOST_DEVICE void set(int idx, bool value = true) {
     int bit, word;
     computeStorageOffset(word, bit, idx);
 
@@ -492,8 +492,8 @@ struct PredicateVector {
   }
 
   /// Computes the intersection of two identical predicate vectors.
-  CUTLASS_HOST_DEVICE PredicateVector &operator&=(PredicateVector const &predicates) {
-    CUTLASS_PRAGMA_UNROLL
+  NIHILUS_HOST_DEVICE PredicateVector &operator&=(PredicateVector const &predicates) {
+    NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < kWordCount; ++i) {
       storage(i) = (storage(i) & predicates.storage(i));
     }
@@ -501,8 +501,8 @@ struct PredicateVector {
   }
 
   /// Computes the union of two identical predicate vectors.
-  CUTLASS_HOST_DEVICE PredicateVector &operator|=(PredicateVector const &predicates) {
-    CUTLASS_PRAGMA_UNROLL
+  NIHILUS_HOST_DEVICE PredicateVector &operator|=(PredicateVector const &predicates) {
+    NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < kWordCount; ++i) {
       storage(i) = (storage(i) | predicates.storage(i));
     }
@@ -510,10 +510,10 @@ struct PredicateVector {
   }
 
   /// Returns true if entire predicate array is zero.
-  CUTLASS_HOST_DEVICE bool is_zero() const {
+  NIHILUS_HOST_DEVICE bool is_zero() const {
    constexpr Storage mask = computeWordMask();
     Storage result = 0;
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int word = 0; word < kWordCount - 1; ++word) {
       result |= (storage(word) & mask);
     }
@@ -524,19 +524,19 @@ struct PredicateVector {
   }
 
   /// Returns an iterator to the start of the bit vector
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   Iterator begin() { return Iterator(*this); }
 
   /// Returns an iterator
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   Iterator end() { return Iterator(*this, kPredicates); }
 
   /// Returns a ConstIterator
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   ConstIterator const_begin() const { return ConstIterator(*this); }
 
   /// Returns a ConstIterator
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   ConstIterator const_end() const { return ConstIterator(*this, kPredicates); }
 };
 

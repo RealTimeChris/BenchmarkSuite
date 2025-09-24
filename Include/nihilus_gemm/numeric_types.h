@@ -30,11 +30,11 @@
  **************************************************************************************************/
 /*! 
     \file
-    \brief Top-level include for all CUTLASS numeric types.
+    \brief Top-level include for all NIHILUS numeric types.
 */
 #pragma once
 
-#include "cute_rt_tm/util/type_traits.hpp"
+#include "nihilus_cute/util/type_traits.hpp"
 
 #include "nihilus_gemm/numeric_size.h"
 #include "nihilus_gemm/integer_subbyte.h"

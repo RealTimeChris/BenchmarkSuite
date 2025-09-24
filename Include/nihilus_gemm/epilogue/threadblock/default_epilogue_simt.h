@@ -38,7 +38,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/array.h"
 
@@ -99,14 +99,14 @@ struct DefaultEpilogueSimt {
   using Shape = Shape_;
   using WarpMmaSimt = WarpMmaSimt_;
   using OutputOp = OutputOp_;
-  static constexpr int  kElementsPerAccess = ElementsPerAccess;
+  static constexpr int kElementsPerAccess = ElementsPerAccess;
   static constexpr int kPartitionsK = Shape::kK / WarpMmaSimt::Shape::kK;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using LayoutC = typename WarpMmaSimt::LayoutC;
   using ElementAccumulator = typename WarpMmaSimt::ElementC;
   static conv::StrideSupport const kStrideSupport = StrideSupport;
-  static constexpr int  kRank = Rank;
+  static constexpr int kRank = Rank;
 
   //
   // Thread map
@@ -121,7 +121,7 @@ struct DefaultEpilogueSimt {
     kElementsPerAccess
   >::Type;
 
-  static constexpr bool  UseCUDAStore = platform::is_same<ElementOutput, double>::value;
+  static constexpr bool UseCUDAStore = platform::is_same<ElementOutput, double>::value;
 
   using PackedOutputTileIterator = nihilus_gemm::epilogue::threadblock::PredicatedTileIterator<
     OutputTileThreadMap,
@@ -197,7 +197,7 @@ struct DefaultEpilogueSimtStridedDgrad {
   using Shape = Shape_;
   using WarpMmaSimt = WarpMmaSimt_;
   using OutputOp = OutputOp_;
-  static constexpr int  kElementsPerAccess = ElementsPerAccess;
+  static constexpr int kElementsPerAccess = ElementsPerAccess;
   static constexpr int kPartitionsK = Shape::kK / WarpMmaSimt::Shape::kK;
 
   using ElementOutput = typename OutputOp::ElementOutput;
@@ -276,7 +276,7 @@ struct DefaultEpilogueSimtAffineRankN {
   using Shape = Shape_;
   using WarpMmaSimt = WarpMmaSimt_;
   using OutputOp = OutputOp_;
-  static constexpr int  kElementsPerAccess = ElementsPerAccess;
+  static constexpr int kElementsPerAccess = ElementsPerAccess;
   static constexpr int kPartitionsK = Shape::kK / WarpMmaSimt::Shape::kK;
 
   using ElementOutput = typename OutputOp::ElementOutput;
@@ -358,7 +358,7 @@ struct DefaultDirectConvEpilogueSimt {
   using OutputOp = OutputOp_;
   using ThreadOutputShape = ThreadOutputShape_;
   using ThreadBlockOutputShape = ThreadBlockOutputShape_;
-  static constexpr int  kElementsPerAccess = ElementsPerAccess_;
+  static constexpr int kElementsPerAccess = ElementsPerAccess_;
 
 
   using ElementOutput = typename OutputOp::ElementOutput;
@@ -371,9 +371,9 @@ struct DefaultDirectConvEpilogueSimt {
     Shape::kN / WarpShape::kN
   >;
 
-  static constexpr int  kWarpSize = nihilus_gemm::gemm::warp::WarpSize<arch::OpClassSimt>::value;
+  static constexpr int kWarpSize = nihilus_gemm::gemm::warp::WarpSize<arch::OpClassSimt>::value;
 
-  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
 
   //
   // Thread map

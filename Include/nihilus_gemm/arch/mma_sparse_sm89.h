@@ -34,7 +34,7 @@
 */
 
 #pragma once
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include CUDA_STD_HEADER(cassert)
 
 #include "mma.h"
@@ -44,12 +44,12 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 #if (__CUDACC_VER_MAJOR__ > 12) || (__CUDACC_VER_MAJOR__ == 12 && __CUDACC_VER_MINOR__ >= 4)
-#  define CUTLASS_ARCH_SPARSE_MMA_F32_SM89_SUPPORTED
+#  define NIHILUS_ARCH_SPARSE_MMA_F32_SM89_SUPPORTED
 #endif
 
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 890)
-#  if defined(CUTLASS_ARCH_SPARSE_MMA_F32_SM89_SUPPORTED)
-#    define CUTLASS_ARCH_SPARSE_MMA_F32_SM89_ENABLED
+#  if defined(NIHILUS_ARCH_SPARSE_MMA_F32_SM89_SUPPORTED)
+#    define NIHILUS_ARCH_SPARSE_MMA_F32_SM89_ENABLED
 #  endif
 #endif
 
@@ -95,16 +95,16 @@ struct SparseMma<
   using FragmentE = uint32_t;
 
   using Operator = Operator_;
-  using ArchTag = arch::Sm89;
+  using ArchTag = arch::Sm120;
 
-  static constexpr int  kSparse = 2;
+  static constexpr int kSparse = 2;
 
-  static constexpr int  kMetaSizeInBits = 2;
+  static constexpr int kMetaSizeInBits = 2;
 
-  static constexpr int  kMaxID2 = 1;
+  static constexpr int kMaxID2 = 1;
 
   /// Computes multiply-add
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -114,7 +114,7 @@ struct SparseMma<
     int const id2
   ) const {
 
-#if defined(CUTLASS_ARCH_SPARSE_MMA_F32_SM89_ENABLED)
+#if defined(NIHILUS_ARCH_SPARSE_MMA_F32_SM89_ENABLED)
 
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -134,10 +134,10 @@ struct SparseMma<
         assert(0);
       }
 #else
-    CUTLASS_UNUSED(a);
-    CUTLASS_UNUSED(b);
-    CUTLASS_UNUSED(c);
-    CUTLASS_UNUSED(d);
+    NIHILUS_UNUSED(a);
+    NIHILUS_UNUSED(b);
+    NIHILUS_UNUSED(c);
+    NIHILUS_UNUSED(d);
     assert(0);
 #endif
   }
@@ -180,16 +180,16 @@ struct SparseMma<
   using FragmentE = uint32_t;
 
   using Operator = Operator_;
-  using ArchTag = arch::Sm89;
+  using ArchTag = arch::Sm120;
 
-  static constexpr int  kSparse = 2;
+  static constexpr int kSparse = 2;
 
-  static constexpr int  kMetaSizeInBits = 2;
+  static constexpr int kMetaSizeInBits = 2;
 
-  static constexpr int  kMaxID2 = 1;
+  static constexpr int kMaxID2 = 1;
 
   /// Computes multiply-add
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -199,7 +199,7 @@ struct SparseMma<
     int const id2
   ) const {
 
-#if defined(CUTLASS_ARCH_SPARSE_MMA_F32_SM89_ENABLED)
+#if defined(NIHILUS_ARCH_SPARSE_MMA_F32_SM89_ENABLED)
 
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -219,10 +219,10 @@ struct SparseMma<
         assert(0);
       }
 #else
-    CUTLASS_UNUSED(a);
-    CUTLASS_UNUSED(b);
-    CUTLASS_UNUSED(c);
-    CUTLASS_UNUSED(d);
+    NIHILUS_UNUSED(a);
+    NIHILUS_UNUSED(b);
+    NIHILUS_UNUSED(c);
+    NIHILUS_UNUSED(d);
     assert(0);
 #endif
   }
@@ -265,16 +265,16 @@ struct SparseMma<
   using FragmentE = uint32_t;
 
   using Operator = Operator_;
-  using ArchTag = arch::Sm89;
+  using ArchTag = arch::Sm120;
 
-  static constexpr int  kSparse = 2;
+  static constexpr int kSparse = 2;
 
-  static constexpr int  kMetaSizeInBits = 2;
+  static constexpr int kMetaSizeInBits = 2;
 
-  static constexpr int  kMaxID2 = 1;
+  static constexpr int kMaxID2 = 1;
 
   /// Computes multiply-add
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -284,7 +284,7 @@ struct SparseMma<
     int const id2
   ) const {
 
-#if defined(CUTLASS_ARCH_SPARSE_MMA_F32_SM89_ENABLED)
+#if defined(NIHILUS_ARCH_SPARSE_MMA_F32_SM89_ENABLED)
 
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -304,10 +304,10 @@ struct SparseMma<
         assert(0);
       }
 #else
-    CUTLASS_UNUSED(a);
-    CUTLASS_UNUSED(b);
-    CUTLASS_UNUSED(c);
-    CUTLASS_UNUSED(d);
+    NIHILUS_UNUSED(a);
+    NIHILUS_UNUSED(b);
+    NIHILUS_UNUSED(c);
+    NIHILUS_UNUSED(d);
     assert(0);
 #endif
   }
@@ -350,16 +350,16 @@ struct SparseMma<
   using FragmentE = uint32_t;
 
   using Operator = Operator_;
-  using ArchTag = arch::Sm89;
+  using ArchTag = arch::Sm120;
 
-  static constexpr int  kSparse = 2;
+  static constexpr int kSparse = 2;
 
-  static constexpr int  kMetaSizeInBits = 2;
+  static constexpr int kMetaSizeInBits = 2;
 
-  static constexpr int  kMaxID2 = 1;
+  static constexpr int kMaxID2 = 1;
 
   /// Computes multiply-add
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -369,7 +369,7 @@ struct SparseMma<
     int const id2
   ) const {
 
-#if defined(CUTLASS_ARCH_SPARSE_MMA_F32_SM89_ENABLED)
+#if defined(NIHILUS_ARCH_SPARSE_MMA_F32_SM89_ENABLED)
 
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -389,10 +389,10 @@ struct SparseMma<
         assert(0);
       }
 #else
-    CUTLASS_UNUSED(a);
-    CUTLASS_UNUSED(b);
-    CUTLASS_UNUSED(c);
-    CUTLASS_UNUSED(d);
+    NIHILUS_UNUSED(a);
+    NIHILUS_UNUSED(b);
+    NIHILUS_UNUSED(c);
+    NIHILUS_UNUSED(d);
     assert(0);
 #endif
   }

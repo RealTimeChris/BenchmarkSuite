@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/numeric_types.h"
@@ -113,7 +113,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static constexpr Operand  kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
     "MmaTensorOpMultiplicandIterator may only be instantiated for A or B operands to warp-level Mma.");
@@ -129,13 +129,13 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static constexpr int  kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int  kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// Number of partitions along K dimension
-  static constexpr int  kPartitionsK = PartitionsK_;
+  static constexpr int kPartitionsK = PartitionsK_;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -159,8 +159,8 @@ class MmaTensorOpMultiplicandTileIterator<
         "Shape of warp-level Mma must be divisible by operator shape.");
 
     // Determine number of elements along outer dimension per individual LDSM op
-    static constexpr int  kLdsmOpOuter = Layout::kElementsPerAccess;
-    static constexpr int  kLdsmOpInner = 8;
+    static constexpr int kLdsmOpOuter = Layout::kElementsPerAccess;
+    static constexpr int kLdsmOpInner = 8;
 
     static_assert(!(Shape::kContiguous % kLdsmOpOuter),
       "Shape of warp-level mma must be divisible by LDSM's fundamental tile size.");
@@ -169,9 +169,9 @@ class MmaTensorOpMultiplicandTileIterator<
       "Shape of warp-level mma must be divisible by LDSM's fundamental tile size.");
 
     /// Shape of one individual LDSM instruction
-    static constexpr int  LdsmShapeStrided =
+    static constexpr int LdsmShapeStrided =
         InstructionShape::kStrided / kLdsmOpInner;
-    static constexpr int  LdsmShapeContiguous = 4 / LdsmShapeStrided;
+    static constexpr int LdsmShapeContiguous = 4 / LdsmShapeStrided;
     using LdsmShape =
         layout::PitchLinearShape<LdsmShapeContiguous, LdsmShapeStrided>;
 
@@ -181,7 +181,7 @@ class MmaTensorOpMultiplicandTileIterator<
         1>;
 
     /// Number of groups for each tile
-    static constexpr int  kGroupsPerTile =
+    static constexpr int kGroupsPerTile =
         Shape::kStrided / InstructionShape::kStrided;
   };
 
@@ -192,7 +192,7 @@ private:
     "Alternative arrangements not supported at present.");
 
   /// Number of internal pointers needed to reference shared memory
-  static constexpr int  kPointerCount =
+  static constexpr int kPointerCount =
       Layout::TileShape::kContiguous / Policy::LdsmShape::kContiguous;
 
   /// Pointer type used for accesses
@@ -225,11 +225,11 @@ private:
 public:
   
   /// Default ctor constructs null iterator
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator(): stride_(0), byte_offset_(0) { }
 
   /// Constructor from TensorRef
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator(
     TensorRef const &ref, 
     int lane_id
@@ -244,7 +244,7 @@ public:
     int lane_in_quad_pair = (lane_id & 7);
     int lane_in_quad_quad = (lane_id & 15);
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < kPointerCount; ++i) {
       int partition_contiguous_idx = -1;
       int access_contiguous_idx = -1;
@@ -297,7 +297,7 @@ public:
   }
 
   /// Adds a pointer offset to internal pointer(s) to advance through memory
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_pointer_offset(LongIndex offset) {
 
     byte_offset_ += offset * sizeof(Element);
@@ -306,14 +306,14 @@ public:
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole tiles
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_tile_offset(TensorCoord const &tile_offset) {
 
     int contiguous_offset = tile_offset.contiguous();
     if (Shape::kContiguous ==
         Layout::PartitionShape::kContiguous * Layout::kElementsPerAccess) {
       if (tile_offset.contiguous() % 2) {
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for (int i = 0; i < kPointerCount / 2; ++i) {
           AccessType const *tmp_pointer = pointer_[i];
           pointer_[i] = pointer_[i + kPointerCount / 2];
@@ -333,7 +333,7 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator & operator++() {
 
     add_tile_offset({0, 1});
@@ -352,7 +352,7 @@ public:
   }
 
   /// Advances the iterator along the opposite of the advance dimension
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator & operator--() {
     byte_offset_ -= stride_ * InstructionShape::kStrided * sizeof(Element) *
                     Layout::kElementsPerAccess;
@@ -361,28 +361,28 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator & operator+=(TensorCoord const &tile_offset) {
     add_tile_offset(tile_offset);
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator & operator-=(TensorCoord const &tile_offset) {
     add_tile_offset(-tile_offset);
     return *this;
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void load(Fragment &frag) const {
 
     load_with_byte_offset(frag, 0);
   }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_byte_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -392,10 +392,10 @@ public:
     Array<unsigned, Policy::LdsmShape::kCount> *fetch_ptr = 
       reinterpret_cast<Array<unsigned, Policy::LdsmShape::kCount> *>(&frag);
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int s = 0; s < Policy::LdsmIterations::kStrided; ++s) {
 
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int c = 0; c < Policy::LdsmIterations::kContiguous; ++c) {
 
         int access_idx = c + s * Policy::LdsmIterations::kContiguous;
@@ -416,7 +416,7 @@ public:
   }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_pointer_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -426,7 +426,7 @@ public:
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -436,7 +436,7 @@ public:
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -448,7 +448,7 @@ public:
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_byte_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -472,7 +472,7 @@ public:
   /// fold constants and achieve more efficient code.
   ///
   /// This is used by some nontrivial permuted layouts.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void set_kgroup_index(int k_group) {
     // no op
   }
@@ -510,7 +510,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static constexpr Operand  kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand == Operand::kB,
                 "MmaTensorOpMultiplicandIterator may only be instantiated for "
@@ -527,13 +527,13 @@ class MmaTensorOpMultiplicandTileIterator<
 
   /// Delta between *MMA operations (in units of *MMA operations, concept:
   /// MatrixShape)
-  static constexpr int  kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int  kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// Number of partitions along K dimension
-  static constexpr int  kPartitionsK = PartitionsK_;
+  static constexpr int kPartitionsK = PartitionsK_;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -559,8 +559,8 @@ class MmaTensorOpMultiplicandTileIterator<
     // Determine number of elements along outer dimension per individual 32bit
     // shared memory load op.  Every one warp of 32bit shared memory load loads
     // 8x4 elements
-    static constexpr int  kLdsOpInner = Layout::TileShape::kStrided;
-    static constexpr int  kLdsOpOuter = kThreads / kLdsOpInner;
+    static constexpr int kLdsOpInner = Layout::TileShape::kStrided;
+    static constexpr int kLdsOpOuter = kThreads / kLdsOpInner;
 
     static_assert(!(Shape::kContiguous % kLdsOpOuter),
                   "Shape of warp-level mma must be divisible by 32bit "
@@ -574,9 +574,9 @@ class MmaTensorOpMultiplicandTileIterator<
     /// 1688  A 2x2
     /// 1688  B 1x2
     /// 16816 B 1x4
-    static constexpr int  LdsShapeContiguous =
+    static constexpr int LdsShapeContiguous =
         InstructionShape::kContiguous / kLdsOpOuter;
-    static constexpr int  LdsShapeStrided = InstructionShape::kStrided / kLdsOpInner;
+    static constexpr int LdsShapeStrided = InstructionShape::kStrided / kLdsOpInner;
     using LdsShape =
         layout::PitchLinearShape<LdsShapeContiguous, LdsShapeStrided>;
 
@@ -585,7 +585,7 @@ class MmaTensorOpMultiplicandTileIterator<
         Shape::kContiguous / LdsShapeContiguous / kLdsOpOuter, 1>;
 
     /// Number of groups for each tile
-    static constexpr int  kGroupsPerTile =
+    static constexpr int kGroupsPerTile =
         Shape::kStrided / InstructionShape::kStrided;
   };
 
@@ -595,12 +595,12 @@ class MmaTensorOpMultiplicandTileIterator<
                 "Alternative arrangements not supported at present.");
 
   /// Number of internal pointers needed to reference shared memory
-  static constexpr int  kPointerCount = Layout::TileShape::kContiguous *
+  static constexpr int kPointerCount = Layout::TileShape::kContiguous *
                                    Layout::kElementsPerAccess /
                                    Policy::kLdsOpOuter;
 
   /// Vectorized access is not used
-  static constexpr int  kElementsPerAccess = 1;
+  static constexpr int kElementsPerAccess = 1;
 
   /// Pointer type used for accesses
   using AccessType = Element;
@@ -629,14 +629,14 @@ class MmaTensorOpMultiplicandTileIterator<
 
  public:
   /// Default ctor constructs null iterator
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator() : stride_(0), byte_offset_(0) {}
 
   /// Constructor from TensorRef
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator(TensorRef const &ref, int lane_id)
       : stride_(ref.stride(0)), byte_offset_(0), k_group_idx_(0) {
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < kPointerCount; ++i) {
       int access_strided = lane_id % Policy::kLdsOpInner;
       int access_contiguous = (lane_id / Policy::kLdsOpInner) +
@@ -648,7 +648,7 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Adds a pointer offset to internal pointer(s) to advance through memory
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_pointer_offset(LongIndex offset) {
     byte_offset_ += offset * sizeof(Element);
 
@@ -657,7 +657,7 @@ class MmaTensorOpMultiplicandTileIterator<
 
   /// Advances an iterator along logical dimensions of matrix in units of whole
   /// tiles
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_tile_offset(
       TensorCoord const &tile_offset) {
     int contiguous_offset = tile_offset.contiguous();
@@ -666,7 +666,7 @@ class MmaTensorOpMultiplicandTileIterator<
       if (tile_offset.contiguous() % 2) {
         // Matrix multiply 1688 pointer_[0] <=> pointer_[4] pointer_[1] <=> pointer_[5]
         //           pointer_[2] <=> pointer_[6] pointer_[3] <=> pointer_[7]
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for (int i = 0; i < kPointerCount / 2; ++i) {
           AccessType const *tmp_pointer = pointer_[i];
           pointer_[i] = pointer_[i + kPointerCount / 2];
@@ -685,7 +685,7 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator &operator++() {
     add_tile_offset({0, 1});
 
@@ -703,7 +703,7 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Advances the iterator along the opposite of the advance dimension
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator &operator--() {
     byte_offset_ -= stride_ * InstructionShape::kStrided * sizeof(Element) *
                     kElementsPerAccess;
@@ -713,7 +713,7 @@ class MmaTensorOpMultiplicandTileIterator<
 
   ///< advances in units of whole tiles along the logical coordinate space of
   ///< the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator &operator+=(
       TensorCoord const &tile_offset) {
     add_tile_offset(tile_offset);
@@ -722,7 +722,7 @@ class MmaTensorOpMultiplicandTileIterator<
 
   ///< advances in units of whole tiles along the logical coordinate space of
   ///< the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator &operator-=(
       TensorCoord const &tile_offset) {
     add_tile_offset(-tile_offset);
@@ -730,11 +730,11 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void load(Fragment &frag) const { load_with_byte_offset(frag, 0); }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_byte_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -742,13 +742,13 @@ class MmaTensorOpMultiplicandTileIterator<
       Index byte_offset) const {
     Element *fetch_ptr = reinterpret_cast<Element *>(&frag);
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int s = 0; s < Policy::LdsIterations::kStrided; ++s) {
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int c = 0; c < Policy::LdsIterations::kContiguous; ++c) {
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for (int ss = 0; ss < Policy::LdsShape::kStrided; ++ss) {
-          CUTLASS_PRAGMA_UNROLL
+          NIHILUS_PRAGMA_UNROLL
           for (int cc = 0; cc < Policy::LdsShape::kContiguous; ++cc) {
             int access_idx =
                 cc + (ss + (c + s * Policy::LdsIterations::kContiguous) *
@@ -777,7 +777,7 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_pointer_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -787,7 +787,7 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -797,7 +797,7 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -809,7 +809,7 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_byte_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -834,7 +834,7 @@ class MmaTensorOpMultiplicandTileIterator<
   /// fold constants and achieve more efficient code.
   ///
   /// This is used by some nontrivial permuted layouts.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void set_kgroup_index(int k_group) {
     // no op
   }
@@ -876,7 +876,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static constexpr Operand  kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
     "MmaTensorOpMultiplicandIterator may only be instantiated for A or B operands to warp-level Mma.");
@@ -885,7 +885,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// Element number when the layout crosses
-  static constexpr int  kCrosswise = 32;
+  static constexpr int kCrosswise = 32;
 
   /// Layout of source tile
   using Layout = nihilus_gemm::layout::TensorOpMultiplicandCongruous<
@@ -895,13 +895,13 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static constexpr int  kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int  kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// Number of partitions along K dimension
-  static constexpr int  kPartitionsK = PartitionsK_;
+  static constexpr int kPartitionsK = PartitionsK_;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -925,8 +925,8 @@ class MmaTensorOpMultiplicandTileIterator<
         "Shape of warp-level Mma must be divisible by operator shape.");
 
     // Determine number of elements along outer dimension per individual LDSM op
-    static constexpr int  kLdsmOpOuter = Layout::kElementsPerAccess;
-    static constexpr int  kLdsmOpInner = 8;
+    static constexpr int kLdsmOpOuter = Layout::kElementsPerAccess;
+    static constexpr int kLdsmOpInner = 8;
 
     static_assert(!(Shape::kContiguous % kLdsmOpOuter),
       "Shape of warp-level mma must be divisible by LDSM's fundamental tile size.");
@@ -935,9 +935,9 @@ class MmaTensorOpMultiplicandTileIterator<
       "Shape of warp-level mma must be divisible by LDSM's fundamental tile size.");
 
     /// Shape of one individual LDSM instruction
-    static constexpr int  LdsmShapeStrided =
+    static constexpr int LdsmShapeStrided =
         InstructionShape::kStrided / kLdsmOpInner;
-    static constexpr int  LdsmShapeContiguous = 4 / LdsmShapeStrided;
+    static constexpr int LdsmShapeContiguous = 4 / LdsmShapeStrided;
     using LdsmShape =
         layout::PitchLinearShape<LdsmShapeContiguous, LdsmShapeStrided>;
 
@@ -947,7 +947,7 @@ class MmaTensorOpMultiplicandTileIterator<
         1>;
 
     /// Number of groups for each tile
-    static constexpr int  kGroupsPerTile =
+    static constexpr int kGroupsPerTile =
         Shape::kStrided / InstructionShape::kStrided;
   };
 
@@ -958,7 +958,7 @@ private:
     "Alternative arrangements not supported at present.");
 
   /// Number of internal pointers needed to reference shared memory
-  static constexpr int  kPointerCount =
+  static constexpr int kPointerCount =
       Layout::TileShape::kContiguous / Policy::LdsmShape::kContiguous / Layout::kFactor;
 
   /// Pointer type used for accesses
@@ -991,11 +991,11 @@ private:
 public:
   
   /// Default ctor constructs null iterator
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator(): stride_(0), byte_offset_(0) { }
 
   /// Constructor from TensorRef
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator(
     TensorRef const &ref, 
     int lane_id
@@ -1010,7 +1010,7 @@ public:
     int lane_in_quad_pair = (lane_id & 7);
     int lane_in_quad_quad = (lane_id & 15);
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < kPointerCount; ++i) {
       int partition_contiguous_idx = -1;
       int access_contiguous_idx = -1;
@@ -1063,7 +1063,7 @@ public:
   }
 
   /// Adds a pointer offset to internal pointer(s) to advance through memory
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_pointer_offset(LongIndex offset) {
 
     byte_offset_ += offset * sizeof(Element);
@@ -1072,14 +1072,14 @@ public:
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole tiles
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_tile_offset(TensorCoord const &tile_offset) {
 
     int contiguous_offset = tile_offset.contiguous();
     if (Shape::kContiguous ==
         Layout::PartitionShape::kContiguous * Layout::kElementsPerAccess) {
       if (tile_offset.contiguous() % 2) {
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for (int i = 0; i < kPointerCount / 2; ++i) {
           AccessType const *tmp_pointer = pointer_[i];
           pointer_[i] = pointer_[i + kPointerCount / 2];
@@ -1099,7 +1099,7 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator & operator++() {
 
     add_tile_offset({0, 1});
@@ -1118,7 +1118,7 @@ public:
   }
 
   /// Advances the iterator along the opposite of the advance dimension
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator & operator--() {
     byte_offset_ -= stride_ * InstructionShape::kStrided * sizeof(Element) *
                     Layout::kElementsPerAccess;
@@ -1127,28 +1127,28 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator & operator+=(TensorCoord const &tile_offset) {
     add_tile_offset(tile_offset);
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator & operator-=(TensorCoord const &tile_offset) {
     add_tile_offset(-tile_offset);
     return *this;
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void load(Fragment &frag) const {
 
     load_with_byte_offset(frag, 0);
   }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_byte_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -1158,10 +1158,10 @@ public:
     Array<unsigned, Policy::LdsmShape::kCount> *fetch_ptr = 
       reinterpret_cast<Array<unsigned, Policy::LdsmShape::kCount> *>(&frag);
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int s = 0; s < Policy::LdsmIterations::kStrided; ++s) {
 
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int c = 0; c < Policy::LdsmIterations::kContiguous; ++c) {
 
         int access_idx = c + s * Policy::LdsmIterations::kContiguous;
@@ -1182,7 +1182,7 @@ public:
   }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_pointer_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -1192,7 +1192,7 @@ public:
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -1202,7 +1202,7 @@ public:
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -1214,7 +1214,7 @@ public:
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_byte_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -1238,7 +1238,7 @@ public:
   /// fold constants and achieve more efficient code.
   ///
   /// This is used by some nontrivial permuted layouts.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void set_kgroup_index(int k_group) {
     // no op
   }
@@ -1280,7 +1280,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static constexpr Operand  kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
     "MmaTensorOpMultiplicandIterator may only be instantiated for A or B operands to warp-level Mma.");
@@ -1289,7 +1289,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// Element number when the layout crosses
-  static constexpr int  kCrosswise = 16;
+  static constexpr int kCrosswise = 16;
 
   /// Layout of source tile
   using Layout = nihilus_gemm::layout::TensorOpMultiplicandCongruous<
@@ -1299,13 +1299,13 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static constexpr int  kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int  kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// Number of partitions along K dimension
-  static constexpr int  kPartitionsK = PartitionsK_;
+  static constexpr int kPartitionsK = PartitionsK_;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -1329,8 +1329,8 @@ class MmaTensorOpMultiplicandTileIterator<
         "Shape of warp-level Mma must be divisible by operator shape.");
 
     // Determine number of elements along outer dimension per individual LDSM op
-    static constexpr int  kLdsmOpOuter = Layout::kElementsPerAccess;
-    static constexpr int  kLdsmOpInner = 8;
+    static constexpr int kLdsmOpOuter = Layout::kElementsPerAccess;
+    static constexpr int kLdsmOpInner = 8;
 
     static_assert(!(Shape::kContiguous % kLdsmOpOuter),
       "Shape of warp-level mma must be divisible by LDSM's fundamental tile size.");
@@ -1339,9 +1339,9 @@ class MmaTensorOpMultiplicandTileIterator<
       "Shape of warp-level mma must be divisible by LDSM's fundamental tile size.");
 
     /// Shape of one individual LDSM instruction
-    static constexpr int  LdsmShapeStrided =
+    static constexpr int LdsmShapeStrided =
         InstructionShape::kStrided / kLdsmOpInner;
-    static constexpr int  LdsmShapeContiguous = 4 / LdsmShapeStrided;
+    static constexpr int LdsmShapeContiguous = 4 / LdsmShapeStrided;
     using LdsmShape =
         layout::PitchLinearShape<LdsmShapeContiguous, LdsmShapeStrided>;
 
@@ -1351,7 +1351,7 @@ class MmaTensorOpMultiplicandTileIterator<
         1>;
 
     /// Number of groups for each tile
-    static constexpr int  kGroupsPerTile =
+    static constexpr int kGroupsPerTile =
         Shape::kStrided / InstructionShape::kStrided;
   };
 
@@ -1362,7 +1362,7 @@ private:
     "Alternative arrangements not supported at present.");
 
   /// Number of internal pointers needed to reference shared memory
-  static constexpr int  kPointerCount =
+  static constexpr int kPointerCount =
       Layout::TileShape::kContiguous / Policy::LdsmShape::kContiguous / Layout::kFactor;
 
   /// Pointer type used for accesses
@@ -1395,11 +1395,11 @@ private:
 public:
 
   /// Default ctor constructs null iterator
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator(): stride_(0), byte_offset_(0) { }
 
   /// Constructor from TensorRef
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator(
     TensorRef const &ref,
     int lane_id
@@ -1415,7 +1415,7 @@ public:
     int lane_in_quad_pair = (lane_id & 7);
     int lane_in_quad_quad = (lane_id & 15);
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < kPointerCount; ++i) {
       int partition_contiguous_idx = -1;
       int access_contiguous_idx = -1;
@@ -1469,7 +1469,7 @@ public:
   }
 
   /// Adds a pointer offset to internal pointer(s) to advance through memory
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_pointer_offset(LongIndex offset) {
 
     byte_offset_ += offset * sizeof(Element);
@@ -1478,14 +1478,14 @@ public:
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole tiles
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_tile_offset(TensorCoord const &tile_offset) {
 
     int contiguous_offset = tile_offset.contiguous();
     if (Shape::kContiguous ==
         Layout::PartitionShape::kContiguous * Layout::kElementsPerAccess) {
       if (tile_offset.contiguous() % 2) {
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for (int i = 0; i < kPointerCount / 2; ++i) {
           AccessType const *tmp_pointer = pointer_[i];
           pointer_[i] = pointer_[i + kPointerCount / 2];
@@ -1505,7 +1505,7 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator & operator++() {
 
     add_tile_offset({0, 1});
@@ -1524,7 +1524,7 @@ public:
   }
 
   /// Advances the iterator along the opposite of the advance dimension
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator & operator--() {
     byte_offset_ -= stride_ * InstructionShape::kStrided * sizeof(Element) *
                     Layout::kElementsPerAccess;
@@ -1533,28 +1533,28 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator & operator+=(TensorCoord const &tile_offset) {
     add_tile_offset(tile_offset);
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator & operator-=(TensorCoord const &tile_offset) {
     add_tile_offset(-tile_offset);
     return *this;
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void load(Fragment &frag) const {
 
     load_with_byte_offset(frag, 0);
   }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_byte_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -1564,10 +1564,10 @@ public:
     Array<unsigned, Policy::LdsmShape::kCount> *fetch_ptr =
       reinterpret_cast<Array<unsigned, Policy::LdsmShape::kCount> *>(&frag);
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int s = 0; s < Policy::LdsmIterations::kStrided; ++s) {
 
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int c = 0; c < Policy::LdsmIterations::kContiguous; ++c) {
 
         int access_idx = c + s * Policy::LdsmIterations::kContiguous;
@@ -1588,7 +1588,7 @@ public:
   }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_pointer_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -1598,7 +1598,7 @@ public:
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -1608,7 +1608,7 @@ public:
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -1620,7 +1620,7 @@ public:
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_byte_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -1644,7 +1644,7 @@ public:
   /// fold constants and achieve more efficient code.
   ///
   /// This is used by some nontrivial permuted layouts.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void set_kgroup_index(int k_group) {
     // no op
   }
@@ -1685,7 +1685,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static constexpr Operand  kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA,
                 "MmaTensorOpMultiplicandIterator for ColumnMajor Congruous may "
@@ -1695,7 +1695,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// MBlock or NBlock size
-  static constexpr int  kCrosswise = Crosswise;
+  static constexpr int kCrosswise = Crosswise;
 
   /// Layout of source tile
   using Layout = nihilus_gemm::layout::ColumnMajorTensorOpMultiplicandCongruous<
@@ -1705,10 +1705,10 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static constexpr int  kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int  kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -1751,11 +1751,11 @@ private:
 public:
   
   /// Default ctor constructs null iterator
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator() { }
 
   /// Constructor from TensorRef
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator(
     TensorRef const &ref, 
     int lane_id
@@ -1763,7 +1763,7 @@ public:
   }
 
   /// Adds a pointer offset to internal pointer(s) to advance through memory
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_pointer_offset(LongIndex offset) {
 
     iterator_.add_pointer_offset(offset);
@@ -1772,7 +1772,7 @@ public:
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole tiles
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_tile_offset(TensorCoord const &tile_offset) {
 
     iterator_.add_tile_offset({tile_offset.row(), tile_offset.column()});
@@ -1781,7 +1781,7 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator & operator++() {
 
     ++iterator_;
@@ -1790,7 +1790,7 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator & operator--() {
 
     --iterator_;
@@ -1799,28 +1799,28 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator & operator+=(TensorCoord const &tile_offset) {
     add_tile_offset(PitchLinearCoord(tile_offset.row(), tile_offset.column()));
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator & operator-=(TensorCoord const &tile_offset) {
     add_tile_offset(-PitchLinearCoord(tile_offset.row(), tile_offset.column()));
     return *this;
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void load(Fragment &frag) const {
 
     iterator_.load(frag);
   }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_pointer_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -1830,7 +1830,7 @@ public:
   }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_byte_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -1840,7 +1840,7 @@ public:
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -1849,7 +1849,7 @@ public:
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -1860,7 +1860,7 @@ public:
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_byte_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -1881,7 +1881,7 @@ public:
   /// fold constants and achieve more efficient code.
   ///
   /// This is used by some nontrivial permuted layouts.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void set_kgroup_index(int k_group) {
     iterator_.set_kgroup_index(k_group); 
   }
@@ -1922,7 +1922,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static constexpr Operand  kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kB,
                 "MmaTensorOpMultiplicandIterator for RowMajor Congruous may "
@@ -1932,7 +1932,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// Element number when the layout crosses
-  static constexpr int  kCrosswise = Crosswise;
+  static constexpr int kCrosswise = Crosswise;
 
   /// Layout of source tile
   using Layout = nihilus_gemm::layout::RowMajorTensorOpMultiplicandCongruous<
@@ -1942,10 +1942,10 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static constexpr int  kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int  kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -1985,11 +1985,11 @@ private:
 public:
   
   /// Default ctor constructs null iterator
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator() { }
 
   /// Constructor from TensorRef
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator(
     TensorRef const &ref, 
     int lane_id
@@ -1997,7 +1997,7 @@ public:
   }
 
   /// Adds a pointer offset to internal pointer(s) to advance through memory
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_pointer_offset(LongIndex offset) {
 
     iterator_.add_pointer_offset(offset);
@@ -2006,7 +2006,7 @@ public:
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole tiles
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_tile_offset(TensorCoord const &tile_offset) {
 
     iterator_.add_tile_offset({tile_offset.column(), tile_offset.row()});
@@ -2015,7 +2015,7 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator & operator++() {
 
     ++iterator_;
@@ -2024,7 +2024,7 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator & operator--() {
 
     --iterator_;
@@ -2033,28 +2033,28 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator & operator+=(TensorCoord const &tile_offset) {
     add_tile_offset(PitchLinearCoord(tile_offset.column(), tile_offset.row()));
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator & operator-=(TensorCoord const &tile_offset) {
     add_tile_offset(-PitchLinearCoord(tile_offset.column(), tile_offset.row()));
     return *this;
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void load(Fragment &frag) const {
 
     iterator_.load(frag);
   }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_pointer_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -2064,7 +2064,7 @@ public:
   }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_byte_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -2074,7 +2074,7 @@ public:
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -2083,7 +2083,7 @@ public:
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -2094,7 +2094,7 @@ public:
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_byte_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -2115,7 +2115,7 @@ public:
   /// fold constants and achieve more efficient code.
   ///
   /// This is used by some nontrivial permuted layouts.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void set_kgroup_index(int k_group) {
     iterator_.set_kgroup_index(k_group); 
   }
@@ -2156,7 +2156,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static constexpr Operand  kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand == Operand::kB,
                 "MmaTensorOpMultiplicandIterator may only be instantiated for "
@@ -2166,7 +2166,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// Element number when the layout crosses
-  static constexpr int  kCrosswise = Crosswise;
+  static constexpr int kCrosswise = Crosswise;
 
   /// Layout of source tile
   using Layout = nihilus_gemm::layout::TensorOpMultiplicandCrosswise<
@@ -2177,13 +2177,13 @@ class MmaTensorOpMultiplicandTileIterator<
 
   /// Delta between *MMA operations (in units of *MMA operations, concept:
   /// MatrixShape)
-  static constexpr int  kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int  kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// Number of partitions along K dimension
-  static constexpr int  kPartitionsK = PartitionsK_;
+  static constexpr int kPartitionsK = PartitionsK_;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -2207,8 +2207,8 @@ class MmaTensorOpMultiplicandTileIterator<
         "Shape of warp-level Mma must be divisible by operator shape.");
 
     // Determine number of elements along outer dimension per individual LDSM op
-    static constexpr int  kLdsmOpOuter = Layout::kElementsPerAccess;
-    static constexpr int  kLdsmOpInner = 8;
+    static constexpr int kLdsmOpOuter = Layout::kElementsPerAccess;
+    static constexpr int kLdsmOpInner = 8;
 
     static_assert(!(Shape::kContiguous % kLdsmOpOuter),
                   "Shape of warp-level mma must be divisible by LDSM's "
@@ -2219,9 +2219,9 @@ class MmaTensorOpMultiplicandTileIterator<
                   "fundamental tile size.");
 
     /// Shape of one individual LDSM instruction
-    static constexpr int  LdsmShapeContiguous =
+    static constexpr int LdsmShapeContiguous =
         InstructionShape::kContiguous / kLdsmOpOuter;
-    static constexpr int  LdsmShapeStrided =
+    static constexpr int LdsmShapeStrided =
         ((4 / LdsmShapeContiguous * kLdsmOpInner) > Shape::kStrided)
             ? (Shape::kStrided / kLdsmOpInner)
             : (4 / LdsmShapeContiguous);
@@ -2234,7 +2234,7 @@ class MmaTensorOpMultiplicandTileIterator<
                                         LdsmShape::kStrided>;
 
     ///
-    static constexpr int  kGroupsPerTile = Layout::TileShape::kContiguous /
+    static constexpr int kGroupsPerTile = Layout::TileShape::kContiguous /
                                       Layout::kFactor / LdsmShape::kContiguous;
   };
 
@@ -2278,7 +2278,7 @@ class MmaTensorOpMultiplicandTileIterator<
 
  public:
   /// Default ctor constructs null iterator
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator()
       : pointer_(nullptr),
         sections_(0),
@@ -2287,7 +2287,7 @@ class MmaTensorOpMultiplicandTileIterator<
         k_group_idx_(0) {}
 
   /// Constructor from TensorRef
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator(TensorRef const &ref, int lane_id)
       : pointer_(reinterpret_cast<AccessType const *>(ref.data())),
         sections_(ref.stride(0) / kCrosswise),
@@ -2452,7 +2452,7 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Adds a pointer offset to internal pointer(s) to advance through memory
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_pointer_offset(LongIndex offset) {
     byte_offset_ += offset * sizeof_bits<Element>::value / 8;
 
@@ -2461,7 +2461,7 @@ class MmaTensorOpMultiplicandTileIterator<
 
   /// Advances an iterator along logical dimensions of matrix in units of whole
   /// tiles
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_tile_offset(
       TensorCoord const &tile_offset) {
     int whole_tiles = tile_offset.contiguous() / Policy::kGroupsPerTile;
@@ -2478,7 +2478,7 @@ class MmaTensorOpMultiplicandTileIterator<
 
   /// Advances an iterator along logical dimensions of matrix in units of whole
   /// tiles
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_tile_offset_negative(
       TensorCoord const &tile_offset) {
 
@@ -2518,7 +2518,7 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator &operator++() {
 
     // Integer matrix multiply 16832 Interleaved-32
@@ -2568,12 +2568,12 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator &operator--() { assert(0); }
 
   ///< advances in units of whole tiles along the logical coordinate space of
   ///< the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator &operator+=(
       TensorCoord const &tile_offset) {
     add_tile_offset(tile_offset);
@@ -2582,7 +2582,7 @@ class MmaTensorOpMultiplicandTileIterator<
 
   ///< advances in units of whole tiles along the logical coordinate space of
   ///< the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator &operator-=(
       TensorCoord const &tile_offset) {
     add_tile_offset(-tile_offset);
@@ -2590,11 +2590,11 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void load(Fragment &frag) const { load_with_byte_offset(frag, 0); }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_byte_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -2603,9 +2603,9 @@ class MmaTensorOpMultiplicandTileIterator<
     Array<unsigned, Policy::LdsmShape::kCount> *fetch_ptr =
         reinterpret_cast<Array<unsigned, Policy::LdsmShape::kCount> *>(&frag);
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int s = 0; s < Policy::LdsmIterations::kStrided; ++s) {
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int c = 0; c < Policy::LdsmIterations::kContiguous; ++c) {
         int access_idx = c + s * Policy::LdsmIterations::kContiguous;
 
@@ -2625,7 +2625,7 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_pointer_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -2635,7 +2635,7 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -2645,7 +2645,7 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -2657,7 +2657,7 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_byte_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -2682,7 +2682,7 @@ class MmaTensorOpMultiplicandTileIterator<
   /// fold constants and achieve more efficient code.
   ///
   /// This is used by some nontrivial permuted layouts.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void set_kgroup_index(int k_group) {
     k_group_idx_ = k_group % (Policy::kGroupsPerTile / kPartitionsK);
   }
@@ -2723,7 +2723,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static constexpr Operand  kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kB,
                 "MmaTensorOpMultiplicandIterator for ColumnMajor Crosswise may "
@@ -2733,7 +2733,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// KBlock size
-  static constexpr int  kCrosswise = Crosswise;
+  static constexpr int kCrosswise = Crosswise;
 
   /// Layout of source tile
   using Layout = nihilus_gemm::layout::ColumnMajorTensorOpMultiplicandCrosswise<
@@ -2744,10 +2744,10 @@ class MmaTensorOpMultiplicandTileIterator<
 
   /// Delta between *MMA operations (in units of *MMA operations, concept:
   /// MatrixShape)
-  static constexpr int  kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int  kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -2784,16 +2784,16 @@ class MmaTensorOpMultiplicandTileIterator<
 
  public:
   /// Default ctor constructs null iterator
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator() {}
 
   /// Constructor from TensorRef
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator(TensorRef const &ref, int lane_id)
       : iterator_({ref.data(), ref.stride()}, lane_id) {}
 
   /// Adds a pointer offset to internal pointer(s) to advance through memory
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_pointer_offset(LongIndex offset) {
     iterator_.add_pointer_offset(offset);
 
@@ -2802,7 +2802,7 @@ class MmaTensorOpMultiplicandTileIterator<
 
   /// Advances an iterator along logical dimensions of matrix in units of whole
   /// tiles
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_tile_offset(
       TensorCoord const &tile_offset) {
     iterator_.add_tile_offset({tile_offset.row(), tile_offset.column()});
@@ -2812,7 +2812,7 @@ class MmaTensorOpMultiplicandTileIterator<
 
   /// Advances an iterator along logical dimensions of matrix in units of whole
   /// tiles
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_tile_offset_negative(
       TensorCoord const &tile_offset) {
     iterator_.add_tile_offset_negative({tile_offset.row(), tile_offset.column()});
@@ -2821,7 +2821,7 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator &operator++() {
     ++iterator_;
 
@@ -2829,7 +2829,7 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator &operator--() {
     --iterator_;
 
@@ -2838,7 +2838,7 @@ class MmaTensorOpMultiplicandTileIterator<
 
   ///< advances in units of whole tiles along the logical coordinate space of
   ///< the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator &operator+=(
       TensorCoord const &tile_offset) {
     add_tile_offset(PitchLinearCoord(tile_offset.row(), tile_offset.column()));
@@ -2847,7 +2847,7 @@ class MmaTensorOpMultiplicandTileIterator<
 
   ///< advances in units of whole tiles along the logical coordinate space of
   ///< the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator &operator-=(
       TensorCoord const &tile_offset) {
     add_tile_offset(-PitchLinearCoord(tile_offset.row(), tile_offset.column()));
@@ -2855,11 +2855,11 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void load(Fragment &frag) const { iterator_.load(frag); }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_pointer_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -2869,7 +2869,7 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_byte_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -2879,7 +2879,7 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -2889,7 +2889,7 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -2901,7 +2901,7 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_byte_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -2920,7 +2920,7 @@ class MmaTensorOpMultiplicandTileIterator<
   /// fold constants and achieve more efficient code.
   ///
   /// This is used by some nontrivial permuted layouts.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void set_kgroup_index(int k_group) {
     iterator_.set_kgroup_index(k_group); 
   }
@@ -2961,7 +2961,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static constexpr Operand  kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA,
                 "MmaTensorOpMultiplicandIterator for RowMajor Crosswise may "
@@ -2971,7 +2971,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// Element number when the layout crosses
-  static constexpr int  kCrosswise = Crosswise;
+  static constexpr int kCrosswise = Crosswise;
 
   /// Layout of source tile
   using Layout = nihilus_gemm::layout::RowMajorTensorOpMultiplicandCrosswise<
@@ -2982,10 +2982,10 @@ class MmaTensorOpMultiplicandTileIterator<
 
   /// Delta between *MMA operations (in units of *MMA operations, concept:
   /// MatrixShape)
-  static constexpr int  kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int  kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -3022,16 +3022,16 @@ class MmaTensorOpMultiplicandTileIterator<
 
  public:
   /// Default ctor constructs null iterator
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator() {}
 
   /// Constructor from TensorRef
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator(TensorRef const &ref, int lane_id)
       : iterator_({ref.data(), ref.stride()}, lane_id) {}
 
   /// Adds a pointer offset to internal pointer(s) to advance through memory
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_pointer_offset(LongIndex offset) {
     iterator_.add_pointer_offset(offset);
 
@@ -3040,7 +3040,7 @@ class MmaTensorOpMultiplicandTileIterator<
 
   /// Advances an iterator along logical dimensions of matrix in units of whole
   /// tiles
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_tile_offset(
       TensorCoord const &tile_offset) {
     iterator_.add_tile_offset({tile_offset.column(), tile_offset.row()});
@@ -3050,7 +3050,7 @@ class MmaTensorOpMultiplicandTileIterator<
 
   /// Advances an iterator along logical dimensions of matrix in units of whole
   /// tiles
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_tile_offset_negative(
       TensorCoord const &tile_offset) {
     iterator_.add_tile_offset_negative({tile_offset.column(), tile_offset.row()});
@@ -3059,7 +3059,7 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator &operator++() {
     ++iterator_;
 
@@ -3067,7 +3067,7 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator &operator--() {
     --iterator_;
 
@@ -3076,7 +3076,7 @@ class MmaTensorOpMultiplicandTileIterator<
 
   ///< advances in units of whole tiles along the logical coordinate space of
   ///< the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator &operator+=(
       TensorCoord const &tile_offset) {
     add_tile_offset(PitchLinearCoord(tile_offset.column(), tile_offset.row()));
@@ -3085,7 +3085,7 @@ class MmaTensorOpMultiplicandTileIterator<
 
   ///< advances in units of whole tiles along the logical coordinate space of
   ///< the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpMultiplicandTileIterator &operator-=(
       TensorCoord const &tile_offset) {
     add_tile_offset(-PitchLinearCoord(tile_offset.column(), tile_offset.row()));
@@ -3093,11 +3093,11 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void load(Fragment &frag) const { iterator_.load(frag); }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_pointer_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -3107,7 +3107,7 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_byte_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -3117,7 +3117,7 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -3127,7 +3127,7 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -3139,7 +3139,7 @@ class MmaTensorOpMultiplicandTileIterator<
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_byte_offset(
       /// fragment to load from the tensor
       Fragment &frag,
@@ -3158,7 +3158,7 @@ class MmaTensorOpMultiplicandTileIterator<
   /// fold constants and achieve more efficient code.
   ///
   /// This is used by some nontrivial permuted layouts.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void set_kgroup_index(int k_group) {
     iterator_.set_kgroup_index(k_group); 
   }
@@ -3208,7 +3208,7 @@ class MmaTensorOpAccumulatorTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static constexpr Operand  kOperand = Operand::kC;
+  static constexpr Operand kOperand = Operand::kC;
 
   /// Element type
   using Element = Element_;
@@ -3223,7 +3223,7 @@ class MmaTensorOpAccumulatorTileIterator<
   using OpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int  kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -3239,7 +3239,7 @@ class MmaTensorOpAccumulatorTileIterator<
 
   /// Internal structure of iterator - made public to enable introspection
   struct Policy {
-    static constexpr bool  kDivisible =
+    static constexpr bool kDivisible =
         !(Shape::kRow % InstructionShape::kM) &&
             !(Shape::kColumn % InstructionShape::kN);
 
@@ -3258,9 +3258,9 @@ private:
   // Assume accumulator tile is an arrangement of 8-by-8 tiles replicated over the entire
   // shape, with each quad mapped to one row and each thread mapped to 1/4 of the elements
   // of that row. The accumulators within one row are assumed to be consecutive.
- static constexpr int  kElementsPerAccess = InstructionShape::kN / 4;
- static constexpr int  kRowsPerTile = 8;
- static constexpr int  kAccumulatorRows = InstructionShape::kM / kRowsPerTile;
+ static constexpr int kElementsPerAccess = InstructionShape::kN / 4;
+ static constexpr int kRowsPerTile = 8;
+ static constexpr int kAccumulatorRows = InstructionShape::kM / kRowsPerTile;
 
 public:
 
@@ -3281,11 +3281,11 @@ private:
 public:
   
   /// Default ctor constructs null iterator
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator() { }
 
   /// Constructor from TensorRef
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator(
     TensorRef const &ref, 
     int lane_id
@@ -3301,14 +3301,14 @@ public:
   }
 
   /// Adds a pointer offset to internal pointer(s) to advance through memory
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator &add_pointer_offset(LongIndex offset) {
     ref_.add_pointer_offset(offset);
     return *this;
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole tiles
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator &add_tile_offset(TensorCoord const &tile_offset) {
 
     ref_.add_coord_offset(tile_offset * make_Coord(Shape::kRow, Shape::kColumn));
@@ -3317,41 +3317,41 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator & operator++() {
     // deliberate no-op
     return *this;
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator & operator--() {
     // deliberate no-op
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpAccumulatorTileIterator & operator+=(TensorCoord const &tile_offset) {
     add_tile_offset(tile_offset);
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpAccumulatorTileIterator & operator-=(TensorCoord const &tile_offset) {
     add_tile_offset(-tile_offset);
     return *this;
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void load(Fragment &frag) const {
     load_with_pointer_offset(frag, 0);
   }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_pointer_offset(
     Fragment &frag,                             ///< fragment to load from the tensor
     Index pointer_offset) const {               ///< loads a tile with a linear offset
@@ -3359,17 +3359,17 @@ public:
     TensorRef offset_ref(ref_);
     offset_ref.add_pointer_offset(pointer_offset);
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
         
         int mma_accum_start = kAccumulatorRows * kElementsPerAccess * 
           (mma_n * Policy::MmaIterations::kRow + mma_m);
 
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for (int row = 0; row < kAccumulatorRows; ++row) {
-          CUTLASS_PRAGMA_UNROLL
+          NIHILUS_PRAGMA_UNROLL
           for (int col = 0; col < kElementsPerAccess; ++col) {
             int accum_m = mma_m * InstructionShape::kM * OpDelta::kRow +
                           row * kRowsPerTile;
@@ -3383,7 +3383,7 @@ public:
   }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_byte_offset(
     Fragment &frag,                             ///< fragment to load from the tensor
     Index byte_offset) const {                  ///< loads a tile with a linear offset
@@ -3392,7 +3392,7 @@ public:
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
     Fragment &frag,                             ///< fragment to load from the tensor
     TensorCoord const &tile_offset) const {     ///< loads a tile with a logical offset in units of whole tiles
@@ -3401,7 +3401,7 @@ public:
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
     Fragment &frag,                             ///< fragment to load from the tensor
     TensorCoord const &tile_offset,             ///< loads a tile with a logical offset in units of whole tiles
@@ -3411,13 +3411,13 @@ public:
   }
 
   /// Stores a fragment to memory
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void store(Fragment const &frag) const {
     store_with_pointer_offset(frag, 0);
   }
 
   /// Stores a fragment to memory with additional pointer offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void store_with_pointer_offset(
     Fragment const &frag,                       ///< fragment to store from the tensor
     Index pointer_offset) const {               ///< store a tile with a linear offset
@@ -3425,17 +3425,17 @@ public:
     TensorRef offset_ref(ref_);
     offset_ref.add_pointer_offset(pointer_offset);
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
         
         int mma_accum_start = kAccumulatorRows * kElementsPerAccess * 
           (mma_n * Policy::MmaIterations::kRow + mma_m);
 
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for (int row = 0; row < kAccumulatorRows; ++row) {
-          CUTLASS_PRAGMA_UNROLL
+          NIHILUS_PRAGMA_UNROLL
           for (int col = 0; col < kElementsPerAccess; ++col) {
             int accum_m = mma_m * InstructionShape::kM * OpDelta::kRow +
                           row * kRowsPerTile;
@@ -3450,7 +3450,7 @@ public:
   }
 
   /// Stores a fragment to memory with additional pointer offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void store_with_byte_offset(
     Fragment const &frag,                       ///< fragment to store from the tensor
     Index byte_offset) const {                  ///< store a tile with a linear offset
@@ -3459,7 +3459,7 @@ public:
   }
 
   /// Stores a fragment to memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void store(
     Fragment &frag,                             ///< fragment to store to the tensor
     TensorCoord const &tile_offset) const {     ///< stores a tile with a logical offset in units of whole tiles
@@ -3468,7 +3468,7 @@ public:
   }
 
   /// Stores a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void store(
       /// fragment to store to the tensor
       Fragment const &frag,
@@ -3509,7 +3509,7 @@ class MmaTensorOpAccumulatorTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static constexpr Operand  kOperand = Operand::kC;
+  static constexpr Operand kOperand = Operand::kC;
 
   /// Element type
   using Element = Element_;
@@ -3524,7 +3524,7 @@ class MmaTensorOpAccumulatorTileIterator<
   using OpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int  kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -3540,7 +3540,7 @@ class MmaTensorOpAccumulatorTileIterator<
 
   /// Internal structure of iterator - made public to enable introspection
   struct Policy {
-    static constexpr bool  kDivisible =
+    static constexpr bool kDivisible =
         !(Shape::kRow % InstructionShape::kM) &&
             !(Shape::kColumn % InstructionShape::kN);
 
@@ -3559,9 +3559,9 @@ private:
   // Assume accumulator tile is an arrangement of 8-by-8 tiles replicated over the entire
   // shape, with each quad mapped to one row and each thread mapped to 1/4 of the elements
   // of that row. The accumulators within one row are assumed to be consecutive.
- static constexpr int  kElementsPerAccess = InstructionShape::kN / 4;
- static constexpr int  kRowsPerTile = 8;
- static constexpr int  kAccumulatorRows = InstructionShape::kM / kRowsPerTile;
+ static constexpr int kElementsPerAccess = InstructionShape::kN / 4;
+ static constexpr int kRowsPerTile = 8;
+ static constexpr int kAccumulatorRows = InstructionShape::kM / kRowsPerTile;
 
 public:
 
@@ -3582,11 +3582,11 @@ private:
 public:
   
   /// Default ctor constructs null iterator
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator() { }
 
   /// Constructor from TensorRef
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator(
     TensorRef const &ref, 
     int lane_id
@@ -3602,14 +3602,14 @@ public:
   }
 
   /// Adds a pointer offset to internal pointer(s) to advance through memory
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator &add_pointer_offset(LongIndex offset) {
     ref_.add_pointer_offset(offset);
     return *this;
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole tiles
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator &add_tile_offset(TensorCoord const &tile_offset) {
 
     ref_.add_coord_offset(tile_offset * make_Coord(Shape::kRow, Shape::kColumn));
@@ -3618,41 +3618,41 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator & operator++() {
     // deliberate no-op
     return *this;
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator & operator--() {
     // deliberate no-op
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpAccumulatorTileIterator & operator+=(TensorCoord const &tile_offset) {
     add_tile_offset(tile_offset);
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpAccumulatorTileIterator & operator-=(TensorCoord const &tile_offset) {
     add_tile_offset(-tile_offset);
     return *this;
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void load(Fragment &frag) const {
     load_with_pointer_offset(frag, 0);
   }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_pointer_offset(
     Fragment &frag,                             ///< fragment to load from the tensor
     Index pointer_offset) const {               ///< loads a tile with a linear offset
@@ -3660,17 +3660,17 @@ public:
     TensorRef offset_ref(ref_);
     offset_ref.add_pointer_offset(pointer_offset);
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
         
         int mma_accum_start = kAccumulatorRows * kElementsPerAccess * 
           (mma_n * Policy::MmaIterations::kRow + mma_m);
 
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for (int row = 0; row < kAccumulatorRows; ++row) {
-          CUTLASS_PRAGMA_UNROLL
+          NIHILUS_PRAGMA_UNROLL
           for (int col = 0; col < kElementsPerAccess; ++col) {
             int accum_m = mma_m * InstructionShape::kM * OpDelta::kRow +
                           row * kRowsPerTile;
@@ -3684,7 +3684,7 @@ public:
   }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_byte_offset(
     Fragment &frag,                             ///< fragment to load from the tensor
     Index byte_offset) const {                  ///< loads a tile with a linear offset
@@ -3693,7 +3693,7 @@ public:
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
     Fragment &frag,                             ///< fragment to load from the tensor
     TensorCoord const &tile_offset) const {     ///< loads a tile with a logical offset in units of whole tiles
@@ -3702,7 +3702,7 @@ public:
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
     Fragment &frag,                             ///< fragment to load from the tensor
     TensorCoord const &tile_offset,             ///< loads a tile with a logical offset in units of whole tiles
@@ -3712,13 +3712,13 @@ public:
   }
 
   /// Stores a fragment to memory
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void store(Fragment const &frag) const {
     store_with_pointer_offset(frag, 0);
   }
 
   /// Stores a fragment to memory with additional pointer offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void store_with_pointer_offset(
     Fragment const &frag,                       ///< fragment to store from the tensor
     Index pointer_offset) const {               ///< store a tile with a linear offset
@@ -3726,17 +3726,17 @@ public:
     TensorRef offset_ref(ref_);
     offset_ref.add_pointer_offset(pointer_offset);
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
         
         int mma_accum_start = kAccumulatorRows * kElementsPerAccess * 
           (mma_n * Policy::MmaIterations::kRow + mma_m);
 
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for (int row = 0; row < kAccumulatorRows; ++row) {
-          CUTLASS_PRAGMA_UNROLL
+          NIHILUS_PRAGMA_UNROLL
           for (int col = 0; col < kElementsPerAccess; ++col) {
             int accum_m = mma_m * InstructionShape::kM * OpDelta::kRow +
                           row * kRowsPerTile;
@@ -3751,7 +3751,7 @@ public:
   }
 
   /// Stores a fragment to memory with additional pointer offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void store_with_byte_offset(
     Fragment const &frag,                       ///< fragment to store from the tensor
     Index byte_offset) const {                  ///< store a tile with a linear offset
@@ -3760,7 +3760,7 @@ public:
   }
 
   /// Stores a fragment to memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void store(
     Fragment &frag,                             ///< fragment to store to the tensor
     TensorCoord const &tile_offset) const {     ///< stores a tile with a logical offset in units of whole tiles
@@ -3769,7 +3769,7 @@ public:
   }
 
   /// Stores a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void store(
       /// fragment to store to the tensor
       Fragment const &frag,
@@ -3810,7 +3810,7 @@ class MmaTensorOpAccumulatorTileIterator<Shape_, Element_,
   using Shape = Shape_;
 
   /// Operand tag
-  static constexpr Operand  kOperand = Operand::kC;
+  static constexpr Operand kOperand = Operand::kC;
 
   /// Element type
   using Element = Element_;
@@ -3825,7 +3825,7 @@ class MmaTensorOpAccumulatorTileIterator<Shape_, Element_,
   using OpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int  kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -3841,7 +3841,7 @@ class MmaTensorOpAccumulatorTileIterator<Shape_, Element_,
 
   /// Internal structure of iterator - made public to enable introspection
   struct Policy {
-    static constexpr bool  kDivisible = 
+    static constexpr bool kDivisible = 
         !(Shape::kRow % InstructionShape::kM) &&
             !(Shape::kColumn % InstructionShape::kN);
 
@@ -3860,9 +3860,9 @@ private:
   // Assume accumulator tile is an arrangement of 8-by-8 tiles replicated over the entire
   // shape, with each quad mapped to one row and each thread mapped to 1/4 of the elements
   // of that row. The accumulators within one row are assumed to be consecutive.
- static constexpr int  kElementsPerAccess = InstructionShape::kN / 4;
- static constexpr int  kRowsPerTile = 8;
- static constexpr int  kAccumulatorRows = InstructionShape::kM / kRowsPerTile;
+ static constexpr int kElementsPerAccess = InstructionShape::kN / 4;
+ static constexpr int kRowsPerTile = 8;
+ static constexpr int kAccumulatorRows = InstructionShape::kM / kRowsPerTile;
 
 public:
 
@@ -3882,11 +3882,11 @@ private:
 public:
   
   /// Default ctor constructs null iterator
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator() { }
 
   /// Constructor from TensorRef
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator(
     TensorRef const &ref, 
     int lane_id
@@ -3902,14 +3902,14 @@ public:
   }
 
   /// Adds a pointer offset to internal pointer(s) to advance through memory
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator &add_pointer_offset(LongIndex offset) {
     ref_.add_pointer_offset(offset);
     return *this;
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole tiles
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator &add_tile_offset(TensorCoord const &tile_offset) {
 
     ref_.add_coord_offset(tile_offset * make_Coord(Shape::kRow, Shape::kColumn));
@@ -3918,41 +3918,41 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator & operator++() {
     // deliberate no-op
     return *this;
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator & operator--() {
     // deliberate no-op
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpAccumulatorTileIterator & operator+=(TensorCoord const &tile_offset) {
     add_tile_offset(tile_offset);
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpAccumulatorTileIterator & operator-=(TensorCoord const &tile_offset) {
     add_tile_offset(-tile_offset);
     return *this;
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void load(Fragment &frag) const {
     load_with_pointer_offset(frag, 0);
   }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_pointer_offset(
     Fragment &frag,                             ///< fragment to load from the tensor
     Index pointer_offset) const {               ///< loads a tile with a linear offset
@@ -3960,17 +3960,17 @@ public:
     TensorRef offset_ref(ref_);
     offset_ref.add_pointer_offset(pointer_offset);
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
         
         int mma_accum_start = kAccumulatorRows * kElementsPerAccess * 
           (mma_n * Policy::MmaIterations::kRow + mma_m);
 
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for (int row = 0; row < kAccumulatorRows; ++row) {
-          CUTLASS_PRAGMA_UNROLL
+          NIHILUS_PRAGMA_UNROLL
           for (int col = 0; col < kElementsPerAccess; ++col) {
             int accum_m = mma_m * InstructionShape::kM * OpDelta::kRow +
                           row * kRowsPerTile;
@@ -3985,7 +3985,7 @@ public:
   }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_byte_offset(
     Fragment &frag,                             ///< fragment to load from the tensor
     Index byte_offset) const {                  ///< loads a tile with a linear offset
@@ -3994,7 +3994,7 @@ public:
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
     Fragment &frag,                             ///< fragment to load from the tensor
     TensorCoord const &tile_offset) const {     ///< loads a tile with a logical offset in units of whole tiles
@@ -4003,7 +4003,7 @@ public:
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
     Fragment &frag,                             ///< fragment to load from the tensor
     TensorCoord const &tile_offset,             ///< loads a tile with a logical offset in units of whole tiles
@@ -4013,13 +4013,13 @@ public:
   }
 
   /// Stores a fragment to memory
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void store(Fragment const &frag) const {
     store_with_pointer_offset(frag, 0);
   }
 
   /// Stores a fragment to memory with additional pointer offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void store_with_pointer_offset(
     Fragment const &frag,                       ///< fragment to store from the tensor
     Index pointer_offset) const {               ///< store a tile with a linear offset
@@ -4027,17 +4027,17 @@ public:
     TensorRef offset_ref(ref_);
     offset_ref.add_pointer_offset(pointer_offset);
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
         
         int mma_accum_start = kAccumulatorRows * kElementsPerAccess * 
           (mma_n * Policy::MmaIterations::kRow + mma_m);
 
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for (int row = 0; row < kAccumulatorRows; ++row) {
-          CUTLASS_PRAGMA_UNROLL
+          NIHILUS_PRAGMA_UNROLL
           for (int col = 0; col < kElementsPerAccess; ++col) {
             int accum_m = mma_m * InstructionShape::kM * OpDelta::kRow +
                           row * kRowsPerTile;
@@ -4052,7 +4052,7 @@ public:
   }
 
   /// Stores a fragment to memory with additional pointer offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void store_with_byte_offset(
     Fragment const &frag,                       ///< fragment to store from the tensor
     Index byte_offset) const {                  ///< store a tile with a linear offset
@@ -4061,7 +4061,7 @@ public:
   }
 
   /// Stores a fragment to memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void store(
     Fragment &frag,                             ///< fragment to store to the tensor
     TensorCoord const &tile_offset) const {     ///< stores a tile with a logical offset in units of whole tiles
@@ -4070,7 +4070,7 @@ public:
   }
 
   /// Stores a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void store(
       /// fragment to store to the tensor
       Fragment const &frag,
@@ -4114,7 +4114,7 @@ class MmaTensorOpAccumulatorTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static constexpr Operand  kOperand = Operand::kC;
+  static constexpr Operand kOperand = Operand::kC;
 
   /// Element type
   using Element = Element_;
@@ -4129,7 +4129,7 @@ class MmaTensorOpAccumulatorTileIterator<
   using OpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int  kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -4160,7 +4160,7 @@ class MmaTensorOpAccumulatorTileIterator<
 
 private:
 
-  static constexpr int  kElementsPerAccess = 2;
+  static constexpr int kElementsPerAccess = 2;
 
 public:
 
@@ -4181,11 +4181,11 @@ private:
 public:
   
   /// Default ctor constructs null iterator
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator() { }
 
   /// Constructor from TensorRef
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator(
     TensorRef const &ref, 
     int lane_id
@@ -4201,14 +4201,14 @@ public:
   }
 
   /// Adds a pointer offset to internal pointer(s) to advance through memory
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator &add_pointer_offset(LongIndex offset) {
     ref_.add_pointer_offset(offset);
     return *this;
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole tiles
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator &add_tile_offset(TensorCoord const &tile_offset) {
 
     ref_.add_coord_offset(tile_offset * make_Coord(Shape::kRow, Shape::kColumn));
@@ -4217,41 +4217,41 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator & operator++() {
     // deliberate no-op
     return *this;
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator & operator--() {
     // deliberate no-op
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpAccumulatorTileIterator & operator+=(TensorCoord const &tile_offset) {
     add_tile_offset(tile_offset);
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpAccumulatorTileIterator & operator-=(TensorCoord const &tile_offset) {
     add_tile_offset(-tile_offset);
     return *this;
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void load(Fragment &frag) const {
     load_with_pointer_offset(frag, 0);
   }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_pointer_offset(
     Fragment &frag,                             ///< fragment to load from the tensor
     Index pointer_offset) const {               ///< loads a tile with a linear offset
@@ -4261,9 +4261,9 @@ public:
 
     AccessType* frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
         int accum_m = mma_m * InstructionShape::kM;
         int accum_n = mma_n * InstructionShape::kN;
@@ -4279,7 +4279,7 @@ public:
   }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_byte_offset(
     Fragment &frag,                             ///< fragment to load from the tensor
     Index byte_offset) const {                  ///< loads a tile with a linear offset
@@ -4288,7 +4288,7 @@ public:
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
     Fragment &frag,                             ///< fragment to load from the tensor
     TensorCoord const &tile_offset) const {     ///< loads a tile with a logical offset in units of whole tiles
@@ -4297,7 +4297,7 @@ public:
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
     Fragment &frag,                             ///< fragment to load from the tensor
     TensorCoord const &tile_offset,             ///< loads a tile with a logical offset in units of whole tiles
@@ -4307,13 +4307,13 @@ public:
   }
 
   /// Stores a fragment to memory
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void store(Fragment const &frag) const {
     store_with_pointer_offset(frag, 0);
   }
 
   /// Stores a fragment to memory with additional pointer offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void store_with_pointer_offset(
     Fragment const &frag,                       ///< fragment to store from the tensor
     Index pointer_offset) const {               ///< store a tile with a linear offset
@@ -4323,9 +4323,9 @@ public:
 
     AccessType const *frag_ptr = reinterpret_cast<AccessType const*>(&frag);
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
         int accum_m = mma_m * InstructionShape::kM;
         int accum_n = mma_n * InstructionShape::kN;
@@ -4341,7 +4341,7 @@ public:
   }
 
   /// Stores a fragment to memory with additional pointer offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void store_with_byte_offset(
     Fragment const &frag,                       ///< fragment to store from the tensor
     Index byte_offset) const {                  ///< store a tile with a linear offset
@@ -4350,7 +4350,7 @@ public:
   }
 
   /// Stores a fragment to memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void store(
     Fragment &frag,                             ///< fragment to store to the tensor
     TensorCoord const &tile_offset) const {     ///< stores a tile with a logical offset in units of whole tiles
@@ -4359,7 +4359,7 @@ public:
   }
 
   /// Stores a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void store(
       /// fragment to store to the tensor
       Fragment const &frag,
@@ -4403,7 +4403,7 @@ class MmaTensorOpAccumulatorTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static constexpr Operand  kOperand = Operand::kC;
+  static constexpr Operand kOperand = Operand::kC;
 
   /// Element type
   using Element = int8_t;
@@ -4418,7 +4418,7 @@ class MmaTensorOpAccumulatorTileIterator<
   using OpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int  kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -4443,10 +4443,10 @@ class MmaTensorOpAccumulatorTileIterator<
         "Shape of warp-level Mma must be divisible by operator shape.");
 
     /// Number of elements in strided dimension that each STG writes
-    static constexpr int  kStridedPerSTG = 8;
+    static constexpr int kStridedPerSTG = 8;
 
     /// Factor to calculate reorder index to pack accumulator.
-    static constexpr int  kPackedFactor = Shape::kColumn / 32;
+    static constexpr int kPackedFactor = Shape::kColumn / 32;
 
     /// Number of mma operations performed
     using MmaIterations = MatrixShape<Shape::kRow / kStridedPerSTG,
@@ -4455,7 +4455,7 @@ class MmaTensorOpAccumulatorTileIterator<
 
 private:
 
-  static constexpr int  kElementsPerAccess = InterleavedN / 4;
+  static constexpr int kElementsPerAccess = InterleavedN / 4;
 
 public:
 
@@ -4493,11 +4493,11 @@ private:
 public:
   
   /// Default ctor constructs null iterator
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator() { }
 
   /// Constructor from TensorRef
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator(
     TensorRef const &ref,
     int const lane_id,
@@ -4519,14 +4519,14 @@ public:
   }
 
   /// Adds a pointer offset to internal pointer(s) to advance through memory
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator &add_pointer_offset(LongIndex offset) {
     ref_.add_pointer_offset(offset);
     return *this;
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole tiles
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator &add_tile_offset(MatrixCoord const &tile_offset) {
 
     global_offset_row_ += tile_offset.row() * Shape::kRow;
@@ -4537,41 +4537,41 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator & operator++() {
     // deliberate no-op
     return *this;
   }
 
   /// Advances the iterator along the advance dimension
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator & operator--() {
     // deliberate no-op
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpAccumulatorTileIterator & operator+=(TensorCoord const &tile_offset) {
     add_tile_offset(tile_offset);
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpAccumulatorTileIterator & operator-=(TensorCoord const &tile_offset) {
     add_tile_offset(-tile_offset);
     return *this;
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void load(Fragment &frag) const {
     load_with_pointer_offset(frag);
   }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_pointer_offset(
     Fragment &frag,                             ///< fragment to load from the tensor
     Index pointer_offset) const {               ///< loads a tile with a linear offset
@@ -4581,9 +4581,9 @@ public:
 
     AccessType* frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int mma_n = 0; mma_n < Policy::MmaIterations::kN; ++mma_n) {
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int mma_m = 0; mma_m < Policy::MmaIterations::kM; ++mma_m) {
         int accum_m = mma_m * InstructionShape::kM;
         int accum_n = mma_n * InstructionShape::kN;
@@ -4599,7 +4599,7 @@ public:
   }
 
   /// Loads a fragment from memory with additional logical offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_byte_offset(
     Fragment &frag,                             ///< fragment to load from the tensor
     Index byte_offset) const {                  ///< loads a tile with a linear offset
@@ -4608,7 +4608,7 @@ public:
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
     Fragment &frag,                             ///< fragment to load from the tensor
     TensorCoord const &tile_offset) const {     ///< loads a tile with a logical offset in units of whole tiles
@@ -4617,7 +4617,7 @@ public:
   }
 
   /// Loads a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(
     Fragment &frag,                             ///< fragment to load from the tensor
     TensorCoord const &tile_offset,             ///< loads a tile with a logical offset in units of whole tiles
@@ -4627,13 +4627,13 @@ public:
   }
 
   /// Stores a fragment to memory
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void store(Fragment const &frag) const {
     store_with_pointer_offset(frag, 0);
   }
 
   /// Stores a fragment to memory with additional pointer offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void store_with_pointer_offset(
     Fragment const &frag,                       ///< fragment to store from the tensor
     Index pointer_offset) const {               ///< store a tile with a linear offset
@@ -4663,18 +4663,18 @@ public:
     find_divisor(pq_mul, pq_shr, pq);
 
     if(beta_ == 0.0f) {
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for(int i = 0; i < int(frag.size()); ++i) {
         output_frag_f[i] = frag[i];
       }
 
       if(InstructionShape::kM == Policy::kStridedPerSTG) {
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for(int i = 0; i < int(frag.size()); ++i) {
           output_frag[i] = (Element)(output_frag_f[i] * alpha_);
         }
       } else {
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for(int i = 0; i < int(frag.size()); ++i) {
           int map_i = (i / (16 * Policy::kPackedFactor)) * (16 * Policy::kPackedFactor)
                     + (i % (8 * Policy::kPackedFactor)) / 2 * 4
@@ -4686,14 +4686,14 @@ public:
 
       AccessType const *frag_ptr = reinterpret_cast<AccessType const*>(&output_frag);
 
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
         int accum_m = mma_m * Policy::kStridedPerSTG;
 
         fast_divmod(n, pq_rem, global_offset_row_ + accum_m, pq, pq_mul, pq_shr);
         LongIndex offset_m = n * stride_n + k_offset + pq_rem * InterleavedN;
 
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for (int mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
        
           int accum_n = mma_n * InterleavedN;
@@ -4710,12 +4710,12 @@ public:
       }
     } else {
       if(InstructionShape::kM == Policy::kStridedPerSTG) {
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for(int i = 0; i < int(frag.size()); ++i) {
           output_frag_f[i] = frag[i];
         }
       } else {
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for(int i = 0; i < int(frag.size()); ++i) {
           int map_i = (i / (16 * Policy::kPackedFactor)) * (16 * Policy::kPackedFactor)
                     + (i % (8 * Policy::kPackedFactor)) / 2 * 4
@@ -4730,14 +4730,14 @@ public:
       Array<Element, kElementsPerAccess> ref_frag;
       AccessType *ref_frag_ptr = reinterpret_cast<AccessType *>(&ref_frag);
 
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
         int accum_m = mma_m * Policy::kStridedPerSTG;
 
         fast_divmod(n, pq_rem, global_offset_row_ + accum_m, pq, pq_mul, pq_shr);
         LongIndex offset_m = n * stride_n + k_offset + pq_rem * InterleavedN;
 
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for (int mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
        
           int accum_n = mma_n * InterleavedN;
@@ -4750,7 +4750,7 @@ public:
 
             ref_frag_ptr[0] = access_ptr[0];
 
-            CUTLASS_PRAGMA_UNROLL
+            NIHILUS_PRAGMA_UNROLL
             for(int i = 0; i < kElementsPerAccess; ++i) {
               output_frag[idx * kElementsPerAccess + i] = Element(alpha_ * output_frag_f[idx * kElementsPerAccess + i]
                                                                 + beta_ * ref_frag[i]);
@@ -4764,7 +4764,7 @@ public:
   }
 
   /// Stores a fragment to memory with additional pointer offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void store_with_byte_offset(
     Fragment const &frag,                       ///< fragment to store from the tensor
     Index byte_offset) const {                  ///< store a tile with a linear offset
@@ -4773,7 +4773,7 @@ public:
   }
 
   /// Stores a fragment to memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void store(
     Fragment &frag,                             ///< fragment to store to the tensor
     TensorCoord const &tile_offset) const {     ///< stores a tile with a logical offset in units of whole tiles
@@ -4782,7 +4782,7 @@ public:
   }
 
   /// Stores a fragment from memory with logical offset in units of whole tiles.
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void store(
       /// fragment to store to the tensor
       Fragment const &frag,

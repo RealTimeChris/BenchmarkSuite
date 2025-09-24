@@ -34,7 +34,7 @@
 #pragma once
 
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/coord.h"
 #include "nihilus_gemm/platform/platform.h"
 #include "nihilus_gemm/subbyte_reference.h"
@@ -51,10 +51,10 @@ template <int Rank>
 class IdentityTensorLayout {
 public:
   /// Logical rank of tensor
-  static constexpr int  kRank = Rank;
+  static constexpr int kRank = Rank;
 
   /// Rank of stride vector
-  static constexpr int  kStrideRank = Rank;
+  static constexpr int kStrideRank = Rank;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -83,29 +83,29 @@ public:
   // Methods
   //
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   IdentityTensorLayout(Stride const &stride = Stride()): stride_(stride) { }
 
   /// Returns the offset of a coordinate in linear memory
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LongIndex operator()(Coord<Rank> const &coord) const {
     return coord.dot(stride_);
   }
 
   /// Returns the stride of the layout
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Stride stride() const {
     return stride_;
   }
 
   /// Returns the stride of the layout
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Stride & stride() {
     return stride_;
   }
 
   /// Compute the number of contiguous elements needed to store a tensor with the given size
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LongIndex capacity(TensorCoord const &size) const {
     int idx = stride_.max_dim_index();
     return stride_[idx] * size[idx];
@@ -165,7 +165,7 @@ class TensorRef {
     >::type;
 
   /// Logical rank of tensor index space
-  static constexpr int  kRank = Layout::kRank;
+  static constexpr int kRank = Layout::kRank;
 
   /// Index type
   using Index = typename Layout::Index;
@@ -209,13 +209,13 @@ class TensorRef {
   //
 
   /// Constructs a TensorRef with a pointer and layout object.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   TensorRef(): ptr_(nullptr) {
   
   }
 
   /// Constructs a TensorRef with a pointer and layout object.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   TensorRef(
     Element *ptr,                   ///< pointer to start of tensor
     Layout const &layout            ///< layout object containing stride and mapping function
@@ -226,7 +226,7 @@ class TensorRef {
 
   /// Converting constructor from TensorRef to non-constant data.
   template<typename _Magic = int>
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   TensorRef(
     NonConstTensorRef const &ref,              ///< TensorRef to non-const data
     ///SFINAE trick to avoid creating a copy-constructor when Element_ is already non-const
@@ -235,102 +235,102 @@ class TensorRef {
     ptr_(ref.data()), layout_(ref.layout()) { }
 
   /// Returns a reference to constant-valued tensor.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   ConstTensorRef const_ref() const {
     return ConstTensorRef(ptr_, layout_);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   NonConstTensorRef non_const_ref() const {
     return NonConstTensorRef(const_cast<typename platform::remove_const<Element>::type *>(ptr_), layout_);
   }
 
   /// Updates only the pointer
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void reset(Element* ptr = nullptr) {
     ptr_ = ptr;
   }
 
   /// Updates the pointer and layout object
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void reset(Element* ptr, Layout const &layout) {
     ptr_ = ptr;
     layout_ = layout;
   }
 
   /// Returns true if the TensorRef is non-null
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   bool good() const {
     return ptr_ != nullptr;
   }
 
   /// Returns the pointer to referenced data
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element * data() const { return ptr_; }
 
   /// Returns a reference to the element at a given linear index
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Reference data(LongIndex idx) const {
     return ReferenceFactory<typename platform::remove_const<Element>::type,
                             (sizeof_bits<Element>::value < 8)>::get(ptr_, idx);
   }
 
   /// Returns the layout object
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Layout & layout() {
     return layout_;
   }
 
   /// Returns the layout object
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Layout layout() const {
     return layout_;
   }
 
   /// Returns the layout object's stride vector
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Stride stride() const {
     return layout_.stride();
   }
 
   /// Returns the layout object's stride vector
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Stride & stride() {
     return layout_.stride();
   }
 
   /// Returns the layout object's stride in a given physical dimension
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   typename Layout::Stride::Index stride(int dim) const {
     return layout_.stride().at(dim);
   }
 
   /// Returns the layout object's stride in a given physical dimension
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   typename Layout::Stride::Index & stride(int dim) {
     return layout_.stride().at(dim);
   }
 
   /// Computes the offset of an index from the origin of the tensor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LongIndex offset(TensorCoord const& coord) const {
     return layout_(coord);
   }
 
   /// Returns a reference to the element at a given Coord
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Reference at(TensorCoord const& coord) const {
     return data(offset(coord));
   }
 
   /// Returns a reference to the element at a given Coord
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Reference operator[](TensorCoord const& coord) const {
     return data(offset(coord));
   }
 
   /// Adds an offset to each pointer
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   TensorRef & add_pointer_offset(LongIndex offset_) {
     ptr_ = ReferenceFactory<typename platform::remove_const<Element>::type,
            (sizeof_bits<Element>::value < 8)>::add_pointer_offset(ptr_, offset_);
@@ -338,14 +338,14 @@ class TensorRef {
   }
 
   /// Adds an offset to each pointer
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   TensorRef & add_coord_offset(TensorCoord const &coord) {
     add_pointer_offset(offset(coord));
     return *this;
   }
 
   /// Returns a TensorRef offset by a given amount
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   TensorRef operator+(TensorCoord const& b) const {
     TensorRef result(*this);
     result.add_coord_offset(b);
@@ -353,14 +353,14 @@ class TensorRef {
   }
 
   /// Returns a TensorRef offset by a given amount
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   TensorRef & operator+=(TensorCoord const& b) {
     add_coord_offset(b);
     return *this;
   }
 
   /// Returns a TensorRef offset by a given amount
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   TensorRef operator-(TensorCoord const& b) const {
     TensorRef result(*this);
     result.add_pointer_offset(-offset(b));
@@ -368,7 +368,7 @@ class TensorRef {
   }
 
   /// Returns a TensorRef offset by a given amount
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   TensorRef & operator-=(TensorCoord const& b) {
     add_pointer_offset(-offset(b));
     return *this;
@@ -380,7 +380,7 @@ template <
   typename Element,
   typename Layout
 >
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 TensorRef<Element, Layout> make_TensorRef(Element *ptr, Layout const &layout) {
   return TensorRef<Element, Layout>(ptr, layout);
 }
@@ -395,7 +395,7 @@ template <
   typename Element,
   typename Layout
 >
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 bool TensorRef_aligned(TensorRef<Element, Layout> const &ref, int alignment) {
 
   int const kStrideRank = Layout::kStrideRank;
@@ -404,7 +404,7 @@ bool TensorRef_aligned(TensorRef<Element, Layout> const &ref, int alignment) {
     return false;
   }
 
-  CUTLASS_PRAGMA_UNROLL
+  NIHILUS_PRAGMA_UNROLL
   for (int i = 0; i < kStrideRank; ++i) {
     if (ref.stride(i) % alignment) {
       return false;

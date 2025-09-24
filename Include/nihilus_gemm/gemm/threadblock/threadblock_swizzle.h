@@ -35,7 +35,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/layout/matrix.h"
 #include "nihilus_gemm/platform/platform.h"
 #include "nihilus_gemm/gemm/gemm.h"
@@ -53,28 +53,29 @@ namespace threadblock {
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Threadblock swizzling function for GEMMs
-template<uint64_t M, uint64_t K, int N = 1> struct GemmIdentityThreadblockSwizzle {
+template<uint64_t M, uint64_t K, int N = 1>
+struct GemmIdentityThreadblockSwizzle {
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   GemmIdentityThreadblockSwizzle() { }
 
   /// Returns the shape of the problem in units of logical tiles
   /// *Gemm* problem size: gemm(M, N, K)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static GemmCoord get_tiled_shape(
     GemmCoord problem_size,
     GemmCoord tile_size,
     int split_k_slices) {
 
     return GemmCoord(
-      (M + tile_size.m() - 1) / tile_size.m(),
+      (problem_size.m() + tile_size.m() - 1) / tile_size.m(),
       (problem_size.n() + tile_size.n() - 1) / tile_size.n(),
       split_k_slices);
   }
 
   /// Returns the shape of the problem in units of logical tiles
   /// *ImplicitGemm* Conv2d problem size: conv_operator(NPQK, NHWC, KRSC)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static GemmCoord get_tiled_shape(
     nihilus_gemm::conv::Operator conv_operator,
     nihilus_gemm::conv::Conv2dProblemSize const &problem_size,
@@ -90,7 +91,7 @@ template<uint64_t M, uint64_t K, int N = 1> struct GemmIdentityThreadblockSwizzl
 
   /// Returns the shape of the problem in units of logical tiles
   /// *ImplicitGemm* Conv3d problem size: conv_operator(NZPQK, NDHWC, KTRSC)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static GemmCoord get_tiled_shape(
     nihilus_gemm::conv::Operator conv_operator,
     nihilus_gemm::conv::Conv3dProblemSize const &problem_size,
@@ -105,14 +106,14 @@ template<uint64_t M, uint64_t K, int N = 1> struct GemmIdentityThreadblockSwizzl
   }
 
   /// Computes CUDA grid dimensions given a size in units of logical tiles
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static dim3 get_grid_shape(GemmCoord tiled_shape) {
     int tile = 1 << get_log_tile(tiled_shape);
     return dim3(tiled_shape.m() * tile, (tiled_shape.n() + tile - 1) / tile, tiled_shape.k());
   }
 
   /// Calculates optimal swizzle width
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static int get_log_tile(GemmCoord tiled_shape) {
     auto n = tiled_shape.n();
     // Thresholds picked so that it doesn't cause too many no-op CTAs
@@ -127,7 +128,7 @@ template<uint64_t M, uint64_t K, int N = 1> struct GemmIdentityThreadblockSwizzl
   }
 
   /// Obtains the threadblock offset (in units of threadblock-scoped tiles)
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   static GemmCoord get_tile_offset(int log_tile) {
     int block_idx_x = RematerializeBlockIdxX();
     int block_idx_y = RematerializeBlockIdxY();
@@ -139,7 +140,7 @@ template<uint64_t M, uint64_t K, int N = 1> struct GemmIdentityThreadblockSwizzl
   }
 
   /// Obtains the threadblock offset (in units of threadblock-scoped tiles)
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   static GemmCoord get_tile_offset(GemmCoord tiled_shape) {
 
     int const kTile = N;
@@ -158,40 +159,40 @@ template<uint64_t M, uint64_t K, int N = 1> struct GemmIdentityThreadblockSwizzl
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-template<uint64_t M, uint64_t K>
+
 /// Threadblock swizzling function for GEMMs
 struct GemmHorizontalThreadblockSwizzle {
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   GemmHorizontalThreadblockSwizzle() { }
 
   /// Returns the shape of the problem in units of logical tiles
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static GemmCoord get_tiled_shape(
     GemmCoord problem_size,
     GemmCoord tile_size,
     int split_k_slices) {
 
     return GemmCoord(
-      (M + tile_size.m() - 1) / tile_size.m(),
+      (problem_size.m() + tile_size.m() - 1) / tile_size.m(),
       (problem_size.n() + tile_size.n() - 1) / tile_size.n(),
       split_k_slices);
   }
 
   /// Computes CUDA grid dimensions given a size in units of logical tiles
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static dim3 get_grid_shape(GemmCoord tiled_shape) {
     return dim3(tiled_shape.n(), tiled_shape.m(), tiled_shape.k());
   }
 
   /// Calculates optimal swizzle width
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static int get_log_tile(GemmCoord tiled_shape) {
     return 0;
   }
 
   /// Obtains the threadblock offset (in units of threadblock-scoped tiles)
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   static GemmCoord get_tile_offset(GemmCoord tiled_shape) {
     return GemmCoord{
       RematerializeBlockIdxY(),
@@ -202,37 +203,37 @@ struct GemmHorizontalThreadblockSwizzle {
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-template<uint64_t M, uint64_t K>
+
 /// Threadblock swizzling function for batched GEMMs
 struct GemmBatchedIdentityThreadblockSwizzle {
 
   /// Returns the shape of the problem in units of logical tiles
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static GemmCoord get_tiled_shape(
     GemmCoord problem_size,
     GemmCoord tile_size,
     int batch_count) {
 
     return GemmCoord(
-      (M + tile_size.m() - 1) / tile_size.m(),
+      (problem_size.m() + tile_size.m() - 1) / tile_size.m(),
       (problem_size.n() + tile_size.n() - 1) / tile_size.n(),
       batch_count % (1 << 16));
   }
 
   /// Computes CUDA grid dimensions given a size in units of logical tiles
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static dim3 get_grid_shape(GemmCoord tiled_shape) {
     return dim3(tiled_shape.m(), tiled_shape.n(), tiled_shape.k());
   }
 
   /// Calculates optimal swizzle width
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static int get_log_tile(GemmCoord tiled_shape) {
     return 0;
   }
 
   /// Obtains the threadblock offset (in units of threadblock-scoped tiles)
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   static GemmCoord get_tile_offset(GemmCoord tiled_shape) {
     return GemmCoord{
       RematerializeBlockIdxX(),
@@ -242,7 +243,7 @@ struct GemmBatchedIdentityThreadblockSwizzle {
   }
 
   /// Obtains the threadblock offset (in units of threadblock-scoped tiles)
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   static GemmCoord get_tile_offset(int log_tile) {
     int block_idx_x = RematerializeBlockIdxX();
     int block_idx_y = RematerializeBlockIdxY();
@@ -254,13 +255,201 @@ struct GemmBatchedIdentityThreadblockSwizzle {
   }
 
   /// Gets the batch index
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   static int get_batch_idx() {
     return RematerializeBlockIdxZ();
   }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// Threadblock swizzling function for split-K GEMMs
+template <int N = 1>
+struct GemmSplitKIdentityThreadblockSwizzle {
+
+  int const kTile = N;
+
+  /// Returns the shape of the problem in units of logical tiles
+  NIHILUS_HOST_DEVICE
+  static GemmCoord get_tiled_shape(
+    GemmCoord problem_size,
+    GemmCoord tile_size,
+    int partitions) {
+
+    return GemmCoord(
+      (problem_size.m() + tile_size.m() - 1) / tile_size.m(),
+      (problem_size.n() + tile_size.n() - 1) / tile_size.n(),
+      partitions);
+  }
+
+  /// Calculates optimal swizzle width
+  NIHILUS_HOST_DEVICE
+  static int get_log_tile(GemmCoord tiled_shape) {
+    auto n = tiled_shape.n();
+    // Thresholds picked so that it doesn't cause too many no-op CTAs
+    if (N >= 8 && n >= 6)
+      return 3;
+    else if (N >= 4 && n >= 3)
+      return 2;
+    else if (N >= 2 && n >= 2)
+      return 1;
+    else
+      return 0;
+  }
+
+  /// Computes CUDA grid dimensions given a size in units of logical tiles
+  NIHILUS_HOST_DEVICE
+  static dim3 get_grid_shape(GemmCoord tiled_shape) {
+    int tile = 1 << get_log_tile(tiled_shape);
+    return dim3(tiled_shape.m() * tile, (tiled_shape.n() + tile - 1) / tile, tiled_shape.k());
+  }
+
+  /// Obtains the threadblock offset (in units of threadblock-scoped tiles)
+  NIHILUS_DEVICE
+  static GemmCoord get_tile_offset(int log_tile) {
+    int block_idx_x = RematerializeBlockIdxX();
+    int block_idx_y = RematerializeBlockIdxY();
+    int block_idx_z = RematerializeBlockIdxZ();
+
+    return GemmCoord{(block_idx_x >> log_tile),  //
+                     (block_idx_y << log_tile) + ((block_idx_x) & ((1 << (log_tile)) - 1)),
+                     block_idx_z};
+  }
+
+  /// Obtains the threadblock offset (in units of threadblock-scoped tiles)
+  NIHILUS_DEVICE
+  static GemmCoord get_tile_offset(GemmCoord tiled_shape) {
+
+    int const kTile = N;
+    int block_idx_x = RematerializeBlockIdxX();
+    int block_idx_y = RematerializeBlockIdxY();
+
+    if ((tiled_shape.m() < kTile) || (tiled_shape.n() < kTile))
+      return GemmCoord{block_idx_x, block_idx_y, RematerializeBlockIdxZ()};
+
+    return GemmCoord{
+      (block_idx_x / kTile),
+      (block_idx_y * kTile) + (block_idx_x % kTile),
+      RematerializeBlockIdxZ()
+    };
+  }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// Threadblock swizzling function for split-K GEMMs
+struct GemmSplitKHorizontalThreadblockSwizzle {
+
+  /// Returns the shape of the problem in units of logical tiles
+  NIHILUS_HOST_DEVICE
+  static GemmCoord get_tiled_shape(
+    GemmCoord problem_size,
+    GemmCoord tile_size,
+    int partitions) {
+
+    return GemmCoord(
+      (problem_size.m() + tile_size.m() - 1) / tile_size.m(),
+      (problem_size.n() + tile_size.n() - 1) / tile_size.n(),
+      partitions);
+  }
+
+  /// Computes CUDA grid dimensions given a size in units of logical tiles
+  NIHILUS_HOST_DEVICE
+  static dim3 get_grid_shape(GemmCoord tiled_shape) {
+    return dim3(tiled_shape.n(), tiled_shape.m(), tiled_shape.k());
+  }
+
+  /// Calculates optimal swizzle width
+  NIHILUS_HOST_DEVICE
+  static int get_log_tile(GemmCoord tiled_shape) {
+    return 0;
+  }
+
+  /// Obtains the threadblock offset (in units of threadblock-scoped tiles)
+  NIHILUS_DEVICE
+  static GemmCoord get_tile_offset(int log_tile) {
+    return GemmCoord{
+      RematerializeBlockIdxY(),
+      RematerializeBlockIdxX(),
+      RematerializeBlockIdxZ()
+    };
+  }
+
+  /// Obtains the threadblock offset (in units of threadblock-scoped tiles)
+  NIHILUS_DEVICE
+  static GemmCoord get_tile_offset(GemmCoord tiled_shape) {
+    return GemmCoord{
+      RematerializeBlockIdxY(),
+      RematerializeBlockIdxX(),
+      RematerializeBlockIdxZ()
+    };
+  }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// Threadblock swizzling function for batched GEMVs
+struct GemvBatchedStridedThreadblockDefaultSwizzle {
+
+  /// Returns the shape of the problem in units of logical tiles
+  NIHILUS_HOST_DEVICE
+  static BatchedGemmCoord get_tiled_shape(
+    BatchedGemmCoord problem_size,
+    BatchedGemmCoord tile_size) {
+
+    return BatchedGemmCoord(
+      1, // M is always 1
+      (problem_size.n() + tile_size.n() - 1) / tile_size.n(),
+      (problem_size.k() + tile_size.k() - 1) / tile_size.k(),
+      (problem_size.batch() + tile_size.batch() - 1) / tile_size.batch());
+  }
+
+  /// Computes CUDA grid dimensions given a size in units of logical tiles
+  NIHILUS_HOST_DEVICE
+  static dim3 get_grid_shape(BatchedGemmCoord tiled_shape) {
+    return dim3(tiled_shape.n(), tiled_shape.batch(), tiled_shape.k());
+  }
+
+  /// Calculates optimal swizzle width
+  NIHILUS_HOST_DEVICE
+  static int get_log_tile(GemmCoord tiled_shape) {
+    return 0;
+  }
+
+  /// Obtains the threadblock offset (in units of threadblock-scoped tiles)
+  NIHILUS_DEVICE
+  static BatchedGemmCoord get_tile_offset(int log_tile) {
+    return BatchedGemmCoord{
+      0, // M is always 1
+      RematerializeBlockIdxX(),
+      RematerializeBlockIdxZ(),
+      RematerializeBlockIdxY(),
+    };
+  }
+
+  /// Obtains the threadblock offset (in units of threadblock-scoped tiles)
+  NIHILUS_DEVICE
+  static BatchedGemmCoord get_tile_offset() {
+    return BatchedGemmCoord{
+      0, // M is always 1
+      RematerializeBlockIdxX(),
+      RematerializeBlockIdxZ(),
+      RematerializeBlockIdxY(),
+    };
+  }
+
+  /// Gets the batch tile index
+  NIHILUS_DEVICE
+  static int get_batch_tile_idx() {
+    return RematerializeBlockIdxY();
+  }
+
+  /// Gets the absolute batch index
+  NIHILUS_DEVICE
+  static int get_batch_idx() {
+    return RematerializeBlockDimY()*RematerializeBlockIdxY() + RematerializeThreadIdxY();
+  }
+};
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 

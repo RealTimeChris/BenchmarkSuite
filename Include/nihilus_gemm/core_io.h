@@ -40,7 +40,6 @@
 #include "nihilus_gemm/coord.h"
 #include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/matrix.h"
-#include "nihilus_gemm/quaternion.h"
 #include "nihilus_gemm/matrix_shape.h"
 #include "nihilus_gemm/layout/pitch_linear.h"
 #include "nihilus_gemm/tensor_view.h"
@@ -154,7 +153,7 @@ std::ostream & operator<<(std::ostream &out, float_ue4m3_t const &x) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Helper to enable formatted printing of CUTLASS scalar types to an ostream
+/// Helper to enable formatted printing of NIHILUS scalar types to an ostream
 template <typename T>
 struct ScalarIO {
 
@@ -215,28 +214,6 @@ std::ostream & operator<<(std::ostream &out, Matrix<Element, Rows, Columns> cons
   return out;
 }
 
-template <typename T>
-std::ostream &operator<<(std::ostream &out, Quaternion<T> const &rhs) {
-
-  out << ScalarIO<T>(rhs.w()) << " ";
-  if (rhs.x() >= 0) {
-    out << "+";
-  }
-
-  out << ScalarIO<T>(rhs.x()) << "*i ";
-  if (rhs.y() >= 0) {
-    out << "+";
-  }
-
-  out << ScalarIO<T>(rhs.y()) << "*j ";
-  if (rhs.z() >= 0) {
-    out << "+";
-  }
-
-  out << ScalarIO<T>(rhs.z()) << "*k";
-
-  return out;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //                         stream operators for nihilus_gemm::gemm namespace                          //

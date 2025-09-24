@@ -35,7 +35,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 
 namespace nihilus_gemm {
 namespace gemm {
@@ -56,7 +56,7 @@ struct MmaSimtPolicy {
   using MmaShape = LaneMmaShape;
 
   /// Returns a layout functor mapping lane position in the warp to thread ID
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static LaneLayout get_lane_layout() {
     return LaneLayout::packed({WarpShape::kRow, WarpShape::kColumn});
   }

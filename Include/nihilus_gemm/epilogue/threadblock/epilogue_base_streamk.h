@@ -35,7 +35,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/functional.h"
 #include "nihilus_gemm/block_striped.h"
 
@@ -69,7 +69,7 @@ protected:
                         PartitionsK>;
 
   /// Number of threads per block
-  static constexpr int  kBlockThreads = 32 * WarpCount::kCount;
+  static constexpr int kBlockThreads = 32 * WarpCount::kCount;
 
   /// Numerical accumulation element type
   using ElementAccumulator = typename WarpMmaOperator::ElementC;
@@ -80,12 +80,12 @@ protected:
 public:
 
   /// Number of AccumulatorTile fragments per thread
-  static constexpr int  kAccumulatorFragments = AccumulatorFragmentIterator::Policy::kIterations;
+  static constexpr int kAccumulatorFragments = AccumulatorFragmentIterator::Policy::kIterations;
 
 protected:
 
   /// Number of AccumulatorTile fragments per block output tile
-  static constexpr int  kOutputTileFragments = kBlockThreads * kAccumulatorFragments;
+  static constexpr int kOutputTileFragments = kBlockThreads * kAccumulatorFragments;
 
   /// Block-striped transfer utility for sharing AccumulatorFragment
   using BlockStripedT = BlockStriped<kBlockThreads, AccumulatorFragment>;
@@ -96,7 +96,7 @@ protected:
 public:
 
   /// Workspace bytes per thread block
-  static constexpr size_t  kWorkspaceBytesPerBlock =sizeof(AccumulatorFragment) * kPeerFragmentStride;
+  static constexpr size_t kWorkspaceBytesPerBlock =sizeof(AccumulatorFragment) * kPeerFragmentStride;
 
 public:
 
@@ -106,7 +106,7 @@ public:
 public:
 
   /// Constructor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   EpilogueBaseStreamK(
       int thread_idx)                                       ///< ID of a thread within the threadblock
   :
@@ -115,7 +115,7 @@ public:
 
 
   /// Aggregates the accumulator sets shared by peer blocks in the global workspace
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void reduce(
       AccumulatorFragment &accum_fragment,                  ///< [out] sum of all shared accumulator fragments for these peer partials
       int peer_idx_begin,
@@ -150,7 +150,7 @@ public:
 
 
   /// Shares the accumulator set with peers in the global workspace
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void share(
       int peer_idx,
       void *workspace_ptr,
@@ -169,7 +169,7 @@ public:
     AccumulatorFragmentIterator accum_fragment_iterator(accumulators);
 
     // Convert raw accumulator tile to fragments and store
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int iter = 0; iter < kAccumulatorFragments; ++iter)
     {
       // Acquire reordered accumulator fragment

@@ -35,18 +35,18 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/arch/wmma.h"
 
-#if defined(CUTLASS_ARCH_WMMA_ENABLED)
+#if defined(NIHILUS_ARCH_WMMA_ENABLED)
 
 #include "nihilus_gemm/wmma_array.h"
 #include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/matrix_shape.h"
 
 #include "nihilus_gemm/arch/memory_sm75.h"
-#include "nihilus_gemm/arch/mma_sm75.h"
-#include "nihilus_gemm/arch/mma_sm80.h"
+
+
 
 #include "nihilus_gemm/gemm/gemm.h"
 #include "nihilus_gemm/gemm/warp/mma.h"
@@ -125,19 +125,19 @@ public:
   using ArchTag = typename Policy::Operator::ArchTag;
 
   /// Complex transform on A operand
-  static constexpr ComplexTransform  kTransformA = ComplexTransform::kNone;
+  static constexpr ComplexTransform kTransformA = ComplexTransform::kNone;
 
   /// Complex transform on B operand
-  static constexpr ComplexTransform  kTransformB = ComplexTransform::kNone;
+  static constexpr ComplexTransform kTransformB = ComplexTransform::kNone;
 
   /// Indicates class of matrix operator
   using OperatorClass = arch::OpClassWmmaTensorOp;
 
   /// Number of threads participating in warp-level matrix product
-  static constexpr int  kThreadCount = 32;
+  static constexpr int kThreadCount = 32;
 
   /// Number of partitions along K dimension
-  static constexpr int  kPartitionsK = PartitionsK_;
+  static constexpr int kPartitionsK = PartitionsK_;
 
 public:
 
@@ -190,20 +190,20 @@ public:
   //
 
   /// Ctor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaTensorOpWmma() {}
 
   /// Performs a warp-level matrix multiply-accumulate operation
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void operator()(
     FragmentC &D, 
     FragmentA const &A, 
     FragmentB const &B, 
     FragmentC const &C) const {
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int n = 0; n < WmmaIterations::kColumn; ++n) {
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int m = 0; m < WmmaIterations::kRow; ++m) {
 
         // accumulate wmma mma
@@ -219,5 +219,5 @@ public:
 } // namespace gemm
 } // namespace nihilus_gemm
 
-#endif // if defined(CUTLASS_ARCH_WMMA_ENABLED)
+#endif // if defined(NIHILUS_ARCH_WMMA_ENABLED)
 

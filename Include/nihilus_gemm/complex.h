@@ -34,7 +34,7 @@
 #include <cuComplex.h>
 
 #include <cuda_fp16.h>
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #if defined(__CUDACC_RTC__)
 #include CUDA_STD_HEADER(cstdint)
 #else
@@ -69,13 +69,13 @@ struct InvertComplexTransform;
 /// Invert ComplexTransform from kNone to kConjugate
 template <>
 struct InvertComplexTransform<ComplexTransform::kNone> {
-  static constexpr ComplexTransform  transform = ComplexTransform::kConjugate;
+  static constexpr ComplexTransform transform = ComplexTransform::kConjugate;
 };
 
 /// Invert ComplexTransform from kConjugate to kNone
 template <>
 struct InvertComplexTransform<ComplexTransform::kConjugate> {
-  static constexpr ComplexTransform  transform = ComplexTransform::kNone;
+  static constexpr ComplexTransform transform = ComplexTransform::kNone;
 };
 /////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -86,45 +86,45 @@ struct InvertComplexTransform<ComplexTransform::kConjugate> {
 
 #if !defined(__CUDACC_RTC__)
 /// Returns the real part of the complex number
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 float const &real(cuFloatComplex const &z) { return z.x; }
 
 /// Returns the real part of the complex number
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 float &real(cuFloatComplex &z) { return z.x; }
 
 /// Returns the real part of the complex number
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 double const &real(cuDoubleComplex const &z) { return z.x; }
 
 /// Returns the real part of the complex number
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 double &real(cuDoubleComplex &z) { return z.x; }
 
 /// Returns the imaginary part of the complex number
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 float const &imag(cuFloatComplex const &z) { return z.y; }
 
 /// Returns the imaginary part of the complex number
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 float &imag(cuFloatComplex &z) { return z.y; }
 
 /// Returns the imaginary part of the complex number
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 double const &imag(cuDoubleComplex const &z) { return z.y; }
 
 /// Returns the imaginary part of the complex number
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 double &imag(cuDoubleComplex &z) { return z.y; }
 
 // Returns the conjugate of the complex number
-CUTLASS_HOST_DEVICE cuFloatComplex
+NIHILUS_HOST_DEVICE cuFloatComplex
 conj(cuFloatComplex const& z) {
   return make_cuFloatComplex(z.x, -z.y);
 }
 
 // Returns the conjugate of the complex number
-CUTLASS_HOST_DEVICE cuDoubleComplex
+NIHILUS_HOST_DEVICE cuDoubleComplex
 conj(cuDoubleComplex const& z) {
   return make_cuDoubleComplex(z.x, -z.y);
 }
@@ -163,48 +163,48 @@ class complex
   complex() = default;
 
   /// Constructor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   complex(T r) : _real(r), _imag(T(0)) {}
 
   /// Constructor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   complex(T r, T i) : _real(r), _imag(i) {}
 
   /// Constructor
   template<typename A>
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   complex(complex<A> const &z) : _real(static_cast<T>(z.real())), _imag(static_cast<T>(z.imag())) {}
 
 
   #if !defined(__CUDACC_RTC__)
   /// Conversion from cuFloatComplex
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   complex(cuFloatComplex const &z) : _real(static_cast<T>(cuCrealf(z))), _imag(static_cast<T>(cuCimagf(z))) {}
 
   /// Conversion from cuDoubleComplex
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   complex(cuDoubleComplex const &z) : _real(static_cast<T>(cuCreal(z))), _imag(static_cast<T>(cuCimag(z))) {}
   #endif
 
   /// Equality operator
-  CUTLASS_HOST_DEVICE bool operator==(complex<T> const &rhs) const {
+  NIHILUS_HOST_DEVICE bool operator==(complex<T> const &rhs) const {
     return this->real() == rhs.real() && this->imag() == rhs.imag();
   }
 
   /// Inequality operator
-  CUTLASS_HOST_DEVICE bool operator!=(complex<T> const &rhs) const {
+  NIHILUS_HOST_DEVICE bool operator!=(complex<T> const &rhs) const {
     return !(*this == rhs);
   }
 
   /// Addition
     template <typename A>
-  CUTLASS_HOST_DEVICE complex<T> operator+(complex<A> const &rhs) const {
+  NIHILUS_HOST_DEVICE complex<T> operator+(complex<A> const &rhs) const {
     return complex<T>(this->real() + rhs.real(), this->imag() + rhs.imag());
   }
 
   /// Reduction into memory address.  Components may update out of order.
   template <typename OtherT>
-  CUTLASS_DEVICE void red(complex<OtherT> *ptr) const {
+  NIHILUS_DEVICE void red(complex<OtherT> *ptr) const {
     static_assert(platform::is_same<T, OtherT>::value, "Component type must match");
     nihilus_gemm::atomic_add<T> reduce;
     reduce(&ptr->_real, _real);
@@ -212,7 +212,7 @@ class complex
   }
 
   /// Reduction into memory address.  Components may update out of order.  (Half specialization)
-  CUTLASS_DEVICE void red(complex<half_t> *ptr) const {
+  NIHILUS_DEVICE void red(complex<half_t> *ptr) const {
     static_assert(platform::is_same<T, half_t>::value, "Component type must match");
     half2 *h2_ptr = reinterpret_cast<half2*>(ptr);
     half2 h2_data = reinterpret_cast<half2&>(*this);
@@ -222,26 +222,26 @@ class complex
 
   /// Subtraction
     template <typename A>
-  CUTLASS_HOST_DEVICE complex<T> operator-(complex<A> const &rhs) const {
+  NIHILUS_HOST_DEVICE complex<T> operator-(complex<A> const &rhs) const {
     return complex<T>(this->real() - rhs.real(), this->imag() - rhs.imag());
   }
 
   /// Multiplication
     template <typename A>
-  CUTLASS_HOST_DEVICE complex<T> operator*(complex<A> const &rhs) const {
+  NIHILUS_HOST_DEVICE complex<T> operator*(complex<A> const &rhs) const {
     return complex<T>(this->real() * rhs.real() - this->imag() * rhs.imag(),
                       this->real() * rhs.imag() + this->imag() * rhs.real());
   }
 
   /// Scalar Multiplication
     template <typename A>
-  CUTLASS_HOST_DEVICE complex<T> operator*(A const &s) const {
+  NIHILUS_HOST_DEVICE complex<T> operator*(A const &s) const {
     return complex<T>(this->real() * s, this->imag() * s);
   }
 
   /// Division
     template <typename A>
-  CUTLASS_HOST_DEVICE complex<T> operator/(complex<A> const &rhs) const {
+  NIHILUS_HOST_DEVICE complex<T> operator/(complex<A> const &rhs) const {
     T d = T(rhs.real() * rhs.real() + rhs.imag() * rhs.imag());
 
     return complex<T>(
@@ -252,83 +252,83 @@ class complex
 
   /// Scalar Division
     template <typename A>
-  CUTLASS_HOST_DEVICE complex<T> operator/(A const &s) const {
+  NIHILUS_HOST_DEVICE complex<T> operator/(A const &s) const {
     return complex<T>(this->real() / s, this->imag() / s);
   }
 
   /// Addition
     template <typename A>
-  CUTLASS_HOST_DEVICE complex<T> &operator+=(complex<A> const &rhs) {
+  NIHILUS_HOST_DEVICE complex<T> &operator+=(complex<A> const &rhs) {
       *this = *this + rhs;
       return *this;
   }
 
   /// Subtraction
   template <typename A>
-  CUTLASS_HOST_DEVICE complex<T> &operator-=(complex<A> const &rhs) {
+  NIHILUS_HOST_DEVICE complex<T> &operator-=(complex<A> const &rhs) {
       *this = *this - rhs;
       return *this;
   }
 
   /// Multiplication
   template <typename A>
-  CUTLASS_HOST_DEVICE complex<T> &operator*=(complex<A> const &rhs) {
+  NIHILUS_HOST_DEVICE complex<T> &operator*=(complex<A> const &rhs) {
       *this = *this * rhs;
       return *this;
   }
 
   /// Scalar multiplication
   template <typename A>
-  CUTLASS_HOST_DEVICE complex<T> &operator*=(A s) {
+  NIHILUS_HOST_DEVICE complex<T> &operator*=(A s) {
       *this = *this * s;
       return *this;
   }
 
   /// Division
   template <typename A>
-  CUTLASS_HOST_DEVICE complex<T> &operator/=(complex<A> const &rhs) {
+  NIHILUS_HOST_DEVICE complex<T> &operator/=(complex<A> const &rhs) {
       *this = *this / rhs;
       return *this;
   }
 
   /// Accesses the real part of the complex number
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T const &real() const { return _real; }
 
   /// Accesses the real part of the complex number
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T &real() { return _real; }
 
   /// Accesses the imaginary part of the complex number
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T const &imag() const { return _imag; }
 
   /// Accesses the imaginary part of the complex number
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T &imag() { return _imag; }
 
   /// Set the real part of the complex number
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void real(T real) { _real = real; }
 
   /// Set the imaginary part of the complex number
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void imag(T imag) { _imag = imag; }
 
   #if !defined(__CUDACC_RTC__)
   /// Converts to cuFloatComplex
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   explicit operator cuFloatComplex() const { return make_cuFloatComplex(float(real()), float(imag())); }
 
   /// Converts to cuDoubleComplex
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   explicit operator cuDoubleComplex() const { return make_cuDoubleComplex(real(), imag()); }
   #endif
 };
 
 // Complex conjugate
 template<class T>
-CUTLASS_HOST_DEVICE complex<T> conj(complex<T> const& z) {
+NIHILUS_HOST_DEVICE complex<T> conj(complex<T> const& z) {
   return {z.real(), -z.imag()};
 }
 
@@ -390,7 +390,7 @@ constexpr bool has_zero_argument_imag_member_function_v =
 } // namespace detail
 
 template<typename T>
-CUTLASS_HOST_DEVICE auto real(T z) {
+NIHILUS_HOST_DEVICE auto real(T z) {
   if constexpr (detail::has_zero_argument_real_member_function_v<T>) {
     return z.real();
   } else {
@@ -399,12 +399,12 @@ CUTLASS_HOST_DEVICE auto real(T z) {
 }
   
 template<typename T>
-CUTLASS_HOST_DEVICE auto imag(T z) {
+NIHILUS_HOST_DEVICE auto imag(T z) {
   if constexpr (detail::has_zero_argument_imag_member_function_v<T>) {
     return z.imag();
   } else {
     // Imaginary part of a non-complex input has the same type as the
-    // input, and its value is zero.  CUTLASS assumes in this case
+    // input, and its value is zero.  NIHILUS assumes in this case
     // that value-initializing T is well-formed and results in zero.
     return T{};
   }
@@ -438,11 +438,11 @@ std::ostream &operator<<(std::ostream &out, complex<T> const &z) {
 
 // abs returns the magnitude of the complex number.
 
-CUTLASS_HOST_DEVICE float abs(complex<float> const &z) {
+NIHILUS_HOST_DEVICE float abs(complex<float> const &z) {
   return ::hypot(z.real(), z.imag());
 }
 
-CUTLASS_HOST_DEVICE double abs(complex<double> const &z) {
+NIHILUS_HOST_DEVICE double abs(complex<double> const &z) {
   return ::hypot(z.real(), z.imag());
 }
 
@@ -453,7 +453,7 @@ CUTLASS_HOST_DEVICE double abs(complex<double> const &z) {
 // computation should probably insist on an actual FP128 type.
 
 template <typename T>
-CUTLASS_HOST_DEVICE T abs(complex<T> const &z) {
+NIHILUS_HOST_DEVICE T abs(complex<T> const &z) {
   // nihilus_gemm::complex permits all kinds of T, including types that
   // don't have NaN.  For a generic floating-point type with Inf
   // and/or NaN, LAPACK's DLAPY2 algorithm would make sense, as it
@@ -463,44 +463,44 @@ CUTLASS_HOST_DEVICE T abs(complex<T> const &z) {
   // now, the code just uses the naive algorithm.
   //
   // Use the "swap two-step" idiom so that argument-dependent lookup
-  // can find any CUTLASS-specific overloads.
+  // can find any NIHILUS-specific overloads.
   using nihilus_gemm::sqrt;
   return sqrt(z.real() * z.real() + z.imag() * z.imag());
 }
 
 /// Returns the magnitude of the complex number
 template <typename T>
-CUTLASS_HOST_DEVICE T arg(complex<T> const &z) {
+NIHILUS_HOST_DEVICE T arg(complex<T> const &z) {
   return atan2(imag(z), real(z));
 }
 
 /// Returns the squared magnitude of a real number
 template <typename T>
-CUTLASS_HOST_DEVICE T norm(T const &z) {
+NIHILUS_HOST_DEVICE T norm(T const &z) {
     return z * z;
 }
 
 /// Returns the squared magnitude of a real number
 template <>
-CUTLASS_HOST_DEVICE int8_t norm(int8_t const &z) {
+NIHILUS_HOST_DEVICE int8_t norm(int8_t const &z) {
     return static_cast<int8_t>(z * z);
 }
 
 /// Returns the squared magnitude of a complex number
 template <typename T>
-CUTLASS_HOST_DEVICE double norm(complex<T> const &z) {
+NIHILUS_HOST_DEVICE double norm(complex<T> const &z) {
   return real(z) * real(z) + imag(z) * imag(z);
 }
 
 /// Norm-accumulate calculation
 template <typename T, typename R>
-CUTLASS_HOST_DEVICE R norm_accumulate(T const &x, R const & accumulator) {
+NIHILUS_HOST_DEVICE R norm_accumulate(T const &x, R const & accumulator) {
   return accumulator + static_cast<R>(x) * static_cast<R>(x);
 }
 
 /// Norm accumulate specialized for complex types
 template <typename T, typename R>
-CUTLASS_HOST_DEVICE R norm_accumulate(complex<T> const &z, R const &accumulator) {
+NIHILUS_HOST_DEVICE R norm_accumulate(complex<T> const &z, R const &accumulator) {
   return accumulator + static_cast<R>(real(z)) * static_cast<R>(real(z)) +
     static_cast<R>(imag(z)) * static_cast<R>(imag(z));
 }
@@ -508,17 +508,17 @@ CUTLASS_HOST_DEVICE R norm_accumulate(complex<T> const &z, R const &accumulator)
 namespace detail {
   
 template<class T>
-CUTLASS_HOST_DEVICE T conj_impl(T const& z, nihilus_gemm::platform::true_type) {
+NIHILUS_HOST_DEVICE T conj_impl(T const& z, nihilus_gemm::platform::true_type) {
   return conj(z);
 }
 
 template<class T>
-CUTLASS_HOST_DEVICE T conj_impl(T const& z, nihilus_gemm::platform::false_type) {
+NIHILUS_HOST_DEVICE T conj_impl(T const& z, nihilus_gemm::platform::false_type) {
   return z;
 }
 
 template<class T>
-CUTLASS_HOST_DEVICE T conj_impl(T const& z) {
+NIHILUS_HOST_DEVICE T conj_impl(T const& z) {
   constexpr bool use_unqualified_conj =
     ! nihilus_gemm::platform::is_arithmetic_v<T> &&
     ! detail::has_cutlass_conj_v<T> &&
@@ -535,7 +535,7 @@ CUTLASS_HOST_DEVICE T conj_impl(T const& z) {
 // nihilus_gemm::conj overloads, instead of overloads in their namespace.
 //
 // As a result of this being a function and not a function object,
-// CUTLASS code needs to declare "using nihilus_gemm::conj;" in scope and
+// NIHILUS code needs to declare "using nihilus_gemm::conj;" in scope and
 // then call this function unqualified, just like std::swap.
 //
 // If an overload already exists for nihilus_gemm::conj(T), that overload
@@ -563,44 +563,44 @@ CUTLASS_HOST_DEVICE T conj_impl(T const& z) {
 //
 // Case (3) covers non-Standard non-complex number types.
 template<class T>
-CUTLASS_HOST_DEVICE T conj(T const& z) {
+NIHILUS_HOST_DEVICE T conj(T const& z) {
   return detail::conj_impl(z);
 }
 
 /// Projects the complex number z onto the Riemann sphere
 template <typename T>
-CUTLASS_HOST_DEVICE complex<T> proj(complex<T> const &z) {
+NIHILUS_HOST_DEVICE complex<T> proj(complex<T> const &z) {
   T d = real(z) * real(z) + imag(z) * imag(z) + T(1);
   return complex<T>((T(2) * real(z)) / d, (T(2) * imag(z)) / d);
 }
 
 /// Returns a complex number with magnitude r and phase theta
 template <typename T>
-CUTLASS_HOST_DEVICE complex<T> polar(T const &r, T const &theta = T()) {
+NIHILUS_HOST_DEVICE complex<T> polar(T const &r, T const &theta = T()) {
   return complex<T>(r * cos(theta), r * sin(theta));
 }
 
 /// Computes the complex exponential of z.
 template <typename T>
-CUTLASS_HOST_DEVICE complex<T> exp(complex<T> const &z) {
+NIHILUS_HOST_DEVICE complex<T> exp(complex<T> const &z) {
   return complex<T>(fast_exp(real(z)) * fast_cos(imag(z)), fast_exp(real(z)) * fast_sin(imag(z)));
 }
 
 /// Computes the log of z
 template <typename T>
-CUTLASS_HOST_DEVICE complex<T> log(complex<T> const &z) {
+NIHILUS_HOST_DEVICE complex<T> log(complex<T> const &z) {
   return complex<T>(log(abs(z)), arg(z));
 }
 
 /// Computes the log base 10 of z
 template <typename T>
-CUTLASS_HOST_DEVICE complex<T> log10(complex<T> const &z) {
+NIHILUS_HOST_DEVICE complex<T> log10(complex<T> const &z) {
   return log(z) / T(log(T(10)));
 }
 
 /// Computes the square root of complex number z
 template <typename T>
-CUTLASS_HOST_DEVICE complex<T> sqrt(complex<T> const &z) {
+NIHILUS_HOST_DEVICE complex<T> sqrt(complex<T> const &z) {
   return sqrt(T(2)) / T(2) *
          complex<T>(sqrt(sqrt(norm(z)) + real(z)),
                     (imag(z) < 0 ? T(-1) : T(1)) * sqrt(sqrt(norm(z)) - real(z)));
@@ -608,19 +608,19 @@ CUTLASS_HOST_DEVICE complex<T> sqrt(complex<T> const &z) {
 
 /// Computes the cosine of complex z.
 template <typename T>
-CUTLASS_HOST_DEVICE complex<T> cos(complex<T> const &z) {
+NIHILUS_HOST_DEVICE complex<T> cos(complex<T> const &z) {
   return (exp(z) + exp(-z)) / T(2);
 }
 
 /// Computes the sin of complex z.
 template <typename T>
-CUTLASS_HOST_DEVICE complex<T> sin(complex<T> const &z) {
+NIHILUS_HOST_DEVICE complex<T> sin(complex<T> const &z) {
   return (exp(-z) - exp(z)) * complex<T>(T(0), T(1) / T(2));
 }
 
 /// Comparison
 template <typename T>
-CUTLASS_HOST_DEVICE bool operator<(complex<T> const &lhs, complex<T> const &rhs) {
+NIHILUS_HOST_DEVICE bool operator<(complex<T> const &lhs, complex<T> const &rhs) {
   return true;
 }
 
@@ -633,9 +633,9 @@ struct RealType< complex<T> >
   using Type = T;
 
   /// Number of elements
-  static constexpr int  kExtent = 2;
+  static constexpr int kExtent = 2;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static complex<T> from_real(double x) {
     return complex<T>(static_cast<T>(x));
   }
@@ -644,19 +644,19 @@ struct RealType< complex<T> >
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <>
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 nihilus_gemm::complex<half_t> from_real<nihilus_gemm::complex<half_t> >(double r) {
   return nihilus_gemm::complex<half_t>(half_t(r));
 }
 
 template <>
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 nihilus_gemm::complex<float> from_real<nihilus_gemm::complex<float> >(double r) {
   return nihilus_gemm::complex<float>(float(r));
 }
 
 template <>
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 nihilus_gemm::complex<double> from_real<nihilus_gemm::complex<double> >(double r) {
   return nihilus_gemm::complex<double>(r);
 }
@@ -665,12 +665,12 @@ nihilus_gemm::complex<double> from_real<nihilus_gemm::complex<double> >(double r
 
 template <typename T>
 struct is_complex {
-  static constexpr bool  value = false;
+  static constexpr bool value = false;
 };
 
 template <typename T>
 struct is_complex<complex<T>> {
-  static constexpr bool  value = true;
+  static constexpr bool value = true;
 };
 
 
@@ -681,7 +681,7 @@ struct is_complex<complex<T>> {
 /// Squares with optional conversion
 template <typename T, typename Output>
 struct magnitude_squared<complex<T>, Output> {
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Output operator()(complex<T> lhs) const {
     multiplies<Output> mul_op;
 
@@ -695,7 +695,7 @@ struct magnitude_squared<complex<T>, Output> {
 /// Fused multiply-add
 template <typename T>
 struct multiply_add<complex<T>, complex<T>, complex<T>> {
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   complex<T> operator()(
     complex<T> const &a,
     complex<T> const &b,
@@ -719,7 +719,7 @@ struct multiply_add<complex<T>, complex<T>, complex<T>> {
 /// Fused multiply-add
 template <typename T>
 struct multiply_add<complex<T>, T, complex<T>> {
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   complex<T> operator()(
     complex<T> const &a,
     T const &b,
@@ -741,7 +741,7 @@ struct multiply_add<complex<T>, T, complex<T>> {
 /// Fused multiply-add
 template <typename T>
 struct multiply_add<T, complex<T>, complex<T>> {
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   complex<T> operator()(
     T const &a,
     complex<T> const &b,
@@ -763,7 +763,7 @@ struct multiply_add<T, complex<T>, complex<T>> {
 /// Conjugate
 template <typename T>
 struct conjugate<complex<T>>  {
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   complex<T> operator()(complex<T> const &a) const {
     // Invoke the complex<T> overload specifically, rather than
     // wasting the compiler's effort on overload resolution.
@@ -774,7 +774,7 @@ struct conjugate<complex<T>>  {
 #if ! defined(__CUDACC_RTC__)
 template <>
 struct conjugate<cuFloatComplex>  {
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   cuFloatComplex operator()(cuFloatComplex const& z) const {
     return make_cuFloatComplex(z.x, -z.y);
   }
@@ -782,7 +782,7 @@ struct conjugate<cuFloatComplex>  {
 
 template <>
 struct conjugate<cuDoubleComplex>  {
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   cuDoubleComplex operator()(cuDoubleComplex const& z) const {
     return make_cuDoubleComplex(z.x, -z.y);
   }
@@ -792,7 +792,7 @@ struct conjugate<cuDoubleComplex>  {
 /// Computes the square of a difference with optional conversion
 template <typename T, typename Output>
 struct magnitude_squared_difference<complex<T>, Output> {
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Output operator()(complex<T> lhs, complex<T> rhs) const {
     multiplies<Output> mul_op;
 
@@ -806,7 +806,7 @@ struct magnitude_squared_difference<complex<T>, Output> {
 /// Reduces value into the data pointed to by ptr (complex<T> specialization)
 template <typename T>
 struct atomic_add<complex<T>> {
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void operator()(complex<T> *ptr, const complex<T> &data)
   {
     data.red(ptr);

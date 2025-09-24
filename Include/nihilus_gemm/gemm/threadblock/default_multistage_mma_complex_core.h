@@ -39,7 +39,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/complex.h"
 

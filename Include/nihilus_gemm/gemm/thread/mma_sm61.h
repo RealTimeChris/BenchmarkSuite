@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/tensor_ref.h"
 #include "nihilus_gemm/layout/matrix.h"
 #include "nihilus_gemm/gemm/gemm.h"
@@ -117,7 +117,7 @@ struct Mma<
   //
 
   /// Computes a matrix product D = A * B + C
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     FragmentC & D,
     FragmentA const & A,
@@ -134,13 +134,13 @@ struct Mma<
     ArchMmaOperator mma;
 
     // Compute matrix product
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int k = 0; k < Shape::kK / ArchMmaOperator::Shape::kK; ++k) {
 
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int n = 0; n < Shape::kN; ++n) {
 
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for (int m = 0; m < Shape::kM; ++m) {
           MatrixCoord mn(m, n);
 
@@ -232,7 +232,7 @@ struct Mma<
   //
 
   /// Computes a matrix product D = A * B + C
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     FragmentC & D,
     FragmentA const & A,
@@ -252,13 +252,13 @@ struct Mma<
     Array<int8_t, 4> const *ptr_B = reinterpret_cast<Array<int8_t, 4> const *>(&B);
 
     // Compute matrix product
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int k = 0; k < Shape::kK / ArchMmaOperator::Shape::kK; ++k) {
 
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int n = 0; n < Shape::kN; ++n) {
 
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for (int m = 0; m < Shape::kM; ++m) {
           MatrixCoord mn(m, n);
 

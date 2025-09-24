@@ -38,7 +38,7 @@
     computation lies in operator() with private member variables  {col_permute_, row_permute_ and stride_} as new addresses after permute op.
 */
 #pragma once
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include CUDA_STD_HEADER(cassert)
 #include "nihilus_gemm/fast_math.h"
 #include "nihilus_gemm/layout/pitch_linear.h"
@@ -84,19 +84,19 @@ public:
   //
 
   /// Constructor from matrix extent
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   NoPermute(MatrixCoord extent, Index stride) { };
 
   /// Constructor from pitch-linear extent
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   NoPermute(PitchLinearCoord extent, Index stride) { };
 
   /// Computes the offset after Permute Op in logical elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LongIndex operator()(MatrixCoord coord) const { return 0; } // not correct but should never be called
 
   /// Computes the offset after Permute Op in logical elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LongIndex operator()(PitchLinearCoord coord) const { return 0; } // not correct but should never be called
 };
 
@@ -138,7 +138,7 @@ public:
   //
 
   /// Constructor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Tensor4DPermute0213RowMajor(MatrixCoord extent, Index stride) {
 
     assert(extent.row() % D1 == 0);
@@ -150,12 +150,12 @@ public:
   }
 
   /// Constructor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Tensor4DPermute0213RowMajor(PitchLinearCoord extent, Index stride)
   : Tensor4DPermute0213RowMajor(MatrixCoord(extent.strided(), extent.contiguous()), stride) {}
   
   /// Computes the offset after Permute Op in logical elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LongIndex operator()(MatrixCoord coord) const {
 
     // [i,j,k,l] -> [i,k,j,l]
@@ -170,7 +170,7 @@ public:
   }
 
   /// Computes the offset after Permute Op in logical elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LongIndex operator()(PitchLinearCoord coord) const { 
     return operator()(MatrixCoord(coord.strided(), coord.contiguous()));
   }
@@ -213,7 +213,7 @@ public:
   //
 
   /// Constructor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Tensor4DPermute0213ColumnMajor(MatrixCoord extent, Index stride) {
 
     assert(extent.row() % D1 == 0);
@@ -225,12 +225,12 @@ public:
   }
 
   /// Constructor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Tensor4DPermute0213ColumnMajor(PitchLinearCoord extent, Index stride)
   : Tensor4DPermute0213ColumnMajor(MatrixCoord(extent.contiguous(), extent.strided()), stride) {}
   
   /// Computes the offset after Permute Op in logical elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LongIndex operator()(MatrixCoord coord) const {
 
     // [i,j,k,l] -> [i,k,j,l]
@@ -245,7 +245,7 @@ public:
   }
 
   /// Computes the offset after Permute Op in logical elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LongIndex operator()(PitchLinearCoord coord) const { 
     return operator()(MatrixCoord(coord.contiguous(), coord.strided()));
   }
@@ -294,7 +294,7 @@ public:
   //
 
   /// Constructor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Tensor4DPermuteBMM0213RowMajor(MatrixCoord extent, Index stride) {
 
     Index D2 = extent.row();
@@ -305,12 +305,12 @@ public:
   }
 
   /// Constructor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Tensor4DPermuteBMM0213RowMajor(PitchLinearCoord extent, Index stride)
   : Tensor4DPermuteBMM0213RowMajor(MatrixCoord(extent.strided(), extent.contiguous()), stride) {}
   
   /// Computes the offset after Permute Op in logical elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LongIndex operator()(MatrixCoord coord) const {
 
     // The batch index for BMM
@@ -329,7 +329,7 @@ public:
   }
 
   /// Computes the offset after Permute Op in logical elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LongIndex operator()(PitchLinearCoord coord) const { 
     return operator()(MatrixCoord(coord.strided(), coord.contiguous()));
   }
@@ -354,7 +354,7 @@ public:
   //
 
   /// Constructor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Tensor4DPermuteBMM0213RowMajorInverse(MatrixCoord extent, Index stride) {
 
     assert(extent.column() % D1 == 0);
@@ -368,12 +368,12 @@ public:
   }
 
   /// Constructor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Tensor4DPermuteBMM0213RowMajorInverse(PitchLinearCoord extent, Index stride)
   : Tensor4DPermuteBMM0213RowMajorInverse(MatrixCoord(extent.strided(), extent.contiguous()), stride) {}
   
   /// Computes the offset after Permute Op in logical elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LongIndex operator()(MatrixCoord coord) const {
 
     // The batch index for BMM
@@ -393,7 +393,7 @@ public:
   }
 
   /// Computes the offset after Permute Op in logical elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LongIndex operator()(PitchLinearCoord coord) const { 
     return operator()(MatrixCoord(coord.strided(), coord.contiguous()));
   }
@@ -430,7 +430,7 @@ public:
   //
 
   /// Constructor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Tensor4DPermuteBMM0321ColumnMajor(MatrixCoord extent, Index stride) {
 
     D2_ = extent.row();
@@ -441,12 +441,12 @@ public:
   }
 
   /// Constructor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Tensor4DPermuteBMM0321ColumnMajor(PitchLinearCoord extent, Index stride)
   : Tensor4DPermuteBMM0321ColumnMajor(MatrixCoord(extent.contiguous(), extent.strided()), stride) {}
   
   /// Computes the offset after Permute Op in logical elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LongIndex operator()(MatrixCoord coord) const {
 
     Index BMM_batch_idx = blockIdx.z;
@@ -464,7 +464,7 @@ public:
   }
 
   /// Computes the offset after Permute Op in logical elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LongIndex operator()(PitchLinearCoord coord) const { 
     return operator()(MatrixCoord(coord.contiguous(), coord.strided()));
   }
@@ -489,7 +489,7 @@ public:
   //
 
   /// Constructor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Tensor4DPermuteBMM0321ColumnMajorInverse(MatrixCoord extent, Index stride) {
 
     assert(extent.row() % D1 == 0);
@@ -502,12 +502,12 @@ public:
   }
 
   /// Constructor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Tensor4DPermuteBMM0321ColumnMajorInverse(PitchLinearCoord extent, Index stride)
   : Tensor4DPermuteBMM0321ColumnMajorInverse(MatrixCoord(extent.contiguous(), extent.strided()), stride) {}
   
   /// Computes the offset after Permute Op in logical elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LongIndex operator()(MatrixCoord coord) const {
 
     Index BMM_batch_idx = blockIdx.z;
@@ -525,7 +525,7 @@ public:
   }
 
   /// Computes the offset after Permute Op in logical elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LongIndex operator()(PitchLinearCoord coord) const { 
     return operator()(MatrixCoord(coord.contiguous(), coord.strided()));
   }
@@ -566,7 +566,7 @@ public:
   //
 
   /// Constructor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Tensor5DPermute20314RowMajor(MatrixCoord extent, Index stride) {
 
     assert(extent.row() % T1 == 0);
@@ -580,13 +580,13 @@ public:
   }
 
   /// Constructor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Tensor5DPermute20314RowMajor(PitchLinearCoord extent, Index stride)
   : Tensor5DPermute20314RowMajor(MatrixCoord(extent.strided(), extent.contiguous()), stride) {}
   
   
   /// Computes the offset after Permute Op in logical elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LongIndex operator()(MatrixCoord coord) const {
 
     // Permute as torch.permute(X1, [2, 0, 3, 1, 4]) -> 5D Tensor indices as [i,j,k,l,m], the dimension of X 
@@ -604,7 +604,7 @@ public:
   }
 
   /// Computes the offset after Permute Op in logical elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LongIndex operator()(PitchLinearCoord coord) const { 
     return operator()(MatrixCoord(coord.strided(), coord.contiguous()));
   }
@@ -631,7 +631,7 @@ public:
   //
 
   /// Constructor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Tensor5DPermute20314RowMajorInverse(MatrixCoord extent, Index stride) {
 
     assert(extent.row() % T2 == 0);
@@ -644,12 +644,12 @@ public:
   }
 
   /// Constructor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Tensor5DPermute20314RowMajorInverse(PitchLinearCoord extent, Index stride)
   : Tensor5DPermute20314RowMajorInverse(MatrixCoord(extent.strided(), extent.contiguous()), stride) {}
 
   /// Computes the offset after the inverse of permute operation in logical elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LongIndex operator()(MatrixCoord coord) const {
 
     Index m = coord.column() % T4_;
@@ -664,7 +664,7 @@ public:
   }
 
   /// Computes the offset after Permute Op in logical elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LongIndex operator()(PitchLinearCoord coord) const { 
     return operator()(MatrixCoord(coord.strided(), coord.contiguous()));
   }
@@ -705,7 +705,7 @@ public:
   //
 
   /// Constructor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Tensor5DPermute02413ColumnMajor(MatrixCoord extent, Index stride) {
 
     assert(extent.row() % T1 == 0);
@@ -719,12 +719,12 @@ public:
   }
 
   /// Constructor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Tensor5DPermute02413ColumnMajor(PitchLinearCoord extent, Index stride)
   : Tensor5DPermute02413ColumnMajor(MatrixCoord(extent.contiguous(), extent.strided()), stride) {}
   
   /// Computes the offset after Permute Op in logical elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LongIndex operator()(MatrixCoord coord) const {
 
     // Permute as torch.permute(X1, [2, 0, 3, 1, 4]) -> 5D Tensor indices as [i,j,k,l,m], the dimension of X 
@@ -742,7 +742,7 @@ public:
   }
 
   /// Computes the offset after Permute Op in logical elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LongIndex operator()(PitchLinearCoord coord) const { 
     return operator()(MatrixCoord(coord.contiguous(), coord.strided()));
   }
@@ -769,7 +769,7 @@ public:
   //
 
   /// Constructor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Tensor5DPermute02413ColumnMajorInverse(MatrixCoord extent, Index stride) {
 
     assert(extent.row() % T2 == 0);
@@ -782,12 +782,12 @@ public:
   }
 
   /// Constructor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Tensor5DPermute02413ColumnMajorInverse(PitchLinearCoord extent, Index stride)
   : Tensor5DPermute02413ColumnMajorInverse(MatrixCoord(extent.contiguous(), extent.strided()), stride) {}
 
   /// Computes the offset after the inverse of permute operation in logical elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LongIndex operator()(MatrixCoord coord) const {
 
     Index m = coord.column() % T4_;
@@ -802,7 +802,7 @@ public:
   }
 
   /// Computes the offset after Permute Op in logical elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LongIndex operator()(PitchLinearCoord coord) const { 
     return operator()(MatrixCoord(coord.contiguous(), coord.strided()));
   }

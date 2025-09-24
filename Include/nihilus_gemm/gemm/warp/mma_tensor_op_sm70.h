@@ -37,7 +37,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/array.h"
 
 #include "nihilus_gemm/numeric_types.h"
@@ -110,7 +110,7 @@ public:
   using OperatorClass = arch::OpClassTensorOp;
 
   /// Architecture tag
-  using ArchTag = arch::Sm70;
+  using ArchTag = arch::Sm120;
 
   /// Underlying matrix multiply operator (concept: arch::Mma)
   using ArchMmaOperator = typename Policy::Operator;
@@ -122,13 +122,13 @@ public:
   using InstructionShape = typename ArchMmaOperator::Shape;
 
   /// Complex transform on A operand
-  static constexpr ComplexTransform  kTransformA = ComplexTransform::kNone;
+  static constexpr ComplexTransform kTransformA = ComplexTransform::kNone;
 
   /// Complex transform on B operand
-  static constexpr ComplexTransform  kTransformB = ComplexTransform::kNone;
+  static constexpr ComplexTransform kTransformB = ComplexTransform::kNone;
 
   /// Number of threads participating in warp-level matrix product
-  static constexpr int  kThreadCount = 32;
+  static constexpr int kThreadCount = 32;
 
   /// interleaved 32x32 tiles
   using InterleavedTileShape = GemmShape<32, 32, 4>;
@@ -216,11 +216,11 @@ public:
   //
   
   /// Ctor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaVoltaTensorOp() {}
 
   /// Performs a warp-level matrix multiply-accumulate operation
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void operator()(
     FragmentC &D, 
     FragmentA const &A, 
@@ -237,13 +237,13 @@ public:
     MmaOperandB const *ptr_B = reinterpret_cast<MmaOperandB const *>(&B);
     MmaOperandC *ptr_D = reinterpret_cast<MmaOperandC *>(&D);
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int outer_col = 0; outer_col < TileIterations::kColumn; ++outer_col) {
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int inner_col = 0; inner_col < MmaIterations::kColumn; ++inner_col) {
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for (int outer_row = 0; outer_row < TileIterations::kRow; ++outer_row) {
-          CUTLASS_PRAGMA_UNROLL
+          NIHILUS_PRAGMA_UNROLL
 
           for (int inner_row = 0; inner_row < MmaIterations::kRow; ++inner_row) {
       

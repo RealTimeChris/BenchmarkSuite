@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/array.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -65,7 +65,7 @@ public:
 
 public:
   /// Sets the array to zero efficiently
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void clear() {
     real.clear();
     imag.clear();
@@ -76,7 +76,7 @@ public:
 
 /// Helper to deduce template arguments
 template <typename Element, int N>
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 ArrayPlanarComplex<Element, N> 
 make_ArrayPlanarComplex(Array<Element, N> const &real, Array<Element, N> const &imag) {
   return ArrayPlanarComplex<Element, N>{real, imag};

@@ -45,7 +45,7 @@
 
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/coord.h"
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/layout/matrix.h"
 #include "nihilus_gemm/layout/pitch_linear.h"
 #include "nihilus_gemm/matrix_shape.h"
@@ -87,7 +87,7 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::PitchLi
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::PitchLinear;
-  static constexpr int  kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
   using AccessType = AccessType_;
 
@@ -102,14 +102,14 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::PitchLi
   using Pointer = Element *;
   using NonConstPointer = typename platform::remove_const<Element>::type *;
 
-  static constexpr int  kPredicatesPerByte = 4;
-  static constexpr int  kPredicatesPerWord = 4 * kPredicatesPerByte;
+  static constexpr int kPredicatesPerByte = 4;
+  static constexpr int kPredicatesPerWord = 4 * kPredicatesPerByte;
 
   /// Number of 32b words containing predicates
-  static constexpr int  kPredicateByteCount = (ThreadMap::Iterations::kCount * ThreadMap::ThreadAccessShape::kStrided + kPredicatesPerByte - 1) / kPredicatesPerByte;
-  static constexpr int  kPredicateWordCount = (kPredicateByteCount + 3) / 4;
+  static constexpr int kPredicateByteCount = (ThreadMap::Iterations::kCount * ThreadMap::ThreadAccessShape::kStrided + kPredicatesPerByte - 1) / kPredicatesPerByte;
+  static constexpr int kPredicateWordCount = (kPredicateByteCount + 3) / 4;
 
-  static constexpr unsigned  kPredicateMask = (1u << kPredicatesPerByte) - 1u;
+  static constexpr unsigned kPredicateMask = (1u << kPredicatesPerByte) - 1u;
 
   static_assert(kPredicateWordCount <= 4, "Too many predicates.");
 
@@ -125,17 +125,17 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::PitchLi
     using Base = PredicatedTileAccessIteratorParams;
 
     // Default ctor
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params() { }
 
     /// Construct the Params object given a pitch-linear tensor's layout
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params(Layout const &layout) : 
       Base(layout.stride(0),
             MakePredicatedTileAccessIteratorDesc<Shape, Element, Layout, kAdvanceRank, ThreadMap>()()
         ) { }
 
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params(Base const &base) : 
       Base(base) { }
   };
@@ -182,21 +182,21 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::PitchLi
 
  private:
   /// Computes predicates based on internally tracked per-thread offset.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void compute_predicates_(
       /// optionally, simplify predicate calculation during 'steady state' phase
       bool is_steady_state = false) {
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < kPredicateWordCount; ++i) {
       predicates_[i] = 0u;
     }
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for (int ts = 0; ts < ThreadMap::ThreadAccessShape::kStrided; ts++) {
 
           TensorCoord iteration_coord(c * ThreadMap::Delta::kContiguous,
@@ -234,7 +234,7 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::PitchLi
  public:
   /// Constructs a TileIterator from its precomputed state, threadblock offset,
   /// and thread ID
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   PredicatedTileAccessIterator2dThreadTile(
       /// Precomputed parameters object
       Params const &params,
@@ -280,7 +280,7 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::PitchLi
   }
 
   /// Construct a PredicatedTileAccessIterator2dThreadTile with zero threadblock offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   PredicatedTileAccessIterator2dThreadTile(
       /// Precomputed parameters object
       Params const &params,
@@ -294,7 +294,7 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::PitchLi
                                      make_Coord(0, 0)) {}
 
   /// Overrides the internal iteration index
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void set_iteration_index(int index) {
 
     int residual = index % (ThreadMap::Iterations::kContiguous * ThreadMap::ThreadAccessShape::kStrided);
@@ -306,13 +306,13 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::PitchLi
   }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     pointer_ += int(sizeof(Element)) * pointer_offset;
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole tiles
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void add_tile_offset(
       TensorCoord const &tile_offset) {
     if (is_residue_tile_) {
@@ -349,7 +349,7 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::PitchLi
     is_residue_tile_ = false;
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   AccessType *get() const {
 
     AccessType *ret_val = reinterpret_cast<AccessType *>(
@@ -359,7 +359,7 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::PitchLi
   }
 
   /// Increment and return an instance to self.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   PredicatedTileAccessIterator2dThreadTile &operator++() {
 
     iteration_thread_++;
@@ -400,7 +400,7 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::PitchLi
   }
 
   /// Increment and return an instance to self.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   PredicatedTileAccessIterator2dThreadTile operator++(int) {
     PredicatedTileAccessIterator2dThreadTile self(*this);
     operator++();
@@ -408,9 +408,9 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::PitchLi
   }
 
   /// Clears the predicate set efficiently
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void clear_mask(bool enable = true) {
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < kPredicateWordCount; ++i) {
       predicates_[i] = enable ? 0u : predicates_[i];
     }
@@ -418,18 +418,18 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::PitchLi
   }
 
   /// Clears the predicate set efficiently
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void enable_mask() {
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < kPredicateWordCount; ++i) {
       predicates_[i] = 0xffffffff;
     }
   }
 
   /// Sets the predicate mask, overriding value stored in predicate iterator
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void set_mask(Mask const &mask) { 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < kPredicateWordCount; ++i) {
       predicates_[i] = mask[i];
     }
@@ -437,16 +437,16 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::PitchLi
   }
 
   /// Gets the mask
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void get_mask(Mask &mask) {
-     CUTLASS_PRAGMA_UNROLL
+     NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < kPredicateWordCount; ++i) {
       mask[i] = predicates_[i];
     }
   }
 
   /// Returns whether access is valid or not
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   bool valid() {
 
     int pred_idx = 
@@ -487,7 +487,7 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::ColumnM
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::ColumnMajor;
-  static constexpr int  kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
   using AccessType = AccessType_;
 
@@ -519,16 +519,16 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::ColumnM
    public:
 
     /// Default ctor
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params() { }
 
     /// Construct the Params object given a pitch-linear tensor's layout
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params(Layout const &layout)
         : params_(layout::PitchLinear(layout.stride(0))){}
 
     /// Construct the Params object given a pitch-linear tensor's layout
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params(typename UnderlyingIterator::Params::Base const &base) 
         : params_(base) {}
   };
@@ -544,7 +544,7 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::ColumnM
  public:
   /// Constructs a TileIterator from its precomputed state, threadblock offset,
   /// and thread ID
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   PredicatedTileAccessIterator2dThreadTile(
       ///< Precomputed parameters object
       Params const &params,
@@ -563,7 +563,7 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::ColumnM
                                            threadblock_offset.column())) {}
 
   /// Construct a PredicatedTileAccessIterator2dThreadTile with zero threadblock offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   PredicatedTileAccessIterator2dThreadTile(
       Params const &params,  ///< Precomputed parameters object
       Pointer pointer,       ///< Pointer to start of tensor
@@ -574,24 +574,24 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::ColumnM
                                      make_Coord(0, 0)) {}
 
   /// Overrides the internal iteration index
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void set_iteration_index(int index) { iterator_.set_iteration_index(index); }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     iterator_.add_pointer_offset(pointer_offset);
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole
   /// tiles
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void add_tile_offset(TensorCoord const &tile_offset) {
     iterator_.add_tile_offset({tile_offset.row(), tile_offset.column()});
   }
 
   /// Returns a pointer
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   AccessType *get() const {
     return reinterpret_cast<AccessType *>(iterator_.get());
   }
@@ -602,7 +602,7 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::ColumnM
   /// iterator's internal pointer is reverted to the first "steady state" tile.
   /// Subsequent calls are lightweight and must only update the internal
   /// pointer.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   PredicatedTileAccessIterator2dThreadTile &operator++() {
     ++iterator_;
     return *this;
@@ -614,7 +614,7 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::ColumnM
   /// iterator's internal pointer is reverted to the first "steady state" tile.
   /// Subsequent calls are lightweight and must only update the internal
   /// pointer.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   PredicatedTileAccessIterator2dThreadTile operator++(int) {
     PredicatedTileAccessIterator2dThreadTile self(*this);
     operator++();
@@ -622,23 +622,23 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::ColumnM
   }
 
   /// Clears the predicate set efficiently
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void clear_mask(bool enable = true) { iterator_.clear_mask(enable); }
 
   /// Clears the predicate set efficiently
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void enable_mask() { iterator_.enable_mask(); }
 
   /// Sets the predicate mask, overriding value stored in predicate iterator
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void set_mask(Mask const &mask) { iterator_.set_mask(mask); }
 
   /// Gets the mask
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void get_mask(Mask &mask) { iterator_.get_mask(mask); }
 
   /// Returns whether access is valid or not
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   bool valid() {
     return iterator_.valid();
   }
@@ -666,7 +666,7 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::RowMajo
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::RowMajor;
-  static constexpr int  kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
   using AccessType = AccessType_;
 
@@ -698,16 +698,16 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::RowMajo
    public:
 
     /// Default ctor
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params() { }
 
     /// Construct the Params object given a pitch-linear tensor's layout
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params(Layout const &layout)
         : params_(layout::PitchLinear(layout.stride(0))){}
 
     /// Construct the Params object given a pitch-linear tensor's layout
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params(typename UnderlyingIterator::Params::Base const &base) 
         : params_(base) {}
   };
@@ -723,7 +723,7 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::RowMajo
  public:
   /// Constructs a TileIterator from its precomputed state, threadblock offset,
   /// and thread ID
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   PredicatedTileAccessIterator2dThreadTile(
       ///< Precomputed parameters object
       Params const &params,
@@ -742,7 +742,7 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::RowMajo
                                            threadblock_offset.row())) {}
 
   /// Construct a PredicatedTileAccessIterator2dThreadTile with zero threadblock offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   PredicatedTileAccessIterator2dThreadTile(
       Params const &params,  ///< Precomputed parameters object
       Pointer pointer,       ///< Pointer to start of tensor
@@ -753,24 +753,24 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::RowMajo
                                      make_Coord(0, 0)) {}
 
   /// Overrides the internal iteration index
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void set_iteration_index(int index) { iterator_.set_iteration_index(index); }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     iterator_.add_pointer_offset(pointer_offset);
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole
   /// tiles
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void add_tile_offset(TensorCoord const &tile_offset) {
     iterator_.add_tile_offset({tile_offset.column(), tile_offset.row()});
   }
 
   /// Returns a pointer
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   AccessType *get() const {
     return reinterpret_cast<AccessType *>(iterator_.get());
   }
@@ -781,7 +781,7 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::RowMajo
   /// iterator's internal pointer is reverted to the first "steady state" tile.
   /// Subsequent calls are lightweight and must only update the internal
   /// pointer.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   PredicatedTileAccessIterator2dThreadTile &operator++() {
     ++iterator_;
     return *this;
@@ -793,7 +793,7 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::RowMajo
   /// iterator's internal pointer is reverted to the first "steady state" tile.
   /// Subsequent calls are lightweight and must only update the internal
   /// pointer.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   PredicatedTileAccessIterator2dThreadTile operator++(int) {
     PredicatedTileAccessIterator2dThreadTile self(*this);
     operator++();
@@ -801,23 +801,23 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::RowMajo
   }
 
   /// Clears the predicate set efficiently
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void clear_mask(bool enable = true) { iterator_.clear_mask(enable); }
 
   /// Clears the predicate set efficiently
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void enable_mask() { iterator_.enable_mask(); }
 
   /// Sets the predicate mask, overriding value stored in predicate iterator
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void set_mask(Mask const &mask) { iterator_.set_mask(mask); }
 
   /// Gets the mask
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void get_mask(Mask &mask) { iterator_.get_mask(mask); }
 
   /// Returns whether access is valid or not
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   bool valid() {
     return iterator_.valid();
   }

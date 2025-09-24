@@ -33,12 +33,12 @@
 */
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/coord.h"
 #include "nihilus_gemm/gemm_coord.h"
 #include "nihilus_gemm/layout/matrix.h"
 #include "nihilus_gemm/gemm/gemm_enumerated_types.h"
-#include "cute_rt_tm/layout.hpp"
+#include "nihilus_cute/layout.hpp"
 #include "nihilus_gemm/detail/layout.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -120,13 +120,13 @@ is_k_major_B() {
 ///////////////////////////////////////////////////////////////////////////////
 
 // The following two metafunctions are used to detect whether a `kernel::Gemm` or `kernel::GemmUniversal`
-// is implementing the CUTLASS 3.x API or not, by checking if the problem shape type is aliased within or not.
+// is implementing the NIHILUS 3.x API or not, by checking if the problem shape type is aliased within or not.
 template <class GemmKernel, class = void>
-struct IsCutlass3GemmKernel : cute_rt_tm::false_type { };
+struct IsCutlass3GemmKernel : nihilus_cute::false_type { };
 
 template <typename GemmKernel>
-struct IsCutlass3GemmKernel<GemmKernel, cute_rt_tm::void_t<typename GemmKernel::ProblemShape>>
-    : cute_rt_tm::true_type { };
+struct IsCutlass3GemmKernel<GemmKernel, nihilus_cute::void_t<typename GemmKernel::ProblemShape>>
+    : nihilus_cute::true_type { };
 
 ///////////////////////////////////////////////////////////////////////////////
 
