@@ -35,7 +35,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/complex.h"
 #include "nihilus_gemm/arch/memory.h"
 #include "nihilus_gemm/arch/memory_sm75.h"
@@ -112,7 +112,7 @@ template <
 struct cp_async<SizeInBytes, CacheOperation::Always> {
 
   /// Copy
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   cp_async(void *smem_ptr, void const *global_ptr, bool pred_guard = true) {
     #if CUDA_CP_ASYNC_ACTIVATED
 
@@ -126,7 +126,7 @@ struct cp_async<SizeInBytes, CacheOperation::Always> {
           "{\n"
           "  .reg .pred p;\n"
           "  setp.ne.b32 p, %0, 0;\n"
-#if CUTLASS_ENABLE_L2_PREFETCH
+#if NIHILUS_ENABLE_L2_PREFETCH
           "  @p cp.async.ca.shared.global.L2::128B [%1], [%2], %3;\n"
 #else
           "  @p cp.async.ca.shared.global [%1], [%2], %3;\n"
@@ -151,7 +151,7 @@ template <
 struct cp_async_zfill<SizeInBytes, CacheOperation::Always> {
 
   /// Copy with zero fill
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   cp_async_zfill(void *smem_ptr, void const *global_ptr, bool pred_guard) {
     #if CUDA_CP_ASYNC_ACTIVATED
 
@@ -163,7 +163,7 @@ struct cp_async_zfill<SizeInBytes, CacheOperation::Always> {
       int src_in_bytes = (pred_guard ? SizeInBytes : 0);
 
       asm volatile(
-#if CUTLASS_ENABLE_L2_PREFETCH
+#if NIHILUS_ENABLE_L2_PREFETCH
         "cp.async.ca.shared.global.L2::128B [%0], [%1], %2, %3;\n" ::"r"(smem_int_ptr),
 #else
         "cp.async.ca.shared.global [%0], [%1], %2, %3;\n" ::"r"(smem_int_ptr),
@@ -188,10 +188,10 @@ struct cp_async_zfill<SizeInBytes, CacheOperation::Always> {
 /// Partial specialization
 template <>
 struct cp_async_nan<16, CacheOperation::Always> {
-  static constexpr int  kSizeInBytes = 16;
+  static constexpr int kSizeInBytes = 16;
 
   /// Copy with nan fill
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   cp_async_nan(void *smem_ptr, void const *global_ptr, bool pred_guard) {
     #if CUDA_CP_ASYNC_ACTIVATED
 
@@ -204,7 +204,7 @@ struct cp_async_nan<16, CacheOperation::Always> {
           "{\n"
           "  .reg .pred p;\n"
           "  setp.ne.b32 p, %0, 0;\n"
-#if CUTLASS_ENABLE_L2_PREFETCH
+#if NIHILUS_ENABLE_L2_PREFETCH
           "  @p cp.async.ca.shared.global.L2::128B [%1], [%2], %3;\n"
 #else
           "  @p cp.async.ca.shared.global [%1], [%2], %3;\n"
@@ -218,10 +218,10 @@ struct cp_async_nan<16, CacheOperation::Always> {
 
     #else
 
-      CUTLASS_UNUSED(smem_ptr);
-      CUTLASS_UNUSED(global_ptr);
-      CUTLASS_UNUSED(pred_guard);
-      CUTLASS_NOT_IMPLEMENTED();
+      NIHILUS_UNUSED(smem_ptr);
+      NIHILUS_UNUSED(global_ptr);
+      NIHILUS_UNUSED(pred_guard);
+      NIHILUS_NOT_IMPLEMENTED();
 
     #endif
   }
@@ -232,7 +232,7 @@ template<typename Element_>
 struct cp_async_diag <Element_, false> {
   using Element = Element_;
 
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   cp_async_diag(void *smem_ptr) {
     #if CUDA_CP_ASYNC_ACTIVATED
 
@@ -261,14 +261,14 @@ struct cp_async_diag <Element_, false> {
                       : :
                       "r"(smem_int_ptr), "r"(DIAG_DATA_FLOAT_ONE.x));
       } else {
-        CUTLASS_UNUSED(smem_int_ptr);
-        CUTLASS_NOT_IMPLEMENTED();
+        NIHILUS_UNUSED(smem_int_ptr);
+        NIHILUS_NOT_IMPLEMENTED();
       }
       
     #else
 
-      CUTLASS_UNUSED(smem_ptr);
-      CUTLASS_NOT_IMPLEMENTED();
+      NIHILUS_UNUSED(smem_ptr);
+      NIHILUS_NOT_IMPLEMENTED();
 
     #endif
   }
@@ -279,7 +279,7 @@ template<typename Element_>
 struct cp_async_diag <Element_, true> {
   using Element = Element_;
 
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   cp_async_diag(void *smem_ptr) {
     #if CUDA_CP_ASYNC_ACTIVATED
 
@@ -297,14 +297,14 @@ struct cp_async_diag <Element_, true> {
                       : :
                       "r"(smem_int_ptr), "r"(DIAG_DATA_ZERO.x));
       } else {
-        CUTLASS_UNUSED(smem_int_ptr);
-        CUTLASS_NOT_IMPLEMENTED();
+        NIHILUS_UNUSED(smem_int_ptr);
+        NIHILUS_NOT_IMPLEMENTED();
       }
       
     #else
 
-      CUTLASS_UNUSED(smem_ptr);
-      CUTLASS_NOT_IMPLEMENTED();
+      NIHILUS_UNUSED(smem_ptr);
+      NIHILUS_NOT_IMPLEMENTED();
 
     #endif
   }
@@ -319,7 +319,7 @@ template <
 struct cp_async<SizeInBytes, CacheOperation::Global> {
 
   /// Copy
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   cp_async(void *smem_ptr, void const *global_ptr, bool pred_guard = true) {
     #if CUDA_CP_ASYNC_ACTIVATED
 
@@ -333,7 +333,7 @@ struct cp_async<SizeInBytes, CacheOperation::Global> {
           "{\n"
           "  .reg .pred p;\n"
           "  setp.ne.b32 p, %0, 0;\n"
-#if CUTLASS_ENABLE_L2_PREFETCH
+#if NIHILUS_ENABLE_L2_PREFETCH
           "  @p cp.async.cg.shared.global.L2::128B [%1], [%2], %3;\n"
 #else
           "  @p cp.async.cg.shared.global [%1], [%2], %3;\n"
@@ -358,7 +358,7 @@ template <
 struct cp_async_zfill<SizeInBytes, CacheOperation::Global> {
 
   /// Copy with zero fill
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   cp_async_zfill(void *smem_ptr, void const *global_ptr, bool pred_guard = true) {
     #if CUDA_CP_ASYNC_ACTIVATED
 
@@ -370,7 +370,7 @@ struct cp_async_zfill<SizeInBytes, CacheOperation::Global> {
       nihilus_gemm::arch::synclog_emit_cp_async_zfill(__LINE__, smem_int_ptr, global_ptr, pred_guard, SizeInBytes);
 
       asm volatile(
-#if CUTLASS_ENABLE_L2_PREFETCH
+#if NIHILUS_ENABLE_L2_PREFETCH
         "cp.async.cg.shared.global.L2::128B [%0], [%1], %2, %3;\n" ::"r"(smem_int_ptr),
 #else
         "cp.async.cg.shared.global [%0], [%1], %2, %3;\n" ::"r"(smem_int_ptr),
@@ -395,10 +395,10 @@ struct cp_async_zfill<SizeInBytes, CacheOperation::Global> {
 /// Partial specialization
 template <>
 struct cp_async_nan<16, CacheOperation::Global> {
-  static constexpr int  kSizeInBytes = 16;
+  static constexpr int kSizeInBytes = 16;
 
   /// Copy with nan fill
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   cp_async_nan(void *smem_ptr, void const *global_ptr, bool pred_guard) {
     #if CUDA_CP_ASYNC_ACTIVATED
 
@@ -412,7 +412,7 @@ struct cp_async_nan<16, CacheOperation::Global> {
           "{\n"
           "  .reg .pred p;\n"
           "  setp.ne.b32 p, %0, 0;\n"
-#if CUTLASS_ENABLE_L2_PREFETCH
+#if NIHILUS_ENABLE_L2_PREFETCH
           "  @p cp.async.cg.shared.global.L2::128B [%1], [%2], %3;\n"
 #else
           "  @p cp.async.cg.shared.global [%1], [%2], %3;\n"
@@ -426,10 +426,10 @@ struct cp_async_nan<16, CacheOperation::Global> {
 
     #else
 
-      CUTLASS_UNUSED(smem_ptr);
-      CUTLASS_UNUSED(global_ptr);
-      CUTLASS_UNUSED(pred_guard);
-      CUTLASS_NOT_IMPLEMENTED();
+      NIHILUS_UNUSED(smem_ptr);
+      NIHILUS_UNUSED(global_ptr);
+      NIHILUS_UNUSED(pred_guard);
+      NIHILUS_NOT_IMPLEMENTED();
 
     #endif
   }
@@ -437,7 +437,7 @@ struct cp_async_nan<16, CacheOperation::Global> {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Establishes an ordering w.r.t previously issued cp.async instructions. Does not block.
-CUTLASS_DEVICE
+NIHILUS_DEVICE
 void cp_async_fence() {
   #if CUDA_CP_ASYNC_ACTIVATED
   asm volatile("cp.async.commit_group;\n" ::);
@@ -449,7 +449,7 @@ void cp_async_fence() {
 
 /// Blocks until all but <N> previous cp.async.commit_group operations have committed.
 template <int N>
-CUTLASS_DEVICE void cp_async_wait() {
+NIHILUS_DEVICE void cp_async_wait() {
   #if CUDA_CP_ASYNC_ACTIVATED
   asm volatile("cp.async.wait_group %0;\n" ::"n"(N));
   nihilus_gemm::arch::synclog_emit_cp_async_wait(__LINE__, N);
@@ -458,7 +458,7 @@ CUTLASS_DEVICE void cp_async_wait() {
 
 /// Blocks until all previous cp.async.commit_group operations have committed.
 template <>
-CUTLASS_DEVICE void cp_async_wait<0>() {
+NIHILUS_DEVICE void cp_async_wait<0>() {
   #if CUDA_CP_ASYNC_ACTIVATED
   asm volatile("cp.async.wait_all;\n" ::);
   nihilus_gemm::arch::synclog_emit_cp_async_wait_all(__LINE__);

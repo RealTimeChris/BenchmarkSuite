@@ -35,7 +35,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/numeric_conversion.h"
 #include "nihilus_gemm/constants.h"
@@ -69,7 +69,7 @@ template <typename T>
 struct Identity {
   static constexpr bool kIsHeavy = false;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T value) const {
     return value;
   }
@@ -77,7 +77,7 @@ struct Identity {
 
 template <typename T, int N>
 struct Identity<Array<T, N> > {
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> value) const {
     return value;
   }
@@ -91,13 +91,13 @@ struct Scale {
     T scale = T(1);
   };
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T value, T scale) const {
     multiplies<T> mul;
     return mul(scale, value);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T value, Arguments args = Arguments()) const {
     return this->operator()(value, args.scale);
   }
@@ -107,13 +107,13 @@ template <typename T, int N>
 struct Scale<Array<T, N>> {
   using Arguments = typename Scale<T>::Arguments;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> values, T scale) const {
     multiplies<Array<T, N>> mul;
     return mul(scale, values);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> values, Arguments args = Arguments()) const {
     return this->operator()(values, args.scale);
   }
@@ -127,14 +127,14 @@ struct Scale<Activation<T>> {
 
   static constexpr bool kIsHeavy = Activation<T>::kIsHeavy;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T value, typename Arguments::scale_type scale) const {
     multiplies<T> mul;
     Activation<T> act;
     return mul(scale, act(value));
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T value, Arguments args = Arguments()) const {
     return this->operator()(value, args.scale);
   }
@@ -145,7 +145,7 @@ template <typename T>
 struct ReLu {
   static constexpr bool kIsHeavy = false;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T threshold, T value) const {
     constexpr bool PropagateNaN = true;
     maximum<T, PropagateNaN> mx;
@@ -153,7 +153,7 @@ struct ReLu {
     return mx(value, threshold);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T value) const {
     constexpr bool PropagateNaN = true;
     maximum<T, PropagateNaN> mx;
@@ -169,7 +169,7 @@ template <typename T, int N>
 struct ReLu<Array<T, N>> {
   static constexpr bool kIsHeavy = false;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T, N> operator()(T const & threshold, Array<T, N> const &frag) const {
     constexpr bool PropagateNaN = true;
     maximum<Array<T, N>, PropagateNaN> mx;
@@ -177,7 +177,7 @@ struct ReLu<Array<T, N>> {
     return mx(frag, threshold);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &frag) const {
     constexpr bool PropagateNaN = true;
     maximum<Array<T, N>, PropagateNaN> mx;
@@ -189,11 +189,11 @@ struct ReLu<Array<T, N>> {
 template <typename T>
 struct Clamp {
   struct Arguments {
-    T lower_bound = CUTLASS_STL_NAMESPACE::numeric_limits<T>::lowest();
-    T upper_bound = CUTLASS_STL_NAMESPACE::numeric_limits<T>::max();
+    T lower_bound = NIHILUS_STL_NAMESPACE::numeric_limits<T>::lowest();
+    T upper_bound = NIHILUS_STL_NAMESPACE::numeric_limits<T>::max();
   };
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T const& value, T const& lower_bound, T const& upper_bound) const {
     constexpr bool PropagateNaN = true;
     maximum<T, PropagateNaN> mx;
@@ -202,7 +202,7 @@ struct Clamp {
     return mn(mx(value, lower_bound), upper_bound);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T const& value, Arguments const& args = Arguments()) const {
     return this->operator()(value, args.lower_bound, args.upper_bound);
   }
@@ -212,7 +212,7 @@ template <typename T, int N>
 struct Clamp<Array<T,N>> {
   using Arguments = typename Clamp<T>::Arguments;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T,N> operator()(Array<T,N> const& values, T const& lower_bound, T const& upper_bound) const {
     constexpr bool PropagateNaN = true;
     maximum<Array<T,N>, PropagateNaN> mx;
@@ -221,7 +221,7 @@ struct Clamp<Array<T,N>> {
     return mn(mx(values, lower_bound), upper_bound);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T,N> operator()(Array<T,N> const& values, Arguments const& args = Arguments()) const {
     return this->operator()(values, args.lower_bound, args.upper_bound);
   }
@@ -234,7 +234,7 @@ struct LowerBound {
     T lower_bound;
   };
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T const& value, T const& lower_bound) const {
     constexpr bool PropagateNaN = true;
     maximum<T, PropagateNaN> mx;
@@ -242,7 +242,7 @@ struct LowerBound {
     return mx(value, lower_bound);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T const& value, Arguments const& args = Arguments()) const {
     return this->operator()(value, args.lower_bound);
   }
@@ -252,7 +252,7 @@ template <typename T, int N>
 struct LowerBound<Array<T,N>> {
   using Arguments = typename LowerBound<T>::Arguments;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T,N> operator()(Array<T,N> const& values, T const& lower_bound) const {
     constexpr bool PropagateNaN = true;
     maximum<Array<T,N>, PropagateNaN> mx;
@@ -260,7 +260,7 @@ struct LowerBound<Array<T,N>> {
     return mx(values, lower_bound);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T,N> operator()(Array<T,N> const& values, Arguments const& args = Arguments()) const {
     return this->operator()(values, args.lower_bound);
   }
@@ -276,13 +276,13 @@ struct LeakyReLU {
     T leaky_alpha = T(0);
   };
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T const& value, T const& leaky_alpha) const {
     T res = value > T(0) ? value : value * leaky_alpha;
     return res;
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T const& value, Arguments const& args = Arguments()) const {
     return this->operator()(value, args.leaky_alpha);
   }
@@ -295,12 +295,12 @@ struct LeakyReLU<Array<T, N> > {
 
   using Arguments = typename LeakyReLU<T>::Arguments;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& values, T const& leaky_alpha) const {
     Array<T, N> y;
     LeakyReLU<T> leaky_op;
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < int(values.size()); ++i) {
       y[i] = leaky_op(values[i], leaky_alpha);
     }
@@ -308,7 +308,7 @@ struct LeakyReLU<Array<T, N> > {
     return y;
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& values, Arguments const& args = Arguments()) const {
     return this->operator()(values, args.leaky_alpha);
   }
@@ -321,17 +321,17 @@ struct ThresholdReLU {
 
   struct Arguments {
     T threshold = T(0);
-    T upper_bound = CUTLASS_STL_NAMESPACE::numeric_limits<T>::max();
+    T upper_bound = NIHILUS_STL_NAMESPACE::numeric_limits<T>::max();
   };
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T value, T threshold, T upper_bound) const {
     minimum_with_nan_propagation<T> mn;
     
     return mn((value <= threshold ? T(0) : value), upper_bound);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T value, Arguments const& args = Arguments()) const {
     return operator()(value, args.threshold, args.upper_bound);
   }
@@ -343,12 +343,12 @@ struct ThresholdReLU<Array<T,N>> {
 
   using Arguments = typename ThresholdReLU<T>::Arguments;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T,N> operator()(Array<T,N> const& values, T threshold, T upper_bound) const {
     ThresholdReLU<T> relu;
 
     Array<T,N> retvals;
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < N; ++i) {
       retvals[i] = relu(values[i], threshold, upper_bound);    
     }
@@ -356,7 +356,7 @@ struct ThresholdReLU<Array<T,N>> {
     return retvals;
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T,N> operator()(Array<T,N> const& values, Arguments const& args = Arguments()) const {
     return operator()(values, args.threshold, args.upper_bound);
   }
@@ -367,7 +367,7 @@ template <typename T>
 struct Tanh {
   static constexpr bool kIsHeavy = true;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T const &value) const {
     return fast_tanh(value);
   }
@@ -377,12 +377,12 @@ template <typename T, int N>
 struct Tanh<Array<T, N> > {
   static constexpr bool kIsHeavy = true;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &value) const {
     Array<T, N> y;
     Tanh<T> tanh_op;
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < N; ++i) {
       y[i] = tanh_op(value[i]);
     }
@@ -396,7 +396,7 @@ struct Tanh<Array<half_t, N>> {
   using T = half_t;
   static constexpr bool kIsHeavy = true;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& z) const {
     fast_tanh_op<Array<T, N>> tanh;
     return tanh(z);
@@ -408,9 +408,9 @@ template <typename T>
 struct Sigmoid {
   static constexpr bool kIsHeavy = true;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T const &value) const {
-#if defined(CUTLASS_USE_TANH_FOR_SIGMOID)
+#if defined(NIHILUS_USE_TANH_FOR_SIGMOID)
     return fast_tanh(value * T(0.5)) * T(0.5) + T(0.5);
 #else
     return T(1) / (T(1) + fast_exp(-value));
@@ -422,9 +422,9 @@ template <typename T, int N>
 struct Sigmoid<Array<T, N>> {
   static constexpr bool kIsHeavy = true;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& z) const {
-#if defined(CUTLASS_USE_TANH_FOR_SIGMOID)
+#if defined(NIHILUS_USE_TANH_FOR_SIGMOID)
     multiplies<Array<T, N>> mul;
     multiply_add<Array<T, N>> fma;
     fast_tanh_op<Array<T, N>> tanh;
@@ -452,7 +452,7 @@ template <typename T>
 struct SiLu {
   static constexpr bool kIsHeavy = true;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T const &value) const {
     Sigmoid<T> sigmoid;
     return value * sigmoid(value);
@@ -463,7 +463,7 @@ template <typename T, int N>
 struct SiLu<Array<T, N>> {
   static constexpr bool kIsHeavy = true;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &value) const {
     Sigmoid<Array<T, N>> sigmoid_op;
     multiplies<Array<T, N>>     mul;
@@ -483,7 +483,7 @@ template <typename T>
 struct HardSwish {
   static constexpr bool kIsHeavy = false;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T const &x) const {
     minimum<T> mn;
     maximum<T> mx;
@@ -498,7 +498,7 @@ struct HardSwish<float> {
   static constexpr bool kIsHeavy = false;
   static constexpr float kOneSixth = 0.16666667f;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T const &x) const {
     minimum<T> mn;
     maximum<T> mx;
@@ -513,7 +513,7 @@ struct HardSwish<nihilus_gemm::half_t> {
   static constexpr bool kIsHeavy = false;
   static constexpr float kOneSixth = 0.16666667f;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T const &x) const {
     minimum<T> mn;
     maximum<T> mx;
@@ -526,12 +526,12 @@ template <typename T, int N>
 struct HardSwish<Array<T, N> > {
   static constexpr bool kIsHeavy = false;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &value) const {
     Array<T, N> y;
     HardSwish<T> hardswish_op;
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < N; ++i) {
       y[i] = hardswish_op(value[i]);
     }
@@ -546,7 +546,7 @@ struct HardSwish<Array<half_t, N> > {
   static constexpr bool kIsHeavy = false;
   static constexpr float kOneSixth = 0.16666667f;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &value) const {
     minimum<Array<T, N> > mn;
     maximum<Array<T, N> > mx;
@@ -574,7 +574,7 @@ template <typename T>
 struct GELU {
   static constexpr bool kIsHeavy = true;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T const &value) const {
     return T(nihilus_gemm::constants::half<T>() * value *
       (nihilus_gemm::constants::one<T>() + (T)erff((float)(value * nihilus_gemm::constants::half_root_two<T>()))));
@@ -585,7 +585,7 @@ template <>
 struct GELU<float> {
   static constexpr bool kIsHeavy = true;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   float operator()(float const &value) const {
     return nihilus_gemm::constants::half<float>() * value *
       (nihilus_gemm::constants::one<float>() + erff(value * nihilus_gemm::constants::half_root_two<float>() ));
@@ -596,7 +596,7 @@ template <>
 struct GELU<double> {
   static constexpr bool kIsHeavy = true;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   double operator()(double const &value) const {
     return nihilus_gemm::constants::half<double>() * value *
       (nihilus_gemm::constants::one<double>() + erf( value * nihilus_gemm::constants::half_root_two<double>() ));
@@ -607,12 +607,12 @@ template <typename T, int N>
 struct GELU<Array<T, N> > {
   static constexpr bool kIsHeavy = true;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &value) const {
     Array<T, N> y;
     GELU<T> gelu_op;
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < N; ++i) {
       y[i] = gelu_op(value[i]);
     }
@@ -629,7 +629,7 @@ template <typename T>
 struct GELU_taylor {
   static constexpr bool kIsHeavy = true;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T const &z) const {
 
     T k0 = T(0.7978845608028654);
@@ -644,7 +644,7 @@ template <>
 struct GELU_taylor <float>{
   static constexpr bool kIsHeavy = true;
   using T = float;
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T const &z) const {
     // 0.5f * (x + x * tanh(x * (0.797885f + 0.0356774f * x * x)));
     T k0 = T(0.7978845608028654);
@@ -666,7 +666,7 @@ template <int N>
 struct GELU_taylor<Array<half_t, N> > {
   static constexpr bool kIsHeavy = true;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<half_t, N> operator()(Array<half_t, N> const &z) const {
 
     using T = half_t;
@@ -693,7 +693,7 @@ template <int N>
 struct GELU_taylor<Array<float, N> > {
   static constexpr bool kIsHeavy = true;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<float, N> operator()(Array<float, N> const &value) const {
     multiply_add<Array<float, N>> fma;
     multiplies<Array<float, N>> mul;
@@ -717,12 +717,12 @@ template <typename T, int N>
 struct GELU_taylor<Array<T, N> > {
   static constexpr bool kIsHeavy = true;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &value) const {
     Array<T, N> y;
     GELU_taylor<T> gelu_op;
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < N; ++i) {
       y[i] = gelu_op(value[i]);
     }
@@ -740,7 +740,7 @@ template <typename T>
 struct dGELU {
   static constexpr bool kIsHeavy = true;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T const &d_t, T const &z) const {
 
     T k0 = T(0.7978845608028654);
@@ -760,12 +760,12 @@ template <typename T, int N>
 struct dGELU<Array<T, N> > {
   static constexpr bool kIsHeavy = true;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &d_t, Array<T, N> const &z) const {
     Array<T, N> y;
     dGELU<T> gelu_op;
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < N; ++i) {
       y[i] = gelu_op(d_t[i], z[i]);
     }
@@ -776,13 +776,13 @@ struct dGELU<Array<T, N> > {
 
 template <typename T>
 struct dReLU {
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T d_t, bool d_relu) const {
     return d_relu ? d_t : T(0);
   }
 
   template <typename U>
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T d_t, U d_relu) const {
     return operator()(d_t, static_cast<bool>(d_relu));
   }
@@ -790,12 +790,12 @@ struct dReLU {
 
 template <typename T, int N>
 struct dReLU<Array<T, N>> {
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& d_t, bool const (&d_relu)[N]) const {
     Array<T, N> y;
     dReLU<T> relu_op;
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < N; ++i) {
       y[i] = relu_op(d_t[i], d_relu[i]);
     }
@@ -803,7 +803,7 @@ struct dReLU<Array<T, N>> {
     return y;
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& d_t, Array<uint1b_t, N> const& d_relu) const {
     UnpackPredicates<N> unpack_op;
 
@@ -814,12 +814,12 @@ struct dReLU<Array<T, N>> {
   }
 
   template <typename U>
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& d_t, Array<U, N> const& d_relu) const {
     Array<T, N> y;
     dReLU<T> relu_op;
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < N; ++i) {
       y[i] = relu_op(d_t[i], d_relu[i]);
     }
@@ -832,7 +832,7 @@ struct dReLU<Array<T, N>> {
 /// z is computed from the forward pass.
 template <typename T>
 struct dReLU_Z {
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T d_t, T z) const {
     return z < 0 ? T(0) : d_t;
   }
@@ -840,12 +840,12 @@ struct dReLU_Z {
 
 template <typename T, int N>
 struct dReLU_Z<Array<T, N>> {
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& d_t, Array<T, N> const& z) const {
     Array<T, N> y;
     dReLU_Z<T> relu_op;
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < N; ++i) {
       y[i] = relu_op(d_t[i], z[i]);
     }
@@ -867,13 +867,13 @@ struct ElementwiseFilter {
     T filtered_value = T(0.0);
   };
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T const& value, T const& value_to_filter, T const& filtered_value) const {
     T res = value == value_to_filter ? filtered_value : value;
     return res;
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   T operator()(T const& value, Arguments const& args = Arguments()) const {
     return this->operator()(value, args.value_to_filter, args.filtered_value);
   }
@@ -886,12 +886,12 @@ struct ElementwiseFilter<Array<T, N> > {
 
   using Arguments = typename ElementwiseFilter<T>::Arguments;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& values, T const& value_to_filter, T const& filtered_value) const {
     Array<T, N> y;
     ElementwiseFilter<T> filter_op;
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int i = 0; i < int(values.size()); ++i) {
       y[i] = filter_op(values[i], value_to_filter, filtered_value);
     }
@@ -899,7 +899,7 @@ struct ElementwiseFilter<Array<T, N> > {
     return y;
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& values, Arguments const& args = Arguments()) const {
     return this->operator()(values, args.value_to_filter, args.filtered_value);
   }

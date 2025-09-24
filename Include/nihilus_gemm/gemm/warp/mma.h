@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -47,7 +47,7 @@ namespace warp {
 /// Query the number of threads per warp
 template <typename OperatorClass>
 struct WarpSize {
-  static constexpr int  value = 32;
+  static constexpr int value = 32;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

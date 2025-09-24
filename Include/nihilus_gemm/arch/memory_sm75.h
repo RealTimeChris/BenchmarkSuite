@@ -37,8 +37,8 @@
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/detail/helper_macros.hpp"
 #include "nihilus_gemm/layout/matrix.h"
-#include "cute_rt_tm/arch/copy_sm75.hpp"
-#include "cute_rt_tm/arch/util.hpp"
+#include "nihilus_cute/arch/copy_sm75.hpp"
+#include "nihilus_cute/arch/util.hpp"
 
 namespace nihilus_gemm {
 namespace arch {
@@ -51,7 +51,7 @@ template <
   /// .x1, .x2, or .x4
   int MatrixCount
 >
-CUTLASS_DEVICE void ldsm(Array<unsigned, MatrixCount> & D, void const* ptr);
+NIHILUS_DEVICE void ldsm(Array<unsigned, MatrixCount> & D, void const* ptr);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -59,20 +59,20 @@ CUTLASS_DEVICE void ldsm(Array<unsigned, MatrixCount> & D, void const* ptr);
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// CUTLASS helper to get SMEM pointer
-CUTLASS_HOST_DEVICE unsigned cutlass_get_smem_pointer(void *ptr) {
-  return cute_rt_tm::cast_smem_ptr_to_uint(ptr);
+/// NIHILUS helper to get SMEM pointer
+NIHILUS_HOST_DEVICE unsigned cutlass_get_smem_pointer(void *ptr) {
+  return nihilus_cute::cast_smem_ptr_to_uint(ptr);
 }
 
-/// CUTLASS helper to get SMEM pointer
-CUTLASS_DEVICE unsigned cutlass_get_smem_pointer(void const *ptr) {
+/// NIHILUS helper to get SMEM pointer
+NIHILUS_DEVICE unsigned cutlass_get_smem_pointer(void const *ptr) {
   return cutlass_get_smem_pointer(const_cast<void *>(ptr));
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <>
-CUTLASS_DEVICE void ldsm<layout::RowMajor, 1>(
+NIHILUS_DEVICE void ldsm<layout::RowMajor, 1>(
     Array<unsigned, 1> & D,
     void const* ptr) {
 
@@ -86,9 +86,9 @@ CUTLASS_DEVICE void ldsm<layout::RowMajor, 1>(
 
   #else
 
-    CUTLASS_UNUSED(D);
-    CUTLASS_UNUSED(ptr);
-    CUTLASS_NOT_IMPLEMENTED();
+    NIHILUS_UNUSED(D);
+    NIHILUS_UNUSED(ptr);
+    NIHILUS_NOT_IMPLEMENTED();
 
   #endif
 }
@@ -96,7 +96,7 @@ CUTLASS_DEVICE void ldsm<layout::RowMajor, 1>(
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <>
-CUTLASS_DEVICE void ldsm<layout::RowMajor, 2>(
+NIHILUS_DEVICE void ldsm<layout::RowMajor, 2>(
     Array<unsigned, 2> & D,
     void const* ptr) {
 
@@ -110,9 +110,9 @@ CUTLASS_DEVICE void ldsm<layout::RowMajor, 2>(
 
   #else
 
-    CUTLASS_UNUSED(D);
-    CUTLASS_UNUSED(ptr);
-    CUTLASS_NOT_IMPLEMENTED();
+    NIHILUS_UNUSED(D);
+    NIHILUS_UNUSED(ptr);
+    NIHILUS_NOT_IMPLEMENTED();
 
   #endif
 }
@@ -120,7 +120,7 @@ CUTLASS_DEVICE void ldsm<layout::RowMajor, 2>(
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <>
-CUTLASS_DEVICE void ldsm<layout::RowMajor, 4>(
+NIHILUS_DEVICE void ldsm<layout::RowMajor, 4>(
     Array<unsigned, 4> & D,
     void const* ptr) {
 
@@ -134,9 +134,9 @@ CUTLASS_DEVICE void ldsm<layout::RowMajor, 4>(
 
   #else
 
-    CUTLASS_UNUSED(D);
-    CUTLASS_UNUSED(ptr);
-    CUTLASS_NOT_IMPLEMENTED();
+    NIHILUS_UNUSED(D);
+    NIHILUS_UNUSED(ptr);
+    NIHILUS_NOT_IMPLEMENTED();
 
   #endif
 }
@@ -148,7 +148,7 @@ CUTLASS_DEVICE void ldsm<layout::RowMajor, 4>(
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <>
-CUTLASS_DEVICE void ldsm<layout::ColumnMajor, 1>(
+NIHILUS_DEVICE void ldsm<layout::ColumnMajor, 1>(
     Array<unsigned, 1> & D,
     void const* ptr) {
 
@@ -162,9 +162,9 @@ CUTLASS_DEVICE void ldsm<layout::ColumnMajor, 1>(
 
   #else
 
-    CUTLASS_UNUSED(D);
-    CUTLASS_UNUSED(ptr);
-    CUTLASS_NOT_IMPLEMENTED();
+    NIHILUS_UNUSED(D);
+    NIHILUS_UNUSED(ptr);
+    NIHILUS_NOT_IMPLEMENTED();
 
   #endif
 }
@@ -172,7 +172,7 @@ CUTLASS_DEVICE void ldsm<layout::ColumnMajor, 1>(
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <>
-CUTLASS_DEVICE void ldsm<layout::ColumnMajor, 2>(
+NIHILUS_DEVICE void ldsm<layout::ColumnMajor, 2>(
     Array<unsigned, 2> & D,
     void const* ptr) {
 
@@ -186,9 +186,9 @@ CUTLASS_DEVICE void ldsm<layout::ColumnMajor, 2>(
 
   #else
 
-    CUTLASS_UNUSED(D);
-    CUTLASS_UNUSED(ptr);
-    CUTLASS_NOT_IMPLEMENTED();
+    NIHILUS_UNUSED(D);
+    NIHILUS_UNUSED(ptr);
+    NIHILUS_NOT_IMPLEMENTED();
 
   #endif
 }
@@ -196,7 +196,7 @@ CUTLASS_DEVICE void ldsm<layout::ColumnMajor, 2>(
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <>
-CUTLASS_DEVICE void ldsm<layout::ColumnMajor, 4>(
+NIHILUS_DEVICE void ldsm<layout::ColumnMajor, 4>(
     Array<unsigned, 4> & D,
     void const* ptr) {
 
@@ -210,9 +210,9 @@ CUTLASS_DEVICE void ldsm<layout::ColumnMajor, 4>(
 
   #else
 
-    CUTLASS_UNUSED(D);
-    CUTLASS_UNUSED(ptr);
-    CUTLASS_NOT_IMPLEMENTED();
+    NIHILUS_UNUSED(D);
+    NIHILUS_UNUSED(ptr);
+    NIHILUS_NOT_IMPLEMENTED();
 
   #endif
 }
@@ -221,14 +221,14 @@ CUTLASS_DEVICE void ldsm<layout::ColumnMajor, 4>(
 
 template <typename AccessType, int Bytes>
 struct shared_load_op {
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   shared_load_op(AccessType &D, void const *ptr) {
     D = *reinterpret_cast<AccessType const *>(ptr);  
   }
 };
 
 template <typename AccessType>
-CUTLASS_DEVICE void shared_load(AccessType &D, void const *ptr) {
+NIHILUS_DEVICE void shared_load(AccessType &D, void const *ptr) {
   shared_load_op<AccessType, int(sizeof(AccessType))>(D, ptr);
 }
 
@@ -236,7 +236,7 @@ CUTLASS_DEVICE void shared_load(AccessType &D, void const *ptr) {
 
 template <typename AccessType>
 struct shared_load_op<AccessType, 16> {
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   shared_load_op(AccessType &D, void const *ptr) {
     unsigned addr = cutlass_get_smem_pointer(ptr);
 
@@ -252,7 +252,7 @@ struct shared_load_op<AccessType, 16> {
 
 template <typename AccessType>
 struct shared_load_op<AccessType, 8> {
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   shared_load_op(AccessType &D, void const *ptr) {
     unsigned addr = cutlass_get_smem_pointer(ptr);
 

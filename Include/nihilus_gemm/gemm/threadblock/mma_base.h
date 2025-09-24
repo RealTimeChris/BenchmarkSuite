@@ -38,7 +38,7 @@
 #include "nihilus_gemm/aligned_buffer.h"
 #include "nihilus_gemm/arch/memory.h"
 #include "nihilus_gemm/array.h"
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/gemm/gemm.h"
 #include "nihilus_gemm/matrix_shape.h"
 #include "nihilus_gemm/numeric_types.h"
@@ -72,7 +72,7 @@ struct MmaPolicy {
   using SmemPaddingB = SmemPaddingB_;
 
   /// Number of partitions of K dimension
-  static constexpr int  kPartitionsK = PartitionsK;
+  static constexpr int kPartitionsK = PartitionsK;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -113,11 +113,11 @@ class MmaBase {
                               Shape::kK / WarpGemm::kK>;
 
   /// Number of warp-level GEMM oeprations
-  static constexpr int  kWarpGemmIterations =
+  static constexpr int kWarpGemmIterations =
       (WarpGemm::kK / Operator::Policy::MmaShape::kK);
 
   /// Number of stages
-  static constexpr int  kStages = Stages;
+  static constexpr int kStages = Stages;
 
   /// Tensor reference to the A operand
   using TensorRefA = TensorRef<typename Operator::ElementA, typename Operator::LayoutA>;
@@ -171,25 +171,25 @@ class MmaBase {
     //
 
     /// Returns a layout object for the A matrix
-    CUTLASS_DEVICE
+    NIHILUS_DEVICE
     static typename Operator::LayoutA LayoutA() {
       return Operator::LayoutA::packed({ShapeA::kRow, ShapeA::kColumn});
     }
 
     /// Returns a layout object for the B matrix
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     static typename Operator::LayoutB LayoutB() {
       return Operator::LayoutB::packed({ShapeB::kRow, ShapeB::kColumn});
     }
 
     /// Returns a TensorRef to the A operand
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     TensorRefA operand_A_ref() {
       return TensorRefA{operand_A.data(), LayoutA()};
     }
 
     /// Returns a TensorRef to the B operand
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     TensorRefB operand_B_ref() {
       return TensorRefB{operand_B.data(), LayoutB()};
     }
@@ -210,7 +210,7 @@ class MmaBase {
 public:
 
   /// Construct from tensor references
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaBase(
       ///< Shared storage needed for internal use by threadblock-scoped GEMM
       SharedStorage &shared_storage,

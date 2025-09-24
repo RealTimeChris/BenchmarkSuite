@@ -36,26 +36,26 @@
 
 #if (__CUDACC_VER_MAJOR__ >= 9)
 #if (!defined(__CUDA_ARCH__) || (__CUDA_ARCH__ >= 700))
-#define CUTLASS_ARCH_WMMA_ENABLED
-#define CUTLASS_ARCH_WMMA_SM70_ENABLED
+#define NIHILUS_ARCH_WMMA_ENABLED
+#define NIHILUS_ARCH_WMMA_SM70_ENABLED
 #endif
 #endif
 
 #if (__CUDACC_VER_MAJOR__ >= 10)
 #if (!defined(__CUDA_ARCH__) || (__CUDA_ARCH__ >= 720))
-#define CUTLASS_ARCH_INTEGER_MATRIX_MULTIPLY_ENABLED
-#define CUTLASS_ARCH_WMMA_SM72_ENABLED
+#define NIHILUS_ARCH_INTEGER_MATRIX_MULTIPLY_ENABLED
+#define NIHILUS_ARCH_WMMA_SM72_ENABLED
 #endif
 #endif
 
 #if (__CUDACC_VER_MAJOR__ >= 10)
 #if (!defined(__CUDA_ARCH__) || (__CUDA_ARCH__ >= 750))
-#define CUTLASS_SUBBYTE_INTEGER_MATRIX_MULTIPLY_ENABLED
-#define CUTLASS_ARCH_WMMA_SM75_ENABLED
+#define NIHILUS_SUBBYTE_INTEGER_MATRIX_MULTIPLY_ENABLED
+#define NIHILUS_ARCH_WMMA_SM75_ENABLED
 #endif
 #endif
 
-#if defined(CUTLASS_ARCH_WMMA_ENABLED)
+#if defined(NIHILUS_ARCH_WMMA_ENABLED)
 
 #include <mma.h>
 #include "nihilus_gemm/arch/mma.h"
@@ -108,7 +108,7 @@ struct CutlassToWmmaDataType<int32_t> {
   using Type = int;
 };
 
-#if defined(CUTLASS_SUBBYTE_INTEGER_MATRIX_MULTIPLY_ENABLED)
+#if defined(NIHILUS_SUBBYTE_INTEGER_MATRIX_MULTIPLY_ENABLED)
 /// Statically maps nihilus_gemm::int4b_t => experimental::precision::s4
 template<>
 struct CutlassToWmmaDataType<nihilus_gemm::int4b_t> {
@@ -201,18 +201,18 @@ struct Wmma;
 //
 // Specializations for each compute capability
 //
-#ifdef CUTLASS_ARCH_WMMA_SM70_ENABLED
+#ifdef NIHILUS_ARCH_WMMA_SM70_ENABLED
 #include "nihilus_gemm/arch/wmma_sm70.h"
 #endif
 
-#ifdef CUTLASS_ARCH_WMMA_SM72_ENABLED
+#ifdef NIHILUS_ARCH_WMMA_SM72_ENABLED
 #include "nihilus_gemm/arch/wmma_sm72.h"
 #endif
 
-#ifdef CUTLASS_ARCH_WMMA_SM75_ENABLED
+#ifdef NIHILUS_ARCH_WMMA_SM75_ENABLED
 #include "nihilus_gemm/arch/wmma_sm75.h"
 #endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-#endif //CUTLASS_ARCH_WMMA_ENABLED
+#endif //NIHILUS_ARCH_WMMA_ENABLED

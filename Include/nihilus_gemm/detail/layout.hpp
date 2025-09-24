@@ -30,13 +30,13 @@
  **************************************************************************************************/
 #pragma once
 
-#include "cute_rt_tm/layout.hpp"
-#include "cute_rt_tm/pointer_sparse.hpp"       // cute_rt_tm::is_sparse
-#include "cute_rt_tm/swizzle.hpp"              // cute_rt_tm::Swizzle
-#include "cute_rt_tm/swizzle_layout.hpp"       // cute_rt_tm::get_swizzle_portion
-#include "cute_rt_tm/util/type_traits.hpp"
-#include "cute_rt_tm/arch/copy_sm90_tma.hpp"
-#include "cute_rt_tm/arch/copy_sm100_tma.hpp"
+#include "nihilus_cute/layout.hpp"
+#include "nihilus_cute/pointer_sparse.hpp"       // nihilus_cute::is_sparse
+#include "nihilus_cute/swizzle.hpp"              // nihilus_cute::Swizzle
+#include "nihilus_cute/swizzle_layout.hpp"       // nihilus_cute::get_swizzle_portion
+#include "nihilus_cute/util/type_traits.hpp"
+#include "nihilus_cute/arch/copy_sm90_tma.hpp"
+#include "nihilus_cute/arch/copy_sm100_tma.hpp"
 
 #include "nihilus_gemm/layout/matrix.h"
 #include "nihilus_gemm/layout/tensor.h"
@@ -48,7 +48,7 @@
 namespace nihilus_gemm::detail {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// For each nihilus_gemm::layout, provides its corresponding cute_rt_tm stride types, 64b by default
+// For each nihilus_gemm::layout, provides its corresponding nihilus_cute stride types, 64b by default
 
 template <class L>
 struct TagToStrideA {
@@ -58,14 +58,14 @@ struct TagToStrideA {
 // Maps to modes [M, K, L]
 template <>
 struct TagToStrideA<layout::RowMajor> {
-  using type = cute_rt_tm::Stride<int64_t, cute_rt_tm::Int<1>, int64_t>;
+  using type = nihilus_cute::Stride<int64_t, nihilus_cute::Int<1>, int64_t>;
   using tag = layout::RowMajor;
 };
 
 // Maps to modes [M, K, L]
 template <>
 struct TagToStrideA<layout::ColumnMajor> {
-  using type = cute_rt_tm::Stride<cute_rt_tm::Int<1>, int64_t, int64_t>;
+  using type = nihilus_cute::Stride<nihilus_cute::Int<1>, int64_t, int64_t>;
   using tag = layout::ColumnMajor;
 };
 
@@ -77,23 +77,23 @@ struct TagToStrideB {
 // Maps to modes [N, K, L]
 template <>
 struct TagToStrideB<layout::RowMajor> {
-  using type = cute_rt_tm::Stride<cute_rt_tm::Int<1>, int64_t, int64_t>;
+  using type = nihilus_cute::Stride<nihilus_cute::Int<1>, int64_t, int64_t>;
   using tag = layout::RowMajor;
 };
 
 // Maps to modes [N, K, L]
 template <>
 struct TagToStrideB<layout::ColumnMajor> {
-  using type = cute_rt_tm::Stride<int64_t, cute_rt_tm::Int<1>, int64_t>;
+  using type = nihilus_cute::Stride<int64_t, nihilus_cute::Int<1>, int64_t>;
   using tag = layout::ColumnMajor;
 };
 
-// For each nihilus_gemm::layout *, provides its corresponding cute_rt_tm stride types, 64b by default
+// For each nihilus_gemm::layout *, provides its corresponding nihilus_cute stride types, 64b by default
 // Used by pointer array and grouped gemm
 // Maps to modes [M, K, L]
 template <>
 struct TagToStrideA<layout::RowMajor *> {
-  using UnderlyingType = cute_rt_tm::Stride<int64_t, cute_rt_tm::Int<1>, cute_rt_tm::Int<0>>;
+  using UnderlyingType = nihilus_cute::Stride<int64_t, nihilus_cute::Int<1>, nihilus_cute::Int<0>>;
   using type = UnderlyingType*;
   using tag = layout::RowMajor;
 };
@@ -101,7 +101,7 @@ struct TagToStrideA<layout::RowMajor *> {
 // Maps to modes [M, K, L]
 template <>
 struct TagToStrideA<layout::ColumnMajor *> {
-  using UnderlyingType = cute_rt_tm::Stride<cute_rt_tm::Int<1>, int64_t, cute_rt_tm::Int<0>>;
+  using UnderlyingType = nihilus_cute::Stride<nihilus_cute::Int<1>, int64_t, nihilus_cute::Int<0>>;
   using type = UnderlyingType*;
   using tag = layout::ColumnMajor;
 };
@@ -109,7 +109,7 @@ struct TagToStrideA<layout::ColumnMajor *> {
 // Maps to modes [N, K, L]
 template <>
 struct TagToStrideB<layout::RowMajor *> {
-  using UnderlyingType = cute_rt_tm::Stride<cute_rt_tm::Int<1>, int64_t, cute_rt_tm::Int<0>>;
+  using UnderlyingType = nihilus_cute::Stride<nihilus_cute::Int<1>, int64_t, nihilus_cute::Int<0>>;
   using type = UnderlyingType*;
   using tag = layout::RowMajor;
 };
@@ -117,7 +117,7 @@ struct TagToStrideB<layout::RowMajor *> {
 // Maps to modes [N, K, L]
 template <>
 struct TagToStrideB<layout::ColumnMajor *> {
-  using UnderlyingType = cute_rt_tm::Stride<int64_t, cute_rt_tm::Int<1>, cute_rt_tm::Int<0>>;
+  using UnderlyingType = nihilus_cute::Stride<int64_t, nihilus_cute::Int<1>, nihilus_cute::Int<0>>;
   using type = UnderlyingType*;
   using tag = layout::ColumnMajor;
 };
@@ -129,55 +129,55 @@ struct TagToStrideC : TagToStrideA<LayoutTag> { };
 // Conv: Maps to modes ((P,N), C, _0) for compatiblity with GEMM epilogues expecting a batch mode stride
 template <>
 struct TagToStrideC<nihilus_gemm::layout::TensorNWC> {
-  using type = cute_rt_tm::Stride<cute_rt_tm::Stride<int64_t, int64_t>, cute_rt_tm::Int<1>, cute_rt_tm::Int<0>>;
+  using type = nihilus_cute::Stride<nihilus_cute::Stride<int64_t, int64_t>, nihilus_cute::Int<1>, nihilus_cute::Int<0>>;
 };
 
 // Conv: Maps to modes ((P,Q,N), C, _0) for compatiblity with GEMM epilogues expecting a batch mode stride
 template <>
 struct TagToStrideC<nihilus_gemm::layout::TensorNHWC> {
-  using type = cute_rt_tm::Stride<cute_rt_tm::Stride<int64_t, int64_t, int64_t>, cute_rt_tm::Int<1>, cute_rt_tm::Int<0>>;
+  using type = nihilus_cute::Stride<nihilus_cute::Stride<int64_t, int64_t, int64_t>, nihilus_cute::Int<1>, nihilus_cute::Int<0>>;
 };
 
 // Conv: Maps to modes ((P,Q,Z,N), C, _0) for compatiblity with GEMM epilogues expecting a batch mode stride
 template <>
 struct TagToStrideC<nihilus_gemm::layout::TensorNDHWC> {
-  using type = cute_rt_tm::Stride<cute_rt_tm::Stride<int64_t, int64_t, int64_t, int64_t>, cute_rt_tm::Int<1>, cute_rt_tm::Int<0>>;
+  using type = nihilus_cute::Stride<nihilus_cute::Stride<int64_t, int64_t, int64_t, int64_t>, nihilus_cute::Int<1>, nihilus_cute::Int<0>>;
 };
 
 // Conv: Maps to modes (K, (C,S), _0) for compatiblity with GEMM epilogues expecting a batch mode stride
 template <>
 struct TagToStrideC<nihilus_gemm::layout::TensorKCS> {
-  using type = cute_rt_tm::Stride<int64_t, cute_rt_tm::Stride<cute_rt_tm::Int<1>, int64_t>, cute_rt_tm::Int<0>>;
+  using type = nihilus_cute::Stride<int64_t, nihilus_cute::Stride<nihilus_cute::Int<1>, int64_t>, nihilus_cute::Int<0>>;
 };
 
 // Conv: Maps to modes (K, (C,S,R), _0) for compatiblity with GEMM epilogues expecting a batch mode stride
 template <>
 struct TagToStrideC<nihilus_gemm::layout::TensorKCSR> {
-  using type = cute_rt_tm::Stride<int64_t, cute_rt_tm::Stride<cute_rt_tm::Int<1>, int64_t, int64_t>, cute_rt_tm::Int<0>>;
+  using type = nihilus_cute::Stride<int64_t, nihilus_cute::Stride<nihilus_cute::Int<1>, int64_t, int64_t>, nihilus_cute::Int<0>>;
 };
 
 // Conv: Maps to modes (K, (C,S,R,T), _0) for compatiblity with GEMM epilogues expecting a batch mode stride
 template <>
 struct TagToStrideC<nihilus_gemm::layout::TensorKCSRT> {
-  using type = cute_rt_tm::Stride<int64_t, cute_rt_tm::Stride<cute_rt_tm::Int<1>, int64_t, int64_t, int64_t>, cute_rt_tm::Int<0>>;
+  using type = nihilus_cute::Stride<int64_t, nihilus_cute::Stride<nihilus_cute::Int<1>, int64_t, int64_t, int64_t>, nihilus_cute::Int<0>>;
 };
 
 // Conv: Maps to modes ((C,S), K, _0) for compatiblity with GEMM epilogues expecting a batch mode stride
 template <>
 struct TagToStrideC<nihilus_gemm::layout::TensorCSK> {
-  using type = cute_rt_tm::Stride<cute_rt_tm::Stride<cute_rt_tm::Int<1>, int64_t>, int64_t, cute_rt_tm::Int<0>>;
+  using type = nihilus_cute::Stride<nihilus_cute::Stride<nihilus_cute::Int<1>, int64_t>, int64_t, nihilus_cute::Int<0>>;
 };
 
 // Conv: Maps to modes ((C,S,R), K, _0) for compatiblity with GEMM epilogues expecting a batch mode stride
 template <>
 struct TagToStrideC<nihilus_gemm::layout::TensorCSRK> {
-  using type = cute_rt_tm::Stride<cute_rt_tm::Stride<cute_rt_tm::Int<1>, int64_t, int64_t>, int64_t, cute_rt_tm::Int<0>>;
+  using type = nihilus_cute::Stride<nihilus_cute::Stride<nihilus_cute::Int<1>, int64_t, int64_t>, int64_t, nihilus_cute::Int<0>>;
 };
 
 // Conv: Maps to modes ((C,S,R,T), K, _0) for compatiblity with GEMM epilogues expecting a batch mode stride
 template <>
 struct TagToStrideC<nihilus_gemm::layout::TensorCSRTK> {
-  using type = cute_rt_tm::Stride<cute_rt_tm::Stride<cute_rt_tm::Int<1>, int64_t, int64_t, int64_t>, int64_t, cute_rt_tm::Int<0>>;
+  using type = nihilus_cute::Stride<nihilus_cute::Stride<nihilus_cute::Int<1>, int64_t, int64_t, int64_t>, int64_t, nihilus_cute::Int<0>>;
 };
 
 // Convenience aliases
@@ -197,12 +197,12 @@ template<int ModeIndex, class Stride>
 constexpr bool
 is_major(Stride = {}) {
   // Account for stride types with and without batch mode and batch modes with static zero stride
-  return cute_rt_tm::is_constant<1, decltype(cute_rt_tm::front(cute_rt_tm::get<ModeIndex>(cute_rt_tm::remove_pointer_t<Stride>{})))>::value;
+  return nihilus_cute::is_constant<1, decltype(nihilus_cute::front(nihilus_cute::get<ModeIndex>(nihilus_cute::remove_pointer_t<Stride>{})))>::value;
 }
 
 template<int ModeIndex, class Shape, class Stride>
 constexpr bool
-is_major(cute_rt_tm::Layout<Shape,Stride> = {}) {
+is_major(nihilus_cute::Layout<Shape,Stride> = {}) {
   return is_major<ModeIndex>(Stride{});
 }
 
@@ -211,17 +211,17 @@ template<class StrideA>
 constexpr
 auto
 stride_to_layout_tag_A() {
-  using InternalStrideA = cute_rt_tm::remove_pointer_t<StrideA>;
-  if constexpr (cute_rt_tm::is_layout<InternalStrideA>::value) {
-    return stride_to_layout_tag_A<decltype(cute_rt_tm::stride(InternalStrideA{}))>();
+  using InternalStrideA = nihilus_cute::remove_pointer_t<StrideA>;
+  if constexpr (nihilus_cute::is_layout<InternalStrideA>::value) {
+    return stride_to_layout_tag_A<decltype(nihilus_cute::stride(InternalStrideA{}))>();
   }
   else if constexpr (is_major<0, StrideA>()) { // M major
     return layout::ColumnMajor{};
   }
   // Specialize for sparse layout
-  else if constexpr (cute_rt_tm::get<0>(InternalStrideA{}) == cute_rt_tm::_2{} &&
-                     cute_rt_tm::rank(cute_rt_tm::get<1>(InternalStrideA{})) == 2 &&
-                     cute_rt_tm::is_same_v<cute_rt_tm::_1, cute_rt_tm::remove_cvref_t<decltype(cute_rt_tm::get<1,0>(InternalStrideA{}))>>) {
+  else if constexpr (nihilus_cute::get<0>(InternalStrideA{}) == nihilus_cute::_2{} &&
+                     nihilus_cute::rank(nihilus_cute::get<1>(InternalStrideA{})) == 2 &&
+                     nihilus_cute::is_same_v<nihilus_cute::_1, nihilus_cute::remove_cvref_t<decltype(nihilus_cute::get<1,0>(InternalStrideA{}))>>) {
     return layout::ColumnMajor{};
   }
   else { // K major
@@ -235,9 +235,9 @@ template<class StrideB>
 constexpr
 auto
 stride_to_layout_tag_B() {
-  using InternalStrideB = cute_rt_tm::remove_pointer_t<StrideB>;
-  if constexpr (cute_rt_tm::is_layout<InternalStrideB>::value) {
-    return stride_to_layout_tag_B<decltype(cute_rt_tm::stride(InternalStrideB{}))>();
+  using InternalStrideB = nihilus_cute::remove_pointer_t<StrideB>;
+  if constexpr (nihilus_cute::is_layout<InternalStrideB>::value) {
+    return stride_to_layout_tag_B<decltype(nihilus_cute::stride(InternalStrideB{}))>();
   }
   else if constexpr (is_major<0, StrideB>()) { // N major
     return layout::RowMajor{};
@@ -253,9 +253,9 @@ template<class StrideC>
 constexpr
 auto
 stride_to_layout_tag_C() {
-  using InternalStrideC = cute_rt_tm::remove_pointer_t<StrideC>;
-  if constexpr (cute_rt_tm::is_layout<InternalStrideC>::value) {
-    return stride_to_layout_tag_C<decltype(cute_rt_tm::stride(InternalStrideC{}))>();
+  using InternalStrideC = nihilus_cute::remove_pointer_t<StrideC>;
+  if constexpr (nihilus_cute::is_layout<InternalStrideC>::value) {
+    return stride_to_layout_tag_C<decltype(nihilus_cute::stride(InternalStrideC{}))>();
   }
   else if constexpr (is_major<0, StrideC>()) { // M major
     return layout::ColumnMajor{};
@@ -298,18 +298,18 @@ using StrideToLayoutTagC_t = typename StrideToLayoutTagC<S>::type;
 // Inspects a tiled copy and whether its copy engine is TMA or not
 template<class GmemTiledCopy>
 constexpr bool is_tma_copy_engine() {
-  if constexpr (cute_rt_tm::is_void_v<GmemTiledCopy>) {
+  if constexpr (nihilus_cute::is_void_v<GmemTiledCopy>) {
     return false;
   }
   else {
-   if constexpr (   cute_rt_tm::is_base_of_v<cute_rt_tm::SM90_TMA_LOAD,                         GmemTiledCopy>
-                  || cute_rt_tm::is_base_of_v<cute_rt_tm::SM90_TMA_LOAD_MULTICAST,              GmemTiledCopy>
-                  || cute_rt_tm::is_base_of_v<cute_rt_tm::SM90_TMA_LOAD_IM2COL,                 GmemTiledCopy>
-                  || cute_rt_tm::is_base_of_v<cute_rt_tm::SM90_TMA_LOAD_IM2COL_MULTICAST,       GmemTiledCopy>
-                  || cute_rt_tm::is_base_of_v<cute_rt_tm::SM90_TMA_STORE,                       GmemTiledCopy>
-                  || cute_rt_tm::is_base_of_v<cute_rt_tm::SM90_TMA_STORE_IM2COL,                GmemTiledCopy>
-                  || cute_rt_tm::is_base_of_v<cute_rt_tm::SM100_TMA_2SM_LOAD,                   GmemTiledCopy>
-                  || cute_rt_tm::is_base_of_v<cute_rt_tm::SM100_TMA_2SM_LOAD_MULTICAST,         GmemTiledCopy>
+   if constexpr (   nihilus_cute::is_base_of_v<nihilus_cute::SM90_TMA_LOAD,                         GmemTiledCopy>
+                  || nihilus_cute::is_base_of_v<nihilus_cute::SM90_TMA_LOAD_MULTICAST,              GmemTiledCopy>
+                  || nihilus_cute::is_base_of_v<nihilus_cute::SM90_TMA_LOAD_IM2COL,                 GmemTiledCopy>
+                  || nihilus_cute::is_base_of_v<nihilus_cute::SM90_TMA_LOAD_IM2COL_MULTICAST,       GmemTiledCopy>
+                  || nihilus_cute::is_base_of_v<nihilus_cute::SM90_TMA_STORE,                       GmemTiledCopy>
+                  || nihilus_cute::is_base_of_v<nihilus_cute::SM90_TMA_STORE_IM2COL,                GmemTiledCopy>
+                  || nihilus_cute::is_base_of_v<nihilus_cute::SM100_TMA_2SM_LOAD,                   GmemTiledCopy>
+                  || nihilus_cute::is_base_of_v<nihilus_cute::SM100_TMA_2SM_LOAD_MULTICAST,         GmemTiledCopy>
                   ) {
       return true;
     }
@@ -321,7 +321,7 @@ template <class X, class = void>
 struct RawDtype { using type = X; };
 
 template <class X>
-struct RawDtype<X,cute_rt_tm::void_t<typename X::raw_type>> { using type = typename X::raw_type; };
+struct RawDtype<X,nihilus_cute::void_t<typename X::raw_type>> { using type = typename X::raw_type; };
 
 
 // Inspects a TiledCopy and returns its alignment in terms of element count
@@ -329,29 +329,29 @@ template <class GmemTiledCopy, class Element, class ElementMma = Element>
 constexpr int
 get_alignment_count_from_gmem_tiled_copy() {
 
-  if constexpr (cute_rt_tm::is_void_v<GmemTiledCopy>) {
+  if constexpr (nihilus_cute::is_void_v<GmemTiledCopy>) {
     return 1;
   }
 
   // Account for ElementC = void kernels
-  else if constexpr (cute_rt_tm::is_void_v<Element>) {
+  else if constexpr (nihilus_cute::is_void_v<Element>) {
     return 0;
   }
 
   else {
     // For TMA tiled copies, we know the alignment has to be 128 bits
     if constexpr (is_tma_copy_engine<GmemTiledCopy>()) {
-      if constexpr ( cute_rt_tm::is_same_v<typename RawDtype<ElementMma>::type, nihilus_gemm::detail::float_e2m1_unpacksmem_t> ||
-                     cute_rt_tm::is_same_v<typename RawDtype<ElementMma>::type, nihilus_gemm::detail::float_e3m2_unpacksmem_t> ||
-                     cute_rt_tm::is_same_v<typename RawDtype<ElementMma>::type, nihilus_gemm::detail::float_e2m3_unpacksmem_t> ||
-                     cute_rt_tm::is_same_v<typename RawDtype<ElementMma>::type, nihilus_gemm::detail::type_erased_dynamic_float4_unpacksmem_t> ||
-                     cute_rt_tm::is_same_v<typename RawDtype<ElementMma>::type, nihilus_gemm::detail::type_erased_dynamic_float6_unpacksmem_t> ||
-                     nihilus_gemm::gemm::collective::detail::is_sm10x_f8f6f4_element<Element>() && cute_rt_tm::is_same_v<typename RawDtype<ElementMma>::type, uint8_t>) {
+      if constexpr ( nihilus_cute::is_same_v<typename RawDtype<ElementMma>::type, nihilus_gemm::detail::float_e2m1_unpacksmem_t> ||
+                     nihilus_cute::is_same_v<typename RawDtype<ElementMma>::type, nihilus_gemm::detail::float_e3m2_unpacksmem_t> ||
+                     nihilus_cute::is_same_v<typename RawDtype<ElementMma>::type, nihilus_gemm::detail::float_e2m3_unpacksmem_t> ||
+                     nihilus_cute::is_same_v<typename RawDtype<ElementMma>::type, nihilus_gemm::detail::type_erased_dynamic_float4_unpacksmem_t> ||
+                     nihilus_cute::is_same_v<typename RawDtype<ElementMma>::type, nihilus_gemm::detail::type_erased_dynamic_float6_unpacksmem_t> ||
+                     nihilus_gemm::gemm::collective::detail::is_sm10x_f8f6f4_element<Element>() && nihilus_cute::is_same_v<typename RawDtype<ElementMma>::type, uint8_t>) {
         return 128;
       }
 
       // For sparse MMA, alignment in logical elements is increased by sparsity factor
-      if constexpr (cute_rt_tm::is_sparse_v<ElementMma>) {
+      if constexpr (nihilus_cute::is_sparse_v<ElementMma>) {
         return 128 / sizeof_bits<Element>::value * ElementMma::sparsity;
       }
       return 128 / sizeof_bits<Element>::value;
@@ -396,37 +396,37 @@ get_output_alignment_bits() {
 
 // Check if tensor layout satisfies a given major alignment
 template<int Alignment, class Shape, class Stride>
-CUTLASS_HOST_DEVICE constexpr
+NIHILUS_HOST_DEVICE constexpr
 bool
-check_alignment(cute_rt_tm::Layout<Shape,Stride> const& layout) {
+check_alignment(nihilus_cute::Layout<Shape,Stride> const& layout) {
   // Condition: shape must divide by Alignment without rounding
-  bool shape_check = cute_rt_tm::size(layout.shape()) == Alignment * cute_rt_tm::size(cute_rt_tm::upcast<Alignment>(layout));
+  bool shape_check = nihilus_cute::size(layout.shape()) == Alignment * nihilus_cute::size(nihilus_cute::upcast<Alignment>(layout));
   // Condition: every dynamic stride must be a multiple of Alignment
-  bool stride_check = cute_rt_tm::all_of(cute_rt_tm::flatten(layout.stride()), [](auto s){ return cute_rt_tm::is_static<decltype(s)>::value || (s % Alignment == 0); });
+  bool stride_check = nihilus_cute::all_of(nihilus_cute::flatten(layout.stride()), [](auto s){ return nihilus_cute::is_static<decltype(s)>::value || (s % Alignment == 0); });
   return shape_check && stride_check;
 }
 
 // Check if tensor layout satisfies a given major alignment
 template<int Alignment, class Shape, class Stride>
-CUTLASS_HOST_DEVICE constexpr
+NIHILUS_HOST_DEVICE constexpr
 bool
 check_alignment(Shape const& shape, Stride const& stride) {
-  return check_alignment<Alignment>(cute_rt_tm::make_layout(shape, stride));
+  return check_alignment<Alignment>(nihilus_cute::make_layout(shape, stride));
 }
 
 template<int B, int M, int S>
-CUTLASS_HOST_DEVICE constexpr
+NIHILUS_HOST_DEVICE constexpr
 size_t
-alignment_for_swizzle(cute_rt_tm::Swizzle<B, M, S>) {
+alignment_for_swizzle(nihilus_cute::Swizzle<B, M, S>) {
   static_assert(B >= 0 and M >= 0);
-  return size_t(1) << size_t(B + M + cute_rt_tm::abs(S));
+  return size_t(1) << size_t(B + M + nihilus_cute::abs(S));
 }
 
 template<class Layout>
-CUTLASS_HOST_DEVICE constexpr
+NIHILUS_HOST_DEVICE constexpr
 size_t
 alignment_for_swizzle(Layout layout) {
-  return alignment_for_swizzle(cute_rt_tm::get_swizzle_portion(layout));
+  return alignment_for_swizzle(nihilus_cute::get_swizzle_portion(layout));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/arch/arch.h"
 #include "nihilus_gemm/device_kernel.h"
@@ -50,18 +50,18 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace nihilus_gemm {
-namespace gemm {
-namespace device {
+	namespace gemm {
+		namespace device {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
+			/////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*! Gemm device-level operator. This is an interface to efficient CUTLASS GEMM kernels that may
+			/*! Gemm device-level operator. This is an interface to efficient NIHILUS GEMM kernels that may
   be invoked from host code.
 
   The contributions of this class are:
     
     1. At compile time, it maps data types and high-level structural parameters onto 
-       specific CUTLASS components.
+       specific NIHILUS components.
 
     2. At runtime, it maps logical arguments to GEMM problems to kernel parameters.
 
@@ -69,26 +69,26 @@ namespace device {
 
   The intent is to provide a convenient mechanism for interacting with most plausible GEMM
   configurations for each supported architecture. Consequently, not all parameters are exposed
-  to the top-level interface. Rather, sensible defaults at each level of the CUTLASS hierarchy
+  to the top-level interface. Rather, sensible defaults at each level of the NIHILUS hierarchy
   are selected to tradeoff simplicity of the interface with flexibility. We expect 
   most configurations to be specified at this level. Applications with more exotic requirements 
-  may construct their kernels of interest using CUTLASS components at the threadblock, warp, 
+  may construct their kernels of interest using NIHILUS components at the threadblock, warp, 
   and thread levels of abstraction.
 
-  CUTLASS exposes computations using the functor design pattern in which objects compose some
+  NIHILUS exposes computations using the functor design pattern in which objects compose some
   internal state with an overloaded function call operator. This enables decoupling of
   initialization from execution, possibly reducing overhead during steady state phases of
   application execution.
 
-  CUTLASS device-level operators expose an Arguments structure encompassing each logical
+  NIHILUS device-level operators expose an Arguments structure encompassing each logical
   input to the computation. This is distinct from the kernel-level Params structure pattern
   which contains application-specific precomputed state needed by the device code.
 
-  Example of a CUTLASS GEMM operator implementing the functionality of cuBLAS's SGEMM NN
+  Example of a NIHILUS GEMM operator implementing the functionality of cuBLAS's SGEMM NN
   is as follows:
 
     //
-    // Instantiate the CUTLASS GEMM operator.
+    // Instantiate the NIHILUS GEMM operator.
     //
 
     nihilus_gemm::gemm::device::Gemm<
@@ -166,363 +166,198 @@ namespace device {
     >
     class Gemm;
 */
-template <uint64_t M, uint64_t K,
-    /// Element type for A matrix operand
-    typename ElementA_,
-    /// Layout type for A matrix operand
-    typename LayoutA_,
     /// Element type for B matrix operand
-    typename ElementB_,
-    /// Layout type for B matrix operand
-    typename LayoutB_,
-    /// Element type for C and D matrix operands
-    typename ElementC_,
-    /// Layout type for C and D matrix operands
-    typename LayoutC_,
-    /// Element type for internal accumulation
-    typename ElementAccumulator_ = ElementC_,
-    /// Operator class tag
-    typename OperatorClass_ = arch::OpClassSimt,
-    /// Tag indicating architecture to tune for
-    typename ArchTag_ = arch::Sm120,
-    /// Threadblock-level tile size (concept: GemmShape)
-    typename ThreadblockShape_ = typename DefaultGemmConfiguration<
-        OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_,
-        ElementAccumulator_>::ThreadblockShape,
-    /// Warp-level tile size (concept: GemmShape)
-    typename WarpShape_ = typename DefaultGemmConfiguration<
-        OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_,
-        ElementAccumulator_>::WarpShape,
-    /// Instruction-level tile size (concept: GemmShape)
-    typename InstructionShape_ = typename DefaultGemmConfiguration<
-        OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_,
-        ElementAccumulator_>::InstructionShape,
-    /// Epilogue output operator
-    typename EpilogueOutputOp_ = typename DefaultGemmConfiguration<
-        OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_,
-        ElementAccumulator_>::EpilogueOutputOp,
-    /// Threadblock-level swizzling operator
-    typename ThreadblockSwizzle_ = typename threadblock::GemmIdentityThreadblockSwizzle<M,K>,
-    /// Number of stages used in the pipelined mainloop
-    int Stages =
-        DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_,
-                                 ElementC_, ElementAccumulator_>::kStages,
-    /// Access granularity of A matrix in units of elements
-    int AlignmentA =
-        DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_,
-                                 ElementC_, ElementAccumulator_>::kAlignmentA,
-    /// Access granularity of B matrix in units of elements
-    int AlignmentB =
-        DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_,
-                                 ElementC_, ElementAccumulator_>::kAlignmentB,
-    /// If true, kernel supports split-K with serial reduction
-    bool SplitKSerial = false,
-    /// Operation performed by GEMM
-    typename Operator_ = typename DefaultGemmConfiguration<
-        OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_,
-        ElementAccumulator_>::Operator,
-    /// Gather operand A by using an index array
-    bool GatherA = false,
-    /// Gather operand B by using an index array
-    bool GatherB = false,
-    /// Scatter result D by using an index array
-    bool ScatterD = false,
-    /// Permute result D
-    typename PermuteDLayout = layout::NoPermute>
-class Gemm {
- public:
+			template<uint64_t M, uint64_t K,
+				/// Element type for A matrix operand
+				typename ElementA_,
+				/// Layout type for A matrix operand
+				typename LayoutA_,
+				/// Element type for B matrix operand
+				typename ElementB_,
+				/// Layout type for B matrix operand
+				typename LayoutB_,
+				/// Element type for C and D matrix operands
+				typename ElementC_,
+				/// Layout type for C and D matrix operands
+				typename LayoutC_,
+				/// Element type for internal accumulation
+				typename ElementAccumulator_ = ElementC_,
+				/// Operator class tag
+				typename OperatorClass_ = arch::OpClassSimt,
+				/// Tag indicating architecture to tune for
+				typename ArchTag_ = arch::Sm120,
+				/// Threadblock-level tile size (concept: GemmShape)
+				typename ThreadblockShape_ = typename DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::ThreadblockShape,
+				/// Warp-level tile size (concept: GemmShape)
+				typename WarpShape_ = typename DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::WarpShape,
+				/// Instruction-level tile size (concept: GemmShape)
+				typename InstructionShape_ = typename DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::InstructionShape,
+				/// Epilogue output operator
+				typename EpilogueOutputOp_ = typename DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::EpilogueOutputOp,
+				/// Threadblock-level swizzling operator
+				typename ThreadblockSwizzle_ = typename threadblock::GemmIdentityThreadblockSwizzle<M, K>,
+				/// Number of stages used in the pipelined mainloop
+				int Stages = DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::kStages,
+				/// Access granularity of A matrix in units of elements
+				int AlignmentA = DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::kAlignmentA,
+				/// Access granularity of B matrix in units of elements
+				int AlignmentB = DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::kAlignmentB,
+				/// If true, kernel supports split-K with serial reduction
+				bool SplitKSerial = false,
+				/// Operation performed by GEMM
+				typename Operator_ = typename DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::Operator,
+				/// Gather operand A by using an index array
+				bool GatherA = false,
+				/// Gather operand B by using an index array
+				bool GatherB = false,
+				/// Scatter result D by using an index array
+				bool ScatterD = false,
+				/// Permute result D
+				typename PermuteDLayout = layout::NoPermute>
+			class Gemm {
+			  public:
+				using ElementA								  = ElementA_;
+				using LayoutA								  = LayoutA_;
+				using TensorRefA							  = TensorRef<ElementA const, LayoutA>;
+				using ElementB								  = ElementB_;
+				using LayoutB								  = LayoutB_;
+				using TensorRefB							  = TensorRef<ElementB const, LayoutB>;
+				using ElementC								  = ElementC_;
+				using LayoutC								  = LayoutC_;
+				using TensorRefC							  = TensorRef<ElementC const, LayoutC>;
+				using TensorRefD							  = TensorRef<ElementC, LayoutC>;
+				using ElementAccumulator					  = ElementAccumulator_;
+				using OperatorClass							  = OperatorClass_;
+				using ArchTag								  = ArchTag_;
+				using ThreadblockShape						  = ThreadblockShape_;
+				using WarpShape								  = WarpShape_;
+				using InstructionShape						  = InstructionShape_;
+				using EpilogueOutputOp						  = EpilogueOutputOp_;
+				using ThreadblockSwizzle					  = ThreadblockSwizzle_;
+				using Operator								  = Operator_;
+				static constexpr int kStages				  = Stages;
+				static constexpr int kAlignmentA			  = AlignmentA;
+				static constexpr int kAlignmentB			  = AlignmentB;
+				static constexpr int kAlignmentC			  = EpilogueOutputOp::kCount;
+				static constexpr bool kSplitKSerial			  = SplitKSerial;
+				static constexpr ComplexTransform kTransformA = ComplexTransform::kNone;
+				static constexpr ComplexTransform kTransformB = ComplexTransform::kNone;
 
-  using ElementA = ElementA_;
-  using LayoutA = LayoutA_;
-  using TensorRefA = TensorRef<ElementA const, LayoutA>;
-  using ElementB = ElementB_;
-  using LayoutB = LayoutB_;
-  using TensorRefB = TensorRef<ElementB const, LayoutB>;
-  using ElementC = ElementC_;
-  using LayoutC = LayoutC_;
-  using TensorRefC = TensorRef<ElementC const, LayoutC>;
-  using TensorRefD = TensorRef<ElementC, LayoutC>;
-  using ElementAccumulator = ElementAccumulator_;
-  using OperatorClass = OperatorClass_;
-  using ArchTag = ArchTag_;
-  using ThreadblockShape = ThreadblockShape_;
-  using WarpShape = WarpShape_;
-  using InstructionShape = InstructionShape_;
-  using EpilogueOutputOp = EpilogueOutputOp_;
-  using ThreadblockSwizzle = ThreadblockSwizzle_;
-  using Operator = Operator_;
-  static constexpr int  kStages = Stages;
-  static constexpr int  kAlignmentA = AlignmentA;
-  static constexpr int  kAlignmentB = AlignmentB;
-  static constexpr int  kAlignmentC = EpilogueOutputOp::kCount;
-  static constexpr bool  kSplitKSerial = SplitKSerial;
-  static constexpr ComplexTransform  kTransformA = ComplexTransform::kNone;
-  static constexpr ComplexTransform  kTransformB = ComplexTransform::kNone;
+				/// Define the kernel
+				using GemmKernel = typename kernel::DefaultGemm<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignmentB, ElementC, LayoutC, ElementAccumulator,
+					OperatorClass, ArchTag, ThreadblockShape, WarpShape, InstructionShape, EpilogueOutputOp, ThreadblockSwizzle, kStages, kSplitKSerial, Operator,
+					SharedMemoryClearOption::kNone, GatherA, GatherB, ScatterD, PermuteDLayout>::GemmKernel;
 
-  /// Define the kernel
-  using GemmKernel = typename kernel::DefaultGemm<
-    ElementA,
-    LayoutA,
-    kAlignmentA,
-    ElementB,
-    LayoutB,
-    kAlignmentB,
-    ElementC,
-    LayoutC,
-    ElementAccumulator,
-    OperatorClass,
-    ArchTag,
-    ThreadblockShape,
-    WarpShape,
-    InstructionShape,
-    EpilogueOutputOp,
-    ThreadblockSwizzle,
-    kStages,
-    kSplitKSerial,
-    Operator,
-    SharedMemoryClearOption::kNone,
-    GatherA,
-    GatherB,
-    ScatterD,
-    PermuteDLayout
-  >::GemmKernel;
+				/// Argument structure
+				struct Arguments {
+					//
+					// Data members
+					//
 
-  /// Argument structure
-  struct Arguments {
+					GemmCoord problem_size;
+					TensorRef<ElementA const, LayoutA> ref_A;
+					TensorRef<ElementB const, LayoutB> ref_B;
+					TensorRef<ElementC const, LayoutC> ref_C;
+					TensorRef<ElementC, LayoutC> ref_D;
+					typename EpilogueOutputOp::Params epilogue;
+					int split_k_slices;
+					// For gather+scatter operations
+					int const* gather_A_indices;
+					int const* gather_B_indices;
+					int const* scatter_D_indices;
 
-    //
-    // Data members
-    //
+					//
+					// Methods
+					//
 
-    GemmCoord problem_size;
-    TensorRef<ElementA const, LayoutA> ref_A;
-    TensorRef<ElementB const, LayoutB> ref_B;
-    TensorRef<ElementC const, LayoutC> ref_C;
-    TensorRef<ElementC, LayoutC> ref_D;
-    typename EpilogueOutputOp::Params epilogue;
-    int split_k_slices;
-    // For gather+scatter operations
-    int const *gather_A_indices;
-    int const *gather_B_indices;
-    int const *scatter_D_indices;
+					/// Default ctor
+					NIHILUS_HOST_DEVICE
+					Arguments() : problem_size(0, 0, 0), split_k_slices(1) {
+					}
 
-    //
-    // Methods
-    //
+					/// Constructs an Arguments structure
+					NIHILUS_HOST_DEVICE
+					Arguments(GemmCoord problem_size_, TensorRef<ElementA const, LayoutA> ref_A_, TensorRef<ElementB const, LayoutB> ref_B_,
+						TensorRef<ElementC const, LayoutC> ref_C_, TensorRef<ElementC, LayoutC> ref_D_,
+						typename EpilogueOutputOp::Params epilogue_ = typename EpilogueOutputOp::Params(), int split_k_slices = 1, int const* gather_A_indices_ = nullptr,
+						int const* gather_B_indices_ = nullptr, int const* scatter_D_indices_ = nullptr)
+						: problem_size(problem_size_), ref_A(ref_A_), ref_B(ref_B_), ref_C(ref_C_), ref_D(ref_D_), epilogue(epilogue_), split_k_slices(split_k_slices),
+						  gather_A_indices(gather_A_indices_), gather_B_indices(gather_B_indices_), scatter_D_indices(scatter_D_indices_) {
+					}
+				};
 
-    /// Default ctor
-    CUTLASS_HOST_DEVICE
-    Arguments(): problem_size(0, 0, 0), split_k_slices(1) {
+			  private:
+				/// Kernel parameters object
+				typename GemmKernel::Params params_;
 
-    }
+			  public:
+				/// Constructs the GEMM.
+				Gemm() {
+				}
 
-    /// Constructs an Arguments structure 
-    CUTLASS_HOST_DEVICE
-    Arguments(
-      GemmCoord problem_size_,
-      TensorRef<ElementA const, LayoutA> ref_A_,
-      TensorRef<ElementB const, LayoutB> ref_B_,
-      TensorRef<ElementC const, LayoutC> ref_C_,
-      TensorRef<ElementC, LayoutC> ref_D_,
-      typename EpilogueOutputOp::Params epilogue_ = 
-        typename EpilogueOutputOp::Params(),
-      int split_k_slices = 1,
-      int const *gather_A_indices_ = nullptr,
-      int const *gather_B_indices_ = nullptr,
-      int const *scatter_D_indices_ = nullptr
-    ):
-      problem_size(problem_size_),
-      ref_A(ref_A_),
-      ref_B(ref_B_),
-      ref_C(ref_C_),
-      ref_D(ref_D_),
-      epilogue(epilogue_),
-      split_k_slices(split_k_slices),
-      gather_A_indices(gather_A_indices_),
-      gather_B_indices(gather_B_indices_),
-      scatter_D_indices(scatter_D_indices_) {
+				/// Initializes GEMM state from arguments.
+				Status initialize(Arguments const& args) {
+					// Determine grid shape
+					ThreadblockSwizzle threadblock_swizzle;
 
-    }
-  };
+					nihilus_gemm::gemm::GemmCoord grid_shape =
+						threadblock_swizzle.get_tiled_shape(args.problem_size, { ThreadblockShape::kM, ThreadblockShape::kN, ThreadblockShape::kK }, args.split_k_slices);
 
-private:
+					if (args.split_k_slices > 1) {
+						return Status::kErrorInvalidProblem;
+					}
 
-  /// Kernel parameters object
-  typename GemmKernel::Params params_;
+					// Initialize the Params structure
+					params_ = typename GemmKernel::Params{ args.problem_size, grid_shape, args.ref_A.non_const_ref(), args.ref_B.non_const_ref(), args.ref_C.non_const_ref(),
+						args.ref_D, args.epilogue, nullptr, args.gather_A_indices, args.gather_B_indices, args.scatter_D_indices };
 
-public:
+					return Status::kSuccess;
+				}
 
-  /// Constructs the GEMM.
-  Gemm() { }
+				/// Runs the kernel using initialized state.
+				Status run() {
+					ThreadblockSwizzle threadblock_swizzle;
 
-  /// Determines whether the GEMM can execute the given problem.
-  static Status can_implement(Arguments const &args) {
+					dim3 grid = threadblock_swizzle.get_grid_shape(params_.grid_tiled_shape);
+					dim3 block(GemmKernel::kThreadCount, 1, 1);
 
-    if (!kSplitKSerial && args.split_k_slices > 1) {
-      return Status::kErrorInvalidProblem;
-    }
+					cudaError_t result;
 
-    Status status = GemmKernel::can_implement(
-      args.problem_size,
-      args.ref_A.non_const_ref(),
-      args.ref_B.non_const_ref(),
-      args.ref_C.non_const_ref(),
-      args.ref_D
-    );
+					int smem_size = int(sizeof(typename GemmKernel::SharedStorage));
 
-    if (status != Status::kSuccess) {
-      return status;
-    }
+					if (smem_size >= (48 << 10)) {
+						result = cudaFuncSetAttribute(Kernel<GemmKernel>, cudaFuncAttributeMaxDynamicSharedMemorySize, smem_size);
 
-    return Status::kSuccess;
-  }
+						if (result != cudaSuccess) {
+							return Status::kErrorInternal;
+						}
+					}
 
-  /// Gets the workspace size
-  static size_t get_workspace_size(Arguments const &args) {
-    
-    size_t bytes = 0;
+					nihilus_gemm::arch::synclog_setup();
+					nihilus_gemm::Kernel<GemmKernel><<<grid, block, smem_size>>>(params_);
 
-    // Determine grid shape
-    ThreadblockSwizzle threadblock_swizzle;
+					result = cudaGetLastError();
 
-    nihilus_gemm::gemm::GemmCoord tiled_shape = threadblock_swizzle.get_tiled_shape(
-      args.problem_size, 
-      {ThreadblockShape::kM, ThreadblockShape::kN, ThreadblockShape::kK},
-      args.split_k_slices);
-    
-    if (kSplitKSerial && args.split_k_slices > 1) {
+					return result == cudaSuccess ? Status::kSuccess : Status::kErrorInternal;
+				}
 
-      bytes += sizeof(int) * size_t(tiled_shape.m()) * size_t(tiled_shape.n());
-    }
+				/// Runs the kernel using initialized state.
+				Status operator()(Arguments const& args) {
+					Status status = initialize(args);
 
-    return bytes;
-  }
+					if (status == Status::kSuccess) {
+						status = run();
+					}
 
-  /// Initializes GEMM state from arguments.
-  Status initialize(Arguments const &args, void *workspace = nullptr, cudaStream_t stream = nullptr) {
+					return status;
+				}
+			};
 
-    // Determine grid shape
-    ThreadblockSwizzle threadblock_swizzle;
 
-    nihilus_gemm::gemm::GemmCoord grid_shape = threadblock_swizzle.get_tiled_shape(
-      args.problem_size, 
-      {ThreadblockShape::kM, ThreadblockShape::kN, ThreadblockShape::kK},
-      args.split_k_slices);
+			////////////////////////////////////////////////////////////////////////////////
 
-    if (kSplitKSerial) {
-      if (args.split_k_slices > 1) {
-        if (!workspace) {
-          return Status::kErrorWorkspaceNull;
-        }
-
-        size_t bytes = get_workspace_size(args);
-      
-        cudaError_t result = cudaMemsetAsync(workspace, 0, bytes, stream);
-
-        if (result != cudaSuccess) {
-          return Status::kErrorInternal;
-        }
-      }
-    }
-    else {
-
-      if (args.split_k_slices > 1) {
-        return Status::kErrorInvalidProblem;
-      }
-    }
-
-    // Initialize the Params structure
-    params_ = typename GemmKernel::Params{
-      args.problem_size,
-      grid_shape,
-      args.ref_A.non_const_ref(),
-      args.ref_B.non_const_ref(),
-      args.ref_C.non_const_ref(),
-      args.ref_D,
-      args.epilogue,
-      static_cast<int *>(workspace),
-      args.gather_A_indices,
-      args.gather_B_indices,
-      args.scatter_D_indices
-    };
-
-    return Status::kSuccess;
-  }
-
-  /// Lightweight update given a subset of arguments
-  Status update(Arguments const &args, void *workspace = nullptr) {
-    
-    if (kSplitKSerial && args.split_k_slices > 1) {  
-      if (!workspace) {
-        return Status::kErrorWorkspaceNull;
-      }
-    }
-
-    params_.ref_A.reset(args.ref_A.non_const_ref().data());
-    params_.ref_B.reset(args.ref_B.non_const_ref().data());
-    params_.ref_C.reset(args.ref_C.non_const_ref().data());
-    params_.ref_D.reset(args.ref_D.data());
-    params_.output_op = args.epilogue;
-    params_.semaphore = static_cast<int *>(workspace);
-
-    return Status::kSuccess;
-  }
-
-  /// Runs the kernel using initialized state.
-  Status run(cudaStream_t stream = nullptr) {
-
-    ThreadblockSwizzle threadblock_swizzle;
-
-    dim3 grid = threadblock_swizzle.get_grid_shape(params_.grid_tiled_shape);
-    dim3 block(GemmKernel::kThreadCount, 1, 1);
-
-    cudaError_t result;
-
-    int smem_size = int(sizeof(typename GemmKernel::SharedStorage));
-
-    if (smem_size >= (48 << 10)) {
-      result = cudaFuncSetAttribute(Kernel<GemmKernel>,
-                                    cudaFuncAttributeMaxDynamicSharedMemorySize,
-                                    smem_size);
-
-      if (result != cudaSuccess) {
-        return Status::kErrorInternal;
-      }
-    }
-
-    nihilus_gemm::arch::synclog_setup();
-    nihilus_gemm::Kernel<GemmKernel><<<grid, block, smem_size, stream>>>(params_);
-
-    result = cudaGetLastError();
-
-    return result == cudaSuccess ? Status::kSuccess : Status::kErrorInternal;
-  }
-
-  /// Runs the kernel using initialized state.
-  Status operator()(cudaStream_t stream = nullptr) {
-    return run(stream);
-  }
-
-  /// Runs the kernel using initialized state.
-  Status operator()(
-    Arguments const &args, 
-    void *workspace = nullptr, 
-    cudaStream_t stream = nullptr) {
-    
-    Status status = initialize(args, workspace, stream);
-    
-    if (status == Status::kSuccess) {
-      status = run(stream);
-    }
-
-    return status;
-  }
-};
-
-////////////////////////////////////////////////////////////////////////////////
-
-} // namespace device
-} // namespace gemm
-} // namespace nihilus_gemm
+		}// namespace device
+	}// namespace gemm
+}// namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////

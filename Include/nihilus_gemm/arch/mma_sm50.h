@@ -64,7 +64,7 @@ struct Mma<gemm::GemmShape<1, 1, 1>, 1, float, LayoutA, float, LayoutB, float, L
   using Operator = OpMultiplyAdd;
   using ElementC = float;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     Array<float, 1> &d,
     Array<float, 1> const &a,
@@ -92,7 +92,7 @@ struct Mma<gemm::GemmShape<1, 1, 1>, 1, double, LayoutA, double, LayoutB, double
   using Operator = OpMultiplyAdd;
   using ElementC = double;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     Array<double, 1> &d,
     Array<double, 1> const &a,
@@ -121,7 +121,7 @@ struct Mma<gemm::GemmShape<1, 1, 1>, 1, int, LayoutA, int, LayoutB, int, LayoutC
   using Operator = OpMultiplyAdd;
   using ElementC = int;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     Array<int, 1> &d,
     Array<int, 1> const &a,
@@ -159,7 +159,7 @@ struct Mma<
   using Operator = OpMultiplyAddComplex;
   using ElementC = complex<float>;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     Array<complex<float>, 1> &d,
     Array<complex<float>, 1> const &a,
@@ -200,7 +200,7 @@ struct Mma<
   using Operator = OpMultiplyAddComplex;
   using ElementC = complex<float>;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     Array<complex<float>, 1> &d,
     Array<complex<float>, 1> const &a,
@@ -239,7 +239,7 @@ struct Mma<
   using Operator = OpMultiplyAddComplex;
   using ElementC = complex<float>;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     Array<complex<float>, 1> &d,
     Array<float, 1> const &a,
@@ -278,7 +278,7 @@ struct Mma<
   using Operator = OpMultiplyAddComplex;
   using ElementC = complex<double>;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     Array<complex<double>, 1> &d,
     Array<complex<double>, 1> const &a,
@@ -317,7 +317,7 @@ struct Mma<
   using Operator = OpMultiplyAddComplex;
   using ElementC = complex<double>;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     Array<complex<double>, 1> &d,
     Array<complex<double>, 1> const &a,
@@ -354,7 +354,7 @@ struct Mma<
   using Operator = OpMultiplyAddComplex;
   using ElementC = complex<double>;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     Array<complex<double>, 1> &d,
     Array<double, 1> const &a,
@@ -384,7 +384,7 @@ struct Mma<gemm::GemmShape<1, 1, 1>, 1, half_t, LayoutA, half_t, LayoutB, float,
   using Operator = OpMultiplyAdd;
   using ElementC = float;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     Array<float, 1> &d,
     Array<half_t, 1> const &a,
@@ -413,7 +413,7 @@ struct Mma<gemm::GemmShape<1, 1, 1>, 1, Quaternion<float>, LayoutA, Quaternion<f
   using Element = Quaternion<float>;
   using ElementC = Element;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     Array<Element, 1> &d,
     Array<Element, 1> const &a,

@@ -36,7 +36,7 @@
 #pragma once
 
 #include "nihilus_gemm/array.h"
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/layout/pitch_linear.h"
 #include "nihilus_gemm/layout/tensor_op_multiplicand_sm75.h"
 #include "nihilus_gemm/layout/tensor_op_multiplicand_sm80.h"
@@ -75,8 +75,8 @@ class RegularTileAccessIterator<
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::TensorOpMultiplicandCongruous64b;
-  static constexpr int  kAdvanceRank = AdvanceRank;
-  static constexpr int  kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -94,7 +94,7 @@ class RegularTileAccessIterator<
   struct Detail {
     /// This iterator is specialized for an access size that is 128 bits in
     /// length.
-    static constexpr int  kAccessSizeInBits = 64;
+    static constexpr int kAccessSizeInBits = 64;
 
     static_assert(sizeof_bits<Element_>::value *
                           ThreadMap::kElementsPerAccess ==
@@ -102,7 +102,7 @@ class RegularTileAccessIterator<
                   "This iterator requires a policy whose access size is 64b");
 
     ///< Number of pointers
-    static constexpr int  kPointerCount = 1;
+    static constexpr int kPointerCount = 1;
   };
 
   /// Element type per access
@@ -131,7 +131,7 @@ class RegularTileAccessIterator<
  public:
 
   /// Construct a TileIterator with zero threadblock offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator(
     TensorRef ref,  ///< Pointer to start of tensor
     int thread_id   ///< ID of each participating thread
@@ -152,7 +152,7 @@ class RegularTileAccessIterator<
   }
 
   /// Overrides the internal iteration index
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void set_iteration_index(int index) {
 
     iteration_contiguous_ = index % ThreadMap::Iterations::kContiguous;
@@ -160,14 +160,14 @@ class RegularTileAccessIterator<
   }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
 
     byte_offset_ += pointer_offset * sizeof(Element);
   }
 
   /// Returns a pointer
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   AccessType *get() const {
 
     AccessType *access_ptr = pointer_;
@@ -183,7 +183,7 @@ class RegularTileAccessIterator<
   }
 
   /// Advances to the next tile in memory.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator &operator++() {
     ++iteration_contiguous_;
 
@@ -207,7 +207,7 @@ class RegularTileAccessIterator<
   }
 
   /// Advances to the next tile in memory.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator operator++(int) {
 
     RegularTileAccessIterator prev(*this);
@@ -218,7 +218,7 @@ class RegularTileAccessIterator<
   }
 
   /// Adds a tile offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void add_tile_offset(TensorCoord const &coord) {
 
     add_pointer_offset(
@@ -251,8 +251,8 @@ class RegularTileAccessIterator<
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::ColumnMajorTensorOpMultiplicandCongruous64b;
-  static constexpr int  kAdvanceRank = AdvanceRank;
-  static constexpr int  kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -276,43 +276,43 @@ class RegularTileAccessIterator<
 
  public:
   /// Construct a TileIterator with zero threadblock offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator(TensorRef ref,  ///< Pointer to start of tensor
                             int thread_id   ///< ID of each participating thread
                             )
       : iterator_({ref.data(), ref.stride()}, thread_id) {}
 
   /// Overrides the internal iteration index
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void set_iteration_index(int index) { iterator_.set_iteration_index(index); }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     iterator_.add_pointer_offset(pointer_offset);
   }
 
   /// Returns a pointer
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   AccessType *get() const {
     return reinterpret_cast<AccessType *>(iterator_.get());
   }
 
   /// Adds a tile offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void add_tile_offset(TensorCoord const &coord) {
     iterator_.add_tile_offset({coord.row(), coord.column()});
   }
 
   /// Advances to the next tile in memory.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator &operator++() {
     ++iterator_;
     return *this;
   }
 
   /// Advances to the next tile in memory.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator operator++(int) {
     RegularTileAccessIterator prev(*this);
     ++iterator_;
@@ -344,8 +344,8 @@ class RegularTileAccessIterator<Shape_, Element_,
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::RowMajorTensorOpMultiplicandCongruous64b;
-  static constexpr int  kAdvanceRank = AdvanceRank;
-  static constexpr int  kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -369,43 +369,43 @@ class RegularTileAccessIterator<Shape_, Element_,
 
  public:
   /// Construct a TileIterator with zero threadblock offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator(TensorRef ref,  ///< Pointer to start of tensor
                             int thread_id   ///< ID of each participating thread
                             )
       : iterator_({ref.data(), ref.stride()}, thread_id) {}
 
   /// Overrides the internal iteration index
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void set_iteration_index(int index) { iterator_.set_iteration_index(index); }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     iterator_.add_pointer_offset(pointer_offset);
   }
 
   /// Returns a pointer
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   AccessType *get() const {
     return reinterpret_cast<AccessType *>(iterator_.get());
   }
 
   /// Adds a tile offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void add_tile_offset(TensorCoord const &coord) {
     iterator_.add_tile_offset({coord.column(), coord.row()});
   }
 
   /// Advances to the next tile in memory.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator &operator++() {
     ++iterator_;
     return *this;
   }
 
   /// Advances to the next tile in memory.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator operator++(int) {
     RegularTileAccessIterator prev(*this);
     ++iterator_;
@@ -439,8 +439,8 @@ class RegularTileAccessIterator<
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::TensorOpMultiplicand64bCrosswise;
-  static constexpr int  kAdvanceRank = AdvanceRank;
-  static constexpr int  kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -458,7 +458,7 @@ class RegularTileAccessIterator<
   struct Detail {
     /// This iterator is specialized for an access size that is 128 bits in
     /// length.
-    static constexpr int  kAccessSizeInBits = 64;
+    static constexpr int kAccessSizeInBits = 64;
 
     static_assert(sizeof_bits<Element_>::value *
                           ThreadMap::kElementsPerAccess ==
@@ -467,7 +467,7 @@ class RegularTileAccessIterator<
 
     ///< Number of pointers - two pointers are needed if making more than 4 iterations along
     ///< strided dimension
-    static constexpr int  kPointerCount = (ThreadMap::Iterations::kStrided > 4 ? 2 : 1);
+    static constexpr int kPointerCount = (ThreadMap::Iterations::kStrided > 4 ? 2 : 1);
   };
 
   /// Element type per access
@@ -496,7 +496,7 @@ class RegularTileAccessIterator<
  public:
 
   /// Construct a TileIterator with zero threadblock offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   RegularTileAccessIterator(
     TensorRef ref,  ///< Pointer to start of tensor
     int thread_id   ///< ID of each participating thread
@@ -522,7 +522,7 @@ class RegularTileAccessIterator<
   }
 
   /// Overrides the internal iteration index
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void set_iteration_index(int index) {
 
     iteration_contiguous_ = index % ThreadMap::Iterations::kContiguous;
@@ -530,14 +530,14 @@ class RegularTileAccessIterator<
   }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
 
     pointer_ += pointer_offset / ThreadMap::kElementsPerAccess;
   }
 
   /// Returns a pointer
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   AccessType *get() const {
 
     // Map the logical contiguous and strided access to the internal swizzled structure.
@@ -560,7 +560,7 @@ class RegularTileAccessIterator<
   }
 
   /// Advances to the next tile in memory.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator &operator++() {
     ++iteration_contiguous_;
 
@@ -584,7 +584,7 @@ class RegularTileAccessIterator<
   }
 
   /// Advances to the next tile in memory.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator operator++(int) {
 
     RegularTileAccessIterator prev(*this);
@@ -595,7 +595,7 @@ class RegularTileAccessIterator<
   }
 
   /// Adds a tile offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void add_tile_offset(TensorCoord const &coord) {
 
     add_pointer_offset(coord.strided() * Shape::kStrided + coord.contiguous() * Shape::kContiguous * stride_);
@@ -626,8 +626,8 @@ class RegularTileAccessIterator<
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::ColumnMajorTensorOpMultiplicand64bCrosswise;
-  static constexpr int  kAdvanceRank = AdvanceRank;
-  static constexpr int  kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -651,43 +651,43 @@ class RegularTileAccessIterator<
 
  public:
   /// Construct a TileIterator with zero threadblock offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator(TensorRef ref,  ///< Pointer to start of tensor
                             int thread_id   ///< ID of each participating thread
                             )
       : iterator_({ref.data(), ref.stride()}, thread_id) {}
 
   /// Overrides the internal iteration index
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void set_iteration_index(int index) { iterator_.set_iteration_index(index); }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     iterator_.add_pointer_offset(pointer_offset);
   }
 
   /// Returns a pointer
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   AccessType *get() const {
     return reinterpret_cast<AccessType *>(iterator_.get());
   }
 
   /// Adds a tile offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void add_tile_offset(TensorCoord const &coord) {
     iterator_.add_tile_offset({coord.row(), coord.column()});
   }
 
   /// Advances to the next tile in memory.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator &operator++() {
     ++iterator_;
     return *this;
   }
 
   /// Advances to the next tile in memory.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator operator++(int) {
     RegularTileAccessIterator prev(*this);
     ++iterator_;
@@ -719,8 +719,8 @@ class RegularTileAccessIterator<Shape_, Element_,
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::RowMajorTensorOpMultiplicand64bCrosswise;
-  static constexpr int  kAdvanceRank = AdvanceRank;
-  static constexpr int  kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -744,43 +744,43 @@ class RegularTileAccessIterator<Shape_, Element_,
 
  public:
   /// Construct a TileIterator with zero threadblock offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator(TensorRef ref,  ///< Pointer to start of tensor
                             int thread_id   ///< ID of each participating thread
                             )
       : iterator_({ref.data(), ref.stride()}, thread_id) {}
 
   /// Overrides the internal iteration index
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void set_iteration_index(int index) { iterator_.set_iteration_index(index); }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     iterator_.add_pointer_offset(pointer_offset);
   }
 
   /// Returns a pointer
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   AccessType *get() const {
     return reinterpret_cast<AccessType *>(iterator_.get());
   }
 
   /// Adds a tile offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void add_tile_offset(TensorCoord const &coord) {
     iterator_.add_tile_offset({coord.column(), coord.row()});
   }
 
   /// Advances to the next tile in memory.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator &operator++() {
     ++iterator_;
     return *this;
   }
 
   /// Advances to the next tile in memory.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator operator++(int) {
     RegularTileAccessIterator prev(*this);
     ++iterator_;
@@ -814,8 +814,8 @@ class RegularTileAccessIterator<
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::TensorOpMultiplicandCongruous128b;
-  static constexpr int  kAdvanceRank = AdvanceRank;
-  static constexpr int  kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -833,7 +833,7 @@ class RegularTileAccessIterator<
   struct Detail {
     /// This iterator is specialized for an access size that is 128 bits in
     /// length.
-    static constexpr int  kAccessSizeInBits = 128;
+    static constexpr int kAccessSizeInBits = 128;
 
     static_assert(sizeof_bits<Element_>::value *
                           ThreadMap::kElementsPerAccess ==
@@ -841,7 +841,7 @@ class RegularTileAccessIterator<
                   "This iterator requires a policy whose access size is 128b");
 
     ///< Number of pointers
-    static constexpr int  kPointerCount = 1;
+    static constexpr int kPointerCount = 1;
   };
 
   /// Element type per access
@@ -870,7 +870,7 @@ class RegularTileAccessIterator<
  public:
 
   /// Construct a TileIterator with zero threadblock offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator(
     TensorRef ref,  ///< Pointer to start of tensor
     int thread_id   ///< ID of each participating thread
@@ -891,7 +891,7 @@ class RegularTileAccessIterator<
   }
 
   /// Overrides the internal iteration index
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void set_iteration_index(int index) {
 
     iteration_contiguous_ = index % ThreadMap::Iterations::kContiguous;
@@ -899,14 +899,14 @@ class RegularTileAccessIterator<
   }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
 
     byte_offset_ += pointer_offset * sizeof(Element);
   }
 
   /// Returns a pointer
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   AccessType *get() const {
 
     AccessType *access_ptr = pointer_;
@@ -922,7 +922,7 @@ class RegularTileAccessIterator<
   }
 
   /// Advances to the next tile in memory.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator &operator++() {
     ++iteration_contiguous_;
 
@@ -946,7 +946,7 @@ class RegularTileAccessIterator<
   }
 
   /// Advances to the next tile in memory.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator operator++(int) {
 
     RegularTileAccessIterator prev(*this);
@@ -957,7 +957,7 @@ class RegularTileAccessIterator<
   }
 
   /// Adds a tile offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void add_tile_offset(TensorCoord const &coord) {
 
     add_pointer_offset(
@@ -990,8 +990,8 @@ class RegularTileAccessIterator<
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::ColumnMajorTensorOpMultiplicandCongruous128b;
-  static constexpr int  kAdvanceRank = AdvanceRank;
-  static constexpr int  kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -1015,43 +1015,43 @@ class RegularTileAccessIterator<
 
  public:
   /// Construct a TileIterator with zero threadblock offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator(TensorRef ref,  ///< Pointer to start of tensor
                             int thread_id   ///< ID of each participating thread
                             )
       : iterator_({ref.data(), ref.stride()}, thread_id) {}
 
   /// Overrides the internal iteration index
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void set_iteration_index(int index) { iterator_.set_iteration_index(index); }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     iterator_.add_pointer_offset(pointer_offset);
   }
 
   /// Returns a pointer
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   AccessType *get() const {
     return reinterpret_cast<AccessType *>(iterator_.get());
   }
 
   /// Adds a tile offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void add_tile_offset(TensorCoord const &coord) {
     iterator_.add_tile_offset({coord.row(), coord.column()});
   }
 
   /// Advances to the next tile in memory.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator &operator++() {
     ++iterator_;
     return *this;
   }
 
   /// Advances to the next tile in memory.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator operator++(int) {
     RegularTileAccessIterator prev(*this);
     ++iterator_;
@@ -1083,8 +1083,8 @@ class RegularTileAccessIterator<Shape_, Element_,
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::RowMajorTensorOpMultiplicandCongruous128b;
-  static constexpr int  kAdvanceRank = AdvanceRank;
-  static constexpr int  kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -1108,7 +1108,7 @@ class RegularTileAccessIterator<Shape_, Element_,
 
  public:
   /// Construct a TileIterator with zero threadblock offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator(
     TensorRef ref,  ///< Pointer to start of tensor
     int thread_id   ///< ID of each participating thread
@@ -1116,36 +1116,36 @@ class RegularTileAccessIterator<Shape_, Element_,
     iterator_({ref.data(), ref.stride()}, thread_id) {}
 
   /// Overrides the internal iteration index
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void set_iteration_index(int index) { iterator_.set_iteration_index(index); }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     iterator_.add_pointer_offset(pointer_offset);
   }
 
   /// Returns a pointer
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   AccessType *get() const {
     return reinterpret_cast<AccessType *>(iterator_.get());
   }
 
   /// Adds a tile offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void add_tile_offset(TensorCoord const &coord) {
     iterator_.add_tile_offset({coord.column(), coord.row()});
   }
 
   /// Advances to the next tile in memory.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator &operator++() {
     ++iterator_;
     return *this;
   }
 
   /// Advances to the next tile in memory.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator operator++(int) {
     RegularTileAccessIterator prev(*this);
     ++iterator_;
@@ -1179,8 +1179,8 @@ class RegularTileAccessIterator<
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::TensorOpMultiplicandCrosswise128x4;
-  static constexpr int  kAdvanceRank = AdvanceRank;
-  static constexpr int  kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -1198,7 +1198,7 @@ class RegularTileAccessIterator<
   struct Detail {
     /// This iterator is specialized for an access size that is 128 bits in
     /// length.
-    static constexpr int  kAccessSizeInBits = 128;
+    static constexpr int kAccessSizeInBits = 128;
 
     static_assert(sizeof_bits<Element_>::value *
                           ThreadMap::kElementsPerAccess ==
@@ -1206,7 +1206,7 @@ class RegularTileAccessIterator<
                   "This iterator requires a policy whose access size is 128b");
 
     ///< Number of pointers
-    static constexpr int  kPointerCount = 1;
+    static constexpr int kPointerCount = 1;
   };
 
 
@@ -1238,7 +1238,7 @@ class RegularTileAccessIterator<
  public:
 
   /// Construct a TileIterator with zero threadblock offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   RegularTileAccessIterator(
     TensorRef ref,  ///< Pointer to start of tensor
     int thread_id   ///< ID of each participating thread
@@ -1259,7 +1259,7 @@ class RegularTileAccessIterator<
   }
 
   /// Overrides the internal iteration index
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void set_iteration_index(int index) {
 
     iteration_contiguous_ = index % ThreadMap::Iterations::kContiguous;
@@ -1267,14 +1267,14 @@ class RegularTileAccessIterator<
   }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
 
     byte_offset_ += pointer_offset * sizeof(Element);
   }
 
   /// Returns a pointer
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   AccessType *get() const {
 
     AccessType *access_ptr = pointer_;
@@ -1291,7 +1291,7 @@ class RegularTileAccessIterator<
   }
 
   /// Advances to the next tile in memory.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator &operator++() {
     ++iteration_contiguous_;
 
@@ -1315,7 +1315,7 @@ class RegularTileAccessIterator<
   }
 
   /// Advances to the next tile in memory.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator operator++(int) {
 
     RegularTileAccessIterator prev(*this);
@@ -1326,7 +1326,7 @@ class RegularTileAccessIterator<
   }
 
   /// Adds a tile offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void add_tile_offset(TensorCoord const &coord) {
 
     add_pointer_offset(
@@ -1359,8 +1359,8 @@ class RegularTileAccessIterator<
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::ColumnMajorTensorOpMultiplicandCrosswise128x4;
-  static constexpr int  kAdvanceRank = AdvanceRank;
-  static constexpr int  kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -1384,43 +1384,43 @@ class RegularTileAccessIterator<
 
  public:
   /// Construct a TileIterator with zero threadblock offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator(TensorRef ref,  ///< Pointer to start of tensor
                             int thread_id   ///< ID of each participating thread
                             )
       : iterator_({ref.data(), ref.stride()}, thread_id) {}
 
   /// Overrides the internal iteration index
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void set_iteration_index(int index) { iterator_.set_iteration_index(index); }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     iterator_.add_pointer_offset(pointer_offset);
   }
 
   /// Returns a pointer
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   AccessType *get() const {
     return reinterpret_cast<AccessType *>(iterator_.get());
   }
 
   /// Adds a tile offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void add_tile_offset(TensorCoord const &coord) {
     iterator_.add_tile_offset({coord.row(), coord.column()});
   }
 
   /// Advances to the next tile in memory.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator &operator++() {
     ++iterator_;
     return *this;
   }
 
   /// Advances to the next tile in memory.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator operator++(int) {
     RegularTileAccessIterator prev(*this);
     ++iterator_;
@@ -1452,8 +1452,8 @@ class RegularTileAccessIterator<Shape_, Element_,
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::RowMajorTensorOpMultiplicandCrosswise128x4;
-  static constexpr int  kAdvanceRank = AdvanceRank;
-  static constexpr int  kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -1477,7 +1477,7 @@ class RegularTileAccessIterator<Shape_, Element_,
 
  public:
   /// Construct a TileIterator with zero threadblock offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator(
     TensorRef ref,  ///< Pointer to start of tensor
     int thread_id   ///< ID of each participating thread
@@ -1485,36 +1485,36 @@ class RegularTileAccessIterator<Shape_, Element_,
     iterator_({ref.data(), ref.stride()}, thread_id) {}
 
   /// Overrides the internal iteration index
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void set_iteration_index(int index) { iterator_.set_iteration_index(index); }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     iterator_.add_pointer_offset(pointer_offset);
   }
 
   /// Returns a pointer
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   AccessType *get() const {
     return reinterpret_cast<AccessType *>(iterator_.get());
   }
 
   /// Adds a tile offset
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void add_tile_offset(TensorCoord const &coord) {
     iterator_.add_tile_offset({coord.column(), coord.row()});
   }
 
   /// Advances to the next tile in memory.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator &operator++() {
     ++iterator_;
     return *this;
   }
 
   /// Advances to the next tile in memory.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   RegularTileAccessIterator operator++(int) {
     RegularTileAccessIterator prev(*this);
     ++iterator_;

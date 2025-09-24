@@ -47,7 +47,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/tensor_coord.h"
 #include "nihilus_gemm/fast_math.h"
 #include "nihilus_gemm/gemm/gemm_enumerated_types.h"
@@ -79,14 +79,14 @@ struct Conv2dProblemSize {
   //
 
 public:
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Conv2dProblemSize():
     N(0), H(0), W(0), C(0), P(0), Q(0), K(0), R(0), S(0),
     pad_h(0), pad_w(0), stride_h(1), stride_w(1), dilation_h(1), dilation_w(1),
     mode(Mode::kConvolution), split_k_slices(1), groups(1) { }
  
   /// Constructor for default padding, stride, dilation, and split-K
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Conv2dProblemSize(
     int N,
     int H,
@@ -104,7 +104,7 @@ public:
     mode(mode), split_k_slices(1), groups (1) { }
   
   /// Constructor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Conv2dProblemSize(
     int N,
     int H,
@@ -132,7 +132,7 @@ public:
 
   /// Constructs convolution problem size from nihilus_gemm Tensor4DCoord and MatrixCoord 
   // set user-defined output size and sets P and Q (include all data members in ctor)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Conv2dProblemSize(
     nihilus_gemm::Tensor4DCoord input_size,    // NHWC
     nihilus_gemm::Tensor4DCoord filter_size,   // KRSC
@@ -154,7 +154,7 @@ public:
 
   /// Constructs convolution problem size from nihilus_gemm Tensor4DCoord and MatrixCoord 
   // computes output size and sets P and Q (skip output from ctor arguments)
-  CUTLASS_HOST_DEVICE  
+  NIHILUS_HOST_DEVICE  
   Conv2dProblemSize(
     nihilus_gemm::Tensor4DCoord input_size,   // NHWC
     nihilus_gemm::Tensor4DCoord filter_size,  // KRSC
@@ -178,7 +178,7 @@ public:
 
   /// Constructs convolution problem size from nihilus_gemm Tensor4DCoord and MatrixCoord 
   // set user-defined output size and sets P and Q (skip padding, striding, and dilation)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Conv2dProblemSize(
     nihilus_gemm::Tensor4DCoord input_size,    // NHWC
     nihilus_gemm::Tensor4DCoord filter_size,   // KRSC
@@ -195,7 +195,7 @@ public:
     mode(mode), split_k_slices(split_k_slices), groups(groups) {}
 
   // Reset covolution mode in the problem
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Conv2dProblemSize reset_mode(nihilus_gemm::conv::Mode mode_) {
     Conv2dProblemSize tmp(*this);
     tmp.mode = mode_; 
@@ -203,7 +203,7 @@ public:
   }
 
   // Reset covolution mode in the problem
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Conv2dProblemSize reset_split_k_slices(int split_k_slices_) {
     Conv2dProblemSize tmp(*this);
     tmp.split_k_slices = split_k_slices_; 
@@ -211,7 +211,7 @@ public:
   }
 
   /// Equality operator (ignores mode and split_k_slice)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   bool operator==(Conv2dProblemSize const &conv) const {
     return (
       (N == conv.N) && (H == conv.H) && (W == conv.W) && (C == conv.C) &&
@@ -224,20 +224,20 @@ public:
   }
 
   /// Inequality operator
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   bool operator!=(Conv2dProblemSize const &rhs) const {
     return !(*this == rhs);
   }
 
   /// Returns activation extent as Tensor4DCoord
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   nihilus_gemm::Tensor4DCoord activation_extent() const {
 
     return nihilus_gemm::Tensor4DCoord ({N, H, W, C});
   }
 
   /// Returns filter extent as Tensor4DCoord
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   nihilus_gemm::Tensor4DCoord filter_extent(bool is_deconv = false) const {
 
     return is_deconv ? nihilus_gemm::Tensor4DCoord ({C, R, S, K / groups})
@@ -245,14 +245,14 @@ public:
   }
 
   /// Returns output extent as Tensor4DCoord
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   nihilus_gemm::Tensor4DCoord output_extent() const {
 
     return nihilus_gemm::Tensor4DCoord ({N, P, Q, K});
   }
 
   /// Returns activation size in number of elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   int64_t activation_size() const {
 
     return static_cast<int64_t>(N) * static_cast<int64_t>(H) *
@@ -260,7 +260,7 @@ public:
   }
 
   /// Returns filter size in number of elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   int64_t filter_size() const {
 
     return static_cast<int64_t>(K) * static_cast<int64_t>(R) *
@@ -269,7 +269,7 @@ public:
   }
 
   /// Returns output size in number of elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   int64_t output_size() const {
 
     return static_cast<int64_t>(N) * static_cast<int64_t>(P) *
@@ -277,21 +277,21 @@ public:
   }
 
   /// Returns padding as Tensor4DCoord
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   nihilus_gemm::Tensor4DCoord padding() const {
 
     return nihilus_gemm::Tensor4DCoord ({pad_h, pad_h, pad_w, pad_w});
   }
 
   /// Returns stride as MatrixCoord
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   nihilus_gemm::MatrixCoord stride() const {
 
     return nihilus_gemm::MatrixCoord ({stride_h, stride_w});
   }
 
   /// Returns dilation as MatrixCoord
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   nihilus_gemm::MatrixCoord dilation() const {
 
     return nihilus_gemm::MatrixCoord ({dilation_h, dilation_w});
@@ -301,19 +301,19 @@ public:
   //        Methods used for strided dgrad implementation
   /////////////////////////////////////////////////////////////////
   /// Number of filter r positions to accumulate in gemm-k dim
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   int num_gemm_k_filter_r(int r) const {
     return ((R - r + stride_h - 1) / stride_h);
   }
 
   /// Number of filter s positions to accumulate in gemm-k dim
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   int num_gemm_k_filter_s(int s) const {
     return ((S - s + stride_w - 1) / stride_w);
   }
 
   /// Number of filter positions to accumulate in gemm-k dim
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   int num_gemm_k_filter_positions(int r, int s) const {
     return num_gemm_k_filter_r(r) * num_gemm_k_filter_s(s);
   }
@@ -324,7 +324,7 @@ public:
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Determine the problem size of the implicit GEMM operation
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 nihilus_gemm::gemm::GemmCoord implicit_gemm_problem_size(
   Operator conv_operator, 
   Conv2dProblemSize const &problem_size) {
@@ -356,7 +356,7 @@ nihilus_gemm::gemm::GemmCoord implicit_gemm_problem_size(
 }
 
 // Determine the number of gemm_k iterations for conv2d problem using implicit gemm algorithm
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 int implicit_gemm_k_iterations(
   Operator conv_operator, 
   int threadblock_K, 
@@ -472,7 +472,7 @@ int implicit_gemm_k_iterations(
 
 
 template <int N = 1, int Output_P = 1, int Output_Q = 1>
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 int depthwise_gemm_k_iterations(
   Operator conv_operator, 
   int threadblock_K, 
@@ -490,7 +490,7 @@ int depthwise_gemm_k_iterations(
 }
 
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 int implicit_gemm_k_iterations_per_channel(
     Operator conv_operator,
     Conv2dProblemSize const &problem_size,
@@ -519,7 +519,7 @@ int implicit_gemm_k_iterations_per_channel(
 //  Mapping function (ImplicitGemm A, B, C -> Conv Activation, Filter, Output)
 ////////////////////////////////////////////////////////////////////////////////
 /// Returns ImplicitGemm tensor A extent as Tensor4DCoord
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 nihilus_gemm::Tensor4DCoord implicit_gemm_tensor_a_extent(
   Operator conv_operator,
   Conv2dProblemSize const &problem_size) {
@@ -534,7 +534,7 @@ nihilus_gemm::Tensor4DCoord implicit_gemm_tensor_a_extent(
 }
 
 /// Returns ImplicitGemm tensor B extent as Tensor4DCoord
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 nihilus_gemm::Tensor4DCoord implicit_gemm_tensor_b_extent(
   Operator conv_operator,
   Conv2dProblemSize const &problem_size) {
@@ -549,7 +549,7 @@ nihilus_gemm::Tensor4DCoord implicit_gemm_tensor_b_extent(
 }
 
 /// Returns ImplicitGemm tensor C extent as Tensor4DCoord
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 nihilus_gemm::Tensor4DCoord implicit_gemm_tensor_c_extent(
   Operator conv_operator,
   Conv2dProblemSize const &problem_size) {
@@ -564,7 +564,7 @@ nihilus_gemm::Tensor4DCoord implicit_gemm_tensor_c_extent(
 }
 
 /// Returns ImplicitGemm tensor A size in number of elements
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 int64_t implicit_gemm_tensor_a_size(
   Operator conv_operator,
   Conv2dProblemSize const &problem_size) {
@@ -579,7 +579,7 @@ int64_t implicit_gemm_tensor_a_size(
 }
 
 /// Returns ImplicitGemm tensor B size in number of elements
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 int64_t implicit_gemm_tensor_b_size(
   Operator conv_operator,
   Conv2dProblemSize const &problem_size) {
@@ -594,7 +594,7 @@ int64_t implicit_gemm_tensor_b_size(
 }
 
 /// Returns ImplicitGemm tensor C size in number of elements
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 int64_t implicit_gemm_tensor_c_size(
   Operator conv_operator,
   Conv2dProblemSize const &problem_size) {
@@ -614,7 +614,7 @@ int64_t implicit_gemm_tensor_c_size(
 //                                  Strided dgrad helper functions                                 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Returns number of CTAs tile M to cover valid MMAs per starting filter postion
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 int strided_dgrad_tile_m_per_filter(
   Conv2dProblemSize const &problem_size,
   int tile_size_m) {
@@ -631,7 +631,7 @@ int strided_dgrad_tile_m_per_filter(
 }
 
 // Computes starting Dx coord (h, w) for given starting filter postion
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 void strided_dgrad_starting_coords(
   Conv2dProblemSize const &problem_size,
   FastDivmod const &stride_h_divmod, FastDivmod const &stride_w_divmod,

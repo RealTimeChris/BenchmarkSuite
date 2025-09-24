@@ -40,7 +40,7 @@
 #include <cmath>
 #endif
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/coord.h"
 #include "nihilus_gemm/fast_math.h"
@@ -67,16 +67,16 @@ struct Matrix<Element_, 1, 2> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int  kRows = 1;
+  static constexpr int kRows = 1;
 
   /// Number of columns in matrix
-  static constexpr int  kColumns = 2;
+  static constexpr int kColumns = 2;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int  kCount = 2;
+  static constexpr int kCount = 2;
 
   //
   // Data members
@@ -90,19 +90,19 @@ struct Matrix<Element_, 1, 2> {
   //
 
   /// Constructs a zero matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix() {
     data.clear();
   }
   
   /// Copy constructor for a 1-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(Matrix const &rhs) {
     data = rhs.data;
   }
     
   /// Constructs a 1-by-2 matrix from scalar elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(
     Element _0_0, Element _0_1
   ) {
@@ -111,7 +111,7 @@ struct Matrix<Element_, 1, 2> {
   }
     
   /// Constructs a matrix from a uniform element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix uniform(Element s) {
     Matrix m;
     
@@ -122,19 +122,19 @@ struct Matrix<Element_, 1, 2> {
   }
 
   /// Constructs a matrix from a uniform element 1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix ones() {
     return uniform(Element(1));
   }
 
   /// Constructs a matrix from a uniform element 0
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix zero() {
     return Matrix();
   }
   
   /// Returns a transposed matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> transpose() const {
     Matrix<Element, 2, 1> mt;
     
@@ -145,67 +145,67 @@ struct Matrix<Element_, 1, 2> {
   }
     
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int i, int j) const {
     return data[i * 1 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(int i, int j) {
     return data[i * 1 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element &at(int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int offset) const {
     return data[offset];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](int offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 2> slice_1x2(int i = 0, int j = 0) const {
     Matrix<Element, 1, 2> m;
     
@@ -216,7 +216,7 @@ struct Matrix<Element_, 1, 2> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
@@ -225,55 +225,55 @@ struct Matrix<Element_, 1, 2> {
     return *this;
   }
     
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 2> row(int i) const {
     return slice_1x2(i, 0);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix &set_row(Matrix<Element, 1, 2> const &v, int i = 0) {
     return set_slice_1x2(v, i, 0);
   }
     
   /// Forms a 1-by-2 matrix by horizontally concatenating an Element with an Element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix hcat(Element lhs, Element rhs) {
     return Matrix(
       lhs, rhs);
   }
   
   /// Concatenates this matrix with a an Element to form a 1-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 3> hcat(Element rhs) const {
     return Matrix<Element, 1, 3>::hcat(*this, rhs);
   }
     
   /// Concatenates this matrix with a a 1-by-2 matrix to form a 1-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 4> hcat(Matrix<Element, 1, 2> const & rhs) const {
     return Matrix<Element, 1, 4>::hcat(*this, rhs);
   }
     
   /// Concatenates this matrix with a a 1-by-2 matrix to form a 2-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 2> vcat(Matrix<Element, 1, 2> const & rhs) const {
     return Matrix<Element, 2, 2>::vcat(*this, rhs);
   }
     
   /// Concatenates this matrix with a a 2-by-2 matrix to form a 3-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 2> vcat(Matrix<Element, 2, 2> const & rhs) const {
     return Matrix<Element, 3, 2>::vcat(*this, rhs);
   }
     
   /// Concatenates this matrix with a a 3-by-2 matrix to form a 4-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 2> vcat(Matrix<Element, 3, 2> const & rhs) const {
     return Matrix<Element, 4, 2>::vcat(*this, rhs);
   }
     
   /// Elementwise add operator (1-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix add(Matrix const &rhs) const {
 
     Matrix result;
@@ -285,13 +285,13 @@ struct Matrix<Element_, 1, 2> {
   }
       
   /// Elementwise add operator (1-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator +(Matrix const &rhs) const {
     return add(rhs);
   }
 
   /// Elementwise add operator (1-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator +=(Matrix const &rhs) {
     
     data[0] += rhs.data[0];
@@ -301,7 +301,7 @@ struct Matrix<Element_, 1, 2> {
   }
         
   /// Elementwise subtract operator (1-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix subtract(Matrix const &rhs) const {
 
     Matrix result;
@@ -313,13 +313,13 @@ struct Matrix<Element_, 1, 2> {
   }
       
   /// Elementwise subtract operator (1-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator -(Matrix const &rhs) const {
     return subtract(rhs);
   }
 
   /// Elementwise subtract operator (1-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator -=(Matrix const &rhs) {
     
     data[0] -= rhs.data[0];
@@ -329,7 +329,7 @@ struct Matrix<Element_, 1, 2> {
   }
         
   /// Elementwise multiply operator (1-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Matrix const &rhs) const {
 
     Matrix result;
@@ -341,7 +341,7 @@ struct Matrix<Element_, 1, 2> {
   }
       
   /// Scalar multiply operator (1-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Element const &s) const {
 
     Matrix result;
@@ -353,13 +353,13 @@ struct Matrix<Element_, 1, 2> {
   }
 
   /// Scalar multiply operator (1-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator *(Element const &s) const {
     return multiply(s);
   }
 
   /// Scalar multiply operator (1-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator *=(Element const &s) {
     
     data[0] *= s;
@@ -369,7 +369,7 @@ struct Matrix<Element_, 1, 2> {
   }
         
   /// Elementwise divide operator (1-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Matrix const &rhs) const {
 
     Matrix result;
@@ -381,7 +381,7 @@ struct Matrix<Element_, 1, 2> {
   }
       
   /// Scalar divide operator (1-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Element const &s) const {
 
     Matrix result;
@@ -393,13 +393,13 @@ struct Matrix<Element_, 1, 2> {
   }
 
   /// Scalar divide operator (1-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Element const &s) const {
     return divide(s);
   }
 
   /// Scalar divide operator (1-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Element const &s) {
     
     data[0] /= s;
@@ -409,13 +409,13 @@ struct Matrix<Element_, 1, 2> {
   }
         
   /// Elementwise divide operator (1-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Matrix const &rhs) const {
     return divide(rhs);
   }
 
   /// Elementwise divide operator (1-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Matrix const &rhs) {
     
     data[0] /= rhs.data[0];
@@ -425,7 +425,7 @@ struct Matrix<Element_, 1, 2> {
   }
         
   /// Negates each element of the matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator-() const {
     Matrix m;
     
@@ -436,7 +436,7 @@ struct Matrix<Element_, 1, 2> {
   }
   
   /// Matrix product of size 1-by-1-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element product(Matrix<Element, 2, 1> const &rhs, Element accum = Element()) const {
     
     // k=0
@@ -449,13 +449,13 @@ struct Matrix<Element_, 1, 2> {
   }
 
   /// Matrix product of size 1-by-1-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator*(Matrix<Element, 2, 1> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 1-by-2-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 2> product(
     Matrix<Element, 2, 2> const &rhs,
     Matrix<Element, 1, 2> accum = Matrix<Element, 1, 2>()
@@ -473,20 +473,20 @@ struct Matrix<Element_, 1, 2> {
   }
 
   /// Matrix product of size 1-by-2-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 2> operator*(Matrix<Element, 2, 2> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 1-by-2-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator*=(Matrix<Element, 2, 2> const &rhs) {
     *this = product(rhs);
     return *this;
   }
     
   /// Matrix product of size 1-by-3-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 3> product(
     Matrix<Element, 2, 3> const &rhs,
     Matrix<Element, 1, 3> accum = Matrix<Element, 1, 3>()
@@ -506,13 +506,13 @@ struct Matrix<Element_, 1, 2> {
   }
 
   /// Matrix product of size 1-by-3-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 3> operator*(Matrix<Element, 2, 3> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 1-by-4-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 4> product(
     Matrix<Element, 2, 4> const &rhs,
     Matrix<Element, 1, 4> accum = Matrix<Element, 1, 4>()
@@ -534,13 +534,13 @@ struct Matrix<Element_, 1, 2> {
   }
 
   /// Matrix product of size 1-by-4-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 4> operator*(Matrix<Element, 2, 4> const &rhs) const {
     return product(rhs);
   }
   
   /// Dot product of vectors with extent 2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element dot(Matrix<Element, 2, 1> const &rhs, Element accum = Element()) const {
     
     accum += data[0] * rhs.data[0];
@@ -549,7 +549,7 @@ struct Matrix<Element_, 1, 2> {
   }
 
   /// Dot product of vectors with extent 2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element dot(Matrix<Element, 1, 2> const &rhs, Element accum = Element()) const {
     
     accum += data[0] * rhs.data[0];
@@ -558,7 +558,7 @@ struct Matrix<Element_, 1, 2> {
   }
   
   /// Returns the sum of elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element sum(Element accum = Element()) const {
     
     accum += data[0];
@@ -568,7 +568,7 @@ struct Matrix<Element_, 1, 2> {
   }  
 
   /// Returns the sum of squared elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element norm(Element accum = Element()) const {
     
     accum += data[0] * data[0];
@@ -578,13 +578,13 @@ struct Matrix<Element_, 1, 2> {
   }
 
   /// Returns square root of the norm
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element magnitude() const {
     return fast_sqrt(norm());
   }
 
   /// Returns the sum of diagonal elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element trace(Element accum = Element()) const {
     
     accum += data[0];
@@ -601,7 +601,7 @@ using Matrix1x2 = Matrix<Element, 1, 2>;
 
 /// Free function to infer element type from template arguments
 template <typename Element>
-CUTLASS_HOST_DEVICE Matrix1x2<Element> make_Matrix1x2(
+NIHILUS_HOST_DEVICE Matrix1x2<Element> make_Matrix1x2(
     Element _0_0, Element _0_1
 ) {
   return Matrix1x2<Element>(
@@ -624,16 +624,16 @@ struct Matrix<Element_, 1, 3> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int  kRows = 1;
+  static constexpr int kRows = 1;
 
   /// Number of columns in matrix
-  static constexpr int  kColumns = 3;
+  static constexpr int kColumns = 3;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int  kCount = 3;
+  static constexpr int kCount = 3;
 
   //
   // Data members
@@ -647,19 +647,19 @@ struct Matrix<Element_, 1, 3> {
   //
 
   /// Constructs a zero matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix() {
     data.clear();
   }
   
   /// Copy constructor for a 1-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(Matrix const &rhs) {
     data = rhs.data;
   }
     
   /// Constructs a 1-by-3 matrix from scalar elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(
     Element _0_0, Element _0_1, Element _0_2
   ) {
@@ -668,7 +668,7 @@ struct Matrix<Element_, 1, 3> {
   }
     
   /// Constructs a matrix from a uniform element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix uniform(Element s) {
     Matrix m;
     
@@ -680,19 +680,19 @@ struct Matrix<Element_, 1, 3> {
   }
 
   /// Constructs a matrix from a uniform element 1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix ones() {
     return uniform(Element(1));
   }
 
   /// Constructs a matrix from a uniform element 0
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix zero() {
     return Matrix();
   }
   
   /// Returns a transposed matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 1> transpose() const {
     Matrix<Element, 3, 1> mt;
     
@@ -704,67 +704,67 @@ struct Matrix<Element_, 1, 3> {
   }
     
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int i, int j) const {
     return data[i * 1 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(int i, int j) {
     return data[i * 1 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element &at(int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int offset) const {
     return data[offset];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](int offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 2> slice_1x2(int i = 0, int j = 0) const {
     Matrix<Element, 1, 2> m;
     
@@ -775,7 +775,7 @@ struct Matrix<Element_, 1, 3> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
@@ -785,7 +785,7 @@ struct Matrix<Element_, 1, 3> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 3> slice_1x3(int i = 0, int j = 0) const {
     Matrix<Element, 1, 3> m;
     
@@ -797,7 +797,7 @@ struct Matrix<Element_, 1, 3> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_1x3(Matrix<Element, 1, 3> const &m, int i = 0, int j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
@@ -807,56 +807,56 @@ struct Matrix<Element_, 1, 3> {
     return *this;
   }
     
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 3> row(int i) const {
     return slice_1x3(i, 0);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix &set_row(Matrix<Element, 1, 3> const &v, int i = 0) {
     return set_slice_1x3(v, i, 0);
   }
     
   /// Forms a 1-by-3 matrix by horizontally concatenating an Element with a 1-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix hcat(Element lhs, Matrix<Element, 1, 2> const & rhs) {
     return Matrix(
       lhs, rhs.at(0, 0), rhs.at(0, 1));
   }
   
   /// Forms a 1-by-3 matrix by horizontally concatenating a 1-by-2 matrix with an Element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix hcat(Matrix<Element, 1, 2> const & lhs, Element rhs) {
     return Matrix(
       lhs.at(0, 0), lhs.at(0, 1), rhs);
   }
   
   /// Concatenates this matrix with a an Element to form a 1-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 4> hcat(Element rhs) const {
     return Matrix<Element, 1, 4>::hcat(*this, rhs);
   }
     
   /// Concatenates this matrix with a a 1-by-3 matrix to form a 2-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 3> vcat(Matrix<Element, 1, 3> const & rhs) const {
     return Matrix<Element, 2, 3>::vcat(*this, rhs);
   }
     
   /// Concatenates this matrix with a a 2-by-3 matrix to form a 3-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 3> vcat(Matrix<Element, 2, 3> const & rhs) const {
     return Matrix<Element, 3, 3>::vcat(*this, rhs);
   }
     
   /// Concatenates this matrix with a a 3-by-3 matrix to form a 4-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 3> vcat(Matrix<Element, 3, 3> const & rhs) const {
     return Matrix<Element, 4, 3>::vcat(*this, rhs);
   }
     
   /// Elementwise add operator (1-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix add(Matrix const &rhs) const {
 
     Matrix result;
@@ -869,13 +869,13 @@ struct Matrix<Element_, 1, 3> {
   }
       
   /// Elementwise add operator (1-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator +(Matrix const &rhs) const {
     return add(rhs);
   }
 
   /// Elementwise add operator (1-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator +=(Matrix const &rhs) {
     
     data[0] += rhs.data[0];
@@ -886,7 +886,7 @@ struct Matrix<Element_, 1, 3> {
   }
         
   /// Elementwise subtract operator (1-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix subtract(Matrix const &rhs) const {
 
     Matrix result;
@@ -899,13 +899,13 @@ struct Matrix<Element_, 1, 3> {
   }
       
   /// Elementwise subtract operator (1-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator -(Matrix const &rhs) const {
     return subtract(rhs);
   }
 
   /// Elementwise subtract operator (1-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator -=(Matrix const &rhs) {
     
     data[0] -= rhs.data[0];
@@ -916,7 +916,7 @@ struct Matrix<Element_, 1, 3> {
   }
         
   /// Elementwise multiply operator (1-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Matrix const &rhs) const {
 
     Matrix result;
@@ -929,7 +929,7 @@ struct Matrix<Element_, 1, 3> {
   }
       
   /// Scalar multiply operator (1-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Element const &s) const {
 
     Matrix result;
@@ -942,13 +942,13 @@ struct Matrix<Element_, 1, 3> {
   }
 
   /// Scalar multiply operator (1-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator *(Element const &s) const {
     return multiply(s);
   }
 
   /// Scalar multiply operator (1-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator *=(Element const &s) {
     
     data[0] *= s;
@@ -959,7 +959,7 @@ struct Matrix<Element_, 1, 3> {
   }
         
   /// Elementwise divide operator (1-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Matrix const &rhs) const {
 
     Matrix result;
@@ -972,7 +972,7 @@ struct Matrix<Element_, 1, 3> {
   }
       
   /// Scalar divide operator (1-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Element const &s) const {
 
     Matrix result;
@@ -985,13 +985,13 @@ struct Matrix<Element_, 1, 3> {
   }
 
   /// Scalar divide operator (1-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Element const &s) const {
     return divide(s);
   }
 
   /// Scalar divide operator (1-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Element const &s) {
     
     data[0] /= s;
@@ -1002,13 +1002,13 @@ struct Matrix<Element_, 1, 3> {
   }
         
   /// Elementwise divide operator (1-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Matrix const &rhs) const {
     return divide(rhs);
   }
 
   /// Elementwise divide operator (1-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Matrix const &rhs) {
     
     data[0] /= rhs.data[0];
@@ -1019,7 +1019,7 @@ struct Matrix<Element_, 1, 3> {
   }
         
   /// Negates each element of the matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator-() const {
     Matrix m;
     
@@ -1031,7 +1031,7 @@ struct Matrix<Element_, 1, 3> {
   }
   
   /// Matrix product of size 1-by-1-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element product(Matrix<Element, 3, 1> const &rhs, Element accum = Element()) const {
     
     // k=0
@@ -1047,13 +1047,13 @@ struct Matrix<Element_, 1, 3> {
   }
 
   /// Matrix product of size 1-by-1-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator*(Matrix<Element, 3, 1> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 1-by-2-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 2> product(
     Matrix<Element, 3, 2> const &rhs,
     Matrix<Element, 1, 2> accum = Matrix<Element, 1, 2>()
@@ -1075,13 +1075,13 @@ struct Matrix<Element_, 1, 3> {
   }
 
   /// Matrix product of size 1-by-2-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 2> operator*(Matrix<Element, 3, 2> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 1-by-3-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 3> product(
     Matrix<Element, 3, 3> const &rhs,
     Matrix<Element, 1, 3> accum = Matrix<Element, 1, 3>()
@@ -1106,20 +1106,20 @@ struct Matrix<Element_, 1, 3> {
   }
 
   /// Matrix product of size 1-by-3-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 3> operator*(Matrix<Element, 3, 3> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 1-by-3-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator*=(Matrix<Element, 3, 3> const &rhs) {
     *this = product(rhs);
     return *this;
   }
     
   /// Matrix product of size 1-by-4-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 4> product(
     Matrix<Element, 3, 4> const &rhs,
     Matrix<Element, 1, 4> accum = Matrix<Element, 1, 4>()
@@ -1147,13 +1147,13 @@ struct Matrix<Element_, 1, 3> {
   }
 
   /// Matrix product of size 1-by-4-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 4> operator*(Matrix<Element, 3, 4> const &rhs) const {
     return product(rhs);
   }
   
   /// Dot product of vectors with extent 3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element dot(Matrix<Element, 3, 1> const &rhs, Element accum = Element()) const {
     
     accum += data[0] * rhs.data[0];
@@ -1163,7 +1163,7 @@ struct Matrix<Element_, 1, 3> {
   }
 
   /// Dot product of vectors with extent 3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element dot(Matrix<Element, 1, 3> const &rhs, Element accum = Element()) const {
     
     accum += data[0] * rhs.data[0];
@@ -1173,7 +1173,7 @@ struct Matrix<Element_, 1, 3> {
   }
   
   /// Returns the sum of elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element sum(Element accum = Element()) const {
     
     accum += data[0];
@@ -1184,7 +1184,7 @@ struct Matrix<Element_, 1, 3> {
   }  
 
   /// Returns the sum of squared elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element norm(Element accum = Element()) const {
     
     accum += data[0] * data[0];
@@ -1195,13 +1195,13 @@ struct Matrix<Element_, 1, 3> {
   }
 
   /// Returns square root of the norm
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element magnitude() const {
     return fast_sqrt(norm());
   }
 
   /// Returns the sum of diagonal elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element trace(Element accum = Element()) const {
     
     accum += data[0];
@@ -1210,7 +1210,7 @@ struct Matrix<Element_, 1, 3> {
   }
     
   /// Cross product
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix cross(Matrix const &rhs) const {
     return Matrix(
       data[1] * rhs.data[2] - data[2] * rhs.data[1],
@@ -1228,7 +1228,7 @@ using Matrix1x3 = Matrix<Element, 1, 3>;
 
 /// Free function to infer element type from template arguments
 template <typename Element>
-CUTLASS_HOST_DEVICE Matrix1x3<Element> make_Matrix1x3(
+NIHILUS_HOST_DEVICE Matrix1x3<Element> make_Matrix1x3(
     Element _0_0, Element _0_1, Element _0_2
 ) {
   return Matrix1x3<Element>(
@@ -1251,16 +1251,16 @@ struct Matrix<Element_, 1, 4> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int  kRows = 1;
+  static constexpr int kRows = 1;
 
   /// Number of columns in matrix
-  static constexpr int  kColumns = 4;
+  static constexpr int kColumns = 4;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int  kCount = 4;
+  static constexpr int kCount = 4;
 
   //
   // Data members
@@ -1274,19 +1274,19 @@ struct Matrix<Element_, 1, 4> {
   //
 
   /// Constructs a zero matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix() {
     data.clear();
   }
   
   /// Copy constructor for a 1-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(Matrix const &rhs) {
     data = rhs.data;
   }
     
   /// Constructs a 1-by-4 matrix from scalar elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(
     Element _0_0, Element _0_1, Element _0_2, Element _0_3
   ) {
@@ -1295,7 +1295,7 @@ struct Matrix<Element_, 1, 4> {
   }
     
   /// Constructs a matrix from a uniform element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix uniform(Element s) {
     Matrix m;
     
@@ -1308,19 +1308,19 @@ struct Matrix<Element_, 1, 4> {
   }
 
   /// Constructs a matrix from a uniform element 1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix ones() {
     return uniform(Element(1));
   }
 
   /// Constructs a matrix from a uniform element 0
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix zero() {
     return Matrix();
   }
   
   /// Returns a transposed matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 1> transpose() const {
     Matrix<Element, 4, 1> mt;
     
@@ -1333,67 +1333,67 @@ struct Matrix<Element_, 1, 4> {
   }
     
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int i, int j) const {
     return data[i * 1 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(int i, int j) {
     return data[i * 1 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element &at(int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int offset) const {
     return data[offset];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](int offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 2> slice_1x2(int i = 0, int j = 0) const {
     Matrix<Element, 1, 2> m;
     
@@ -1404,7 +1404,7 @@ struct Matrix<Element_, 1, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -1414,7 +1414,7 @@ struct Matrix<Element_, 1, 4> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 3> slice_1x3(int i = 0, int j = 0) const {
     Matrix<Element, 1, 3> m;
     
@@ -1426,7 +1426,7 @@ struct Matrix<Element_, 1, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_1x3(Matrix<Element, 1, 3> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -1437,7 +1437,7 @@ struct Matrix<Element_, 1, 4> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 4> slice_1x4(int i = 0, int j = 0) const {
     Matrix<Element, 1, 4> m;
     
@@ -1450,7 +1450,7 @@ struct Matrix<Element_, 1, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_1x4(Matrix<Element, 1, 4> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -1461,57 +1461,57 @@ struct Matrix<Element_, 1, 4> {
     return *this;
   }
     
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 4> row(int i) const {
     return slice_1x4(i, 0);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix &set_row(Matrix<Element, 1, 4> const &v, int i = 0) {
     return set_slice_1x4(v, i, 0);
   }
     
   /// Forms a 1-by-4 matrix by horizontally concatenating an Element with a 1-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix hcat(Element lhs, Matrix<Element, 1, 3> const & rhs) {
     return Matrix(
       lhs, rhs.at(0, 0), rhs.at(0, 1), rhs.at(0, 2));
   }
   
   /// Forms a 1-by-4 matrix by horizontally concatenating a 1-by-2 matrix with a 1-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix hcat(Matrix<Element, 1, 2> const & lhs, Matrix<Element, 1, 2> const & rhs) {
     return Matrix(
       lhs.at(0, 0), lhs.at(0, 1), rhs.at(0, 0), rhs.at(0, 1));
   }
   
   /// Forms a 1-by-4 matrix by horizontally concatenating a 1-by-3 matrix with an Element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix hcat(Matrix<Element, 1, 3> const & lhs, Element rhs) {
     return Matrix(
       lhs.at(0, 0), lhs.at(0, 1), lhs.at(0, 2), rhs);
   }
   
   /// Concatenates this matrix with a a 1-by-4 matrix to form a 2-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 4> vcat(Matrix<Element, 1, 4> const & rhs) const {
     return Matrix<Element, 2, 4>::vcat(*this, rhs);
   }
     
   /// Concatenates this matrix with a a 2-by-4 matrix to form a 3-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 4> vcat(Matrix<Element, 2, 4> const & rhs) const {
     return Matrix<Element, 3, 4>::vcat(*this, rhs);
   }
     
   /// Concatenates this matrix with a a 3-by-4 matrix to form a 4-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 4> vcat(Matrix<Element, 3, 4> const & rhs) const {
     return Matrix<Element, 4, 4>::vcat(*this, rhs);
   }
     
   /// Elementwise add operator (1-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix add(Matrix const &rhs) const {
 
     Matrix result;
@@ -1525,13 +1525,13 @@ struct Matrix<Element_, 1, 4> {
   }
       
   /// Elementwise add operator (1-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator +(Matrix const &rhs) const {
     return add(rhs);
   }
 
   /// Elementwise add operator (1-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator +=(Matrix const &rhs) {
     
     data[0] += rhs.data[0];
@@ -1543,7 +1543,7 @@ struct Matrix<Element_, 1, 4> {
   }
         
   /// Elementwise subtract operator (1-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix subtract(Matrix const &rhs) const {
 
     Matrix result;
@@ -1557,13 +1557,13 @@ struct Matrix<Element_, 1, 4> {
   }
       
   /// Elementwise subtract operator (1-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator -(Matrix const &rhs) const {
     return subtract(rhs);
   }
 
   /// Elementwise subtract operator (1-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator -=(Matrix const &rhs) {
     
     data[0] -= rhs.data[0];
@@ -1575,7 +1575,7 @@ struct Matrix<Element_, 1, 4> {
   }
         
   /// Elementwise multiply operator (1-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Matrix const &rhs) const {
 
     Matrix result;
@@ -1589,7 +1589,7 @@ struct Matrix<Element_, 1, 4> {
   }
       
   /// Scalar multiply operator (1-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Element const &s) const {
 
     Matrix result;
@@ -1603,13 +1603,13 @@ struct Matrix<Element_, 1, 4> {
   }
 
   /// Scalar multiply operator (1-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator *(Element const &s) const {
     return multiply(s);
   }
 
   /// Scalar multiply operator (1-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator *=(Element const &s) {
     
     data[0] *= s;
@@ -1621,7 +1621,7 @@ struct Matrix<Element_, 1, 4> {
   }
         
   /// Elementwise divide operator (1-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Matrix const &rhs) const {
 
     Matrix result;
@@ -1635,7 +1635,7 @@ struct Matrix<Element_, 1, 4> {
   }
       
   /// Scalar divide operator (1-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Element const &s) const {
 
     Matrix result;
@@ -1649,13 +1649,13 @@ struct Matrix<Element_, 1, 4> {
   }
 
   /// Scalar divide operator (1-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Element const &s) const {
     return divide(s);
   }
 
   /// Scalar divide operator (1-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Element const &s) {
     
     data[0] /= s;
@@ -1667,13 +1667,13 @@ struct Matrix<Element_, 1, 4> {
   }
         
   /// Elementwise divide operator (1-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Matrix const &rhs) const {
     return divide(rhs);
   }
 
   /// Elementwise divide operator (1-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Matrix const &rhs) {
     
     data[0] /= rhs.data[0];
@@ -1685,7 +1685,7 @@ struct Matrix<Element_, 1, 4> {
   }
         
   /// Negates each element of the matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator-() const {
     Matrix m;
     
@@ -1698,7 +1698,7 @@ struct Matrix<Element_, 1, 4> {
   }
   
   /// Matrix product of size 1-by-1-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element product(Matrix<Element, 4, 1> const &rhs, Element accum = Element()) const {
     
     // k=0
@@ -1717,13 +1717,13 @@ struct Matrix<Element_, 1, 4> {
   }
 
   /// Matrix product of size 1-by-1-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator*(Matrix<Element, 4, 1> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 1-by-2-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 2> product(
     Matrix<Element, 4, 2> const &rhs,
     Matrix<Element, 1, 2> accum = Matrix<Element, 1, 2>()
@@ -1749,13 +1749,13 @@ struct Matrix<Element_, 1, 4> {
   }
 
   /// Matrix product of size 1-by-2-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 2> operator*(Matrix<Element, 4, 2> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 1-by-3-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 3> product(
     Matrix<Element, 4, 3> const &rhs,
     Matrix<Element, 1, 3> accum = Matrix<Element, 1, 3>()
@@ -1785,13 +1785,13 @@ struct Matrix<Element_, 1, 4> {
   }
 
   /// Matrix product of size 1-by-3-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 3> operator*(Matrix<Element, 4, 3> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 1-by-4-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 4> product(
     Matrix<Element, 4, 4> const &rhs,
     Matrix<Element, 1, 4> accum = Matrix<Element, 1, 4>()
@@ -1825,20 +1825,20 @@ struct Matrix<Element_, 1, 4> {
   }
 
   /// Matrix product of size 1-by-4-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 4> operator*(Matrix<Element, 4, 4> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 1-by-4-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator*=(Matrix<Element, 4, 4> const &rhs) {
     *this = product(rhs);
     return *this;
   }
     
   /// Dot product of vectors with extent 4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element dot(Matrix<Element, 4, 1> const &rhs, Element accum = Element()) const {
     
     accum += data[0] * rhs.data[0];
@@ -1849,7 +1849,7 @@ struct Matrix<Element_, 1, 4> {
   }
 
   /// Dot product of vectors with extent 4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element dot(Matrix<Element, 1, 4> const &rhs, Element accum = Element()) const {
     
     accum += data[0] * rhs.data[0];
@@ -1860,7 +1860,7 @@ struct Matrix<Element_, 1, 4> {
   }
   
   /// Returns the sum of elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element sum(Element accum = Element()) const {
     
     accum += data[0];
@@ -1872,7 +1872,7 @@ struct Matrix<Element_, 1, 4> {
   }  
 
   /// Returns the sum of squared elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element norm(Element accum = Element()) const {
     
     accum += data[0] * data[0];
@@ -1884,13 +1884,13 @@ struct Matrix<Element_, 1, 4> {
   }
 
   /// Returns square root of the norm
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element magnitude() const {
     return fast_sqrt(norm());
   }
 
   /// Returns the sum of diagonal elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element trace(Element accum = Element()) const {
     
     accum += data[0];
@@ -1907,7 +1907,7 @@ using Matrix1x4 = Matrix<Element, 1, 4>;
 
 /// Free function to infer element type from template arguments
 template <typename Element>
-CUTLASS_HOST_DEVICE Matrix1x4<Element> make_Matrix1x4(
+NIHILUS_HOST_DEVICE Matrix1x4<Element> make_Matrix1x4(
     Element _0_0, Element _0_1, Element _0_2, Element _0_3
 ) {
   return Matrix1x4<Element>(
@@ -1930,16 +1930,16 @@ struct Matrix<Element_, 2, 1> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int  kRows = 2;
+  static constexpr int kRows = 2;
 
   /// Number of columns in matrix
-  static constexpr int  kColumns = 1;
+  static constexpr int kColumns = 1;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int  kCount = 2;
+  static constexpr int kCount = 2;
 
   //
   // Data members
@@ -1953,19 +1953,19 @@ struct Matrix<Element_, 2, 1> {
   //
 
   /// Constructs a zero matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix() {
     data.clear();
   }
   
   /// Copy constructor for a 2-by-1 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(Matrix const &rhs) {
     data = rhs.data;
   }
     
   /// Constructs a 2-by-1 matrix from scalar elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(
     Element _0_0, 
     Element _1_0
@@ -1976,7 +1976,7 @@ struct Matrix<Element_, 2, 1> {
   }
     
   /// Constructs a matrix from a uniform element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix uniform(Element s) {
     Matrix m;
     
@@ -1987,19 +1987,19 @@ struct Matrix<Element_, 2, 1> {
   }
 
   /// Constructs a matrix from a uniform element 1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix ones() {
     return uniform(Element(1));
   }
 
   /// Constructs a matrix from a uniform element 0
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix zero() {
     return Matrix();
   }
   
   /// Returns a transposed matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 2> transpose() const {
     Matrix<Element, 1, 2> mt;
     
@@ -2010,67 +2010,67 @@ struct Matrix<Element_, 2, 1> {
   }
     
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int i, int j) const {
     return data[i * 2 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(int i, int j) {
     return data[i * 2 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element &at(int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int offset) const {
     return data[offset];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](int offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> slice_2x1(int i = 0, int j = 0) const {
     Matrix<Element, 2, 1> m;
     
@@ -2081,7 +2081,7 @@ struct Matrix<Element_, 2, 1> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int i = 0, int j = 0) {
     
     data[i * 1 + j + 0] = m.data[0];
@@ -2090,36 +2090,36 @@ struct Matrix<Element_, 2, 1> {
     return *this;
   }
     
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> column(int j) const {
     return slice_2x1(0, j);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix &set_column(Matrix<Element, 2, 1> const &v, int j =0) {
     return set_slice_2x1(v, 0, j);
   }
     
   /// Concatenates this matrix with a a 2-by-1 matrix to form a 2-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 2> hcat(Matrix<Element, 2, 1> const & rhs) const {
     return Matrix<Element, 2, 2>::hcat(*this, rhs);
   }
     
   /// Concatenates this matrix with a a 2-by-2 matrix to form a 2-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 3> hcat(Matrix<Element, 2, 2> const & rhs) const {
     return Matrix<Element, 2, 3>::hcat(*this, rhs);
   }
     
   /// Concatenates this matrix with a a 2-by-3 matrix to form a 2-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 4> hcat(Matrix<Element, 2, 3> const & rhs) const {
     return Matrix<Element, 2, 4>::hcat(*this, rhs);
   }
     
   /// Forms a 2-by-1 matrix by vertically concatenating an Element with an Element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix vcat(Element upper, Element lower) {
     return Matrix(
       upper
@@ -2127,19 +2127,19 @@ struct Matrix<Element_, 2, 1> {
   }
   
   /// Concatenates this matrix with a an Element to form a 3-by-1 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 1> vcat(Element rhs) const {
     return Matrix<Element, 3, 1>::vcat(*this, rhs);
   }
     
   /// Concatenates this matrix with a a 2-by-1 matrix to form a 4-by-1 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 1> vcat(Matrix<Element, 2, 1> const & rhs) const {
     return Matrix<Element, 4, 1>::vcat(*this, rhs);
   }
     
   /// Elementwise add operator (2-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix add(Matrix const &rhs) const {
 
     Matrix result;
@@ -2152,13 +2152,13 @@ struct Matrix<Element_, 2, 1> {
   }
       
   /// Elementwise add operator (2-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator +(Matrix const &rhs) const {
     return add(rhs);
   }
 
   /// Elementwise add operator (2-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator +=(Matrix const &rhs) {
     
     data[0] += rhs.data[0];
@@ -2169,7 +2169,7 @@ struct Matrix<Element_, 2, 1> {
   }
         
   /// Elementwise subtract operator (2-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix subtract(Matrix const &rhs) const {
 
     Matrix result;
@@ -2182,13 +2182,13 @@ struct Matrix<Element_, 2, 1> {
   }
       
   /// Elementwise subtract operator (2-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator -(Matrix const &rhs) const {
     return subtract(rhs);
   }
 
   /// Elementwise subtract operator (2-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator -=(Matrix const &rhs) {
     
     data[0] -= rhs.data[0];
@@ -2199,7 +2199,7 @@ struct Matrix<Element_, 2, 1> {
   }
         
   /// Elementwise multiply operator (2-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Matrix const &rhs) const {
 
     Matrix result;
@@ -2212,7 +2212,7 @@ struct Matrix<Element_, 2, 1> {
   }
       
   /// Scalar multiply operator (2-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Element const &s) const {
 
     Matrix result;
@@ -2225,13 +2225,13 @@ struct Matrix<Element_, 2, 1> {
   }
 
   /// Scalar multiply operator (2-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator *(Element const &s) const {
     return multiply(s);
   }
 
   /// Scalar multiply operator (2-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator *=(Element const &s) {
     
     data[0] *= s;
@@ -2242,7 +2242,7 @@ struct Matrix<Element_, 2, 1> {
   }
         
   /// Elementwise divide operator (2-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Matrix const &rhs) const {
 
     Matrix result;
@@ -2255,7 +2255,7 @@ struct Matrix<Element_, 2, 1> {
   }
       
   /// Scalar divide operator (2-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Element const &s) const {
 
     Matrix result;
@@ -2268,13 +2268,13 @@ struct Matrix<Element_, 2, 1> {
   }
 
   /// Scalar divide operator (2-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Element const &s) const {
     return divide(s);
   }
 
   /// Scalar divide operator (2-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Element const &s) {
     
     data[0] /= s;
@@ -2285,13 +2285,13 @@ struct Matrix<Element_, 2, 1> {
   }
         
   /// Elementwise divide operator (2-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Matrix const &rhs) const {
     return divide(rhs);
   }
 
   /// Elementwise divide operator (2-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Matrix const &rhs) {
     
     data[0] /= rhs.data[0];
@@ -2302,7 +2302,7 @@ struct Matrix<Element_, 2, 1> {
   }
         
   /// Negates each element of the matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator-() const {
     Matrix m;
     
@@ -2313,7 +2313,7 @@ struct Matrix<Element_, 2, 1> {
   }
   
   /// Matrix product of size 2-by-1-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> product(
     Matrix<Element, 1, 1> const &rhs,
     Matrix<Element, 2, 1> accum = Matrix<Element, 2, 1>()
@@ -2327,20 +2327,20 @@ struct Matrix<Element_, 2, 1> {
   }
 
   /// Matrix product of size 2-by-1-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> operator*(Matrix<Element, 1, 1> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 2-by-1-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator*=(Matrix<Element, 1, 1> const &rhs) {
     *this = product(rhs);
     return *this;
   }
     
   /// Matrix product of size 2-by-2-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 2> product(
     Matrix<Element, 1, 2> const &rhs,
     Matrix<Element, 2, 2> accum = Matrix<Element, 2, 2>()
@@ -2356,13 +2356,13 @@ struct Matrix<Element_, 2, 1> {
   }
 
   /// Matrix product of size 2-by-2-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 2> operator*(Matrix<Element, 1, 2> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 2-by-3-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 3> product(
     Matrix<Element, 1, 3> const &rhs,
     Matrix<Element, 2, 3> accum = Matrix<Element, 2, 3>()
@@ -2380,13 +2380,13 @@ struct Matrix<Element_, 2, 1> {
   }
 
   /// Matrix product of size 2-by-3-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 3> operator*(Matrix<Element, 1, 3> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 2-by-4-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 4> product(
     Matrix<Element, 1, 4> const &rhs,
     Matrix<Element, 2, 4> accum = Matrix<Element, 2, 4>()
@@ -2406,13 +2406,13 @@ struct Matrix<Element_, 2, 1> {
   }
 
   /// Matrix product of size 2-by-4-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 4> operator*(Matrix<Element, 1, 4> const &rhs) const {
     return product(rhs);
   }
   
   /// Dot product of vectors with extent 2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element dot(Matrix<Element, 2, 1> const &rhs, Element accum = Element()) const {
     
     accum += data[0] * rhs.data[0];
@@ -2421,7 +2421,7 @@ struct Matrix<Element_, 2, 1> {
   }
 
   /// Dot product of vectors with extent 2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element dot(Matrix<Element, 1, 2> const &rhs, Element accum = Element()) const {
     
     accum += data[0] * rhs.data[0];
@@ -2430,7 +2430,7 @@ struct Matrix<Element_, 2, 1> {
   }
   
   /// Returns the sum of elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element sum(Element accum = Element()) const {
     
     accum += data[0];
@@ -2440,7 +2440,7 @@ struct Matrix<Element_, 2, 1> {
   }  
 
   /// Returns the sum of squared elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element norm(Element accum = Element()) const {
     
     accum += data[0] * data[0];
@@ -2450,13 +2450,13 @@ struct Matrix<Element_, 2, 1> {
   }
 
   /// Returns square root of the norm
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element magnitude() const {
     return fast_sqrt(norm());
   }
 
   /// Returns the sum of diagonal elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element trace(Element accum = Element()) const {
     
     accum += data[0];
@@ -2473,7 +2473,7 @@ using Matrix2x1 = Matrix<Element, 2, 1>;
 
 /// Free function to infer element type from template arguments
 template <typename Element>
-CUTLASS_HOST_DEVICE Matrix2x1<Element> make_Matrix2x1(
+NIHILUS_HOST_DEVICE Matrix2x1<Element> make_Matrix2x1(
     Element _0_0, 
     Element _1_0
 ) {
@@ -2498,16 +2498,16 @@ struct Matrix<Element_, 2, 2> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int  kRows = 2;
+  static constexpr int kRows = 2;
 
   /// Number of columns in matrix
-  static constexpr int  kColumns = 2;
+  static constexpr int kColumns = 2;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int  kCount = 4;
+  static constexpr int kCount = 4;
 
   //
   // Data members
@@ -2521,19 +2521,19 @@ struct Matrix<Element_, 2, 2> {
   //
 
   /// Constructs a zero matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix() {
     data.clear();
   }
   
   /// Copy constructor for a 2-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(Matrix const &rhs) {
     data = rhs.data;
   }
     
   /// Constructs a 2-by-2 matrix from scalar elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(
     Element _0_0, Element _0_1, 
     Element _1_0, Element _1_1
@@ -2544,7 +2544,7 @@ struct Matrix<Element_, 2, 2> {
   }
     
   /// Constructs a 2-by-2 matrix from row vectors
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(
     Matrix<Element, 1, 2> const &row_0,
     Matrix<Element, 1, 2> const &row_1
@@ -2556,7 +2556,7 @@ struct Matrix<Element_, 2, 2> {
   }
     
   /// Static method to construct a 2-by-2 matrix from column vectors
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_columns(
     Matrix<Element, 2, 1> const &column_0,
     Matrix<Element, 2, 1> const &column_1
@@ -2571,7 +2571,7 @@ struct Matrix<Element_, 2, 2> {
   }
     
   /// Constructs an identity matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix identity() {
     Matrix m;
     
@@ -2582,7 +2582,7 @@ struct Matrix<Element_, 2, 2> {
   }
     
   /// Constructs a matrix from a uniform element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix uniform(Element s) {
     Matrix m;
     
@@ -2595,19 +2595,19 @@ struct Matrix<Element_, 2, 2> {
   }
 
   /// Constructs a matrix from a uniform element 1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix ones() {
     return uniform(Element(1));
   }
 
   /// Constructs a matrix from a uniform element 0
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix zero() {
     return Matrix();
   }
   
   /// Constructs a matrix from elements along its diagonal
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_diagonal(Matrix<Element, 2, 1> const &diag) {
     Matrix m;
     
@@ -2618,7 +2618,7 @@ struct Matrix<Element_, 2, 2> {
   }
 
   /// Constructs a matrix from elements along its diagonal
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_diagonal(Matrix<Element, 1, 2> const &diag) {
     Matrix m;
     
@@ -2629,7 +2629,7 @@ struct Matrix<Element_, 2, 2> {
   }
 
   /// Gets an array of diagonal elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> diagonal() const {
     Matrix<Element, 2, 1> diag;
     
@@ -2640,7 +2640,7 @@ struct Matrix<Element_, 2, 2> {
   }
     
   /// Returns a transposed matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 2> transpose() const {
     Matrix<Element, 2, 2> mt;
     
@@ -2653,67 +2653,67 @@ struct Matrix<Element_, 2, 2> {
   }
     
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int i, int j) const {
     return data[i * 2 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(int i, int j) {
     return data[i * 2 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element &at(int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int offset) const {
     return data[offset];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](int offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 2> slice_1x2(int i = 0, int j = 0) const {
     Matrix<Element, 1, 2> m;
     
@@ -2724,7 +2724,7 @@ struct Matrix<Element_, 2, 2> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
@@ -2733,18 +2733,18 @@ struct Matrix<Element_, 2, 2> {
     return *this;
   }
     
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 2> row(int i) const {
     return slice_1x2(i, 0);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix &set_row(Matrix<Element, 1, 2> const &v, int i = 0) {
     return set_slice_1x2(v, i, 0);
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> slice_2x1(int i = 0, int j = 0) const {
     Matrix<Element, 2, 1> m;
     
@@ -2755,7 +2755,7 @@ struct Matrix<Element_, 2, 2> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int i = 0, int j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
@@ -2764,18 +2764,18 @@ struct Matrix<Element_, 2, 2> {
     return *this;
   }
     
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> column(int j) const {
     return slice_2x1(0, j);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix &set_column(Matrix<Element, 2, 1> const &v, int j =0) {
     return set_slice_2x1(v, 0, j);
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 2> slice_2x2(int i = 0, int j = 0) const {
     Matrix<Element, 2, 2> m;
     
@@ -2788,7 +2788,7 @@ struct Matrix<Element_, 2, 2> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
@@ -2800,7 +2800,7 @@ struct Matrix<Element_, 2, 2> {
   }
     
   /// Forms a 2-by-2 matrix by horizontally concatenating a 2-by-1 matrix with a 2-by-1 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix hcat(Matrix<Element, 2, 1> const & lhs, Matrix<Element, 2, 1> const & rhs) {
     return Matrix(
       lhs.at(0, 0), rhs.at(0, 0)
@@ -2808,19 +2808,19 @@ struct Matrix<Element_, 2, 2> {
   }
   
   /// Concatenates this matrix with a a 2-by-1 matrix to form a 2-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 3> hcat(Matrix<Element, 2, 1> const & rhs) const {
     return Matrix<Element, 2, 3>::hcat(*this, rhs);
   }
     
   /// Concatenates this matrix with a a 2-by-2 matrix to form a 2-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 4> hcat(Matrix<Element, 2, 2> const & rhs) const {
     return Matrix<Element, 2, 4>::hcat(*this, rhs);
   }
     
   /// Forms a 2-by-2 matrix by vertically concatenating a 1-by-2 matrix with a 1-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix vcat(Matrix<Element, 1, 2> const & upper, Matrix<Element, 1, 2> const & lower) {
     return Matrix(
       upper.at(0, 0), upper.at(0, 1)
@@ -2828,19 +2828,19 @@ struct Matrix<Element_, 2, 2> {
   }
   
   /// Concatenates this matrix with a a 1-by-2 matrix to form a 3-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 2> vcat(Matrix<Element, 1, 2> const & rhs) const {
     return Matrix<Element, 3, 2>::vcat(*this, rhs);
   }
     
   /// Concatenates this matrix with a a 2-by-2 matrix to form a 4-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 2> vcat(Matrix<Element, 2, 2> const & rhs) const {
     return Matrix<Element, 4, 2>::vcat(*this, rhs);
   }
     
   /// Forms a 2-by-2 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Element                         A, Element                         B,
     Element                         C, Element                         D) {
@@ -2851,7 +2851,7 @@ struct Matrix<Element_, 2, 2> {
   }
   
   /// Elementwise add operator (2-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix add(Matrix const &rhs) const {
 
     Matrix result;
@@ -2866,13 +2866,13 @@ struct Matrix<Element_, 2, 2> {
   }
       
   /// Elementwise add operator (2-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator +(Matrix const &rhs) const {
     return add(rhs);
   }
 
   /// Elementwise add operator (2-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator +=(Matrix const &rhs) {
     
     data[0] += rhs.data[0];
@@ -2885,7 +2885,7 @@ struct Matrix<Element_, 2, 2> {
   }
         
   /// Elementwise subtract operator (2-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix subtract(Matrix const &rhs) const {
 
     Matrix result;
@@ -2900,13 +2900,13 @@ struct Matrix<Element_, 2, 2> {
   }
       
   /// Elementwise subtract operator (2-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator -(Matrix const &rhs) const {
     return subtract(rhs);
   }
 
   /// Elementwise subtract operator (2-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator -=(Matrix const &rhs) {
     
     data[0] -= rhs.data[0];
@@ -2919,7 +2919,7 @@ struct Matrix<Element_, 2, 2> {
   }
         
   /// Elementwise multiply operator (2-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Matrix const &rhs) const {
 
     Matrix result;
@@ -2934,7 +2934,7 @@ struct Matrix<Element_, 2, 2> {
   }
       
   /// Scalar multiply operator (2-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Element const &s) const {
 
     Matrix result;
@@ -2949,13 +2949,13 @@ struct Matrix<Element_, 2, 2> {
   }
 
   /// Scalar multiply operator (2-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator *(Element const &s) const {
     return multiply(s);
   }
 
   /// Scalar multiply operator (2-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator *=(Element const &s) {
     
     data[0] *= s;
@@ -2968,7 +2968,7 @@ struct Matrix<Element_, 2, 2> {
   }
         
   /// Elementwise divide operator (2-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Matrix const &rhs) const {
 
     Matrix result;
@@ -2983,7 +2983,7 @@ struct Matrix<Element_, 2, 2> {
   }
       
   /// Scalar divide operator (2-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Element const &s) const {
 
     Matrix result;
@@ -2998,13 +2998,13 @@ struct Matrix<Element_, 2, 2> {
   }
 
   /// Scalar divide operator (2-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Element const &s) const {
     return divide(s);
   }
 
   /// Scalar divide operator (2-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Element const &s) {
     
     data[0] /= s;
@@ -3017,13 +3017,13 @@ struct Matrix<Element_, 2, 2> {
   }
         
   /// Elementwise divide operator (2-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Matrix const &rhs) const {
     return divide(rhs);
   }
 
   /// Elementwise divide operator (2-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Matrix const &rhs) {
     
     data[0] /= rhs.data[0];
@@ -3036,7 +3036,7 @@ struct Matrix<Element_, 2, 2> {
   }
         
   /// Negates each element of the matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator-() const {
     Matrix m;
     
@@ -3049,7 +3049,7 @@ struct Matrix<Element_, 2, 2> {
   }
   
   /// Matrix product of size 2-by-1-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> product(
     Matrix<Element, 2, 1> const &rhs,
     Matrix<Element, 2, 1> accum = Matrix<Element, 2, 1>()
@@ -3067,13 +3067,13 @@ struct Matrix<Element_, 2, 2> {
   }
 
   /// Matrix product of size 2-by-1-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> operator*(Matrix<Element, 2, 1> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 2-by-2-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 2> product(
     Matrix<Element, 2, 2> const &rhs,
     Matrix<Element, 2, 2> accum = Matrix<Element, 2, 2>()
@@ -3095,20 +3095,20 @@ struct Matrix<Element_, 2, 2> {
   }
 
   /// Matrix product of size 2-by-2-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 2> operator*(Matrix<Element, 2, 2> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 2-by-2-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator*=(Matrix<Element, 2, 2> const &rhs) {
     *this = product(rhs);
     return *this;
   }
     
   /// Matrix product of size 2-by-3-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 3> product(
     Matrix<Element, 2, 3> const &rhs,
     Matrix<Element, 2, 3> accum = Matrix<Element, 2, 3>()
@@ -3134,13 +3134,13 @@ struct Matrix<Element_, 2, 2> {
   }
 
   /// Matrix product of size 2-by-3-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 3> operator*(Matrix<Element, 2, 3> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 2-by-4-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 4> product(
     Matrix<Element, 2, 4> const &rhs,
     Matrix<Element, 2, 4> accum = Matrix<Element, 2, 4>()
@@ -3170,13 +3170,13 @@ struct Matrix<Element_, 2, 2> {
   }
 
   /// Matrix product of size 2-by-4-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 4> operator*(Matrix<Element, 2, 4> const &rhs) const {
     return product(rhs);
   }
   
   /// Returns the sum of elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element sum(Element accum = Element()) const {
     
     accum += data[0];
@@ -3188,7 +3188,7 @@ struct Matrix<Element_, 2, 2> {
   }  
 
   /// Returns the sum of squared elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element norm(Element accum = Element()) const {
     
     accum += data[0] * data[0];
@@ -3200,13 +3200,13 @@ struct Matrix<Element_, 2, 2> {
   }
 
   /// Returns square root of the norm
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element magnitude() const {
     return fast_sqrt(norm());
   }
 
   /// Returns the sum of diagonal elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element trace(Element accum = Element()) const {
     
     accum += data[0];
@@ -3216,7 +3216,7 @@ struct Matrix<Element_, 2, 2> {
   }
     
   /// Returns 2-by-2 rotation matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix rotation(Element theta) {
     Element c = fast_cos(theta);
     Element s = fast_sin(theta);
@@ -3228,7 +3228,7 @@ struct Matrix<Element_, 2, 2> {
   }
     
   /// Computes the determinant of a 2-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element determinant(Element accum = Element()) const {
         accum += data[0] * data[3] - data[1] * data[2];
 
@@ -3237,7 +3237,7 @@ struct Matrix<Element_, 2, 2> {
   
   /// Computes the inverse of a 2-by-2 matrix given
   /// the matrix's determinant
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix inverse(Element det) const {
     return Matrix(
       data[3], -data[1],
@@ -3246,7 +3246,7 @@ struct Matrix<Element_, 2, 2> {
   }
 
   /// Computes the inverse of a 2-by-2 matrix.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix inverse() const {
     return inverse(determinant());
   }
@@ -3260,7 +3260,7 @@ using Matrix2x2 = Matrix<Element, 2, 2>;
 
 /// Free function to infer element type from template arguments
 template <typename Element>
-CUTLASS_HOST_DEVICE Matrix2x2<Element> make_Matrix2x2(
+NIHILUS_HOST_DEVICE Matrix2x2<Element> make_Matrix2x2(
     Element _0_0, Element _0_1, 
     Element _1_0, Element _1_1
 ) {
@@ -3285,16 +3285,16 @@ struct Matrix<Element_, 2, 3> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int  kRows = 2;
+  static constexpr int kRows = 2;
 
   /// Number of columns in matrix
-  static constexpr int  kColumns = 3;
+  static constexpr int kColumns = 3;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int  kCount = 6;
+  static constexpr int kCount = 6;
 
   //
   // Data members
@@ -3308,19 +3308,19 @@ struct Matrix<Element_, 2, 3> {
   //
 
   /// Constructs a zero matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix() {
     data.clear();
   }
   
   /// Copy constructor for a 2-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(Matrix const &rhs) {
     data = rhs.data;
   }
     
   /// Constructs a 2-by-3 matrix from scalar elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(
     Element _0_0, Element _0_1, Element _0_2, 
     Element _1_0, Element _1_1, Element _1_2
@@ -3331,7 +3331,7 @@ struct Matrix<Element_, 2, 3> {
   }
     
   /// Constructs a 2-by-3 matrix from row vectors
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(
     Matrix<Element, 1, 3> const &row_0,
     Matrix<Element, 1, 3> const &row_1
@@ -3345,7 +3345,7 @@ struct Matrix<Element_, 2, 3> {
   }
     
   /// Static method to construct a 2-by-3 matrix from column vectors
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_columns(
     Matrix<Element, 3, 1> const &column_0,
     Matrix<Element, 3, 1> const &column_1,
@@ -3363,7 +3363,7 @@ struct Matrix<Element_, 2, 3> {
   }
     
   /// Constructs a matrix from a uniform element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix uniform(Element s) {
     Matrix m;
     
@@ -3378,19 +3378,19 @@ struct Matrix<Element_, 2, 3> {
   }
 
   /// Constructs a matrix from a uniform element 1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix ones() {
     return uniform(Element(1));
   }
 
   /// Constructs a matrix from a uniform element 0
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix zero() {
     return Matrix();
   }
   
   /// Constructs a matrix from elements along its diagonal
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_diagonal(Matrix<Element, 2, 1> const &diag) {
     Matrix m;
     
@@ -3401,7 +3401,7 @@ struct Matrix<Element_, 2, 3> {
   }
 
   /// Constructs a matrix from elements along its diagonal
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_diagonal(Matrix<Element, 1, 2> const &diag) {
     Matrix m;
     
@@ -3412,7 +3412,7 @@ struct Matrix<Element_, 2, 3> {
   }
 
   /// Gets an array of diagonal elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> diagonal() const {
     Matrix<Element, 2, 1> diag;
     
@@ -3423,7 +3423,7 @@ struct Matrix<Element_, 2, 3> {
   }
     
   /// Returns a transposed matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 2> transpose() const {
     Matrix<Element, 3, 2> mt;
     
@@ -3438,67 +3438,67 @@ struct Matrix<Element_, 2, 3> {
   }
     
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int i, int j) const {
     return data[i * 2 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(int i, int j) {
     return data[i * 2 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element &at(int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int offset) const {
     return data[offset];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](int offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 2> slice_1x2(int i = 0, int j = 0) const {
     Matrix<Element, 1, 2> m;
     
@@ -3509,7 +3509,7 @@ struct Matrix<Element_, 2, 3> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
@@ -3519,7 +3519,7 @@ struct Matrix<Element_, 2, 3> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 3> slice_1x3(int i = 0, int j = 0) const {
     Matrix<Element, 1, 3> m;
     
@@ -3531,7 +3531,7 @@ struct Matrix<Element_, 2, 3> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_1x3(Matrix<Element, 1, 3> const &m, int i = 0, int j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
@@ -3541,18 +3541,18 @@ struct Matrix<Element_, 2, 3> {
     return *this;
   }
     
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 3> row(int i) const {
     return slice_1x3(i, 0);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix &set_row(Matrix<Element, 1, 3> const &v, int i = 0) {
     return set_slice_1x3(v, i, 0);
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> slice_2x1(int i = 0, int j = 0) const {
     Matrix<Element, 2, 1> m;
     
@@ -3563,7 +3563,7 @@ struct Matrix<Element_, 2, 3> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int i = 0, int j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
@@ -3572,18 +3572,18 @@ struct Matrix<Element_, 2, 3> {
     return *this;
   }
     
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> column(int j) const {
     return slice_2x1(0, j);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix &set_column(Matrix<Element, 2, 1> const &v, int j =0) {
     return set_slice_2x1(v, 0, j);
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 2> slice_2x2(int i = 0, int j = 0) const {
     Matrix<Element, 2, 2> m;
     
@@ -3596,7 +3596,7 @@ struct Matrix<Element_, 2, 3> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
@@ -3608,7 +3608,7 @@ struct Matrix<Element_, 2, 3> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 3> slice_2x3(int i = 0, int j = 0) const {
     Matrix<Element, 2, 3> m;
     
@@ -3623,7 +3623,7 @@ struct Matrix<Element_, 2, 3> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x3(Matrix<Element, 2, 3> const &m, int i = 0, int j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
@@ -3637,7 +3637,7 @@ struct Matrix<Element_, 2, 3> {
   }
     
   /// Forms a 2-by-3 matrix by horizontally concatenating a 2-by-1 matrix with a 2-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix hcat(Matrix<Element, 2, 1> const & lhs, Matrix<Element, 2, 2> const & rhs) {
     return Matrix(
       lhs.at(0, 0), rhs.at(0, 0), rhs.at(0, 1)
@@ -3645,7 +3645,7 @@ struct Matrix<Element_, 2, 3> {
   }
   
   /// Forms a 2-by-3 matrix by horizontally concatenating a 2-by-2 matrix with a 2-by-1 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix hcat(Matrix<Element, 2, 2> const & lhs, Matrix<Element, 2, 1> const & rhs) {
     return Matrix(
       lhs.at(0, 0), lhs.at(0, 1), rhs.at(0, 0)
@@ -3653,13 +3653,13 @@ struct Matrix<Element_, 2, 3> {
   }
   
   /// Concatenates this matrix with a a 2-by-1 matrix to form a 2-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 4> hcat(Matrix<Element, 2, 1> const & rhs) const {
     return Matrix<Element, 2, 4>::hcat(*this, rhs);
   }
     
   /// Forms a 2-by-3 matrix by vertically concatenating a 1-by-3 matrix with a 1-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix vcat(Matrix<Element, 1, 3> const & upper, Matrix<Element, 1, 3> const & lower) {
     return Matrix(
       upper.at(0, 0), upper.at(0, 1), upper.at(0, 2)
@@ -3667,19 +3667,19 @@ struct Matrix<Element_, 2, 3> {
   }
   
   /// Concatenates this matrix with a a 1-by-3 matrix to form a 3-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 3> vcat(Matrix<Element, 1, 3> const & rhs) const {
     return Matrix<Element, 3, 3>::vcat(*this, rhs);
   }
     
   /// Concatenates this matrix with a a 2-by-3 matrix to form a 4-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 3> vcat(Matrix<Element, 2, 3> const & rhs) const {
     return Matrix<Element, 4, 3>::vcat(*this, rhs);
   }
     
   /// Forms a 2-by-3 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Element                         A, Matrix<Element, 1, 2> const & B,
     Element                         C, Matrix<Element, 1, 2> const & D) {
@@ -3690,7 +3690,7 @@ struct Matrix<Element_, 2, 3> {
   }
   
   /// Forms a 2-by-3 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 1, 2> const & A, Element                         B,
     Matrix<Element, 1, 2> const & C, Element                         D) {
@@ -3701,7 +3701,7 @@ struct Matrix<Element_, 2, 3> {
   }
   
   /// Elementwise add operator (2-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix add(Matrix const &rhs) const {
 
     Matrix result;
@@ -3718,13 +3718,13 @@ struct Matrix<Element_, 2, 3> {
   }
       
   /// Elementwise add operator (2-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator +(Matrix const &rhs) const {
     return add(rhs);
   }
 
   /// Elementwise add operator (2-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator +=(Matrix const &rhs) {
     
     data[0] += rhs.data[0];
@@ -3739,7 +3739,7 @@ struct Matrix<Element_, 2, 3> {
   }
         
   /// Elementwise subtract operator (2-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix subtract(Matrix const &rhs) const {
 
     Matrix result;
@@ -3756,13 +3756,13 @@ struct Matrix<Element_, 2, 3> {
   }
       
   /// Elementwise subtract operator (2-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator -(Matrix const &rhs) const {
     return subtract(rhs);
   }
 
   /// Elementwise subtract operator (2-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator -=(Matrix const &rhs) {
     
     data[0] -= rhs.data[0];
@@ -3777,7 +3777,7 @@ struct Matrix<Element_, 2, 3> {
   }
         
   /// Elementwise multiply operator (2-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Matrix const &rhs) const {
 
     Matrix result;
@@ -3794,7 +3794,7 @@ struct Matrix<Element_, 2, 3> {
   }
       
   /// Scalar multiply operator (2-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Element const &s) const {
 
     Matrix result;
@@ -3811,13 +3811,13 @@ struct Matrix<Element_, 2, 3> {
   }
 
   /// Scalar multiply operator (2-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator *(Element const &s) const {
     return multiply(s);
   }
 
   /// Scalar multiply operator (2-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator *=(Element const &s) {
     
     data[0] *= s;
@@ -3832,7 +3832,7 @@ struct Matrix<Element_, 2, 3> {
   }
         
   /// Elementwise divide operator (2-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Matrix const &rhs) const {
 
     Matrix result;
@@ -3849,7 +3849,7 @@ struct Matrix<Element_, 2, 3> {
   }
       
   /// Scalar divide operator (2-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Element const &s) const {
 
     Matrix result;
@@ -3866,13 +3866,13 @@ struct Matrix<Element_, 2, 3> {
   }
 
   /// Scalar divide operator (2-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Element const &s) const {
     return divide(s);
   }
 
   /// Scalar divide operator (2-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Element const &s) {
     
     data[0] /= s;
@@ -3887,13 +3887,13 @@ struct Matrix<Element_, 2, 3> {
   }
         
   /// Elementwise divide operator (2-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Matrix const &rhs) const {
     return divide(rhs);
   }
 
   /// Elementwise divide operator (2-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Matrix const &rhs) {
     
     data[0] /= rhs.data[0];
@@ -3908,7 +3908,7 @@ struct Matrix<Element_, 2, 3> {
   }
         
   /// Negates each element of the matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator-() const {
     Matrix m;
     
@@ -3923,7 +3923,7 @@ struct Matrix<Element_, 2, 3> {
   }
   
   /// Matrix product of size 2-by-1-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> product(
     Matrix<Element, 3, 1> const &rhs,
     Matrix<Element, 2, 1> accum = Matrix<Element, 2, 1>()
@@ -3945,13 +3945,13 @@ struct Matrix<Element_, 2, 3> {
   }
 
   /// Matrix product of size 2-by-1-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> operator*(Matrix<Element, 3, 1> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 2-by-2-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 2> product(
     Matrix<Element, 3, 2> const &rhs,
     Matrix<Element, 2, 2> accum = Matrix<Element, 2, 2>()
@@ -3979,13 +3979,13 @@ struct Matrix<Element_, 2, 3> {
   }
 
   /// Matrix product of size 2-by-2-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 2> operator*(Matrix<Element, 3, 2> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 2-by-3-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 3> product(
     Matrix<Element, 3, 3> const &rhs,
     Matrix<Element, 2, 3> accum = Matrix<Element, 2, 3>()
@@ -4019,20 +4019,20 @@ struct Matrix<Element_, 2, 3> {
   }
 
   /// Matrix product of size 2-by-3-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 3> operator*(Matrix<Element, 3, 3> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 2-by-3-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator*=(Matrix<Element, 3, 3> const &rhs) {
     *this = product(rhs);
     return *this;
   }
     
   /// Matrix product of size 2-by-4-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 4> product(
     Matrix<Element, 3, 4> const &rhs,
     Matrix<Element, 2, 4> accum = Matrix<Element, 2, 4>()
@@ -4072,13 +4072,13 @@ struct Matrix<Element_, 2, 3> {
   }
 
   /// Matrix product of size 2-by-4-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 4> operator*(Matrix<Element, 3, 4> const &rhs) const {
     return product(rhs);
   }
   
   /// Returns the sum of elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element sum(Element accum = Element()) const {
     
     accum += data[0];
@@ -4092,7 +4092,7 @@ struct Matrix<Element_, 2, 3> {
   }  
 
   /// Returns the sum of squared elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element norm(Element accum = Element()) const {
     
     accum += data[0] * data[0];
@@ -4106,13 +4106,13 @@ struct Matrix<Element_, 2, 3> {
   }
 
   /// Returns square root of the norm
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element magnitude() const {
     return fast_sqrt(norm());
   }
 
   /// Returns the sum of diagonal elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element trace(Element accum = Element()) const {
     
     accum += data[0];
@@ -4130,7 +4130,7 @@ using Matrix2x3 = Matrix<Element, 2, 3>;
 
 /// Free function to infer element type from template arguments
 template <typename Element>
-CUTLASS_HOST_DEVICE Matrix2x3<Element> make_Matrix2x3(
+NIHILUS_HOST_DEVICE Matrix2x3<Element> make_Matrix2x3(
     Element _0_0, Element _0_1, Element _0_2, 
     Element _1_0, Element _1_1, Element _1_2
 ) {
@@ -4155,16 +4155,16 @@ struct Matrix<Element_, 2, 4> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int  kRows = 2;
+  static constexpr int kRows = 2;
 
   /// Number of columns in matrix
-  static constexpr int  kColumns = 4;
+  static constexpr int kColumns = 4;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int  kCount = 8;
+  static constexpr int kCount = 8;
 
   //
   // Data members
@@ -4178,19 +4178,19 @@ struct Matrix<Element_, 2, 4> {
   //
 
   /// Constructs a zero matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix() {
     data.clear();
   }
   
   /// Copy constructor for a 2-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(Matrix const &rhs) {
     data = rhs.data;
   }
     
   /// Constructs a 2-by-4 matrix from scalar elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(
     Element _0_0, Element _0_1, Element _0_2, Element _0_3, 
     Element _1_0, Element _1_1, Element _1_2, Element _1_3
@@ -4201,7 +4201,7 @@ struct Matrix<Element_, 2, 4> {
   }
     
   /// Constructs a 2-by-4 matrix from row vectors
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(
     Matrix<Element, 1, 4> const &row_0,
     Matrix<Element, 1, 4> const &row_1
@@ -4217,7 +4217,7 @@ struct Matrix<Element_, 2, 4> {
   }
     
   /// Static method to construct a 2-by-4 matrix from column vectors
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_columns(
     Matrix<Element, 4, 1> const &column_0,
     Matrix<Element, 4, 1> const &column_1,
@@ -4238,7 +4238,7 @@ struct Matrix<Element_, 2, 4> {
   }
     
   /// Constructs a matrix from a uniform element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix uniform(Element s) {
     Matrix m;
     
@@ -4255,19 +4255,19 @@ struct Matrix<Element_, 2, 4> {
   }
 
   /// Constructs a matrix from a uniform element 1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix ones() {
     return uniform(Element(1));
   }
 
   /// Constructs a matrix from a uniform element 0
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix zero() {
     return Matrix();
   }
   
   /// Constructs a matrix from elements along its diagonal
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_diagonal(Matrix<Element, 2, 1> const &diag) {
     Matrix m;
     
@@ -4278,7 +4278,7 @@ struct Matrix<Element_, 2, 4> {
   }
 
   /// Constructs a matrix from elements along its diagonal
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_diagonal(Matrix<Element, 1, 2> const &diag) {
     Matrix m;
     
@@ -4289,7 +4289,7 @@ struct Matrix<Element_, 2, 4> {
   }
 
   /// Gets an array of diagonal elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> diagonal() const {
     Matrix<Element, 2, 1> diag;
     
@@ -4300,7 +4300,7 @@ struct Matrix<Element_, 2, 4> {
   }
     
   /// Returns a transposed matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 2> transpose() const {
     Matrix<Element, 4, 2> mt;
     
@@ -4317,67 +4317,67 @@ struct Matrix<Element_, 2, 4> {
   }
     
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int i, int j) const {
     return data[i * 2 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(int i, int j) {
     return data[i * 2 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element &at(int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int offset) const {
     return data[offset];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](int offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 2> slice_1x2(int i = 0, int j = 0) const {
     Matrix<Element, 1, 2> m;
     
@@ -4388,7 +4388,7 @@ struct Matrix<Element_, 2, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -4398,7 +4398,7 @@ struct Matrix<Element_, 2, 4> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 3> slice_1x3(int i = 0, int j = 0) const {
     Matrix<Element, 1, 3> m;
     
@@ -4410,7 +4410,7 @@ struct Matrix<Element_, 2, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_1x3(Matrix<Element, 1, 3> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -4421,7 +4421,7 @@ struct Matrix<Element_, 2, 4> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 4> slice_1x4(int i = 0, int j = 0) const {
     Matrix<Element, 1, 4> m;
     
@@ -4434,7 +4434,7 @@ struct Matrix<Element_, 2, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_1x4(Matrix<Element, 1, 4> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -4445,18 +4445,18 @@ struct Matrix<Element_, 2, 4> {
     return *this;
   }
     
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 4> row(int i) const {
     return slice_1x4(i, 0);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix &set_row(Matrix<Element, 1, 4> const &v, int i = 0) {
     return set_slice_1x4(v, i, 0);
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> slice_2x1(int i = 0, int j = 0) const {
     Matrix<Element, 2, 1> m;
     
@@ -4467,7 +4467,7 @@ struct Matrix<Element_, 2, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -4476,18 +4476,18 @@ struct Matrix<Element_, 2, 4> {
     return *this;
   }
     
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> column(int j) const {
     return slice_2x1(0, j);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix &set_column(Matrix<Element, 2, 1> const &v, int j =0) {
     return set_slice_2x1(v, 0, j);
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 2> slice_2x2(int i = 0, int j = 0) const {
     Matrix<Element, 2, 2> m;
     
@@ -4500,7 +4500,7 @@ struct Matrix<Element_, 2, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -4512,7 +4512,7 @@ struct Matrix<Element_, 2, 4> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 3> slice_2x3(int i = 0, int j = 0) const {
     Matrix<Element, 2, 3> m;
     
@@ -4527,7 +4527,7 @@ struct Matrix<Element_, 2, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x3(Matrix<Element, 2, 3> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -4541,7 +4541,7 @@ struct Matrix<Element_, 2, 4> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 4> slice_2x4(int i = 0, int j = 0) const {
     Matrix<Element, 2, 4> m;
     
@@ -4558,7 +4558,7 @@ struct Matrix<Element_, 2, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x4(Matrix<Element, 2, 4> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -4574,7 +4574,7 @@ struct Matrix<Element_, 2, 4> {
   }
     
   /// Forms a 2-by-4 matrix by horizontally concatenating a 2-by-1 matrix with a 2-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix hcat(Matrix<Element, 2, 1> const & lhs, Matrix<Element, 2, 3> const & rhs) {
     return Matrix(
       lhs.at(0, 0), rhs.at(0, 0), rhs.at(0, 1), rhs.at(0, 2)
@@ -4582,7 +4582,7 @@ struct Matrix<Element_, 2, 4> {
   }
   
   /// Forms a 2-by-4 matrix by horizontally concatenating a 2-by-2 matrix with a 2-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix hcat(Matrix<Element, 2, 2> const & lhs, Matrix<Element, 2, 2> const & rhs) {
     return Matrix(
       lhs.at(0, 0), lhs.at(0, 1), rhs.at(0, 0), rhs.at(0, 1)
@@ -4590,7 +4590,7 @@ struct Matrix<Element_, 2, 4> {
   }
   
   /// Forms a 2-by-4 matrix by horizontally concatenating a 2-by-3 matrix with a 2-by-1 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix hcat(Matrix<Element, 2, 3> const & lhs, Matrix<Element, 2, 1> const & rhs) {
     return Matrix(
       lhs.at(0, 0), lhs.at(0, 1), lhs.at(0, 2), rhs.at(0, 0)
@@ -4598,7 +4598,7 @@ struct Matrix<Element_, 2, 4> {
   }
   
   /// Forms a 2-by-4 matrix by vertically concatenating a 1-by-4 matrix with a 1-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix vcat(Matrix<Element, 1, 4> const & upper, Matrix<Element, 1, 4> const & lower) {
     return Matrix(
       upper.at(0, 0), upper.at(0, 1), upper.at(0, 2), upper.at(0, 3)
@@ -4606,19 +4606,19 @@ struct Matrix<Element_, 2, 4> {
   }
   
   /// Concatenates this matrix with a a 1-by-4 matrix to form a 3-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 4> vcat(Matrix<Element, 1, 4> const & rhs) const {
     return Matrix<Element, 3, 4>::vcat(*this, rhs);
   }
     
   /// Concatenates this matrix with a a 2-by-4 matrix to form a 4-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 4> vcat(Matrix<Element, 2, 4> const & rhs) const {
     return Matrix<Element, 4, 4>::vcat(*this, rhs);
   }
     
   /// Forms a 2-by-4 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Element                         A, Matrix<Element, 1, 3> const & B,
     Element                         C, Matrix<Element, 1, 3> const & D) {
@@ -4629,7 +4629,7 @@ struct Matrix<Element_, 2, 4> {
   }
   
   /// Forms a 2-by-4 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 1, 2> const & A, Matrix<Element, 1, 2> const & B,
     Matrix<Element, 1, 2> const & C, Matrix<Element, 1, 2> const & D) {
@@ -4640,7 +4640,7 @@ struct Matrix<Element_, 2, 4> {
   }
   
   /// Forms a 2-by-4 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 1, 3> const & A, Element                         B,
     Matrix<Element, 1, 3> const & C, Element                         D) {
@@ -4651,7 +4651,7 @@ struct Matrix<Element_, 2, 4> {
   }
   
   /// Elementwise add operator (2-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix add(Matrix const &rhs) const {
 
     Matrix result;
@@ -4670,13 +4670,13 @@ struct Matrix<Element_, 2, 4> {
   }
       
   /// Elementwise add operator (2-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator +(Matrix const &rhs) const {
     return add(rhs);
   }
 
   /// Elementwise add operator (2-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator +=(Matrix const &rhs) {
     
     data[0] += rhs.data[0];
@@ -4693,7 +4693,7 @@ struct Matrix<Element_, 2, 4> {
   }
         
   /// Elementwise subtract operator (2-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix subtract(Matrix const &rhs) const {
 
     Matrix result;
@@ -4712,13 +4712,13 @@ struct Matrix<Element_, 2, 4> {
   }
       
   /// Elementwise subtract operator (2-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator -(Matrix const &rhs) const {
     return subtract(rhs);
   }
 
   /// Elementwise subtract operator (2-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator -=(Matrix const &rhs) {
     
     data[0] -= rhs.data[0];
@@ -4735,7 +4735,7 @@ struct Matrix<Element_, 2, 4> {
   }
         
   /// Elementwise multiply operator (2-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Matrix const &rhs) const {
 
     Matrix result;
@@ -4754,7 +4754,7 @@ struct Matrix<Element_, 2, 4> {
   }
       
   /// Scalar multiply operator (2-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Element const &s) const {
 
     Matrix result;
@@ -4773,13 +4773,13 @@ struct Matrix<Element_, 2, 4> {
   }
 
   /// Scalar multiply operator (2-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator *(Element const &s) const {
     return multiply(s);
   }
 
   /// Scalar multiply operator (2-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator *=(Element const &s) {
     
     data[0] *= s;
@@ -4796,7 +4796,7 @@ struct Matrix<Element_, 2, 4> {
   }
         
   /// Elementwise divide operator (2-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Matrix const &rhs) const {
 
     Matrix result;
@@ -4815,7 +4815,7 @@ struct Matrix<Element_, 2, 4> {
   }
       
   /// Scalar divide operator (2-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Element const &s) const {
 
     Matrix result;
@@ -4834,13 +4834,13 @@ struct Matrix<Element_, 2, 4> {
   }
 
   /// Scalar divide operator (2-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Element const &s) const {
     return divide(s);
   }
 
   /// Scalar divide operator (2-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Element const &s) {
     
     data[0] /= s;
@@ -4857,13 +4857,13 @@ struct Matrix<Element_, 2, 4> {
   }
         
   /// Elementwise divide operator (2-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Matrix const &rhs) const {
     return divide(rhs);
   }
 
   /// Elementwise divide operator (2-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Matrix const &rhs) {
     
     data[0] /= rhs.data[0];
@@ -4880,7 +4880,7 @@ struct Matrix<Element_, 2, 4> {
   }
         
   /// Negates each element of the matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator-() const {
     Matrix m;
     
@@ -4897,7 +4897,7 @@ struct Matrix<Element_, 2, 4> {
   }
   
   /// Matrix product of size 2-by-1-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> product(
     Matrix<Element, 4, 1> const &rhs,
     Matrix<Element, 2, 1> accum = Matrix<Element, 2, 1>()
@@ -4923,13 +4923,13 @@ struct Matrix<Element_, 2, 4> {
   }
 
   /// Matrix product of size 2-by-1-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> operator*(Matrix<Element, 4, 1> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 2-by-2-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 2> product(
     Matrix<Element, 4, 2> const &rhs,
     Matrix<Element, 2, 2> accum = Matrix<Element, 2, 2>()
@@ -4963,13 +4963,13 @@ struct Matrix<Element_, 2, 4> {
   }
 
   /// Matrix product of size 2-by-2-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 2> operator*(Matrix<Element, 4, 2> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 2-by-3-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 3> product(
     Matrix<Element, 4, 3> const &rhs,
     Matrix<Element, 2, 3> accum = Matrix<Element, 2, 3>()
@@ -5011,13 +5011,13 @@ struct Matrix<Element_, 2, 4> {
   }
 
   /// Matrix product of size 2-by-3-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 3> operator*(Matrix<Element, 4, 3> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 2-by-4-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 4> product(
     Matrix<Element, 4, 4> const &rhs,
     Matrix<Element, 2, 4> accum = Matrix<Element, 2, 4>()
@@ -5067,20 +5067,20 @@ struct Matrix<Element_, 2, 4> {
   }
 
   /// Matrix product of size 2-by-4-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 4> operator*(Matrix<Element, 4, 4> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 2-by-4-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator*=(Matrix<Element, 4, 4> const &rhs) {
     *this = product(rhs);
     return *this;
   }
     
   /// Returns the sum of elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element sum(Element accum = Element()) const {
     
     accum += data[0];
@@ -5096,7 +5096,7 @@ struct Matrix<Element_, 2, 4> {
   }  
 
   /// Returns the sum of squared elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element norm(Element accum = Element()) const {
     
     accum += data[0] * data[0];
@@ -5112,13 +5112,13 @@ struct Matrix<Element_, 2, 4> {
   }
 
   /// Returns square root of the norm
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element magnitude() const {
     return fast_sqrt(norm());
   }
 
   /// Returns the sum of diagonal elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element trace(Element accum = Element()) const {
     
     accum += data[0];
@@ -5136,7 +5136,7 @@ using Matrix2x4 = Matrix<Element, 2, 4>;
 
 /// Free function to infer element type from template arguments
 template <typename Element>
-CUTLASS_HOST_DEVICE Matrix2x4<Element> make_Matrix2x4(
+NIHILUS_HOST_DEVICE Matrix2x4<Element> make_Matrix2x4(
     Element _0_0, Element _0_1, Element _0_2, Element _0_3, 
     Element _1_0, Element _1_1, Element _1_2, Element _1_3
 ) {
@@ -5161,16 +5161,16 @@ struct Matrix<Element_, 3, 1> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int  kRows = 3;
+  static constexpr int kRows = 3;
 
   /// Number of columns in matrix
-  static constexpr int  kColumns = 1;
+  static constexpr int kColumns = 1;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int  kCount = 3;
+  static constexpr int kCount = 3;
 
   //
   // Data members
@@ -5184,19 +5184,19 @@ struct Matrix<Element_, 3, 1> {
   //
 
   /// Constructs a zero matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix() {
     data.clear();
   }
   
   /// Copy constructor for a 3-by-1 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(Matrix const &rhs) {
     data = rhs.data;
   }
     
   /// Constructs a 3-by-1 matrix from scalar elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(
     Element _0_0, 
     Element _1_0, 
@@ -5209,7 +5209,7 @@ struct Matrix<Element_, 3, 1> {
   }
     
   /// Constructs a matrix from a uniform element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix uniform(Element s) {
     Matrix m;
     
@@ -5221,19 +5221,19 @@ struct Matrix<Element_, 3, 1> {
   }
 
   /// Constructs a matrix from a uniform element 1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix ones() {
     return uniform(Element(1));
   }
 
   /// Constructs a matrix from a uniform element 0
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix zero() {
     return Matrix();
   }
   
   /// Returns a transposed matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 3> transpose() const {
     Matrix<Element, 1, 3> mt;
     
@@ -5245,67 +5245,67 @@ struct Matrix<Element_, 3, 1> {
   }
     
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int i, int j) const {
     return data[i * 3 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(int i, int j) {
     return data[i * 3 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element &at(int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int offset) const {
     return data[offset];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](int offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> slice_2x1(int i = 0, int j = 0) const {
     Matrix<Element, 2, 1> m;
     
@@ -5316,7 +5316,7 @@ struct Matrix<Element_, 3, 1> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int i = 0, int j = 0) {
     
     data[i * 1 + j + 0] = m.data[0];
@@ -5326,7 +5326,7 @@ struct Matrix<Element_, 3, 1> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 1> slice_3x1(int i = 0, int j = 0) const {
     Matrix<Element, 3, 1> m;
     
@@ -5338,7 +5338,7 @@ struct Matrix<Element_, 3, 1> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_3x1(Matrix<Element, 3, 1> const &m, int i = 0, int j = 0) {
     
     data[i * 1 + j + 0] = m.data[0];
@@ -5348,36 +5348,36 @@ struct Matrix<Element_, 3, 1> {
     return *this;
   }
     
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 1> column(int j) const {
     return slice_3x1(0, j);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix &set_column(Matrix<Element, 3, 1> const &v, int j =0) {
     return set_slice_3x1(v, 0, j);
   }
     
   /// Concatenates this matrix with a a 3-by-1 matrix to form a 3-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 2> hcat(Matrix<Element, 3, 1> const & rhs) const {
     return Matrix<Element, 3, 2>::hcat(*this, rhs);
   }
     
   /// Concatenates this matrix with a a 3-by-2 matrix to form a 3-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 3> hcat(Matrix<Element, 3, 2> const & rhs) const {
     return Matrix<Element, 3, 3>::hcat(*this, rhs);
   }
     
   /// Concatenates this matrix with a a 3-by-3 matrix to form a 3-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 4> hcat(Matrix<Element, 3, 3> const & rhs) const {
     return Matrix<Element, 3, 4>::hcat(*this, rhs);
   }
     
   /// Forms a 3-by-1 matrix by vertically concatenating an Element with a 2-by-1 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix vcat(Element upper, Matrix<Element, 2, 1> const & lower) {
     return Matrix(
       upper
@@ -5386,7 +5386,7 @@ struct Matrix<Element_, 3, 1> {
   }
   
   /// Forms a 3-by-1 matrix by vertically concatenating a 2-by-1 matrix with an Element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix vcat(Matrix<Element, 2, 1> const & upper, Element lower) {
     return Matrix(
       upper.at(0, 0)
@@ -5395,13 +5395,13 @@ struct Matrix<Element_, 3, 1> {
   }
   
   /// Concatenates this matrix with a an Element to form a 4-by-1 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 1> vcat(Element rhs) const {
     return Matrix<Element, 4, 1>::vcat(*this, rhs);
   }
     
   /// Elementwise add operator (3-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix add(Matrix const &rhs) const {
 
     Matrix result;
@@ -5416,13 +5416,13 @@ struct Matrix<Element_, 3, 1> {
   }
       
   /// Elementwise add operator (3-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator +(Matrix const &rhs) const {
     return add(rhs);
   }
 
   /// Elementwise add operator (3-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator +=(Matrix const &rhs) {
     
     data[0] += rhs.data[0];
@@ -5435,7 +5435,7 @@ struct Matrix<Element_, 3, 1> {
   }
         
   /// Elementwise subtract operator (3-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix subtract(Matrix const &rhs) const {
 
     Matrix result;
@@ -5450,13 +5450,13 @@ struct Matrix<Element_, 3, 1> {
   }
       
   /// Elementwise subtract operator (3-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator -(Matrix const &rhs) const {
     return subtract(rhs);
   }
 
   /// Elementwise subtract operator (3-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator -=(Matrix const &rhs) {
     
     data[0] -= rhs.data[0];
@@ -5469,7 +5469,7 @@ struct Matrix<Element_, 3, 1> {
   }
         
   /// Elementwise multiply operator (3-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Matrix const &rhs) const {
 
     Matrix result;
@@ -5484,7 +5484,7 @@ struct Matrix<Element_, 3, 1> {
   }
       
   /// Scalar multiply operator (3-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Element const &s) const {
 
     Matrix result;
@@ -5499,13 +5499,13 @@ struct Matrix<Element_, 3, 1> {
   }
 
   /// Scalar multiply operator (3-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator *(Element const &s) const {
     return multiply(s);
   }
 
   /// Scalar multiply operator (3-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator *=(Element const &s) {
     
     data[0] *= s;
@@ -5518,7 +5518,7 @@ struct Matrix<Element_, 3, 1> {
   }
         
   /// Elementwise divide operator (3-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Matrix const &rhs) const {
 
     Matrix result;
@@ -5533,7 +5533,7 @@ struct Matrix<Element_, 3, 1> {
   }
       
   /// Scalar divide operator (3-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Element const &s) const {
 
     Matrix result;
@@ -5548,13 +5548,13 @@ struct Matrix<Element_, 3, 1> {
   }
 
   /// Scalar divide operator (3-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Element const &s) const {
     return divide(s);
   }
 
   /// Scalar divide operator (3-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Element const &s) {
     
     data[0] /= s;
@@ -5567,13 +5567,13 @@ struct Matrix<Element_, 3, 1> {
   }
         
   /// Elementwise divide operator (3-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Matrix const &rhs) const {
     return divide(rhs);
   }
 
   /// Elementwise divide operator (3-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Matrix const &rhs) {
     
     data[0] /= rhs.data[0];
@@ -5586,7 +5586,7 @@ struct Matrix<Element_, 3, 1> {
   }
         
   /// Negates each element of the matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator-() const {
     Matrix m;
     
@@ -5598,7 +5598,7 @@ struct Matrix<Element_, 3, 1> {
   }
   
   /// Matrix product of size 3-by-1-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 1> product(
     Matrix<Element, 1, 1> const &rhs,
     Matrix<Element, 3, 1> accum = Matrix<Element, 3, 1>()
@@ -5613,20 +5613,20 @@ struct Matrix<Element_, 3, 1> {
   }
 
   /// Matrix product of size 3-by-1-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 1> operator*(Matrix<Element, 1, 1> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 3-by-1-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator*=(Matrix<Element, 1, 1> const &rhs) {
     *this = product(rhs);
     return *this;
   }
     
   /// Matrix product of size 3-by-2-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 2> product(
     Matrix<Element, 1, 2> const &rhs,
     Matrix<Element, 3, 2> accum = Matrix<Element, 3, 2>()
@@ -5644,13 +5644,13 @@ struct Matrix<Element_, 3, 1> {
   }
 
   /// Matrix product of size 3-by-2-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 2> operator*(Matrix<Element, 1, 2> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 3-by-3-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 3> product(
     Matrix<Element, 1, 3> const &rhs,
     Matrix<Element, 3, 3> accum = Matrix<Element, 3, 3>()
@@ -5671,13 +5671,13 @@ struct Matrix<Element_, 3, 1> {
   }
 
   /// Matrix product of size 3-by-3-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 3> operator*(Matrix<Element, 1, 3> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 3-by-4-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 4> product(
     Matrix<Element, 1, 4> const &rhs,
     Matrix<Element, 3, 4> accum = Matrix<Element, 3, 4>()
@@ -5701,13 +5701,13 @@ struct Matrix<Element_, 3, 1> {
   }
 
   /// Matrix product of size 3-by-4-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 4> operator*(Matrix<Element, 1, 4> const &rhs) const {
     return product(rhs);
   }
   
   /// Dot product of vectors with extent 3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element dot(Matrix<Element, 3, 1> const &rhs, Element accum = Element()) const {
     
     accum += data[0] * rhs.data[0];
@@ -5717,7 +5717,7 @@ struct Matrix<Element_, 3, 1> {
   }
 
   /// Dot product of vectors with extent 3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element dot(Matrix<Element, 1, 3> const &rhs, Element accum = Element()) const {
     
     accum += data[0] * rhs.data[0];
@@ -5727,7 +5727,7 @@ struct Matrix<Element_, 3, 1> {
   }
   
   /// Returns the sum of elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element sum(Element accum = Element()) const {
     
     accum += data[0];
@@ -5738,7 +5738,7 @@ struct Matrix<Element_, 3, 1> {
   }  
 
   /// Returns the sum of squared elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element norm(Element accum = Element()) const {
     
     accum += data[0] * data[0];
@@ -5749,13 +5749,13 @@ struct Matrix<Element_, 3, 1> {
   }
 
   /// Returns square root of the norm
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element magnitude() const {
     return fast_sqrt(norm());
   }
 
   /// Returns the sum of diagonal elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element trace(Element accum = Element()) const {
     
     accum += data[0];
@@ -5764,7 +5764,7 @@ struct Matrix<Element_, 3, 1> {
   }
     
   /// Cross product
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix cross(Matrix const &rhs) const {
     return Matrix(
       data[1] * rhs.data[2] - data[2] * rhs.data[1],
@@ -5782,7 +5782,7 @@ using Matrix3x1 = Matrix<Element, 3, 1>;
 
 /// Free function to infer element type from template arguments
 template <typename Element>
-CUTLASS_HOST_DEVICE Matrix3x1<Element> make_Matrix3x1(
+NIHILUS_HOST_DEVICE Matrix3x1<Element> make_Matrix3x1(
     Element _0_0, 
     Element _1_0, 
     Element _2_0
@@ -5809,16 +5809,16 @@ struct Matrix<Element_, 3, 2> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int  kRows = 3;
+  static constexpr int kRows = 3;
 
   /// Number of columns in matrix
-  static constexpr int  kColumns = 2;
+  static constexpr int kColumns = 2;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int  kCount = 6;
+  static constexpr int kCount = 6;
 
   //
   // Data members
@@ -5832,19 +5832,19 @@ struct Matrix<Element_, 3, 2> {
   //
 
   /// Constructs a zero matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix() {
     data.clear();
   }
   
   /// Copy constructor for a 3-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(Matrix const &rhs) {
     data = rhs.data;
   }
     
   /// Constructs a 3-by-2 matrix from scalar elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(
     Element _0_0, Element _0_1, 
     Element _1_0, Element _1_1, 
@@ -5857,7 +5857,7 @@ struct Matrix<Element_, 3, 2> {
   }
     
   /// Constructs a 3-by-2 matrix from row vectors
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(
     Matrix<Element, 1, 2> const &row_0,
     Matrix<Element, 1, 2> const &row_1,
@@ -5872,7 +5872,7 @@ struct Matrix<Element_, 3, 2> {
   }
     
   /// Static method to construct a 3-by-2 matrix from column vectors
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_columns(
     Matrix<Element, 2, 1> const &column_0,
     Matrix<Element, 2, 1> const &column_1
@@ -5889,7 +5889,7 @@ struct Matrix<Element_, 3, 2> {
   }
     
   /// Constructs a matrix from a uniform element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix uniform(Element s) {
     Matrix m;
     
@@ -5904,19 +5904,19 @@ struct Matrix<Element_, 3, 2> {
   }
 
   /// Constructs a matrix from a uniform element 1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix ones() {
     return uniform(Element(1));
   }
 
   /// Constructs a matrix from a uniform element 0
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix zero() {
     return Matrix();
   }
   
   /// Constructs a matrix from elements along its diagonal
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_diagonal(Matrix<Element, 2, 1> const &diag) {
     Matrix m;
     
@@ -5928,7 +5928,7 @@ struct Matrix<Element_, 3, 2> {
   }
 
   /// Constructs a matrix from elements along its diagonal
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_diagonal(Matrix<Element, 1, 2> const &diag) {
     Matrix m;
     
@@ -5940,7 +5940,7 @@ struct Matrix<Element_, 3, 2> {
   }
 
   /// Gets an array of diagonal elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> diagonal() const {
     Matrix<Element, 2, 1> diag;
     
@@ -5952,7 +5952,7 @@ struct Matrix<Element_, 3, 2> {
   }
     
   /// Returns a transposed matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 3> transpose() const {
     Matrix<Element, 2, 3> mt;
     
@@ -5967,67 +5967,67 @@ struct Matrix<Element_, 3, 2> {
   }
     
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int i, int j) const {
     return data[i * 3 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(int i, int j) {
     return data[i * 3 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element &at(int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int offset) const {
     return data[offset];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](int offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 2> slice_1x2(int i = 0, int j = 0) const {
     Matrix<Element, 1, 2> m;
     
@@ -6038,7 +6038,7 @@ struct Matrix<Element_, 3, 2> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
@@ -6047,18 +6047,18 @@ struct Matrix<Element_, 3, 2> {
     return *this;
   }
     
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 2> row(int i) const {
     return slice_1x2(i, 0);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix &set_row(Matrix<Element, 1, 2> const &v, int i = 0) {
     return set_slice_1x2(v, i, 0);
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> slice_2x1(int i = 0, int j = 0) const {
     Matrix<Element, 2, 1> m;
     
@@ -6069,7 +6069,7 @@ struct Matrix<Element_, 3, 2> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int i = 0, int j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
@@ -6079,7 +6079,7 @@ struct Matrix<Element_, 3, 2> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 2> slice_2x2(int i = 0, int j = 0) const {
     Matrix<Element, 2, 2> m;
     
@@ -6092,7 +6092,7 @@ struct Matrix<Element_, 3, 2> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
@@ -6104,7 +6104,7 @@ struct Matrix<Element_, 3, 2> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 1> slice_3x1(int i = 0, int j = 0) const {
     Matrix<Element, 3, 1> m;
     
@@ -6116,7 +6116,7 @@ struct Matrix<Element_, 3, 2> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_3x1(Matrix<Element, 3, 1> const &m, int i = 0, int j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
@@ -6126,18 +6126,18 @@ struct Matrix<Element_, 3, 2> {
     return *this;
   }
     
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 1> column(int j) const {
     return slice_3x1(0, j);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix &set_column(Matrix<Element, 3, 1> const &v, int j =0) {
     return set_slice_3x1(v, 0, j);
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 2> slice_3x2(int i = 0, int j = 0) const {
     Matrix<Element, 3, 2> m;
     
@@ -6152,7 +6152,7 @@ struct Matrix<Element_, 3, 2> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_3x2(Matrix<Element, 3, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
@@ -6166,7 +6166,7 @@ struct Matrix<Element_, 3, 2> {
   }
     
   /// Forms a 3-by-2 matrix by horizontally concatenating a 3-by-1 matrix with a 3-by-1 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix hcat(Matrix<Element, 3, 1> const & lhs, Matrix<Element, 3, 1> const & rhs) {
     return Matrix(
       lhs.at(0, 0), rhs.at(0, 0)
@@ -6175,19 +6175,19 @@ struct Matrix<Element_, 3, 2> {
   }
   
   /// Concatenates this matrix with a a 3-by-1 matrix to form a 3-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 3> hcat(Matrix<Element, 3, 1> const & rhs) const {
     return Matrix<Element, 3, 3>::hcat(*this, rhs);
   }
     
   /// Concatenates this matrix with a a 3-by-2 matrix to form a 3-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 4> hcat(Matrix<Element, 3, 2> const & rhs) const {
     return Matrix<Element, 3, 4>::hcat(*this, rhs);
   }
     
   /// Forms a 3-by-2 matrix by vertically concatenating a 1-by-2 matrix with a 2-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix vcat(Matrix<Element, 1, 2> const & upper, Matrix<Element, 2, 2> const & lower) {
     return Matrix(
       upper.at(0, 0), upper.at(0, 1)
@@ -6196,7 +6196,7 @@ struct Matrix<Element_, 3, 2> {
   }
   
   /// Forms a 3-by-2 matrix by vertically concatenating a 2-by-2 matrix with a 1-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix vcat(Matrix<Element, 2, 2> const & upper, Matrix<Element, 1, 2> const & lower) {
     return Matrix(
       upper.at(0, 0), upper.at(0, 1)
@@ -6205,13 +6205,13 @@ struct Matrix<Element_, 3, 2> {
   }
   
   /// Concatenates this matrix with a a 1-by-2 matrix to form a 4-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 2> vcat(Matrix<Element, 1, 2> const & rhs) const {
     return Matrix<Element, 4, 2>::vcat(*this, rhs);
   }
     
   /// Forms a 3-by-2 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Element                         A, Element                         B,
     Matrix<Element, 2, 1> const & C, Matrix<Element, 2, 1> const & D) {
@@ -6223,7 +6223,7 @@ struct Matrix<Element_, 3, 2> {
   }
   
   /// Forms a 3-by-2 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 2, 1> const & A, Matrix<Element, 2, 1> const & B,
     Element                         C, Element                         D) {
@@ -6235,7 +6235,7 @@ struct Matrix<Element_, 3, 2> {
   }
   
   /// Elementwise add operator (3-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix add(Matrix const &rhs) const {
 
     Matrix result;
@@ -6253,13 +6253,13 @@ struct Matrix<Element_, 3, 2> {
   }
       
   /// Elementwise add operator (3-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator +(Matrix const &rhs) const {
     return add(rhs);
   }
 
   /// Elementwise add operator (3-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator +=(Matrix const &rhs) {
     
     data[0] += rhs.data[0];
@@ -6275,7 +6275,7 @@ struct Matrix<Element_, 3, 2> {
   }
         
   /// Elementwise subtract operator (3-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix subtract(Matrix const &rhs) const {
 
     Matrix result;
@@ -6293,13 +6293,13 @@ struct Matrix<Element_, 3, 2> {
   }
       
   /// Elementwise subtract operator (3-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator -(Matrix const &rhs) const {
     return subtract(rhs);
   }
 
   /// Elementwise subtract operator (3-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator -=(Matrix const &rhs) {
     
     data[0] -= rhs.data[0];
@@ -6315,7 +6315,7 @@ struct Matrix<Element_, 3, 2> {
   }
         
   /// Elementwise multiply operator (3-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Matrix const &rhs) const {
 
     Matrix result;
@@ -6333,7 +6333,7 @@ struct Matrix<Element_, 3, 2> {
   }
       
   /// Scalar multiply operator (3-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Element const &s) const {
 
     Matrix result;
@@ -6351,13 +6351,13 @@ struct Matrix<Element_, 3, 2> {
   }
 
   /// Scalar multiply operator (3-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator *(Element const &s) const {
     return multiply(s);
   }
 
   /// Scalar multiply operator (3-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator *=(Element const &s) {
     
     data[0] *= s;
@@ -6373,7 +6373,7 @@ struct Matrix<Element_, 3, 2> {
   }
         
   /// Elementwise divide operator (3-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Matrix const &rhs) const {
 
     Matrix result;
@@ -6391,7 +6391,7 @@ struct Matrix<Element_, 3, 2> {
   }
       
   /// Scalar divide operator (3-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Element const &s) const {
 
     Matrix result;
@@ -6409,13 +6409,13 @@ struct Matrix<Element_, 3, 2> {
   }
 
   /// Scalar divide operator (3-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Element const &s) const {
     return divide(s);
   }
 
   /// Scalar divide operator (3-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Element const &s) {
     
     data[0] /= s;
@@ -6431,13 +6431,13 @@ struct Matrix<Element_, 3, 2> {
   }
         
   /// Elementwise divide operator (3-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Matrix const &rhs) const {
     return divide(rhs);
   }
 
   /// Elementwise divide operator (3-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Matrix const &rhs) {
     
     data[0] /= rhs.data[0];
@@ -6453,7 +6453,7 @@ struct Matrix<Element_, 3, 2> {
   }
         
   /// Negates each element of the matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator-() const {
     Matrix m;
     
@@ -6468,7 +6468,7 @@ struct Matrix<Element_, 3, 2> {
   }
   
   /// Matrix product of size 3-by-1-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 1> product(
     Matrix<Element, 2, 1> const &rhs,
     Matrix<Element, 3, 1> accum = Matrix<Element, 3, 1>()
@@ -6488,13 +6488,13 @@ struct Matrix<Element_, 3, 2> {
   }
 
   /// Matrix product of size 3-by-1-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 1> operator*(Matrix<Element, 2, 1> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 3-by-2-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 2> product(
     Matrix<Element, 2, 2> const &rhs,
     Matrix<Element, 3, 2> accum = Matrix<Element, 3, 2>()
@@ -6520,20 +6520,20 @@ struct Matrix<Element_, 3, 2> {
   }
 
   /// Matrix product of size 3-by-2-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 2> operator*(Matrix<Element, 2, 2> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 3-by-2-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator*=(Matrix<Element, 2, 2> const &rhs) {
     *this = product(rhs);
     return *this;
   }
     
   /// Matrix product of size 3-by-3-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 3> product(
     Matrix<Element, 2, 3> const &rhs,
     Matrix<Element, 3, 3> accum = Matrix<Element, 3, 3>()
@@ -6565,13 +6565,13 @@ struct Matrix<Element_, 3, 2> {
   }
 
   /// Matrix product of size 3-by-3-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 3> operator*(Matrix<Element, 2, 3> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 3-by-4-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 4> product(
     Matrix<Element, 2, 4> const &rhs,
     Matrix<Element, 3, 4> accum = Matrix<Element, 3, 4>()
@@ -6609,13 +6609,13 @@ struct Matrix<Element_, 3, 2> {
   }
 
   /// Matrix product of size 3-by-4-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 4> operator*(Matrix<Element, 2, 4> const &rhs) const {
     return product(rhs);
   }
   
   /// Returns the sum of elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element sum(Element accum = Element()) const {
     
     accum += data[0];
@@ -6629,7 +6629,7 @@ struct Matrix<Element_, 3, 2> {
   }  
 
   /// Returns the sum of squared elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element norm(Element accum = Element()) const {
     
     accum += data[0] * data[0];
@@ -6643,13 +6643,13 @@ struct Matrix<Element_, 3, 2> {
   }
 
   /// Returns square root of the norm
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element magnitude() const {
     return fast_sqrt(norm());
   }
 
   /// Returns the sum of diagonal elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element trace(Element accum = Element()) const {
     
     accum += data[0];
@@ -6667,7 +6667,7 @@ using Matrix3x2 = Matrix<Element, 3, 2>;
 
 /// Free function to infer element type from template arguments
 template <typename Element>
-CUTLASS_HOST_DEVICE Matrix3x2<Element> make_Matrix3x2(
+NIHILUS_HOST_DEVICE Matrix3x2<Element> make_Matrix3x2(
     Element _0_0, Element _0_1, 
     Element _1_0, Element _1_1, 
     Element _2_0, Element _2_1
@@ -6694,16 +6694,16 @@ struct Matrix<Element_, 3, 3> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int  kRows = 3;
+  static constexpr int kRows = 3;
 
   /// Number of columns in matrix
-  static constexpr int  kColumns = 3;
+  static constexpr int kColumns = 3;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int  kCount = 9;
+  static constexpr int kCount = 9;
 
   //
   // Data members
@@ -6717,19 +6717,19 @@ struct Matrix<Element_, 3, 3> {
   //
 
   /// Constructs a zero matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix() {
     data.clear();
   }
   
   /// Copy constructor for a 3-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(Matrix const &rhs) {
     data = rhs.data;
   }
     
   /// Constructs a 3-by-3 matrix from scalar elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(
     Element _0_0, Element _0_1, Element _0_2, 
     Element _1_0, Element _1_1, Element _1_2, 
@@ -6742,7 +6742,7 @@ struct Matrix<Element_, 3, 3> {
   }
     
   /// Constructs a 3-by-3 matrix from row vectors
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(
     Matrix<Element, 1, 3> const &row_0,
     Matrix<Element, 1, 3> const &row_1,
@@ -6760,7 +6760,7 @@ struct Matrix<Element_, 3, 3> {
   }
     
   /// Static method to construct a 3-by-3 matrix from column vectors
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_columns(
     Matrix<Element, 3, 1> const &column_0,
     Matrix<Element, 3, 1> const &column_1,
@@ -6781,7 +6781,7 @@ struct Matrix<Element_, 3, 3> {
   }
     
   /// Constructs an identity matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix identity() {
     Matrix m;
     
@@ -6793,7 +6793,7 @@ struct Matrix<Element_, 3, 3> {
   }
     
   /// Constructs a matrix from a uniform element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix uniform(Element s) {
     Matrix m;
     
@@ -6811,19 +6811,19 @@ struct Matrix<Element_, 3, 3> {
   }
 
   /// Constructs a matrix from a uniform element 1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix ones() {
     return uniform(Element(1));
   }
 
   /// Constructs a matrix from a uniform element 0
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix zero() {
     return Matrix();
   }
   
   /// Constructs a matrix from elements along its diagonal
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_diagonal(Matrix<Element, 3, 1> const &diag) {
     Matrix m;
     
@@ -6835,7 +6835,7 @@ struct Matrix<Element_, 3, 3> {
   }
 
   /// Constructs a matrix from elements along its diagonal
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_diagonal(Matrix<Element, 1, 3> const &diag) {
     Matrix m;
     
@@ -6847,7 +6847,7 @@ struct Matrix<Element_, 3, 3> {
   }
 
   /// Gets an array of diagonal elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 1> diagonal() const {
     Matrix<Element, 3, 1> diag;
     
@@ -6859,7 +6859,7 @@ struct Matrix<Element_, 3, 3> {
   }
     
   /// Returns a transposed matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 3> transpose() const {
     Matrix<Element, 3, 3> mt;
     
@@ -6877,67 +6877,67 @@ struct Matrix<Element_, 3, 3> {
   }
     
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int i, int j) const {
     return data[i * 3 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(int i, int j) {
     return data[i * 3 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element &at(int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int offset) const {
     return data[offset];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](int offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 2> slice_1x2(int i = 0, int j = 0) const {
     Matrix<Element, 1, 2> m;
     
@@ -6948,7 +6948,7 @@ struct Matrix<Element_, 3, 3> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
@@ -6958,7 +6958,7 @@ struct Matrix<Element_, 3, 3> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 3> slice_1x3(int i = 0, int j = 0) const {
     Matrix<Element, 1, 3> m;
     
@@ -6970,7 +6970,7 @@ struct Matrix<Element_, 3, 3> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_1x3(Matrix<Element, 1, 3> const &m, int i = 0, int j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
@@ -6980,18 +6980,18 @@ struct Matrix<Element_, 3, 3> {
     return *this;
   }
     
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 3> row(int i) const {
     return slice_1x3(i, 0);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix &set_row(Matrix<Element, 1, 3> const &v, int i = 0) {
     return set_slice_1x3(v, i, 0);
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> slice_2x1(int i = 0, int j = 0) const {
     Matrix<Element, 2, 1> m;
     
@@ -7002,7 +7002,7 @@ struct Matrix<Element_, 3, 3> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int i = 0, int j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
@@ -7012,7 +7012,7 @@ struct Matrix<Element_, 3, 3> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 2> slice_2x2(int i = 0, int j = 0) const {
     Matrix<Element, 2, 2> m;
     
@@ -7025,7 +7025,7 @@ struct Matrix<Element_, 3, 3> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
@@ -7037,7 +7037,7 @@ struct Matrix<Element_, 3, 3> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 3> slice_2x3(int i = 0, int j = 0) const {
     Matrix<Element, 2, 3> m;
     
@@ -7052,7 +7052,7 @@ struct Matrix<Element_, 3, 3> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x3(Matrix<Element, 2, 3> const &m, int i = 0, int j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
@@ -7066,7 +7066,7 @@ struct Matrix<Element_, 3, 3> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 1> slice_3x1(int i = 0, int j = 0) const {
     Matrix<Element, 3, 1> m;
     
@@ -7078,7 +7078,7 @@ struct Matrix<Element_, 3, 3> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_3x1(Matrix<Element, 3, 1> const &m, int i = 0, int j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
@@ -7088,18 +7088,18 @@ struct Matrix<Element_, 3, 3> {
     return *this;
   }
     
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 1> column(int j) const {
     return slice_3x1(0, j);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix &set_column(Matrix<Element, 3, 1> const &v, int j =0) {
     return set_slice_3x1(v, 0, j);
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 2> slice_3x2(int i = 0, int j = 0) const {
     Matrix<Element, 3, 2> m;
     
@@ -7114,7 +7114,7 @@ struct Matrix<Element_, 3, 3> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_3x2(Matrix<Element, 3, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
@@ -7128,7 +7128,7 @@ struct Matrix<Element_, 3, 3> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 3> slice_3x3(int i = 0, int j = 0) const {
     Matrix<Element, 3, 3> m;
     
@@ -7146,7 +7146,7 @@ struct Matrix<Element_, 3, 3> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_3x3(Matrix<Element, 3, 3> const &m, int i = 0, int j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
@@ -7163,7 +7163,7 @@ struct Matrix<Element_, 3, 3> {
   }
     
   /// Forms a 3-by-3 matrix by horizontally concatenating a 3-by-1 matrix with a 3-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix hcat(Matrix<Element, 3, 1> const & lhs, Matrix<Element, 3, 2> const & rhs) {
     return Matrix(
       lhs.at(0, 0), rhs.at(0, 0), rhs.at(0, 1)
@@ -7172,7 +7172,7 @@ struct Matrix<Element_, 3, 3> {
   }
   
   /// Forms a 3-by-3 matrix by horizontally concatenating a 3-by-2 matrix with a 3-by-1 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix hcat(Matrix<Element, 3, 2> const & lhs, Matrix<Element, 3, 1> const & rhs) {
     return Matrix(
       lhs.at(0, 0), lhs.at(0, 1), rhs.at(0, 0)
@@ -7181,13 +7181,13 @@ struct Matrix<Element_, 3, 3> {
   }
   
   /// Concatenates this matrix with a a 3-by-1 matrix to form a 3-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 4> hcat(Matrix<Element, 3, 1> const & rhs) const {
     return Matrix<Element, 3, 4>::hcat(*this, rhs);
   }
     
   /// Forms a 3-by-3 matrix by vertically concatenating a 1-by-3 matrix with a 2-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix vcat(Matrix<Element, 1, 3> const & upper, Matrix<Element, 2, 3> const & lower) {
     return Matrix(
       upper.at(0, 0), upper.at(0, 1), upper.at(0, 2)
@@ -7196,7 +7196,7 @@ struct Matrix<Element_, 3, 3> {
   }
   
   /// Forms a 3-by-3 matrix by vertically concatenating a 2-by-3 matrix with a 1-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix vcat(Matrix<Element, 2, 3> const & upper, Matrix<Element, 1, 3> const & lower) {
     return Matrix(
       upper.at(0, 0), upper.at(0, 1), upper.at(0, 2)
@@ -7205,13 +7205,13 @@ struct Matrix<Element_, 3, 3> {
   }
   
   /// Concatenates this matrix with a a 1-by-3 matrix to form a 4-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 3> vcat(Matrix<Element, 1, 3> const & rhs) const {
     return Matrix<Element, 4, 3>::vcat(*this, rhs);
   }
     
   /// Forms a 3-by-3 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Element                         A, Matrix<Element, 1, 2> const & B,
     Matrix<Element, 2, 1> const & C, Matrix<Element, 2, 2> const & D) {
@@ -7223,7 +7223,7 @@ struct Matrix<Element_, 3, 3> {
   }
   
   /// Forms a 3-by-3 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 1, 2> const & A, Element                         B,
     Matrix<Element, 2, 2> const & C, Matrix<Element, 2, 1> const & D) {
@@ -7235,7 +7235,7 @@ struct Matrix<Element_, 3, 3> {
   }
   
   /// Forms a 3-by-3 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 2, 1> const & A, Matrix<Element, 2, 2> const & B,
     Element                         C, Matrix<Element, 1, 2> const & D) {
@@ -7247,7 +7247,7 @@ struct Matrix<Element_, 3, 3> {
   }
   
   /// Forms a 3-by-3 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 2, 2> const & A, Matrix<Element, 2, 1> const & B,
     Matrix<Element, 1, 2> const & C, Element                         D) {
@@ -7259,7 +7259,7 @@ struct Matrix<Element_, 3, 3> {
   }
   
   /// Elementwise add operator (3-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix add(Matrix const &rhs) const {
 
     Matrix result;
@@ -7280,13 +7280,13 @@ struct Matrix<Element_, 3, 3> {
   }
       
   /// Elementwise add operator (3-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator +(Matrix const &rhs) const {
     return add(rhs);
   }
 
   /// Elementwise add operator (3-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator +=(Matrix const &rhs) {
     
     data[0] += rhs.data[0];
@@ -7305,7 +7305,7 @@ struct Matrix<Element_, 3, 3> {
   }
         
   /// Elementwise subtract operator (3-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix subtract(Matrix const &rhs) const {
 
     Matrix result;
@@ -7326,13 +7326,13 @@ struct Matrix<Element_, 3, 3> {
   }
       
   /// Elementwise subtract operator (3-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator -(Matrix const &rhs) const {
     return subtract(rhs);
   }
 
   /// Elementwise subtract operator (3-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator -=(Matrix const &rhs) {
     
     data[0] -= rhs.data[0];
@@ -7351,7 +7351,7 @@ struct Matrix<Element_, 3, 3> {
   }
         
   /// Elementwise multiply operator (3-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Matrix const &rhs) const {
 
     Matrix result;
@@ -7372,7 +7372,7 @@ struct Matrix<Element_, 3, 3> {
   }
       
   /// Scalar multiply operator (3-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Element const &s) const {
 
     Matrix result;
@@ -7393,13 +7393,13 @@ struct Matrix<Element_, 3, 3> {
   }
 
   /// Scalar multiply operator (3-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator *(Element const &s) const {
     return multiply(s);
   }
 
   /// Scalar multiply operator (3-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator *=(Element const &s) {
     
     data[0] *= s;
@@ -7418,7 +7418,7 @@ struct Matrix<Element_, 3, 3> {
   }
         
   /// Elementwise divide operator (3-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Matrix const &rhs) const {
 
     Matrix result;
@@ -7439,7 +7439,7 @@ struct Matrix<Element_, 3, 3> {
   }
       
   /// Scalar divide operator (3-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Element const &s) const {
 
     Matrix result;
@@ -7460,13 +7460,13 @@ struct Matrix<Element_, 3, 3> {
   }
 
   /// Scalar divide operator (3-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Element const &s) const {
     return divide(s);
   }
 
   /// Scalar divide operator (3-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Element const &s) {
     
     data[0] /= s;
@@ -7485,13 +7485,13 @@ struct Matrix<Element_, 3, 3> {
   }
         
   /// Elementwise divide operator (3-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Matrix const &rhs) const {
     return divide(rhs);
   }
 
   /// Elementwise divide operator (3-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Matrix const &rhs) {
     
     data[0] /= rhs.data[0];
@@ -7510,7 +7510,7 @@ struct Matrix<Element_, 3, 3> {
   }
         
   /// Negates each element of the matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator-() const {
     Matrix m;
     
@@ -7528,7 +7528,7 @@ struct Matrix<Element_, 3, 3> {
   }
   
   /// Matrix product of size 3-by-1-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 1> product(
     Matrix<Element, 3, 1> const &rhs,
     Matrix<Element, 3, 1> accum = Matrix<Element, 3, 1>()
@@ -7553,13 +7553,13 @@ struct Matrix<Element_, 3, 3> {
   }
 
   /// Matrix product of size 3-by-1-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 1> operator*(Matrix<Element, 3, 1> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 3-by-2-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 2> product(
     Matrix<Element, 3, 2> const &rhs,
     Matrix<Element, 3, 2> accum = Matrix<Element, 3, 2>()
@@ -7593,13 +7593,13 @@ struct Matrix<Element_, 3, 3> {
   }
 
   /// Matrix product of size 3-by-2-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 2> operator*(Matrix<Element, 3, 2> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 3-by-3-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 3> product(
     Matrix<Element, 3, 3> const &rhs,
     Matrix<Element, 3, 3> accum = Matrix<Element, 3, 3>()
@@ -7642,20 +7642,20 @@ struct Matrix<Element_, 3, 3> {
   }
 
   /// Matrix product of size 3-by-3-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 3> operator*(Matrix<Element, 3, 3> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 3-by-3-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator*=(Matrix<Element, 3, 3> const &rhs) {
     *this = product(rhs);
     return *this;
   }
     
   /// Matrix product of size 3-by-4-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 4> product(
     Matrix<Element, 3, 4> const &rhs,
     Matrix<Element, 3, 4> accum = Matrix<Element, 3, 4>()
@@ -7707,13 +7707,13 @@ struct Matrix<Element_, 3, 3> {
   }
 
   /// Matrix product of size 3-by-4-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 4> operator*(Matrix<Element, 3, 4> const &rhs) const {
     return product(rhs);
   }
   
   /// Returns the sum of elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element sum(Element accum = Element()) const {
     
     accum += data[0];
@@ -7730,7 +7730,7 @@ struct Matrix<Element_, 3, 3> {
   }  
 
   /// Returns the sum of squared elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element norm(Element accum = Element()) const {
     
     accum += data[0] * data[0];
@@ -7747,13 +7747,13 @@ struct Matrix<Element_, 3, 3> {
   }
 
   /// Returns square root of the norm
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element magnitude() const {
     return fast_sqrt(norm());
   }
 
   /// Returns the sum of diagonal elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element trace(Element accum = Element()) const {
     
     accum += data[0];
@@ -7764,7 +7764,7 @@ struct Matrix<Element_, 3, 3> {
   }
     
   /// Returns 3-by-3 rotation matrix around the X axis
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix rotation_X(Element theta) {
     Matrix m = identity();
 
@@ -7780,7 +7780,7 @@ struct Matrix<Element_, 3, 3> {
   }
 
   /// Returns 3-by-3 rotation matrix around the Y axis
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix rotation_Y(Element theta) {
     Matrix m = identity();
 
@@ -7796,7 +7796,7 @@ struct Matrix<Element_, 3, 3> {
   }
 
   /// Returns 3-by-3 rotation matrix around the Z axis
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix rotation_Z(Element theta) {
     Matrix m = Matrix::identity();
 
@@ -7812,7 +7812,7 @@ struct Matrix<Element_, 3, 3> {
   }
 
   /// Returns a 3-by-3 rotation matrix around a unit-length axis
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix rotation(Element theta, Matrix<Element, 3, 1> const &u) {
     Element x = u.data[0];
     Element y = u.data[1];
@@ -7836,7 +7836,7 @@ struct Matrix<Element_, 3, 3> {
 
   /// Returns a 3-by-3 reflection about the plane specified by the 
   /// unit-length normal vector n_unit
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix reflection(Matrix<Element, 3, 1> const &n_unit) {
 
     Element a = n_unit.data[0];
@@ -7855,7 +7855,7 @@ struct Matrix<Element_, 3, 3> {
   }
 
   /// Computes the determinant of a 3-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element determinant(Element accum = Element()) const {
     
     accum += at(0, 0) * Matrix<Element, 2, 2>({ at(1, 1), at(1, 2), at(2, 1), at(2, 2) }).determinant();
@@ -7867,7 +7867,7 @@ struct Matrix<Element_, 3, 3> {
   
   /// Computes the inverse of a 3-by-3 matrix given
   /// the matrix's determinant
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix inverse(Element det) const {
     return Matrix(
       at(1, 1) * at(2, 2) - at(1, 2) * at(2, 1),
@@ -7884,7 +7884,7 @@ struct Matrix<Element_, 3, 3> {
     ) * (Element(1) / det);
   }
   /// Computes the inverse of a 3-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix inverse() const {
     return inverse(determinant());
   }
@@ -7898,7 +7898,7 @@ using Matrix3x3 = Matrix<Element, 3, 3>;
 
 /// Free function to infer element type from template arguments
 template <typename Element>
-CUTLASS_HOST_DEVICE Matrix3x3<Element> make_Matrix3x3(
+NIHILUS_HOST_DEVICE Matrix3x3<Element> make_Matrix3x3(
     Element _0_0, Element _0_1, Element _0_2, 
     Element _1_0, Element _1_1, Element _1_2, 
     Element _2_0, Element _2_1, Element _2_2
@@ -7925,16 +7925,16 @@ struct Matrix<Element_, 3, 4> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int  kRows = 3;
+  static constexpr int kRows = 3;
 
   /// Number of columns in matrix
-  static constexpr int  kColumns = 4;
+  static constexpr int kColumns = 4;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int  kCount = 12;
+  static constexpr int kCount = 12;
 
   //
   // Data members
@@ -7948,19 +7948,19 @@ struct Matrix<Element_, 3, 4> {
   //
 
   /// Constructs a zero matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix() {
     data.clear();
   }
   
   /// Copy constructor for a 3-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(Matrix const &rhs) {
     data = rhs.data;
   }
     
   /// Constructs a 3-by-4 matrix from scalar elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(
     Element _0_0, Element _0_1, Element _0_2, Element _0_3, 
     Element _1_0, Element _1_1, Element _1_2, Element _1_3, 
@@ -7973,7 +7973,7 @@ struct Matrix<Element_, 3, 4> {
   }
     
   /// Constructs a 3-by-4 matrix from row vectors
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(
     Matrix<Element, 1, 4> const &row_0,
     Matrix<Element, 1, 4> const &row_1,
@@ -7994,7 +7994,7 @@ struct Matrix<Element_, 3, 4> {
   }
     
   /// Static method to construct a 3-by-4 matrix from column vectors
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_columns(
     Matrix<Element, 4, 1> const &column_0,
     Matrix<Element, 4, 1> const &column_1,
@@ -8019,7 +8019,7 @@ struct Matrix<Element_, 3, 4> {
   }
     
   /// Constructs a matrix from a uniform element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix uniform(Element s) {
     Matrix m;
     
@@ -8040,19 +8040,19 @@ struct Matrix<Element_, 3, 4> {
   }
 
   /// Constructs a matrix from a uniform element 1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix ones() {
     return uniform(Element(1));
   }
 
   /// Constructs a matrix from a uniform element 0
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix zero() {
     return Matrix();
   }
   
   /// Constructs a matrix from elements along its diagonal
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_diagonal(Matrix<Element, 3, 1> const &diag) {
     Matrix m;
     
@@ -8064,7 +8064,7 @@ struct Matrix<Element_, 3, 4> {
   }
 
   /// Constructs a matrix from elements along its diagonal
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_diagonal(Matrix<Element, 1, 3> const &diag) {
     Matrix m;
     
@@ -8076,7 +8076,7 @@ struct Matrix<Element_, 3, 4> {
   }
 
   /// Gets an array of diagonal elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 1> diagonal() const {
     Matrix<Element, 3, 1> diag;
     
@@ -8088,7 +8088,7 @@ struct Matrix<Element_, 3, 4> {
   }
     
   /// Returns a transposed matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 3> transpose() const {
     Matrix<Element, 4, 3> mt;
     
@@ -8109,67 +8109,67 @@ struct Matrix<Element_, 3, 4> {
   }
     
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int i, int j) const {
     return data[i * 3 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(int i, int j) {
     return data[i * 3 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element &at(int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int offset) const {
     return data[offset];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](int offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 2> slice_1x2(int i = 0, int j = 0) const {
     Matrix<Element, 1, 2> m;
     
@@ -8180,7 +8180,7 @@ struct Matrix<Element_, 3, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -8190,7 +8190,7 @@ struct Matrix<Element_, 3, 4> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 3> slice_1x3(int i = 0, int j = 0) const {
     Matrix<Element, 1, 3> m;
     
@@ -8202,7 +8202,7 @@ struct Matrix<Element_, 3, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_1x3(Matrix<Element, 1, 3> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -8213,7 +8213,7 @@ struct Matrix<Element_, 3, 4> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 4> slice_1x4(int i = 0, int j = 0) const {
     Matrix<Element, 1, 4> m;
     
@@ -8226,7 +8226,7 @@ struct Matrix<Element_, 3, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_1x4(Matrix<Element, 1, 4> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -8237,18 +8237,18 @@ struct Matrix<Element_, 3, 4> {
     return *this;
   }
     
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 4> row(int i) const {
     return slice_1x4(i, 0);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix &set_row(Matrix<Element, 1, 4> const &v, int i = 0) {
     return set_slice_1x4(v, i, 0);
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> slice_2x1(int i = 0, int j = 0) const {
     Matrix<Element, 2, 1> m;
     
@@ -8259,7 +8259,7 @@ struct Matrix<Element_, 3, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -8269,7 +8269,7 @@ struct Matrix<Element_, 3, 4> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 2> slice_2x2(int i = 0, int j = 0) const {
     Matrix<Element, 2, 2> m;
     
@@ -8282,7 +8282,7 @@ struct Matrix<Element_, 3, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -8294,7 +8294,7 @@ struct Matrix<Element_, 3, 4> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 3> slice_2x3(int i = 0, int j = 0) const {
     Matrix<Element, 2, 3> m;
     
@@ -8309,7 +8309,7 @@ struct Matrix<Element_, 3, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x3(Matrix<Element, 2, 3> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -8323,7 +8323,7 @@ struct Matrix<Element_, 3, 4> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 4> slice_2x4(int i = 0, int j = 0) const {
     Matrix<Element, 2, 4> m;
     
@@ -8340,7 +8340,7 @@ struct Matrix<Element_, 3, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x4(Matrix<Element, 2, 4> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -8356,7 +8356,7 @@ struct Matrix<Element_, 3, 4> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 1> slice_3x1(int i = 0, int j = 0) const {
     Matrix<Element, 3, 1> m;
     
@@ -8368,7 +8368,7 @@ struct Matrix<Element_, 3, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_3x1(Matrix<Element, 3, 1> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -8378,18 +8378,18 @@ struct Matrix<Element_, 3, 4> {
     return *this;
   }
     
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 1> column(int j) const {
     return slice_3x1(0, j);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix &set_column(Matrix<Element, 3, 1> const &v, int j =0) {
     return set_slice_3x1(v, 0, j);
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 2> slice_3x2(int i = 0, int j = 0) const {
     Matrix<Element, 3, 2> m;
     
@@ -8404,7 +8404,7 @@ struct Matrix<Element_, 3, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_3x2(Matrix<Element, 3, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -8418,7 +8418,7 @@ struct Matrix<Element_, 3, 4> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 3> slice_3x3(int i = 0, int j = 0) const {
     Matrix<Element, 3, 3> m;
     
@@ -8436,7 +8436,7 @@ struct Matrix<Element_, 3, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_3x3(Matrix<Element, 3, 3> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -8453,7 +8453,7 @@ struct Matrix<Element_, 3, 4> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 4> slice_3x4(int i = 0, int j = 0) const {
     Matrix<Element, 3, 4> m;
     
@@ -8474,7 +8474,7 @@ struct Matrix<Element_, 3, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_3x4(Matrix<Element, 3, 4> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -8494,7 +8494,7 @@ struct Matrix<Element_, 3, 4> {
   }
     
   /// Forms a 3-by-4 matrix by horizontally concatenating a 3-by-1 matrix with a 3-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix hcat(Matrix<Element, 3, 1> const & lhs, Matrix<Element, 3, 3> const & rhs) {
     return Matrix(
       lhs.at(0, 0), rhs.at(0, 0), rhs.at(0, 1), rhs.at(0, 2)
@@ -8503,7 +8503,7 @@ struct Matrix<Element_, 3, 4> {
   }
   
   /// Forms a 3-by-4 matrix by horizontally concatenating a 3-by-2 matrix with a 3-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix hcat(Matrix<Element, 3, 2> const & lhs, Matrix<Element, 3, 2> const & rhs) {
     return Matrix(
       lhs.at(0, 0), lhs.at(0, 1), rhs.at(0, 0), rhs.at(0, 1)
@@ -8512,7 +8512,7 @@ struct Matrix<Element_, 3, 4> {
   }
   
   /// Forms a 3-by-4 matrix by horizontally concatenating a 3-by-3 matrix with a 3-by-1 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix hcat(Matrix<Element, 3, 3> const & lhs, Matrix<Element, 3, 1> const & rhs) {
     return Matrix(
       lhs.at(0, 0), lhs.at(0, 1), lhs.at(0, 2), rhs.at(0, 0)
@@ -8521,7 +8521,7 @@ struct Matrix<Element_, 3, 4> {
   }
   
   /// Forms a 3-by-4 matrix by vertically concatenating a 1-by-4 matrix with a 2-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix vcat(Matrix<Element, 1, 4> const & upper, Matrix<Element, 2, 4> const & lower) {
     return Matrix(
       upper.at(0, 0), upper.at(0, 1), upper.at(0, 2), upper.at(0, 3)
@@ -8530,7 +8530,7 @@ struct Matrix<Element_, 3, 4> {
   }
   
   /// Forms a 3-by-4 matrix by vertically concatenating a 2-by-4 matrix with a 1-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix vcat(Matrix<Element, 2, 4> const & upper, Matrix<Element, 1, 4> const & lower) {
     return Matrix(
       upper.at(0, 0), upper.at(0, 1), upper.at(0, 2), upper.at(0, 3)
@@ -8539,13 +8539,13 @@ struct Matrix<Element_, 3, 4> {
   }
   
   /// Concatenates this matrix with a a 1-by-4 matrix to form a 4-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 4> vcat(Matrix<Element, 1, 4> const & rhs) const {
     return Matrix<Element, 4, 4>::vcat(*this, rhs);
   }
     
   /// Forms a 3-by-4 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Element                         A, Matrix<Element, 1, 3> const & B,
     Matrix<Element, 2, 1> const & C, Matrix<Element, 2, 3> const & D) {
@@ -8557,7 +8557,7 @@ struct Matrix<Element_, 3, 4> {
   }
   
   /// Forms a 3-by-4 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 1, 2> const & A, Matrix<Element, 1, 2> const & B,
     Matrix<Element, 2, 2> const & C, Matrix<Element, 2, 2> const & D) {
@@ -8569,7 +8569,7 @@ struct Matrix<Element_, 3, 4> {
   }
   
   /// Forms a 3-by-4 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 1, 3> const & A, Element                         B,
     Matrix<Element, 2, 3> const & C, Matrix<Element, 2, 1> const & D) {
@@ -8581,7 +8581,7 @@ struct Matrix<Element_, 3, 4> {
   }
   
   /// Forms a 3-by-4 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 2, 1> const & A, Matrix<Element, 2, 3> const & B,
     Element                         C, Matrix<Element, 1, 3> const & D) {
@@ -8593,7 +8593,7 @@ struct Matrix<Element_, 3, 4> {
   }
   
   /// Forms a 3-by-4 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 2, 2> const & A, Matrix<Element, 2, 2> const & B,
     Matrix<Element, 1, 2> const & C, Matrix<Element, 1, 2> const & D) {
@@ -8605,7 +8605,7 @@ struct Matrix<Element_, 3, 4> {
   }
   
   /// Forms a 3-by-4 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 2, 3> const & A, Matrix<Element, 2, 1> const & B,
     Matrix<Element, 1, 3> const & C, Element                         D) {
@@ -8617,7 +8617,7 @@ struct Matrix<Element_, 3, 4> {
   }
   
   /// Elementwise add operator (3-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix add(Matrix const &rhs) const {
 
     Matrix result;
@@ -8641,13 +8641,13 @@ struct Matrix<Element_, 3, 4> {
   }
       
   /// Elementwise add operator (3-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator +(Matrix const &rhs) const {
     return add(rhs);
   }
 
   /// Elementwise add operator (3-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator +=(Matrix const &rhs) {
     
     data[0] += rhs.data[0];
@@ -8669,7 +8669,7 @@ struct Matrix<Element_, 3, 4> {
   }
         
   /// Elementwise subtract operator (3-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix subtract(Matrix const &rhs) const {
 
     Matrix result;
@@ -8693,13 +8693,13 @@ struct Matrix<Element_, 3, 4> {
   }
       
   /// Elementwise subtract operator (3-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator -(Matrix const &rhs) const {
     return subtract(rhs);
   }
 
   /// Elementwise subtract operator (3-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator -=(Matrix const &rhs) {
     
     data[0] -= rhs.data[0];
@@ -8721,7 +8721,7 @@ struct Matrix<Element_, 3, 4> {
   }
         
   /// Elementwise multiply operator (3-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Matrix const &rhs) const {
 
     Matrix result;
@@ -8745,7 +8745,7 @@ struct Matrix<Element_, 3, 4> {
   }
       
   /// Scalar multiply operator (3-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Element const &s) const {
 
     Matrix result;
@@ -8769,13 +8769,13 @@ struct Matrix<Element_, 3, 4> {
   }
 
   /// Scalar multiply operator (3-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator *(Element const &s) const {
     return multiply(s);
   }
 
   /// Scalar multiply operator (3-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator *=(Element const &s) {
     
     data[0] *= s;
@@ -8797,7 +8797,7 @@ struct Matrix<Element_, 3, 4> {
   }
         
   /// Elementwise divide operator (3-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Matrix const &rhs) const {
 
     Matrix result;
@@ -8821,7 +8821,7 @@ struct Matrix<Element_, 3, 4> {
   }
       
   /// Scalar divide operator (3-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Element const &s) const {
 
     Matrix result;
@@ -8845,13 +8845,13 @@ struct Matrix<Element_, 3, 4> {
   }
 
   /// Scalar divide operator (3-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Element const &s) const {
     return divide(s);
   }
 
   /// Scalar divide operator (3-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Element const &s) {
     
     data[0] /= s;
@@ -8873,13 +8873,13 @@ struct Matrix<Element_, 3, 4> {
   }
         
   /// Elementwise divide operator (3-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Matrix const &rhs) const {
     return divide(rhs);
   }
 
   /// Elementwise divide operator (3-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Matrix const &rhs) {
     
     data[0] /= rhs.data[0];
@@ -8901,7 +8901,7 @@ struct Matrix<Element_, 3, 4> {
   }
         
   /// Negates each element of the matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator-() const {
     Matrix m;
     
@@ -8922,7 +8922,7 @@ struct Matrix<Element_, 3, 4> {
   }
   
   /// Matrix product of size 3-by-1-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 1> product(
     Matrix<Element, 4, 1> const &rhs,
     Matrix<Element, 3, 1> accum = Matrix<Element, 3, 1>()
@@ -8952,13 +8952,13 @@ struct Matrix<Element_, 3, 4> {
   }
 
   /// Matrix product of size 3-by-1-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 1> operator*(Matrix<Element, 4, 1> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 3-by-2-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 2> product(
     Matrix<Element, 4, 2> const &rhs,
     Matrix<Element, 3, 2> accum = Matrix<Element, 3, 2>()
@@ -9000,13 +9000,13 @@ struct Matrix<Element_, 3, 4> {
   }
 
   /// Matrix product of size 3-by-2-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 2> operator*(Matrix<Element, 4, 2> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 3-by-3-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 3> product(
     Matrix<Element, 4, 3> const &rhs,
     Matrix<Element, 3, 3> accum = Matrix<Element, 3, 3>()
@@ -9060,13 +9060,13 @@ struct Matrix<Element_, 3, 4> {
   }
 
   /// Matrix product of size 3-by-3-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 3> operator*(Matrix<Element, 4, 3> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 3-by-4-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 4> product(
     Matrix<Element, 4, 4> const &rhs,
     Matrix<Element, 3, 4> accum = Matrix<Element, 3, 4>()
@@ -9132,20 +9132,20 @@ struct Matrix<Element_, 3, 4> {
   }
 
   /// Matrix product of size 3-by-4-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 4> operator*(Matrix<Element, 4, 4> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 3-by-4-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator*=(Matrix<Element, 4, 4> const &rhs) {
     *this = product(rhs);
     return *this;
   }
     
   /// Returns the sum of elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element sum(Element accum = Element()) const {
     
     accum += data[0];
@@ -9165,7 +9165,7 @@ struct Matrix<Element_, 3, 4> {
   }  
 
   /// Returns the sum of squared elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element norm(Element accum = Element()) const {
     
     accum += data[0] * data[0];
@@ -9185,13 +9185,13 @@ struct Matrix<Element_, 3, 4> {
   }
 
   /// Returns square root of the norm
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element magnitude() const {
     return fast_sqrt(norm());
   }
 
   /// Returns the sum of diagonal elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element trace(Element accum = Element()) const {
     
     accum += data[0];
@@ -9210,7 +9210,7 @@ using Matrix3x4 = Matrix<Element, 3, 4>;
 
 /// Free function to infer element type from template arguments
 template <typename Element>
-CUTLASS_HOST_DEVICE Matrix3x4<Element> make_Matrix3x4(
+NIHILUS_HOST_DEVICE Matrix3x4<Element> make_Matrix3x4(
     Element _0_0, Element _0_1, Element _0_2, Element _0_3, 
     Element _1_0, Element _1_1, Element _1_2, Element _1_3, 
     Element _2_0, Element _2_1, Element _2_2, Element _2_3
@@ -9237,16 +9237,16 @@ struct Matrix<Element_, 4, 1> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int  kRows = 4;
+  static constexpr int kRows = 4;
 
   /// Number of columns in matrix
-  static constexpr int  kColumns = 1;
+  static constexpr int kColumns = 1;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int  kCount = 4;
+  static constexpr int kCount = 4;
 
   //
   // Data members
@@ -9260,19 +9260,19 @@ struct Matrix<Element_, 4, 1> {
   //
 
   /// Constructs a zero matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix() {
     data.clear();
   }
   
   /// Copy constructor for a 4-by-1 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(Matrix const &rhs) {
     data = rhs.data;
   }
     
   /// Constructs a 4-by-1 matrix from scalar elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(
     Element _0_0, 
     Element _1_0, 
@@ -9287,7 +9287,7 @@ struct Matrix<Element_, 4, 1> {
   }
     
   /// Constructs a matrix from a uniform element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix uniform(Element s) {
     Matrix m;
     
@@ -9300,19 +9300,19 @@ struct Matrix<Element_, 4, 1> {
   }
 
   /// Constructs a matrix from a uniform element 1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix ones() {
     return uniform(Element(1));
   }
 
   /// Constructs a matrix from a uniform element 0
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix zero() {
     return Matrix();
   }
   
   /// Returns a transposed matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 4> transpose() const {
     Matrix<Element, 1, 4> mt;
     
@@ -9325,67 +9325,67 @@ struct Matrix<Element_, 4, 1> {
   }
     
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int i, int j) const {
     return data[i * 4 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(int i, int j) {
     return data[i * 4 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element &at(int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int offset) const {
     return data[offset];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](int offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> slice_2x1(int i = 0, int j = 0) const {
     Matrix<Element, 2, 1> m;
     
@@ -9396,7 +9396,7 @@ struct Matrix<Element_, 4, 1> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int i = 0, int j = 0) {
     
     data[i * 1 + j + 0] = m.data[0];
@@ -9406,7 +9406,7 @@ struct Matrix<Element_, 4, 1> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 1> slice_3x1(int i = 0, int j = 0) const {
     Matrix<Element, 3, 1> m;
     
@@ -9418,7 +9418,7 @@ struct Matrix<Element_, 4, 1> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_3x1(Matrix<Element, 3, 1> const &m, int i = 0, int j = 0) {
     
     data[i * 1 + j + 0] = m.data[0];
@@ -9429,7 +9429,7 @@ struct Matrix<Element_, 4, 1> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 1> slice_4x1(int i = 0, int j = 0) const {
     Matrix<Element, 4, 1> m;
     
@@ -9442,7 +9442,7 @@ struct Matrix<Element_, 4, 1> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_4x1(Matrix<Element, 4, 1> const &m, int i = 0, int j = 0) {
     
     data[i * 1 + j + 0] = m.data[0];
@@ -9453,36 +9453,36 @@ struct Matrix<Element_, 4, 1> {
     return *this;
   }
     
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 1> column(int j) const {
     return slice_4x1(0, j);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix &set_column(Matrix<Element, 4, 1> const &v, int j =0) {
     return set_slice_4x1(v, 0, j);
   }
     
   /// Concatenates this matrix with a a 4-by-1 matrix to form a 4-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 2> hcat(Matrix<Element, 4, 1> const & rhs) const {
     return Matrix<Element, 4, 2>::hcat(*this, rhs);
   }
     
   /// Concatenates this matrix with a a 4-by-2 matrix to form a 4-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 3> hcat(Matrix<Element, 4, 2> const & rhs) const {
     return Matrix<Element, 4, 3>::hcat(*this, rhs);
   }
     
   /// Concatenates this matrix with a a 4-by-3 matrix to form a 4-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 4> hcat(Matrix<Element, 4, 3> const & rhs) const {
     return Matrix<Element, 4, 4>::hcat(*this, rhs);
   }
     
   /// Forms a 4-by-1 matrix by vertically concatenating an Element with a 3-by-1 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix vcat(Element upper, Matrix<Element, 3, 1> const & lower) {
     return Matrix(
       upper
@@ -9492,7 +9492,7 @@ struct Matrix<Element_, 4, 1> {
   }
   
   /// Forms a 4-by-1 matrix by vertically concatenating a 2-by-1 matrix with a 2-by-1 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix vcat(Matrix<Element, 2, 1> const & upper, Matrix<Element, 2, 1> const & lower) {
     return Matrix(
       upper.at(0, 0)
@@ -9502,7 +9502,7 @@ struct Matrix<Element_, 4, 1> {
   }
   
   /// Forms a 4-by-1 matrix by vertically concatenating a 3-by-1 matrix with an Element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix vcat(Matrix<Element, 3, 1> const & upper, Element lower) {
     return Matrix(
       upper.at(0, 0)
@@ -9512,7 +9512,7 @@ struct Matrix<Element_, 4, 1> {
   }
   
   /// Elementwise add operator (4-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix add(Matrix const &rhs) const {
 
     Matrix result;
@@ -9529,13 +9529,13 @@ struct Matrix<Element_, 4, 1> {
   }
       
   /// Elementwise add operator (4-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator +(Matrix const &rhs) const {
     return add(rhs);
   }
 
   /// Elementwise add operator (4-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator +=(Matrix const &rhs) {
     
     data[0] += rhs.data[0];
@@ -9550,7 +9550,7 @@ struct Matrix<Element_, 4, 1> {
   }
         
   /// Elementwise subtract operator (4-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix subtract(Matrix const &rhs) const {
 
     Matrix result;
@@ -9567,13 +9567,13 @@ struct Matrix<Element_, 4, 1> {
   }
       
   /// Elementwise subtract operator (4-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator -(Matrix const &rhs) const {
     return subtract(rhs);
   }
 
   /// Elementwise subtract operator (4-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator -=(Matrix const &rhs) {
     
     data[0] -= rhs.data[0];
@@ -9588,7 +9588,7 @@ struct Matrix<Element_, 4, 1> {
   }
         
   /// Elementwise multiply operator (4-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Matrix const &rhs) const {
 
     Matrix result;
@@ -9605,7 +9605,7 @@ struct Matrix<Element_, 4, 1> {
   }
       
   /// Scalar multiply operator (4-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Element const &s) const {
 
     Matrix result;
@@ -9622,13 +9622,13 @@ struct Matrix<Element_, 4, 1> {
   }
 
   /// Scalar multiply operator (4-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator *(Element const &s) const {
     return multiply(s);
   }
 
   /// Scalar multiply operator (4-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator *=(Element const &s) {
     
     data[0] *= s;
@@ -9643,7 +9643,7 @@ struct Matrix<Element_, 4, 1> {
   }
         
   /// Elementwise divide operator (4-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Matrix const &rhs) const {
 
     Matrix result;
@@ -9660,7 +9660,7 @@ struct Matrix<Element_, 4, 1> {
   }
       
   /// Scalar divide operator (4-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Element const &s) const {
 
     Matrix result;
@@ -9677,13 +9677,13 @@ struct Matrix<Element_, 4, 1> {
   }
 
   /// Scalar divide operator (4-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Element const &s) const {
     return divide(s);
   }
 
   /// Scalar divide operator (4-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Element const &s) {
     
     data[0] /= s;
@@ -9698,13 +9698,13 @@ struct Matrix<Element_, 4, 1> {
   }
         
   /// Elementwise divide operator (4-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Matrix const &rhs) const {
     return divide(rhs);
   }
 
   /// Elementwise divide operator (4-by-1)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Matrix const &rhs) {
     
     data[0] /= rhs.data[0];
@@ -9719,7 +9719,7 @@ struct Matrix<Element_, 4, 1> {
   }
         
   /// Negates each element of the matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator-() const {
     Matrix m;
     
@@ -9732,7 +9732,7 @@ struct Matrix<Element_, 4, 1> {
   }
   
   /// Matrix product of size 4-by-1-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 1> product(
     Matrix<Element, 1, 1> const &rhs,
     Matrix<Element, 4, 1> accum = Matrix<Element, 4, 1>()
@@ -9748,20 +9748,20 @@ struct Matrix<Element_, 4, 1> {
   }
 
   /// Matrix product of size 4-by-1-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 1> operator*(Matrix<Element, 1, 1> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 4-by-1-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator*=(Matrix<Element, 1, 1> const &rhs) {
     *this = product(rhs);
     return *this;
   }
     
   /// Matrix product of size 4-by-2-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 2> product(
     Matrix<Element, 1, 2> const &rhs,
     Matrix<Element, 4, 2> accum = Matrix<Element, 4, 2>()
@@ -9781,13 +9781,13 @@ struct Matrix<Element_, 4, 1> {
   }
 
   /// Matrix product of size 4-by-2-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 2> operator*(Matrix<Element, 1, 2> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 4-by-3-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 3> product(
     Matrix<Element, 1, 3> const &rhs,
     Matrix<Element, 4, 3> accum = Matrix<Element, 4, 3>()
@@ -9811,13 +9811,13 @@ struct Matrix<Element_, 4, 1> {
   }
 
   /// Matrix product of size 4-by-3-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 3> operator*(Matrix<Element, 1, 3> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 4-by-4-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 4> product(
     Matrix<Element, 1, 4> const &rhs,
     Matrix<Element, 4, 4> accum = Matrix<Element, 4, 4>()
@@ -9845,13 +9845,13 @@ struct Matrix<Element_, 4, 1> {
   }
 
   /// Matrix product of size 4-by-4-by-1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 4> operator*(Matrix<Element, 1, 4> const &rhs) const {
     return product(rhs);
   }
   
   /// Dot product of vectors with extent 4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element dot(Matrix<Element, 4, 1> const &rhs, Element accum = Element()) const {
     
     accum += data[0] * rhs.data[0];
@@ -9862,7 +9862,7 @@ struct Matrix<Element_, 4, 1> {
   }
 
   /// Dot product of vectors with extent 4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element dot(Matrix<Element, 1, 4> const &rhs, Element accum = Element()) const {
     
     accum += data[0] * rhs.data[0];
@@ -9873,7 +9873,7 @@ struct Matrix<Element_, 4, 1> {
   }
   
   /// Returns the sum of elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element sum(Element accum = Element()) const {
     
     accum += data[0];
@@ -9885,7 +9885,7 @@ struct Matrix<Element_, 4, 1> {
   }  
 
   /// Returns the sum of squared elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element norm(Element accum = Element()) const {
     
     accum += data[0] * data[0];
@@ -9897,13 +9897,13 @@ struct Matrix<Element_, 4, 1> {
   }
 
   /// Returns square root of the norm
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element magnitude() const {
     return fast_sqrt(norm());
   }
 
   /// Returns the sum of diagonal elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element trace(Element accum = Element()) const {
     
     accum += data[0];
@@ -9920,7 +9920,7 @@ using Matrix4x1 = Matrix<Element, 4, 1>;
 
 /// Free function to infer element type from template arguments
 template <typename Element>
-CUTLASS_HOST_DEVICE Matrix4x1<Element> make_Matrix4x1(
+NIHILUS_HOST_DEVICE Matrix4x1<Element> make_Matrix4x1(
     Element _0_0, 
     Element _1_0, 
     Element _2_0, 
@@ -9949,16 +9949,16 @@ struct Matrix<Element_, 4, 2> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int  kRows = 4;
+  static constexpr int kRows = 4;
 
   /// Number of columns in matrix
-  static constexpr int  kColumns = 2;
+  static constexpr int kColumns = 2;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int  kCount = 8;
+  static constexpr int kCount = 8;
 
   //
   // Data members
@@ -9972,19 +9972,19 @@ struct Matrix<Element_, 4, 2> {
   //
 
   /// Constructs a zero matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix() {
     data.clear();
   }
   
   /// Copy constructor for a 4-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(Matrix const &rhs) {
     data = rhs.data;
   }
     
   /// Constructs a 4-by-2 matrix from scalar elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(
     Element _0_0, Element _0_1, 
     Element _1_0, Element _1_1, 
@@ -9999,7 +9999,7 @@ struct Matrix<Element_, 4, 2> {
   }
     
   /// Constructs a 4-by-2 matrix from row vectors
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(
     Matrix<Element, 1, 2> const &row_0,
     Matrix<Element, 1, 2> const &row_1,
@@ -10017,7 +10017,7 @@ struct Matrix<Element_, 4, 2> {
   }
     
   /// Static method to construct a 4-by-2 matrix from column vectors
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_columns(
     Matrix<Element, 2, 1> const &column_0,
     Matrix<Element, 2, 1> const &column_1
@@ -10036,7 +10036,7 @@ struct Matrix<Element_, 4, 2> {
   }
     
   /// Constructs a matrix from a uniform element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix uniform(Element s) {
     Matrix m;
     
@@ -10053,19 +10053,19 @@ struct Matrix<Element_, 4, 2> {
   }
 
   /// Constructs a matrix from a uniform element 1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix ones() {
     return uniform(Element(1));
   }
 
   /// Constructs a matrix from a uniform element 0
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix zero() {
     return Matrix();
   }
   
   /// Constructs a matrix from elements along its diagonal
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_diagonal(Matrix<Element, 2, 1> const &diag) {
     Matrix m;
     
@@ -10078,7 +10078,7 @@ struct Matrix<Element_, 4, 2> {
   }
 
   /// Constructs a matrix from elements along its diagonal
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_diagonal(Matrix<Element, 1, 2> const &diag) {
     Matrix m;
     
@@ -10091,7 +10091,7 @@ struct Matrix<Element_, 4, 2> {
   }
 
   /// Gets an array of diagonal elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> diagonal() const {
     Matrix<Element, 2, 1> diag;
     
@@ -10104,7 +10104,7 @@ struct Matrix<Element_, 4, 2> {
   }
     
   /// Returns a transposed matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 4> transpose() const {
     Matrix<Element, 2, 4> mt;
     
@@ -10121,67 +10121,67 @@ struct Matrix<Element_, 4, 2> {
   }
     
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int i, int j) const {
     return data[i * 4 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(int i, int j) {
     return data[i * 4 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element &at(int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int offset) const {
     return data[offset];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](int offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 2> slice_1x2(int i = 0, int j = 0) const {
     Matrix<Element, 1, 2> m;
     
@@ -10192,7 +10192,7 @@ struct Matrix<Element_, 4, 2> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
@@ -10201,18 +10201,18 @@ struct Matrix<Element_, 4, 2> {
     return *this;
   }
     
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 2> row(int i) const {
     return slice_1x2(i, 0);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix &set_row(Matrix<Element, 1, 2> const &v, int i = 0) {
     return set_slice_1x2(v, i, 0);
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> slice_2x1(int i = 0, int j = 0) const {
     Matrix<Element, 2, 1> m;
     
@@ -10223,7 +10223,7 @@ struct Matrix<Element_, 4, 2> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int i = 0, int j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
@@ -10233,7 +10233,7 @@ struct Matrix<Element_, 4, 2> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 2> slice_2x2(int i = 0, int j = 0) const {
     Matrix<Element, 2, 2> m;
     
@@ -10246,7 +10246,7 @@ struct Matrix<Element_, 4, 2> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
@@ -10258,7 +10258,7 @@ struct Matrix<Element_, 4, 2> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 1> slice_3x1(int i = 0, int j = 0) const {
     Matrix<Element, 3, 1> m;
     
@@ -10270,7 +10270,7 @@ struct Matrix<Element_, 4, 2> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_3x1(Matrix<Element, 3, 1> const &m, int i = 0, int j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
@@ -10281,7 +10281,7 @@ struct Matrix<Element_, 4, 2> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 2> slice_3x2(int i = 0, int j = 0) const {
     Matrix<Element, 3, 2> m;
     
@@ -10296,7 +10296,7 @@ struct Matrix<Element_, 4, 2> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_3x2(Matrix<Element, 3, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
@@ -10310,7 +10310,7 @@ struct Matrix<Element_, 4, 2> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 1> slice_4x1(int i = 0, int j = 0) const {
     Matrix<Element, 4, 1> m;
     
@@ -10323,7 +10323,7 @@ struct Matrix<Element_, 4, 2> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_4x1(Matrix<Element, 4, 1> const &m, int i = 0, int j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
@@ -10334,18 +10334,18 @@ struct Matrix<Element_, 4, 2> {
     return *this;
   }
     
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 1> column(int j) const {
     return slice_4x1(0, j);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix &set_column(Matrix<Element, 4, 1> const &v, int j =0) {
     return set_slice_4x1(v, 0, j);
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 2> slice_4x2(int i = 0, int j = 0) const {
     Matrix<Element, 4, 2> m;
     
@@ -10362,7 +10362,7 @@ struct Matrix<Element_, 4, 2> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_4x2(Matrix<Element, 4, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
@@ -10378,7 +10378,7 @@ struct Matrix<Element_, 4, 2> {
   }
     
   /// Forms a 4-by-2 matrix by horizontally concatenating a 4-by-1 matrix with a 4-by-1 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix hcat(Matrix<Element, 4, 1> const & lhs, Matrix<Element, 4, 1> const & rhs) {
     return Matrix(
       lhs.at(0, 0), rhs.at(0, 0)
@@ -10388,19 +10388,19 @@ struct Matrix<Element_, 4, 2> {
   }
   
   /// Concatenates this matrix with a a 4-by-1 matrix to form a 4-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 3> hcat(Matrix<Element, 4, 1> const & rhs) const {
     return Matrix<Element, 4, 3>::hcat(*this, rhs);
   }
     
   /// Concatenates this matrix with a a 4-by-2 matrix to form a 4-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 4> hcat(Matrix<Element, 4, 2> const & rhs) const {
     return Matrix<Element, 4, 4>::hcat(*this, rhs);
   }
     
   /// Forms a 4-by-2 matrix by vertically concatenating a 1-by-2 matrix with a 3-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix vcat(Matrix<Element, 1, 2> const & upper, Matrix<Element, 3, 2> const & lower) {
     return Matrix(
       upper.at(0, 0), upper.at(0, 1)
@@ -10410,7 +10410,7 @@ struct Matrix<Element_, 4, 2> {
   }
   
   /// Forms a 4-by-2 matrix by vertically concatenating a 2-by-2 matrix with a 2-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix vcat(Matrix<Element, 2, 2> const & upper, Matrix<Element, 2, 2> const & lower) {
     return Matrix(
       upper.at(0, 0), upper.at(0, 1)
@@ -10420,7 +10420,7 @@ struct Matrix<Element_, 4, 2> {
   }
   
   /// Forms a 4-by-2 matrix by vertically concatenating a 3-by-2 matrix with a 1-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix vcat(Matrix<Element, 3, 2> const & upper, Matrix<Element, 1, 2> const & lower) {
     return Matrix(
       upper.at(0, 0), upper.at(0, 1)
@@ -10430,7 +10430,7 @@ struct Matrix<Element_, 4, 2> {
   }
   
   /// Forms a 4-by-2 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Element                         A, Element                         B,
     Matrix<Element, 3, 1> const & C, Matrix<Element, 3, 1> const & D) {
@@ -10443,7 +10443,7 @@ struct Matrix<Element_, 4, 2> {
   }
   
   /// Forms a 4-by-2 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 2, 1> const & A, Matrix<Element, 2, 1> const & B,
     Matrix<Element, 2, 1> const & C, Matrix<Element, 2, 1> const & D) {
@@ -10456,7 +10456,7 @@ struct Matrix<Element_, 4, 2> {
   }
   
   /// Forms a 4-by-2 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 3, 1> const & A, Matrix<Element, 3, 1> const & B,
     Element                         C, Element                         D) {
@@ -10469,7 +10469,7 @@ struct Matrix<Element_, 4, 2> {
   }
   
   /// Elementwise add operator (4-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix add(Matrix const &rhs) const {
 
     Matrix result;
@@ -10490,13 +10490,13 @@ struct Matrix<Element_, 4, 2> {
   }
       
   /// Elementwise add operator (4-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator +(Matrix const &rhs) const {
     return add(rhs);
   }
 
   /// Elementwise add operator (4-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator +=(Matrix const &rhs) {
     
     data[0] += rhs.data[0];
@@ -10515,7 +10515,7 @@ struct Matrix<Element_, 4, 2> {
   }
         
   /// Elementwise subtract operator (4-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix subtract(Matrix const &rhs) const {
 
     Matrix result;
@@ -10536,13 +10536,13 @@ struct Matrix<Element_, 4, 2> {
   }
       
   /// Elementwise subtract operator (4-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator -(Matrix const &rhs) const {
     return subtract(rhs);
   }
 
   /// Elementwise subtract operator (4-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator -=(Matrix const &rhs) {
     
     data[0] -= rhs.data[0];
@@ -10561,7 +10561,7 @@ struct Matrix<Element_, 4, 2> {
   }
         
   /// Elementwise multiply operator (4-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Matrix const &rhs) const {
 
     Matrix result;
@@ -10582,7 +10582,7 @@ struct Matrix<Element_, 4, 2> {
   }
       
   /// Scalar multiply operator (4-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Element const &s) const {
 
     Matrix result;
@@ -10603,13 +10603,13 @@ struct Matrix<Element_, 4, 2> {
   }
 
   /// Scalar multiply operator (4-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator *(Element const &s) const {
     return multiply(s);
   }
 
   /// Scalar multiply operator (4-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator *=(Element const &s) {
     
     data[0] *= s;
@@ -10628,7 +10628,7 @@ struct Matrix<Element_, 4, 2> {
   }
         
   /// Elementwise divide operator (4-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Matrix const &rhs) const {
 
     Matrix result;
@@ -10649,7 +10649,7 @@ struct Matrix<Element_, 4, 2> {
   }
       
   /// Scalar divide operator (4-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Element const &s) const {
 
     Matrix result;
@@ -10670,13 +10670,13 @@ struct Matrix<Element_, 4, 2> {
   }
 
   /// Scalar divide operator (4-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Element const &s) const {
     return divide(s);
   }
 
   /// Scalar divide operator (4-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Element const &s) {
     
     data[0] /= s;
@@ -10695,13 +10695,13 @@ struct Matrix<Element_, 4, 2> {
   }
         
   /// Elementwise divide operator (4-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Matrix const &rhs) const {
     return divide(rhs);
   }
 
   /// Elementwise divide operator (4-by-2)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Matrix const &rhs) {
     
     data[0] /= rhs.data[0];
@@ -10720,7 +10720,7 @@ struct Matrix<Element_, 4, 2> {
   }
         
   /// Negates each element of the matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator-() const {
     Matrix m;
     
@@ -10737,7 +10737,7 @@ struct Matrix<Element_, 4, 2> {
   }
   
   /// Matrix product of size 4-by-1-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 1> product(
     Matrix<Element, 2, 1> const &rhs,
     Matrix<Element, 4, 1> accum = Matrix<Element, 4, 1>()
@@ -10759,13 +10759,13 @@ struct Matrix<Element_, 4, 2> {
   }
 
   /// Matrix product of size 4-by-1-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 1> operator*(Matrix<Element, 2, 1> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 4-by-2-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 2> product(
     Matrix<Element, 2, 2> const &rhs,
     Matrix<Element, 4, 2> accum = Matrix<Element, 4, 2>()
@@ -10795,20 +10795,20 @@ struct Matrix<Element_, 4, 2> {
   }
 
   /// Matrix product of size 4-by-2-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 2> operator*(Matrix<Element, 2, 2> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 4-by-2-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator*=(Matrix<Element, 2, 2> const &rhs) {
     *this = product(rhs);
     return *this;
   }
     
   /// Matrix product of size 4-by-3-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 3> product(
     Matrix<Element, 2, 3> const &rhs,
     Matrix<Element, 4, 3> accum = Matrix<Element, 4, 3>()
@@ -10846,13 +10846,13 @@ struct Matrix<Element_, 4, 2> {
   }
 
   /// Matrix product of size 4-by-3-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 3> operator*(Matrix<Element, 2, 3> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 4-by-4-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 4> product(
     Matrix<Element, 2, 4> const &rhs,
     Matrix<Element, 4, 4> accum = Matrix<Element, 4, 4>()
@@ -10898,13 +10898,13 @@ struct Matrix<Element_, 4, 2> {
   }
 
   /// Matrix product of size 4-by-4-by-2
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 4> operator*(Matrix<Element, 2, 4> const &rhs) const {
     return product(rhs);
   }
   
   /// Returns the sum of elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element sum(Element accum = Element()) const {
     
     accum += data[0];
@@ -10920,7 +10920,7 @@ struct Matrix<Element_, 4, 2> {
   }  
 
   /// Returns the sum of squared elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element norm(Element accum = Element()) const {
     
     accum += data[0] * data[0];
@@ -10936,13 +10936,13 @@ struct Matrix<Element_, 4, 2> {
   }
 
   /// Returns square root of the norm
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element magnitude() const {
     return fast_sqrt(norm());
   }
 
   /// Returns the sum of diagonal elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element trace(Element accum = Element()) const {
     
     accum += data[0];
@@ -10960,7 +10960,7 @@ using Matrix4x2 = Matrix<Element, 4, 2>;
 
 /// Free function to infer element type from template arguments
 template <typename Element>
-CUTLASS_HOST_DEVICE Matrix4x2<Element> make_Matrix4x2(
+NIHILUS_HOST_DEVICE Matrix4x2<Element> make_Matrix4x2(
     Element _0_0, Element _0_1, 
     Element _1_0, Element _1_1, 
     Element _2_0, Element _2_1, 
@@ -10989,16 +10989,16 @@ struct Matrix<Element_, 4, 3> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int  kRows = 4;
+  static constexpr int kRows = 4;
 
   /// Number of columns in matrix
-  static constexpr int  kColumns = 3;
+  static constexpr int kColumns = 3;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int  kCount = 12;
+  static constexpr int kCount = 12;
 
   //
   // Data members
@@ -11012,19 +11012,19 @@ struct Matrix<Element_, 4, 3> {
   //
 
   /// Constructs a zero matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix() {
     data.clear();
   }
   
   /// Copy constructor for a 4-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(Matrix const &rhs) {
     data = rhs.data;
   }
     
   /// Constructs a 4-by-3 matrix from scalar elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(
     Element _0_0, Element _0_1, Element _0_2, 
     Element _1_0, Element _1_1, Element _1_2, 
@@ -11039,7 +11039,7 @@ struct Matrix<Element_, 4, 3> {
   }
     
   /// Constructs a 4-by-3 matrix from row vectors
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(
     Matrix<Element, 1, 3> const &row_0,
     Matrix<Element, 1, 3> const &row_1,
@@ -11061,7 +11061,7 @@ struct Matrix<Element_, 4, 3> {
   }
     
   /// Static method to construct a 4-by-3 matrix from column vectors
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_columns(
     Matrix<Element, 3, 1> const &column_0,
     Matrix<Element, 3, 1> const &column_1,
@@ -11085,7 +11085,7 @@ struct Matrix<Element_, 4, 3> {
   }
     
   /// Constructs a matrix from a uniform element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix uniform(Element s) {
     Matrix m;
     
@@ -11106,19 +11106,19 @@ struct Matrix<Element_, 4, 3> {
   }
 
   /// Constructs a matrix from a uniform element 1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix ones() {
     return uniform(Element(1));
   }
 
   /// Constructs a matrix from a uniform element 0
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix zero() {
     return Matrix();
   }
   
   /// Constructs a matrix from elements along its diagonal
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_diagonal(Matrix<Element, 3, 1> const &diag) {
     Matrix m;
     
@@ -11131,7 +11131,7 @@ struct Matrix<Element_, 4, 3> {
   }
 
   /// Constructs a matrix from elements along its diagonal
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_diagonal(Matrix<Element, 1, 3> const &diag) {
     Matrix m;
     
@@ -11144,7 +11144,7 @@ struct Matrix<Element_, 4, 3> {
   }
 
   /// Gets an array of diagonal elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 1> diagonal() const {
     Matrix<Element, 3, 1> diag;
     
@@ -11157,7 +11157,7 @@ struct Matrix<Element_, 4, 3> {
   }
     
   /// Returns a transposed matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 4> transpose() const {
     Matrix<Element, 3, 4> mt;
     
@@ -11178,67 +11178,67 @@ struct Matrix<Element_, 4, 3> {
   }
     
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int i, int j) const {
     return data[i * 4 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(int i, int j) {
     return data[i * 4 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element &at(int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int offset) const {
     return data[offset];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](int offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 2> slice_1x2(int i = 0, int j = 0) const {
     Matrix<Element, 1, 2> m;
     
@@ -11249,7 +11249,7 @@ struct Matrix<Element_, 4, 3> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
@@ -11259,7 +11259,7 @@ struct Matrix<Element_, 4, 3> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 3> slice_1x3(int i = 0, int j = 0) const {
     Matrix<Element, 1, 3> m;
     
@@ -11271,7 +11271,7 @@ struct Matrix<Element_, 4, 3> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_1x3(Matrix<Element, 1, 3> const &m, int i = 0, int j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
@@ -11281,18 +11281,18 @@ struct Matrix<Element_, 4, 3> {
     return *this;
   }
     
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 3> row(int i) const {
     return slice_1x3(i, 0);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix &set_row(Matrix<Element, 1, 3> const &v, int i = 0) {
     return set_slice_1x3(v, i, 0);
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> slice_2x1(int i = 0, int j = 0) const {
     Matrix<Element, 2, 1> m;
     
@@ -11303,7 +11303,7 @@ struct Matrix<Element_, 4, 3> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int i = 0, int j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
@@ -11313,7 +11313,7 @@ struct Matrix<Element_, 4, 3> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 2> slice_2x2(int i = 0, int j = 0) const {
     Matrix<Element, 2, 2> m;
     
@@ -11326,7 +11326,7 @@ struct Matrix<Element_, 4, 3> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
@@ -11338,7 +11338,7 @@ struct Matrix<Element_, 4, 3> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 3> slice_2x3(int i = 0, int j = 0) const {
     Matrix<Element, 2, 3> m;
     
@@ -11353,7 +11353,7 @@ struct Matrix<Element_, 4, 3> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x3(Matrix<Element, 2, 3> const &m, int i = 0, int j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
@@ -11367,7 +11367,7 @@ struct Matrix<Element_, 4, 3> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 1> slice_3x1(int i = 0, int j = 0) const {
     Matrix<Element, 3, 1> m;
     
@@ -11379,7 +11379,7 @@ struct Matrix<Element_, 4, 3> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_3x1(Matrix<Element, 3, 1> const &m, int i = 0, int j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
@@ -11390,7 +11390,7 @@ struct Matrix<Element_, 4, 3> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 2> slice_3x2(int i = 0, int j = 0) const {
     Matrix<Element, 3, 2> m;
     
@@ -11405,7 +11405,7 @@ struct Matrix<Element_, 4, 3> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_3x2(Matrix<Element, 3, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
@@ -11419,7 +11419,7 @@ struct Matrix<Element_, 4, 3> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 3> slice_3x3(int i = 0, int j = 0) const {
     Matrix<Element, 3, 3> m;
     
@@ -11437,7 +11437,7 @@ struct Matrix<Element_, 4, 3> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_3x3(Matrix<Element, 3, 3> const &m, int i = 0, int j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
@@ -11454,7 +11454,7 @@ struct Matrix<Element_, 4, 3> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 1> slice_4x1(int i = 0, int j = 0) const {
     Matrix<Element, 4, 1> m;
     
@@ -11467,7 +11467,7 @@ struct Matrix<Element_, 4, 3> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_4x1(Matrix<Element, 4, 1> const &m, int i = 0, int j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
@@ -11478,18 +11478,18 @@ struct Matrix<Element_, 4, 3> {
     return *this;
   }
     
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 1> column(int j) const {
     return slice_4x1(0, j);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix &set_column(Matrix<Element, 4, 1> const &v, int j =0) {
     return set_slice_4x1(v, 0, j);
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 2> slice_4x2(int i = 0, int j = 0) const {
     Matrix<Element, 4, 2> m;
     
@@ -11506,7 +11506,7 @@ struct Matrix<Element_, 4, 3> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_4x2(Matrix<Element, 4, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
@@ -11522,7 +11522,7 @@ struct Matrix<Element_, 4, 3> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 3> slice_4x3(int i = 0, int j = 0) const {
     Matrix<Element, 4, 3> m;
     
@@ -11543,7 +11543,7 @@ struct Matrix<Element_, 4, 3> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_4x3(Matrix<Element, 4, 3> const &m, int i = 0, int j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
@@ -11563,7 +11563,7 @@ struct Matrix<Element_, 4, 3> {
   }
     
   /// Forms a 4-by-3 matrix by horizontally concatenating a 4-by-1 matrix with a 4-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix hcat(Matrix<Element, 4, 1> const & lhs, Matrix<Element, 4, 2> const & rhs) {
     return Matrix(
       lhs.at(0, 0), rhs.at(0, 0), rhs.at(0, 1)
@@ -11573,7 +11573,7 @@ struct Matrix<Element_, 4, 3> {
   }
   
   /// Forms a 4-by-3 matrix by horizontally concatenating a 4-by-2 matrix with a 4-by-1 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix hcat(Matrix<Element, 4, 2> const & lhs, Matrix<Element, 4, 1> const & rhs) {
     return Matrix(
       lhs.at(0, 0), lhs.at(0, 1), rhs.at(0, 0)
@@ -11583,13 +11583,13 @@ struct Matrix<Element_, 4, 3> {
   }
   
   /// Concatenates this matrix with a a 4-by-1 matrix to form a 4-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 4> hcat(Matrix<Element, 4, 1> const & rhs) const {
     return Matrix<Element, 4, 4>::hcat(*this, rhs);
   }
     
   /// Forms a 4-by-3 matrix by vertically concatenating a 1-by-3 matrix with a 3-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix vcat(Matrix<Element, 1, 3> const & upper, Matrix<Element, 3, 3> const & lower) {
     return Matrix(
       upper.at(0, 0), upper.at(0, 1), upper.at(0, 2)
@@ -11599,7 +11599,7 @@ struct Matrix<Element_, 4, 3> {
   }
   
   /// Forms a 4-by-3 matrix by vertically concatenating a 2-by-3 matrix with a 2-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix vcat(Matrix<Element, 2, 3> const & upper, Matrix<Element, 2, 3> const & lower) {
     return Matrix(
       upper.at(0, 0), upper.at(0, 1), upper.at(0, 2)
@@ -11609,7 +11609,7 @@ struct Matrix<Element_, 4, 3> {
   }
   
   /// Forms a 4-by-3 matrix by vertically concatenating a 3-by-3 matrix with a 1-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix vcat(Matrix<Element, 3, 3> const & upper, Matrix<Element, 1, 3> const & lower) {
     return Matrix(
       upper.at(0, 0), upper.at(0, 1), upper.at(0, 2)
@@ -11619,7 +11619,7 @@ struct Matrix<Element_, 4, 3> {
   }
   
   /// Forms a 4-by-3 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Element                         A, Matrix<Element, 1, 2> const & B,
     Matrix<Element, 3, 1> const & C, Matrix<Element, 3, 2> const & D) {
@@ -11632,7 +11632,7 @@ struct Matrix<Element_, 4, 3> {
   }
   
   /// Forms a 4-by-3 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 1, 2> const & A, Element                         B,
     Matrix<Element, 3, 2> const & C, Matrix<Element, 3, 1> const & D) {
@@ -11645,7 +11645,7 @@ struct Matrix<Element_, 4, 3> {
   }
   
   /// Forms a 4-by-3 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 2, 1> const & A, Matrix<Element, 2, 2> const & B,
     Matrix<Element, 2, 1> const & C, Matrix<Element, 2, 2> const & D) {
@@ -11658,7 +11658,7 @@ struct Matrix<Element_, 4, 3> {
   }
   
   /// Forms a 4-by-3 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 2, 2> const & A, Matrix<Element, 2, 1> const & B,
     Matrix<Element, 2, 2> const & C, Matrix<Element, 2, 1> const & D) {
@@ -11671,7 +11671,7 @@ struct Matrix<Element_, 4, 3> {
   }
   
   /// Forms a 4-by-3 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 3, 1> const & A, Matrix<Element, 3, 2> const & B,
     Element                         C, Matrix<Element, 1, 2> const & D) {
@@ -11684,7 +11684,7 @@ struct Matrix<Element_, 4, 3> {
   }
   
   /// Forms a 4-by-3 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 3, 2> const & A, Matrix<Element, 3, 1> const & B,
     Matrix<Element, 1, 2> const & C, Element                         D) {
@@ -11697,7 +11697,7 @@ struct Matrix<Element_, 4, 3> {
   }
   
   /// Elementwise add operator (4-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix add(Matrix const &rhs) const {
 
     Matrix result;
@@ -11722,13 +11722,13 @@ struct Matrix<Element_, 4, 3> {
   }
       
   /// Elementwise add operator (4-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator +(Matrix const &rhs) const {
     return add(rhs);
   }
 
   /// Elementwise add operator (4-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator +=(Matrix const &rhs) {
     
     data[0] += rhs.data[0];
@@ -11751,7 +11751,7 @@ struct Matrix<Element_, 4, 3> {
   }
         
   /// Elementwise subtract operator (4-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix subtract(Matrix const &rhs) const {
 
     Matrix result;
@@ -11776,13 +11776,13 @@ struct Matrix<Element_, 4, 3> {
   }
       
   /// Elementwise subtract operator (4-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator -(Matrix const &rhs) const {
     return subtract(rhs);
   }
 
   /// Elementwise subtract operator (4-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator -=(Matrix const &rhs) {
     
     data[0] -= rhs.data[0];
@@ -11805,7 +11805,7 @@ struct Matrix<Element_, 4, 3> {
   }
         
   /// Elementwise multiply operator (4-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Matrix const &rhs) const {
 
     Matrix result;
@@ -11830,7 +11830,7 @@ struct Matrix<Element_, 4, 3> {
   }
       
   /// Scalar multiply operator (4-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Element const &s) const {
 
     Matrix result;
@@ -11855,13 +11855,13 @@ struct Matrix<Element_, 4, 3> {
   }
 
   /// Scalar multiply operator (4-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator *(Element const &s) const {
     return multiply(s);
   }
 
   /// Scalar multiply operator (4-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator *=(Element const &s) {
     
     data[0] *= s;
@@ -11884,7 +11884,7 @@ struct Matrix<Element_, 4, 3> {
   }
         
   /// Elementwise divide operator (4-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Matrix const &rhs) const {
 
     Matrix result;
@@ -11909,7 +11909,7 @@ struct Matrix<Element_, 4, 3> {
   }
       
   /// Scalar divide operator (4-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Element const &s) const {
 
     Matrix result;
@@ -11934,13 +11934,13 @@ struct Matrix<Element_, 4, 3> {
   }
 
   /// Scalar divide operator (4-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Element const &s) const {
     return divide(s);
   }
 
   /// Scalar divide operator (4-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Element const &s) {
     
     data[0] /= s;
@@ -11963,13 +11963,13 @@ struct Matrix<Element_, 4, 3> {
   }
         
   /// Elementwise divide operator (4-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Matrix const &rhs) const {
     return divide(rhs);
   }
 
   /// Elementwise divide operator (4-by-3)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Matrix const &rhs) {
     
     data[0] /= rhs.data[0];
@@ -11992,7 +11992,7 @@ struct Matrix<Element_, 4, 3> {
   }
         
   /// Negates each element of the matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator-() const {
     Matrix m;
     
@@ -12013,7 +12013,7 @@ struct Matrix<Element_, 4, 3> {
   }
   
   /// Matrix product of size 4-by-1-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 1> product(
     Matrix<Element, 3, 1> const &rhs,
     Matrix<Element, 4, 1> accum = Matrix<Element, 4, 1>()
@@ -12041,13 +12041,13 @@ struct Matrix<Element_, 4, 3> {
   }
 
   /// Matrix product of size 4-by-1-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 1> operator*(Matrix<Element, 3, 1> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 4-by-2-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 2> product(
     Matrix<Element, 3, 2> const &rhs,
     Matrix<Element, 4, 2> accum = Matrix<Element, 4, 2>()
@@ -12087,13 +12087,13 @@ struct Matrix<Element_, 4, 3> {
   }
 
   /// Matrix product of size 4-by-2-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 2> operator*(Matrix<Element, 3, 2> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 4-by-3-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 3> product(
     Matrix<Element, 3, 3> const &rhs,
     Matrix<Element, 4, 3> accum = Matrix<Element, 4, 3>()
@@ -12145,20 +12145,20 @@ struct Matrix<Element_, 4, 3> {
   }
 
   /// Matrix product of size 4-by-3-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 3> operator*(Matrix<Element, 3, 3> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 4-by-3-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator*=(Matrix<Element, 3, 3> const &rhs) {
     *this = product(rhs);
     return *this;
   }
     
   /// Matrix product of size 4-by-4-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 4> product(
     Matrix<Element, 3, 4> const &rhs,
     Matrix<Element, 4, 4> accum = Matrix<Element, 4, 4>()
@@ -12222,13 +12222,13 @@ struct Matrix<Element_, 4, 3> {
   }
 
   /// Matrix product of size 4-by-4-by-3
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 4> operator*(Matrix<Element, 3, 4> const &rhs) const {
     return product(rhs);
   }
   
   /// Returns the sum of elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element sum(Element accum = Element()) const {
     
     accum += data[0];
@@ -12248,7 +12248,7 @@ struct Matrix<Element_, 4, 3> {
   }  
 
   /// Returns the sum of squared elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element norm(Element accum = Element()) const {
     
     accum += data[0] * data[0];
@@ -12268,13 +12268,13 @@ struct Matrix<Element_, 4, 3> {
   }
 
   /// Returns square root of the norm
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element magnitude() const {
     return fast_sqrt(norm());
   }
 
   /// Returns the sum of diagonal elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element trace(Element accum = Element()) const {
     
     accum += data[0];
@@ -12293,7 +12293,7 @@ using Matrix4x3 = Matrix<Element, 4, 3>;
 
 /// Free function to infer element type from template arguments
 template <typename Element>
-CUTLASS_HOST_DEVICE Matrix4x3<Element> make_Matrix4x3(
+NIHILUS_HOST_DEVICE Matrix4x3<Element> make_Matrix4x3(
     Element _0_0, Element _0_1, Element _0_2, 
     Element _1_0, Element _1_1, Element _1_2, 
     Element _2_0, Element _2_1, Element _2_2, 
@@ -12322,16 +12322,16 @@ struct Matrix<Element_, 4, 4> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int  kRows = 4;
+  static constexpr int kRows = 4;
 
   /// Number of columns in matrix
-  static constexpr int  kColumns = 4;
+  static constexpr int kColumns = 4;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int  kCount = 16;
+  static constexpr int kCount = 16;
 
   //
   // Data members
@@ -12345,19 +12345,19 @@ struct Matrix<Element_, 4, 4> {
   //
 
   /// Constructs a zero matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix() {
     data.clear();
   }
   
   /// Copy constructor for a 4-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(Matrix const &rhs) {
     data = rhs.data;
   }
     
   /// Constructs a 4-by-4 matrix from scalar elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(
     Element _0_0, Element _0_1, Element _0_2, Element _0_3, 
     Element _1_0, Element _1_1, Element _1_2, Element _1_3, 
@@ -12372,7 +12372,7 @@ struct Matrix<Element_, 4, 4> {
   }
     
   /// Constructs a 4-by-4 matrix from row vectors
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix(
     Matrix<Element, 1, 4> const &row_0,
     Matrix<Element, 1, 4> const &row_1,
@@ -12398,7 +12398,7 @@ struct Matrix<Element_, 4, 4> {
   }
     
   /// Static method to construct a 4-by-4 matrix from column vectors
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_columns(
     Matrix<Element, 4, 1> const &column_0,
     Matrix<Element, 4, 1> const &column_1,
@@ -12427,7 +12427,7 @@ struct Matrix<Element_, 4, 4> {
   }
     
   /// Constructs an identity matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix identity() {
     Matrix m;
     
@@ -12440,7 +12440,7 @@ struct Matrix<Element_, 4, 4> {
   }
     
   /// Constructs a matrix from a uniform element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix uniform(Element s) {
     Matrix m;
     
@@ -12465,19 +12465,19 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Constructs a matrix from a uniform element 1
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix ones() {
     return uniform(Element(1));
   }
 
   /// Constructs a matrix from a uniform element 0
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix zero() {
     return Matrix();
   }
   
   /// Constructs a matrix from elements along its diagonal
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_diagonal(Matrix<Element, 4, 1> const &diag) {
     Matrix m;
     
@@ -12490,7 +12490,7 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Constructs a matrix from elements along its diagonal
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix from_diagonal(Matrix<Element, 1, 4> const &diag) {
     Matrix m;
     
@@ -12503,7 +12503,7 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Gets an array of diagonal elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 1> diagonal() const {
     Matrix<Element, 4, 1> diag;
     
@@ -12516,7 +12516,7 @@ struct Matrix<Element_, 4, 4> {
   }
     
   /// Returns a transposed matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 4> transpose() const {
     Matrix<Element, 4, 4> mt;
     
@@ -12541,67 +12541,67 @@ struct Matrix<Element_, 4, 4> {
   }
     
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int i, int j) const {
     return data[i * 4 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(int i, int j) {
     return data[i * 4 + j];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & at(Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element &at(int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element at(int offset) const {
     return data[offset];
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](Coord<2> const &coord) const {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by coordinate
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](Coord<2> const &coord) {
     return at(coord[0], coord[1]);
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element & operator[](int offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element operator[](int offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 2> slice_1x2(int i = 0, int j = 0) const {
     Matrix<Element, 1, 2> m;
     
@@ -12612,7 +12612,7 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -12622,7 +12622,7 @@ struct Matrix<Element_, 4, 4> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 3> slice_1x3(int i = 0, int j = 0) const {
     Matrix<Element, 1, 3> m;
     
@@ -12634,7 +12634,7 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_1x3(Matrix<Element, 1, 3> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -12645,7 +12645,7 @@ struct Matrix<Element_, 4, 4> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 4> slice_1x4(int i = 0, int j = 0) const {
     Matrix<Element, 1, 4> m;
     
@@ -12658,7 +12658,7 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_1x4(Matrix<Element, 1, 4> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -12669,18 +12669,18 @@ struct Matrix<Element_, 4, 4> {
     return *this;
   }
     
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 1, 4> row(int i) const {
     return slice_1x4(i, 0);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix &set_row(Matrix<Element, 1, 4> const &v, int i = 0) {
     return set_slice_1x4(v, i, 0);
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 1> slice_2x1(int i = 0, int j = 0) const {
     Matrix<Element, 2, 1> m;
     
@@ -12691,7 +12691,7 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -12701,7 +12701,7 @@ struct Matrix<Element_, 4, 4> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 2> slice_2x2(int i = 0, int j = 0) const {
     Matrix<Element, 2, 2> m;
     
@@ -12714,7 +12714,7 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -12726,7 +12726,7 @@ struct Matrix<Element_, 4, 4> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 3> slice_2x3(int i = 0, int j = 0) const {
     Matrix<Element, 2, 3> m;
     
@@ -12741,7 +12741,7 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x3(Matrix<Element, 2, 3> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -12755,7 +12755,7 @@ struct Matrix<Element_, 4, 4> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 2, 4> slice_2x4(int i = 0, int j = 0) const {
     Matrix<Element, 2, 4> m;
     
@@ -12772,7 +12772,7 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_2x4(Matrix<Element, 2, 4> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -12788,7 +12788,7 @@ struct Matrix<Element_, 4, 4> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 1> slice_3x1(int i = 0, int j = 0) const {
     Matrix<Element, 3, 1> m;
     
@@ -12800,7 +12800,7 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_3x1(Matrix<Element, 3, 1> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -12811,7 +12811,7 @@ struct Matrix<Element_, 4, 4> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 2> slice_3x2(int i = 0, int j = 0) const {
     Matrix<Element, 3, 2> m;
     
@@ -12826,7 +12826,7 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_3x2(Matrix<Element, 3, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -12840,7 +12840,7 @@ struct Matrix<Element_, 4, 4> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 3> slice_3x3(int i = 0, int j = 0) const {
     Matrix<Element, 3, 3> m;
     
@@ -12858,7 +12858,7 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_3x3(Matrix<Element, 3, 3> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -12875,7 +12875,7 @@ struct Matrix<Element_, 4, 4> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 3, 4> slice_3x4(int i = 0, int j = 0) const {
     Matrix<Element, 3, 4> m;
     
@@ -12896,7 +12896,7 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_3x4(Matrix<Element, 3, 4> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -12916,7 +12916,7 @@ struct Matrix<Element_, 4, 4> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 1> slice_4x1(int i = 0, int j = 0) const {
     Matrix<Element, 4, 1> m;
     
@@ -12929,7 +12929,7 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_4x1(Matrix<Element, 4, 1> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -12940,18 +12940,18 @@ struct Matrix<Element_, 4, 4> {
     return *this;
   }
     
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 1> column(int j) const {
     return slice_4x1(0, j);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix &set_column(Matrix<Element, 4, 1> const &v, int j =0) {
     return set_slice_4x1(v, 0, j);
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 2> slice_4x2(int i = 0, int j = 0) const {
     Matrix<Element, 4, 2> m;
     
@@ -12968,7 +12968,7 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_4x2(Matrix<Element, 4, 2> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -12984,7 +12984,7 @@ struct Matrix<Element_, 4, 4> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 3> slice_4x3(int i = 0, int j = 0) const {
     Matrix<Element, 4, 3> m;
     
@@ -13005,7 +13005,7 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_4x3(Matrix<Element, 4, 3> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -13025,7 +13025,7 @@ struct Matrix<Element_, 4, 4> {
   }
     
   /// Gets a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 4> slice_4x4(int i = 0, int j = 0) const {
     Matrix<Element, 4, 4> m;
     
@@ -13050,7 +13050,7 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Overwrites a submatrix with optional offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & set_slice_4x4(Matrix<Element, 4, 4> const &m, int i = 0, int j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
@@ -13074,7 +13074,7 @@ struct Matrix<Element_, 4, 4> {
   }
     
   /// Forms a 4-by-4 matrix by horizontally concatenating a 4-by-1 matrix with a 4-by-3 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix hcat(Matrix<Element, 4, 1> const & lhs, Matrix<Element, 4, 3> const & rhs) {
     return Matrix(
       lhs.at(0, 0), rhs.at(0, 0), rhs.at(0, 1), rhs.at(0, 2)
@@ -13084,7 +13084,7 @@ struct Matrix<Element_, 4, 4> {
   }
   
   /// Forms a 4-by-4 matrix by horizontally concatenating a 4-by-2 matrix with a 4-by-2 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix hcat(Matrix<Element, 4, 2> const & lhs, Matrix<Element, 4, 2> const & rhs) {
     return Matrix(
       lhs.at(0, 0), lhs.at(0, 1), rhs.at(0, 0), rhs.at(0, 1)
@@ -13094,7 +13094,7 @@ struct Matrix<Element_, 4, 4> {
   }
   
   /// Forms a 4-by-4 matrix by horizontally concatenating a 4-by-3 matrix with a 4-by-1 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix hcat(Matrix<Element, 4, 3> const & lhs, Matrix<Element, 4, 1> const & rhs) {
     return Matrix(
       lhs.at(0, 0), lhs.at(0, 1), lhs.at(0, 2), rhs.at(0, 0)
@@ -13104,7 +13104,7 @@ struct Matrix<Element_, 4, 4> {
   }
   
   /// Forms a 4-by-4 matrix by vertically concatenating a 1-by-4 matrix with a 3-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix vcat(Matrix<Element, 1, 4> const & upper, Matrix<Element, 3, 4> const & lower) {
     return Matrix(
       upper.at(0, 0), upper.at(0, 1), upper.at(0, 2), upper.at(0, 3)
@@ -13114,7 +13114,7 @@ struct Matrix<Element_, 4, 4> {
   }
   
   /// Forms a 4-by-4 matrix by vertically concatenating a 2-by-4 matrix with a 2-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix vcat(Matrix<Element, 2, 4> const & upper, Matrix<Element, 2, 4> const & lower) {
     return Matrix(
       upper.at(0, 0), upper.at(0, 1), upper.at(0, 2), upper.at(0, 3)
@@ -13124,7 +13124,7 @@ struct Matrix<Element_, 4, 4> {
   }
   
   /// Forms a 4-by-4 matrix by vertically concatenating a 3-by-4 matrix with a 1-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix vcat(Matrix<Element, 3, 4> const & upper, Matrix<Element, 1, 4> const & lower) {
     return Matrix(
       upper.at(0, 0), upper.at(0, 1), upper.at(0, 2), upper.at(0, 3)
@@ -13134,7 +13134,7 @@ struct Matrix<Element_, 4, 4> {
   }
   
   /// Forms a 4-by-4 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Element                         A, Matrix<Element, 1, 3> const & B,
     Matrix<Element, 3, 1> const & C, Matrix<Element, 3, 3> const & D) {
@@ -13147,7 +13147,7 @@ struct Matrix<Element_, 4, 4> {
   }
   
   /// Forms a 4-by-4 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 1, 2> const & A, Matrix<Element, 1, 2> const & B,
     Matrix<Element, 3, 2> const & C, Matrix<Element, 3, 2> const & D) {
@@ -13160,7 +13160,7 @@ struct Matrix<Element_, 4, 4> {
   }
   
   /// Forms a 4-by-4 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 1, 3> const & A, Element                         B,
     Matrix<Element, 3, 3> const & C, Matrix<Element, 3, 1> const & D) {
@@ -13173,7 +13173,7 @@ struct Matrix<Element_, 4, 4> {
   }
   
   /// Forms a 4-by-4 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 2, 1> const & A, Matrix<Element, 2, 3> const & B,
     Matrix<Element, 2, 1> const & C, Matrix<Element, 2, 3> const & D) {
@@ -13186,7 +13186,7 @@ struct Matrix<Element_, 4, 4> {
   }
   
   /// Forms a 4-by-4 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 2, 2> const & A, Matrix<Element, 2, 2> const & B,
     Matrix<Element, 2, 2> const & C, Matrix<Element, 2, 2> const & D) {
@@ -13199,7 +13199,7 @@ struct Matrix<Element_, 4, 4> {
   }
   
   /// Forms a 4-by-4 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 2, 3> const & A, Matrix<Element, 2, 1> const & B,
     Matrix<Element, 2, 3> const & C, Matrix<Element, 2, 1> const & D) {
@@ -13212,7 +13212,7 @@ struct Matrix<Element_, 4, 4> {
   }
   
   /// Forms a 4-by-4 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 3, 1> const & A, Matrix<Element, 3, 3> const & B,
     Element                         C, Matrix<Element, 1, 3> const & D) {
@@ -13225,7 +13225,7 @@ struct Matrix<Element_, 4, 4> {
   }
   
   /// Forms a 4-by-4 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 3, 2> const & A, Matrix<Element, 3, 2> const & B,
     Matrix<Element, 1, 2> const & C, Matrix<Element, 1, 2> const & D) {
@@ -13238,7 +13238,7 @@ struct Matrix<Element_, 4, 4> {
   }
   
   /// Forms a 4-by-4 matrix by concatenating four components
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix block(
     Matrix<Element, 3, 3> const & A, Matrix<Element, 3, 1> const & B,
     Matrix<Element, 1, 3> const & C, Element                         D) {
@@ -13251,7 +13251,7 @@ struct Matrix<Element_, 4, 4> {
   }
   
   /// Elementwise add operator (4-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix add(Matrix const &rhs) const {
 
     Matrix result;
@@ -13280,13 +13280,13 @@ struct Matrix<Element_, 4, 4> {
   }
       
   /// Elementwise add operator (4-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator +(Matrix const &rhs) const {
     return add(rhs);
   }
 
   /// Elementwise add operator (4-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator +=(Matrix const &rhs) {
     
     data[0] += rhs.data[0];
@@ -13313,7 +13313,7 @@ struct Matrix<Element_, 4, 4> {
   }
         
   /// Elementwise subtract operator (4-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix subtract(Matrix const &rhs) const {
 
     Matrix result;
@@ -13342,13 +13342,13 @@ struct Matrix<Element_, 4, 4> {
   }
       
   /// Elementwise subtract operator (4-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator -(Matrix const &rhs) const {
     return subtract(rhs);
   }
 
   /// Elementwise subtract operator (4-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator -=(Matrix const &rhs) {
     
     data[0] -= rhs.data[0];
@@ -13375,7 +13375,7 @@ struct Matrix<Element_, 4, 4> {
   }
         
   /// Elementwise multiply operator (4-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Matrix const &rhs) const {
 
     Matrix result;
@@ -13404,7 +13404,7 @@ struct Matrix<Element_, 4, 4> {
   }
       
   /// Scalar multiply operator (4-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix multiply(Element const &s) const {
 
     Matrix result;
@@ -13433,13 +13433,13 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Scalar multiply operator (4-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator *(Element const &s) const {
     return multiply(s);
   }
 
   /// Scalar multiply operator (4-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator *=(Element const &s) {
     
     data[0] *= s;
@@ -13466,7 +13466,7 @@ struct Matrix<Element_, 4, 4> {
   }
         
   /// Elementwise divide operator (4-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Matrix const &rhs) const {
 
     Matrix result;
@@ -13495,7 +13495,7 @@ struct Matrix<Element_, 4, 4> {
   }
       
   /// Scalar divide operator (4-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix divide(Element const &s) const {
 
     Matrix result;
@@ -13524,13 +13524,13 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Scalar divide operator (4-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Element const &s) const {
     return divide(s);
   }
 
   /// Scalar divide operator (4-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Element const &s) {
     
     data[0] /= s;
@@ -13557,13 +13557,13 @@ struct Matrix<Element_, 4, 4> {
   }
         
   /// Elementwise divide operator (4-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator /(Matrix const &rhs) const {
     return divide(rhs);
   }
 
   /// Elementwise divide operator (4-by-4)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator /=(Matrix const &rhs) {
     
     data[0] /= rhs.data[0];
@@ -13590,7 +13590,7 @@ struct Matrix<Element_, 4, 4> {
   }
         
   /// Negates each element of the matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix operator-() const {
     Matrix m;
     
@@ -13615,7 +13615,7 @@ struct Matrix<Element_, 4, 4> {
   }
   
   /// Matrix product of size 4-by-1-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 1> product(
     Matrix<Element, 4, 1> const &rhs,
     Matrix<Element, 4, 1> accum = Matrix<Element, 4, 1>()
@@ -13649,13 +13649,13 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Matrix product of size 4-by-1-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 1> operator*(Matrix<Element, 4, 1> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 4-by-2-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 2> product(
     Matrix<Element, 4, 2> const &rhs,
     Matrix<Element, 4, 2> accum = Matrix<Element, 4, 2>()
@@ -13705,13 +13705,13 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Matrix product of size 4-by-2-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 2> operator*(Matrix<Element, 4, 2> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 4-by-3-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 3> product(
     Matrix<Element, 4, 3> const &rhs,
     Matrix<Element, 4, 3> accum = Matrix<Element, 4, 3>()
@@ -13777,13 +13777,13 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Matrix product of size 4-by-3-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 3> operator*(Matrix<Element, 4, 3> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 4-by-4-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 4> product(
     Matrix<Element, 4, 4> const &rhs,
     Matrix<Element, 4, 4> accum = Matrix<Element, 4, 4>()
@@ -13865,20 +13865,20 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Matrix product of size 4-by-4-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix<Element, 4, 4> operator*(Matrix<Element, 4, 4> const &rhs) const {
     return product(rhs);
   }
   
   /// Matrix product of size 4-by-4-by-4
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix & operator*=(Matrix<Element, 4, 4> const &rhs) {
     *this = product(rhs);
     return *this;
   }
     
   /// Returns the sum of elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element sum(Element accum = Element()) const {
     
     accum += data[0];
@@ -13902,7 +13902,7 @@ struct Matrix<Element_, 4, 4> {
   }  
 
   /// Returns the sum of squared elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element norm(Element accum = Element()) const {
     
     accum += data[0] * data[0];
@@ -13926,13 +13926,13 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Returns square root of the norm
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element magnitude() const {
     return fast_sqrt(norm());
   }
 
   /// Returns the sum of diagonal elements
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element trace(Element accum = Element()) const {
     
     accum += data[0];
@@ -13944,7 +13944,7 @@ struct Matrix<Element_, 4, 4> {
   }
     
   /// Returns 4-by-4 rotation matrix around the X axis
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix rotation_X(Element theta) {
     Matrix m = identity();
 
@@ -13960,7 +13960,7 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Returns 4-by-4 rotation matrix around the Y axis
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix rotation_Y(Element theta) {
     Matrix m = identity();
 
@@ -13976,7 +13976,7 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Returns 4-by-4 rotation matrix around the Z axis
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix rotation_Z(Element theta) {
     Matrix m = Matrix::identity();
 
@@ -13992,7 +13992,7 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Returns a 4-by-4 rotation matrix around a unit-length axis
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix rotation(Element theta, Matrix<Element, 3, 1> const &u) {
     Element x = u.data[0];
     Element y = u.data[1];
@@ -14016,7 +14016,7 @@ struct Matrix<Element_, 4, 4> {
 
   /// Returns a 4-by-4 reflection about the plane specified by the 
   /// unit-length normal vector n_unit
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix reflection(Matrix<Element, 3, 1> const &n_unit) {
 
     Element a = n_unit.data[0];
@@ -14035,7 +14035,7 @@ struct Matrix<Element_, 4, 4> {
   }
 
   /// Returns a perspective projection matrix typical of OpenGL applications
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix perspective(Element near_plane, Element far_plane, Element fovH, Element fovV) {
     Element aspect = fovH / fovV;
     Element f = Element(cos(fovV)) / Element(fovH);
@@ -14049,7 +14049,7 @@ struct Matrix<Element_, 4, 4> {
     );
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Matrix translation(Matrix<Element, 3, 1> const &v) {
     return Matrix(
       1, 0, 0, v.data[0],
@@ -14060,7 +14060,7 @@ struct Matrix<Element_, 4, 4> {
   }
   
   /// Computes the determinant of a 4-by-4 matrix
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Element determinant(Element accum = Element()) const {
     
     accum += at(0, 0) * Matrix<Element, 3, 3>({ at(1, 1), at(1, 2), at(1, 3), at(2, 1), at(2, 2), at(2, 3), at(3, 1), at(3, 2), at(3, 3) }).determinant();
@@ -14072,7 +14072,7 @@ struct Matrix<Element_, 4, 4> {
   }
   
   /// Computes the inverse of a 4-by-4 matrix (ignores the optional argument)
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Matrix inverse(Element ignore = 1) const {
     Matrix<Element, 2, 2> B = slice_2x2(0, 2);
     Matrix<Element, 2, 2> A = slice_2x2(0, 0);
@@ -14098,7 +14098,7 @@ using Matrix4x4 = Matrix<Element, 4, 4>;
 
 /// Free function to infer element type from template arguments
 template <typename Element>
-CUTLASS_HOST_DEVICE Matrix4x4<Element> make_Matrix4x4(
+NIHILUS_HOST_DEVICE Matrix4x4<Element> make_Matrix4x4(
     Element _0_0, Element _0_1, Element _0_2, Element _0_3, 
     Element _1_0, Element _1_1, Element _1_2, Element _1_3, 
     Element _2_0, Element _2_1, Element _2_2, Element _2_3, 
@@ -14117,7 +14117,7 @@ CUTLASS_HOST_DEVICE Matrix4x4<Element> make_Matrix4x4(
 
 /// Elementwise scalar multiplication
 template <typename Element, int Rows, int Columns>
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 Matrix<Element, Rows, Columns> operator*(Element s, Matrix<Element, Rows, Columns> const &rhs) {
   return rhs.multiply(s);
 }

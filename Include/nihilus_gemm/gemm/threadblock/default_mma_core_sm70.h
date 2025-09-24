@@ -37,7 +37,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/array.h"
 
 #include "nihilus_gemm/numeric_types.h"
@@ -115,13 +115,13 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<8, 8, 4>, ElementA_,
   );
 
   /// Number of threads per warp
-  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int  kAccessSizeInBits = 128;
+  static constexpr int kAccessSizeInBits = 128;
 
   //
   // Shared memory layouts
@@ -270,13 +270,13 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<8, 8, 4>, ElementA_,
   );
 
   /// Number of threads per warp
-  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int  kAccessSizeInBits = 128;
+  static constexpr int kAccessSizeInBits = 128;
 
   //
   // Shared memory layouts
@@ -425,13 +425,13 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<8, 8, 4>, ElementA_,
   );
 
   /// Number of threads per warp
-  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int  kAccessSizeInBits = 128;
+  static constexpr int kAccessSizeInBits = 128;
 
   //
   // Shared memory layouts
@@ -580,13 +580,13 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<8, 8, 4>, ElementA_,
   );
 
   /// Number of threads per warp
-  static constexpr int  kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int  kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int  kAccessSizeInBits = 128;
+  static constexpr int kAccessSizeInBits = 128;
 
   //
   // Shared memory layouts

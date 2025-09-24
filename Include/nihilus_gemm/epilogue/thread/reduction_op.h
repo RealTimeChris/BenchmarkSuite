@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/functional.h"
@@ -59,7 +59,7 @@ class ReductionOpPlus {
 public:
 
   using Element = Element_;
-  static constexpr int  kCount = Count;
+  static constexpr int kCount = Count;
 
   using Fragment = Array<Element, kCount>;
   using Operator = plus<Fragment>;
@@ -75,13 +75,13 @@ private:
 public:
 
   /// Constructs the function object, possibly loading from pointers in host memory
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   ReductionOpPlus(Params const &params) {
 
   }
 
   /// Computes Compute => 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Fragment operator()(
     Fragment const &lhs,
     Fragment const &rhs) const {

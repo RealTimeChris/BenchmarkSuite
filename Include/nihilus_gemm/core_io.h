@@ -154,7 +154,7 @@ std::ostream & operator<<(std::ostream &out, float_ue4m3_t const &x) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Helper to enable formatted printing of CUTLASS scalar types to an ostream
+/// Helper to enable formatted printing of NIHILUS scalar types to an ostream
 template <typename T>
 struct ScalarIO {
 

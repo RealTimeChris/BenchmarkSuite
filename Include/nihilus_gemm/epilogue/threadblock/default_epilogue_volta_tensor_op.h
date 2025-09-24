@@ -38,7 +38,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/array.h"
 
@@ -90,9 +90,9 @@ struct DefaultEpilogueVoltaTensorOp {
 
   using Shape = Shape_;
   using WarpMmaTensorOp = WarpMmaTensorOp_;
-  static constexpr int  kPartitionsK = PartitionsK;
+  static constexpr int kPartitionsK = PartitionsK;
   using OutputOp = OutputOp_;
-  static constexpr int  kElementsPerAccess = ElementsPerAccess;
+  static constexpr int kElementsPerAccess = ElementsPerAccess;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using LayoutC = typename WarpMmaTensorOp::LayoutC;
@@ -132,7 +132,7 @@ struct DefaultEpilogueVoltaTensorOp {
     LayoutC
   >;
 
-  static constexpr int  kSharedMemAlignment = sizeof_bits<ElementAccumulator>::value * WarpTileIterator::kElementsPerAccess / 8;
+  static constexpr int kSharedMemAlignment = sizeof_bits<ElementAccumulator>::value * WarpTileIterator::kElementsPerAccess / 8;
 
   static_assert(kSharedMemAlignment == 8, "Shared memory alignment must be 8B");
 
@@ -175,9 +175,9 @@ struct DefaultEpilogueVoltaTensorOpStridedDgrad {
 
   using Shape = Shape_;
   using WarpMmaTensorOp = WarpMmaTensorOp_;
-  static constexpr int  kPartitionsK = PartitionsK;
+  static constexpr int kPartitionsK = PartitionsK;
   using OutputOp = OutputOp_;
-  static constexpr int  kElementsPerAccess = ElementsPerAccess;
+  static constexpr int kElementsPerAccess = ElementsPerAccess;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using LayoutC = typename WarpMmaTensorOp::LayoutC;
@@ -215,7 +215,7 @@ struct DefaultEpilogueVoltaTensorOpStridedDgrad {
     LayoutC
   >;
 
-  static constexpr int  kSharedMemAlignment = sizeof_bits<ElementAccumulator>::value * WarpTileIterator::kElementsPerAccess / 8;
+  static constexpr int kSharedMemAlignment = sizeof_bits<ElementAccumulator>::value * WarpTileIterator::kElementsPerAccess / 8;
 
   static_assert(kSharedMemAlignment == 8, "Shared memory alignment must be 8B");
 
@@ -259,9 +259,9 @@ struct DefaultEpilogueVoltaTensorOpAffineRankN {
 
   using Shape = Shape_;
   using WarpMmaTensorOp = WarpMmaTensorOp_;
-  static constexpr int  kPartitionsK = PartitionsK;
+  static constexpr int kPartitionsK = PartitionsK;
   using OutputOp = OutputOp_;
-  static constexpr int  kElementsPerAccess = ElementsPerAccess;
+  static constexpr int kElementsPerAccess = ElementsPerAccess;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using LayoutC = typename WarpMmaTensorOp::LayoutC;
@@ -300,7 +300,7 @@ struct DefaultEpilogueVoltaTensorOpAffineRankN {
     LayoutC
   >;
 
-  static constexpr int  kSharedMemAlignment = sizeof_bits<ElementAccumulator>::value * WarpTileIterator::kElementsPerAccess / 8;
+  static constexpr int kSharedMemAlignment = sizeof_bits<ElementAccumulator>::value * WarpTileIterator::kElementsPerAccess / 8;
 
   static_assert(kSharedMemAlignment == 8, "Shared memory alignment must be 8B");
 

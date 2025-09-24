@@ -35,7 +35,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 
 #include "nihilus_gemm/gemm/gemm.h"
 #include "nihilus_gemm/matrix_coord.h"
@@ -62,11 +62,11 @@ struct Gemm {
   using Epilogue = Epilogue_;
   using OutputOp = typename Epilogue::OutputOp;
   using ThreadblockSwizzle = ThreadblockSwizzle_;
-  static constexpr bool  kSplitKSerial = SplitKSerial;
+  static constexpr bool kSplitKSerial = SplitKSerial;
 
   /// Warp count (concept: GemmShape)
   using WarpCount = typename Mma::WarpCount;
-  static constexpr int  kThreadCount = 32 * WarpCount::kCount;
+  static constexpr int kThreadCount = 32 * WarpCount::kCount;
 
   /// Parameters structure
   struct Params {
@@ -93,10 +93,10 @@ struct Gemm {
     // Methods
     //
 
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params(): swizzle_log_tile(0), semaphore(0), gemm_k_size(0) { }
 
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params(
       nihilus_gemm::gemm::GemmCoord const & problem_size,
       nihilus_gemm::gemm::GemmCoord const & grid_tiled_shape,
@@ -145,11 +145,11 @@ struct Gemm {
   // Methods
   //
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Gemm() { } 
 
   /// Determines whether kernel satisfies alignment
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   static Status can_implement(
     nihilus_gemm::gemm::GemmCoord const & problem_size,
     typename Mma::IteratorA::TensorRef ref_A,
@@ -157,21 +157,21 @@ struct Gemm {
     typename Epilogue::OutputTileIterator::TensorRef ref_C,
     typename Epilogue::OutputTileIterator::TensorRef ref_D) {
 
-    static constexpr int  kAlignmentA = (platform::is_same<typename Mma::IteratorA::Layout,
+    static constexpr int kAlignmentA = (platform::is_same<typename Mma::IteratorA::Layout,
                                                       layout::ColumnMajorInterleaved<32>>::value)
                                    ? 32
                                    : (platform::is_same<typename Mma::IteratorA::Layout,
                                                         layout::ColumnMajorInterleaved<64>>::value)
                                      ? 64
                                      : Mma::IteratorA::AccessType::kElements;
-    static constexpr int  kAlignmentB =  (platform::is_same<typename Mma::IteratorB::Layout,
+    static constexpr int kAlignmentB =  (platform::is_same<typename Mma::IteratorB::Layout,
                                                        layout::RowMajorInterleaved<32>>::value)
                                    ? 32
                                    : (platform::is_same<typename Mma::IteratorB::Layout,
                                                         layout::RowMajorInterleaved<64>>::value)
                                      ? 64
                                      : Mma::IteratorB::AccessType::kElements;
-    static constexpr int  kAlignmentC = (platform::is_same<typename Epilogue::OutputTileIterator::Layout,
+    static constexpr int kAlignmentC = (platform::is_same<typename Epilogue::OutputTileIterator::Layout,
                                                       layout::ColumnMajorInterleaved<32>>::value)
                                    ? 32
                                    : (platform::is_same<typename Epilogue::OutputTileIterator::Layout,
@@ -199,7 +199,7 @@ struct Gemm {
   }
 
   /// Executes one GEMM
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void operator()(Params const &params, SharedStorage &shared_storage) {
 
     // Compute threadblock location

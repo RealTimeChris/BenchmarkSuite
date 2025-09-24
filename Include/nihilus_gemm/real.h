@@ -35,7 +35,7 @@
 
 #pragma once
 
-#include <nihilus_gemm/detail/helper_macros.hpp> // CUTLASS_DEVICE
+#include <nihilus_gemm/detail/helper_macros.hpp> // NIHILUS_DEVICE
 
 namespace nihilus_gemm {
 
@@ -45,16 +45,16 @@ struct RealType {
   using Type = T;
 
   /// Number of elements
-  static constexpr int  kExtent = 1;
+  static constexpr int kExtent = 1;
 
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
   static T from_real(double x) {
     return static_cast<T>(x);
   }
 };
 
 template <typename T>
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 static T from_real(double r) {
   return T(r);
 }

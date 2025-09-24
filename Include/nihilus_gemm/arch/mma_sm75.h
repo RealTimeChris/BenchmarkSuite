@@ -33,18 +33,18 @@
 */
 
 #pragma once
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include CUDA_STD_HEADER(cassert)
 
 #include "nihilus_gemm/arch/wmma.h"
 
-#if defined(CUTLASS_ARCH_WMMA_ENABLED)
+#if defined(NIHILUS_ARCH_WMMA_ENABLED)
 // CUDA Toolkit includes for nvcuda::wmma needed for binarized matrix multiply.
 #include <mma.h>
 #include "nihilus_gemm/wmma_array.h"
 #endif
 
-// CUTLASS includes
+// NIHILUS includes
 #include "nihilus_gemm/arch/mma.h"
 #include "nihilus_gemm/layout/matrix.h"
 #include "nihilus_gemm/numeric_types.h"
@@ -53,10 +53,10 @@
 
 #if ((__CUDACC_VER_MAJOR__ > 10) || (__CUDACC_VER_MAJOR__ == 10 && __CUDACC_VER_MINOR__ >= 2))
 
-#define CUTLASS_ARCH_MMA_SM75_SUPPORTED 1
+#define NIHILUS_ARCH_MMA_SM75_SUPPORTED 1
 
 #if (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 750))
-#define CUTLASS_ARCH_MMA_SM75_ENABLED
+#define NIHILUS_ARCH_MMA_SM75_ENABLED
 #endif
 #endif
 
@@ -101,7 +101,7 @@ struct Mma<
   using Operator = OpMultiplyAdd;
   using ArchTag = arch::Sm75;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -109,7 +109,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_ARCH_MMA_SM75_ENABLED)
+#if defined(NIHILUS_ARCH_MMA_SM75_ENABLED)
 
   unsigned const *A = reinterpret_cast<unsigned const *>(&a);
   unsigned const *B = reinterpret_cast<unsigned const *>(&b);
@@ -122,11 +122,11 @@ struct Mma<
       : "r"(A[0]), "r"(A[1]), "r"(B[0]), "r"(C[0]), "r"(C[1]));
 
 #else
-    CUTLASS_UNUSED(a);
-    CUTLASS_UNUSED(b);
-    CUTLASS_UNUSED(c);
-    CUTLASS_UNUSED(d);
-    CUTLASS_NOT_IMPLEMENTED();
+    NIHILUS_UNUSED(a);
+    NIHILUS_UNUSED(b);
+    NIHILUS_UNUSED(c);
+    NIHILUS_UNUSED(d);
+    NIHILUS_NOT_IMPLEMENTED();
 #endif
   }
 };
@@ -168,11 +168,11 @@ struct Mma<
   using ArchTag = arch::Sm75;
 
   /// Computes multiply-add
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(CUTLASS_ARCH_MMA_SM75_ENABLED)
+#if defined(NIHILUS_ARCH_MMA_SM75_ENABLED)
 
   unsigned const *A = reinterpret_cast<unsigned const *>(&a);
   unsigned const *B = reinterpret_cast<unsigned const *>(&b);
@@ -188,11 +188,11 @@ struct Mma<
   );
 
 #else
-    CUTLASS_UNUSED(a);
-    CUTLASS_UNUSED(b);
-    CUTLASS_UNUSED(c);
-    CUTLASS_UNUSED(d);
-    CUTLASS_NOT_IMPLEMENTED();
+    NIHILUS_UNUSED(a);
+    NIHILUS_UNUSED(b);
+    NIHILUS_UNUSED(c);
+    NIHILUS_UNUSED(d);
+    NIHILUS_NOT_IMPLEMENTED();
 #endif
   }
 };
@@ -234,7 +234,7 @@ struct Mma<
   using ArchTag = arch::Sm75;
 
   /// Computes multiply-add
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -242,7 +242,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_ARCH_MMA_SM75_ENABLED)
+#if defined(NIHILUS_ARCH_MMA_SM75_ENABLED)
 
   unsigned const & A = reinterpret_cast<unsigned const &>(a);
   unsigned const & B = reinterpret_cast<unsigned const &>(b);
@@ -254,11 +254,11 @@ struct Mma<
       : "=r"(D[0]), "=r"(D[1])
       : "r"(A), "r"(B), "r"(C[0]), "r"(C[1]));
 #else
-    CUTLASS_UNUSED(a);
-    CUTLASS_UNUSED(b);
-    CUTLASS_UNUSED(c);
-    CUTLASS_UNUSED(d);
-    CUTLASS_NOT_IMPLEMENTED();
+    NIHILUS_UNUSED(a);
+    NIHILUS_UNUSED(b);
+    NIHILUS_UNUSED(c);
+    NIHILUS_UNUSED(d);
+    NIHILUS_NOT_IMPLEMENTED();
 #endif
   }
 };
@@ -294,7 +294,7 @@ struct Mma<
   using ArchTag = arch::Sm75;
 
   /// Computes multiply-add
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -302,7 +302,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_ARCH_MMA_SM75_ENABLED)
+#if defined(NIHILUS_ARCH_MMA_SM75_ENABLED)
 
   unsigned const & A = reinterpret_cast<unsigned const &>(a);
   unsigned const & B = reinterpret_cast<unsigned const &>(b);
@@ -314,11 +314,11 @@ struct Mma<
       : "=r"(D[0]), "=r"(D[1])
       : "r"(A), "r"(B), "r"(C[0]), "r"(C[1]));
 #else
-    CUTLASS_UNUSED(a);
-    CUTLASS_UNUSED(b);
-    CUTLASS_UNUSED(c);
-    CUTLASS_UNUSED(d);
-    CUTLASS_NOT_IMPLEMENTED();
+    NIHILUS_UNUSED(a);
+    NIHILUS_UNUSED(b);
+    NIHILUS_UNUSED(c);
+    NIHILUS_UNUSED(d);
+    NIHILUS_NOT_IMPLEMENTED();
 #endif
   }
 };
@@ -354,7 +354,7 @@ struct Mma<
   using ArchTag = arch::Sm75;
 
   /// Computes multiply-add
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -362,7 +362,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_ARCH_MMA_SM75_ENABLED)
+#if defined(NIHILUS_ARCH_MMA_SM75_ENABLED)
 
   unsigned const & A = reinterpret_cast<unsigned const &>(a);
   unsigned const & B = reinterpret_cast<unsigned const &>(b);
@@ -374,11 +374,11 @@ struct Mma<
       : "=r"(D[0]), "=r"(D[1])
       : "r"(A), "r"(B), "r"(C[0]), "r"(C[1]));
 #else
-    CUTLASS_UNUSED(a);
-    CUTLASS_UNUSED(b);
-    CUTLASS_UNUSED(c);
-    CUTLASS_UNUSED(d);
-    CUTLASS_NOT_IMPLEMENTED();
+    NIHILUS_UNUSED(a);
+    NIHILUS_UNUSED(b);
+    NIHILUS_UNUSED(c);
+    NIHILUS_UNUSED(d);
+    NIHILUS_NOT_IMPLEMENTED();
 #endif
   }
 };
@@ -414,7 +414,7 @@ struct Mma<
   using ArchTag = arch::Sm75;
 
   /// Computes multiply-add
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -422,7 +422,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_ARCH_MMA_SM75_ENABLED)
+#if defined(NIHILUS_ARCH_MMA_SM75_ENABLED)
 
   unsigned const & A = reinterpret_cast<unsigned const &>(a);
   unsigned const & B = reinterpret_cast<unsigned const &>(b);
@@ -434,11 +434,11 @@ struct Mma<
       : "=r"(D[0]), "=r"(D[1])
       : "r"(A), "r"(B), "r"(C[0]), "r"(C[1]));
 #else
-    CUTLASS_UNUSED(a);
-    CUTLASS_UNUSED(b);
-    CUTLASS_UNUSED(c);
-    CUTLASS_UNUSED(d);
-    CUTLASS_NOT_IMPLEMENTED();
+    NIHILUS_UNUSED(a);
+    NIHILUS_UNUSED(b);
+    NIHILUS_UNUSED(c);
+    NIHILUS_UNUSED(d);
+    NIHILUS_NOT_IMPLEMENTED();
 #endif
   }
 };
@@ -480,7 +480,7 @@ struct Mma<
   using ArchTag = arch::Sm75;
 
   /// Computes multiply-add
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -488,7 +488,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_ARCH_MMA_SM75_ENABLED)
+#if defined(NIHILUS_ARCH_MMA_SM75_ENABLED)
 
   unsigned const & A = reinterpret_cast<unsigned const &>(a);
   unsigned const & B = reinterpret_cast<unsigned const &>(b);
@@ -500,11 +500,11 @@ struct Mma<
       : "=r"(D[0]), "=r"(D[1])
       : "r"(A), "r"(B), "r"(C[0]), "r"(C[1]));
 #else
-    CUTLASS_UNUSED(a);
-    CUTLASS_UNUSED(b);
-    CUTLASS_UNUSED(c);
-    CUTLASS_UNUSED(d);
-    CUTLASS_NOT_IMPLEMENTED();
+    NIHILUS_UNUSED(a);
+    NIHILUS_UNUSED(b);
+    NIHILUS_UNUSED(c);
+    NIHILUS_UNUSED(d);
+    NIHILUS_NOT_IMPLEMENTED();
 #endif
   }
 };
@@ -540,7 +540,7 @@ struct Mma<
   using ArchTag = arch::Sm75;
 
   /// Computes multiply-add
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -548,7 +548,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_ARCH_MMA_SM75_ENABLED)
+#if defined(NIHILUS_ARCH_MMA_SM75_ENABLED)
 
   unsigned const & A = reinterpret_cast<unsigned const &>(a);
   unsigned const & B = reinterpret_cast<unsigned const &>(b);
@@ -560,11 +560,11 @@ struct Mma<
       : "=r"(D[0]), "=r"(D[1])
       : "r"(A), "r"(B), "r"(C[0]), "r"(C[1]));
 #else
-    CUTLASS_UNUSED(a);
-    CUTLASS_UNUSED(b);
-    CUTLASS_UNUSED(c);
-    CUTLASS_UNUSED(d);
-    CUTLASS_NOT_IMPLEMENTED();
+    NIHILUS_UNUSED(a);
+    NIHILUS_UNUSED(b);
+    NIHILUS_UNUSED(c);
+    NIHILUS_UNUSED(d);
+    NIHILUS_NOT_IMPLEMENTED();
 #endif
   }
 };
@@ -600,7 +600,7 @@ struct Mma<
   using ArchTag = arch::Sm75;
 
   /// Computes multiply-add
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -608,7 +608,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_ARCH_MMA_SM75_ENABLED)
+#if defined(NIHILUS_ARCH_MMA_SM75_ENABLED)
 
   unsigned const & A = reinterpret_cast<unsigned const &>(a);
   unsigned const & B = reinterpret_cast<unsigned const &>(b);
@@ -620,11 +620,11 @@ struct Mma<
       : "=r"(D[0]), "=r"(D[1])
       : "r"(A), "r"(B), "r"(C[0]), "r"(C[1]));
 #else
-    CUTLASS_UNUSED(a);
-    CUTLASS_UNUSED(b);
-    CUTLASS_UNUSED(c);
-    CUTLASS_UNUSED(d);
-    CUTLASS_NOT_IMPLEMENTED();
+    NIHILUS_UNUSED(a);
+    NIHILUS_UNUSED(b);
+    NIHILUS_UNUSED(c);
+    NIHILUS_UNUSED(d);
+    NIHILUS_NOT_IMPLEMENTED();
 #endif
   }
 };
@@ -660,7 +660,7 @@ struct Mma<
   using ArchTag = arch::Sm75;
 
   /// Computes multiply-add
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -668,7 +668,7 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_ARCH_MMA_SM75_ENABLED)
+#if defined(NIHILUS_ARCH_MMA_SM75_ENABLED)
 
   unsigned const & A = reinterpret_cast<unsigned const &>(a);
   unsigned const & B = reinterpret_cast<unsigned const &>(b);
@@ -680,11 +680,11 @@ struct Mma<
       : "=r"(D[0]), "=r"(D[1])
       : "r"(A), "r"(B), "r"(C[0]), "r"(C[1]));
 #else
-    CUTLASS_UNUSED(a);
-    CUTLASS_UNUSED(b);
-    CUTLASS_UNUSED(c);
-    CUTLASS_UNUSED(d);
-    CUTLASS_NOT_IMPLEMENTED();
+    NIHILUS_UNUSED(a);
+    NIHILUS_UNUSED(b);
+    NIHILUS_UNUSED(c);
+    NIHILUS_UNUSED(d);
+    NIHILUS_NOT_IMPLEMENTED();
 #endif
   }
 };
@@ -726,7 +726,7 @@ struct Mma<
   using ArchTag = arch::Sm75;
 
   /// Computes multiply-add
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     FragmentC &d,
     FragmentA const &a,
@@ -734,9 +734,9 @@ struct Mma<
     FragmentC const &c
   ) const {
 
-#if defined(CUTLASS_ARCH_MMA_SM75_ENABLED)
+#if defined(NIHILUS_ARCH_MMA_SM75_ENABLED)
 
-#if defined(CUTLASS_ARCH_WMMA_ENABLED)
+#if defined(NIHILUS_ARCH_WMMA_ENABLED)
   using WmmaFragmentA = nvcuda::wmma::fragment<
           nvcuda::wmma::matrix_a,
           Shape::kM,
@@ -771,13 +771,13 @@ struct Mma<
 
 #else
 
-  CUTLASS_UNUSED(a);
-  CUTLASS_UNUSED(b);
-  CUTLASS_UNUSED(c);
-  CUTLASS_UNUSED(d);
-  CUTLASS_NOT_IMPLEMENTED(); // WMMA must be supported to issue binary matrix multiply-accumulate instructions.
+  NIHILUS_UNUSED(a);
+  NIHILUS_UNUSED(b);
+  NIHILUS_UNUSED(c);
+  NIHILUS_UNUSED(d);
+  NIHILUS_NOT_IMPLEMENTED(); // WMMA must be supported to issue binary matrix multiply-accumulate instructions.
 
-#endif // defined(CUTLASS_ARCH_WMMA_ENABLED)
+#endif // defined(NIHILUS_ARCH_WMMA_ENABLED)
 
 #endif
   }

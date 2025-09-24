@@ -43,7 +43,7 @@
 #pragma once
 
 #include "nihilus_gemm/array.h"
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/epilogue/threadblock/output_tile_thread_map.h"
 #include "nihilus_gemm/transform/pitch_linear_thread_map.h"
 #include "nihilus_gemm/layout/matrix.h"
@@ -79,14 +79,14 @@ class SharedLoadIteratorPitchLinear {
   using LongIndex = typename Layout::LongIndex;
   using TensorCoord = MatrixCoord;
 
-  static constexpr int  kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static constexpr int kElementsPerAccess = ThreadMap::kElementsPerAccess;
 
-  static constexpr int  kMinAlignment =
+  static constexpr int kMinAlignment =
       ThreadMap_::kElementsPerAccess * sizeof_bits<Element_>::value / 8;
 
-  static constexpr int  kAlignment = (MaxAlignment < kMinAlignment ? MaxAlignment : kMinAlignment);
+  static constexpr int kAlignment = (MaxAlignment < kMinAlignment ? MaxAlignment : kMinAlignment);
 
-  static constexpr int  kThreads = ThreadMap::kThreads;
+  static constexpr int kThreads = ThreadMap::kThreads;
 
   /// Fragment object
   using Fragment = Array<Element, ThreadMap::Iterations::kCount * kElementsPerAccess>;
@@ -100,7 +100,7 @@ class SharedLoadIteratorPitchLinear {
                    const_min(128 / sizeof_bits<Element>::value, ThreadMap::kElementsPerAccess),
                    const_min(16, kAlignment)>;
 
-  static constexpr int  kLoadsPerAccess = AccessType::kElements / LoadType::kElements;
+  static constexpr int kLoadsPerAccess = AccessType::kElements / LoadType::kElements;
 
  private:
   //
@@ -122,7 +122,7 @@ class SharedLoadIteratorPitchLinear {
   //
 
   /// Constructor
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   SharedLoadIteratorPitchLinear(TensorRef ref, int thread_idx)
       : byte_pointer_(reinterpret_cast<uint8_t *>(ref.data())),
         stride_((ref.stride(0) * sizeof_bits<Element>::value) / 8),
@@ -137,12 +137,12 @@ class SharedLoadIteratorPitchLinear {
   }
 
   /// Adds a pointer offset in units of Element
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     byte_pointer_ += pointer_offset * sizeof_bits<Element>::value / 8;
   }
 
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void add_tile_offset(TensorCoord const &offset) {
     byte_pointer_ +=
         offset.row() * ThreadMap::StorageShape::kContiguous * sizeof(AccessType) / kElementsPerAccess +
@@ -150,11 +150,11 @@ class SharedLoadIteratorPitchLinear {
   }
 
   /// Loads a fragment from memory
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
         uint8_t const *byte_pointer =
             byte_pointer_ + s * ThreadMap::Delta::kStrided * stride_ +
@@ -168,7 +168,7 @@ class SharedLoadIteratorPitchLinear {
 
         LoadType const *memory_pointer = reinterpret_cast<LoadType const *>(byte_pointer);
 
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for (int v = 0; v < kLoadsPerAccess; ++v) {
           frag_ptr[frag_base_idx * kLoadsPerAccess + v] = memory_pointer[v];
         }
@@ -177,11 +177,11 @@ class SharedLoadIteratorPitchLinear {
   }
 
   /// Loads a fragment from memory
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void set_smem_base_address(Index address) { base_smem_address_ = address; }
 
   /// Loads a fragment
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void load(Fragment &frag) const { load_with_pointer_offset(frag, 0); }
 };
 

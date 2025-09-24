@@ -30,12 +30,12 @@
  **************************************************************************************************/
 /*!
     \file
-    \brief Top-level include for all CUTLASS numeric types.
+    \brief Top-level include for all NIHILUS numeric types.
 */
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -67,7 +67,7 @@ struct sizeof_bits<void> {
 
 /// Returns the number of bytes required to hold a specified number of bits
 template <class R = int, class T>
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 constexpr
 R
 bits_to_bytes(T bits) {
@@ -76,7 +76,7 @@ bits_to_bytes(T bits) {
 
 /// Returns the number of bits required to hold a specified number of bytes
 template <class R = int, class T>
-CUTLASS_HOST_DEVICE
+NIHILUS_HOST_DEVICE
 constexpr
 R
 bytes_to_bits(T bytes) {

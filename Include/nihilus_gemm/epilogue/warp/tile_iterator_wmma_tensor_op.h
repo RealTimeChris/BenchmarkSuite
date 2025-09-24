@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/wmma_array.h"
 #include "nihilus_gemm/layout/matrix.h"
 #include "nihilus_gemm/layout/pitch_linear.h"
@@ -124,13 +124,13 @@ private:
 public:
 
   /// Default constructor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   TileIteratorWmmaTensorOp(): ref_(nullptr) { 
 
   }
 
   /// Constructor from TensorRef
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   TileIteratorWmmaTensorOp(
     TensorRef const &ref,
     unsigned lane_id
@@ -138,28 +138,28 @@ public:
   }
 
   /// Adds a pointer offset
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   TileIteratorWmmaTensorOp & add_pointer_offset(Index pointer_offset) {
     ref_.add_pointer_offset(pointer_offset);
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   TileIteratorWmmaTensorOp & add_tile_offset(TensorCoord const &tile_offset) {
     ref_.add_coord_offset({tile_offset.row() * OperatorShape::kM, tile_offset.column() * WarpShape::kN});
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   TileIteratorWmmaTensorOp & operator+=(TensorCoord const &tile_offset) {
     add_tile_offset(tile_offset);
     return *this;
   }
 
   /// Store
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
     for(int n=0; n < Policy::OperatorCount::kColumn; n++) {
@@ -177,13 +177,13 @@ public:
   }
 
   /// Store
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void store(Fragment const &frag) {
     store_with_pointer_offset(frag, 0);
   }
 
   /// Load
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
  
     for(int n=0; n < Policy::OperatorCount::kColumn; n++) {
@@ -201,14 +201,14 @@ public:
   }
 
   /// Load
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void load(Fragment &frag) const {
     load_with_pointer_offset(frag, 0);
   }
 
   
   /// Set smem base address
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void set_smem_base_address(Index address) {
   }
 };

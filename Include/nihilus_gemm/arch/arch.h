@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -47,7 +47,7 @@ constexpr int sm120_smem_capacity_bytes = 101376;
 #if defined(__NVCC__) || defined(__CUDACC_RTC__) || (defined(__clang__) && defined(__CUDA__))
 
 /// Computes laneId within a warp
-CUTLASS_DEVICE
+NIHILUS_DEVICE
 int LaneId() {
   int ret;
   asm ("mov.u32 %0, %%laneid;" : "=r"(ret) : );
@@ -55,7 +55,7 @@ int LaneId() {
 }
 
 /// Computes SM number the thread is running on
-CUTLASS_DEVICE
+NIHILUS_DEVICE
 int SmId() {
   int ret;
   asm ("mov.u32 %0, %%smid;" : "=r"(ret) : );
@@ -66,55 +66,55 @@ int SmId() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 struct Sm50 {
-  static constexpr int  kMinComputeCapability = 50;
+  static constexpr int kMinComputeCapability = 50;
 }; 
 struct Sm60 {
-  static constexpr int  kMinComputeCapability = 60;
+  static constexpr int kMinComputeCapability = 60;
 }; 
 struct Sm61 {
-  static constexpr int  kMinComputeCapability = 61;
+  static constexpr int kMinComputeCapability = 61;
 };
 struct Sm70 {
-  static constexpr int  kMinComputeCapability = 70;
+  static constexpr int kMinComputeCapability = 70;
 };
 struct Sm72 {
-  static constexpr int  kMinComputeCapability = 72;
+  static constexpr int kMinComputeCapability = 72;
 };
 struct Sm75 {
-  static constexpr int  kMinComputeCapability = 75;
+  static constexpr int kMinComputeCapability = 75;
 };
 struct Sm80 {
-  static constexpr int  kMinComputeCapability = 80; 
+  static constexpr int kMinComputeCapability = 80; 
 };
 struct Sm86 {
-  static constexpr int  kMinComputeCapability = 86;
+  static constexpr int kMinComputeCapability = 86;
 };
 struct Sm89 {
-  static constexpr int  kMinComputeCapability = 89;
+  static constexpr int kMinComputeCapability = 89;
 };
 struct Sm90 {
-  static constexpr int  kMinComputeCapability = 90; 
+  static constexpr int kMinComputeCapability = 90; 
 };
 
 
 struct Sm100 {
-  static constexpr int  kMinComputeCapability = 100; 
+  static constexpr int kMinComputeCapability = 100; 
 };
 
 struct Sm101 {
-  static constexpr int  kMinComputeCapability = 101; 
+  static constexpr int kMinComputeCapability = 101; 
 };
 
 struct Sm120 {
-  static constexpr int  kMinComputeCapability = 120;
+  static constexpr int kMinComputeCapability = 120;
 };
 
 struct Sm103 {
-  static constexpr int  kMinComputeCapability = 103; 
+  static constexpr int kMinComputeCapability = 103; 
 };
 
 /// Triggers a breakpoint on the device
-CUTLASS_DEVICE
+NIHILUS_DEVICE
 void device_breakpoint() {
 #if defined(__CUDA_ARCH__)
   asm volatile ("  brkpt;\n");

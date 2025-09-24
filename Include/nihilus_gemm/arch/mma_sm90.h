@@ -33,7 +33,7 @@
 */
 
 #pragma once
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include CUDA_STD_HEADER(cassert)
 
 #include "mma.h"
@@ -81,11 +81,11 @@ struct Mma<
 
   using ArchTag = arch::Sm90;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(CUTLASS_ARCH_MMA_SM90_F64_MMA_ENABLED)
+#if defined(NIHILUS_ARCH_MMA_SM90_F64_MMA_ENABLED)
 
   double const *A = reinterpret_cast<double const *>(&a);
   double const *B = reinterpret_cast<double const *>(&b);
@@ -100,11 +100,11 @@ struct Mma<
         "d"(C[0]), "d"(C[1]), "d"(C[2]), "d"(C[3]));
 
 #else
-    CUTLASS_UNUSED(d);
-    CUTLASS_UNUSED(a);
-    CUTLASS_UNUSED(b);
-    CUTLASS_UNUSED(c);
-    CUTLASS_NOT_IMPLEMENTED();
+    NIHILUS_UNUSED(d);
+    NIHILUS_UNUSED(a);
+    NIHILUS_UNUSED(b);
+    NIHILUS_UNUSED(c);
+    NIHILUS_NOT_IMPLEMENTED();
 #endif
   }
 };
@@ -144,11 +144,11 @@ struct Mma<
 
   using ArchTag = arch::Sm90;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(CUTLASS_ARCH_MMA_SM90_F64_MMA_ENABLED)
+#if defined(NIHILUS_ARCH_MMA_SM90_F64_MMA_ENABLED)
 
   double const *A = reinterpret_cast<double const *>(&a);
   double const *B = reinterpret_cast<double const *>(&b);
@@ -164,11 +164,11 @@ struct Mma<
 
 #else
 
-    CUTLASS_UNUSED(d);
-    CUTLASS_UNUSED(a);
-    CUTLASS_UNUSED(b);
-    CUTLASS_UNUSED(c);
-    CUTLASS_NOT_IMPLEMENTED();
+    NIHILUS_UNUSED(d);
+    NIHILUS_UNUSED(a);
+    NIHILUS_UNUSED(b);
+    NIHILUS_UNUSED(c);
+    NIHILUS_NOT_IMPLEMENTED();
 #endif
   }
 };
@@ -208,11 +208,11 @@ struct Mma<
 
   using ArchTag = arch::Sm90;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
     
-#if defined(CUTLASS_ARCH_MMA_SM90_F64_MMA_ENABLED)
+#if defined(NIHILUS_ARCH_MMA_SM90_F64_MMA_ENABLED)
 
   double const *A = reinterpret_cast<double const *>(&a);
   double const *B = reinterpret_cast<double const *>(&b);
@@ -227,7 +227,7 @@ struct Mma<
         "d"(C[0]), "d"(C[1]), "d"(C[2]), "d"(C[3]));
 
 #else
-    CUTLASS_NOT_IMPLEMENTED();
+    NIHILUS_NOT_IMPLEMENTED();
 #endif
   }
 };

@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/aligned_buffer.h"
 
@@ -114,10 +114,10 @@ public:
   using ArchTag = arch::Sm70;
 
   /// Complex transform on A operand
-  static constexpr ComplexTransform  kTransformA = Operator::kTransformA;
+  static constexpr ComplexTransform kTransformA = Operator::kTransformA;
 
   /// Complex transform on B operand
-  static constexpr ComplexTransform  kTransformB = Operator::kTransformB;
+  static constexpr ComplexTransform kTransformB = Operator::kTransformB;
 
   // staticaly assert kStages for MmaSingleStage is 1 (single stage mma pipeline)
   static_assert((Base::kStages==1), "MmaSingleStage requires kStages set to value 1");
@@ -137,7 +137,7 @@ protected:
 public:
 
   /// Construct from tensor references
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   MmaSingleStage(
     typename Base::SharedStorage &shared_storage,       ///< Shared storage needed for internal use by threadblock-scoped GEMM
     int thread_idx,                                     ///< ID within the threadblock
@@ -167,7 +167,7 @@ public:
   }
 
   /// Perform a threadblock-scoped matrix multiply-accumulate
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void operator()(
     int gemm_k_iterations,            ///< number of iterations of the mainloop
     FragmentC &accum,                 ///< destination accumulator tile
@@ -209,7 +209,7 @@ public:
     // Mainloop
     //
 
-    CUTLASS_GEMM_LOOP
+    NIHILUS_GEMM_LOOP
     for (; gemm_k_iterations > 0; --gemm_k_iterations) {
       this->smem_iterator_A_.store(tb_frag_A);
       this->smem_iterator_B_.store(tb_frag_B);
@@ -220,7 +220,7 @@ public:
       // Loop over GEMM K dimension
       //
 
-      CUTLASS_PRAGMA_UNROLL
+      NIHILUS_PRAGMA_UNROLL
       for (int warp_mma_k = 0; warp_mma_k < Base::kWarpGemmIterations; ++warp_mma_k) {
 
         // Load warp-level tiles from shared memory, wrapping to k offset if this is the last group

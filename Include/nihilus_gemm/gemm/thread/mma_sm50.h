@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/tensor_ref.h"
 #include "nihilus_gemm/layout/matrix.h"
 #include "nihilus_gemm/arch/mma.h"
@@ -112,9 +112,9 @@ struct MmaGeneric {
     ElementC, LayoutC,
     Operator>;
 
-  static constexpr bool  kMultipleOf2 = ((Shape::kM % 2 == 0) && (Shape::kN % 2 == 0));
+  static constexpr bool kMultipleOf2 = ((Shape::kM % 2 == 0) && (Shape::kN % 2 == 0));
 
-  static constexpr bool  kAllFp32 = platform::is_same<ElementA, float>::value &&
+  static constexpr bool kAllFp32 = platform::is_same<ElementA, float>::value &&
       platform::is_same<ElementB, float>::value &&
       platform::is_same<ElementC, float>::value;
   //
@@ -122,7 +122,7 @@ struct MmaGeneric {
   //
 
   /// Computes a matrix product D = A * B + C
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     FragmentC & D,
     FragmentA const & A,
@@ -144,15 +144,15 @@ struct MmaGeneric {
     D = C;
 
     // Compute matrix product
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int k = 0; k < Shape::kK; ++k) {
       #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 860)
       if constexpr (kMultipleOf2 && kAllFp32) {
         //2x2 zigzag - m and n loops to increment by 2. Inner loop to process 4 multiply-adds in a 2x2 tile.
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for (int n = 0; n < Shape::kN; n+=2) {
   
-          CUTLASS_PRAGMA_UNROLL
+          NIHILUS_PRAGMA_UNROLL
           for (int m = 0; m < Shape::kM; m+=2) {
   
             int m_serpentine = (n % 4) ? (Shape::kM - 2 - m) : m;
@@ -221,10 +221,10 @@ struct MmaGeneric {
       } else 
       #endif
       {
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for (int n = 0; n < Shape::kN; ++n) {
   
-          CUTLASS_PRAGMA_UNROLL
+          NIHILUS_PRAGMA_UNROLL
           for (int m = 0; m < Shape::kM; ++m) {
   
             int m_serpentine = (n % 2) ? (Shape::kM - 1 - m) : m;
@@ -262,7 +262,7 @@ struct MmaComplexF32_Column {
   using Shape = gemm::GemmShape<1, 1, 1>;
   using ElementC = complex<float>;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     Array<complex<float>, 1> &d,
     Array<complex<float>, 1> const &a,
@@ -283,7 +283,7 @@ struct MmaComplexF32_Corner {
   using Shape = gemm::GemmShape<1, 1, 1>;
   using ElementC = complex<float>;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     Array<complex<float>, 1> &d,
     Array<complex<float>, 1> const &a,
@@ -370,7 +370,7 @@ struct MmaGeneric<
   //
 
   /// Computes a matrix product D = A * B + C
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     FragmentC & D,
     FragmentA const & A,
@@ -393,14 +393,14 @@ struct MmaGeneric<
     D = C;
 
     // Compute matrix product
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int k = 0; k < Shape::kK; ++k) {
 
       {
-        CUTLASS_PRAGMA_UNROLL
+        NIHILUS_PRAGMA_UNROLL
         for (int n = 0; n < Shape::kN; ++n) {
 
-          CUTLASS_PRAGMA_UNROLL
+          NIHILUS_PRAGMA_UNROLL
           for (int m = 0; m < Shape::kM; ++m) {
 
             int m_serpentine = (n % 2) ? (Shape::kM - 1 - m) : m;
@@ -510,7 +510,7 @@ struct Mma<
   //
 
   /// Computes a matrix product D = A * B + C
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     FragmentC & D,
     FragmentA const & A,

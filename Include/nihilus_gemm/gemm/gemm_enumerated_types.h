@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/coord.h"
 #include "nihilus_gemm/gemm_coord.h"
 #include "nihilus_gemm/layout/matrix.h"

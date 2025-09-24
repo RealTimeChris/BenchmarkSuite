@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/functional.h"
@@ -62,17 +62,17 @@ public:
   using ElementOutput = ElementOutput_;
   using ElementAccumulator = ElementAccumulator_;
   using ElementCompute = ElementAccumulator_;
-  using ElementD = ElementOutput;                     // for use with cute_rt_tm::collective::DefaultEpilogue
+  using ElementD = ElementOutput;                     // for use with nihilus_cute::collective::DefaultEpilogue
 
-  static constexpr int  kCount = Count;
+  static constexpr int kCount = Count;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
   using ComputeFragment = FragmentAccumulator;
 
-  static constexpr FloatRoundStyle  kRound = Round;
+  static constexpr FloatRoundStyle kRound = Round;
 
-  static constexpr bool  kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
 
   /// Host-constructable parameters structure
   struct Params {
@@ -81,39 +81,39 @@ public:
     // Methods
     //
 
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params() {}
   };
 
 public:
 
   /// Constructs the function object, possibly loading from pointers in host memory
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   Convert(Params const &params = Params()) {
 
   }
 
   /// Functionally required for serial reduction in the epilogue
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void set_k_partition(int k_partition, int k_partition_count) {
 
   }
 
   /// Returns true if source is needed based on state of runtime arguments
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   constexpr bool is_source_needed() const {
     return false;
   }
 
   /// Constexpr function to enable the compiler to optimize away the source loading if it is
   /// never needed.
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   constexpr bool is_source_ever_needed() const {
     return false;
   }
 
   /// Computes linear scaling: D = alpha * accumulator + beta * source
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   FragmentOutput operator()(
     FragmentAccumulator const &accumulator, 
     FragmentOutput const &source = FragmentOutput(),
@@ -126,15 +126,15 @@ public:
   }
 
   //
-  // Specializations for scalar (for use with cute_rt_tm::collective::DefaultEpilogue)
+  // Specializations for scalar (for use with nihilus_cute::collective::DefaultEpilogue)
   //
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   ElementD operator()(ElementAccumulator const accumulator, ElementAccumulator const source) const {
     NumericConverter<ElementD, ElementAccumulator, Round> destination_converter;
     return destination_converter(source);
   }
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   ElementD operator()(ElementAccumulator const accumulator) const {
     NumericConverter<ElementD, ElementAccumulator, Round> destination_converter;
     return destination_converter(accumulator);

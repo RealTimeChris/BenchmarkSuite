@@ -38,7 +38,7 @@
 #pragma once
 
 #include "nihilus_gemm/half.h"
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/functional.h"
@@ -86,8 +86,8 @@ public:
   using ElementAccumulator = ElementAccumulator_;
   using ElementCompute = ElementCompute_;
 
-  static constexpr int  kCount = Count;
-  static constexpr ScaleType::Kind kScale = Scale;
+  static constexpr int kCount = Count;
+  static const ScaleType::Kind kScale = Scale;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
@@ -95,9 +95,9 @@ public:
   using FragmentScaleBias = Array<ElementCompute, kCount>;
   using FragmentSource = Array<ElementOutput, kCount>;
 
-  static constexpr FloatRoundStyle  kRound = Round;
+  static constexpr FloatRoundStyle kRound = Round;
 
-  static constexpr bool  kIsHeavy = detail::LinearCombinationRelu0IsHeavy();
+  static constexpr bool kIsHeavy = detail::LinearCombinationRelu0IsHeavy();
 
   /// Host-constructable parameters structure
   struct Params {
@@ -110,14 +110,14 @@ public:
     // Methods
     //
 
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params(): 
       alpha(ElementCompute(1)), 
       beta(ElementCompute(0)),
       alpha_ptr(nullptr), 
       beta_ptr(nullptr) { }
 
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params(
       ElementCompute alpha,
       ElementCompute beta = ElementCompute(0)
@@ -125,7 +125,7 @@ public:
 
     }
 
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params(
       ElementCompute const *alpha_ptr,
       ElementCompute const *beta_ptr = nullptr
@@ -146,7 +146,7 @@ private:
 public:
 
   /// Constructs the function object, possibly loading from pointers in host memory
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LinearCombinationRelu0(Params const &params) {
 
     alpha_ = (params.alpha_ptr ? *params.alpha_ptr : params.alpha);
@@ -154,7 +154,7 @@ public:
   }
 
   /// Returns true if source is needed
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   bool is_source_needed() const {
     if (Scale == ScaleType::NoBetaScaling) return true;
 
@@ -166,13 +166,13 @@ public:
   }
 
   /// This is used for serial reduction which is not supported by Relu0
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void set_k_partition(int k_partition, int k_partition_count) {
     assert(k_partition == 0);
   }
   
   /// Computes linear scaling: D = alpha * accumulator + beta * source
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   FragmentOutput operator()(
     FragmentAccumulator const &accumulator, 
     FragmentOutput const &source) const {
@@ -211,7 +211,7 @@ public:
   }
 
   /// Computes linear scaling: D = alpha * accumulator
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   FragmentOutput operator()(
     FragmentAccumulator const &accumulator) const {
 
@@ -243,7 +243,7 @@ public:
 
   /// Computes per-channel linear scaling and bias : D = scale * accumulator + bias
   /// Scale and Bias are from input Fragment
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   FragmentOutput operator()(
     FragmentAccumulator const &accumulator,
     FragmentScaleBias const &scale,
@@ -300,10 +300,10 @@ public:
   using ElementAccumulator = int;
   using ElementCompute = float;
 
-  static constexpr bool  kIsHeavy = detail::LinearCombinationRelu0IsHeavy();
+  static constexpr bool kIsHeavy = detail::LinearCombinationRelu0IsHeavy();
 
-  static constexpr int  kCount = Count;
-  static constexpr ScaleType::Kind kScale = Scale;
+  static constexpr int kCount = Count;
+  static const ScaleType::Kind kScale = Scale;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
@@ -311,7 +311,7 @@ public:
   using FragmentScaleBias = Array<ElementCompute, kCount>;
   using FragmentSource = Array<ElementOutput, kCount>;
 
-  static constexpr FloatRoundStyle  kRound = Round;
+  static constexpr FloatRoundStyle kRound = Round;
 
   /// Host-constructable parameters structure
   struct Params {
@@ -324,14 +324,14 @@ public:
     // Methods
     //
 
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params(): 
       alpha(ElementCompute(1)), 
       beta(ElementCompute(0)),
       alpha_ptr(nullptr), 
       beta_ptr(nullptr) { }
 
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params(
       ElementCompute alpha,
       ElementCompute beta = ElementCompute(0)
@@ -339,7 +339,7 @@ public:
 
     }
 
-    CUTLASS_HOST_DEVICE
+    NIHILUS_HOST_DEVICE
     Params(
       ElementCompute const *alpha_ptr,
       ElementCompute const *beta_ptr = nullptr
@@ -360,7 +360,7 @@ private:
 public:
 
   /// Constructs the function object, possibly loading from pointers in host memory
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   LinearCombinationRelu0(Params const &params) {
 
     alpha_ = (params.alpha_ptr ? *params.alpha_ptr : params.alpha);
@@ -368,7 +368,7 @@ public:
   }
 
   /// Returns true if source is needed
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   bool is_source_needed() const {
     if (Scale == ScaleType::NoBetaScaling) return true;
 
@@ -380,13 +380,13 @@ public:
   }
 
   /// This is used for serial reduction which is not supported by Relu0
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void set_k_partition(int k_partition, int k_partition_count) {
     assert(k_partition == 0);
   }
   
   /// Computes linear scaling: D = alpha * accumulator + beta * source
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   FragmentOutput operator()(
     FragmentAccumulator const &accumulator, 
     FragmentOutput const &source) const {
@@ -439,7 +439,7 @@ public:
   }
 
   /// Computes linear scaling: D = alpha * accumulator
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   FragmentOutput operator()(
     FragmentAccumulator const &accumulator) const {
 
@@ -485,7 +485,7 @@ public:
 
   /// Computes per-channel linear scaling and bias : D = scale * accumulator + bias
   /// Scale and Bias are from input Fragment
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   FragmentOutput operator()(
     FragmentAccumulator const &accumulator,
     FragmentScaleBias const &scale,

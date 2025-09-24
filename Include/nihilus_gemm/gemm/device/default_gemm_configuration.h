@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/arch/arch.h"
 #include "nihilus_gemm/arch/mma.h"
@@ -78,12 +78,12 @@ struct DefaultGemmConfiguration<
   ElementC, 
   ElementAccumulator> {
   
-  static constexpr int  kAlignmentA = 1;
-  static constexpr int  kAlignmentB = 1;
+  static constexpr int kAlignmentA = 1;
+  static constexpr int kAlignmentB = 1;
   using ThreadblockShape = GemmShape<128, 128, 8>;
   using WarpShape = GemmShape<32, 64, 8>;
   using InstructionShape = GemmShape<1, 1, 1>;
-  static constexpr int  kStages = 2;
+  static constexpr int kStages = 2;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombination<
     ElementC,
@@ -96,6 +96,28 @@ struct DefaultGemmConfiguration<
 };
 
 ////////////////////////////////////////////////////////////////////////////////
+
+template < 
+  typename ArchTag,
+  typename ElementC>
+struct DefaultGemmConfiguration<arch::OpClassSimt, ArchTag, int8_t, int8_t, ElementC, int32_t> {
+  
+  static constexpr int kAlignmentA = 4;
+  static constexpr int kAlignmentB = 4;
+  using ThreadblockShape = GemmShape<128, 128, 32>;
+  using WarpShape = GemmShape<32, 64, 32>;
+  using InstructionShape = GemmShape<1, 1, 4>;
+  static constexpr int kStages = 2;
+
+  using EpilogueOutputOp = epilogue::thread::LinearCombinationClamp<
+    ElementC,
+    1,
+    int32_t,
+    float
+  >;
+
+  using Operator = arch::OpMultiplyAdd;
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 

@@ -33,7 +33,7 @@
 */
 
 #pragma once
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include CUDA_STD_HEADER(cassert)
 #include "nihilus_gemm/layout/matrix.h"
 
@@ -62,7 +62,7 @@ struct Wmma<
   LayoutC_,                                 ///< LayoutC
   nihilus_gemm::arch::OpMultiplyAdd              ///< Operator (multiply-add, xor.popc)
 > {
-#if defined(CUTLASS_ARCH_WMMA_SM72_ENABLED)
+#if defined(NIHILUS_ARCH_WMMA_SM72_ENABLED)
   using Shape = Shape_;
   using ElementA = int8_t;
   using LayoutA = LayoutA_;
@@ -106,7 +106,7 @@ struct Wmma<
           typename CutlassToWmmaDataType<ElementC>::Type>;
 
   /// Performs a nvcuda::wmma matrix multiply-accumulate operation
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void operator()(
     FragmentC &D, 
     FragmentA const &A, 
@@ -143,7 +143,7 @@ struct Wmma<
   LayoutC_,                                 ///< LayoutC
   nihilus_gemm::arch::OpMultiplyAdd              ///< Operator (multiply-add, xor.popc)
 > {
-#if defined(CUTLASS_ARCH_WMMA_SM72_ENABLED)
+#if defined(NIHILUS_ARCH_WMMA_SM72_ENABLED)
   using Shape = Shape_;
   using ElementA = uint8_t;
   using LayoutA = LayoutA_;
@@ -186,7 +186,7 @@ struct Wmma<
           typename CutlassToWmmaDataType<ElementC>::Type>;
   
   /// Performs a nvcuda::wmma matrix multiply-accumulate operation
-  CUTLASS_DEVICE
+  NIHILUS_DEVICE
   void operator()(
     FragmentC &D, 
     FragmentA const &A, 

@@ -60,7 +60,7 @@ struct Mma<
   using Operator = OpMultiplyAdd;
   using ElementC = int;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     Array<int, 1> &d,
     Array<int8_t, 4> const &a,
@@ -81,7 +81,7 @@ struct Mma<
 
     d[0] = c[0];
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int k = 0; k < 4; ++k) {
       d[0] += a[k] * b[k];
     }
@@ -109,7 +109,7 @@ struct Mma<
   using Operator = OpMultiplyAdd;
   using ElementC = int;
 
-  CUTLASS_HOST_DEVICE
+  NIHILUS_HOST_DEVICE
   void operator()(
     Array<int, 1> &d,
     Array<int16_t, 2> const &a,
@@ -128,7 +128,7 @@ struct Mma<
 #else
     d[0] = c[0];
 
-    CUTLASS_PRAGMA_UNROLL
+    NIHILUS_PRAGMA_UNROLL
     for (int k = 0; k < 2; ++k) {
       d[0] += a[k] * b[k];
     }

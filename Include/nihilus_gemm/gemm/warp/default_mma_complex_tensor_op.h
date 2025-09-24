@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/nihilus_gemm.h"
 #include "nihilus_gemm/gemm/warp/mma_complex_tensor_op.h"
 #include "nihilus_gemm/gemm/warp/mma_complex_tensor_op_fast_f32.h"
 #include "nihilus_gemm/gemm/warp/mma_gaussian_complex_tensor_op.h"
