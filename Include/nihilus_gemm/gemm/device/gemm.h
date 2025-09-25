@@ -287,8 +287,15 @@ namespace nihilus_gemm {
 				};
 
 			  private:
+				static constexpr auto new_dimensions{ [] {
+					ThreadblockSwizzle threadblock_swizzle;
+
+					constexpr auto grid_shape = threadblock_swizzle.template get_tiled_shape<Arguments::split_k_slices>(constexpresh_gemm_coord<M, K>{},
+						constexpresh_gemm_coord<ThreadblockShape::kM, ThreadblockShape::kK>{});
+					return grid_shape;
+				}() };
 				/// Kernel parameters object
-				typename GemmKernel::Params params_;
+				typename GemmKernel::Params<decltype(new_dimensions)::M, decltype(new_dimensions)::K> params_;
 
 			  public:
 				/// Constructs the GEMM.
@@ -298,35 +305,34 @@ namespace nihilus_gemm {
 				/// Initializes GEMM state from arguments.
 				Status initialize(Arguments const& args) {
 					// Determine grid shape
-					ThreadblockSwizzle threadblock_swizzle;
+					constexpr ThreadblockSwizzle threadblock_swizzle;
 
-					nihilus_gemm::gemm::GemmCoord grid_shape =
-						threadblock_swizzle.get_tiled_shape(args.problem_size, { ThreadblockShape::kM, ThreadblockShape::kN, ThreadblockShape::kK }, args.split_k_slices);
-
-					if (args.split_k_slices > 1) {
-						return Status::kErrorInvalidProblem;
-					}
+					constexpr auto grid_shape = threadblock_swizzle.template get_tiled_shape<Arguments::split_k_slices>(constexpresh_gemm_coord<M, K>{},
+						constexpresh_gemm_coord<ThreadblockShape::kM, ThreadblockShape::kK>{});
+					grid_shape.N			  = (args.problem_size.n() + ThreadblockShape::kN - 1) / ThreadblockShape::kN;
 
 					// Initialize the Params structure
-					params_ = typename GemmKernel::Params{ args.problem_size, grid_shape, args.ref_A.non_const_ref(), args.ref_B.non_const_ref(), args.ref_C.non_const_ref(),
-						args.ref_D, args.epilogue, nullptr, args.gather_A_indices, args.gather_B_indices, args.scatter_D_indices };
+					params_ = typename GemmKernel::template Params<decltype(new_dimensions)::M, decltype(new_dimensions)::K>{ args.problem_size, grid_shape,
+						args.ref_A.non_const_ref(), args.ref_B.non_const_ref(), args.ref_C.non_const_ref(), args.ref_D, args.epilogue, nullptr, args.gather_A_indices,
+						args.gather_B_indices, args.scatter_D_indices };
 
 					return Status::kSuccess;
 				}
 
 				/// Runs the kernel using initialized state.
 				Status run() {
-					ThreadblockSwizzle threadblock_swizzle;
+					constexpr ThreadblockSwizzle threadblock_swizzle;
 
 					dim3 grid = threadblock_swizzle.get_grid_shape(params_.grid_tiled_shape);
 					dim3 block(GemmKernel::kThreadCount, 1, 1);
 
 					cudaError_t result;
 
-					int smem_size = int(sizeof(typename GemmKernel::SharedStorage));
+					static constexpr int smem_size = int(sizeof(typename GemmKernel::SharedStorage));
 
-					if (smem_size >= (48 << 10)) {
-						result = cudaFuncSetAttribute(Kernel<GemmKernel>, cudaFuncAttributeMaxDynamicSharedMemorySize, smem_size);
+					if constexpr (smem_size >= (48 << 10)) {
+						result = cudaFuncSetAttribute(reinterpret_cast<const void*>(&Kernel<decltype(new_dimensions)::M, decltype(new_dimensions)::K, GemmKernel>),
+							cudaFuncAttributeMaxDynamicSharedMemorySize, smem_size);
 
 						if (result != cudaSuccess) {
 							return Status::kErrorInternal;
@@ -334,7 +340,7 @@ namespace nihilus_gemm {
 					}
 
 					nihilus_gemm::arch::synclog_setup();
-					nihilus_gemm::Kernel<GemmKernel><<<grid, block, smem_size>>>(params_);
+					nihilus_gemm::Kernel<decltype(new_dimensions)::M, decltype(new_dimensions)::K, GemmKernel><<<grid, block, smem_size>>>(params_);
 
 					result = cudaGetLastError();
 

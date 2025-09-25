@@ -70,9 +70,8 @@ template <typename  T>                                                          
 ////////////////////////////////////////////////////////////////////////////////
 
 /// Generic NIHILUS kernel template.
-template <typename Operator>
-NIHILUS_GLOBAL
-void Kernel(typename Operator::Params params) {
+template<uint64_t M_new, uint64_t K_new, typename Operator>
+NIHILUS_GLOBAL void Kernel(typename Operator::Params<M_new, K_new> params) {
   // Dynamic shared memory base pointer
   extern __shared__ int SharedStorageBase[];
   // Declare pointer to dynamic shared memory.

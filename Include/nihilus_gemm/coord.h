@@ -64,7 +64,7 @@ namespace nihilus_gemm {
 		/// Type used to represent linear offsets
 		using LongIndex = LongIndex_;
 
-	  private:
+	  public:
 		//
 		// Data members
 		//
@@ -79,7 +79,7 @@ namespace nihilus_gemm {
 
 		/// Default ctor initializes uniformly
 		NIHILUS_HOST_DEVICE
-		explicit Coord(Index value = Index(0)) {
+		constexpr explicit Coord(Index value = Index(0)) {
 			for (int i = 0; i < kRank; ++i) {
 				idx[i] = value;
 			}
@@ -87,7 +87,7 @@ namespace nihilus_gemm {
 
 		/// Constructs from an array of integers
 		NIHILUS_HOST_DEVICE
-		Coord(Index const (&_idx)[kRank]) {
+		constexpr Coord(Index const (&_idx)[kRank]) {
 			for (int i = 0; i < kRank; ++i) {
 				idx[i] = _idx[i];
 			}
@@ -369,7 +369,7 @@ namespace nihilus_gemm {
 
 		using LongIndex = int64_t;
 
-	  private:
+	  public:
 		static constexpr uint64_t M{ M_new };
 
 	  public:
@@ -506,7 +506,7 @@ namespace nihilus_gemm {
 
 		using LongIndex = int64_t;
 
-	  private:
+	  public:
 		static constexpr uint64_t M{ M_new };
 		static constexpr uint64_t K{ K_new };
 
@@ -675,7 +675,7 @@ namespace nihilus_gemm {
 
 		using LongIndex = int64_t;
 
-	  private:
+	  public:
 		static constexpr uint64_t M{ M_new };
 		mutable uint64_t N{};
 
@@ -849,7 +849,7 @@ namespace nihilus_gemm {
 
 		using LongIndex = int64_t;
 
-	  protected:
+	  public:
 		static constexpr uint64_t M{ M_new };
 		static constexpr uint64_t K{ K_new };
 		mutable uint64_t N{};
@@ -1087,31 +1087,31 @@ namespace nihilus_gemm {
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/// Helper to make a 1-element coordinate
-	template<typename T> NIHILUS_HOST_DEVICE Coord<1, T> make_Coord(T _0) {
+	template<typename T> NIHILUS_HOST_DEVICE constexpr Coord<1, T> make_Coord(T _0) {
 		T values[1] = { _0 };
 		return Coord<1, T>(values);
 	}
 
 	/// Helper to make a 2-element coordinate
-	template<typename T> NIHILUS_HOST_DEVICE Coord<2, T> make_Coord(T _0, T _1) {
+	template<typename T> NIHILUS_HOST_DEVICE constexpr Coord<2, T> make_Coord(T _0, T _1) {
 		T values[2] = { _0, _1 };
 		return Coord<2, T>(values);
 	}
 
 	/// Helper to make a 3-element coordinate
-	template<typename T> NIHILUS_HOST_DEVICE Coord<3, T> make_Coord(T _0, T _1, T _2) {
+	template<typename T> NIHILUS_HOST_DEVICE constexpr Coord<3, T> make_Coord(T _0, T _1, T _2) {
 		T values[3] = { _0, _1, _2 };
 		return Coord<3, T>(values);
 	}
 
 	/// Helper to make a 4-element coordinate
-	template<typename T> NIHILUS_HOST_DEVICE Coord<4, T> make_Coord(T _0, T _1, T _2, T _3) {
+	template<typename T> NIHILUS_HOST_DEVICE constexpr Coord<4, T> make_Coord(T _0, T _1, T _2, T _3) {
 		T values[4] = { _0, _1, _2, _3 };
 		return Coord<4, T>(values);
 	}
 
 	/// Helper to make a 5-element coordinate
-	template<typename T> NIHILUS_HOST_DEVICE Coord<5, T> make_Coord(T _0, T _1, T _2, T _3, T _4) {
+	template<typename T> NIHILUS_HOST_DEVICE constexpr Coord<5, T> make_Coord(T _0, T _1, T _2, T _3, T _4) {
 		T values[5] = { _0, _1, _2, _3, _4 };
 		return Coord<5, T>(values);
 	}

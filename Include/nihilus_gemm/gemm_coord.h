@@ -103,17 +103,17 @@ namespace nihilus_gemm {
 
 			/// Default ctor
 			NIHILUS_HOST_DEVICE
-			GemmCoord() {
+			constexpr GemmCoord() {
 			}
 
 			/// Constructs from Coord<3> and a batch
 			NIHILUS_HOST_DEVICE
-			GemmCoord(Coord<3, Index> const& coord) : Base(make_Coord(coord[0], coord[1], coord[2])) {
+			constexpr GemmCoord(Coord<3, Index> const& coord) : Base(make_Coord(coord[0], coord[1], coord[2])) {
 			}
 
 			/// Helper to construct from a K, N, M, batch variables
 			NIHILUS_HOST_DEVICE
-			GemmCoord(Index m, Index n, Index k) : Base(make_Coord(m, n, k)) {
+			constexpr GemmCoord(Index m, Index n, Index k) : Base(make_Coord(m, n, k)) {
 			}
 
 			/// Returns the GEMM M coordinate
@@ -265,11 +265,11 @@ namespace nihilus_gemm {
 			static constexpr uint64_t kK = 2;
 
 			NIHILUS_HOST_DEVICE
-			constexpresh_gemm_coord(Index index = 0) : Base{ index } {
+			constexpr constexpresh_gemm_coord(Index index = 0) : Base{ index } {
 			}
 
 			NIHILUS_HOST_DEVICE
-			constexpresh_gemm_coord(constexpresh_coord<3, M, K> const& coord) : Base(make_Coord<M, K>(coord[2])) {};
+			constexpr constexpresh_gemm_coord(constexpresh_coord<3, M, K> const& coord) : Base(make_Coord<M, K>(coord[2])) {};
 
 			NIHILUS_HOST_DEVICE operator GemmCoord() const {
 				return { static_cast<int32_t>(Base::M), static_cast<int32_t>(Base::N), static_cast<int32_t>(Base::K) };
@@ -277,7 +277,7 @@ namespace nihilus_gemm {
 
 			/// Returns the GEMM M coordinate
 			NIHILUS_HOST_DEVICE
-			consteval Index m() const {
+			Index m() const {
 				return Base::M;
 			}
 
