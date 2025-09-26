@@ -864,7 +864,8 @@ namespace nihilus_gemm {
 
 	  public:
 		NIHILUS_HOST_DEVICE
-		constexpr explicit constexpresh_coord(Index index = 0) : rt_index_base{ index } {}
+		constexpr explicit constexpresh_coord(Index index = 0) : rt_index_base{ index } {
+		}
 
 		NIHILUS_HOST_DEVICE constexpr constexpresh_coord(const constexpresh_coord& other) : rt_index_base{ other.N } {};
 

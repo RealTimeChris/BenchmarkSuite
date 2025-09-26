@@ -6,7 +6,6 @@ project(
   LANGUAGES CUDA
 )
 
-
 find_package(CUDAToolkit REQUIRED)
 
 if(MSVC OR NVCC)
@@ -45,6 +44,7 @@ target_link_libraries(
     BenchmarkSuite::BenchmarkSuite
     CUDA::cudart_static
     CUDA::cublas
+    ggml
 )
 
 target_link_options(
@@ -84,6 +84,48 @@ install(
 	"$<TARGET_FILE:BenchmarkExe>"
 	DESTINATION "$<IF:$<CONFIG:Debug>,bin,bin>"
 	OPTIONAL
+)
+
+if(BUILD_SHARED_LIBS)
+    add_custom_command(TARGET BenchmarkExe POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        $<TARGET_FILE:ggml> $<TARGET_FILE_DIR:BenchmarkExe>
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different  
+        $<TARGET_FILE:ggml-cuda> $<TARGET_FILE_DIR:BenchmarkExe>
+        COMMENT "Copying GGML DLLs to output directory"
+    )
+endif()
+
+if (WIN32)
+	install(
+		FILES 
+		"$<TARGET_PDB_FILE:BenchmarkExe>"
+		DESTINATION "bin"
+		OPTIONAL
+	)
+endif()
+
+install(
+	FILES 
+	"$<TARGET_FILE:BenchmarkExe>"
+	DESTINATION "bin"
+	OPTIONAL
+)
+
+install(
+    FILES "$<TARGET_FILE:ggml>"
+    DESTINATION "$<TARGET_FILE_DIR:BenchmarkExe>"
+    OPTIONAL
+)
+install(
+    FILES "$<TARGET_FILE:ggml-cpu>"
+    DESTINATION "$<TARGET_FILE_DIR:BenchmarkExe>"
+    OPTIONAL
+)
+install(
+    FILES "$<TARGET_FILE:ggml-base>"
+    DESTINATION "$<TARGET_FILE_DIR:BenchmarkExe>"
+    OPTIONAL
 )
 
 if (GENERATE_ASSEMBLY STREQUAL "TRUE")

@@ -41,7 +41,7 @@
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/fast_math.h"
 
-#include "nihilus_gemm/numeric_types.h"
+
 #include "nihilus_gemm/matrix_shape.h"
 
 

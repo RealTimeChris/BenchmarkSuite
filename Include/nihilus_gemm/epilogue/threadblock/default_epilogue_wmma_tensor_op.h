@@ -39,7 +39,7 @@
 #pragma once
 
 #include "nihilus_gemm/nihilus_gemm.h"
-#include "nihilus_gemm/numeric_types.h"
+
 #include "nihilus_gemm/array.h"
 
 #include "nihilus_gemm/gemm/gemm.h"

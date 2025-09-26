@@ -41,49 +41,44 @@
 
 namespace nihilus_gemm {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Array holding planar complex elements
-template <typename Element_, int N>
-struct ArrayPlanarComplex {
+	/// Array holding planar complex elements
+	template<typename Element_, int N> struct ArrayPlanarComplex {
+		/// Underlying real element
+		using Element = Element_;
 
-  /// Underlying real element
-  using Element = Element_;
+		/// Number of logical elements
+		static constexpr size_t kElements = N;
 
-  /// Number of logical elements
-  static constexpr size_t kElements = N;
+		/// Underlying Fragment of real-valued elemenets
+		using ArrayReal = nihilus_gemm::Array<Element, N>;
 
-  /// Underlying Fragment of real-valued elemenets
-  using ArrayReal = nihilus_gemm::Array<Element, N>;
+	  public:
+		/// Fragment of real-valued elements representing the real part
+		ArrayReal real;
 
-public:
-  /// Fragment of real-valued elements representing the real part
-  ArrayReal real;
+		/// Fragment of real-valued elements representing the imaginary part
+		ArrayReal imag;
 
-  /// Fragment of real-valued elements representing the imaginary part
-  ArrayReal imag;
+	  public:
+		/// Sets the array to zero efficiently
+		NIHILUS_HOST_DEVICE
+		void clear() {
+			real.clear();
+			imag.clear();
+		}
+	};
 
-public:
-  /// Sets the array to zero efficiently
-  NIHILUS_HOST_DEVICE
-  void clear() {
-    real.clear();
-    imag.clear();
-  }
-};
+	/////////////////////////////////////////////////////////////////////////////////////////////////
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
+	/// Helper to deduce template arguments
+	template<typename Element, int N> NIHILUS_HOST_DEVICE ArrayPlanarComplex<Element, N> make_ArrayPlanarComplex(Array<Element, N> const& real, Array<Element, N> const& imag) {
+		return ArrayPlanarComplex<Element, N>{ real, imag };
+	}
 
-/// Helper to deduce template arguments
-template <typename Element, int N>
-NIHILUS_HOST_DEVICE
-ArrayPlanarComplex<Element, N> 
-make_ArrayPlanarComplex(Array<Element, N> const &real, Array<Element, N> const &imag) {
-  return ArrayPlanarComplex<Element, N>{real, imag};
-}
+	/////////////////////////////////////////////////////////////////////////////////////////////////
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
-
-} // namespace nihilus_gemm
+}// namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

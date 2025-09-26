@@ -34,7 +34,7 @@
 #include <nihilus_cute/numeric/int.hpp>     // nihilus_cute::int2_t, nihilus_cute::int4_t, etc
 
 #include <nihilus_gemm/numeric_size.h>   // nihilus_gemm::sizeof_bits
-#include <nihilus_gemm/numeric_types.h>  // nihilus_gemm::float_e4m3_t, nihilus_gemm::float_e5m2_t, etc
+ // nihilus_gemm::float_e4m3_t, nihilus_gemm::float_e5m2_t, etc
 
 namespace nihilus_cute {
 

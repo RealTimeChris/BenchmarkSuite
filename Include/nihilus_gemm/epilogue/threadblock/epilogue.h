@@ -41,7 +41,7 @@
 #include "nihilus_gemm/nihilus_gemm.h"
 #include CUDA_STD_HEADER(cassert)
 
-#include "nihilus_gemm/numeric_types.h"
+
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/layout/vector.h"
 #include "nihilus_gemm/layout/tensor.h"
@@ -431,7 +431,7 @@ public:
   struct acc2smem;
 
   template <size_t... Seq>
-  struct acc2smem<nihilus_gemm::index_sequence<Seq...>> {
+  struct acc2smem<std::index_sequence<Seq...>> {
     template<int Advance>
     NIHILUS_DEVICE
     static void helper(AccumulatorFragmentIterator accum_fragment_iterator,
@@ -493,7 +493,7 @@ public:
 
       __syncthreads();
 
-      acc2smem<nihilus_gemm::make_index_sequence<OutputTileIterator::kIterations>>::push(
+      acc2smem<std::make_index_sequence<OutputTileIterator::kIterations>>::push(
         iter, accum_fragment_iterator, this->warp_tile_iterator_);
 
       __syncthreads();

@@ -40,90 +40,79 @@
 
 namespace nihilus_gemm {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Modifies semantics of nihilus_gemm::Array<> to provide guaranteed alignment. 
-template <
-  typename T,
-  int N,
-  int Align = 16
->
-struct AlignedBuffer {
-  
-  /// Internal storage type
-  using Storage = uint8_t;
+	/// Modifies semantics of nihilus_gemm::Array<> to provide guaranteed alignment.
+	template<typename T, int N, int Align = 16> struct AlignedBuffer {
+		/// Internal storage type
+		using Storage = uint8_t;
 
-  /// Number of logical elements held in buffer
-  static constexpr int  kCount = N;
+		/// Number of logical elements held in buffer
+		static constexpr int kCount = N;
 
-  /// Alignment requirement in bytes
-  static constexpr int  kAlign = Align;
+		/// Alignment requirement in bytes
+		static constexpr int kAlign = Align;
 
-  /// Number of storage elements
-  static constexpr int  kBytes = 
-    (sizeof_bits<T>::value * N + 7) / 8;
+		/// Number of storage elements
+		static constexpr int kBytes = (sizeof_bits<T>::value * N + 7) / 8;
 
-private:
+	  private:
+		/// Internal storage
+		alignas(Align) Storage storage[kBytes];
 
-  /// Internal storage
-  alignas(Align) Storage storage[kBytes];
+	  public:
+		//
+		// C++ standard members
+		//
 
-public:
+		typedef T value_type;
+		typedef size_t size_type;
+		typedef ptrdiff_t difference_type;
+		typedef value_type* pointer;
+		typedef value_type const* const_pointer;
 
-  //
-  // C++ standard members
-  //
+		using Array			  = Array<T, N>;
+		using reference		  = typename Array::reference;
+		using const_reference = typename Array::const_reference;
 
-  typedef T value_type;
-  typedef size_t size_type;
-  typedef ptrdiff_t difference_type;
-  typedef value_type *pointer;
-  typedef value_type const * const_pointer;
+	  public:
+		NIHILUS_HOST_DEVICE
+		pointer data() {
+			return reinterpret_cast<pointer>(storage);
+		}
 
-  using Array = Array<T, N>;
-  using reference = typename Array::reference;
-  using const_reference = typename Array::const_reference;
+		NIHILUS_HOST_DEVICE
+		const_pointer data() const {
+			return reinterpret_cast<pointer>(storage);
+		}
 
-public:
+		NIHILUS_HOST_DEVICE
+		Storage* raw_data() {
+			return storage;
+		}
 
-  NIHILUS_HOST_DEVICE
-  pointer data() {
-    return reinterpret_cast<pointer>(storage); 
-  }
-
-  NIHILUS_HOST_DEVICE
-  const_pointer data() const {
-    return reinterpret_cast<pointer>(storage); 
-  }
-  
-  NIHILUS_HOST_DEVICE
-  Storage * raw_data() {
-    return storage;
-  }
-
-  NIHILUS_HOST_DEVICE
-  Storage const * raw_data() const {
-    return storage;
-  }
+		NIHILUS_HOST_DEVICE
+		Storage const* raw_data() const {
+			return storage;
+		}
 
 
-  NIHILUS_HOST_DEVICE
-  constexpr bool empty() const {
-    return !kCount;
-  }
+		NIHILUS_HOST_DEVICE
+		constexpr bool empty() const {
+			return !kCount;
+		}
 
-  NIHILUS_HOST_DEVICE
-  constexpr size_type size() const {
-    return kCount;
-  }
+		NIHILUS_HOST_DEVICE
+		constexpr size_type size() const {
+			return kCount;
+		}
 
-  NIHILUS_HOST_DEVICE
-  constexpr size_type max_size() const {
-    return kCount;
-  }
-};
+		NIHILUS_HOST_DEVICE
+		constexpr size_type max_size() const {
+			return kCount;
+		}
+	};
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace nihilus_gemm
-
+}// namespace nihilus_gemm

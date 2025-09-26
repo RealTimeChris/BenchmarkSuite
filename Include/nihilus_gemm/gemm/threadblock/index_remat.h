@@ -41,63 +41,6 @@
 namespace nihilus_gemm {
 namespace gemm {
 namespace threadblock {
-
-/////////////////////////////////////////////////////////////////////////////////////////////////
-
-/// Helper to rematerialize block Idx. Reduces register liveness.
-NIHILUS_DEVICE
-int RematerializeThreadIdxX() {
-  return threadIdx.x;
-}
-
-/// Helper to rematerialize block Idx. Reduces register liveness.
-NIHILUS_DEVICE
-int RematerializeThreadIdxY() {
-  return threadIdx.y;
-}
-
-/// Helper to rematerialize block Idx. Reduces register liveness.
-NIHILUS_DEVICE
-int RematerializeThreadIdxZ() {
-  return threadIdx.z;
-}
-
-/// Helper to rematerialize block Idx. Reduces register liveness.
-NIHILUS_DEVICE
-int RematerializeBlockIdxX() {
-  return blockIdx.x;
-}
-
-/// Helper to rematerialize block Idx. Reduces register liveness.
-NIHILUS_DEVICE
-int RematerializeBlockIdxY() {
-  return blockIdx.y;
-}
-
-/// Helper to rematerialize block Idx. Reduces register liveness.
-NIHILUS_DEVICE
-int RematerializeBlockIdxZ() {
-  return blockIdx.z;
-}
-
-/// Helper to rematerialize block Dim. Reduces register liveness.
-NIHILUS_DEVICE
-int RematerializeBlockDimX() {
-  return blockDim.x;
-}
-
-/// Helper to rematerialize block Dim. Reduces register liveness.
-NIHILUS_DEVICE
-int RematerializeBlockDimY() {
-  return blockDim.y;
-}
-
-/// Helper to rematerialize block Dim. Reduces register liveness.
-NIHILUS_DEVICE
-int RematerializeBlockDimZ() {
-  return blockDim.z;
-}
-
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace threadblock

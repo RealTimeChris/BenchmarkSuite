@@ -38,144 +38,147 @@
 
 namespace nihilus_gemm {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Template defining a shape used by pitch-linear operators
-template <
-  int Contiguous,
-  int Strided
->
-struct PitchLinearShape {
-  static constexpr int kContiguous = Contiguous;
-  static constexpr int kStrided = Strided;
-  static constexpr int kCount = Contiguous * Strided;
-};
+	/// Template defining a shape used by pitch-linear operators
+	template<int Contiguous, int Strided> struct PitchLinearShape {
+		static constexpr int kContiguous = Contiguous;
+		static constexpr int kStrided	 = Strided;
+		static constexpr int kCount		 = Contiguous * Strided;
+	};
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Coordinate in pitch-linear space
-struct PitchLinearCoord : public Coord<2, int> {
-public:
+	/// Coordinate in pitch-linear space
+	struct PitchLinearCoord : public Coord<2, int> {
+	  public:
+		/// Integer-valued index
+		using Index = int;
 
-  /// Integer-valued index
-  using Index = int;
+		/// Base type is a Coord of rank=2
+		using Base = Coord<2, Index>;
 
-  /// Base type is a Coord of rank=2
-  using Base = Coord<2, Index>;
+		/// Long integer type
+		using LongIndex = typename Base::LongIndex;
 
-  /// Long integer type
-  using LongIndex = typename Base::LongIndex;
+	  private:
+		/// Rows dimension
+		static constexpr int kContiguous = 0;
 
-private:
+		/// Columns dimension
+		static constexpr int kStrided = 1;
 
-  /// Rows dimension
-  static constexpr int kContiguous = 0;
+	  public:
+		//
+		// Methods
+		//
 
-  /// Columns dimension
-  static constexpr int kStrided = 1;
+		/// Default ctor
+		NIHILUS_HOST_DEVICE
+		PitchLinearCoord() {
+		}
 
-public:
+		/// Constructs from Coord<2>
+		NIHILUS_HOST_DEVICE
+		PitchLinearCoord(Coord<2, Index> const& coord) : Base(coord) {
+		}
 
-  //
-  // Methods
-  //
+		/// Helper to construct from a row and column
+		NIHILUS_HOST_DEVICE
+		PitchLinearCoord(Index contiguous_, Index strided_) : Base(make_Coord(contiguous_, strided_)) {
+		}
 
-  /// Default ctor
-  NIHILUS_HOST_DEVICE
-  PitchLinearCoord() { }
+		/// Helper to construct from a row and column based on LongIndex
+		NIHILUS_HOST_DEVICE
+		PitchLinearCoord(LongIndex contiguous_, LongIndex strided_) : Base(make_Coord(Index(contiguous_), Index(strided_))) {
+		}
 
-  /// Constructs from Coord<2>
-  NIHILUS_HOST_DEVICE
-  PitchLinearCoord(Coord<2, Index> const &coord): Base(coord) { }
+		/// Returns the contiguous dimension
+		NIHILUS_HOST_DEVICE
+		Index const& contiguous() const {
+			return this->at(kContiguous);
+		}
 
-  /// Helper to construct from a row and column
-  NIHILUS_HOST_DEVICE
-  PitchLinearCoord(Index contiguous_, Index strided_): Base(make_Coord(contiguous_, strided_)) { }
+		/// Returns the contiguous dimension
+		NIHILUS_HOST_DEVICE
+		Index& contiguous() {
+			return this->at(kContiguous);
+		}
 
-  /// Helper to construct from a row and column based on LongIndex
-  NIHILUS_HOST_DEVICE
-  PitchLinearCoord(LongIndex contiguous_, LongIndex strided_)
-    : Base(make_Coord(Index(contiguous_), Index(strided_))) { }
+		/// Returns the column of the coordinate
+		NIHILUS_HOST_DEVICE
+		Index const& strided() const {
+			return this->at(kStrided);
+		}
 
-  /// Returns the contiguous dimension
-  NIHILUS_HOST_DEVICE
-  Index const & contiguous() const { return this->at(kContiguous); }
+		/// Returns the column of the coordinate
+		NIHILUS_HOST_DEVICE
+		Index& strided() {
+			return this->at(kStrided);
+		}
 
-  /// Returns the contiguous dimension
-  NIHILUS_HOST_DEVICE
-  Index & contiguous() { return this->at(kContiguous); }
+		//
+		// Coord operators
+		//
 
-  /// Returns the column of the coordinate
-  NIHILUS_HOST_DEVICE
-  Index const & strided() const { return this->at(kStrided); }
+		/// Element-wise addition
+		NIHILUS_HOST_DEVICE
+		PitchLinearCoord operator+(Base const& b) const {
+			return PitchLinearCoord(Base::operator+(b));
+		}
 
-  /// Returns the column of the coordinate
-  NIHILUS_HOST_DEVICE
-  Index & strided() { return this->at(kStrided); }
+		/// Element-wise subtraction
+		NIHILUS_HOST_DEVICE
+		PitchLinearCoord operator-(Base const& b) const {
+			return PitchLinearCoord(Base::operator-(b));
+		}
 
-  //
-  // Coord operators
-  //
+		NIHILUS_HOST_DEVICE
+		PitchLinearCoord operator-() const {
+			return PitchLinearCoord(-at(0), -at(1));
+		}
 
-  /// Element-wise addition
-  NIHILUS_HOST_DEVICE
-  PitchLinearCoord operator+(Base const& b) const {
-    return PitchLinearCoord(Base::operator+(b));
-  }
+		/// Element-wise multiplication
+		NIHILUS_HOST_DEVICE
+		PitchLinearCoord operator*(Base const& b) const {
+			return PitchLinearCoord(Base::operator*(b));
+		}
 
-  /// Element-wise subtraction
-  NIHILUS_HOST_DEVICE
-  PitchLinearCoord operator-(Base const& b) const {
-    return PitchLinearCoord(Base::operator-(b));
-  }
+		/// Element-wise division
+		NIHILUS_HOST_DEVICE
+		PitchLinearCoord operator/(Base const& b) const {
+			return PitchLinearCoord(Base::operator/(b));
+		}
 
-  NIHILUS_HOST_DEVICE
-  PitchLinearCoord operator-() const {
-    return PitchLinearCoord(-at(0), -at(1));
-  }
+		/// In-place addition
+		NIHILUS_HOST_DEVICE
+		PitchLinearCoord& operator+=(Base const& b) {
+			Base::operator+=(b);
+			return *this;
+		}
 
-  /// Element-wise multiplication
-  NIHILUS_HOST_DEVICE
-  PitchLinearCoord operator*(Base const& b) const {
-    return PitchLinearCoord(Base::operator*(b));
-  }
+		/// In-place subtraction
+		NIHILUS_HOST_DEVICE
+		PitchLinearCoord& operator-=(Base const& b) {
+			Base::operator-=(b);
+			return *this;
+		}
 
-  /// Element-wise division
-  NIHILUS_HOST_DEVICE
-  PitchLinearCoord operator/(Base const& b) const {
-    return PitchLinearCoord(Base::operator/(b));
-  }
+		/// In-place multiplication
+		NIHILUS_HOST_DEVICE
+		PitchLinearCoord& operator*=(Base const& b) {
+			Base::operator*=(b);
+			return *this;
+		}
 
-  /// In-place addition
-  NIHILUS_HOST_DEVICE
-  PitchLinearCoord& operator+=(Base const& b) {
-    Base::operator+=(b);
-    return *this;
-  }
+		/// In-place division
+		NIHILUS_HOST_DEVICE
+		PitchLinearCoord& operator/=(Base const& b) {
+			Base::operator/=(b);
+			return *this;
+		}
+	};
 
-  /// In-place subtraction
-  NIHILUS_HOST_DEVICE
-  PitchLinearCoord& operator-=(Base const& b) {
-    Base::operator-=(b);
-    return *this;
-  }
+	/////////////////////////////////////////////////////////////////////////////////////////////////
 
-  /// In-place multiplication
-  NIHILUS_HOST_DEVICE
-  PitchLinearCoord& operator*=(Base const& b) {
-    Base::operator*=(b);
-    return *this;
-  }
-
-  /// In-place division
-  NIHILUS_HOST_DEVICE
-  PitchLinearCoord& operator/=(Base const& b) {
-    Base::operator/=(b);
-    return *this;
-  }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////
-
-} // namespace nihilus_gemm
-
+}// namespace nihilus_gemm

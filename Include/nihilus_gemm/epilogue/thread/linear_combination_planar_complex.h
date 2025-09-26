@@ -35,7 +35,7 @@
 #pragma once
 
 #include "nihilus_gemm/nihilus_gemm.h"
-#include "nihilus_gemm/numeric_types.h"
+
 #include "nihilus_gemm/complex.h"
 #include "nihilus_gemm/array_planar_complex.h"
 #include "nihilus_gemm/functional.h"

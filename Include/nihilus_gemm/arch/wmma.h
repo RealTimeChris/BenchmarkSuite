@@ -60,7 +60,7 @@
 #include <mma.h>
 #include "nihilus_gemm/arch/mma.h"
 #include "nihilus_gemm/array.h"
-#include "nihilus_gemm/numeric_types.h"
+
 #include "nihilus_gemm/gemm/gemm.h"
 
 

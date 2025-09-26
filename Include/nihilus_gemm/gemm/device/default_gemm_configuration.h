@@ -35,7 +35,7 @@
 #pragma once
 
 #include "nihilus_gemm/nihilus_gemm.h"
-#include "nihilus_gemm/numeric_types.h"
+
 #include "nihilus_gemm/arch/arch.h"
 #include "nihilus_gemm/arch/mma.h"
 #include "nihilus_gemm/arch/wmma.h"

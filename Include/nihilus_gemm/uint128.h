@@ -35,235 +35,218 @@
 #pragma once
 #include "nihilus_gemm/nihilus_gemm.h"
 #if defined(__CUDACC_RTC__)
-#include CUDA_STD_HEADER(cstdint)
+	#include CUDA_STD_HEADER(cstdint)
 #else
-#include <cstdint>
-#include <cstdlib>
-#include <cmath>
-#include <type_traits>
-#include <stdexcept>
+	#include <cstdint>
+	#include <cstdlib>
+	#include <cmath>
+	#include <type_traits>
+	#include <stdexcept>
 #endif
 
 
 /// Optionally enable GCC's built-in type
-#if (defined(__x86_64) || defined (__aarch64__)) && !(defined(__CUDA_ARCH__) && ((__CUDACC_VER_MAJOR__ <= 10) || ((__CUDACC_VER_MAJOR__ == 11) && (__CUDACC_VER_MINOR__ <= 4)))) && defined(__GNUC__)
-#define NIHILUS_UINT128_NATIVE
+#if (defined(__x86_64) || defined(__aarch64__)) && !(defined(__CUDA_ARCH__) && ((__CUDACC_VER_MAJOR__ <= 10) || ((__CUDACC_VER_MAJOR__ == 11) && (__CUDACC_VER_MINOR__ <= 4)))) && \
+	defined(__GNUC__)
+	#define NIHILUS_UINT128_NATIVE
 #elif !defined(__CUDA_ARCH__)
-// No custom support for 128b arithmetic on device
-#if defined(_MSC_VER) && defined(_M_AMD64)
-#define NIHILUS_INT128_ARITHMETIC
-#include <intrin.h>
-#if _MSC_VER >= 1920 && !defined(__CUDA_ARCH__)
-#define NIHILUS_INT128_ARITHMETIC_DIV
-#include <immintrin.h>
-#endif
-#endif
+	// No custom support for 128b arithmetic on device
+	#if defined(_MSC_VER) && defined(_M_AMD64)
+		#define NIHILUS_INT128_ARITHMETIC
+		#include <intrin.h>
+		#if _MSC_VER >= 1920 && !defined(__CUDA_ARCH__)
+			#define NIHILUS_INT128_ARITHMETIC_DIV
+			#include <immintrin.h>
+		#endif
+	#endif
 #endif
 
 namespace nihilus_gemm {
 
-///! Unsigned 128b integer type
-struct alignas(16) uint128_t
-{
-  /// Size of one part of the uint's storage in bits
-  static constexpr int storage_bits_ = 64;
+	///! Unsigned 128b integer type
+	struct alignas(16) uint128_t {
+		/// Size of one part of the uint's storage in bits
+		static constexpr int storage_bits_ = 64;
 
-  struct hilo
-  {
-    uint64_t lo;
-    uint64_t hi;
-  };
+		struct hilo {
+			uint64_t lo;
+			uint64_t hi;
+		};
 
-  // Use a union to store either low and high parts or, if present, a built-in 128b integer type.
-  union {
-    struct hilo hilo_;
+		// Use a union to store either low and high parts or, if present, a built-in 128b integer type.
+		union {
+			struct hilo hilo_;
 
 #if defined(NIHILUS_UINT128_NATIVE)
-    unsigned __int128 native;
-#endif // defined(NIHILUS_UINT128_NATIVE)
-  };
+			unsigned __int128 native;
+#endif// defined(NIHILUS_UINT128_NATIVE)
+		};
 
-  //
-  // Methods
-  //
+		//
+		// Methods
+		//
 
-  /// Default ctor
-  NIHILUS_HOST_DEVICE
-  uint128_t() : hilo_{0, 0} {}
+		/// Default ctor
+		NIHILUS_HOST_DEVICE
+		uint128_t() : hilo_{ 0, 0 } {
+		}
 
-  /// Constructor from uint64
-  NIHILUS_HOST_DEVICE
-  uint128_t(uint64_t lo_) : hilo_{lo_, 0} {}
+		/// Constructor from uint64
+		NIHILUS_HOST_DEVICE
+		uint128_t(uint64_t lo_) : hilo_{ lo_, 0 } {
+		}
 
-  /// Constructor from two 64b unsigned integers
-  NIHILUS_HOST_DEVICE
-  uint128_t(uint64_t lo_, uint64_t hi_) : hilo_{lo_, hi_} {}
+		/// Constructor from two 64b unsigned integers
+		NIHILUS_HOST_DEVICE
+		uint128_t(uint64_t lo_, uint64_t hi_) : hilo_{ lo_, hi_ } {
+		}
 
-  /// Optional constructor from native value
+		/// Optional constructor from native value
 #if defined(NIHILUS_UINT128_NATIVE)
-  uint128_t(unsigned __int128 value) : native(value) { }
+		uint128_t(unsigned __int128 value) : native(value) {
+		}
 #endif
 
-  /// Lossily cast to uint64
-  NIHILUS_HOST_DEVICE
-  explicit operator uint64_t() const
-  {
-    return hilo_.lo;
-  }
+		/// Lossily cast to uint64
+		NIHILUS_HOST_DEVICE
+		explicit operator uint64_t() const {
+			return hilo_.lo;
+		}
 
-  NIHILUS_HOST_DEVICE
-  static void exception()
-  {
+		NIHILUS_HOST_DEVICE
+		static void exception() {
 #if defined(__CUDA_ARCH__)
-  asm volatile ("  brkpt;\n");
+			asm volatile("  brkpt;\n");
 #else
-  // throw std::runtime_error("Not yet implemented.");
-  abort();
+			// throw std::runtime_error("Not yet implemented.");
+			abort();
 #endif
-  }
+		}
 
-  /// Add
-  NIHILUS_HOST_DEVICE
-  uint128_t operator+(uint128_t const& rhs) const
-  {
-    uint128_t y{};
+		/// Add
+		NIHILUS_HOST_DEVICE
+		uint128_t operator+(uint128_t const& rhs) const {
+			uint128_t y{};
 #if defined(NIHILUS_UINT128_NATIVE)
-    y.native = native + rhs.native;
+			y.native = native + rhs.native;
 #else
-    y.hilo_.lo = hilo_.lo + rhs.hilo_.lo;
-    y.hilo_.hi = hilo_.hi + rhs.hilo_.hi + (y.hilo_.lo < hilo_.lo);
+			y.hilo_.lo = hilo_.lo + rhs.hilo_.lo;
+			y.hilo_.hi = hilo_.hi + rhs.hilo_.hi + (y.hilo_.lo < hilo_.lo);
 #endif
-    return y;
-  }
+			return y;
+		}
 
-  /// Subtract
-  NIHILUS_HOST_DEVICE
-  uint128_t operator-(uint128_t const& rhs) const
-  {
-    uint128_t y{};
+		/// Subtract
+		NIHILUS_HOST_DEVICE
+		uint128_t operator-(uint128_t const& rhs) const {
+			uint128_t y{};
 #if defined(NIHILUS_UINT128_NATIVE)
-    y.native = native - rhs.native;
+			y.native = native - rhs.native;
 #else
-    y.hilo_.lo = hilo_.lo - rhs.hilo_.lo;
-    y.hilo_.hi = hilo_.hi - rhs.hilo_.hi - (rhs.hilo_.lo && y.hilo_.lo > hilo_.lo);
+			y.hilo_.lo = hilo_.lo - rhs.hilo_.lo;
+			y.hilo_.hi = hilo_.hi - rhs.hilo_.hi - (rhs.hilo_.lo && y.hilo_.lo > hilo_.lo);
 #endif
-    return y;
-  }
+			return y;
+		}
 
-  /// Multiply by unsigned 64b integer yielding 128b integer
-  NIHILUS_HOST_DEVICE
-  uint128_t operator*(uint64_t const& rhs) const
-  {
-    uint128_t y{};
+		/// Multiply by unsigned 64b integer yielding 128b integer
+		NIHILUS_HOST_DEVICE
+		uint128_t operator*(uint64_t const& rhs) const {
+			uint128_t y{};
 #if defined(NIHILUS_UINT128_NATIVE)
-    y.native = native * rhs;
+			y.native = native * rhs;
 #elif defined(NIHILUS_INT128_ARITHMETIC)
-    // Multiply by the low part
-    y.hilo_.lo = _umul128(hilo_.lo, rhs, &y.hilo_.hi);
+			// Multiply by the low part
+			y.hilo_.lo = _umul128(hilo_.lo, rhs, &y.hilo_.hi);
 
-    // Add the high part and ignore the overflow
-    uint64_t overflow{0};
-    y.hilo_.hi += _umul128(hilo_.hi, rhs, &overflow);
+			// Add the high part and ignore the overflow
+			uint64_t overflow{ 0 };
+			y.hilo_.hi += _umul128(hilo_.hi, rhs, &overflow);
 #else
-    NIHILUS_UNUSED(rhs);
-    exception();
+			NIHILUS_UNUSED(rhs);
+			exception();
 #endif
-    return y;
-  }
+			return y;
+		}
 
-  /// Divide 128b operation by 64b operation yielding a 64b quotient
-  NIHILUS_HOST_DEVICE
-  uint64_t operator/(uint64_t const& divisor) const
-  {
-    uint64_t quotient{0};
+		/// Divide 128b operation by 64b operation yielding a 64b quotient
+		NIHILUS_HOST_DEVICE
+		uint64_t operator/(uint64_t const& divisor) const {
+			uint64_t quotient{ 0 };
 #if defined(NIHILUS_UINT128_NATIVE)
-    quotient = uint64_t(native / divisor);
+			quotient = uint64_t(native / divisor);
 #elif defined(NIHILUS_INT128_ARITHMETIC_DIV)
-    // implemented using MSVC's arithmetic intrinsics
-    uint64_t remainder{0};
-    quotient = _udiv128(hilo_.hi, hilo_.lo, divisor, &remainder);
+			// implemented using MSVC's arithmetic intrinsics
+			uint64_t remainder{ 0 };
+			quotient = _udiv128(hilo_.hi, hilo_.lo, divisor, &remainder);
 #else
-    NIHILUS_UNUSED(divisor);
-    exception();
+			NIHILUS_UNUSED(divisor);
+			exception();
 #endif
-    return quotient;
-  }
+			return quotient;
+		}
 
-  /// Divide 128b operation by 64b operation yielding a 64b quotient
-  NIHILUS_HOST_DEVICE
-  uint64_t operator%(uint64_t const& divisor) const
-  {
-    uint64_t remainder{0};
+		/// Divide 128b operation by 64b operation yielding a 64b quotient
+		NIHILUS_HOST_DEVICE
+		uint64_t operator%(uint64_t const& divisor) const {
+			uint64_t remainder{ 0 };
 #if defined(NIHILUS_UINT128_NATIVE)
-    remainder = uint64_t(native % divisor);
+			remainder = uint64_t(native % divisor);
 #elif defined(NIHILUS_INT128_ARITHMETIC_DIV)
-    // implemented using MSVC's arithmetic intrinsics
-    (void)_udiv128(hilo_.hi, hilo_.lo, divisor, &remainder);
+			// implemented using MSVC's arithmetic intrinsics
+			( void )_udiv128(hilo_.hi, hilo_.lo, divisor, &remainder);
 #else
-    NIHILUS_UNUSED(divisor);
-    exception();
+			NIHILUS_UNUSED(divisor);
+			exception();
 #endif
-    return remainder;
-  }
+			return remainder;
+		}
 
-  /// Computes the quotient and remainder in a single method.
-  NIHILUS_HOST_DEVICE
-  uint64_t divmod(uint64_t &remainder, uint64_t divisor) const
-  {
-    uint64_t quotient{0};
+		/// Computes the quotient and remainder in a single method.
+		NIHILUS_HOST_DEVICE
+		uint64_t divmod(uint64_t& remainder, uint64_t divisor) const {
+			uint64_t quotient{ 0 };
 #if defined(NIHILUS_UINT128_NATIVE)
-    quotient = uint64_t(native / divisor);
-    remainder = uint64_t(native % divisor);
+			quotient  = uint64_t(native / divisor);
+			remainder = uint64_t(native % divisor);
 #elif defined(NIHILUS_INT128_ARITHMETIC_DIV)
-    // implemented using MSVC's arithmetic intrinsics
-    quotient = _udiv128(hilo_.hi, hilo_.lo, divisor, &remainder);
+			// implemented using MSVC's arithmetic intrinsics
+			quotient = _udiv128(hilo_.hi, hilo_.lo, divisor, &remainder);
 #else
-    NIHILUS_UNUSED(remainder);
-    NIHILUS_UNUSED(divisor);
-    exception();
+			NIHILUS_UNUSED(remainder);
+			NIHILUS_UNUSED(divisor);
+			exception();
 #endif
-    return quotient;
-  }
+			return quotient;
+		}
 
-  /// Left-shifts a 128b unsigned integer
-  NIHILUS_HOST_DEVICE
-  uint128_t operator<<(int sh) const
-  {
-    if (sh == 0) {
-      return *this;
-    }
-    else if (sh >= storage_bits_) {
-      return uint128_t(0, hilo_.lo << (sh - storage_bits_));
-    }
-    else {
-      return uint128_t(
-        (hilo_.lo << sh),
-        (hilo_.hi << sh) | uint64_t(hilo_.lo >> (storage_bits_ - sh))
-      );
-    }
-  }
+		/// Left-shifts a 128b unsigned integer
+		NIHILUS_HOST_DEVICE
+		uint128_t operator<<(int sh) const {
+			if (sh == 0) {
+				return *this;
+			} else if (sh >= storage_bits_) {
+				return uint128_t(0, hilo_.lo << (sh - storage_bits_));
+			} else {
+				return uint128_t((hilo_.lo << sh), (hilo_.hi << sh) | uint64_t(hilo_.lo >> (storage_bits_ - sh)));
+			}
+		}
 
-  /// Right-shifts a 128b unsigned integer
-  NIHILUS_HOST_DEVICE
-  uint128_t operator>>(int sh) const
-  {
-    if (sh == 0) {
-      return *this;
-    }
-    else if (sh >= storage_bits_) {
-      return uint128_t((hilo_.hi >> (sh - storage_bits_)), 0);
-    }
-    else {
-      return uint128_t(
-        (hilo_.lo >> sh) | (hilo_.hi << (storage_bits_ - sh)),
-        (hilo_.hi >> sh)
-      );
-    }
-  }
-};
+		/// Right-shifts a 128b unsigned integer
+		NIHILUS_HOST_DEVICE
+		uint128_t operator>>(int sh) const {
+			if (sh == 0) {
+				return *this;
+			} else if (sh >= storage_bits_) {
+				return uint128_t((hilo_.hi >> (sh - storage_bits_)), 0);
+			} else {
+				return uint128_t((hilo_.lo >> sh) | (hilo_.hi << (storage_bits_ - sh)), (hilo_.hi >> sh));
+			}
+		}
+	};
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace nihilus_gemm
+}// namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

@@ -35,7 +35,6 @@
 #pragma once
 
 #include "nihilus_gemm/nihilus_gemm.h"
-#include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/arch/arch.h"
 #include "nihilus_gemm/device_kernel.h"
 
@@ -167,93 +166,48 @@ namespace nihilus_gemm {
     class Gemm;
 */
 			/// Element type for B matrix operand
-			template<uint64_t M, uint64_t K,
-				/// Element type for A matrix operand
-				typename ElementA_,
-				/// Layout type for A matrix operand
-				typename LayoutA_,
-				/// Element type for B matrix operand
-				typename ElementB_,
-				/// Layout type for B matrix operand
-				typename LayoutB_,
-				/// Element type for C and D matrix operands
-				typename ElementC_,
-				/// Layout type for C and D matrix operands
-				typename LayoutC_,
-				/// Element type for internal accumulation
-				typename ElementAccumulator_ = ElementC_,
-				/// Operator class tag
-				typename OperatorClass_ = arch::OpClassSimt,
-				/// Tag indicating architecture to tune for
-				typename ArchTag_ = arch::Sm120,
-				/// Threadblock-level tile size (concept: GemmShape)
-				typename ThreadblockShape_ = typename DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::ThreadblockShape,
-				/// Warp-level tile size (concept: GemmShape)
-				typename WarpShape_ = typename DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::WarpShape,
-				/// Instruction-level tile size (concept: GemmShape)
-				typename InstructionShape_ = typename DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::InstructionShape,
-				/// Epilogue output operator
-				typename EpilogueOutputOp_ = typename DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::EpilogueOutputOp,
-				/// Threadblock-level swizzling operator
-				typename ThreadblockSwizzle_ = typename threadblock::GemmIdentityThreadblockSwizzle<M, K>,
-				/// Number of stages used in the pipelined mainloop
-				int Stages = DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::kStages,
-				/// Access granularity of A matrix in units of elements
-				int AlignmentA = DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::kAlignmentA,
-				/// Access granularity of B matrix in units of elements
-				int AlignmentB = DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::kAlignmentB,
-				/// If true, kernel supports split-K with serial reduction
-				bool SplitKSerial = false,
-				/// Operation performed by GEMM
-				typename Operator_ = typename DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::Operator,
-				/// Gather operand A by using an index array
-				bool GatherA = false,
-				/// Gather operand B by using an index array
-				bool GatherB = false,
-				/// Scatter result D by using an index array
-				bool ScatterD = false,
-				/// Permute result D
-				typename PermuteDLayout = layout::NoPermute>
-			class Gemm {
+			template<uint64_t M, uint64_t K, typename ElementA_, typename LayoutA_, typename ElementB_, typename LayoutB_, typename ElementC_, typename LayoutC_> class Gemm
+				: public DefaultGemmConfiguration<arch::OpClassSimt, arch::Sm120, ElementA_, ElementB_, ElementC_, ElementC_> {
+				static constexpr bool SplitKSerial = false;
+				static constexpr bool GatherA	   = false;
+				static constexpr bool GatherB	   = false;
+				static constexpr bool ScatterD	   = false;
+
 			  public:
-				using ElementA								  = ElementA_;
-				using LayoutA								  = LayoutA_;
-				using TensorRefA							  = TensorRef<ElementA const, LayoutA>;
-				using ElementB								  = ElementB_;
-				using LayoutB								  = LayoutB_;
-				using TensorRefB							  = TensorRef<ElementB const, LayoutB>;
-				using ElementC								  = ElementC_;
-				using LayoutC								  = LayoutC_;
-				using TensorRefC							  = TensorRef<ElementC const, LayoutC>;
-				using TensorRefD							  = TensorRef<ElementC, LayoutC>;
-				using ElementAccumulator					  = ElementAccumulator_;
-				using OperatorClass							  = OperatorClass_;
-				using ArchTag								  = ArchTag_;
-				using ThreadblockShape						  = ThreadblockShape_;
-				using WarpShape								  = WarpShape_;
-				using InstructionShape						  = InstructionShape_;
-				using EpilogueOutputOp						  = EpilogueOutputOp_;
-				using ThreadblockSwizzle					  = ThreadblockSwizzle_;
-				using Operator								  = Operator_;
-				static constexpr int kStages				  = Stages;
-				static constexpr int kAlignmentA			  = AlignmentA;
-				static constexpr int kAlignmentB			  = AlignmentB;
+				using base				 = DefaultGemmConfiguration<arch::OpClassSimt, arch::Sm120, ElementA_, ElementB_, ElementC_, ElementC_>;
+				using ElementA			 = ElementA_;
+				using LayoutA			 = LayoutA_;
+				using TensorRefA		 = TensorRef<ElementA const, LayoutA>;
+				using ElementB			 = ElementB_;
+				using LayoutB			 = LayoutB_;
+				using TensorRefB		 = TensorRef<ElementB const, LayoutB>;
+				using ElementC			 = ElementC_;
+				using LayoutC			 = LayoutC_;
+				using TensorRefC		 = TensorRef<ElementC const, LayoutC>;
+				using TensorRefD		 = TensorRef<ElementC, LayoutC>;
+				using ElementAccumulator = ElementC_;
+				using OperatorClass		 = arch::OpClassSimt;
+				using ArchTag			 = arch::Sm120;
+				using ThreadblockShape	 = base::ThreadblockShape;
+				using WarpShape			 = base::WarpShape;
+				using InstructionShape	 = base::InstructionShape;
+				using EpilogueOutputOp	 = base::EpilogueOutputOp;
+				using ThreadblockSwizzle = typename threadblock::GemmIdentityThreadblockSwizzle<M, K>;
+				using Operator			 = base::Operator;
+
+				static constexpr int kStages				  = base::kStages;
+				static constexpr int kAlignmentA			  = base::kAlignmentA;
+				static constexpr int kAlignmentB			  = base::kAlignmentB;
 				static constexpr int kAlignmentC			  = EpilogueOutputOp::kCount;
 				static constexpr bool kSplitKSerial			  = SplitKSerial;
 				static constexpr ComplexTransform kTransformA = ComplexTransform::kNone;
 				static constexpr ComplexTransform kTransformB = ComplexTransform::kNone;
 
-				/// Define the kernel
 				using GemmKernel = typename kernel::DefaultGemm<M, K, ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignmentB, ElementC, LayoutC, ElementAccumulator,
 					OperatorClass, ArchTag, ThreadblockShape, WarpShape, InstructionShape, EpilogueOutputOp, ThreadblockSwizzle, kStages, kSplitKSerial, Operator,
-					SharedMemoryClearOption::kNone, GatherA, GatherB, ScatterD, PermuteDLayout>::GemmKernel;
+					SharedMemoryClearOption::kNone, GatherA, GatherB, ScatterD, layout::NoPermute>::GemmKernel;
 
-				/// Argument structure
 				struct Arguments {
-					//
-					// Data members
-					//
-
 					nihilus_gemm::gemm::constexpresh_gemm_coord<M, K> problem_size;
 					TensorRef<ElementA const, LayoutA> ref_A;
 					TensorRef<ElementB const, LayoutB> ref_B;
@@ -261,21 +215,13 @@ namespace nihilus_gemm {
 					TensorRef<ElementC, LayoutC> ref_D;
 					typename EpilogueOutputOp::Params epilogue;
 					static constexpr int split_k_slices{ 1 };
-					// For gather+scatter operations
 					int const* gather_A_indices;
 					int const* gather_B_indices;
 					int const* scatter_D_indices;
 
-					//
-					// Methods
-					//
-
-					/// Default ctor
-					NIHILUS_HOST_DEVICE
-					Arguments() : problem_size(0, 0, 0) {
+					NIHILUS_HOST_DEVICE Arguments() : problem_size(0, 0, 0) {
 					}
 
-					/// Constructs an Arguments structure
 					NIHILUS_HOST_DEVICE
 					Arguments(nihilus_gemm::gemm::constexpresh_gemm_coord<M, K> problem_size_, TensorRef<ElementA const, LayoutA> ref_A_, TensorRef<ElementB const, LayoutB> ref_B_,
 						TensorRef<ElementC const, LayoutC> ref_C_, TensorRef<ElementC, LayoutC> ref_D_,
@@ -287,75 +233,72 @@ namespace nihilus_gemm {
 				};
 
 			  private:
-				static constexpr auto new_dimensions{ [] {
+				// Compute grid dimensions - keeping the original constexpr lambda approach
+				static constexpr auto new_dimensions = []() {
 					ThreadblockSwizzle threadblock_swizzle;
-
 					constexpr auto grid_shape = threadblock_swizzle.template get_tiled_shape<Arguments::split_k_slices>(constexpresh_gemm_coord<M, K>{},
 						constexpresh_gemm_coord<ThreadblockShape::kM, ThreadblockShape::kK>{});
 					return grid_shape;
-				}() };
-				/// Kernel parameters object
-				typename GemmKernel::Params<decltype(new_dimensions)::M, decltype(new_dimensions)::K> params_;
+				}();
+
+				// Cache kernel configuration constants
+				static constexpr int kThreadCount	   = GemmKernel::kThreadCount;
+				static constexpr int kSmemSize		   = int(sizeof(typename GemmKernel::SharedStorage));
+				static constexpr bool kNeedsSmemConfig = (kSmemSize >= (48 << 10));
+
+				using params_type = typename GemmKernel::Params<decltype(new_dimensions)::M, decltype(new_dimensions)::K>;
 
 			  public:
-				/// Constructs the GEMM.
 				Gemm() {
 				}
 
-				/// Initializes GEMM state from arguments.
-				Status initialize(Arguments const& args) {
-					// Determine grid shape
-					constexpr ThreadblockSwizzle threadblock_swizzle;
+				// Optimized static initialization
+				__forceinline__ static params_type initialize(Arguments const& args) noexcept {
+					ThreadblockSwizzle threadblock_swizzle;
+					auto grid_shape = new_dimensions;// Copy compile-time computed shape
 
-					constexpr auto grid_shape = threadblock_swizzle.template get_tiled_shape<Arguments::split_k_slices>(constexpresh_gemm_coord<M, K>{},
-						constexpresh_gemm_coord<ThreadblockShape::kM, ThreadblockShape::kK>{});
-					grid_shape.N			  = (args.problem_size.n() + ThreadblockShape::kN - 1) / ThreadblockShape::kN;
+					// Only compute the dynamic part at runtime
+					grid_shape.N = (args.problem_size.n() + ThreadblockShape::kN - 1) / ThreadblockShape::kN;
 
-					// Initialize the Params structure
-					params_ = typename GemmKernel::template Params<decltype(new_dimensions)::M, decltype(new_dimensions)::K>{ args.problem_size, grid_shape,
-						args.ref_A.non_const_ref(), args.ref_B.non_const_ref(), args.ref_C.non_const_ref(), args.ref_D, args.epilogue, nullptr, args.gather_A_indices,
-						args.gather_B_indices, args.scatter_D_indices };
-
-					return Status::kSuccess;
+					return params_type{ args.problem_size, grid_shape, args.ref_A.non_const_ref(), args.ref_B.non_const_ref(), args.ref_C.non_const_ref(), args.ref_D,
+						args.epilogue, nullptr, args.gather_A_indices, args.gather_B_indices, args.scatter_D_indices };
 				}
 
-				/// Runs the kernel using initialized state.
-				Status run() {
-					constexpr ThreadblockSwizzle threadblock_swizzle;
+				// Separate error handling to avoid inlining bloat
+				__noinline__ static Status handle_cuda_error(cudaError_t result) noexcept {
+					return result == cudaSuccess ? Status::kSuccess : Status::kErrorInternal;
+				}
 
-					dim3 grid = threadblock_swizzle.get_grid_shape(params_.grid_tiled_shape);
-					dim3 block(GemmKernel::kThreadCount, 1, 1);
+				// Optimized static kernel launch
+				__forceinline__ static Status run(params_type const& params) noexcept {
+					ThreadblockSwizzle threadblock_swizzle;
 
-					cudaError_t result;
+					const dim3 grid = threadblock_swizzle.get_grid_shape(params.grid_tiled_shape);
+					constexpr dim3 block(kThreadCount, 1, 1);// Make block size constexpr
 
-					static constexpr int smem_size = int(sizeof(typename GemmKernel::SharedStorage));
+					cudaError_t result = cudaSuccess;
 
-					if constexpr (smem_size >= (48 << 10)) {
+					// Conditional shared memory configuration
+					if constexpr (kNeedsSmemConfig) {
 						result = cudaFuncSetAttribute(reinterpret_cast<const void*>(&Kernel<decltype(new_dimensions)::M, decltype(new_dimensions)::K, GemmKernel>),
-							cudaFuncAttributeMaxDynamicSharedMemorySize, smem_size);
-
+							cudaFuncAttributeMaxDynamicSharedMemorySize, kSmemSize);
 						if (result != cudaSuccess) {
 							return Status::kErrorInternal;
 						}
 					}
 
 					nihilus_gemm::arch::synclog_setup();
-					nihilus_gemm::Kernel<decltype(new_dimensions)::M, decltype(new_dimensions)::K, GemmKernel><<<grid, block, smem_size>>>(params_);
+
+					nihilus_gemm::Kernel<decltype(new_dimensions)::M, decltype(new_dimensions)::K, GemmKernel><<<grid, block, kSmemSize>>>(params);
 
 					result = cudaGetLastError();
-
-					return result == cudaSuccess ? Status::kSuccess : Status::kErrorInternal;
+					return handle_cuda_error(result);
 				}
 
-				/// Runs the kernel using initialized state.
-				Status operator()(Arguments const& args) {
-					Status status = initialize(args);
-
-					if (status == Status::kSuccess) {
-						status = run();
-					}
-
-					return status;
+				// Combined optimized static implementation
+				__forceinline__ static Status impl(Arguments const& args) noexcept {
+					const auto params = initialize(args);
+					return run(params);
 				}
 			};
 

@@ -45,7 +45,7 @@
 #include CUDA_STD_HEADER(cassert)
 
 #include "nihilus_gemm/matrix_shape.h"
-#include "nihilus_gemm/numeric_types.h"
+
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/layout/vector.h"
 #include "nihilus_gemm/layout/tensor.h"

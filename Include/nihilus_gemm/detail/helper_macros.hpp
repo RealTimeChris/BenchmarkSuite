@@ -65,10 +65,7 @@ template<typename T> NIHILUS_HOST_DEVICE void __NIHILUS_UNUSED(T const&) {
 #if defined(__GNUC__)
 	#define NIHILUS_UNUSED(expr) __NIHILUS_UNUSED(expr)
 #else
-	#define NIHILUS_UNUSED(expr) \
-		do { \
-			; \
-		} while (&expr != &expr)
+	#define NIHILUS_UNUSED(expr) ( void )expr
 #endif
 
 #ifdef _MSC_VER

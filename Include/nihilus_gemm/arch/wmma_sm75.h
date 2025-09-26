@@ -34,7 +34,7 @@
 
 #pragma once
 #include "nihilus_gemm/nihilus_gemm.h"
-#include CUDA_STD_HEADER(cassert)
+#include <cuda/std/cassert>
 #include "nihilus_gemm/layout/matrix.h"
 
 ////////////////////////////////////////////////////////////////////////////////

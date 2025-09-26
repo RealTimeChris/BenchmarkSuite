@@ -44,7 +44,7 @@
 #include "nihilus_gemm/nihilus_gemm.h"
 
 #include "nihilus_gemm/layout/matrix.h"
-#include "nihilus_gemm/numeric_types.h"
+
 #include "nihilus_gemm/arch/wmma.h"
 
 #include "nihilus_gemm/epilogue/threadblock/epilogue.h"

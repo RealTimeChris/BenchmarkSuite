@@ -37,8 +37,7 @@
 #endif
 
 #include <nihilus_cute/config.hpp>          // CUTE_STL_NAMESPACE
-
-#include <nihilus_gemm/numeric_types.h>  // nihilus_gemm::int2b_t, nihilus_gemm::int4b_t
+ // nihilus_gemm::int2b_t, nihilus_gemm::int4b_t
 
 namespace nihilus_cute
 {

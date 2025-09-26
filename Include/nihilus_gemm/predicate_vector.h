@@ -35,9 +35,9 @@
 #pragma once
 #include "nihilus_gemm/nihilus_gemm.h"
 #if defined(__CUDACC_RTC__)
-#include CUDA_STD_HEADER(cstdint)
+	#include CUDA_STD_HEADER(cstdint)
 #else
-#include <cstdint>
+	#include <cstdint>
 #endif
 
 #include CUDA_STD_HEADER(cassert)
@@ -46,9 +46,9 @@
 
 namespace nihilus_gemm {
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*!@defgroup predicate_vector_concept Predicate Vector Concept
+	/*!@defgroup predicate_vector_concept Predicate Vector Concept
 @{
 
 Implementations of \ref predicate_vector_concept contain an ordered set of boolean predicates which
@@ -64,9 +64,9 @@ offering sequential access are provided.
 @}
 */
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*!@defgroup predicate_iterator_concept Predicate Iterator Concept
+	/*!@defgroup predicate_iterator_concept Predicate Iterator Concept
 @{
 
 Implementations of \ref predicate_iterator_concept enables accessing and traversing elements of a
@@ -84,9 +84,9 @@ bit vector.
 @}
 */
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*!@defgroup predicate_tile_adapter Predicate Tile Adapter Concept
+	/*!@defgroup predicate_tile_adapter Predicate Tile Adapter Concept
 @{
 
 Implementations of \ref predicate_tile_adapter provide a mapping between a the elements of a \ref
@@ -100,446 +100,492 @@ tile_traits_concept and a \ref predicate_vector_concept.
 @}
 */
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Statically sized array of bits implementing @concept{predicate_vector_concept}.
-template <
-    /// Number of predicates contained in predicate vector
-    int kPredicates_,
-    /// Number of predicates contained in each byte of internal storage
-    int kPredicatesPerByte_ = 4,
-    /// Location of first predicate within byte of internal storage
-    int kPredicateStart_ = 0>
-struct PredicateVector {
-  /// Number of bits stored by the PredicateVector
-  static constexpr int kPredicates = kPredicates_;
+	/// Statically sized array of bits implementing @concept{predicate_vector_concept}.
+	template<
+		/// Number of predicates contained in predicate vector
+		int kPredicates_,
+		/// Number of predicates contained in each byte of internal storage
+		int kPredicatesPerByte_ = 4,
+		/// Location of first predicate within byte of internal storage
+		int kPredicateStart_ = 0>
+	struct PredicateVector {
+		/// Number of bits stored by the PredicateVector
+		static constexpr int kPredicates = kPredicates_;
 
-  /// Number of bits stored within each byte of the predicate bit vector
-  static constexpr int kPredicatesPerByte = kPredicatesPerByte_;
+		/// Number of bits stored within each byte of the predicate bit vector
+		static constexpr int kPredicatesPerByte = kPredicatesPerByte_;
 
-  /// First bit within each byte containing predicates
-  static constexpr int kPredicateStart = kPredicateStart_;
+		/// First bit within each byte containing predicates
+		static constexpr int kPredicateStart = kPredicateStart_;
 
-  // Make sure no one tries to put more than 8 bits in a byte :)
-  static_assert(kPredicatesPerByte <= 8, "kPredicatesPerByte must fit within an actual byte");
-  // Make sure the "offsetted" bits fit in one byte.
-  static_assert(kPredicateStart + kPredicatesPerByte <= 8,
-                "The offsetted predicates must fit within an actual byte.");
+		// Make sure no one tries to put more than 8 bits in a byte :)
+		static_assert(kPredicatesPerByte <= 8, "kPredicatesPerByte must fit within an actual byte");
+		// Make sure the "offsetted" bits fit in one byte.
+		static_assert(kPredicateStart + kPredicatesPerByte <= 8, "The offsetted predicates must fit within an actual byte.");
 
-  /// Storage type of individual elements
-  typedef uint32_t Storage;
+		/// Storage type of individual elements
+		typedef uint32_t Storage;
 
-  /// Number of bytes needed
-  static constexpr int kBytes = (kPredicates + kPredicatesPerByte - 1) / kPredicatesPerByte;
+		/// Number of bytes needed
+		static constexpr int kBytes = (kPredicates + kPredicatesPerByte - 1) / kPredicatesPerByte;
 
-  /// Number of storage elements needed
-  static constexpr int kWordCount = (kBytes + int(sizeof(Storage)) - 1) / int(sizeof(Storage));
+		/// Number of storage elements needed
+		static constexpr int kWordCount = (kBytes + int(sizeof(Storage)) - 1) / int(sizeof(Storage));
 
-  /// The byte mask corresponding to predicates
-  static constexpr Storage kByteMask = (((1 << kPredicatesPerByte) - 1) << kPredicateStart);
+		/// The byte mask corresponding to predicates
+		static constexpr Storage kByteMask = (((1 << kPredicatesPerByte) - 1) << kPredicateStart);
 
- private:
-  //
-  // Data members
-  //
+	  private:
+		//
+		// Data members
+		//
 
-  /// Words of bit vector
-  Storage storageData[kWordCount];
+		/// Words of bit vector
+		Storage storageData[kWordCount];
 
-  //
-  // Methods
-  //
+		//
+		// Methods
+		//
 
-  /// Computes the word and bit corresponding to a logical predicate index
-  NIHILUS_HOST_DEVICE void computeStorageOffset(int &word, int &bit, int idx) const {
-    NIHILUS_ASSERT(idx < kPredicates);
+		/// Computes the word and bit corresponding to a logical predicate index
+		NIHILUS_HOST_DEVICE void computeStorageOffset(int& word, int& bit, int idx) const {
+			NIHILUS_ASSERT(idx < kPredicates);
 
-    int byte = (idx / kPredicatesPerByte);
-    int bit_offset = (idx % kPredicatesPerByte);
+			int byte	   = (idx / kPredicatesPerByte);
+			int bit_offset = (idx % kPredicatesPerByte);
 
-    word = byte / sizeof(Storage);
-    int byte_offset = (byte % sizeof(Storage));
+			word			= byte / sizeof(Storage);
+			int byte_offset = (byte % sizeof(Storage));
 
-    bit = byte_offset * 8 + bit_offset + kPredicateStart;
-  }
+			bit = byte_offset * 8 + bit_offset + kPredicateStart;
+		}
 
-  /// Returns word mask.
-  NIHILUS_HOST_DEVICE static constexpr bool computeWordMask() {
-    Storage mask(0);
-    NIHILUS_PRAGMA_UNROLL
-    for (size_t byte = 0; byte < sizeof(Storage); ++byte) {
-      mask |= (kByteMask << (byte * 8));
-    }
-    return mask;
-  }
+		/// Returns word mask.
+		NIHILUS_HOST_DEVICE static constexpr bool computeWordMask() {
+			Storage mask(0);
+			NIHILUS_PRAGMA_UNROLL
+			for (size_t byte = 0; byte < sizeof(Storage); ++byte) {
+				mask |= (kByteMask << (byte * 8));
+			}
+			return mask;
+		}
 
-  /// Returns mask of last word.
-  NIHILUS_HOST_DEVICE static constexpr bool computeLastWordMask() {
-    Storage mask(0);
-    NIHILUS_PRAGMA_UNROLL
-    for (int byte = 0; byte < kBytes % sizeof(Storage); ++byte) {
-      mask |= (kByteMask << (byte * 8));
-    }
-    return mask;
-  }
+		/// Returns mask of last word.
+		NIHILUS_HOST_DEVICE static constexpr bool computeLastWordMask() {
+			Storage mask(0);
+			NIHILUS_PRAGMA_UNROLL
+			for (int byte = 0; byte < kBytes % sizeof(Storage); ++byte) {
+				mask |= (kByteMask << (byte * 8));
+			}
+			return mask;
+		}
 
-  /// Accesses a given word with optional assertions
-  NIHILUS_HOST_DEVICE Storage &storage(int word) {
-    NIHILUS_ASSERT(word < kWordCount);
-    return storageData[word];
-  }
+		/// Accesses a given word with optional assertions
+		NIHILUS_HOST_DEVICE Storage& storage(int word) {
+			NIHILUS_ASSERT(word < kWordCount);
+			return storageData[word];
+		}
 
-  /// Accesses a given word with optional assertions
-  NIHILUS_HOST_DEVICE Storage const &storage(int word) const {
-    NIHILUS_ASSERT(word < kWordCount);
-    return storageData[word];
-  }
+		/// Accesses a given word with optional assertions
+		NIHILUS_HOST_DEVICE Storage const& storage(int word) const {
+			NIHILUS_ASSERT(word < kWordCount);
+			return storageData[word];
+		}
 
- public:
-  //
-  // Iterator
-  //
+	  public:
+		//
+		// Iterator
+		//
 
-  /**
+		/**
   * @brief An iterator implementing \ref predicate_iterator_concept enabling sequential
   * read and write access to predicates.
   * @concept{predicate_iterator_concept}
   */
-  class Iterator {
-    /// Reference to PredicateVector instance
-    PredicateVector &vec_;
+		class Iterator {
+			/// Reference to PredicateVector instance
+			PredicateVector& vec_;
 
-    /// Index into PredicateVector
-    int bit_;
+			/// Index into PredicateVector
+			int bit_;
 
-   public:
-    /// Copy constructor
-    NIHILUS_HOST_DEVICE
-    Iterator(Iterator const &it) : vec_(it.vec_), bit_(it.bit_) {}
+		  public:
+			/// Copy constructor
+			NIHILUS_HOST_DEVICE
+			Iterator(Iterator const& it) : vec_(it.vec_), bit_(it.bit_) {
+			}
 
-    /// Constructs an iterator from a PredicateVector
-    NIHILUS_HOST_DEVICE
-    Iterator(PredicateVector &vec, int _start = 0) : vec_(vec), bit_(_start) {}
+			/// Constructs an iterator from a PredicateVector
+			NIHILUS_HOST_DEVICE
+			Iterator(PredicateVector& vec, int _start = 0) : vec_(vec), bit_(_start) {
+			}
 
-    /// Pre-increment
-    NIHILUS_HOST_DEVICE
-    Iterator &operator++() {
-      ++bit_;
-      return *this;
-    }
+			/// Pre-increment
+			NIHILUS_HOST_DEVICE
+			Iterator& operator++() {
+				++bit_;
+				return *this;
+			}
 
-    /// Increment
-    NIHILUS_HOST_DEVICE
-    Iterator &operator+=(int offset) {
-      bit_ += offset;
-      return *this;
-    }
+			/// Increment
+			NIHILUS_HOST_DEVICE
+			Iterator& operator+=(int offset) {
+				bit_ += offset;
+				return *this;
+			}
 
-    /// Pre-decrement
-    NIHILUS_HOST_DEVICE
-    Iterator &operator--() {
-      --bit_;
-      return *this;
-    }
+			/// Pre-decrement
+			NIHILUS_HOST_DEVICE
+			Iterator& operator--() {
+				--bit_;
+				return *this;
+			}
 
-    /// Decrement
-    NIHILUS_HOST_DEVICE
-    Iterator &operator-=(int offset) {
-      bit_ -= offset;
-      return *this;
-    }
+			/// Decrement
+			NIHILUS_HOST_DEVICE
+			Iterator& operator-=(int offset) {
+				bit_ -= offset;
+				return *this;
+			}
 
-    /// Post-increment
-    NIHILUS_HOST_DEVICE
-    Iterator operator++(int) {
-      Iterator ret(*this);
-      ret.bit_++;
-      return ret;
-    }
+			/// Post-increment
+			NIHILUS_HOST_DEVICE
+			Iterator operator++(int) {
+				Iterator ret(*this);
+				ret.bit_++;
+				return ret;
+			}
 
-    /// Post-decrement
-    NIHILUS_HOST_DEVICE
-    Iterator operator--(int) {
-      Iterator ret(*this);
-      ret.bit_--;
-      return ret;
-    }
+			/// Post-decrement
+			NIHILUS_HOST_DEVICE
+			Iterator operator--(int) {
+				Iterator ret(*this);
+				ret.bit_--;
+				return ret;
+			}
 
-    /// Iterator advances by some amount
-    NIHILUS_HOST_DEVICE
-    Iterator operator+(int offset) {
-      Iterator ret(*this);
-      ret.bit_ += offset;
-      return ret;
-    }
+			/// Iterator advances by some amount
+			NIHILUS_HOST_DEVICE
+			Iterator operator+(int offset) {
+				Iterator ret(*this);
+				ret.bit_ += offset;
+				return ret;
+			}
 
-    /// Iterator recedes by some amount
-    NIHILUS_HOST_DEVICE
-    Iterator operator-(int offset) {
-      ConstIterator ret(*this);
-      ret.bit_ -= offset;
-      return ret;
-    }
+			/// Iterator recedes by some amount
+			NIHILUS_HOST_DEVICE
+			Iterator operator-(int offset) {
+				ConstIterator ret(*this);
+				ret.bit_ -= offset;
+				return ret;
+			}
 
-    /// Returns true if iterators point to the same bit
-    NIHILUS_HOST_DEVICE
-    bool operator==(Iterator const &it) const { return bit_ == it.bit_; }
+			/// Returns true if iterators point to the same bit
+			NIHILUS_HOST_DEVICE
+			bool operator==(Iterator const& it) const {
+				return bit_ == it.bit_;
+			}
 
-    /// Returns false if iterators point to the same bit
-    NIHILUS_HOST_DEVICE
-    bool operator!=(Iterator const &it) const { return bit_ != it.bit_; }
+			/// Returns false if iterators point to the same bit
+			NIHILUS_HOST_DEVICE
+			bool operator!=(Iterator const& it) const {
+				return bit_ != it.bit_;
+			}
 
-    /// Gets the bit at the pointed to location
-    NIHILUS_HOST_DEVICE
-    bool get() { return vec_.at(bit_); }
+			/// Gets the bit at the pointed to location
+			NIHILUS_HOST_DEVICE
+			bool get() {
+				return vec_.at(bit_);
+			}
 
-    /// Gets the bit at the pointed to location
-    NIHILUS_HOST_DEVICE
-    bool at() const { return vec_.at(bit_); }
+			/// Gets the bit at the pointed to location
+			NIHILUS_HOST_DEVICE
+			bool at() const {
+				return vec_.at(bit_);
+			}
 
-    /// Dereferences iterator
-    NIHILUS_HOST_DEVICE
-    bool operator*() const { return at(); }
+			/// Dereferences iterator
+			NIHILUS_HOST_DEVICE
+			bool operator*() const {
+				return at();
+			}
 
-    /// Sets the bit at the pointed to location
-    NIHILUS_HOST_DEVICE
-    void set(bool value = true) { vec_.set(bit_, value); }
-  };
+			/// Sets the bit at the pointed to location
+			NIHILUS_HOST_DEVICE
+			void set(bool value = true) {
+				vec_.set(bit_, value);
+			}
+		};
 
-  /**
+		/**
   * @brief An iterator implementing \ref predicate_iterator_concept enabling sequential
   * read and write access to predicates.
   * @concept{predicate_iterator_concept}
   */
-  class ConstIterator {
-    /// Reference to PredicateVector instance
-    PredicateVector const &vec_;
+		class ConstIterator {
+			/// Reference to PredicateVector instance
+			PredicateVector const& vec_;
 
-    /// Index into PredicateVector
-    int bit_;
+			/// Index into PredicateVector
+			int bit_;
 
-   public:
-    /// Copy constructor
-    NIHILUS_HOST_DEVICE
-    ConstIterator(ConstIterator const &it) : vec_(it.vec_), bit_(it.bit_) {}
+		  public:
+			/// Copy constructor
+			NIHILUS_HOST_DEVICE
+			ConstIterator(ConstIterator const& it) : vec_(it.vec_), bit_(it.bit_) {
+			}
 
-    /// Constructs an iterator from a PredicateVector
-    NIHILUS_HOST_DEVICE
-    ConstIterator(PredicateVector const &vec, int _start = 0) : vec_(vec), bit_(_start) {}
+			/// Constructs an iterator from a PredicateVector
+			NIHILUS_HOST_DEVICE
+			ConstIterator(PredicateVector const& vec, int _start = 0) : vec_(vec), bit_(_start) {
+			}
 
-    /// Pre-increment
-    NIHILUS_HOST_DEVICE
-    ConstIterator &operator++() {
-      ++bit_;
-      return *this;
-    }
+			/// Pre-increment
+			NIHILUS_HOST_DEVICE
+			ConstIterator& operator++() {
+				++bit_;
+				return *this;
+			}
 
-    /// Increment
-    NIHILUS_HOST_DEVICE
-    ConstIterator &operator+=(int offset) {
-      bit_ += offset;
-      return *this;
-    }
+			/// Increment
+			NIHILUS_HOST_DEVICE
+			ConstIterator& operator+=(int offset) {
+				bit_ += offset;
+				return *this;
+			}
 
-    /// Pre-decrement
-    NIHILUS_HOST_DEVICE
-    ConstIterator &operator--() {
-      --bit_;
-      return *this;
-    }
+			/// Pre-decrement
+			NIHILUS_HOST_DEVICE
+			ConstIterator& operator--() {
+				--bit_;
+				return *this;
+			}
 
-    /// Decrement
-    NIHILUS_HOST_DEVICE
-    ConstIterator &operator-=(int offset) {
-      bit_ -= offset;
-      return *this;
-    }
+			/// Decrement
+			NIHILUS_HOST_DEVICE
+			ConstIterator& operator-=(int offset) {
+				bit_ -= offset;
+				return *this;
+			}
 
-    /// Post-increment
-    NIHILUS_HOST_DEVICE
-    ConstIterator operator++(int) {
-      ConstIterator ret(*this);
-      ret.bit_++;
-      return ret;
-    }
+			/// Post-increment
+			NIHILUS_HOST_DEVICE
+			ConstIterator operator++(int) {
+				ConstIterator ret(*this);
+				ret.bit_++;
+				return ret;
+			}
 
-    /// Post-decrement
-    NIHILUS_HOST_DEVICE
-    ConstIterator operator--(int) {
-      ConstIterator ret(*this);
-      ret.bit_--;
-      return ret;
-    }
+			/// Post-decrement
+			NIHILUS_HOST_DEVICE
+			ConstIterator operator--(int) {
+				ConstIterator ret(*this);
+				ret.bit_--;
+				return ret;
+			}
 
-    /// Iterator advances by some amount
-    NIHILUS_HOST_DEVICE
-    ConstIterator operator+(int offset) {
-      ConstIterator ret(*this);
-      ret.bit_ += offset;
-      return ret;
-    }
+			/// Iterator advances by some amount
+			NIHILUS_HOST_DEVICE
+			ConstIterator operator+(int offset) {
+				ConstIterator ret(*this);
+				ret.bit_ += offset;
+				return ret;
+			}
 
-    /// Iterator recedes by some amount
-    NIHILUS_HOST_DEVICE
-    ConstIterator operator-(int offset) {
-      ConstIterator ret(*this);
-      ret.bit_ -= offset;
-      return ret;
-    }
+			/// Iterator recedes by some amount
+			NIHILUS_HOST_DEVICE
+			ConstIterator operator-(int offset) {
+				ConstIterator ret(*this);
+				ret.bit_ -= offset;
+				return ret;
+			}
 
-    /// Returns true if iterators point to the same bit
-    NIHILUS_HOST_DEVICE
-    bool operator==(ConstIterator const &it) const { return bit_ == it.bit_; }
+			/// Returns true if iterators point to the same bit
+			NIHILUS_HOST_DEVICE
+			bool operator==(ConstIterator const& it) const {
+				return bit_ == it.bit_;
+			}
 
-    /// Returns false if iterators point to the same bit
-    NIHILUS_HOST_DEVICE
-    bool operator!=(ConstIterator const &it) const { return bit_ != it.bit_; }
+			/// Returns false if iterators point to the same bit
+			NIHILUS_HOST_DEVICE
+			bool operator!=(ConstIterator const& it) const {
+				return bit_ != it.bit_;
+			}
 
-    /// Gets the bit at the pointed to location
-    NIHILUS_HOST_DEVICE
-    bool get() { return vec_.at(bit_); }
+			/// Gets the bit at the pointed to location
+			NIHILUS_HOST_DEVICE
+			bool get() {
+				return vec_.at(bit_);
+			}
 
-    /// Gets the bit at the pointed to location
-    NIHILUS_HOST_DEVICE
-    bool at() const { return vec_.at(bit_); }
+			/// Gets the bit at the pointed to location
+			NIHILUS_HOST_DEVICE
+			bool at() const {
+				return vec_.at(bit_);
+			}
 
-    /// Dereferences iterator
-    NIHILUS_HOST_DEVICE
-    bool operator*() const { return at(); }
-  };
+			/// Dereferences iterator
+			NIHILUS_HOST_DEVICE
+			bool operator*() const {
+				return at();
+			}
+		};
 
-  /// Iterator that always returns true
-  struct TrivialIterator {
-    /// Constructor
-    NIHILUS_HOST_DEVICE
-    TrivialIterator() {}
+		/// Iterator that always returns true
+		struct TrivialIterator {
+			/// Constructor
+			NIHILUS_HOST_DEVICE
+			TrivialIterator() {
+			}
 
-    /// Copy constructor
-    NIHILUS_HOST_DEVICE
-    TrivialIterator(Iterator const &it) {}
+			/// Copy constructor
+			NIHILUS_HOST_DEVICE
+			TrivialIterator(Iterator const& it) {
+			}
 
-    /// Constructs an iterator from a PredicateVector
-    NIHILUS_HOST_DEVICE
-    TrivialIterator(PredicateVector const &_vec) {}
+			/// Constructs an iterator from a PredicateVector
+			NIHILUS_HOST_DEVICE
+			TrivialIterator(PredicateVector const& _vec) {
+			}
 
-    /// Pre-increment
-    NIHILUS_HOST_DEVICE
-    TrivialIterator &operator++() { return *this; }
+			/// Pre-increment
+			NIHILUS_HOST_DEVICE
+			TrivialIterator& operator++() {
+				return *this;
+			}
 
-    /// Post-increment
-    NIHILUS_HOST_DEVICE
-    TrivialIterator operator++(int) { return *this; }
+			/// Post-increment
+			NIHILUS_HOST_DEVICE
+			TrivialIterator operator++(int) {
+				return *this;
+			}
 
-    /// Dereferences iterator
-    NIHILUS_HOST_DEVICE
-    bool operator*() const { return true; }
-  };
+			/// Dereferences iterator
+			NIHILUS_HOST_DEVICE
+			bool operator*() const {
+				return true;
+			}
+		};
 
- public:
-  //
-  // Methods
-  //
+	  public:
+		//
+		// Methods
+		//
 
-  /// Initialize the predicate vector
-  NIHILUS_HOST_DEVICE PredicateVector(bool value = true) { fill(value); }
+		/// Initialize the predicate vector
+		NIHILUS_HOST_DEVICE PredicateVector(bool value = true) {
+			fill(value);
+		}
 
-  /// Fills all predicates with a given value
-  NIHILUS_HOST_DEVICE void fill(bool value = true) {
-    Storage item = (value ? ~Storage(0) : Storage(0));
+		/// Fills all predicates with a given value
+		NIHILUS_HOST_DEVICE void fill(bool value = true) {
+			Storage item = (value ? ~Storage(0) : Storage(0));
 
-    NIHILUS_PRAGMA_UNROLL
-    for (int i = 0; i < kWordCount; ++i) {
-      storage(i) = item;
-    }
-  }
+			NIHILUS_PRAGMA_UNROLL
+			for (int i = 0; i < kWordCount; ++i) {
+				storage(i) = item;
+			}
+		}
 
-  /// Clears all predicates
-  NIHILUS_HOST_DEVICE void clear() {
-    NIHILUS_PRAGMA_UNROLL
-    for (int i = 0; i < kWordCount; ++i) {
-      storage(i) = 0;
-    }
-  }
+		/// Clears all predicates
+		NIHILUS_HOST_DEVICE void clear() {
+			NIHILUS_PRAGMA_UNROLL
+			for (int i = 0; i < kWordCount; ++i) {
+				storage(i) = 0;
+			}
+		}
 
-  /// Sets all predicates to true
-  NIHILUS_HOST_DEVICE void enable() {
-    NIHILUS_PRAGMA_UNROLL
-    for (int i = 0; i < kWordCount; ++i) {
-      storage(i) = ~Storage(0);
-    }
-  }
+		/// Sets all predicates to true
+		NIHILUS_HOST_DEVICE void enable() {
+			NIHILUS_PRAGMA_UNROLL
+			for (int i = 0; i < kWordCount; ++i) {
+				storage(i) = ~Storage(0);
+			}
+		}
 
-  /// Accesses a bit within the predicate vector.
-  NIHILUS_HOST_DEVICE bool operator[](int idx) const { return at(idx); }
+		/// Accesses a bit within the predicate vector.
+		NIHILUS_HOST_DEVICE bool operator[](int idx) const {
+			return at(idx);
+		}
 
-  /// Accesses a bit within the predicate vector.
-  NIHILUS_HOST_DEVICE bool at(int idx) const {
-    int bit, word;
-    computeStorageOffset(word, bit, idx);
+		/// Accesses a bit within the predicate vector.
+		NIHILUS_HOST_DEVICE bool at(int idx) const {
+			int bit, word;
+			computeStorageOffset(word, bit, idx);
 
-    return ((storage(word) >> bit) & 1);
-  }
+			return ((storage(word) >> bit) & 1);
+		}
 
-  /// Set a bit within the predicate vector.
-  NIHILUS_HOST_DEVICE void set(int idx, bool value = true) {
-    int bit, word;
-    computeStorageOffset(word, bit, idx);
+		/// Set a bit within the predicate vector.
+		NIHILUS_HOST_DEVICE void set(int idx, bool value = true) {
+			int bit, word;
+			computeStorageOffset(word, bit, idx);
 
-    Storage disable_mask = (~(Storage(1) << bit));
-    Storage enable_mask = (Storage(value) << bit);
+			Storage disable_mask = (~(Storage(1) << bit));
+			Storage enable_mask	 = (Storage(value) << bit);
 
-    storage(word) = ((storage(word) & disable_mask) | enable_mask);
-  }
+			storage(word) = ((storage(word) & disable_mask) | enable_mask);
+		}
 
-  /// Computes the intersection of two identical predicate vectors.
-  NIHILUS_HOST_DEVICE PredicateVector &operator&=(PredicateVector const &predicates) {
-    NIHILUS_PRAGMA_UNROLL
-    for (int i = 0; i < kWordCount; ++i) {
-      storage(i) = (storage(i) & predicates.storage(i));
-    }
-    return *this;
-  }
+		/// Computes the intersection of two identical predicate vectors.
+		NIHILUS_HOST_DEVICE PredicateVector& operator&=(PredicateVector const& predicates) {
+			NIHILUS_PRAGMA_UNROLL
+			for (int i = 0; i < kWordCount; ++i) {
+				storage(i) = (storage(i) & predicates.storage(i));
+			}
+			return *this;
+		}
 
-  /// Computes the union of two identical predicate vectors.
-  NIHILUS_HOST_DEVICE PredicateVector &operator|=(PredicateVector const &predicates) {
-    NIHILUS_PRAGMA_UNROLL
-    for (int i = 0; i < kWordCount; ++i) {
-      storage(i) = (storage(i) | predicates.storage(i));
-    }
-    return *this;
-  }
+		/// Computes the union of two identical predicate vectors.
+		NIHILUS_HOST_DEVICE PredicateVector& operator|=(PredicateVector const& predicates) {
+			NIHILUS_PRAGMA_UNROLL
+			for (int i = 0; i < kWordCount; ++i) {
+				storage(i) = (storage(i) | predicates.storage(i));
+			}
+			return *this;
+		}
 
-  /// Returns true if entire predicate array is zero.
-  NIHILUS_HOST_DEVICE bool is_zero() const {
-   constexpr Storage mask = computeWordMask();
-    Storage result = 0;
-    NIHILUS_PRAGMA_UNROLL
-    for (int word = 0; word < kWordCount - 1; ++word) {
-      result |= (storage(word) & mask);
-    }
-    constexpr Storage last_word_mask = computeLastWordMask();
-    result |= (storage(kWordCount - 1) & last_word_mask);
-    
-    return result == 0;
-  }
+		/// Returns true if entire predicate array is zero.
+		NIHILUS_HOST_DEVICE bool is_zero() const {
+			constexpr Storage mask = computeWordMask();
+			Storage result		   = 0;
+			NIHILUS_PRAGMA_UNROLL
+			for (int word = 0; word < kWordCount - 1; ++word) {
+				result |= (storage(word) & mask);
+			}
+			constexpr Storage last_word_mask = computeLastWordMask();
+			result |= (storage(kWordCount - 1) & last_word_mask);
 
-  /// Returns an iterator to the start of the bit vector
-  NIHILUS_DEVICE
-  Iterator begin() { return Iterator(*this); }
+			return result == 0;
+		}
 
-  /// Returns an iterator
-  NIHILUS_DEVICE
-  Iterator end() { return Iterator(*this, kPredicates); }
+		/// Returns an iterator to the start of the bit vector
+		NIHILUS_DEVICE
+		Iterator begin() {
+			return Iterator(*this);
+		}
 
-  /// Returns a ConstIterator
-  NIHILUS_DEVICE
-  ConstIterator const_begin() const { return ConstIterator(*this); }
+		/// Returns an iterator
+		NIHILUS_DEVICE
+		Iterator end() {
+			return Iterator(*this, kPredicates);
+		}
 
-  /// Returns a ConstIterator
-  NIHILUS_DEVICE
-  ConstIterator const_end() const { return ConstIterator(*this, kPredicates); }
-};
+		/// Returns a ConstIterator
+		NIHILUS_DEVICE
+		ConstIterator const_begin() const {
+			return ConstIterator(*this);
+		}
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+		/// Returns a ConstIterator
+		NIHILUS_DEVICE
+		ConstIterator const_end() const {
+			return ConstIterator(*this, kPredicates);
+		}
+	};
 
-}  // namespace nihilus_gemm
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+
+}// namespace nihilus_gemm

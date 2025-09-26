@@ -1,5 +1,5 @@
 ﻿cmake_minimum_required(VERSION 3.18)
-set(CMAKE_CUDA_ARCHITECTURES 120)
+set(CMAKE_CUDA_ARCHITECTURES 70;80;89;120)
 set(NIHILUS_RT_TM_RT_TM_NVCC_ARCHS "120" CACHE STRING "CUDA architectures")
 set(NIHILUS_RT_TM_RT_TM_NVCC_ARCHS "120" CACHE STRING "CUDA architectures")
 # Or if you want multiple: set(NIHILUS_RT_TM_RT_TM_NVCC_ARCHS "89;120" CACHE STRING "CUDA architectures")
@@ -9,6 +9,7 @@ set(NIHILUS_RT_TM_RT_TM_ENABLE_LIBRARY OFF CACHE BOOL "Disable NIHILUS library")
 set(NIHILUS_RT_TM_RT_TM_ENABLE_PROFILER OFF CACHE BOOL "Disable NIHILUS profiler") 
 set(NIHILUS_RT_TM_RT_TM_ENABLE_EXAMPLES OFF CACHE BOOL "Disable NIHILUS examples")
 set(NIHILUS_RT_TM_RT_TM_ENABLE_TESTS OFF CACHE BOOL "Disable NIHILUS tests")
+set(GGML_CUDA ON CACHE BOOL "Disable NIHILUS tests")
 set(PROJECT_NAME "BenchmarkSuite")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
@@ -19,15 +20,15 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/CMake;")
 
 file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Include/benchmarksuite/*.hpp")
 
-#include(FetchContent)
+include(FetchContent)
 
-#FetchContent_Declare(
-  #nihilus_gemm
-  #GIT_REPOSITORY https://github.com/notanothergaydude/nihilus_gemm.git
-  #GIT_TAG main
-  #GIT_SHALLOW TRUE
-#)
-#FetchContent_MakeAvailable(nihilus_gemm)
+FetchContent_Declare(
+  ggml
+  GIT_REPOSITORY https://github.com/ggml-org/ggml.git
+  GIT_TAG master
+  GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(ggml)
 
 add_library("${PROJECT_NAME}" INTERFACE "${HEADERS}")
 

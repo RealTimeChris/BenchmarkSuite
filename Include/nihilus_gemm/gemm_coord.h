@@ -271,10 +271,6 @@ namespace nihilus_gemm {
 			NIHILUS_HOST_DEVICE
 			constexpr constexpresh_gemm_coord(constexpresh_coord<3, M, K> const& coord) : Base(make_Coord<M, K>(coord[2])) {};
 
-			NIHILUS_HOST_DEVICE operator GemmCoord() const {
-				return { static_cast<int32_t>(Base::M), static_cast<int32_t>(Base::N), static_cast<int32_t>(Base::K) };
-			}
-
 			/// Returns the GEMM M coordinate
 			NIHILUS_HOST_DEVICE
 			static constexpr Index m() {

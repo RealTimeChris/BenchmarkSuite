@@ -53,7 +53,7 @@
 	#define BNCH_SWT_LINUX 1
 #endif
 
-#if defined(BNCH_SWT_FORCE_INLINE)
+#if !defined(BNCH_SWT_FORCE_INLINE)
 	#if defined(BNCH_SWT_MSVC)
 		#define BNCH_SWT_INLINE [[msvc::forceinline]] inline 
 	#elif defined(BNCH_SWT_CLANG)

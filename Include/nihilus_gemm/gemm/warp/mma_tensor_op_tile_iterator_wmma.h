@@ -41,7 +41,7 @@
 #if defined(NIHILUS_ARCH_WMMA_ENABLED)
 
 #include "nihilus_gemm/wmma_array.h"
-#include "nihilus_gemm/numeric_types.h"
+
 #include "nihilus_gemm/tensor_ref.h"
 #include "nihilus_gemm/matrix_shape.h"
 

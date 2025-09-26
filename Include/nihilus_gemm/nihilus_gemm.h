@@ -38,128 +38,129 @@
 #include "nihilus_gemm/detail/helper_macros.hpp"
 
 #if (__CUDACC_VER_MAJOR__ >= 13)
-  #define CUDA_STD_HEADER(header) <cccl/cuda/std/header>
+	#define CUDA_STD_HEADER(header) <cccl/cuda/std/header>
 #else
-  #define CUDA_STD_HEADER(header) <cuda/std/header>
+	#define CUDA_STD_HEADER(header) <cuda/std/header>
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace nihilus_gemm {
 
-/// Status code returned by NIHILUS operations
-enum class Status {
-  kSuccess,                    ///< Operation was successful.
-  kErrorMisalignedOperand,     ///< operands fail alignment requirements.
-  kErrorInvalidDataType,       ///< DataType fails requirement.
-  kErrorInvalidLayout,         ///< Layout fails alignment requirement.
-  kErrorInvalidProblem,        ///< Specified problem size is not supported by operator.
-  kErrorNotSupported,          ///< Operation is not supported on current device.
-  kErrorWorkspaceNull,         ///< The given workspace is null when it is required to be non-null.
-  kErrorInternal,              ///< An error within NIHILUS occurred.
-  kErrorArchMismatch,          ///< NIHILUS runs on a device that it was not compiled for.
-  kErrorInsufficientDriver,    ///< NIHILUS runs with a driver that is too old.
-  kErrorMemoryAllocation,      ///< Kernel launch failed due to insufficient device memory.
-  kInvalid                     ///< Status is unspecified.
-};
+	/// Status code returned by NIHILUS operations
+	enum class Status {
+		kSuccess,///< Operation was successful.
+		kErrorMisalignedOperand,///< operands fail alignment requirements.
+		kErrorInvalidDataType,///< DataType fails requirement.
+		kErrorInvalidLayout,///< Layout fails alignment requirement.
+		kErrorInvalidProblem,///< Specified problem size is not supported by operator.
+		kErrorNotSupported,///< Operation is not supported on current device.
+		kErrorWorkspaceNull,///< The given workspace is null when it is required to be non-null.
+		kErrorInternal,///< An error within NIHILUS occurred.
+		kErrorArchMismatch,///< NIHILUS runs on a device that it was not compiled for.
+		kErrorInsufficientDriver,///< NIHILUS runs with a driver that is too old.
+		kErrorMemoryAllocation,///< Kernel launch failed due to insufficient device memory.
+		kInvalid///< Status is unspecified.
+	};
 
-/// Convert nihilus_gemm status to status strings
-NIHILUS_HOST_DEVICE
-static constexpr const char* cutlassGetStatusString(nihilus_gemm::Status status) {
-  switch (status) {
-    case nihilus_gemm::Status::kSuccess:
-      return "Success";
-    case nihilus_gemm::Status::kErrorMisalignedOperand:
-      return "Error Misaligned Operand";
-    case nihilus_gemm::Status::kErrorInvalidDataType:
-      return "Error Invalid Data Type";
-    case nihilus_gemm::Status::kErrorInvalidLayout:
-      return "Error Invalid Layout";
-    case nihilus_gemm::Status::kErrorInvalidProblem:
-      return "Error Invalid Problem";
-    case nihilus_gemm::Status::kErrorNotSupported:
-      return "Error Not Supported";
-    case nihilus_gemm::Status::kErrorWorkspaceNull:
-      return "Error Workspace Null";
-    case nihilus_gemm::Status::kErrorInternal:
-      return "Error Internal";
-    case nihilus_gemm::Status::kErrorInsufficientDriver:
-      return "Error Insufficient Driver";
-    case nihilus_gemm::Status::kErrorArchMismatch:
-      return "Error Architecture Mismatch";
-    case nihilus_gemm::Status::kErrorMemoryAllocation:
-      return "Error Memory Allocation failed";
-    case nihilus_gemm::Status::kInvalid: break;
-  }
+	/// Convert nihilus_gemm status to status strings
+	NIHILUS_HOST_DEVICE
+	static constexpr const char* cutlassGetStatusString(nihilus_gemm::Status status) {
+		switch (status) {
+			case nihilus_gemm::Status::kSuccess:
+				return "Success";
+			case nihilus_gemm::Status::kErrorMisalignedOperand:
+				return "Error Misaligned Operand";
+			case nihilus_gemm::Status::kErrorInvalidDataType:
+				return "Error Invalid Data Type";
+			case nihilus_gemm::Status::kErrorInvalidLayout:
+				return "Error Invalid Layout";
+			case nihilus_gemm::Status::kErrorInvalidProblem:
+				return "Error Invalid Problem";
+			case nihilus_gemm::Status::kErrorNotSupported:
+				return "Error Not Supported";
+			case nihilus_gemm::Status::kErrorWorkspaceNull:
+				return "Error Workspace Null";
+			case nihilus_gemm::Status::kErrorInternal:
+				return "Error Internal";
+			case nihilus_gemm::Status::kErrorInsufficientDriver:
+				return "Error Insufficient Driver";
+			case nihilus_gemm::Status::kErrorArchMismatch:
+				return "Error Architecture Mismatch";
+			case nihilus_gemm::Status::kErrorMemoryAllocation:
+				return "Error Memory Allocation failed";
+			case nihilus_gemm::Status::kInvalid:
+				break;
+		}
 
-  return "Invalid status";
-}
+		return "Invalid status";
+	}
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static constexpr int NumThreadsPerWarp = 32;
-static constexpr int NumThreadsPerWarpGroup = 128;
-static constexpr int NumWarpsPerWarpGroup = NumThreadsPerWarpGroup / NumThreadsPerWarp;
-static constexpr int NumThreadsPerHalfWarp = NumThreadsPerWarp / 2;
-static constexpr int NumThreadsPerQuad = 4;
-static constexpr int NumThreadsPerQuadPair = NumThreadsPerQuad * 2;
+	static constexpr int NumThreadsPerWarp		= 32;
+	static constexpr int NumThreadsPerWarpGroup = 128;
+	static constexpr int NumWarpsPerWarpGroup	= NumThreadsPerWarpGroup / NumThreadsPerWarp;
+	static constexpr int NumThreadsPerHalfWarp	= NumThreadsPerWarp / 2;
+	static constexpr int NumThreadsPerQuad		= 4;
+	static constexpr int NumThreadsPerQuadPair	= NumThreadsPerQuad * 2;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Helper function to return true when called by thread 0 of threadblock 0.
-NIHILUS_HOST_DEVICE bool thread0() {
-  #if defined(__CUDA_ARCH__)
-    return (!threadIdx.x && !threadIdx.y && !threadIdx.z) && (!blockIdx.x && !blockIdx.y && !blockIdx.z);
-  #else
-    return false;
-  #endif
-}
+	/// Helper function to return true when called by thread 0 of threadblock 0.
+	NIHILUS_HOST_DEVICE bool thread0() {
+#if defined(__CUDA_ARCH__)
+		return (!threadIdx.x && !threadIdx.y && !threadIdx.z) && (!blockIdx.x && !blockIdx.y && !blockIdx.z);
+#else
+		return false;
+#endif
+	}
 
-/// Returns a lane index in the warp. The threads in warp may not be convergent
-NIHILUS_DEVICE
-int canonical_lane_idx() { 
-  #if defined(__CUDA_ARCH__)
-    return threadIdx.x % NumThreadsPerWarp;
-  #else
-    return 0;
-  #endif
-}
+	/// Returns a lane index in the warp. The threads in warp may not be convergent
+	NIHILUS_DEVICE
+	int canonical_lane_idx() {
+#if defined(__CUDA_ARCH__)
+		return threadIdx.x % NumThreadsPerWarp;
+#else
+		return 0;
+#endif
+	}
 
-/// Returns a warp-uniform value indicating the canonical warp index of the calling threads.
-/// Threads within the warp must be converged.
-NIHILUS_DEVICE
-int canonical_warp_idx_sync() { 
-  #if defined(__CUDA_ARCH__)
-    return __shfl_sync(0xffffffff, threadIdx.x / NumThreadsPerWarp, 0);
-  #else
-    return 0;
-  #endif
-}
+	/// Returns a warp-uniform value indicating the canonical warp index of the calling threads.
+	/// Threads within the warp must be converged.
+	NIHILUS_DEVICE
+	int canonical_warp_idx_sync() {
+#if defined(__CUDA_ARCH__)
+		return __shfl_sync(0xffffffff, threadIdx.x / NumThreadsPerWarp, 0);
+#else
+		return 0;
+#endif
+	}
 
-/// Returns a warp index in the CTA. The threads in warp may not be convergent
-/// As it doesn't sync the warp, it faster and allows forward progress
-NIHILUS_DEVICE
-int canonical_warp_idx() { 
-  #if defined(__CUDA_ARCH__)
-    return threadIdx.x / NumThreadsPerWarp;
-  #else
-    return 0;
-  #endif
-}
+	/// Returns a warp index in the CTA. The threads in warp may not be convergent
+	/// As it doesn't sync the warp, it faster and allows forward progress
+	NIHILUS_DEVICE
+	int canonical_warp_idx() {
+#if defined(__CUDA_ARCH__)
+		return threadIdx.x / NumThreadsPerWarp;
+#else
+		return 0;
+#endif
+	}
 
-/// Returns a warp-uniform value indicating the canonical warp group index of the calling threads.
-/// Threads within the warp must be converged.
-NIHILUS_DEVICE
-int canonical_warp_group_idx() {
-  #if defined(__CUDA_ARCH__)
-    return __shfl_sync(0xffffffff, threadIdx.x / NumThreadsPerWarpGroup, 0);
-  #else
-    return 0;
-  #endif
-}
+	/// Returns a warp-uniform value indicating the canonical warp group index of the calling threads.
+	/// Threads within the warp must be converged.
+	NIHILUS_DEVICE
+	int canonical_warp_group_idx() {
+#if defined(__CUDA_ARCH__)
+		return __shfl_sync(0xffffffff, threadIdx.x / NumThreadsPerWarpGroup, 0);
+#else
+		return 0;
+#endif
+	}
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 
-}  // namespace nihilus_gemm
+}// namespace nihilus_gemm
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
