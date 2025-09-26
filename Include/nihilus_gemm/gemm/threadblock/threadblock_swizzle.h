@@ -58,13 +58,6 @@ namespace nihilus_gemm {
 				constexpr GemmIdentityThreadblockSwizzle() {
 				}
 
-				/// Returns the shape of the problem in units of logical tiles
-				/// *Gemm* problem size: gemm(M, N, K)
-				NIHILUS_HOST_DEVICE
-				static GemmCoord get_tiled_shape(GemmCoord problem_size, GemmCoord tile_size, int split_k_slices) {
-					return GemmCoord((problem_size.m() + tile_size.m() - 1) / tile_size.m(), (problem_size.n() + tile_size.n() - 1) / tile_size.n(), split_k_slices);
-				}
-
 				template<int32_t split_k_slices, uint64_t M_new, uint64_t K_new, uint64_t M_newer, uint64_t K_newer> NIHILUS_HOST_DEVICE constexpr static decltype(auto)
 				get_tiled_shape(constexpresh_gemm_coord<M_new, K_new> problem_size, constexpresh_gemm_coord<M_newer, K_newer> tile_size) {
 					return constexpresh_gemm_coord<(constexpresh_gemm_coord<M_new, K_new>::M + constexpresh_gemm_coord<M_newer, K_newer>::M - 1) /
@@ -92,9 +85,30 @@ namespace nihilus_gemm {
 					return get_tiled_shape(implicit_gemm_problem_size, tile_size, split_k_slices);
 				}
 
-				template<uint64_t M_new, uint64_t K_new> NIHILUS_HOST_DEVICE static constexpr dim3 get_grid_shape(constexpresh_gemm_coord<M_new, K_new> tiled_shape) {
+				/// Computes CUDA grid dimensions given a size in units of logical tiles
+				NIHILUS_HOST_DEVICE
+				static dim3 get_grid_shape(GemmCoord tiled_shape) {
 					int tile = 1 << get_log_tile(tiled_shape);
 					return dim3(tiled_shape.m() * tile, (tiled_shape.n() + tile - 1) / tile, tiled_shape.k());
+				}
+
+				/// Calculates optimal swizzle width
+				NIHILUS_HOST_DEVICE
+				constexpr static int get_log_tile(const GemmCoord& tiled_shape) {
+					if constexpr (N < 2) {
+						return 0;
+					} else {
+						auto n = tiled_shape.n();
+						// Thresholds picked so that it doesn't cause too many no-op CTAs
+						if (N >= 8 && n >= 6)
+							return 3;
+						else if (N >= 4 && n >= 3)
+							return 2;
+						else if (N >= 2 && n >= 2)
+							return 1;
+						else
+							return 0;
+					}
 				}
 
 				template<uint64_t M_new, uint64_t K_new> NIHILUS_HOST_DEVICE static constexpr int get_log_tile(constexpresh_gemm_coord<M_new, K_new> tiled_shape) {

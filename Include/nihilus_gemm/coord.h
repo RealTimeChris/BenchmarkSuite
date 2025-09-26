@@ -357,16 +357,34 @@ namespace nihilus_gemm {
 		}
 	};
 
+	struct rt_index_base {
+		mutable uint64_t N{};
+		constexpr rt_index_base(uint64_t N_new = 0) noexcept : N{ N_new } {};
+		NIHILUS_HOST_DEVICE uint64_t& n() {
+			return N;
+		}
+
+		NIHILUS_HOST_DEVICE const uint64_t& n() const {
+			return N;
+		}
+	};
+
 	template<uint64_t index> using tag = std::integral_constant<uint64_t, index>;
 
 	template<uint64_t Rank_, uint64_t... dimensions> struct constexpresh_coord;
 
 	template<uint64_t M_new> struct constexpresh_coord<1, M_new> {
+	  public:
 		static constexpr uint64_t kRank = 1ull;
+
 		using Index = uint64_t;
+
 		using LongIndex = int64_t;
+
+	  public:
 		static constexpr uint64_t M{ M_new };
 
+	  public:
 		NIHILUS_HOST_DEVICE
 		explicit constexpresh_coord() {
 		}
@@ -493,12 +511,18 @@ namespace nihilus_gemm {
 	};
 
 	template<uint64_t M_new, uint64_t K_new> struct constexpresh_coord<2, M_new, K_new> {
+	  public:
 		static constexpr uint64_t kRank = 2ull;
+
 		using Index = uint64_t;
+
 		using LongIndex = int64_t;
+
+	  public:
 		static constexpr uint64_t M{ M_new };
 		static constexpr uint64_t K{ K_new };
 
+	  public:
 		NIHILUS_HOST_DEVICE
 		explicit constexpresh_coord() {
 		}
@@ -655,20 +679,27 @@ namespace nihilus_gemm {
 		}
 	};
 
-	template<uint64_t M_new> struct constexpresh_coord<2, M_new> {
+	template<uint64_t M_new> struct constexpresh_coord<2, M_new> : public rt_index_base {
+	  public:
 		static constexpr uint64_t kRank = 2ull;
-		using Index = uint64_t;
-		using LongIndex = int64_t;
-		static constexpr uint64_t M{ M_new };
-		mutable uint64_t N{};
 
+		using Index = uint64_t;
+
+		using LongIndex = int64_t;
+
+	  public:
+		static constexpr uint64_t M{ M_new };
+
+	  public:
 		NIHILUS_HOST_DEVICE
 		explicit constexpresh_coord() {
 		}
 
-		NIHILUS_HOST_DEVICE constexpresh_coord(const constexpresh_coord<2, M>& other) : N{ other.N } {}
+		NIHILUS_HOST_DEVICE constexpresh_coord(const constexpresh_coord<2, M>& other) : rt_index_base{ other.N } {
+		}
 
-		NIHILUS_HOST_DEVICE constexpresh_coord(Index other) : N{ other } {}
+		NIHILUS_HOST_DEVICE constexpresh_coord(Index other) : rt_index_base{ other } {
+		}
 
 		NIHILUS_HOST_DEVICE operator Coord<2>() const {
 			int32_t values[2]{ static_cast<int32_t>(M), static_cast<int32_t>(N) };
@@ -719,24 +750,20 @@ namespace nihilus_gemm {
 			return true;
 		}
 
-		template<uint64_t M_other>
-		NIHILUS_HOST_DEVICE consteval constexpresh_coord<2, M / M_other> operator/(constexpresh_coord<2, M_other> const& b) const {
+		template<uint64_t M_other> NIHILUS_HOST_DEVICE consteval constexpresh_coord<2, M / M_other> operator/(constexpresh_coord<2, M_other> const& b) const {
 			static_assert(M % M_other == 0, "M must be divisible by M_other");
 			return constexpresh_coord<2, M / M_other>{ N / b.N };
 		}
 
-		template<uint64_t M_other>
-		NIHILUS_HOST_DEVICE consteval constexpresh_coord<2, M + M_other> operator+(constexpresh_coord<2, M_other> const& b) const {
+		template<uint64_t M_other> NIHILUS_HOST_DEVICE consteval constexpresh_coord<2, M + M_other> operator+(constexpresh_coord<2, M_other> const& b) const {
 			return constexpresh_coord<2, M + M_other>{ N + b.N };
 		}
 
-		template<uint64_t M_other>
-		NIHILUS_HOST_DEVICE consteval constexpresh_coord<2, M - M_other> operator-(constexpresh_coord<2, M_other> const& b) const {
+		template<uint64_t M_other> NIHILUS_HOST_DEVICE consteval constexpresh_coord<2, M - M_other> operator-(constexpresh_coord<2, M_other> const& b) const {
 			return constexpresh_coord<2, M - M_other>{ N - b.N };
 		}
 
-		template<uint64_t M_other>
-		NIHILUS_HOST_DEVICE consteval constexpresh_coord<2, M * M_other> operator*(constexpresh_coord<2, M_other> const& b) const {
+		template<uint64_t M_other> NIHILUS_HOST_DEVICE consteval constexpresh_coord<2, M * M_other> operator*(constexpresh_coord<2, M_other> const& b) const {
 			return constexpresh_coord<2, M * M_other>{ N * b.N };
 		}
 
@@ -823,20 +850,23 @@ namespace nihilus_gemm {
 		}
 	};
 
-	template<uint64_t M_new, uint64_t K_new> struct constexpresh_coord<3, M_new, K_new> {
+	template<uint64_t M_new, uint64_t K_new> struct constexpresh_coord<3, M_new, K_new> : public rt_index_base {
+	  public:
 		static constexpr uint64_t kRank = 3ull;
+
 		using Index = uint64_t;
+
 		using LongIndex = int64_t;
+
+	  public:
 		static constexpr uint64_t M{ M_new };
 		static constexpr uint64_t K{ K_new };
-		mutable uint64_t N{};
 
+	  public:
 		NIHILUS_HOST_DEVICE
-		constexpr explicit constexpresh_coord(Index index = 0) {
-			N = index;
-		}
+		constexpr explicit constexpresh_coord(Index index = 0) : rt_index_base{ index } {}
 
-		NIHILUS_HOST_DEVICE constexpr constexpresh_coord(const constexpresh_coord& other){};
+		NIHILUS_HOST_DEVICE constexpr constexpresh_coord(const constexpresh_coord& other) : rt_index_base{ other.N } {};
 
 		NIHILUS_HOST_DEVICE
 		constexpr uint64_t min_dim_index() const {
@@ -869,8 +899,13 @@ namespace nihilus_gemm {
 		}
 
 		NIHILUS_HOST_DEVICE
-		const Index m() const {
+		static constexpr Index m() {
 			return M;
+		}
+
+		NIHILUS_HOST_DEVICE
+		static constexpr Index k() {
+			return K;
 		}
 
 		NIHILUS_HOST_DEVICE

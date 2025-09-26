@@ -64,8 +64,8 @@ namespace nihilus_gemm {
 				template<uint64_t M_new, uint64_t K_new>
 				struct Params {
 					nihilus_gemm::gemm::constexpresh_gemm_coord<M, K> problem_size;
-					static constexpr nihilus_gemm::gemm::constexpresh_gemm_coord<M_new, K_new> grid_tiled_shape;
-					static constexpr int swizzle_log_tile{ ThreadblockSwizzle::get_log_tile(grid_tiled_shape) };
+					nihilus_gemm::gemm::constexpresh_gemm_coord<M_new, K_new> grid_tiled_shape;
+					int swizzle_log_tile;
 					typename Mma::IteratorA::Params params_A;
 					typename Mma::IteratorA::TensorRef ref_A;
 					typename Mma::IteratorB::Params params_B;
@@ -88,17 +88,18 @@ namespace nihilus_gemm {
 					//
 
 					NIHILUS_HOST_DEVICE
-					Params() : semaphore(0) {}
+					Params() : swizzle_log_tile(0), semaphore(0) {}
 
 					NIHILUS_HOST_DEVICE
-					Params(nihilus_gemm::gemm::constexpresh_gemm_coord<M, K> const& problem_size, nihilus_gemm::gemm::constexpresh_gemm_coord<M_new, K_new> const& grid_tiled_shape_new,
+					Params(nihilus_gemm::gemm::constexpresh_gemm_coord<M, K> const& problem_size, nihilus_gemm::gemm::constexpresh_gemm_coord<M_new, K_new> const& grid_tiled_shape,
 						typename Mma::IteratorA::TensorRef ref_A, typename Mma::IteratorB::TensorRef ref_B, typename Epilogue::OutputTileIterator::TensorRef ref_C,
 						typename Epilogue::OutputTileIterator::TensorRef ref_D, typename OutputOp::Params output_op = typename OutputOp::Params(), int* workspace = nullptr,
 						int const* gather_A_indices = nullptr, int const* gather_B_indices = nullptr, int const* scatter_D_indices = nullptr)
-						: problem_size(problem_size), params_A(ref_A.layout()), ref_A(ref_A), params_B(ref_B.layout()), ref_B(ref_B), params_C(ref_C.layout()), ref_C(ref_C),
-						  params_D(ref_D.layout()), ref_D(ref_D), output_op(output_op) {
+						: problem_size(problem_size), grid_tiled_shape(grid_tiled_shape), swizzle_log_tile(ThreadblockSwizzle().get_log_tile(grid_tiled_shape)),
+						  params_A(ref_A.layout()), ref_A(ref_A), params_B(ref_B.layout()), ref_B(ref_B), params_C(ref_C.layout()), ref_C(ref_C), params_D(ref_D.layout()),
+						  ref_D(ref_D), output_op(output_op) {
+
 						semaphore = workspace;
-						grid_tiled_shape.N = grid_tiled_shape.N;
 					}
 				};
 
@@ -117,11 +118,16 @@ namespace nihilus_gemm {
 				}
 
 				template<uint64_t M_new, uint64_t K_new>
-				NIHILUS_DEVICE void operator()(Params<M_new, K_new> const params, SharedStorage& shared_storage) {
+				NIHILUS_DEVICE void operator()(Params<M_new, K_new> const& params, SharedStorage& shared_storage) {
 					// Compute threadblock location
 					constexpr ThreadblockSwizzle threadblock_swizzle;
 
 					nihilus_gemm::gemm::GemmCoord threadblock_tile_offset = threadblock_swizzle.get_tile_offset(params.swizzle_log_tile);
+
+					// Early exit if CTA is out of range
+					if (decltype(params.grid_tiled_shape)::M <= threadblock_tile_offset.m() || params.grid_tiled_shape.n() <= threadblock_tile_offset.n()) {
+						return;
+					}
 
 					// Compute initial location in logical coordinates
 					nihilus_gemm::MatrixCoord tb_offset_A{
@@ -181,7 +187,7 @@ namespace nihilus_gemm {
 					//assume identity swizzle
 					MatrixCoord threadblock_offset(threadblock_tile_offset.m() * Mma::Shape::kM, threadblock_tile_offset.n() * Mma::Shape::kN);
 
-					int block_idx = threadblock_tile_offset.m() + threadblock_tile_offset.n() * decltype(params.grid_tiled_shape)::M;
+					int block_idx = threadblock_tile_offset.m() + threadblock_tile_offset.n() * params.grid_tiled_shape.m();
 
 					// Construct the semaphore.
 					Semaphore semaphore(params.semaphore + block_idx, thread_idx);
@@ -215,7 +221,7 @@ namespace nihilus_gemm {
 
 					if (kSplitKSerial && params.grid_tiled_shape.k() > 1) {
 						int lock = 0;
-						if (decltype(params.grid_tiled_shape)::K == threadblock_tile_offset.k() + 1) {
+						if (params.grid_tiled_shape.k() == threadblock_tile_offset.k() + 1) {
 							// The final threadblock resets the semaphore for subsequent grids.
 							lock = 0;
 						} else {

@@ -277,8 +277,8 @@ namespace nihilus_gemm {
 
 			/// Returns the GEMM M coordinate
 			NIHILUS_HOST_DEVICE
-			Index m() const {
-				return Base::M;
+			static constexpr Index m() {
+				return Base::m();
 			}
 
 			NIHILUS_HOST_DEVICE
@@ -288,14 +288,14 @@ namespace nihilus_gemm {
 
 			/// Returns the GEMM N coordinate
 			NIHILUS_HOST_DEVICE
-			Index const& n() const {
+			Index n() const {
 				return this->N;
 			}
 
 			/// Returns the GEMM K coordinate
 			NIHILUS_HOST_DEVICE
-			Index const k() const {
-				return Base::K;
+			static constexpr Index k() {
+				return Base::k();
 			}
 
 			/// Obtains a constexpresh_coord<3, M, K> from constexpresh_gemm_coord
