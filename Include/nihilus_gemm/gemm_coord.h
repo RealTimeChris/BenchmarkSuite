@@ -292,21 +292,9 @@ namespace nihilus_gemm {
 				return this->N;
 			}
 
-			/// Returns reference to the GEMM N coordinate
-			NIHILUS_HOST_DEVICE
-			Index& n() {
-				return this->N;
-			}
-
 			/// Returns the GEMM K coordinate
 			NIHILUS_HOST_DEVICE
 			Index const k() const {
-				return Base::K;
-			}
-
-			/// Returns reference to the GEMM K coordinate
-			NIHILUS_HOST_DEVICE
-			Index& k() {
 				return Base::K;
 			}
 

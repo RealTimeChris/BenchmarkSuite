@@ -2,8 +2,8 @@
 #include <cuda_runtime.h>
 #include <cuda_fp16.h>
 
-static constexpr uint64_t total_iterations{ 2 };
-static constexpr uint64_t measured_iterations{ 2 };
+static constexpr uint64_t total_iterations{ 8 };
+static constexpr uint64_t measured_iterations{ 4 };
 
 template<auto multiple, typename value_01_type = decltype(multiple)> BNCH_SWT_INLINE constexpr value_01_type round_up_to_multiple(value_01_type value) noexcept {
 	if constexpr ((multiple & (multiple - 1)) == 0) {
