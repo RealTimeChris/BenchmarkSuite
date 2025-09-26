@@ -38,7 +38,7 @@
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/aligned_buffer.h"
 
-#include "nihilus_gemm/numeric_types.h"
+
 #include "nihilus_gemm/matrix_shape.h"
 
 #include "nihilus_gemm/gemm/gemm.h"

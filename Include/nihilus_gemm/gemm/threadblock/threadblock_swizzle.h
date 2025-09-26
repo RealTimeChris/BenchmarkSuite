@@ -85,9 +85,8 @@ namespace nihilus_gemm {
 					return get_tiled_shape(implicit_gemm_problem_size, tile_size, split_k_slices);
 				}
 
-				/// Computes CUDA grid dimensions given a size in units of logical tiles
-				NIHILUS_HOST_DEVICE
-				static dim3 get_grid_shape(GemmCoord tiled_shape) {
+				template<uint64_t M_new, uint64_t K_new>
+				NIHILUS_HOST_DEVICE static dim3 get_grid_shape(constexpresh_gemm_coord<M_new, K_new> tiled_shape) {
 					int tile = 1 << get_log_tile(tiled_shape);
 					return dim3(tiled_shape.m() * tile, (tiled_shape.n() + tile - 1) / tile, tiled_shape.k());
 				}
@@ -128,37 +127,24 @@ namespace nihilus_gemm {
 					}
 				}
 
-				/// Obtains the threadblock offset (in units of threadblock-scoped tiles)
-				NIHILUS_DEVICE
-				static GemmCoord get_tile_offset(int log_tile) {
-					int block_idx_x = RematerializeBlockIdxX();
-					int block_idx_y = RematerializeBlockIdxY();
-					int block_idx_z = RematerializeBlockIdxZ();
-
-					return GemmCoord{ (block_idx_x >> log_tile),//
-						(block_idx_y << log_tile) + ((block_idx_x) & ((1 << (log_tile)) - 1)), block_idx_z };
-				}
-
 				template<int32_t log_tile> NIHILUS_DEVICE static GemmCoord get_tile_offset() {
-					int block_idx_x = RematerializeBlockIdxX();
-					int block_idx_y = RematerializeBlockIdxY();
-					int block_idx_z = RematerializeBlockIdxZ();
-
-					return GemmCoord{ (block_idx_x >> log_tile),//
-						(block_idx_y << log_tile) + ((block_idx_x) & ((1 << (log_tile)) - 1)), block_idx_z };
+					int block_idx_x = blockIdx.x;
+					int block_idx_y = blockIdx.y;
+					int block_idx_z = blockIdx.z;
+					return GemmCoord{ (block_idx_x >> log_tile), (block_idx_y << log_tile) + ((block_idx_x) & ((1 << (log_tile)) - 1)), block_idx_z };
 				}
 
 				/// Obtains the threadblock offset (in units of threadblock-scoped tiles)
 				NIHILUS_DEVICE
 				static GemmCoord get_tile_offset(GemmCoord tiled_shape) {
 					int const kTile = N;
-					int block_idx_x = RematerializeBlockIdxX();
-					int block_idx_y = RematerializeBlockIdxY();
+					int block_idx_x = blockIdx.x;
+					int block_idx_y = blockIdx.y;
 
 					if ((tiled_shape.m() < kTile) || (tiled_shape.n() < kTile))
-						return GemmCoord{ block_idx_x, block_idx_y, RematerializeBlockIdxZ() };
+						return GemmCoord{ block_idx_x, block_idx_y, blockIdx.z };
 
-					return GemmCoord{ (block_idx_x / kTile), (block_idx_y * kTile) + (block_idx_x % kTile), RematerializeBlockIdxZ() };
+					return GemmCoord{ (block_idx_x / kTile), (block_idx_y * kTile) + (block_idx_x % kTile), blockIdx.z };
 				}
 			};
 
@@ -191,7 +177,7 @@ namespace nihilus_gemm {
 				/// Obtains the threadblock offset (in units of threadblock-scoped tiles)
 				NIHILUS_DEVICE
 				static GemmCoord get_tile_offset(GemmCoord tiled_shape) {
-					return GemmCoord{ RematerializeBlockIdxY(), RematerializeBlockIdxX(), RematerializeBlockIdxZ() };
+					return GemmCoord{ blockIdx.y, blockIdx.x, blockIdx.z };
 				}
 			};
 
@@ -220,15 +206,15 @@ namespace nihilus_gemm {
 				/// Obtains the threadblock offset (in units of threadblock-scoped tiles)
 				NIHILUS_DEVICE
 				static GemmCoord get_tile_offset(GemmCoord tiled_shape) {
-					return GemmCoord{ RematerializeBlockIdxX(), RematerializeBlockIdxY(), RematerializeBlockIdxZ() };
+					return GemmCoord{ blockIdx.x, blockIdx.y, blockIdx.z };
 				}
 
 				/// Obtains the threadblock offset (in units of threadblock-scoped tiles)
 				NIHILUS_DEVICE
 				static GemmCoord get_tile_offset(int log_tile) {
-					int block_idx_x = RematerializeBlockIdxX();
-					int block_idx_y = RematerializeBlockIdxY();
-					int block_idx_z = RematerializeBlockIdxZ();
+					int block_idx_x = blockIdx.x;
+					int block_idx_y = blockIdx.y;
+					int block_idx_z = blockIdx.z;
 
 					return GemmCoord{ (block_idx_x >> log_tile),//
 						(block_idx_y << log_tile) + ((block_idx_x) & ((1 << (log_tile)) - 1)), block_idx_z };
@@ -237,7 +223,7 @@ namespace nihilus_gemm {
 				/// Gets the batch index
 				NIHILUS_DEVICE
 				static int get_batch_idx() {
-					return RematerializeBlockIdxZ();
+					return blockIdx.z;
 				}
 			};
 
@@ -278,9 +264,9 @@ namespace nihilus_gemm {
 				/// Obtains the threadblock offset (in units of threadblock-scoped tiles)
 				NIHILUS_DEVICE
 				static GemmCoord get_tile_offset(int log_tile) {
-					int block_idx_x = RematerializeBlockIdxX();
-					int block_idx_y = RematerializeBlockIdxY();
-					int block_idx_z = RematerializeBlockIdxZ();
+					int block_idx_x = blockIdx.x;
+					int block_idx_y = blockIdx.y;
+					int block_idx_z = blockIdx.z;
 
 					return GemmCoord{ (block_idx_x >> log_tile),//
 						(block_idx_y << log_tile) + ((block_idx_x) & ((1 << (log_tile)) - 1)), block_idx_z };
@@ -290,13 +276,13 @@ namespace nihilus_gemm {
 				NIHILUS_DEVICE
 				static GemmCoord get_tile_offset(GemmCoord tiled_shape) {
 					int const kTile = N;
-					int block_idx_x = RematerializeBlockIdxX();
-					int block_idx_y = RematerializeBlockIdxY();
+					int block_idx_x = blockIdx.x;
+					int block_idx_y = blockIdx.y;
 
 					if ((tiled_shape.m() < kTile) || (tiled_shape.n() < kTile))
-						return GemmCoord{ block_idx_x, block_idx_y, RematerializeBlockIdxZ() };
+						return GemmCoord{ block_idx_x, block_idx_y, blockIdx.z };
 
-					return GemmCoord{ (block_idx_x / kTile), (block_idx_y * kTile) + (block_idx_x % kTile), RematerializeBlockIdxZ() };
+					return GemmCoord{ (block_idx_x / kTile), (block_idx_y * kTile) + (block_idx_x % kTile), blockIdx.z };
 				}
 			};
 
@@ -325,13 +311,13 @@ namespace nihilus_gemm {
 				/// Obtains the threadblock offset (in units of threadblock-scoped tiles)
 				NIHILUS_DEVICE
 				static GemmCoord get_tile_offset(int log_tile) {
-					return GemmCoord{ RematerializeBlockIdxY(), RematerializeBlockIdxX(), RematerializeBlockIdxZ() };
+					return GemmCoord{ blockIdx.y, blockIdx.x, blockIdx.z };
 				}
 
 				/// Obtains the threadblock offset (in units of threadblock-scoped tiles)
 				NIHILUS_DEVICE
 				static GemmCoord get_tile_offset(GemmCoord tiled_shape) {
-					return GemmCoord{ RematerializeBlockIdxY(), RematerializeBlockIdxX(), RematerializeBlockIdxZ() };
+					return GemmCoord{ blockIdx.y, blockIdx.x, blockIdx.z };
 				}
 			};
 
@@ -364,9 +350,9 @@ namespace nihilus_gemm {
 				static BatchedGemmCoord get_tile_offset(int log_tile) {
 					return BatchedGemmCoord{
 						0,// M is always 1
-						RematerializeBlockIdxX(),
-						RematerializeBlockIdxZ(),
-						RematerializeBlockIdxY(),
+						blockIdx.x,
+						blockIdx.z,
+						blockIdx.y,
 					};
 				}
 
@@ -375,22 +361,22 @@ namespace nihilus_gemm {
 				static BatchedGemmCoord get_tile_offset() {
 					return BatchedGemmCoord{
 						0,// M is always 1
-						RematerializeBlockIdxX(),
-						RematerializeBlockIdxZ(),
-						RematerializeBlockIdxY(),
+						blockIdx.x,
+						blockIdx.z,
+						blockIdx.y,
 					};
 				}
 
 				/// Gets the batch tile index
 				NIHILUS_DEVICE
 				static int get_batch_tile_idx() {
-					return RematerializeBlockIdxY();
+					return blockIdx.y;
 				}
 
 				/// Gets the absolute batch index
 				NIHILUS_DEVICE
 				static int get_batch_idx() {
-					return RematerializeBlockDimY() * RematerializeBlockIdxY() + RematerializeThreadIdxY();
+					return blockDim.y * blockIdx.y + threadIdx.y;
 				}
 			};
 

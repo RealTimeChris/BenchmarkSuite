@@ -40,7 +40,7 @@
 
 #include "nihilus_gemm/layout/matrix.h"
 #include "nihilus_gemm/layout/tensor.h"
-#include "nihilus_gemm/numeric_types.h"
+
 #include "nihilus_gemm/detail/collective.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

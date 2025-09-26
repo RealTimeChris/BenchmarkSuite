@@ -65,7 +65,7 @@ namespace nihilus_gemm {
 				struct Params {
 					nihilus_gemm::gemm::constexpresh_gemm_coord<M, K> problem_size;
 					nihilus_gemm::gemm::constexpresh_gemm_coord<M_new, K_new> grid_tiled_shape;
-					int swizzle_log_tile;
+					static constexpr int swizzle_log_tile{ ThreadblockSwizzle().get_log_tile(nihilus_gemm::gemm::constexpresh_gemm_coord<M_new, K_new>{}) };
 					typename Mma::IteratorA::Params params_A;
 					typename Mma::IteratorA::TensorRef ref_A;
 					typename Mma::IteratorB::Params params_B;
@@ -75,6 +75,7 @@ namespace nihilus_gemm {
 					typename Epilogue::OutputTileIterator::Params params_D;
 					typename Epilogue::OutputTileIterator::TensorRef ref_D;
 					typename OutputOp::Params output_op;
+					Status status;
 					int* semaphore;
 					static constexpr int gemm_k_size{ [] {
 						constexpr int total_gemm_k_iterations = (K + Mma::Shape::kK - 1) / Mma::Shape::kK;
@@ -88,17 +89,15 @@ namespace nihilus_gemm {
 					//
 
 					NIHILUS_HOST_DEVICE
-					Params() : swizzle_log_tile(0), semaphore(0) {}
+					Params() : semaphore(0) {}
 
 					NIHILUS_HOST_DEVICE
 					Params(nihilus_gemm::gemm::constexpresh_gemm_coord<M, K> const& problem_size, nihilus_gemm::gemm::constexpresh_gemm_coord<M_new, K_new> const& grid_tiled_shape,
 						typename Mma::IteratorA::TensorRef ref_A, typename Mma::IteratorB::TensorRef ref_B, typename Epilogue::OutputTileIterator::TensorRef ref_C,
 						typename Epilogue::OutputTileIterator::TensorRef ref_D, typename OutputOp::Params output_op = typename OutputOp::Params(), int* workspace = nullptr,
 						int const* gather_A_indices = nullptr, int const* gather_B_indices = nullptr, int const* scatter_D_indices = nullptr)
-						: problem_size(problem_size), grid_tiled_shape(grid_tiled_shape), swizzle_log_tile(ThreadblockSwizzle().get_log_tile(grid_tiled_shape)),
-						  params_A(ref_A.layout()), ref_A(ref_A), params_B(ref_B.layout()), ref_B(ref_B), params_C(ref_C.layout()), ref_C(ref_C), params_D(ref_D.layout()),
-						  ref_D(ref_D), output_op(output_op) {
-
+						: problem_size(problem_size), grid_tiled_shape(grid_tiled_shape), params_A(ref_A.layout()), ref_A(ref_A), params_B(ref_B.layout()), ref_B(ref_B),
+						  params_C(ref_C.layout()), ref_C(ref_C), params_D(ref_D.layout()), ref_D(ref_D), output_op(output_op) {
 						semaphore = workspace;
 					}
 				};
@@ -117,120 +116,77 @@ namespace nihilus_gemm {
 				Gemm() {
 				}
 
-				template<uint64_t M_new, uint64_t K_new>
-				NIHILUS_DEVICE void operator()(Params<M_new, K_new> const& params, SharedStorage& shared_storage) {
-					// Compute threadblock location
-					constexpr ThreadblockSwizzle threadblock_swizzle;
+				template<uint64_t M_new, uint64_t K_new> NIHILUS_DEVICE static void impl(Params<M_new, K_new> const& params, SharedStorage& shared_storage) {
+					// Cache frequently used shape constants
+					constexpr int kTileM	 = Mma::Shape::kM;
+					constexpr int kTileN	 = Mma::Shape::kN;
+					constexpr int kTileK	 = Mma::Shape::kK;
+					constexpr int kGemmKSize = Params<M_new, K_new>::gemm_k_size;
+					constexpr uint64_t grid_tiled_shape_m{ decltype(params.grid_tiled_shape)::M };
 
-					nihilus_gemm::gemm::GemmCoord threadblock_tile_offset = threadblock_swizzle.get_tile_offset(params.swizzle_log_tile);
+					// Compute threadblock location once and reuse
+					constexpr ThreadblockSwizzle threadblock_swizzle;
+					nihilus_gemm::gemm::GemmCoord threadblock_tile_offset = threadblock_swizzle.template get_tile_offset<Params<M_new, K_new>::swizzle_log_tile>();
 
 					// Early exit if CTA is out of range
 					if (decltype(params.grid_tiled_shape)::M <= threadblock_tile_offset.m() || params.grid_tiled_shape.n() <= threadblock_tile_offset.n()) {
 						return;
 					}
 
-					// Compute initial location in logical coordinates
-					nihilus_gemm::MatrixCoord tb_offset_A{
-						threadblock_tile_offset.m() * Mma::Shape::kM,
-						threadblock_tile_offset.k() * params.gemm_k_size,
-					};
+					// Cache thread indices
+					const int thread_idx = threadIdx.x;
+					const int warp_idx	 = canonical_warp_idx_sync();
+					const int lane_idx	 = thread_idx % 32;
 
-					nihilus_gemm::MatrixCoord tb_offset_B{ threadblock_tile_offset.k() * params.gemm_k_size, threadblock_tile_offset.n() * Mma::Shape::kN };
+					// Compute initial location in logical coordinates
+					const nihilus_gemm::MatrixCoord tb_offset_A{
+						threadblock_tile_offset.m() * kTileM,
+						threadblock_tile_offset.k() * kGemmKSize,
+					};
+					const nihilus_gemm::MatrixCoord tb_offset_B{ threadblock_tile_offset.k() * kGemmKSize, threadblock_tile_offset.n() * kTileN };
 
 					// Problem size is a function of threadblock index in the K dimension
-					int problem_size_k = min(static_cast<int32_t>(K), (threadblock_tile_offset.k() + 1) * params.gemm_k_size);
+					const int problem_size_k = min(static_cast<int32_t>(K), (threadblock_tile_offset.k() + 1) * kGemmKSize);
 
-					// Compute threadblock-scoped matrix multiply-add
-					int gemm_k_iterations = (problem_size_k - tb_offset_A.column() + Mma::Shape::kK - 1) / Mma::Shape::kK;
-
-					// Compute position within threadblock
-					int thread_idx = threadIdx.x;
+					// Compute threadblock-scoped matrix multiply-add iterations
+					const int gemm_k_iterations = (problem_size_k - tb_offset_A.column() + kTileK - 1) / kTileK;
 
 					// Construct iterators to A and B operands
 					typename Mma::IteratorA iterator_A(params.params_A, params.ref_A.data(), { M, problem_size_k }, thread_idx, tb_offset_A);
-
 					typename Mma::IteratorB iterator_B(params.params_B, params.ref_B.data(), { problem_size_k, params.problem_size.n() }, thread_idx, tb_offset_B);
-
-					// Broadcast the warp_id computed by lane 0 to ensure dependent code
-					// is compiled as warp-uniform.
-					int warp_idx = canonical_warp_idx_sync();
-					int lane_idx = threadIdx.x % 32;
 
 					//
 					// Main loop
 					//
-
 					// Construct thread-scoped matrix multiply
 					Mma mma(shared_storage.main_loop, thread_idx, warp_idx, lane_idx);
-
 					typename Mma::FragmentC accumulators;
-
 					accumulators.clear();
-
-					if (!kSplitKSerial || gemm_k_iterations > 0) {
-						// Compute threadblock-scoped matrix multiply-add
-						mma(gemm_k_iterations, accumulators, iterator_A, iterator_B, accumulators);
-					}
+					mma(gemm_k_iterations, accumulators, iterator_A, iterator_B, accumulators);
 
 					//
 					// Epilogue
 					//
-
 					OutputOp output_op(params.output_op);
 
-					//
-					// Masked tile iterators constructed from members
-					//
+					// Reuse threadblock_tile_offset instead of recomputing
+					// (removed redundant computation)
+					const MatrixCoord threadblock_offset(threadblock_tile_offset.m() * kTileM, threadblock_tile_offset.n() * kTileN);
+					const int block_idx = threadblock_tile_offset.m() + threadblock_tile_offset.n() * params.grid_tiled_shape.m();
 
-					threadblock_tile_offset = threadblock_swizzle.get_tile_offset(params.swizzle_log_tile);
+					// Construct the semaphore (if needed)
+					// Semaphore semaphore(params.semaphore + block_idx, thread_idx);
 
-					//assume identity swizzle
-					MatrixCoord threadblock_offset(threadblock_tile_offset.m() * Mma::Shape::kM, threadblock_tile_offset.n() * Mma::Shape::kN);
-
-					int block_idx = threadblock_tile_offset.m() + threadblock_tile_offset.n() * params.grid_tiled_shape.m();
-
-					// Construct the semaphore.
-					Semaphore semaphore(params.semaphore + block_idx, thread_idx);
-
-					// Tile iterator loading from source tensor.
+					// Tile iterator loading from source tensor
 					typename Epilogue::OutputTileIterator iterator_C(params.params_C, params.ref_C.data(), static_cast<Coord<2>>(params.problem_size.mn()), thread_idx,
 						threadblock_offset);
 
-					// Tile iterator writing to destination tensor.
+					// Tile iterator writing to destination tensor
 					typename Epilogue::OutputTileIterator iterator_D(params.params_D, params.ref_D.data(), static_cast<Coord<2>>(params.problem_size.mn()), thread_idx,
 						threadblock_offset);
 
 					Epilogue epilogue(shared_storage.epilogue, thread_idx, warp_idx, lane_idx);
-
-					// Wait on the semaphore - this latency may have been covered by iterator construction
-					if (kSplitKSerial && params.grid_tiled_shape.k() > 1) {
-						// For subsequent threadblocks, the source matrix is held in the 'D' tensor.
-						if (threadblock_tile_offset.k()) {
-							iterator_C = iterator_D;
-						}
-
-						semaphore.wait(threadblock_tile_offset.k());
-					}
-
-					// Execute the epilogue operator to update the destination tensor.
 					epilogue(output_op, iterator_D, accumulators, iterator_C);
-
-					//
-					// Release the semaphore
-					//
-
-					if (kSplitKSerial && params.grid_tiled_shape.k() > 1) {
-						int lock = 0;
-						if (params.grid_tiled_shape.k() == threadblock_tile_offset.k() + 1) {
-							// The final threadblock resets the semaphore for subsequent grids.
-							lock = 0;
-						} else {
-							// Otherwise, the semaphore is incremented
-							lock = threadblock_tile_offset.k() + 1;
-						}
-
-						semaphore.release(lock);
-					}
 				}
 			};
 

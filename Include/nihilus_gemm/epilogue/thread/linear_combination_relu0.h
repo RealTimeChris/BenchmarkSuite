@@ -39,7 +39,7 @@
 
 #include "nihilus_gemm/half.h"
 #include "nihilus_gemm/nihilus_gemm.h"
-#include "nihilus_gemm/numeric_types.h"
+
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/functional.h"
 #include "nihilus_gemm/numeric_conversion.h"

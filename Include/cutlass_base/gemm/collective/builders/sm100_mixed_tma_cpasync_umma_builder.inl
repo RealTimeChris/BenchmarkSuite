@@ -1,0 +1,171 @@
+/***************************************************************************************************
+ * Copyright (c) 2025 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
+ * contributors may be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ **************************************************************************************************/
+#pragma once
+
+#include "cutlass_base/gemm/collective/builders/sm100_common.inl"
+
+#include "cutlass_base/gemm/collective/collective_builder_decl.hpp"
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace cutlass_base::gemm::collective {
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <
+  class ElementA,
+  class GmemLayoutATag,
+  int AlignmentA,
+  class ElementB,
+  class GmemLayoutBTag,
+  int AlignmentB,
+  class ElementAccumulator,
+  class TileShape_MNK,
+  class ClusterShape_MNK,
+  class StageCountType,
+  class BuilderScheduleTag
+>
+struct CollectiveBuilder<
+    arch::Sm100,
+    arch::OpClassTensorOp,
+    ElementA,
+    GmemLayoutATag,
+    AlignmentA,
+    ElementB,
+    GmemLayoutBTag,
+    AlignmentB,
+    ElementAccumulator,
+    TileShape_MNK,    // (MmaAtomShapeM, MmaAtomShapeN, TileK)
+    ClusterShape_MNK, // Static cluster shape (_1, _1, _1)
+    StageCountType,
+    BuilderScheduleTag,
+    cute_base::enable_if_t<cute_base::is_same_v<KernelMixedTmaCpAsyncWarpSpecialized1SmSm100, BuilderScheduleTag> >
+>
+{
+  static_assert(cute_base::is_static_v<TileShape_MNK>, "TileShape has to be static");
+
+  static constexpr cute_base::UMMA::Major UmmaMajorA = cutlass_base::gemm::collective::detail::tag_to_umma_major_A<GmemLayoutATag>();
+  static constexpr cute_base::UMMA::Major UmmaMajorB = cutlass_base::gemm::collective::detail::tag_to_umma_major_B<GmemLayoutBTag>();
+
+  // Data type used by MMA instruction
+  using ElementAMma = decltype(cutlass_base::gemm::collective::detail::sm1xx_kernel_input_element_to_mma_input_element<ElementA>());
+  using ElementBMma = decltype(cutlass_base::gemm::collective::detail::sm1xx_kernel_input_element_to_mma_input_element<ElementB>());
+
+  using ElementAMma_SmemAllocType = cute_base::conditional_t<cute_base::sizeof_bits_v<ElementAMma> < 8, uint8_t, ElementAMma>;
+  using ElementBMma_SmemAllocType = cute_base::conditional_t<cute_base::sizeof_bits_v<ElementBMma> < 8, uint8_t, ElementBMma>;
+
+  using TiledMma =  decltype(detail::sm100_make_trivial_tiled_mma<
+      ElementAMma, ElementBMma, ElementAccumulator,
+      decltype(cute_base::product_each(TileShape_MNK{})), ClusterShape_MNK,
+      UmmaMajorA, UmmaMajorB, BuilderScheduleTag>());
+
+  using AtomThrID = typename TiledMma::AtomThrID;
+
+  // ((MMA_TILE_M,MMA_TILE_K), MMA_M, MMA_K)
+  using MmaShapeA_MK = decltype(partition_shape_A(TiledMma{}, make_shape(cute_base::size<0>(TileShape_MNK{}),
+                                                                         cute_base::size<2>(TileShape_MNK{}))));
+  // ((MMA_TILE_N,MMA_TILE_K), MMA_N, MMA_K)
+  using MmaShapeB_NK = decltype(partition_shape_B(TiledMma{}, make_shape(cute_base::size<1>(TileShape_MNK{}),
+                                                                         cute_base::size<2>(TileShape_MNK{}))));
+
+  // Assigning 4 warps for mainloop load of B
+  static constexpr int NumLoadThreadsCpAsync = 128;
+
+  
+  using SmemShapeA_M = decltype(shape_div(shape<0>(TileShape_MNK{}), shape_div(shape<0>(TileShape_MNK{}), size<0>(TileShape_MNK{}) / size(AtomThrID{}))));
+  using SmemShapeA_K = decltype(cute_base::get<2>(TileShape_MNK{}));
+
+
+  using GmemTiledCopyA = decltype(cutlass_base::gemm::collective::detail::sm100_cluster_shape_to_tma_atom_A(
+    ClusterShape_MNK{}, AtomThrID{}));
+  using SmemLayoutAtomA = decltype(cutlass_base::gemm::collective::detail::sm100_smem_selector<
+      UmmaMajorA, ElementAMma_SmemAllocType, SmemShapeA_M, SmemShapeA_K>());
+
+  using AlignmentTypeB = cute_base::uint_byte_t<static_cast<int>(sizeof(ElementB)) * AlignmentB>;
+  using GmemCopyAtomB = cute_base::Copy_Atom<SM80_CP_ASYNC_CACHEGLOBAL_ZFILL<AlignmentTypeB>, ElementB>;
+  using GmemTiledCopyB = decltype(detail::make_simt_gmem_tiled_copy<
+      GmemCopyAtomB, NumLoadThreadsCpAsync, AlignmentB, TagToStrideB_t<GmemLayoutBTag>,
+      decltype(cute_base::get<1>(TileShape_MNK{})), decltype(cute_base::get<2>(TileShape_MNK{}))>());
+
+  using BlockTileB_N = decltype(cute_base::size<0,0>(MmaShapeB_NK{}) * cute_base::size<1>(MmaShapeB_NK{}));
+  using BlockTileB_K = decltype(cute_base::size<0,1>(MmaShapeB_NK{}) * cute_base::size<2>(MmaShapeB_NK{}));
+  using SmemLayoutAtomB = decltype(cutlass_base::gemm::collective::detail::sm100_smem_selector<
+      UmmaMajorB, ElementBMma_SmemAllocType, BlockTileB_N, BlockTileB_K>());
+
+  static constexpr uint32_t AccumulatorPipelineStageCount = 2;
+  // Calculate scheduler pipeline stages. Having one more stage than the accumulator allows more latency hiding.
+  static constexpr uint32_t SchedulerPipelineStageCount = AccumulatorPipelineStageCount + 1;
+
+  // AccumulatorPipeline = PipelineUmmaAsync
+  static constexpr auto AccumulatorPipelineStorage = sizeof(typename cutlass_base::PipelineUmmaAsync<AccumulatorPipelineStageCount>::SharedStorage);
+  // CLCPipeline = PipelineCLCFetchAsync
+  static constexpr auto CLCPipelineStorage = sizeof(typename cutlass_base::PipelineCLCFetchAsync<SchedulerPipelineStageCount, ClusterShape_MNK>::SharedStorage);
+  // CLC (scheduler) response
+  static constexpr auto CLCResponseStorage = SchedulerPipelineStageCount * detail::CLCResponseSize;
+  // Smem usage that's not part of CollectiveEpilogue::SharedStorage & CollectiveMainloop::SharedStorage
+  static constexpr auto KernelSmemCarveout = static_cast<int>( AccumulatorPipelineStorage +
+                                                               CLCPipelineStorage +
+                                                               CLCResponseStorage);
+  // Reduce SMEM capacity available for buffers considering barrier allocations.
+  static constexpr int Sm100ReducedSmemCapacityBytes = cutlass_base::gemm::collective::detail::sm100_smem_capacity_bytes - KernelSmemCarveout;
+
+  using SmemTileShape = cute_base::Shape<SmemShapeA_M, BlockTileB_N, SmemShapeA_K>;
+  using MainloopPipelineStorage = typename cutlass_base::PipelineUmmaConsumerAsync<1>::SharedStorage;
+
+  static constexpr int PipelineStages = cutlass_base::gemm::collective::detail::sm100_compute_stage_count_or_override<
+      Sm100ReducedSmemCapacityBytes, ElementAMma_SmemAllocType, ElementBMma_SmemAllocType, SmemTileShape, MainloopPipelineStorage>(StageCountType{});
+
+  using CollectiveOp = cutlass_base::gemm::collective::CollectiveMma<
+      cutlass_base::gemm::MainloopSm100UmmaMixedTmaCpAsyncWarpSpecialized<
+        PipelineStages,
+        SchedulerPipelineStageCount,
+        AccumulatorPipelineStageCount,
+        ClusterShape_MNK>,
+      TileShape_MNK,
+      ElementA,
+      cutlass_base::gemm::TagToStrideA_t<GmemLayoutATag>,
+      ElementB,
+      cutlass_base::gemm::TagToStrideB_t<GmemLayoutBTag>,
+      TiledMma,
+      GmemTiledCopyA,
+      SmemLayoutAtomA,
+      void,
+      cute_base::identity,
+      GmemTiledCopyB,
+      SmemLayoutAtomB,
+      void,
+      cute_base::identity
+    >;
+};
+
+} // namespace cutlass_base::gemm::collective
+
+/////////////////////////////////////////////////////////////////////////////////////////////////

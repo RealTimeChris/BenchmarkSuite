@@ -41,7 +41,7 @@
 #include "nihilus_gemm/platform/platform.h"
 
 #include "nihilus_gemm/numeric_conversion.h"
-#include "nihilus_gemm/numeric_types.h"
+
 #include "nihilus_gemm/matrix_shape.h"
 
 #include "nihilus_gemm/gemm/gemm.h"

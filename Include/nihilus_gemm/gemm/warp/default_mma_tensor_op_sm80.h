@@ -35,7 +35,7 @@
 #pragma once
 
 #include "nihilus_gemm/nihilus_gemm.h"
-#include "nihilus_gemm/numeric_types.h"
+
 #include "nihilus_gemm/arch/mma.h"
 #include "nihilus_gemm/gemm/warp/mma_tensor_op.h"
 #include "nihilus_gemm/gemm/warp/mma_mixed_input_tensor_op.h"

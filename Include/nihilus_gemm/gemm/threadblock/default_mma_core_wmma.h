@@ -44,7 +44,7 @@
 
 #if defined(NIHILUS_ARCH_WMMA_ENABLED)
 
-#include "nihilus_gemm/numeric_types.h"
+
 #include "nihilus_gemm/matrix_shape.h"
 
 #include "nihilus_gemm/transform/threadblock/regular_tile_iterator_pitch_linear.h"

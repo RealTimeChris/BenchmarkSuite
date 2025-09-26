@@ -44,7 +44,7 @@
 #include "nihilus_gemm/epilogue/thread/linear_combination.h"
 #include "nihilus_gemm/epilogue/thread/reduction_op.h"
 #include "nihilus_gemm/gemm/gemm.h"
-#include "nihilus_gemm/numeric_types.h"
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 

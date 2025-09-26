@@ -37,7 +37,7 @@
 #pragma once
 
 #include "nihilus_gemm/nihilus_gemm.h"
-#include "nihilus_gemm/numeric_types.h"
+
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/layout/matrix.h"
 #include "nihilus_gemm/matrix_shape.h"

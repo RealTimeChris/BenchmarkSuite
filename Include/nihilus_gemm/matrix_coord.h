@@ -38,127 +38,134 @@
 
 namespace nihilus_gemm {
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// MatrixCoord wraps Coord<2, int> to provide a helper for accessing named dimensions. Classes
-/// expecting a coordinate in the rank=2 index space of a matrix should use MatrixCoord.
-struct MatrixCoord : public Coord<2, int> {
+	/// MatrixCoord wraps Coord<2, int> to provide a helper for accessing named dimensions. Classes
+	/// expecting a coordinate in the rank=2 index space of a matrix should use MatrixCoord.
+	struct MatrixCoord : public Coord<2, int> {
+	  public:
+		/// Integer-valued index
+		using Index = int;
 
-public:
+		/// Base type is a Coord of rank=2
+		using Base = Coord<2, Index>;
 
-  /// Integer-valued index
-  using Index = int;
+		/// LongIndex type
+		using LongIndex = typename Base::LongIndex;
 
-  /// Base type is a Coord of rank=2
-  using Base = Coord<2, Index>;
+	  private:
+		/// Rows dimension
+		static constexpr int kRow = 0;
 
-  /// LongIndex type
-  using LongIndex = typename Base::LongIndex;
+		/// Columns dimension
+		static constexpr int kColumn = 1;
 
-private:
+	  public:
+		//
+		// Methods
+		//
 
-  /// Rows dimension
-  static constexpr int kRow = 0;
+		/// Default ctor
+		NIHILUS_HOST_DEVICE
+		MatrixCoord() {
+		}
 
-  /// Columns dimension
-  static constexpr int kColumn = 1;
+		/// Constructs from Coord<2>
+		NIHILUS_HOST_DEVICE
+		MatrixCoord(Coord<2, Index> const& coord) : Base(coord) {
+		}
 
-public:
+		/// Helper to construct from a row and column
+		NIHILUS_HOST_DEVICE
+		MatrixCoord(Index row, Index column) : Base(make_Coord(row, column)) {
+		}
 
-  //
-  // Methods
-  //
+		/// Helper to construct from a row and column, which are LongIndex based
+		NIHILUS_HOST_DEVICE
+		MatrixCoord(LongIndex row, LongIndex column) : Base(make_Coord(Index(row), Index(column))) {
+		}
 
-  /// Default ctor
-  NIHILUS_HOST_DEVICE
-  MatrixCoord() { }
+		/// Returns the row of the coordinate
+		NIHILUS_HOST_DEVICE
+		Index const& row() const {
+			return this->at(kRow);
+		}
 
-  /// Constructs from Coord<2>
-  NIHILUS_HOST_DEVICE
-  MatrixCoord(Coord<2, Index> const &coord): Base(coord) { }
+		/// Returns the row of the coordinate
+		NIHILUS_HOST_DEVICE
+		Index& row() {
+			return this->at(kRow);
+		}
 
-  /// Helper to construct from a row and column
-  NIHILUS_HOST_DEVICE
-  MatrixCoord(Index row, Index column): Base(make_Coord(row, column)) { }
+		/// Returns the column of the coordinate
+		NIHILUS_HOST_DEVICE
+		Index const& column() const {
+			return this->at(kColumn);
+		}
 
-  /// Helper to construct from a row and column, which are LongIndex based
-  NIHILUS_HOST_DEVICE
-  MatrixCoord(LongIndex row, LongIndex column): Base(make_Coord(Index(row), Index(column))) { }
+		/// Returns the column of the coordinate
+		NIHILUS_HOST_DEVICE
+		Index& column() {
+			return this->at(kColumn);
+		}
 
-  /// Returns the row of the coordinate
-  NIHILUS_HOST_DEVICE
-  Index const & row() const { return this->at(kRow); }
+		//
+		// Coord operators
+		//
 
-  /// Returns the row of the coordinate
-  NIHILUS_HOST_DEVICE
-  Index & row() { return this->at(kRow); }
+		/// Element-wise addition
+		NIHILUS_HOST_DEVICE
+		MatrixCoord operator+(Base const& b) const {
+			return MatrixCoord(Base::operator+(b));
+		}
 
-  /// Returns the column of the coordinate
-  NIHILUS_HOST_DEVICE
-  Index const & column() const { return this->at(kColumn); }
+		/// Element-wise subtraction
+		NIHILUS_HOST_DEVICE
+		MatrixCoord operator-(Base const& b) const {
+			return MatrixCoord(Base::operator-(b));
+		}
 
-  /// Returns the column of the coordinate
-  NIHILUS_HOST_DEVICE
-  Index & column() { return this->at(kColumn); }
+		/// Element-wise multiplication
+		NIHILUS_HOST_DEVICE
+		MatrixCoord operator*(Base const& b) const {
+			return MatrixCoord(Base::operator*(b));
+		}
 
-  //
-  // Coord operators
-  //
+		/// Element-wise division
+		NIHILUS_HOST_DEVICE
+		MatrixCoord operator/(Base const& b) const {
+			return MatrixCoord(Base::operator/(b));
+		}
 
-  /// Element-wise addition
-  NIHILUS_HOST_DEVICE
-  MatrixCoord operator+(Base const& b) const {
-    return MatrixCoord(Base::operator+(b));
-  }
+		/// In-place addition
+		NIHILUS_HOST_DEVICE
+		MatrixCoord& operator+=(Base const& b) {
+			Base::operator+=(b);
+			return *this;
+		}
 
-  /// Element-wise subtraction
-  NIHILUS_HOST_DEVICE
-  MatrixCoord operator-(Base const& b) const {
-    return MatrixCoord(Base::operator-(b));
-  }
+		/// In-place subtraction
+		NIHILUS_HOST_DEVICE
+		MatrixCoord& operator-=(Base const& b) {
+			Base::operator-=(b);
+			return *this;
+		}
 
-  /// Element-wise multiplication
-  NIHILUS_HOST_DEVICE
-  MatrixCoord operator*(Base const& b) const {
-    return MatrixCoord(Base::operator*(b));
-  }
+		/// In-place multiplication
+		NIHILUS_HOST_DEVICE
+		MatrixCoord& operator*=(Base const& b) {
+			Base::operator*=(b);
+			return *this;
+		}
 
-  /// Element-wise division
-  NIHILUS_HOST_DEVICE
-  MatrixCoord operator/(Base const& b) const {
-    return MatrixCoord(Base::operator/(b));
-  }
+		/// In-place division
+		NIHILUS_HOST_DEVICE
+		MatrixCoord& operator/=(Base const& b) {
+			Base::operator/=(b);
+			return *this;
+		}
+	};
 
-  /// In-place addition
-  NIHILUS_HOST_DEVICE
-  MatrixCoord& operator+=(Base const& b) {
-    Base::operator+=(b);
-    return *this;
-  }
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  /// In-place subtraction
-  NIHILUS_HOST_DEVICE
-  MatrixCoord& operator-=(Base const& b) {
-    Base::operator-=(b);
-    return *this;
-  }
-
-  /// In-place multiplication
-  NIHILUS_HOST_DEVICE
-  MatrixCoord& operator*=(Base const& b) {
-    Base::operator*=(b);
-    return *this;
-  }
-
-  /// In-place division
-  NIHILUS_HOST_DEVICE
-  MatrixCoord& operator/=(Base const& b) {
-    Base::operator/=(b);
-    return *this;
-  }
-
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-} // namespace nihilus_gemm
+}// namespace nihilus_gemm

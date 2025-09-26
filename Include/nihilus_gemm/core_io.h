@@ -38,7 +38,7 @@
 
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/coord.h"
-#include "nihilus_gemm/numeric_types.h"
+
 #include "nihilus_gemm/matrix.h"
 #include "nihilus_gemm/matrix_shape.h"
 #include "nihilus_gemm/layout/pitch_linear.h"
@@ -51,255 +51,217 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Output operator for CUDA built-in dim3 type
-inline std::ostream &operator<<(std::ostream &out, dim3 d) {
-  return out << d.x << ", " << d.y << ", " << d.z;
+inline std::ostream& operator<<(std::ostream& out, dim3 d) {
+	return out << d.x << ", " << d.y << ", " << d.z;
 }
 
 /// Output operator for CUDA built-in error type
-inline std::ostream &operator<<(std::ostream &out, cudaError_t error) {
-  return out << cudaGetErrorString(error);
+inline std::ostream& operator<<(std::ostream& out, cudaError_t error) {
+	return out << cudaGetErrorString(error);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace nihilus_gemm {
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-//                    stream operators for nihilus_gemm namespace                                     //
-///////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	//                    stream operators for nihilus_gemm namespace                                     //
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename Element, int Rank>
-inline
-std::ostream& operator<<(std::ostream& out, Array<Element, Rank> const& v) {
-  for (int i = 0; i < Rank; ++i) {
-    out << (i ? ", " : "") << v[i];
-  }
-  return out;
-}
+	template<typename Element, int Rank> inline std::ostream& operator<<(std::ostream& out, Array<Element, Rank> const& v) {
+		for (int i = 0; i < Rank; ++i) {
+			out << (i ? ", " : "") << v[i];
+		}
+		return out;
+	}
 
-template <int Rank>
-inline
-std::ostream& operator<<(std::ostream& out, Coord<Rank> const& coord) {
-  for (int i = 0; i < Rank; ++i) {
-    out << (i ? ", " : "") << coord[i];
-  }
-  return out;
-}
+	template<int Rank> inline std::ostream& operator<<(std::ostream& out, Coord<Rank> const& coord) {
+		for (int i = 0; i < Rank; ++i) {
+			out << (i ? ", " : "") << coord[i];
+		}
+		return out;
+	}
 
-inline
-std::istream & operator>>(std::istream &stream, half_t &x) {
-  float tmp;
-  stream >> tmp;
-  x = static_cast<nihilus_gemm::half_t>(tmp);
-  return stream;
-}
+	inline std::istream& operator>>(std::istream& stream, half_t& x) {
+		float tmp;
+		stream >> tmp;
+		x = static_cast<nihilus_gemm::half_t>(tmp);
+		return stream;
+	}
 
-inline
-std::ostream & operator<<(std::ostream &out, half_t const &x) {
-  return out << float(x);
-}
+	inline std::ostream& operator<<(std::ostream& out, half_t const& x) {
+		return out << float(x);
+	}
 
-inline
-std::ostream & operator<<(std::ostream &out, bfloat16_t const &x) {
-  return out << float(x);
-}
+	inline std::ostream& operator<<(std::ostream& out, bfloat16_t const& x) {
+		return out << float(x);
+	}
 
-inline
-std::ostream & operator<<(std::ostream &out, tfloat32_t const &x) {
-  return out << float(x);
-}
+	inline std::ostream& operator<<(std::ostream& out, tfloat32_t const& x) {
+		return out << float(x);
+	}
 
 
-inline
-std::ostream & operator<<(std::ostream &out, float_e2m1_t const &x) {
-  return out << float(x);
-}
+	inline std::ostream& operator<<(std::ostream& out, float_e2m1_t const& x) {
+		return out << float(x);
+	}
 
-inline
-std::ostream & operator<<(std::ostream &out, detail::float_e2m1_unpacksmem_t const &x) {
-  return out << float(x);
-}
+	inline std::ostream& operator<<(std::ostream& out, detail::float_e2m1_unpacksmem_t const& x) {
+		return out << float(x);
+	}
 
-inline
-std::ostream & operator<<(std::ostream &out, float_e3m2_t const &x) {
-  return out << float(x);
-}
+	inline std::ostream& operator<<(std::ostream& out, float_e3m2_t const& x) {
+		return out << float(x);
+	}
 
-inline
-std::ostream & operator<<(std::ostream &out, float_e2m3_t const &x) {
-  return out << float(x);
-}
+	inline std::ostream& operator<<(std::ostream& out, float_e2m3_t const& x) {
+		return out << float(x);
+	}
 
-inline
-std::ostream & operator<<(std::ostream &out, detail::float_e3m2_unpacksmem_t const &x) {
-  return out << float(x);
-}
+	inline std::ostream& operator<<(std::ostream& out, detail::float_e3m2_unpacksmem_t const& x) {
+		return out << float(x);
+	}
 
-inline
-std::ostream & operator<<(std::ostream &out, detail::float_e2m3_unpacksmem_t const &x) {
-  return out << float(x);
-}
+	inline std::ostream& operator<<(std::ostream& out, detail::float_e2m3_unpacksmem_t const& x) {
+		return out << float(x);
+	}
 
-inline
-std::ostream & operator<<(std::ostream &out, float_ue8m0_t const &x) {
-  return out << float(x);
-}
+	inline std::ostream& operator<<(std::ostream& out, float_ue8m0_t const& x) {
+		return out << float(x);
+	}
 
-inline
-std::ostream & operator<<(std::ostream &out, float_ue4m3_t const &x) {
-  return out << float(x);
-}
+	inline std::ostream& operator<<(std::ostream& out, float_ue4m3_t const& x) {
+		return out << float(x);
+	}
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Helper to enable formatted printing of NIHILUS scalar types to an ostream
-template <typename T>
-struct ScalarIO {
+	/// Helper to enable formatted printing of NIHILUS scalar types to an ostream
+	template<typename T> struct ScalarIO {
+		/// Value to print
+		T value;
 
-  /// Value to print
-  T value;
+		/// Default ctor
+		ScalarIO() {
+		}
 
-  /// Default ctor
-  ScalarIO() { }
+		/// Constructs from a value
+		ScalarIO(T value) : value(value) {
+		}
+	};
 
-  /// Constructs from a value
-  ScalarIO(T value): value(value) {}
-};
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
+	/// Default printing to ostream
+	template<typename T> inline std::ostream& operator<<(std::ostream& out, ScalarIO<T> const& scalar) {
+		return out << scalar.value;
+	}
 
-/// Default printing to ostream
-template <typename T>
-inline std::ostream &operator<<(std::ostream &out, ScalarIO<T> const &scalar) {
-  return out << scalar.value;
-}
+	/// Printing to ostream of int8_t as integer rather than character
+	template<> inline std::ostream& operator<<(std::ostream& out, ScalarIO<int8_t> const& scalar) {
+		return out << int(scalar.value);
+	}
 
-/// Printing to ostream of int8_t as integer rather than character
-template <>
-inline std::ostream &operator<<(std::ostream &out, ScalarIO<int8_t> const &scalar) {
-  return out << int(scalar.value);
-}
-
-/// Printing to ostream of uint8_t as integer rather than character
-template <>
-inline std::ostream &operator<<(std::ostream &out, ScalarIO<uint8_t> const &scalar) {
-  return out << unsigned(scalar.value);
-}
+	/// Printing to ostream of uint8_t as integer rather than character
+	template<> inline std::ostream& operator<<(std::ostream& out, ScalarIO<uint8_t> const& scalar) {
+		return out << unsigned(scalar.value);
+	}
 
 
-/// Default printing to ostream for MatrixShape
-template <int Row, int Column>
-inline
-std::ostream & operator<<(std::ostream &out, MatrixShape<Row, Column> const &matrix_shape) {
-  out << "nihilus_gemm::MatrixShape::(kRow, kColumn) {"
-    << nihilus_gemm::MatrixShape<Row,Column>::kRow <<","
-    << nihilus_gemm::MatrixShape<Row,Column>::kColumn <<"}";
-  return out;
-}
+	/// Default printing to ostream for MatrixShape
+	template<int Row, int Column> inline std::ostream& operator<<(std::ostream& out, MatrixShape<Row, Column> const& matrix_shape) {
+		out << "nihilus_gemm::MatrixShape::(kRow, kColumn) {" << nihilus_gemm::MatrixShape<Row, Column>::kRow << "," << nihilus_gemm::MatrixShape<Row, Column>::kColumn << "}";
+		return out;
+	}
 
 
-/// Prints matrix to ostream
-template <typename Element, int Rows, int Columns>
-std::ostream & operator<<(std::ostream &out, Matrix<Element, Rows, Columns> const &rhs) {
+	/// Prints matrix to ostream
+	template<typename Element, int Rows, int Columns> std::ostream& operator<<(std::ostream& out, Matrix<Element, Rows, Columns> const& rhs) {
+		for (int i = 0; i < Rows; ++i) {
+			for (int j = 0; j < Columns; ++j) {
+				ScalarIO<Element> element(rhs.at(i, j));
+				out << (j ? ", " : "") << element;
+			}
+			out << "\\n";
+		}
 
-  for (int i = 0; i < Rows; ++i) {
-    for (int j = 0; j < Columns; ++j) {
-      ScalarIO<Element> element(rhs.at(i, j));
-      out << (j ? ", " : "") << element;
-    }
-    out << "\\n";
-  }
-
-  return out;
-}
+		return out;
+	}
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-//                         stream operators for nihilus_gemm::gemm namespace                          //
-///////////////////////////////////////////////////////////////////////////////////////////////////
-namespace gemm {
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	//                         stream operators for nihilus_gemm::gemm namespace                          //
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	namespace gemm {
 
-/// Default printing to ostream for GemmShape
-template <int M, int N, int K>
-inline
-std::ostream & operator<<(std::ostream &out, GemmShape<M,N,K> const &gemm_shape) {
-  out << "nihilus_gemm::gemm::GemmShape::(kM, kN, kK) {"
-    << nihilus_gemm::gemm::GemmShape<M,N,K>::kM <<","
-    << nihilus_gemm::gemm::GemmShape<M,N,K>::kN <<","
-    << nihilus_gemm::gemm::GemmShape<M,N,K>::kK << "}";
-  return out;
-}
+		/// Default printing to ostream for GemmShape
+		template<int M, int N, int K> inline std::ostream& operator<<(std::ostream& out, GemmShape<M, N, K> const& gemm_shape) {
+			out << "nihilus_gemm::gemm::GemmShape::(kM, kN, kK) {" << nihilus_gemm::gemm::GemmShape<M, N, K>::kM << "," << nihilus_gemm::gemm::GemmShape<M, N, K>::kN << ","
+				<< nihilus_gemm::gemm::GemmShape<M, N, K>::kK << "}";
+			return out;
+		}
 
-/// Default printing to ostream for GemmCoord
-inline
-std::ostream & operator<<(std::ostream &out, GemmCoord const &gemm_coord) {
-  out << "nihilus_gemm::gemm::GemmCoord {"
-    << gemm_coord.m() <<","
-    << gemm_coord.n() <<","
-    << gemm_coord.k() << "}";
-  return out;
-}
+		/// Default printing to ostream for GemmCoord
+		inline std::ostream& operator<<(std::ostream& out, GemmCoord const& gemm_coord) {
+			out << "nihilus_gemm::gemm::GemmCoord {" << gemm_coord.m() << "," << gemm_coord.n() << "," << gemm_coord.k() << "}";
+			return out;
+		}
 
-} //namespace gemm
-///////////////////////////////////////////////////////////////////////////////////////////////////
+	}//namespace gemm
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-//                       stream operators for nihilus_gemm namespace                          //
-///////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	//                       stream operators for nihilus_gemm namespace                          //
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Default printing to ostream for PitchLinearShape
-template < int Contiguous, int Strided>
-inline
-std::ostream & operator<<(std::ostream &out, PitchLinearShape<Contiguous, Strided> const &pitch_linear_shape) {
-  out << "nihilus_gemm::PitchLinearShape:(kContiguous, kStrided) {"
-    << nihilus_gemm::layout::PitchLinearShape<Contiguous,Strided>::kContiguous <<","
-    << nihilus_gemm::layout::PitchLinearShape<Contiguous,Strided>::kStrided <<"}";
-  return out;
-}
+	/// Default printing to ostream for PitchLinearShape
+	template<int Contiguous, int Strided> inline std::ostream& operator<<(std::ostream& out, PitchLinearShape<Contiguous, Strided> const& pitch_linear_shape) {
+		out << "nihilus_gemm::PitchLinearShape:(kContiguous, kStrided) {" << nihilus_gemm::layout::PitchLinearShape<Contiguous, Strided>::kContiguous << ","
+			<< nihilus_gemm::layout::PitchLinearShape<Contiguous, Strided>::kStrided << "}";
+		return out;
+	}
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-//                         stream operators for nihilus_gemm::conv namespace                          //
-///////////////////////////////////////////////////////////////////////////////////////////////////
-namespace conv {
-/// Default printing to ostream for Conv2dProblemSize
-inline
-std::ostream& operator<<(std::ostream& out, Conv2dProblemSize const& problem) {
-  out << "NHWC: (" << problem.N << ", " << problem.H << ", " << problem.W << ", " << problem.C << ")" << std::endl
-      << "KRSC: (" << problem.K << ", " << problem.R << ", " << problem.S << ", " << problem.C / problem.groups << ")" << std::endl
-      << "NPQK: (" << problem.N << ", " << problem.P << ", " << problem.Q << ", " << problem.K << ")" << std::endl
-      << "groups: (" << problem.groups << ")" << std::endl
-      << "Pad_h, Pad_w: (" << problem.pad_h << ", " << problem.pad_w << ")" << std::endl
-      << "Stride_h, Stride_w: (" << problem.stride_h << ", " << problem.stride_w << ")" << std::endl
-      << "Dilation_h, Dilation_w: (" << problem.dilation_h << ", " << problem.dilation_w << ")" << std::endl
-      << "split_k_slices: (" << problem.split_k_slices << ")" << std::endl
-      << "mode: (" << ((problem.mode==conv::Mode::kConvolution) ? "conv" : "xcross") << ")";
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	//                         stream operators for nihilus_gemm::conv namespace                          //
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	namespace conv {
+		/// Default printing to ostream for Conv2dProblemSize
+		inline std::ostream& operator<<(std::ostream& out, Conv2dProblemSize const& problem) {
+			out << "NHWC: (" << problem.N << ", " << problem.H << ", " << problem.W << ", " << problem.C << ")" << std::endl
+				<< "KRSC: (" << problem.K << ", " << problem.R << ", " << problem.S << ", " << problem.C / problem.groups << ")" << std::endl
+				<< "NPQK: (" << problem.N << ", " << problem.P << ", " << problem.Q << ", " << problem.K << ")" << std::endl
+				<< "groups: (" << problem.groups << ")" << std::endl
+				<< "Pad_h, Pad_w: (" << problem.pad_h << ", " << problem.pad_w << ")" << std::endl
+				<< "Stride_h, Stride_w: (" << problem.stride_h << ", " << problem.stride_w << ")" << std::endl
+				<< "Dilation_h, Dilation_w: (" << problem.dilation_h << ", " << problem.dilation_w << ")" << std::endl
+				<< "split_k_slices: (" << problem.split_k_slices << ")" << std::endl
+				<< "mode: (" << ((problem.mode == conv::Mode::kConvolution) ? "conv" : "xcross") << ")";
 
-  return out;
-}
+			return out;
+		}
 
 
-/// Default printing to ostream for Conv3dProblemSize
-inline
-std::ostream& operator<<(std::ostream& out, Conv3dProblemSize const& problem) {
-  out << "NDHWC: (" << problem.N << ", " << problem.D << ", " << problem.H << ", " << problem.W << ", " << problem.C << ")" << std::endl
-      << "KTRSC: (" << problem.K << ", " << problem.T << ", " << problem.R << ", " << problem.S << ", " << problem.C << ")" << std::endl
-      << "NZPQK: (" << problem.N << ", " << problem.Z << ", " << problem.P << ", " << problem.Q << ", " << problem.K << ")" << std::endl
-      << "pad_d, pad_h, pad_w: ("  << problem.pad_d << ", " << problem.pad_h << ", " << problem.pad_w << ")" << std::endl
-      << "stride_d, stride_h, stride_w: ("  << problem.stride_d << ", " << problem.stride_h << ", " << problem.stride_w << ")" << std::endl
-      << "dilation_d, dilation_h, dilation_w: ("  << problem.dilation_d << ", " << problem.dilation_h << ", " << problem.dilation_w << ")" << std::endl
-      << "split_k_slices: (" << problem.split_k_slices << ") " << std::endl
-      << "mode: (" << ((problem.mode==conv::Mode::kConvolution) ? "conv" : "xcross") << ")";
+		/// Default printing to ostream for Conv3dProblemSize
+		inline std::ostream& operator<<(std::ostream& out, Conv3dProblemSize const& problem) {
+			out << "NDHWC: (" << problem.N << ", " << problem.D << ", " << problem.H << ", " << problem.W << ", " << problem.C << ")" << std::endl
+				<< "KTRSC: (" << problem.K << ", " << problem.T << ", " << problem.R << ", " << problem.S << ", " << problem.C << ")" << std::endl
+				<< "NZPQK: (" << problem.N << ", " << problem.Z << ", " << problem.P << ", " << problem.Q << ", " << problem.K << ")" << std::endl
+				<< "pad_d, pad_h, pad_w: (" << problem.pad_d << ", " << problem.pad_h << ", " << problem.pad_w << ")" << std::endl
+				<< "stride_d, stride_h, stride_w: (" << problem.stride_d << ", " << problem.stride_h << ", " << problem.stride_w << ")" << std::endl
+				<< "dilation_d, dilation_h, dilation_w: (" << problem.dilation_d << ", " << problem.dilation_h << ", " << problem.dilation_w << ")" << std::endl
+				<< "split_k_slices: (" << problem.split_k_slices << ") " << std::endl
+				<< "mode: (" << ((problem.mode == conv::Mode::kConvolution) ? "conv" : "xcross") << ")";
 
-  return out;
-}
+			return out;
+		}
 
-} // namespace conv
-///////////////////////////////////////////////////////////////////////////////////////////////////
+	}// namespace conv
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace nihilus_gemm
+}// namespace nihilus_gemm
 ///////////////////////////////////////////////////////////////////////////////////////////////////

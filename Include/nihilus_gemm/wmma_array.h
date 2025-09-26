@@ -39,95 +39,81 @@
 
 #if defined(NIHILUS_ARCH_WMMA_ENABLED)
 
-#include "nihilus_gemm/nihilus_gemm.h"
-#include "nihilus_gemm/array.h"
-#include "nihilus_gemm/functional.h"
+	#include "nihilus_gemm/nihilus_gemm.h"
+	#include "nihilus_gemm/array.h"
+	#include "nihilus_gemm/functional.h"
 
 namespace nihilus_gemm {
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Wmma array type (WmmaFragmentArray holds elements of type nvcuda::wmma::fragment)
-template <
-  /// Element type
-  typename T,
-  /// Number of elements in the array
-  int N,
-  /// Whether the element type of T is half_t or __half
-  bool IsHalfType = (platform::is_same<typename T::element_type, nihilus_gemm::half_t>::value ||
-                     platform::is_same<typename T::element_type, __half>::value)
->
-class WmmaFragmentArray: public Array<T, N, true> {
-public:
+	/// Wmma array type (WmmaFragmentArray holds elements of type nvcuda::wmma::fragment)
+	template<
+		/// Element type
+		typename T,
+		/// Number of elements in the array
+		int N,
+		/// Whether the element type of T is half_t or __half
+		bool IsHalfType = (platform::is_same<typename T::element_type, nihilus_gemm::half_t>::value || platform::is_same<typename T::element_type, __half>::value)>
+	class WmmaFragmentArray : public Array<T, N, true> {
+	  public:
+		/// Efficient clear method (override Array::clear())
+		NIHILUS_HOST_DEVICE
+		void clear() {
+			for (int i = 0; i < Array<T, N, true>::kElements; i++) {
+				nvcuda::wmma::fill_fragment((*this)[i], ( typename T::element_type )0);
+			}
+		}
 
-  /// Efficient clear method (override Array::clear())
-  NIHILUS_HOST_DEVICE
-  void clear()
-  {
-    for(int i = 0; i < Array<T, N, true>::kElements; i++)
-    {
-      nvcuda::wmma::fill_fragment((*this)[i], (typename T::element_type)0);
-    }
-  }
+		NIHILUS_HOST_DEVICE
+		WmmaFragmentArray<T, N>& operator+=(const WmmaFragmentArray<T, N>& rhs) {
+			using element_type = typename T::element_type;
+			plus<T> add;
 
-  NIHILUS_HOST_DEVICE
-  WmmaFragmentArray<T, N>& operator+=(const WmmaFragmentArray<T, N>& rhs)
-  {
-    using element_type = typename T::element_type;
-    plus<T> add;
+			for (int i = 0; i < Array<T, N, true>::kElements; i++) {
+				(*this)[i] = add((*this)[i], rhs[i]);
+			}
 
-    for (int i = 0; i < Array<T, N, true>::kElements; i++)
-    {
-      (*this)[i] = add((*this)[i], rhs[i]);
-    }
+			return *this;
+		}
+	};
 
-    return *this;
-  }
-};
+	/// Partial specialization for the case in which T::element_type is
+	/// half_t or __half. This is needed because the cast (typename T::element_type)0
+	/// in the primary template flags as an error when __CUDA_NO_HALF_CONVERSIONS__
+	/// is set.
+	template<
+		/// Element type
+		typename T,
+		/// Number of elements in the array
+		int N>
+	class WmmaFragmentArray<T, N, true> : public Array<T, N, true> {
+	  public:
+		/// Efficient clear method (override Array::clear())
+		NIHILUS_HOST_DEVICE
+		void clear() {
+			for (int i = 0; i < Array<T, N, true>::kElements; i++) {
+				nvcuda::wmma::fill_fragment((*this)[i], __float2half(0.f));
+			}
+		}
 
-/// Partial specialization for the case in which T::element_type is
-/// half_t or __half. This is needed because the cast (typename T::element_type)0
-/// in the primary template flags as an error when __CUDA_NO_HALF_CONVERSIONS__
-/// is set.
-template <
-  /// Element type
-  typename T,
-  /// Number of elements in the array
-  int N
->
-class WmmaFragmentArray<T, N, true>: public Array<T, N, true> {
-public:
+		NIHILUS_HOST_DEVICE
+		WmmaFragmentArray<T, N>& operator+=(const WmmaFragmentArray<T, N>& rhs) {
+			using element_type = typename T::element_type;
+			plus<T> add;
 
-  /// Efficient clear method (override Array::clear())
-  NIHILUS_HOST_DEVICE
-  void clear()
-  {
-    for(int i = 0; i < Array<T, N, true>::kElements; i++)
-    {
-      nvcuda::wmma::fill_fragment((*this)[i], __float2half(0.f));
-    }
-  }
+			for (int i = 0; i < Array<T, N, true>::kElements; i++) {
+				(*this)[i] = add((*this)[i], rhs[i]);
+			}
 
-  NIHILUS_HOST_DEVICE
-  WmmaFragmentArray<T, N>& operator+=(const WmmaFragmentArray<T, N>& rhs)
-  {
-    using element_type = typename T::element_type;
-    plus<T> add;
+			return *this;
+		}
+	};
 
-    for (int i = 0; i < Array<T, N, true>::kElements; i++)
-    {
-      (*this)[i] = add((*this)[i], rhs[i]);
-    }
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    return *this;
-  }
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-} // namespace nihilus_gemm
+}// namespace nihilus_gemm
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#endif // if defined(NIHILUS_ARCH_WMMA_ENABLED)
-
+#endif// if defined(NIHILUS_ARCH_WMMA_ENABLED)

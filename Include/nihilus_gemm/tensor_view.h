@@ -43,7 +43,7 @@
 #pragma once
 
 #if !defined(__CUDACC_RTC__)
-#include <cmath>
+	#include <cmath>
 #endif
 
 #include "nihilus_gemm/nihilus_gemm.h"
@@ -51,247 +51,223 @@
 
 namespace nihilus_gemm {
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <
-  /// Data type of element stored within tensor
-  typename Element_,
-  /// Maps a Coord<Rank_> in the logical tensor index space to the internal n-D array
-  typename Layout_
->
-class TensorView : public TensorRef<Element_, Layout_> {
- public:
+	template<
+		/// Data type of element stored within tensor
+		typename Element_,
+		/// Maps a Coord<Rank_> in the logical tensor index space to the internal n-D array
+		typename Layout_>
+	class TensorView : public TensorRef<Element_, Layout_> {
+	  public:
+		/// Base tensor reference
+		using Base = nihilus_gemm::TensorRef<Element_, Layout_>;
 
-  /// Base tensor reference
-  using Base = nihilus_gemm::TensorRef<Element_, Layout_>;
+		/// Mapping function from logical coordinate to internal n-D array
+		using Layout = Layout_;
 
-  /// Mapping function from logical coordinate to internal n-D array
-  using Layout = Layout_;
+		/// TensorRef pointing to constant memory
+		using ConstTensorRef = typename Base::ConstTensorRef;
 
-  /// TensorRef pointing to constant memory
-  using ConstTensorRef = typename Base::ConstTensorRef;
+		/// Underlying TensorRef type
+		using TensorRef = Base;
 
-  /// Underlying TensorRef type
-  using TensorRef = Base;
+		/// Data type of individual access
+		using Element = Element_;
 
-  /// Data type of individual access
-  using Element = Element_;
+		/// Reference type to an element
+		using Reference = Element&;
 
-  /// Reference type to an element
-  using Reference = Element &;
+		/// Logical rank of tensor index space
+		static constexpr int kRank = Layout::kRank;
 
-  /// Logical rank of tensor index space
-  static constexpr int kRank = Layout::kRank;
+		/// Index type
+		using Index = typename Layout::Index;
 
-  /// Index type
-  using Index = typename Layout::Index;
+		/// Long index used for pointer offsets
+		using LongIndex = typename Layout::LongIndex;
 
-  /// Long index used for pointer offsets
-  using LongIndex = typename Layout::LongIndex;
+		/// Coordinate in logical tensor space
+		using TensorCoord = typename Layout::TensorCoord;
 
-  /// Coordinate in logical tensor space
-  using TensorCoord = typename Layout::TensorCoord;
+		/// Coordinate in storage n-D array
+		using Stride = typename Layout::Stride;
 
-  /// Coordinate in storage n-D array
-  using Stride = typename Layout::Stride;
+		/// TensorView pointing to constant memory
+		using ConstTensorView = TensorView<typename platform::remove_const<Element>::type const, Layout>;
 
-  /// TensorView pointing to constant memory
-  using ConstTensorView = TensorView<
-    typename platform::remove_const<Element>::type const,
-    Layout>;
+		/// TensorView pointing to non-constant memory
+		using NonConstTensorView = TensorView<typename platform::remove_const<Element>::type, Layout>;
 
-  /// TensorView pointing to non-constant memory
-  using NonConstTensorView = TensorView<
-    typename platform::remove_const<Element>::type,
-    Layout>;
+		/// Require at least rank=1. Mathematically, a rank=0 tensor would be considered to be a
+		/// scalar, but degenerate cases such as these are difficult to accommodate without
+		/// extensive C++ metaprogramming or support for zero-length arrays.
+		static_assert(kRank > 0, "Cannot define a zero-rank TensorRef");
 
-  /// Require at least rank=1. Mathematically, a rank=0 tensor would be considered to be a
-  /// scalar, but degenerate cases such as these are difficult to accommodate without
-  /// extensive C++ metaprogramming or support for zero-length arrays.
-  static_assert(kRank > 0, "Cannot define a zero-rank TensorRef");
+	  private:
+		/// View extent
+		TensorCoord extent_;
 
- private:
+	  public:
+		//
+		// Methods
+		//
 
-  /// View extent
-  TensorCoord extent_;
+		/// Constructs a TensorView object
+		NIHILUS_HOST_DEVICE
+		TensorView() {
+		}
 
- public:
+		/// Constructs a TensorView object
+		NIHILUS_HOST_DEVICE
+		TensorView(Element* ptr,///< pointer to start of tensor
+			Layout const& layout,///< layout object containing stride and mapping function
+			TensorCoord const& extent///< size of the view in logical coordinates
+			)
+			: Base(ptr, layout), extent_(extent) {
+		}
 
-  //
-  // Methods
-  //
+		/// Constructs a TensorView object
+		NIHILUS_HOST_DEVICE
+		TensorView(TensorRef const& ref,///< pointer and layout object referencing a tensor
+			TensorCoord const& extent///< logical size of tensor
+			)
+			: Base(ref), extent_(extent) {
+		}
 
-  /// Constructs a TensorView object
-  NIHILUS_HOST_DEVICE
-  TensorView() { }
+		/// Converting constructor from TensorRef to non-constant data.
+		NIHILUS_HOST_DEVICE
+		TensorView(NonConstTensorView const& view///< TensorView to non-const data
+			)
+			: Base(view), extent_(view.extent_) {
+		}
 
-  /// Constructs a TensorView object
-  NIHILUS_HOST_DEVICE
-  TensorView(
-    Element *ptr,                         ///< pointer to start of tensor
-    Layout const &layout,                 ///< layout object containing stride and mapping function
-    TensorCoord const &extent             ///< size of the view in logical coordinates
-  ):
-    Base(ptr, layout), extent_(extent) {
-  
-  }
+		/// Updates the pointer and layout object
+		NIHILUS_HOST_DEVICE
+		void reset(Element* ptr, Layout const& layout, TensorCoord const& extent) {
+			Base::reset(ptr, layout);
+			this->resize(extent);
+		}
 
-  /// Constructs a TensorView object
-  NIHILUS_HOST_DEVICE
-  TensorView(
-    TensorRef const &ref,                 ///< pointer and layout object referencing a tensor
-    TensorCoord const &extent             ///< logical size of tensor
-  ):
-    Base(ref), extent_(extent) {
-  
-  }
+		/// Updates the pointer
+		NIHILUS_HOST_DEVICE
+		void reset(Element* ptr) {
+			Base::reset(ptr);
+		}
 
-  /// Converting constructor from TensorRef to non-constant data.
-  NIHILUS_HOST_DEVICE
-  TensorView(
-    NonConstTensorView const &view        ///< TensorView to non-const data
-  ):
-    Base(view), extent_(view.extent_) { }
+		/// Changes the size of the view without affecting pointer or layout
+		NIHILUS_HOST_DEVICE
+		void resize(TensorCoord const& extent) {
+			this->extent_ = extent;
+		}
 
-  /// Updates the pointer and layout object
-  NIHILUS_HOST_DEVICE
-  void reset(Element* ptr, Layout const &layout, TensorCoord const &extent) {
-    Base::reset(ptr, layout);
-    this->resize(extent);
-  }
+		/// Returns the extent of the view (the size along each logical dimension).
+		NIHILUS_HOST_DEVICE
+		TensorCoord const& extent() const {
+			return extent_;
+		}
 
-  /// Updates the pointer
-  NIHILUS_HOST_DEVICE
-  void reset(Element* ptr) {
-    Base::reset(ptr);
-  }
+		/// Returns the extent along a particular logical dimension.
+		NIHILUS_HOST_DEVICE
+		Index extent(int dim) const {
+			return extent_.at(dim);
+		}
 
-  /// Changes the size of the view without affecting pointer or layout
-  NIHILUS_HOST_DEVICE
-  void resize(TensorCoord const &extent) {
-    this->extent_ = extent;
-  }
+		/// Returns the number of logical elements
+		NIHILUS_HOST_DEVICE
+		LongIndex size() const {
+			return extent_.product();
+		}
 
-  /// Returns the extent of the view (the size along each logical dimension).
-  NIHILUS_HOST_DEVICE
-  TensorCoord const& extent() const { return extent_; }
+		/// Determines whether a location is within a tensor
+		NIHILUS_HOST_DEVICE
+		bool contains(TensorCoord const& coord) const {
+			NIHILUS_PRAGMA_UNROLL
+			for (int dim = 0; dim < kRank; ++dim) {
+				if (!(coord[dim] >= 0 && coord[dim] < extent(dim))) {
+					return false;
+				}
+			}
+			return true;
+		}
 
-  /// Returns the extent along a particular logical dimension.
-  NIHILUS_HOST_DEVICE
-  Index extent(int dim) const { return extent_.at(dim); }
+		/// Returns a TensorRef pointing to the first element of the tensor.
+		NIHILUS_HOST_DEVICE
+		TensorRef ref() const {
+			return TensorRef(this->data(), this->layout());
+		}
 
-  /// Returns the number of logical elements
-  NIHILUS_HOST_DEVICE
-  LongIndex size() const {
-    return extent_.product();
-  }
+		/// Returns a TensorRef pointing to the first element of the tensor.
+		NIHILUS_HOST_DEVICE
+		ConstTensorRef const_ref() const {
+			return ConstTensorRef(this->data(), this->layout());
+		}
 
-  /// Determines whether a location is within a tensor
-  NIHILUS_HOST_DEVICE
-  bool contains(TensorCoord const& coord) const {
-    NIHILUS_PRAGMA_UNROLL
-    for (int dim = 0; dim < kRank; ++dim) {
-      if (!(coord[dim] >= 0 && coord[dim] < extent(dim))) {
-        return false;
-      }
-    }
-    return true;
-  }
+		/// Returns a TensorView to const data
+		NIHILUS_HOST_DEVICE
+		ConstTensorView const_view() const {
+			return ConstTensorView(const_ref(), extent_);
+		}
 
-  /// Returns a TensorRef pointing to the first element of the tensor.
-  NIHILUS_HOST_DEVICE
-  TensorRef ref() const {
-    return TensorRef(this->data(), this->layout());
-  }
+		/// Returns a Tensor_view given location and size quantities
+		NIHILUS_HOST_DEVICE
+		TensorView subview(TensorCoord extent,///< extent of the resulting view
+			TensorCoord const& location = TensorCoord()///< resulting view's origin within the old view
+		) const {
+			TensorView result(this->ref(), extent.clamp(extent_ - location));
+			result.add_coord_offset(location);
+			return result;
+		}
 
-  /// Returns a TensorRef pointing to the first element of the tensor.
-  NIHILUS_HOST_DEVICE
-  ConstTensorRef const_ref() const {
-    return ConstTensorRef(this->data(), this->layout());
-  }
+		/// Returns the number of scalar elements needed to store tensor.
+		NIHILUS_HOST_DEVICE
+		size_t capacity() const {
+			return Base::layout().capacity(extent_);
+		}
 
-  /// Returns a TensorView to const data
-  NIHILUS_HOST_DEVICE
-  ConstTensorView const_view() const {
-    return ConstTensorView(const_ref(), extent_);
-  }
+		/// Returns a TensorView offset by a given amount
+		NIHILUS_HOST_DEVICE
+		TensorView operator+(TensorCoord const& b///< offset in the logical coordinate space of the tensor
+		) const {
+			TensorView result(*this);
+			result.add_pointer_offset(this->offset(b));
+			return result;
+		}
 
-  /// Returns a Tensor_view given location and size quantities
-  NIHILUS_HOST_DEVICE
-  TensorView subview(
-    TensorCoord extent,                               ///< extent of the resulting view
-    TensorCoord const& location = TensorCoord()       ///< resulting view's origin within the old view
-  ) const {
+		/// Returns a TensorRef offset by a given amount
+		NIHILUS_HOST_DEVICE
+		TensorView& operator+=(TensorCoord const& b///< offset in the logical coordinate space of the tensor
+		) {
+			this->add_pointer_offset(this->offset(b));
+			return *this;
+		}
 
-    TensorView result(this->ref(), extent.clamp(extent_ - location));
-    result.add_coord_offset(location);
-    return result;
-  }
+		/// Returns a TensorRef offset by a given amount
+		NIHILUS_HOST_DEVICE
+		TensorView operator-(TensorCoord const& b///< offset in the logical coordinate space of the tensor
+		) const {
+			TensorRef result(*this);
+			result.add_pointer_offset(-this->offset(b));
+			return result;
+		}
 
-  /// Returns the number of scalar elements needed to store tensor.
-  NIHILUS_HOST_DEVICE
-  size_t capacity() const {
-    return Base::layout().capacity(extent_);
-  }
+		/// Returns a TensorRef offset by a given amount
+		NIHILUS_HOST_DEVICE
+		TensorView& operator-=(TensorCoord const& b///< offset in the logical coordinate space of the tensor
+		) {
+			this->add_pointer_offset(-this->offset(b));
+			return *this;
+		}
+	};
 
-  /// Returns a TensorView offset by a given amount
-  NIHILUS_HOST_DEVICE
-  TensorView operator+(
-    TensorCoord const& b            ///< offset in the logical coordinate space of the tensor
-  ) const {
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    TensorView result(*this);
-    result.add_pointer_offset(this->offset(b));
-    return result;
-  }
+	/// Constructs a TensorRef, deducing types from arguments.
+	template<typename Element, typename Layout>
+	NIHILUS_HOST_DEVICE TensorView<Element, Layout> make_TensorView(Element* ptr, Layout const& layout, typename Layout::TensorCoord const& extent) {
+		return TensorView<Element, Layout>(ptr, layout, extent);
+	}
 
-  /// Returns a TensorRef offset by a given amount
-  NIHILUS_HOST_DEVICE
-  TensorView& operator+=(
-    TensorCoord const& b            ///< offset in the logical coordinate space of the tensor
-  ) {
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    this->add_pointer_offset(this->offset(b));
-    return *this;
-  }
-
-  /// Returns a TensorRef offset by a given amount
-  NIHILUS_HOST_DEVICE
-  TensorView operator-(
-    TensorCoord const& b            ///< offset in the logical coordinate space of the tensor
-  ) const {
-
-    TensorRef result(*this);
-    result.add_pointer_offset(-this->offset(b));
-    return result;
-  }
-
-  /// Returns a TensorRef offset by a given amount
-  NIHILUS_HOST_DEVICE
-  TensorView& operator-=(
-    TensorCoord const& b            ///< offset in the logical coordinate space of the tensor
-  ) {
-
-    this->add_pointer_offset(-this->offset(b));
-    return *this;
-  }
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/// Constructs a TensorRef, deducing types from arguments.
-template <
-  typename Element,
-  typename Layout
->
-NIHILUS_HOST_DEVICE TensorView<Element, Layout> make_TensorView(
-  Element *ptr, 
-  Layout const &layout,
-  typename Layout::TensorCoord const &extent) {
-
-  return TensorView<Element, Layout>(ptr, layout, extent);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-}  // namespace nihilus_gemm
+}// namespace nihilus_gemm

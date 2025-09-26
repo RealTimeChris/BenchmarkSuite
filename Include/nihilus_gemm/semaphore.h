@@ -38,7 +38,7 @@
 
 #include "nihilus_gemm/array.h"
 
-#include "nihilus_gemm/numeric_types.h"
+
 #include "nihilus_gemm/matrix_shape.h"
 
 #include "nihilus_gemm/gemm/gemm.h"
@@ -47,72 +47,66 @@
 
 namespace nihilus_gemm {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// CTA-wide semaphore for inter-CTA synchronization.
-class Semaphore { 
-public:
+	/// CTA-wide semaphore for inter-CTA synchronization.
+	class Semaphore {
+	  public:
+		int* lock;
+		bool wait_thread;
+		int state;
 
-  int *lock;
-  bool wait_thread;
-  int state;
+	  public:
+		/// Implements a semaphore to wait for a flag to reach a given value
+		NIHILUS_HOST_DEVICE
+		Semaphore(int* lock_, int thread_id) : lock(lock_), wait_thread(thread_id < 0 || thread_id == 0), state(-1) {
+		}
 
-public:
+		/// Permit fetching the synchronization mechanism early
+		NIHILUS_DEVICE
+		void fetch() {
+			if (wait_thread) {
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 700
+				asm volatile("ld.global.acquire.gpu.b32 %0, [%1];\n" : "=r"(state) : "l"(lock));
+#else
+				asm volatile("ld.global.cg.b32 %0, [%1];\n" : "=r"(state) : "l"(lock));
+#endif
+			}
+		}
 
-  /// Implements a semaphore to wait for a flag to reach a given value
-  NIHILUS_HOST_DEVICE
-  Semaphore(int *lock_, int thread_id): 
-    lock(lock_), 
-    wait_thread(thread_id < 0 || thread_id == 0),
-    state(-1) {
+		/// Gets the internal state
+		NIHILUS_DEVICE
+		int get_state() const {
+			return state;
+		}
 
-  }
+		/// Waits until the semaphore is equal to the given value
+		NIHILUS_DEVICE
+		void wait(int status = 0) {
+			while (__syncthreads_and(state != status)) {
+				fetch();
+			}
 
-  /// Permit fetching the synchronization mechanism early
-  NIHILUS_DEVICE
-  void fetch() {
-    if (wait_thread) {
-      #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 700
-      asm volatile ("ld.global.acquire.gpu.b32 %0, [%1];\n" : "=r"(state) : "l"(lock));  
-      #else
-      asm volatile ("ld.global.cg.b32 %0, [%1];\n" : "=r"(state) : "l"(lock));  
-      #endif
-    }
-  }
+			__syncthreads();
+		}
 
-  /// Gets the internal state
-  NIHILUS_DEVICE
-  int get_state() const {
-    return state;
-  }
+		/// Updates the lock with the given result
+		NIHILUS_DEVICE
+		void release(int status = 0) {
+			__syncthreads();
 
-  /// Waits until the semaphore is equal to the given value
-  NIHILUS_DEVICE
-  void wait(int status = 0) {
-    while( __syncthreads_and(state != status) ) {
-      fetch();
-    }
+			if (wait_thread) {
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 700
+				asm volatile("st.global.release.gpu.b32 [%0], %1;\n" : : "l"(lock), "r"(status));
+#else
+				asm volatile("st.global.cg.b32 [%0], %1;\n" : : "l"(lock), "r"(status));
+#endif
+			}
+		}
+	};
 
-    __syncthreads();
-  }
+	/////////////////////////////////////////////////////////////////////////////////////////////////
 
-  /// Updates the lock with the given result
-  NIHILUS_DEVICE
-  void release(int status = 0) {
-    __syncthreads();
-
-    if (wait_thread) {
-      #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 700
-      asm volatile ("st.global.release.gpu.b32 [%0], %1;\n" : : "l"(lock), "r"(status));
-      #else
-      asm volatile ("st.global.cg.b32 [%0], %1;\n" : : "l"(lock), "r"(status));
-      #endif
-    }
-  }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////
-
-} // namespace nihilus_gemm
+}// namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

@@ -36,7 +36,7 @@
 #pragma once
 
 #include "nihilus_gemm/nihilus_gemm.h"
-#include "nihilus_gemm/numeric_types.h"
+
 #include "nihilus_gemm/numeric_conversion.h"
 #include "nihilus_gemm/constants.h"
 #include "nihilus_gemm/complex.h"

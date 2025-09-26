@@ -36,58 +36,61 @@
 #pragma once
 #include "nihilus_gemm/nihilus_gemm.h"
 #if defined(__CUDACC_RTC__)
-#include CUDA_STD_HEADER(cstdint)
+	#include CUDA_STD_HEADER(cstdint)
 #else
-#include <cstdint>
-#include <cstdlib>
-#include <cmath>
-#include <type_traits>
-#include <stdexcept>
+	#include <cstdint>
+	#include <cstdlib>
+	#include <cmath>
+	#include <type_traits>
+	#include <stdexcept>
 #endif
 #include "nihilus_gemm/uint128.h"
 
 namespace nihilus_gemm {
 
-///! Unsigned 256b integer type
-struct alignas(32) uint256_t {
-  /// Size of one part of the uint's storage in bits
-  static constexpr int storage_bits_ = 128;
+	///! Unsigned 256b integer type
+	struct alignas(32) uint256_t {
+		/// Size of one part of the uint's storage in bits
+		static constexpr int storage_bits_ = 128;
 
-  struct hilo {
-    uint128_t lo;
-    uint128_t hi;
-  };
+		struct hilo {
+			uint128_t lo;
+			uint128_t hi;
+		};
 
-  // Use a union to store either low and high parts.
-  union {
-    struct hilo hilo_;
-  };
+		// Use a union to store either low and high parts.
+		union {
+			struct hilo hilo_;
+		};
 
-  //
-  // Methods
-  //
+		//
+		// Methods
+		//
 
-  /// Default ctor
-  NIHILUS_HOST_DEVICE
-  uint256_t() : hilo_{uint128_t{}, uint128_t{}} {}
+		/// Default ctor
+		NIHILUS_HOST_DEVICE
+		uint256_t() : hilo_{ uint128_t{}, uint128_t{} } {
+		}
 
-  /// Constructor from uint128
-  NIHILUS_HOST_DEVICE
-  uint256_t(uint128_t lo_) : hilo_{lo_, uint128_t{}} {}
+		/// Constructor from uint128
+		NIHILUS_HOST_DEVICE
+		uint256_t(uint128_t lo_) : hilo_{ lo_, uint128_t{} } {
+		}
 
-  /// Constructor from two 128b unsigned integers
-  NIHILUS_HOST_DEVICE
-  uint256_t(uint128_t lo_, uint128_t hi_) : hilo_{lo_, hi_} {}
+		/// Constructor from two 128b unsigned integers
+		NIHILUS_HOST_DEVICE
+		uint256_t(uint128_t lo_, uint128_t hi_) : hilo_{ lo_, hi_ } {
+		}
 
-  /// Lossily cast to uint128_t
-  NIHILUS_HOST_DEVICE
-  explicit operator uint128_t() const {
-    return hilo_.lo;
-  }
-};
+		/// Lossily cast to uint128_t
+		NIHILUS_HOST_DEVICE
+		explicit operator uint128_t() const {
+			return hilo_.lo;
+		}
+	};
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace nihilus_gemm
+}// namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

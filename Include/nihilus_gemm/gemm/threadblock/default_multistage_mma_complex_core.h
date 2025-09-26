@@ -54,7 +54,7 @@
 #include "nihilus_gemm/gemm/threadblock/default_mma_core.h"
 
 #include "nihilus_gemm/matrix_shape.h"
-#include "nihilus_gemm/numeric_types.h"
+
 #include "nihilus_gemm/transform/pitch_linear_thread_map.h"
 
 #include "nihilus_gemm/transform/threadblock/regular_tile_access_iterator_tensor_op.h"

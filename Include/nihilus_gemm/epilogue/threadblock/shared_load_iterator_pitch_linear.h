@@ -48,7 +48,7 @@
 #include "nihilus_gemm/transform/pitch_linear_thread_map.h"
 #include "nihilus_gemm/layout/matrix.h"
 #include "nihilus_gemm/matrix_shape.h"
-#include "nihilus_gemm/numeric_types.h"
+
 #include "nihilus_gemm/tensor_ref.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

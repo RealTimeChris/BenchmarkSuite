@@ -653,7 +653,7 @@ struct ThreadblockSwizzleStreamK {
   NIHILUS_DEVICE
   int get_batch_idx() const
   {
-    return RematerializeBlockIdxZ();
+	  return blockIdx.z;
   }
 
   /// Obtains the calling threadblock's tiled coordinates for the given tile index
@@ -703,7 +703,7 @@ struct ThreadblockSwizzleStreamK {
   NIHILUS_DEVICE
   int get_block_idx() const
   {
-    int block_idx = RematerializeBlockIdxX();
+    int block_idx = blockIdx.x;
 
     // Remap the block indices for the first two waves of thread blocks if
     // we have multi-occupancy and the grid constitutes four or more waves

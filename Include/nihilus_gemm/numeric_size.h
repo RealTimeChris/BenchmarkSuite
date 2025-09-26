@@ -41,38 +41,31 @@
 
 namespace nihilus_gemm {
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Defines the size of an element in bits
-template <typename T>
-struct sizeof_bits {
-  static constexpr int value = int(sizeof(T) * 8);
-};
+	/// Defines the size of an element in bits
+	template<typename T> struct sizeof_bits {
+		static constexpr int value = int(sizeof(T) * 8);
+	};
 
-template <typename T>
-struct sizeof_bits<T const> : sizeof_bits<T> {};
+	template<typename T> struct sizeof_bits<T const> : sizeof_bits<T> {};
 
-template <typename T>
-struct sizeof_bits<T volatile> : sizeof_bits<T> {};
+	template<typename T> struct sizeof_bits<T volatile> : sizeof_bits<T> {};
 
-template <typename T>
-struct sizeof_bits<T const volatile> : sizeof_bits<T> {};
+	template<typename T> struct sizeof_bits<T const volatile> : sizeof_bits<T> {};
 
-template <>
-struct sizeof_bits<void> {
-  static constexpr int value = 0;
-};
+	template<> struct sizeof_bits<void> {
+		static constexpr int value = 0;
+	};
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <class T>
-struct is_subbyte {
-  static constexpr bool value = sizeof_bits<T>::value < 8;
-};
+	template<class T> struct is_subbyte {
+		static constexpr bool value = sizeof_bits<T>::value < 8;
+	};
 
-template <class T>
-struct is_subbyte<T const> : is_subbyte<T> {};
+	template<class T> struct is_subbyte<T const> : is_subbyte<T> {};
 
-}  // namespace nihilus_gemm
+}// namespace nihilus_gemm
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
