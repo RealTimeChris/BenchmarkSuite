@@ -35,7 +35,7 @@
 
 #include <nihilus_gemm/fast_math.h>
 
-namespace nihilus_cute
+namespace cute
 {
 
 //
@@ -57,7 +57,7 @@ template <class T, class U,
 CUTE_HOST_DEVICE constexpr
 auto
 min(T const& t, U const& u) {
-  return static_cast<nihilus_cute::common_type_t<T,U>>(t) < static_cast<nihilus_cute::common_type_t<T,U>>(u) ? t : u;
+  return static_cast<cute::common_type_t<T,U>>(t) < static_cast<cute::common_type_t<T,U>>(u) ? t : u;
 }
 
 template <class T,
@@ -98,7 +98,7 @@ template <class T, class U,
           __CUTE_REQUIRES(is_std_integral<T>::value &&
                           is_std_integral<U>::value)>
 CUTE_HOST_DEVICE constexpr
-nihilus_cute::common_type_t<T, U>
+cute::common_type_t<T, U>
 gcd(T t, U u) {
   while (true) {
     if (t == 0) { return u; }
@@ -113,7 +113,7 @@ template <class T, class U,
           __CUTE_REQUIRES(is_std_integral<T>::value &&
                           is_std_integral<U>::value)>
 CUTE_HOST_DEVICE constexpr
-nihilus_cute::common_type_t<T, U>
+cute::common_type_t<T, U>
 lcm(T const& t, U const& u) {
   return (t / gcd(t,u)) * u;
 }
@@ -344,13 +344,13 @@ divmod(CInt0 const& a, CInt1 const& b) {
 template <class CInt>
 CUTE_HOST_DEVICE constexpr
 auto
-divmod(CInt const& a, nihilus_gemm::FastDivmod const& b) {
-  using val_div_type = typename nihilus_gemm::FastDivmod::value_div_type;
-  using val_mod_type = typename nihilus_gemm::FastDivmod::value_mod_type;
+divmod(CInt const& a, cutlass::FastDivmod const& b) {
+  using val_div_type = typename cutlass::FastDivmod::value_div_type;
+  using val_mod_type = typename cutlass::FastDivmod::value_mod_type;
   val_div_type div = 0;
   val_mod_type mod = 0;
   b(div, mod, a);
   return DivModReturnType{div, mod};
 }
 
-} // namespace nihilus_cute
+} // namespace cute

@@ -34,8 +34,8 @@
 
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
-
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/complex.h"
 #include "nihilus_gemm/array_planar_complex.h"
 #include "nihilus_gemm/functional.h"
@@ -44,7 +44,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace thread {
 
@@ -54,7 +54,7 @@ namespace thread {
 ///
 /// D = alpha * accumulator + beta * source + uniform
 ///
-/// Note, as with most NIHILUS components for planar complex, the template arguments describe
+/// Note, as with most CUTLASS components for planar complex, the template arguments describe
 /// the underlying real data type.
 template <
   typename ElementOutput_,                             ///< Data type used to load and store tensors
@@ -74,14 +74,14 @@ public:
   using ElementCompute = ElementCompute_;
   using ElementScalar = complex<ElementCompute>;
 
-  static constexpr int kCount = Count;
+  static int const kCount = Count;
   static const ScaleType::Kind kScale = Scale;
 
   using FragmentOutput = ArrayPlanarComplex<ElementOutput, kCount>;
   using FragmentAccumulator = ArrayPlanarComplex<ElementAccumulator, kCount>;
   using ComputeFragment = ArrayPlanarComplex<ElementCompute, kCount>;
 
-  static constexpr FloatRoundStyle kRound = Round;
+  static FloatRoundStyle const kRound = Round;
 
   /// Host-constructable parameters structure
   struct Params {
@@ -97,14 +97,14 @@ public:
 
     Params() = default;
 
-    NIHILUS_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(
       ElementScalar alpha,
       ElementScalar beta
     ): alpha(alpha), beta(beta)
     {}
 
-    NIHILUS_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(
       ElementScalar const *alpha_ptr,
       ElementScalar const *beta_ptr
@@ -124,14 +124,14 @@ private:
 public:
 
   /// Constructs the function object, possibly loading from pointers in host memory
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LinearCombinationPlanarComplex(Params const &params) {
     alpha_ = (params.alpha_ptr ? *params.alpha_ptr : params.alpha);
     beta_ = (params.beta_ptr ? *params.beta_ptr : params.beta);
   }
 
   /// Returns true if source is needed
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   bool is_source_needed() const {
     if (Scale == ScaleType::OnlyAlphaScaling) return false;
 
@@ -139,7 +139,7 @@ public:
   }
 
   /// Functionally required for serial reduction in the epilogue
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_k_partition(int k_partition, int k_partition_count) {
     if (k_partition) {
       beta_ = ElementCompute(1);
@@ -147,7 +147,7 @@ public:
   }
 
   /// Computes linear scaling: D = alpha * accumulator + beta * source
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   FragmentOutput operator()(
     FragmentAccumulator const &accumulator, 
     FragmentOutput const &source) const {
@@ -194,7 +194,7 @@ public:
   }
 
   /// Computes linear scaling: D = alpha * accumulator + beta * source
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   FragmentOutput operator()(
     FragmentAccumulator const &accumulator) const {
 
@@ -231,6 +231,6 @@ public:
 
 } // namespace thread
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

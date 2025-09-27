@@ -34,9 +34,9 @@
 
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
+#include "nihilus_gemm/cutlass.h"
 #include "nihilus_gemm/array.h"
-
+#include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/matrix_shape.h"
 #include "nihilus_gemm/gemm/gemm.h"
 #include "nihilus_gemm/gemm/warp/mma.h"
@@ -48,7 +48,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace warp {
 
@@ -111,13 +111,13 @@ public:
   using OperatorClass = arch::OpClassSimt;
 
   /// Hard-coded for now
-  using ArchTag = arch::Sm120;
+  using ArchTag = arch::Sm50;
 
   /// Complex transform on A operand
-  static constexpr ComplexTransform kTransformA = TransformA;
+  static ComplexTransform const kTransformA = TransformA;
 
   /// Complex transform on B operand
-  static constexpr ComplexTransform kTransformB = TransformB;
+  static ComplexTransform const kTransformB = TransformB;
 
   /// Layout of threads
   using ThreadLayoutA = typename platform::conditional< platform::is_same< layout::ColumnMajorInterleaved<4>, LayoutA >::value,
@@ -221,11 +221,11 @@ public:
   //
 
   /// Ctor
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   MmaSimt() {}
 
   /// Performs a warp-level matrix multiply-accumulate operation
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void operator()(
     FragmentC &d, 
     FragmentA a, 
@@ -248,7 +248,7 @@ public:
   }
 
   /// Transform the mma operands to the required types
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void transform(TransformedFragmentA &dst_A, TransformedFragmentB &dst_B,
                  FragmentA const &A, FragmentB const &B) const {
     dst_A = A;
@@ -260,4 +260,4 @@ public:
 
 } // namespace warp
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass

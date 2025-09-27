@@ -34,7 +34,7 @@
 #include <nihilus_cute/arch/config.hpp> // CUTE_ARCH_TMA_SMxx_ENABLED
 #include <nihilus_cute/arch/copy.hpp>
 
-namespace nihilus_cute
+namespace cute
 {
 
 struct SM90_U32x1_STSM_N
@@ -209,7 +209,7 @@ copy_stsm_trans(T const* const rmem_ptr,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // end namespace nihilus_cute
+} // end namespace cute
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

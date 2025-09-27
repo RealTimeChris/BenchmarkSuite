@@ -31,14 +31,14 @@
 #pragma once
 
 #include <nihilus_cute/config.hpp>           // CUTE_HOST_DEVICE
-#include <nihilus_cute/util/type_traits.hpp> // nihilus_cute::is_valid
+#include <nihilus_cute/util/type_traits.hpp> // cute::is_valid
 #include <nihilus_cute/numeric/numeric_types.hpp> 
 
 //
 // CUDA compatible print and printf
 //
 
-namespace nihilus_cute
+namespace cute
 {
 
 CUTE_HOST_DEVICE
@@ -255,7 +255,7 @@ pretty_print(double v) {
 template <class T>
 CUTE_HOST_DEVICE void
 pretty_print(T t) {
-  constexpr auto has_print_exmy_base = nihilus_cute::is_valid([](auto t) -> decltype(pretty_print_float_exmy_base(t)) {}, t);  
+  constexpr auto has_print_exmy_base = cute::is_valid([](auto t) -> decltype(pretty_print_float_exmy_base(t)) {}, t);  
   if constexpr (has_print_exmy_base) {   
   pretty_print_float_exmy_base(t);       
   } else {                               
@@ -263,4 +263,4 @@ pretty_print(T t) {
   }                                      
 }
 
-} // end namespace nihilus_cute
+} // end namespace cute

@@ -37,7 +37,7 @@
 */
 
 #pragma once
-#include "nihilus_gemm/nihilus_gemm.h"
+#include "nihilus_gemm/cutlass.h"
 #if !defined(__CUDACC_RTC__)
 #include <type_traits>
 #include <utility>
@@ -45,7 +45,7 @@
 #include CUDA_STD_HEADER(cassert)
 
 #include "nihilus_gemm/matrix_shape.h"
-
+#include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/layout/vector.h"
 #include "nihilus_gemm/layout/tensor.h"
@@ -58,7 +58,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace threadblock {
 
@@ -66,12 +66,12 @@ namespace threadblock {
 
 //
 // This is used for metaprogramming epilogue functors. If they define 
-// `static constexpr bool kIsHeavy = true;`, then the epilogue functor itself is
+// `static bool const kIsHeavy = true;`, then the epilogue functor itself is
 // not inlined. This results in smaller code and is advantageous if the epilogue
 // functor consists of many instructions.
 //
 // If the epilogue functor does not define `kIsHeavy` or if it is `false`, then
-// the behavior from NIHILUS 2.5 and before is retained. The epilogue is fully
+// the behavior from CUTLASS 2.5 and before is retained. The epilogue is fully
 // unrolled and inlined.
 //
 
@@ -81,11 +81,11 @@ struct TypeSink {  typedef void type; };
 template<class T> using TypeSinkT = typename TypeSink<T>::type;
 
 template<class T, class=void> struct IsEpilogueFunctorHeavy {
-  static constexpr bool value = false;
+  static bool const value = false;
 };
 
 template<class T> struct IsEpilogueFunctorHeavy<T, TypeSinkT< decltype( T::kIsHeavy ) > > {
-  static constexpr bool value = T::kIsHeavy;
+  static bool const value = T::kIsHeavy;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -105,7 +105,7 @@ public:
 
   using Shape = Shape_;
   using WarpShape = WarpShape_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static int const kPartitionsK = PartitionsK;
   using AccumulatorFragmentIterator = AccumulatorFragmentIterator_;
   using WarpTileIterator = WarpTileIterator_;
   using Padding = Padding_;
@@ -127,7 +127,7 @@ public:
   >;
 
   /// Use this to control the granularity of one epilogue 'iteration'
-  static constexpr int kFragmentsPerIteration = FragmentsPerIteration;
+  static int const kFragmentsPerIteration = FragmentsPerIteration;
 
 public:
 
@@ -170,13 +170,13 @@ public:
     //
 
     /// Returns a pointer to the shared memory buffer
-    NIHILUS_DEVICE
+    CUTLASS_DEVICE
     Element *data() {
       return storage.data();
     }
 
     /// Returns a tensor reference to the shared memory buffer
-    NIHILUS_DEVICE
+    CUTLASS_DEVICE
     TensorRef reference() {
       return TensorRef(
         storage.data(), 
@@ -198,7 +198,7 @@ protected:
 public:
 
   /// Constructor
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   EpilogueBase(
     SharedStorage &shared_storage,    ///< Shared storage object    
     int thread_idx,                   ///< ID of a thread within the threadblock
@@ -229,6 +229,6 @@ public:
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////

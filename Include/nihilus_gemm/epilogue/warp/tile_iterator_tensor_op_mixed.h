@@ -44,11 +44,11 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 // This is an optimization available on CUDA 11.2 and beyond that eliminates branches in the epilogue.
-#define NIHILUS_EPILOGUE_WARP_TILE_ITERATOR_TENSOR_OP_MIXED_OPTIMIZATION_ENABLED ((__CUDACC_VER_MAJOR__ * 10 + __CUDACC_VER_MINOR__) >= 112)
+#define CUTLASS_EPILOGUE_WARP_TILE_ITERATOR_TENSOR_OP_MIXED_OPTIMIZATION_ENABLED ((__CUDACC_VER_MAJOR__ * 10 + __CUDACC_VER_MINOR__) >= 112)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace warp {
 
@@ -74,7 +74,7 @@ public:
   using OperatorShape = OperatorShape_;
   using Element = Element_;
   using Layout = layout::RowMajor;
-  static constexpr int kOutputElementCount = OutputElementCount;
+  static int const kOutputElementCount = OutputElementCount;
 
   using TensorRef = TensorRef<Element, Layout>;         ///< Tensor Reference object
   using TensorCoord = MatrixCoord;                      ///< Logical coordinate in referenced tensor
@@ -98,14 +98,14 @@ public:
   //using AccumulatorTile = typename Operator::FragmentC;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static int const kIterations = Policy::kIterations;
 
   // Internal constants
   struct Detail {
-    static constexpr int kLanesInQuad = 4;
+    static int const kLanesInQuad = 4;
 
     /// Number of pointers needed to write accumulators
-    static constexpr int kPointerCount = 
+    static int const kPointerCount = 
       (OutputElementCount * sizeof_bits<Element>::value) / (const_min(128, OutputElementCount * sizeof_bits<Element>::value));
 
     // Currently support max 4 ptr
@@ -144,7 +144,7 @@ public:
   TileIteratorTensorOpMixed() = default;
 
   /// Constructor from TensorRef
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed(
     TensorRef const &ref,
     unsigned lane_id
@@ -155,7 +155,7 @@ public:
     int quad_id = (lane_id / Detail::kLanesInQuad); 
     int lane_in_quad = (lane_id % Detail::kLanesInQuad);
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int64_t i = 0; i < Detail::kPointerCount; ++i) {
       AccessType *ptr = reinterpret_cast<AccessType *>(ref.data()) + quad_id * stride_;
       int column_idx = (lane_in_quad % 2) + (((lane_in_quad / 2) + i) % Detail::kPointerCount) * 2;
@@ -167,10 +167,10 @@ public:
   }
 
   /// Adds a pointer offset
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & add_pointer_offset(Index pointer_offset) {
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int64_t i = 0; i < Detail::kPointerCount; ++i) {
       pointers_[i] += pointer_offset / Policy::kElementsPerAccess;
     }
@@ -179,10 +179,10 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & add_tile_offset(TensorCoord const &tile_offset) {
     
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int64_t i = 0; i < Detail::kPointerCount; ++i) {
       pointers_[i] += tile_offset.row() * Shape::kRow * stride_ + 
         tile_offset.column() * Shape::kColumn / Policy::kElementsPerAccess;
@@ -194,20 +194,20 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & operator+=(TensorCoord const &tile_offset) {
     return add_tile_offset(tile_offset);
   }
 
   /// Store
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
     AccessType *ptr = pointers_[0];
 
-#if NIHILUS_EPILOGUE_WARP_TILE_ITERATOR_TENSOR_OP_MIXED_OPTIMIZATION_ENABLED
+#if CUTLASS_EPILOGUE_WARP_TILE_ITERATOR_TENSOR_OP_MIXED_OPTIMIZATION_ENABLED
 
     // When the optimization is enabled, small tiles require separate logic.
     bool kN32_optimization = (WarpShape::kN * Detail::kLanesInQuad * Policy::kElementsPerAccess * sizeof_bits<Element>::value) % 1024 == 0;
@@ -234,10 +234,10 @@ public:
 
 #endif
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int64_t n = 0; n < Policy::OperatorCount::kColumn; ++n) {
       
-#if NIHILUS_EPILOGUE_WARP_TILE_ITERATOR_TENSOR_OP_MIXED_OPTIMIZATION_ENABLED
+#if CUTLASS_EPILOGUE_WARP_TILE_ITERATOR_TENSOR_OP_MIXED_OPTIMIZATION_ENABLED
 
       //
       // When the optimization is enabled, this expression suffices to obtain the SMEM pointer.
@@ -272,18 +272,18 @@ public:
   }
 
   /// Store
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag) {
     store_with_pointer_offset(frag, 0);
   }
 
   /// Load
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
 
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int64_t n = 0; n < Policy::OperatorCount::kColumn; ++n) {
 
       int column_idx = warp_column_ + n * Detail::kLanesInQuad * Policy::kElementsPerAccess;
@@ -295,13 +295,13 @@ public:
   }
 
   /// Load
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load(Fragment &frag) const {
     load_with_pointer_offset(frag, 0);
   }
   
   /// Set smem base address
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_smem_base_address(Index address) {
   }
 };
@@ -321,7 +321,7 @@ public:
   using OperatorShape = OperatorShape_;
   using Element = int32_t;
   using Layout = layout::RowMajor;
-  static constexpr int kOutputElementCount = 16;
+  static int const kOutputElementCount = 16;
 
   using TensorRef = TensorRef<Element, Layout>;         ///< Tensor Reference object
   using TensorCoord = MatrixCoord;                      ///< Logical coordinate in referenced tensor
@@ -345,17 +345,17 @@ public:
   //using AccumulatorTile = typename Operator::FragmentC;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static int const kIterations = Policy::kIterations;
 
   // Internal constants
   struct Detail {
-    static constexpr int kLanesInQuad = 4;
+    static int const kLanesInQuad = 4;
 
     /// Number of pointers needed to write accumulators
-    static constexpr int kPointerCount = 2;
+    static int const kPointerCount = 2;
 
     /// Offsets added 
-    static constexpr int kOffsetCount = 4;
+    static int const kOffsetCount = 4;
 
     static_assert(sizeof(Element) == 4, "This can only be used with 32b accumulator data types (f32, s32).");
   };
@@ -387,7 +387,7 @@ public:
   TileIteratorTensorOpMixed() = default;
 
   /// Constructor from TensorRef
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed(
     TensorRef const &ref,
     unsigned lane_id
@@ -397,7 +397,7 @@ public:
     int quad_id = (lane_id / Detail::kLanesInQuad); 
     int lane_in_quad = (lane_id % Detail::kLanesInQuad);
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < Detail::kPointerCount; ++i) {
       AccessType *ptr = reinterpret_cast<AccessType *>(ref.data()) + quad_id * stride_;
       int column_idx = lane_in_quad ^ (i * 2);
@@ -412,17 +412,17 @@ public:
       }
     }
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < Detail::kOffsetCount; ++i) {
       uniform_offset_[i] = (i ^ 0) * 4 * sizeof(AccessType);
     }
   }
 
   /// Adds a pointer offset
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & add_pointer_offset(Index pointer_offset) {
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int64_t i = 0; i < Detail::kPointerCount; ++i) {
       pointers_[i] += pointer_offset / AccessType::kElements;
     }
@@ -431,7 +431,7 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & add_tile_offset(TensorCoord const &tile_offset) {
     
     int ptr_offset = tile_offset.row() * Shape::kRow * stride_ + 
@@ -440,7 +440,7 @@ public:
     pointers_[0] += ptr_offset;
     pointers_[1] += ptr_offset;
     
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < Detail::kOffsetCount; ++i) {
       uniform_offset_[i] = (i ^ tile_offset.column()) * 4 * sizeof(AccessType);
     }
@@ -449,18 +449,18 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & operator+=(TensorCoord const &tile_offset) {
     return add_tile_offset(tile_offset);
   }
 
   /// Store
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int n = 0; n < Policy::OperatorCount::kColumn; ++n) {
 
       int ptr_idx = (n / 4);
@@ -496,13 +496,13 @@ public:
   }
 
   /// Store
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag) {
     store_with_pointer_offset(frag, 0);
   }
 
   /// Set smem base address
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_smem_base_address(Index address) {
   }
 };
@@ -522,7 +522,7 @@ public:
   using OperatorShape = OperatorShape_;
   using Element = int32_t;
   using Layout = layout::RowMajor;
-  static constexpr int kOutputElementCount = 8;
+  static int const kOutputElementCount = 8;
 
   using TensorRef = TensorRef<Element, Layout>;         ///< Tensor Reference object
   using TensorCoord = MatrixCoord;                      ///< Logical coordinate in referenced tensor
@@ -546,14 +546,14 @@ public:
   //using AccumulatorTile = typename Operator::FragmentC;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static int const kIterations = Policy::kIterations;
 
   // Internal constants
   struct Detail {
-    static constexpr int kLanesInQuad = 4;
+    static int const kLanesInQuad = 4;
 
     /// Number of pointers needed to write accumulators
-    static constexpr int kPointerCount = 2;
+    static int const kPointerCount = 2;
 
     static_assert(sizeof(Element) == 4, "This can only be used with 32b accumulator data types (f32, s32).");
   };
@@ -582,7 +582,7 @@ public:
   TileIteratorTensorOpMixed() = default;
 
   /// Constructor from TensorRef
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed(
     TensorRef const &ref,
     unsigned lane_id
@@ -592,7 +592,7 @@ public:
     int quad_id = (lane_id / Detail::kLanesInQuad); 
     int lane_in_quad = (lane_id % Detail::kLanesInQuad);
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < Detail::kPointerCount; ++i) {
       AccessType *ptr = reinterpret_cast<AccessType *>(ref.data()) + quad_id * stride_;
       int column_idx = lane_in_quad ^ (i * 2);
@@ -609,10 +609,10 @@ public:
   }
 
   /// Adds a pointer offset
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & add_pointer_offset(Index pointer_offset) {
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int64_t i = 0; i < Detail::kPointerCount; ++i) {
       pointers_[i] += pointer_offset / AccessType::kElements;
     }
@@ -621,7 +621,7 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & add_tile_offset(TensorCoord const &tile_offset) {
     
     int ptr_offset = tile_offset.row() * Shape::kRow * stride_ + 
@@ -640,18 +640,18 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & operator+=(TensorCoord const &tile_offset) {
     return add_tile_offset(tile_offset);
   }
 
   /// Store
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int n = 0; n < Policy::OperatorCount::kColumn; ++n) {
 
       int ptr_idx = (n / 4);
@@ -686,13 +686,13 @@ public:
   }
 
   /// Store
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag) {
     store_with_pointer_offset(frag, 0);
   }
 
   /// Set smem base address
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_smem_base_address(Index address) {
   }
 };
@@ -711,7 +711,7 @@ public:
   using OperatorShape = OperatorShape_;
   using Element = float;
   using Layout = layout::RowMajor;
-  static constexpr int kOutputElementCount = 16;
+  static int const kOutputElementCount = 16;
 
   using TensorRef = TensorRef<Element, Layout>;         ///< Tensor Reference object
   using TensorCoord = MatrixCoord;                      ///< Logical coordinate in referenced tensor
@@ -735,17 +735,17 @@ public:
   //using AccumulatorTile = typename Operator::FragmentC;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static int const kIterations = Policy::kIterations;
 
   // Internal constants
   struct Detail {
-    static constexpr int kLanesInQuad = 4;
+    static int const kLanesInQuad = 4;
 
     /// Number of pointers needed to write accumulators
-    static constexpr int kPointerCount = 2;
+    static int const kPointerCount = 2;
 
     /// Offsets added
-    static constexpr int kOffsetCount = 4;
+    static int const kOffsetCount = 4;
 
     static_assert(sizeof(Element) == 4, "This can only be used with 32b accumulator data types (f32, s32).");
   };
@@ -777,7 +777,7 @@ public:
   TileIteratorTensorOpMixed() = default;
 
   /// Constructor from TensorRef
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed(
     TensorRef const &ref,
     unsigned lane_id
@@ -787,7 +787,7 @@ public:
     int quad_id = (lane_id / Detail::kLanesInQuad);
     int lane_in_quad = (lane_id % Detail::kLanesInQuad);
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < Detail::kPointerCount; ++i) {
       AccessType *ptr = reinterpret_cast<AccessType *>(ref.data()) + quad_id * stride_;
       int column_idx = lane_in_quad ^ (i * 2);
@@ -802,17 +802,17 @@ public:
       }
     }
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < Detail::kOffsetCount; ++i) {
       uniform_offset_[i] = (i ^ 0) * 4 * sizeof(AccessType);
     }
   }
 
   /// Adds a pointer offset
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & add_pointer_offset(Index pointer_offset) {
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int64_t i = 0; i < Detail::kPointerCount; ++i) {
       pointers_[i] += pointer_offset / AccessType::kElements;
     }
@@ -821,7 +821,7 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & add_tile_offset(TensorCoord const &tile_offset) {
 
     int ptr_offset = tile_offset.row() * Shape::kRow * stride_ +
@@ -830,7 +830,7 @@ public:
     pointers_[0] += ptr_offset;
     pointers_[1] += ptr_offset;
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < Detail::kOffsetCount; ++i) {
       uniform_offset_[i] = (i ^ tile_offset.column()) * 4 * sizeof(AccessType);
     }
@@ -839,18 +839,18 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & operator+=(TensorCoord const &tile_offset) {
     return add_tile_offset(tile_offset);
   }
 
   /// Store
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int n = 0; n < Policy::OperatorCount::kColumn; ++n) {
 
       int ptr_idx = (n / 4);
@@ -886,7 +886,7 @@ public:
   }
 
   /// Store
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag) {
     store_with_pointer_offset(frag, 0);
   }
@@ -906,7 +906,7 @@ public:
   using OperatorShape = OperatorShape_;
   using Element = float;
   using Layout = layout::RowMajor;
-  static constexpr int kOutputElementCount = 8;
+  static int const kOutputElementCount = 8;
 
   using TensorRef = TensorRef<Element, Layout>;         ///< Tensor Reference object
   using TensorCoord = MatrixCoord;                      ///< Logical coordinate in referenced tensor
@@ -930,14 +930,14 @@ public:
   //using AccumulatorTile = typename Operator::FragmentC;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static int const kIterations = Policy::kIterations;
 
   // Internal constants
   struct Detail {
-    static constexpr int kLanesInQuad = 4;
+    static int const kLanesInQuad = 4;
 
     /// Number of pointers needed to write accumulators
-    static constexpr int kPointerCount = 2;
+    static int const kPointerCount = 2;
 
     static_assert(sizeof(Element) == 4, "This can only be used with 32b accumulator data types (f32, s32).");
   };
@@ -966,7 +966,7 @@ public:
   TileIteratorTensorOpMixed() = default;
 
   /// Constructor from TensorRef
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed(
     TensorRef const &ref,
     unsigned lane_id
@@ -976,7 +976,7 @@ public:
     int quad_id = (lane_id / Detail::kLanesInQuad);
     int lane_in_quad = (lane_id % Detail::kLanesInQuad);
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < Detail::kPointerCount; ++i) {
       AccessType *ptr = reinterpret_cast<AccessType *>(ref.data()) + quad_id * stride_;
       int column_idx = lane_in_quad ^ (i * 2);
@@ -993,10 +993,10 @@ public:
   }
 
   /// Adds a pointer offset
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & add_pointer_offset(Index pointer_offset) {
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int64_t i = 0; i < Detail::kPointerCount; ++i) {
       pointers_[i] += pointer_offset / AccessType::kElements;
     }
@@ -1005,7 +1005,7 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & add_tile_offset(TensorCoord const &tile_offset) {
 
     int ptr_offset = tile_offset.row() * Shape::kRow * stride_ +
@@ -1024,18 +1024,18 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & operator+=(TensorCoord const &tile_offset) {
     return add_tile_offset(tile_offset);
   }
 
   /// Store
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int n = 0; n < Policy::OperatorCount::kColumn; ++n) {
 
       int ptr_idx = (n / 4);
@@ -1070,7 +1070,7 @@ public:
   }
 
   /// Store
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag) {
     store_with_pointer_offset(frag, 0);
   }
@@ -1080,10 +1080,10 @@ public:
 
 } // namespace warp
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-#undef NIHILUS_EPILOGUE_WARP_TILE_ITERATOR_TENSOR_OP_MIXED_OPTIMIZATION_ENABLED
+#undef CUTLASS_EPILOGUE_WARP_TILE_ITERATOR_TENSOR_OP_MIXED_OPTIMIZATION_ENABLED
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

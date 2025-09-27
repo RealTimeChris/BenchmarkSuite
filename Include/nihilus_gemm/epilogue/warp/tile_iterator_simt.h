@@ -40,11 +40,11 @@
 
 #include "nihilus_gemm/epilogue/warp/simt_policy.h"
 
-#define NIHILUS_SIMT_EPILOGUE_USE_SCALAR_STORES 1
+#define CUTLASS_SIMT_EPILOGUE_USE_SCALAR_STORES 1
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace warp {
 
@@ -101,20 +101,20 @@ public:
     Policy::kAccumulatorElementCount>;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static int const kIterations = Policy::kIterations;
 
   /// Padding quantity
   using Padding = MatrixShape<
     0,
     4 * Policy::kElementsPerAccess
-#if NIHILUS_SIMT_EPILOGUE_USE_SCALAR_STORES
+#if CUTLASS_SIMT_EPILOGUE_USE_SCALAR_STORES
     + 1
 #endif
   >;
 
 private:
 
-#if NIHILUS_SIMT_EPILOGUE_USE_SCALAR_STORES
+#if CUTLASS_SIMT_EPILOGUE_USE_SCALAR_STORES
   /// Storage type for accessing memory
   using AccessType = AlignedArray<
     Element, 
@@ -142,11 +142,11 @@ private:
 public:
 
   /// Default constructor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorSimt(): pointer_(nullptr) { }
 
   /// Constructor from TensorRef
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorSimt(
     TensorRef const &ref,
     unsigned lane_id
@@ -164,14 +164,14 @@ public:
   }
 
   /// Adds a pointer offset
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorSimt & add_pointer_offset(Index pointer_offset) {
     pointer_ += pointer_offset / AccessType::kElements;
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorSimt & add_tile_offset(TensorCoord const &tile_offset) {
 
     pointer_ += layout_({
@@ -183,7 +183,7 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorSimt & operator+=(TensorCoord const &tile_offset) {
 
     add_tile_offset(tile_offset);
@@ -192,17 +192,17 @@ public:
   }
 
   /// Store
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
-#if NIHILUS_SIMT_EPILOGUE_USE_SCALAR_STORES
+#if CUTLASS_SIMT_EPILOGUE_USE_SCALAR_STORES
       // de-vectorized stores
       using ScalarAccessType = AlignedArray<Element, 1>;
       ScalarAccessType const *scalarFragPtr = reinterpret_cast<ScalarAccessType const *>(&frag);
       ScalarAccessType *scalarPointer = reinterpret_cast<ScalarAccessType *>(pointer_) + pointer_offset;
 
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int n = 0; n < Policy::kAccessesPerIteration; ++n) {
-        NIHILUS_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int s = 0; s < Policy::kElementsPerAccess; s++) {
           scalarPointer[n * Policy::MmaSimtPolicy::WarpShape::kColumn * Policy::kElementsPerAccess + s] = scalarFragPtr[n * Policy::kElementsPerAccess + s];
         }
@@ -210,7 +210,7 @@ public:
 #else
     // original vector stores
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int n = 0; n < Policy::kAccessesPerIteration; ++n) {
       pointer_[n * Policy::MmaSimtPolicy::WarpShape::kColumn + pointer_offset / int(AccessType::kElements)] = frag_ptr[n];
     }
@@ -218,31 +218,31 @@ public:
   }
 
   /// Store
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag) {
     store_with_pointer_offset(frag, 0);
   }
 
   /// Load
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
 
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int n = 0; n < Policy::kAccessesPerIteration; ++n) {
       frag_ptr[n] = pointer_[n * Policy::MmaSimtPolicy::WarpShape::kColumn + pointer_offset / int(AccessType::kElements)];
     }
   }
 
   /// Load
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load(Fragment &frag) const {
     load_with_pointer_offset(frag, 0);
   }
 
   /// Set smem base address
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_smem_base_address(Index address) {
   }
 };
@@ -283,7 +283,7 @@ class TileIteratorSimtDirectConv {
   using AccumulatorTile = Array<typename Operator::ElementC, Policy::kAccumulatorElementCount>;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static int const kIterations = Policy::kIterations;
 
   /// Padding quantity
   using Padding = MatrixShape<0,
@@ -312,11 +312,11 @@ private:
 
  public:
   /// Default constructor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorSimtDirectConv() : pointer_(nullptr) {}
 
   /// Constructor from TensorRef
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorSimtDirectConv(
     TensorRef const &ref,
     unsigned lane_id
@@ -334,14 +334,14 @@ private:
   }
 
   /// Adds a pointer offset
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorSimtDirectConv & add_pointer_offset(Index pointer_offset) {
     pointer_ += pointer_offset / AccessType::kElements;
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorSimtDirectConv & add_tile_offset(TensorCoord const &tile_offset) {
 
     pointer_ += layout_({
@@ -353,7 +353,7 @@ private:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorSimtDirectConv & operator+=(TensorCoord const &tile_offset) {
 
     add_tile_offset(tile_offset);
@@ -362,44 +362,44 @@ private:
   }
 
   /// Store
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
     // original vector stores
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
     AccessType * load_pointer_ = reinterpret_cast<AccessType *>(reinterpret_cast<uint8_t *>(pointer_) + base_smem_address_);
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int n = 0; n < Policy::kAccessesPerIteration; ++n) {
       load_pointer_[n * Policy::MmaSimtPolicy::WarpShape::kColumn + pointer_offset / int(AccessType::kElements)] = frag_ptr[n];
     }
   }
 
   /// Store
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag) {
     store_with_pointer_offset(frag, 0);
   }
 
   /// Load
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
 
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int n = 0; n < Policy::kAccessesPerIteration; ++n) {
       frag_ptr[n] = pointer_[n * Policy::MmaSimtPolicy::WarpShape::kColumn + pointer_offset / int(AccessType::kElements)];
     }
   }
 
   /// Load
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load(Fragment &frag) const {
     load_with_pointer_offset(frag, 0);
   }
 
   /// Set smem base address
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_smem_base_address(Index address){
     base_smem_address_ = address;
   }
@@ -470,11 +470,11 @@ class TileIteratorSimtDirect2dConv {
 
  public:
   /// Default constructor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorSimtDirect2dConv() : pointer_(nullptr) {}
 
   /// Constructor from TensorRef
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorSimtDirect2dConv(TensorRef const &ref, unsigned thread_id, unsigned lane_id)
       : pointer_(reinterpret_cast<AccessType *>(ref.data())),
         layout_(ref.stride()[0] / AccessType::kElements) {
@@ -496,24 +496,24 @@ class TileIteratorSimtDirect2dConv {
   }
 
   /// Adds a pointer offset
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorSimtDirect2dConv &add_pointer_offset(Index pointer_offset) {
     pointer_ += pointer_offset / AccessType::kElements;
     return *this;
   }
 
   /// Store
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
     AccessType *storer_pointer_ =
         reinterpret_cast<AccessType *>(reinterpret_cast<uint8_t *>(pointer_) + base_smem_address_);
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int h = 0; h < ThreadOutputShape::kH; ++h) {
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int w = 0; w < ThreadOutputShape::kW; ++w) {
-        NIHILUS_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int col = 0; col < Iterations::kColumn; ++col) {
           int offset = (w + h * ThreadBlockOutputShape::kW) *
                            (ThreadBlockOutputShape::kC / AccessType::kElements) +
@@ -526,11 +526,11 @@ class TileIteratorSimtDirect2dConv {
   }
 
   /// Store
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag) { store_with_pointer_offset(frag, 0); }
 
   /// Set smem base address
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_smem_base_address(Index address) { base_smem_address_ = address; }
 };
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -575,7 +575,7 @@ public:
     Policy::kAccumulatorElementCount>;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static int const kIterations = Policy::kIterations;
 
   /// Padding quantity
   using Padding = MatrixShape<
@@ -613,11 +613,11 @@ private:
 public:
 
   /// Default constructor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorSimtCanonical(): pointer_(nullptr) { }
 
   /// Constructor from TensorRef
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorSimtCanonical(
     TensorRef const &ref,
     unsigned lane_id
@@ -642,7 +642,7 @@ public:
   }
 
   /// Constructor from TensorRef
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorSimtCanonical(
     TensorRef const &ref,
     TensorCoord const &extent,
@@ -668,14 +668,14 @@ public:
   }
 
   /// Adds a pointer offset
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorSimtCanonical & add_pointer_offset(Index pointer_offset) {
     pointer_ += pointer_offset / AccessType::kElements;
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorSimtCanonical & add_tile_offset(TensorCoord const &tile_offset) {
 
     MatrixCoord coord_offset(
@@ -694,7 +694,7 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorSimtCanonical & operator+=(TensorCoord const &tile_offset) {
 
     add_tile_offset(tile_offset);
@@ -703,7 +703,7 @@ public:
   }
 
   /// Store
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
     // de-vectorized stores
@@ -711,9 +711,9 @@ public:
     ScalarAccessType const *scalarFragPtr = reinterpret_cast<ScalarAccessType const *>(&frag);
     ScalarAccessType *scalarPointer = reinterpret_cast<ScalarAccessType *>(pointer_) + pointer_offset;
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int n = 0; n < Policy::kAccessesPerIteration; ++n) {
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int s = 0; s < Policy::kElementsPerAccess; s++) {
         
         int ptr_idx = n * Policy::MmaSimtPolicy::WarpShape::kColumn * Policy::kElementsPerAccess + s;
@@ -729,13 +729,13 @@ public:
   }
 
   /// Store
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag) {
     store_with_pointer_offset(frag, 0);
   }
 
   /// Load
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
 
       // de-vectorized loads
@@ -743,9 +743,9 @@ public:
       ScalarAccessType *scalarFragPtr = reinterpret_cast<ScalarAccessType *>(&frag);
       ScalarAccessType const *scalarPointer = reinterpret_cast<ScalarAccessType const*>(pointer_) + pointer_offset;
 
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int n = 0; n < Policy::kAccessesPerIteration; ++n) {
-        NIHILUS_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int s = 0; s < Policy::kElementsPerAccess; s++) {
           
           int ptr_idx = n * Policy::MmaSimtPolicy::WarpShape::kColumn * Policy::kElementsPerAccess + s;
@@ -761,18 +761,18 @@ public:
   }
 
   /// Load
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load(Fragment &frag) const {
     load_with_pointer_offset(frag, 0);
   }
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorSimtCanonical & operator++() {
     return add_tile_offset({1, 0});
   }
 
   /// Set smem base address
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_smem_base_address(Index address) {
   }
 };
@@ -780,6 +780,6 @@ public:
 
 } // namespace warp
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

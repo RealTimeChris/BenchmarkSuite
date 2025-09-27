@@ -35,18 +35,18 @@
 
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
+#include "nihilus_gemm/cutlass.h"
 #include "nihilus_gemm/arch/wmma.h"
 
-#if defined(NIHILUS_ARCH_WMMA_ENABLED)
+#if defined(CUTLASS_ARCH_WMMA_ENABLED)
 
 #include "nihilus_gemm/wmma_array.h"
-
+#include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/matrix_shape.h"
 
 #include "nihilus_gemm/arch/memory_sm75.h"
-
-
+#include "nihilus_gemm/arch/mma_sm75.h"
+#include "nihilus_gemm/arch/mma_sm80.h"
 
 #include "nihilus_gemm/gemm/gemm.h"
 #include "nihilus_gemm/gemm/warp/mma.h"
@@ -57,7 +57,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace warp {
 
@@ -125,19 +125,19 @@ public:
   using ArchTag = typename Policy::Operator::ArchTag;
 
   /// Complex transform on A operand
-  static constexpr ComplexTransform kTransformA = ComplexTransform::kNone;
+  static ComplexTransform const kTransformA = ComplexTransform::kNone;
 
   /// Complex transform on B operand
-  static constexpr ComplexTransform kTransformB = ComplexTransform::kNone;
+  static ComplexTransform const kTransformB = ComplexTransform::kNone;
 
   /// Indicates class of matrix operator
   using OperatorClass = arch::OpClassWmmaTensorOp;
 
   /// Number of threads participating in warp-level matrix product
-  static constexpr int kThreadCount = 32;
+  static int const kThreadCount = 32;
 
   /// Number of partitions along K dimension
-  static constexpr int kPartitionsK = PartitionsK_;
+  static int const kPartitionsK = PartitionsK_;
 
 public:
 
@@ -180,7 +180,7 @@ private:
 
 public:
 
-  /// Underlying matrix multiply operator (concept: nihilus_gemm::arch::Wmma)
+  /// Underlying matrix multiply operator (concept: cutlass::arch::Wmma)
   typename Policy::Operator wmma;
 
 public:
@@ -190,20 +190,20 @@ public:
   //
 
   /// Ctor
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   MmaTensorOpWmma() {}
 
   /// Performs a warp-level matrix multiply-accumulate operation
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void operator()(
     FragmentC &D, 
     FragmentA const &A, 
     FragmentB const &B, 
     FragmentC const &C) const {
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int n = 0; n < WmmaIterations::kColumn; ++n) {
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int m = 0; m < WmmaIterations::kRow; ++m) {
 
         // accumulate wmma mma
@@ -217,7 +217,7 @@ public:
 
 } // namespace warp
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass
 
-#endif // if defined(NIHILUS_ARCH_WMMA_ENABLED)
+#endif // if defined(CUTLASS_ARCH_WMMA_ENABLED)
 

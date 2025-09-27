@@ -34,11 +34,11 @@
 
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
+#include "nihilus_gemm/cutlass.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace warp {
 
@@ -47,14 +47,14 @@ namespace warp {
 /// Query the number of threads per warp
 template <typename OperatorClass>
 struct WarpSize {
-  static constexpr int value = 32;
+  static int const value = 32;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace warp
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 

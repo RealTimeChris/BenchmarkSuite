@@ -84,7 +84,7 @@
   }
 #endif
 
-namespace nihilus_cute
+namespace cute
 {
 
 /// CUTE helper to cast SMEM pointer to unsigned
@@ -317,4 +317,4 @@ explode_tuple(Fn fn,
 
 } // end namespace detail
 
-} // end namespace nihilus_cute
+} // end namespace cute

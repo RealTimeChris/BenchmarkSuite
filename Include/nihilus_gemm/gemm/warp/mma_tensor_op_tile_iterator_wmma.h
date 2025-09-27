@@ -35,13 +35,13 @@
 #pragma once
 
 
-#include "nihilus_gemm/nihilus_gemm.h"
+#include "nihilus_gemm/cutlass.h"
 #include "nihilus_gemm/arch/wmma.h"
 
-#if defined(NIHILUS_ARCH_WMMA_ENABLED)
+#if defined(CUTLASS_ARCH_WMMA_ENABLED)
 
 #include "nihilus_gemm/wmma_array.h"
-
+#include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/tensor_ref.h"
 #include "nihilus_gemm/matrix_shape.h"
 
@@ -58,7 +58,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace warp {
 
@@ -109,7 +109,7 @@ class MmaTensorOpWmmaMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static constexpr Operand kOperand = Operand::kA;
+  static Operand const kOperand = Operand::kA;
 
   /// Element type
   using Element = Element_;
@@ -118,7 +118,7 @@ class MmaTensorOpWmmaMultiplicandTileIterator<
   using Layout = Layout_;
 
   /// Delta between *WMMA operations
-  static constexpr int kOpDelta = OpDelta_;
+  static int const kOpDelta = OpDelta_;
 
   /// Wmma Operator information and operation delta
   using Policy = Policy_;
@@ -148,8 +148,8 @@ class MmaTensorOpWmmaMultiplicandTileIterator<
     Policy::Operator::Shape::kK
   >;
 
-  /// Map nihilus_gemm dataype to nvcuda::wmma datatype
-  using WmmaDataType = typename nihilus_gemm::arch::CutlassToWmmaDataType<Element>::Type;
+  /// Map cutlass dataype to nvcuda::wmma datatype
+  using WmmaDataType = typename cutlass::arch::CutlassToWmmaDataType<Element>::Type;
 
   /// Shape of individual WMMA load / stores for operand A
   using Iterations = MatrixShape<
@@ -170,8 +170,8 @@ class MmaTensorOpWmmaMultiplicandTileIterator<
 
   /// Supported memory layouts
   static_assert(
-    platform::is_same<nihilus_gemm::layout::RowMajor, Layout>::value ||
-    platform::is_same<nihilus_gemm::layout::ColumnMajor, Layout>::value,
+    platform::is_same<cutlass::layout::RowMajor, Layout>::value ||
+    platform::is_same<cutlass::layout::ColumnMajor, Layout>::value,
     "Supported list of memory layouts for WMMA are: RowMajor, ColumnMajor");
 
   /// Not working on this feature at the moment.
@@ -197,11 +197,11 @@ private:
 public:
   
   /// Default ctor constructs null iterator
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   MmaTensorOpWmmaMultiplicandTileIterator() { }
 
   /// Constructor from TensorRef
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   MmaTensorOpWmmaMultiplicandTileIterator(
     TensorRef const &ref, 
     int lane_id
@@ -210,14 +210,14 @@ public:
   }
 
   /// Adds a pointer offset to internal pointer(s) to advance through memory
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   MmaTensorOpWmmaMultiplicandTileIterator &add_pointer_offset(LongIndex offset) {
     byte_offset_ += (offset * sizeof_bits<Element>::value) / 8;
     return *this;
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole tiles
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   MmaTensorOpWmmaMultiplicandTileIterator &add_tile_offset(TensorCoord const &tile_offset) {
 
     Index elements_offset = layout_({tile_offset.row() * Shape::kRow, tile_offset.column() * WmmaShape::kColumn});
@@ -228,7 +228,7 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   MmaTensorOpWmmaMultiplicandTileIterator & operator++() {
     
     Index elements_offset = layout_({0, WmmaShape::kColumn});
@@ -239,7 +239,7 @@ public:
   }
 
   /// Advances the iterator along the opposite of the advance dimension
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   MmaTensorOpWmmaMultiplicandTileIterator & operator--() {
     
     Index elements_offset = layout_({0, WmmaShape::kColumn});
@@ -250,26 +250,26 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   MmaTensorOpWmmaMultiplicandTileIterator & operator+=(TensorCoord const &tile_offset) {
     add_tile_offset(tile_offset);
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   MmaTensorOpWmmaMultiplicandTileIterator & operator-=(TensorCoord const &tile_offset) {
     add_tile_offset(-tile_offset);
     return *this;
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load_with_byte_offset(Fragment &frag, Index byte_offset) const {
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int k = 0; k < Iterations::kColumn; ++k) {
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int m = 0; m < Iterations::kRow; ++m) {
 
         Index load_byte_offset = layout_({m * WmmaShape::kRow, k * WmmaShape::kColumn}) * sizeof_bits<Element>::value / 8;
@@ -282,18 +282,18 @@ public:
     }
   }
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load(Fragment &frag) const {
     load_with_byte_offset(frag, 0);
   }
     
   /// Stores a fragment to memory at the location pointed to by the iterator
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store_with_byte_offset(Fragment const &frag, Index byte_offset) const {
     
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int k = 0; k < Iterations::kColumn; ++k) {
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int m = 0; m < Iterations::kRow; ++m) {
 
         Index store_byte_offset = layout_({m * WmmaShape::kRow, k * WmmaShape::kColumn}) * sizeof_bits<Element>::value / 8;
@@ -307,7 +307,7 @@ public:
   }
 
   /// Stores a fragment to memory at the location pointed to by the iterator
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag) const {
     store_with_byte_offset(frag, 0);
   }
@@ -319,7 +319,7 @@ public:
   /// fold constants and achieve more efficient code.
   ///
   /// This is used by some nontrivial permuted layouts.
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void set_kgroup_index(int k_group) {
     // no operation here
   }
@@ -356,7 +356,7 @@ class MmaTensorOpWmmaMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static constexpr Operand kOperand = Operand::kB;
+  static Operand const kOperand = Operand::kB;
 
   /// Element type
   using Element = Element_;
@@ -365,7 +365,7 @@ class MmaTensorOpWmmaMultiplicandTileIterator<
   using Layout = Layout_;
 
   /// Delta between *WMMA operations
-  static constexpr int kOpDelta = OpDelta_;
+  static int const kOpDelta = OpDelta_;
 
   /// Wmma Operator information and operation delta
   using Policy = Policy_;
@@ -396,8 +396,8 @@ class MmaTensorOpWmmaMultiplicandTileIterator<
     Policy::Operator::Shape::kN
   >;
 
-  /// Map nihilus_gemm dataype to nvcuda::wmma datatype
-  using WmmaDataType = typename nihilus_gemm::arch::CutlassToWmmaDataType<Element>::Type;
+  /// Map cutlass dataype to nvcuda::wmma datatype
+  using WmmaDataType = typename cutlass::arch::CutlassToWmmaDataType<Element>::Type;
 
   /// Shape of individual WMMA load / stores for operand B
   using Iterations = MatrixShape<
@@ -418,8 +418,8 @@ class MmaTensorOpWmmaMultiplicandTileIterator<
 
   /// Supported memory layouts
   static_assert(
-    platform::is_same<nihilus_gemm::layout::RowMajor, Layout>::value ||
-    platform::is_same<nihilus_gemm::layout::ColumnMajor, Layout>::value,
+    platform::is_same<cutlass::layout::RowMajor, Layout>::value ||
+    platform::is_same<cutlass::layout::ColumnMajor, Layout>::value,
     "Supported list of memory layouts for WMMA are: RowMajor, ColumnMajor");
 
   /// Not working on this feature at the moment.
@@ -445,11 +445,11 @@ private:
 public:
   
   /// Default ctor constructs null iterator
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   MmaTensorOpWmmaMultiplicandTileIterator() { }
 
   /// Constructor from TensorRef
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   MmaTensorOpWmmaMultiplicandTileIterator(
     TensorRef const &ref, 
     int lane_id
@@ -457,7 +457,7 @@ public:
   }
 
   /// Adds a pointer offset to internal pointer(s) to advance through memory
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   MmaTensorOpWmmaMultiplicandTileIterator &add_pointer_offset(LongIndex offset) {
     
     byte_offset_ += (offset * sizeof_bits<Element>::value) / 8;
@@ -466,7 +466,7 @@ public:
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole tiles
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   MmaTensorOpWmmaMultiplicandTileIterator &add_tile_offset(TensorCoord const &tile_offset) {
     
     Index elements_offset = layout_({tile_offset.row() * WmmaShape::kRow, tile_offset.column() * Shape::kColumn});
@@ -477,7 +477,7 @@ public:
   }
 
   /// Advances the iterator along the advance dimension
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   MmaTensorOpWmmaMultiplicandTileIterator & operator++() {
     
     Index elements_offset = layout_({WmmaShape::kRow, 0});
@@ -488,7 +488,7 @@ public:
   }
 
   /// Advances the iterator along the opposite of the advance dimension
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   MmaTensorOpWmmaMultiplicandTileIterator & operator--() {
 
     Index elements_offset = layout_({WmmaShape::kRow, 0});
@@ -498,26 +498,26 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   MmaTensorOpWmmaMultiplicandTileIterator & operator+=(TensorCoord const &tile_offset) {
     add_tile_offset(tile_offset);
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   MmaTensorOpWmmaMultiplicandTileIterator & operator-=(TensorCoord const &tile_offset) {
     add_tile_offset(-tile_offset);
     return *this;
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load_with_byte_offset(Fragment &frag, Index byte_offset) const {
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int k = 0; k < Iterations::kRow; ++k) {
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int n = 0; n < Iterations::kColumn; ++n) {
         
         Index load_byte_offset = layout_({k * WmmaShape::kRow, n * WmmaShape::kColumn}) * sizeof_bits<Element>::value / 8;
@@ -529,18 +529,18 @@ public:
     }
   }
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load(Fragment &frag) const {
     load_with_byte_offset(frag, 0);
   }
     
   /// Stores a fragment to memory at the location pointed to by the iterator
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store_with_byte_offset(Fragment const &frag, Index byte_offset) const {
     
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int k = 0; k < Iterations::kRow; ++k) {
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int n = 0; n < Iterations::kColumn; ++n) {
 
         Index store_byte_offset = layout_({k * WmmaShape::kRow, n * WmmaShape::kColumn}) * sizeof_bits<Element>::value / 8;
@@ -553,7 +553,7 @@ public:
   }
 
   /// Stores a fragment to memory at the location pointed to by the iterator
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag) const {
     store_with_byte_offset(frag, 0);
   }
@@ -565,7 +565,7 @@ public:
   /// fold constants and achieve more efficient code.
   ///
   /// This is used by some nontrivial permuted layouts.
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void set_kgroup_index(int k_group) {
     // no operation here
   }
@@ -624,7 +624,7 @@ class MmaTensorOpWmmaAccumulatorTileIterator
   using OpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int kThreads = 32;
+  static int const kThreads = 32;
 
   /// Wmma Operator information and operation delta
   using Policy = Policy_;
@@ -651,11 +651,11 @@ class MmaTensorOpWmmaAccumulatorTileIterator
     Policy::Operator::Shape::kN
   >;
   
-  /// Map nihilus_gemm dataype to nvcuda::wmma datatype
-  using WmmaDataType = typename nihilus_gemm::arch::CutlassToWmmaDataType<Element>::Type;
+  /// Map cutlass dataype to nvcuda::wmma datatype
+  using WmmaDataType = typename cutlass::arch::CutlassToWmmaDataType<Element>::Type;
 
-  /// Map nihilus_gemm::layout to nvuda::wmma::layout_t enum
-  static nvcuda::wmma::layout_t const WmmaLayout = nihilus_gemm::arch::CutlassToWmmaLayout<Layout>::value;
+  /// Map cutlass::layout to nvuda::wmma::layout_t enum
+  static nvcuda::wmma::layout_t const WmmaLayout = cutlass::arch::CutlassToWmmaLayout<Layout>::value;
 
   /// Shape of individual WMMA load / stores for accumulator
   using Iterations = MatrixShape<
@@ -671,77 +671,77 @@ class MmaTensorOpWmmaAccumulatorTileIterator
   /////////////////////////////////////////////////////////////////////////////////////////////////////
   /// Supported layouts
   static_assert(
-    platform::is_same<nihilus_gemm::layout::RowMajor, Layout>::value ||
-    platform::is_same<nihilus_gemm::layout::ColumnMajor, Layout>::value,
+    platform::is_same<cutlass::layout::RowMajor, Layout>::value ||
+    platform::is_same<cutlass::layout::ColumnMajor, Layout>::value,
     "Supported list of memory layouts for WMMA are: RowMajor, ColumnMajor");
 
 private:
   
   /// Internal reference
-  nihilus_gemm::TensorRef<Element, Layout> ref_;
+  cutlass::TensorRef<Element, Layout> ref_;
 
 public:
   
   /// Default ctor constructs null iterator
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   MmaTensorOpWmmaAccumulatorTileIterator() { }
 
   /// Constructor from TensorRef
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   MmaTensorOpWmmaAccumulatorTileIterator(
     TensorRef const &ref, 
     int lane_id
   ): ref_(ref) { }
 
   /// Adds a pointer offset to internal pointer(s) to advance through memory
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   MmaTensorOpWmmaAccumulatorTileIterator &add_pointer_offset(LongIndex offset) {
     ref_.add_pointer_offset(offset);
     return *this;
   }
 
   /// Advances an iterator along logical dimensions of matrix in units of whole tiles
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   MmaTensorOpWmmaAccumulatorTileIterator &add_tile_offset(TensorCoord const &tile_offset) {
     ref_.add_coord_offset({tile_offset.row() * Shape::kRow, tile_offset.column() * Shape::kColumn});
     return *this;
   }
 
   /// Advances the iterator along the advance dimension
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   MmaTensorOpWmmaAccumulatorTileIterator & operator++() {
     ref_.add_coord_offset({Shape::kRow, 0});
     return *this;
   }
 
   /// Advances the iterator along the opposite of the advance dimension
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   MmaTensorOpWmmaAccumulatorTileIterator & operator--() {
     ref_.add_coord_offset({-Shape::kRow, 0});
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   MmaTensorOpWmmaAccumulatorTileIterator & operator+=(TensorCoord const &tile_offset) {
     add_tile_offset(tile_offset);
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   MmaTensorOpWmmaAccumulatorTileIterator & operator-=(TensorCoord const &tile_offset) {
     add_tile_offset(-tile_offset);
     return *this;
   }
 
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
     
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int m = 0; m < Iterations::kRow; ++m) {
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int n = 0; n < Iterations::kColumn; ++n) {
 
         const WmmaDataType * ptr = reinterpret_cast<const WmmaDataType*> (ref_.data() + ref_.offset({m * WmmaShape::kRow, n * WmmaShape::kColumn}) + pointer_offset);
@@ -752,18 +752,18 @@ public:
     }
   }
   /// Loads a fragment from memory at the location pointed to by the iterator.
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load(Fragment &frag) const {
     load_with_pointer_offset(frag, 0);
   }
     
   /// Stores a fragment to memory at the location pointed to by the iterator
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) const {
     
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int m = 0; m < Iterations::kRow; ++m) {
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int n = 0; n < Iterations::kColumn; ++n) {
 
         WmmaDataType * ptr = reinterpret_cast<WmmaDataType*> (ref_.data() + ref_.offset({m * WmmaShape::kRow, n * WmmaShape::kColumn}) + pointer_offset);
@@ -774,7 +774,7 @@ public:
   }
 
   /// Stores a fragment to memory at the location pointed to by the iterator
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag) const {
     store_with_pointer_offset(frag, 0);
   }
@@ -786,7 +786,7 @@ public:
   /// fold constants and achieve more efficient code.
   ///
   /// This is used by some nontrivial permuted layouts.
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void set_kgroup_index(int k_group) {
     // no operation here
   }
@@ -796,10 +796,10 @@ public:
 
 } // namespace warp
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#endif // if defined(NIHILUS_ARCH_WMMA_ENABLED)
+#endif // if defined(CUTLASS_ARCH_WMMA_ENABLED)
 
 

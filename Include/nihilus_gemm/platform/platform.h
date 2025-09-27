@@ -98,7 +98,7 @@
 //-----------------------------------------------------------------------------
 // Dependencies
 //-----------------------------------------------------------------------------
-#include <nihilus_gemm/nihilus_gemm.h>
+#include <nihilus_gemm/cutlass.h>
 #if defined(__CUDACC_RTC__)
 #include CUDA_STD_HEADER(type_traits)
 #include CUDA_STD_HEADER(utility)
@@ -135,31 +135,31 @@
 // OS
 //-----------------------------------------------------------------------------
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-#define NIHILUS_OS_WINDOWS
+#define CUTLASS_OS_WINDOWS
 #endif
 
 #if defined(__clang__) && defined(__CUDA__)
-#define NIHILUS_CLANG_CUDA 1
+#define CUTLASS_CLANG_CUDA 1
 #endif
 
 /******************************************************************************
  * Macros
  ******************************************************************************/
 /// std
-#if !defined(NIHILUS_STL_NAMESPACE)
+#if !defined(CUTLASS_STL_NAMESPACE)
 #if defined(__CUDACC_RTC__)
-#define NIHILUS_STL_NAMESPACE cuda::std
+#define CUTLASS_STL_NAMESPACE cuda::std
 #else
-#define NIHILUS_STL_NAMESPACE std
+#define CUTLASS_STL_NAMESPACE std
 #endif
 #endif
 
 /// builtin_unreachable
-#if !defined(NIHILUS_GCC_UNREACHABLE)
+#if !defined(CUTLASS_GCC_UNREACHABLE)
 #  if defined(__GNUC__)
-#    define NIHILUS_GCC_UNREACHABLE __builtin_unreachable()
+#    define CUTLASS_GCC_UNREACHABLE __builtin_unreachable()
 #  else
-#    define NIHILUS_GCC_UNREACHABLE
+#    define CUTLASS_GCC_UNREACHABLE
 #  endif
 #endif
 
@@ -210,7 +210,7 @@
 /******************************************************************************
  * Re-implementations
  ******************************************************************************/
-namespace nihilus_gemm {
+namespace cutlass {
 namespace platform {
 
 //-----------------------------------------------------------------------------
@@ -219,10 +219,10 @@ namespace platform {
 
 #if defined(__CUDACC_RTC__)
 /// std::abs
-NIHILUS_HOST_DEVICE constexpr int abs(int a) {
+CUTLASS_HOST_DEVICE constexpr int abs(int a) {
     return (a < 0) ? -a : a;
 }
-NIHILUS_HOST_DEVICE constexpr long long abs(long long a) {
+CUTLASS_HOST_DEVICE constexpr long long abs(long long a) {
     return (a < 0) ? -a : a;
 }
 #else
@@ -235,13 +235,13 @@ using std::abs;
 
 /// std::min
 template <typename T>
-NIHILUS_HOST_DEVICE constexpr const T& min(const T& a, const T& b) {
+CUTLASS_HOST_DEVICE constexpr const T& min(const T& a, const T& b) {
   return (b < a) ? b : a;
 }
 
 /// std::max
 template <typename T>
-NIHILUS_HOST_DEVICE constexpr const T& max(const T& a, const T& b) {
+CUTLASS_HOST_DEVICE constexpr const T& max(const T& a, const T& b) {
   return (a < b) ? b : a;
 }
 
@@ -253,38 +253,38 @@ NIHILUS_HOST_DEVICE constexpr const T& max(const T& a, const T& b) {
 using std::pair;
 
 template <class T1, class T2>
-NIHILUS_HOST_DEVICE constexpr bool operator==(const pair<T1, T2>& lhs, const pair<T1, T2>& rhs) {
+CUTLASS_HOST_DEVICE constexpr bool operator==(const pair<T1, T2>& lhs, const pair<T1, T2>& rhs) {
   return (lhs.first == rhs.first) && (lhs.second == rhs.second);
 }
 
 template <class T1, class T2>
-NIHILUS_HOST_DEVICE constexpr bool operator!=(const pair<T1, T2>& lhs, const pair<T1, T2>& rhs) {
+CUTLASS_HOST_DEVICE constexpr bool operator!=(const pair<T1, T2>& lhs, const pair<T1, T2>& rhs) {
   return (lhs.first != rhs.first) && (lhs.second != rhs.second);
 }
 
 template <class T1, class T2>
-NIHILUS_HOST_DEVICE constexpr bool operator<(const pair<T1, T2>& lhs, const pair<T1, T2>& rhs) {
+CUTLASS_HOST_DEVICE constexpr bool operator<(const pair<T1, T2>& lhs, const pair<T1, T2>& rhs) {
   return (lhs.first < rhs.first) ? true : (rhs.first < lhs.first) ? false
                                                                   : (lhs.second < rhs.second);
 }
 
 template <class T1, class T2>
-NIHILUS_HOST_DEVICE constexpr bool operator<=(const pair<T1, T2>& lhs, const pair<T1, T2>& rhs) {
+CUTLASS_HOST_DEVICE constexpr bool operator<=(const pair<T1, T2>& lhs, const pair<T1, T2>& rhs) {
   return !(rhs < lhs);
 }
 
 template <class T1, class T2>
-NIHILUS_HOST_DEVICE constexpr bool operator>(const pair<T1, T2>& lhs, const pair<T1, T2>& rhs) {
+CUTLASS_HOST_DEVICE constexpr bool operator>(const pair<T1, T2>& lhs, const pair<T1, T2>& rhs) {
   return (rhs < lhs);
 }
 
 template <class T1, class T2>
-NIHILUS_HOST_DEVICE constexpr bool operator>=(const pair<T1, T2>& lhs, const pair<T1, T2>& rhs) {
+CUTLASS_HOST_DEVICE constexpr bool operator>=(const pair<T1, T2>& lhs, const pair<T1, T2>& rhs) {
   return !(lhs < rhs);
 }
 
 template <class T1, class T2>
-NIHILUS_HOST_DEVICE std::pair<T1, T2> make_pair(T1 t, T2 u) {
+CUTLASS_HOST_DEVICE std::pair<T1, T2> make_pair(T1 t, T2 u) {
   std::pair<T1, T2> retval;
   retval.first = t;
   retval.second = u;
@@ -312,10 +312,10 @@ using std::pair;
 
 #endif
 
-using NIHILUS_STL_NAMESPACE::integral_constant;
-using NIHILUS_STL_NAMESPACE::bool_constant;
-using NIHILUS_STL_NAMESPACE::true_type;
-using NIHILUS_STL_NAMESPACE::false_type;
+using CUTLASS_STL_NAMESPACE::integral_constant;
+using CUTLASS_STL_NAMESPACE::bool_constant;
+using CUTLASS_STL_NAMESPACE::true_type;
+using CUTLASS_STL_NAMESPACE::false_type;
 
 #if defined(__CUDACC_RTC__) || (!defined(_MSC_VER) && (__cplusplus < 201103L)) || (defined(_MSC_VER) && (_MSC_VER < 1700))
 
@@ -332,31 +332,31 @@ using std::nullptr_t;
 // Conditional metaprogramming <type_traits>
 //-----------------------------------------------------------------------------
 
-using NIHILUS_STL_NAMESPACE::conditional;
-using NIHILUS_STL_NAMESPACE::conditional_t;
-using NIHILUS_STL_NAMESPACE::enable_if;
-using NIHILUS_STL_NAMESPACE::enable_if_t;
-using NIHILUS_STL_NAMESPACE::void_t;
+using CUTLASS_STL_NAMESPACE::conditional;
+using CUTLASS_STL_NAMESPACE::conditional_t;
+using CUTLASS_STL_NAMESPACE::enable_if;
+using CUTLASS_STL_NAMESPACE::enable_if_t;
+using CUTLASS_STL_NAMESPACE::void_t;
 
 //-----------------------------------------------------------------------------
 // Const/volatility specifiers <type_traits>
 //-----------------------------------------------------------------------------
 
-using NIHILUS_STL_NAMESPACE::remove_const;
-using NIHILUS_STL_NAMESPACE::remove_const_t;
-using NIHILUS_STL_NAMESPACE::remove_cv;
-using NIHILUS_STL_NAMESPACE::remove_cv_t;
-using NIHILUS_STL_NAMESPACE::remove_reference;
-using NIHILUS_STL_NAMESPACE::remove_reference_t;
-using NIHILUS_STL_NAMESPACE::remove_volatile;
-using NIHILUS_STL_NAMESPACE::remove_volatile_t;
+using CUTLASS_STL_NAMESPACE::remove_const;
+using CUTLASS_STL_NAMESPACE::remove_const_t;
+using CUTLASS_STL_NAMESPACE::remove_cv;
+using CUTLASS_STL_NAMESPACE::remove_cv_t;
+using CUTLASS_STL_NAMESPACE::remove_reference;
+using CUTLASS_STL_NAMESPACE::remove_reference_t;
+using CUTLASS_STL_NAMESPACE::remove_volatile;
+using CUTLASS_STL_NAMESPACE::remove_volatile_t;
 
 // remove_cvref and remove_cvref_t are C++20 features,
-// but NIHILUS finds them useful enough to back-port.
+// but CUTLASS finds them useful enough to back-port.
 #if defined(__cpp_lib_remove_cvref)
 
-using NIHILUS_STL_NAMESPACE::remove_cvref;
-using NIHILUS_STL_NAMESPACE::remove_cvref_t;
+using CUTLASS_STL_NAMESPACE::remove_cvref;
+using CUTLASS_STL_NAMESPACE::remove_cvref_t;
 
 #else
 
@@ -374,8 +374,8 @@ using remove_cvref_t = typename remove_cvref<T>::type;
 // Type relationships <type_traits>
 //-----------------------------------------------------------------------------
 
-using NIHILUS_STL_NAMESPACE::is_same;
-using NIHILUS_STL_NAMESPACE::is_same_v;
+using CUTLASS_STL_NAMESPACE::is_same;
+using CUTLASS_STL_NAMESPACE::is_same_v;
 
 #if defined(__CUDACC_RTC__) || (!defined(_MSC_VER) && (__cplusplus < 201103L)) || (defined(_MSC_VER) && (_MSC_VER < 1500))
 
@@ -387,16 +387,16 @@ struct is_base_of_helper {
 
   template <typename B, typename D>
   struct dummy {
-    NIHILUS_HOST_DEVICE operator B*() const;
-    NIHILUS_HOST_DEVICE operator D*();
+    CUTLASS_HOST_DEVICE operator B*() const;
+    CUTLASS_HOST_DEVICE operator D*();
   };
 
   template <typename T>
-  NIHILUS_HOST_DEVICE static yes check(DerivedT*, T);
+  CUTLASS_HOST_DEVICE static yes check(DerivedT*, T);
 
-  NIHILUS_HOST_DEVICE static no check(BaseT*, int);
+  CUTLASS_HOST_DEVICE static no check(BaseT*, int);
 
-  static constexpr bool value = sizeof(check(dummy<BaseT, DerivedT>(), int())) == sizeof(yes);
+  static const bool value = sizeof(check(dummy<BaseT, DerivedT>(), int())) == sizeof(yes);
 };
 
 /// std::is_base_of
@@ -418,10 +418,10 @@ using std::is_base_of;
 // Type properties <type_traits>
 //-----------------------------------------------------------------------------
 
-using NIHILUS_STL_NAMESPACE::is_arithmetic;
-using NIHILUS_STL_NAMESPACE::is_arithmetic_v;
-using NIHILUS_STL_NAMESPACE::is_void;
-using NIHILUS_STL_NAMESPACE::is_void_v;
+using CUTLASS_STL_NAMESPACE::is_arithmetic;
+using CUTLASS_STL_NAMESPACE::is_arithmetic_v;
+using CUTLASS_STL_NAMESPACE::is_void;
+using CUTLASS_STL_NAMESPACE::is_void_v;
 
 #if defined(__CUDACC_RTC__) || (!defined(_MSC_VER) && (__cplusplus < 201103L)) || (defined(_MSC_VER) && (_MSC_VER < 1500))
 
@@ -522,12 +522,12 @@ using std::is_trivially_copyable;
 
 #endif
 
-#if (NIHILUS_CXX17_OR_LATER)
+#if (CUTLASS_CXX17_OR_LATER)
 
 /// std::is_unsigned_v
-using NIHILUS_STL_NAMESPACE::is_integral_v;
+using CUTLASS_STL_NAMESPACE::is_integral_v;
 /// std::is_unsigned_v
-using NIHILUS_STL_NAMESPACE::is_unsigned_v;
+using CUTLASS_STL_NAMESPACE::is_unsigned_v;
 
 #endif
 
@@ -535,17 +535,17 @@ using NIHILUS_STL_NAMESPACE::is_unsigned_v;
 // <utility>
 //-----------------------------------------------------------------------------
 
-using NIHILUS_STL_NAMESPACE::declval;
+using CUTLASS_STL_NAMESPACE::declval;
 
 //-----------------------------------------------------------------------------
 // bit_cast <bit>
 //-----------------------------------------------------------------------------
 
 template< class To, class From >
-constexpr To NIHILUS_HOST_DEVICE bit_cast(const From& from ) noexcept;
+constexpr To CUTLASS_HOST_DEVICE bit_cast(const From& from ) noexcept;
 
 template <class To, class From>
-constexpr To NIHILUS_HOST_DEVICE bit_cast(const From& src) noexcept
+constexpr To CUTLASS_HOST_DEVICE bit_cast(const From& src) noexcept
 {
   static_assert(sizeof(To) == sizeof(From), "sizes must match");
   return reinterpret_cast<To const &>(src);
@@ -554,8 +554,8 @@ constexpr To NIHILUS_HOST_DEVICE bit_cast(const From& src) noexcept
 //-----------------------------------------------------------------------------
 // Convertable
 //-----------------------------------------------------------------------------
-using NIHILUS_STL_NAMESPACE::is_convertible;
-using NIHILUS_STL_NAMESPACE::is_convertible_v;
+using CUTLASS_STL_NAMESPACE::is_convertible;
+using CUTLASS_STL_NAMESPACE::is_convertible_v;
 
 //-----------------------------------------------------------------------------
 // Alignment and layout utilities
@@ -844,9 +844,9 @@ struct numeric_limits;
 
 template <>
 struct numeric_limits<int32_t> {
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static constexpr int32_t lowest() noexcept { return -2147483647 - 1;}
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static constexpr int32_t max() noexcept { return 2147483647;}
   static constexpr bool is_integer = true;
   static constexpr bool has_infinity = false;
@@ -854,9 +854,9 @@ struct numeric_limits<int32_t> {
 
 template <>
 struct numeric_limits<int16_t> {
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static constexpr int16_t lowest() noexcept { return -32768;}
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static constexpr int16_t max() noexcept { return 32767;}
   static constexpr bool is_integer = true;
   static constexpr bool has_infinity = false;
@@ -864,9 +864,9 @@ struct numeric_limits<int16_t> {
 
 template <>
 struct numeric_limits<int8_t> {
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static constexpr int8_t lowest() noexcept { return -128;}
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static constexpr int8_t max() noexcept { return 127;}
   static constexpr bool is_integer = true;
   static constexpr bool has_infinity = false;
@@ -875,9 +875,9 @@ struct numeric_limits<int8_t> {
 
 template <>
 struct numeric_limits<uint32_t> {
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static constexpr uint32_t lowest() noexcept { return 0;}
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static constexpr uint32_t max() noexcept { return 4294967295U;}
   static constexpr bool is_integer = true;
   static constexpr bool has_infinity = false;
@@ -885,9 +885,9 @@ struct numeric_limits<uint32_t> {
 
 template <>
 struct numeric_limits<uint16_t> {
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static constexpr uint16_t lowest() noexcept { return 0;}
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static constexpr uint16_t max() noexcept { return 65535U;}
   static constexpr bool is_integer = true;
   static constexpr bool has_infinity = false;
@@ -895,9 +895,9 @@ struct numeric_limits<uint16_t> {
 
 template <>
 struct numeric_limits<uint8_t> {
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static constexpr uint8_t lowest() noexcept { return 0;}
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static constexpr uint8_t max() noexcept { return 255U;}
   static constexpr bool is_integer = true;
   static constexpr bool has_infinity = false;
@@ -905,9 +905,9 @@ struct numeric_limits<uint8_t> {
 
 template <>
 struct numeric_limits<float> {
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static constexpr float infinity() noexcept { return bit_cast<float, int32_t>(0x7f800000);}
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static constexpr float max() noexcept { return bit_cast<float, int32_t>(0x7f7fffff);}
   static constexpr bool is_integer = false;
   static constexpr bool has_infinity = true;
@@ -936,18 +936,18 @@ constexpr T identity_for_minimum() {
 }
 
 /// std::float_round_style
-using NIHILUS_STL_NAMESPACE::float_round_style;
-using NIHILUS_STL_NAMESPACE::round_indeterminate;
-using NIHILUS_STL_NAMESPACE::round_toward_zero;
-using NIHILUS_STL_NAMESPACE::round_to_nearest;
-using NIHILUS_STL_NAMESPACE::round_toward_infinity;
-using NIHILUS_STL_NAMESPACE::round_toward_neg_infinity;
+using CUTLASS_STL_NAMESPACE::float_round_style;
+using CUTLASS_STL_NAMESPACE::round_indeterminate;
+using CUTLASS_STL_NAMESPACE::round_toward_zero;
+using CUTLASS_STL_NAMESPACE::round_to_nearest;
+using CUTLASS_STL_NAMESPACE::round_toward_infinity;
+using CUTLASS_STL_NAMESPACE::round_toward_neg_infinity;
 
 /// std::float_denorm_style
-using NIHILUS_STL_NAMESPACE::float_denorm_style;
-using NIHILUS_STL_NAMESPACE::denorm_indeterminate;
-using NIHILUS_STL_NAMESPACE::denorm_absent;
-using NIHILUS_STL_NAMESPACE::denorm_present;
+using CUTLASS_STL_NAMESPACE::float_denorm_style;
+using CUTLASS_STL_NAMESPACE::denorm_indeterminate;
+using CUTLASS_STL_NAMESPACE::denorm_absent;
+using CUTLASS_STL_NAMESPACE::denorm_present;
 
 }  // namespace platform
-}  // namespace nihilus_gemm
+}  // namespace cutlass

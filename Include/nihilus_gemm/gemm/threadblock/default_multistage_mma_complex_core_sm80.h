@@ -40,7 +40,7 @@
 #pragma once
 
 #include "nihilus_gemm/array.h"
-#include "nihilus_gemm/nihilus_gemm.h"
+#include "nihilus_gemm/cutlass.h"
 
 #include "nihilus_gemm/layout/tensor_op_multiplicand_sm75.h"
 #include "nihilus_gemm/layout/tensor_op_multiplicand_sm80.h"
@@ -53,7 +53,7 @@
 #include "nihilus_gemm/gemm/threadblock/default_multistage_mma_complex_core.h"
 
 #include "nihilus_gemm/matrix_shape.h"
-
+#include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/transform/pitch_linear_thread_map.h"
 #include "nihilus_gemm/transform/threadblock/regular_tile_access_iterator_tensor_op.h"
 #include "nihilus_gemm/transform/threadblock/regular_tile_access_iterator_tensor_op_sm80.h"
@@ -62,7 +62,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace threadblock {
 
@@ -94,9 +94,9 @@ template <
     /// Multiply-add operator (arch::OpMultiplyAddComplex, arch::OpMultiplyGaussianComplex)
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMultistageMmaComplexCore<
     Shape_, WarpShape_, InstructionShape_, 
     complex<double>, layout::ColumnMajor,
@@ -117,12 +117,12 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::RowMajor;
   using ElementC = complex<double>;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
-  static constexpr ComplexTransform kTransformA = TransformA;
-  static constexpr ComplexTransform kTransformB = TransformB;
+  static int const kStages = Stages;
+  static ComplexTransform const kTransformA = TransformA;
+  static ComplexTransform const kTransformB = TransformB;
   using Operator = Operator_;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Number of warps present
   using WarpCount = GemmShape<Shape::kM / WarpShape::kM,
@@ -138,13 +138,13 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static int const kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static int const kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped 128
-  static constexpr int kAccessSizeInBits = 128;
+  static int const kAccessSizeInBits = 128;
 
   //
   // Shared memory layouts
@@ -185,7 +185,7 @@ struct DefaultMultistageMmaComplexCore<
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaComplexTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaComplexTensorOp<
       WarpShape, InstructionShape, 
       ElementA, SmemLayoutA, 
       ElementB, SmemLayoutB,
@@ -225,9 +225,9 @@ template <
     /// Multiply-add operator (arch::OpMultiplyAddComplex, arch::OpMultiplyGaussianComplex)
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMultistageMmaComplexCore<
     Shape_, WarpShape_, InstructionShape_, 
     complex<double>, layout::ColumnMajor,
@@ -248,12 +248,12 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::ColumnMajor;
   using ElementC = complex<double>;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static int const kStages = Stages;
   using Operator = Operator_;
-  static constexpr ComplexTransform kTransformA = TransformA;
-  static constexpr ComplexTransform kTransformB = TransformB;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static ComplexTransform const kTransformA = TransformA;
+  static ComplexTransform const kTransformB = TransformB;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Number of warps present
   using WarpCount = GemmShape<Shape::kM / WarpShape::kM,
@@ -269,13 +269,13 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static int const kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static int const kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped 128
-  static constexpr int kAccessSizeInBits = 128;
+  static int const kAccessSizeInBits = 128;
 
   //
   // Shared memory layouts
@@ -315,7 +315,7 @@ struct DefaultMultistageMmaComplexCore<
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaComplexTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaComplexTensorOp<
       WarpShape, InstructionShape, 
       ElementA, SmemLayoutA, 
       ElementB, SmemLayoutB,
@@ -356,9 +356,9 @@ template <
     /// Multiply-add operator (arch::OpMultiplyAddComplex, arch::OpMultiplyGaussianComplex)
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMultistageMmaComplexCore<
     Shape_, WarpShape_, InstructionShape_, 
     complex<double>, layout::RowMajor,
@@ -379,12 +379,12 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::ColumnMajor;
   using ElementC = complex<double>;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
-  static constexpr ComplexTransform kTransformA = TransformA;
-  static constexpr ComplexTransform kTransformB = TransformB;
+  static int const kStages = Stages;
+  static ComplexTransform const kTransformA = TransformA;
+  static ComplexTransform const kTransformB = TransformB;
   using Operator = Operator_;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Number of warps present
   using WarpCount = GemmShape<Shape::kM / WarpShape::kM,
@@ -401,13 +401,13 @@ struct DefaultMultistageMmaComplexCore<
 
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static int const kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static int const kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped 128
-  static constexpr int kAccessSizeInBits = 128;
+  static int const kAccessSizeInBits = 128;
 
 
   //
@@ -448,7 +448,7 @@ struct DefaultMultistageMmaComplexCore<
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaComplexTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaComplexTensorOp<
       WarpShape, InstructionShape, 
       ElementA, SmemLayoutA, 
       ElementB, SmemLayoutB,
@@ -488,9 +488,9 @@ template <
     /// Multiply-add operator (arch::OpMultiplyAddComplex, arch::OpMultiplyGaussianComplex)
     typename Operator_,    
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMultistageMmaComplexCore<
     Shape_, WarpShape_, InstructionShape_, 
     complex<double>, layout::RowMajor,
@@ -511,12 +511,12 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::RowMajor;
   using ElementC = complex<double>;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
-  static constexpr ComplexTransform kTransformA = TransformA;
-  static constexpr ComplexTransform kTransformB = TransformB;
+  static int const kStages = Stages;
+  static ComplexTransform const kTransformA = TransformA;
+  static ComplexTransform const kTransformB = TransformB;
   using Operator = Operator_;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Number of warps present
   using WarpCount = GemmShape<Shape::kM / WarpShape::kM,
@@ -533,13 +533,13 @@ struct DefaultMultistageMmaComplexCore<
 
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static int const kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static int const kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped 128
-  static constexpr int kAccessSizeInBits = 128;
+  static int const kAccessSizeInBits = 128;
 
 
   //
@@ -580,7 +580,7 @@ struct DefaultMultistageMmaComplexCore<
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaComplexTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaComplexTensorOp<
       WarpShape, InstructionShape, 
       ElementA, SmemLayoutA, 
       ElementB, SmemLayoutB,
@@ -620,9 +620,9 @@ template <
     /// Multiply-add operator (arch::OpMultiplyAddComplex)
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMultistageMmaComplexCore<
     Shape_, WarpShape_, GemmShape<16, 8, 8>, 
     complex<float>, layout::ColumnMajor,
@@ -643,12 +643,12 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::ColumnMajor;
   using ElementC = complex<float>;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
-  static constexpr ComplexTransform kTransformA = TransformA;
-  static constexpr ComplexTransform kTransformB = TransformB;
+  static int const kStages = Stages;
+  static ComplexTransform const kTransformA = TransformA;
+  static ComplexTransform const kTransformB = TransformB;
   using Operator = Operator_;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Number of warps present
   using WarpCount = GemmShape<Shape::kM / WarpShape::kM,
@@ -664,13 +664,13 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static int const kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static int const kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped
-  static constexpr int kAccessSizeInBits = 64;
+  static int const kAccessSizeInBits = 64;
 
   //
   // Shared memory layouts
@@ -711,7 +711,7 @@ struct DefaultMultistageMmaComplexCore<
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaComplexTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaComplexTensorOp<
       WarpShape, InstructionShape, 
       ElementA, SmemLayoutA, 
       ElementB, SmemLayoutB,
@@ -750,9 +750,9 @@ template <
     /// Multiply-add operator (arch::OpMultiplyAddComplex)
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMultistageMmaComplexCore<
     Shape_, WarpShape_, GemmShape<16, 8, 8>, 
     complex<float>, layout::ColumnMajor,
@@ -773,12 +773,12 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::RowMajor;
   using ElementC = complex<float>;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
-  static constexpr ComplexTransform kTransformA = TransformA;
-  static constexpr ComplexTransform kTransformB = TransformB;
+  static int const kStages = Stages;
+  static ComplexTransform const kTransformA = TransformA;
+  static ComplexTransform const kTransformB = TransformB;
   using Operator = Operator_;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Number of warps present
   using WarpCount = GemmShape<Shape::kM / WarpShape::kM,
@@ -794,13 +794,13 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static int const kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static int const kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped
-  static constexpr int kAccessSizeInBits = 64;
+  static int const kAccessSizeInBits = 64;
 
   //
   // Shared memory layouts
@@ -841,7 +841,7 @@ struct DefaultMultistageMmaComplexCore<
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaComplexTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaComplexTensorOp<
       WarpShape, InstructionShape, 
       ElementA, SmemLayoutA, 
       ElementB, SmemLayoutB,
@@ -881,9 +881,9 @@ template <
     /// Multiply-add operator (arch::OpMultiplyAddComplex)
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMultistageMmaComplexCore<
     Shape_, WarpShape_, GemmShape<16, 8, 8>, 
     complex<float>, layout::RowMajor,
@@ -904,12 +904,12 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::ColumnMajor;
   using ElementC = complex<float>;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
-  static constexpr ComplexTransform kTransformA = TransformA;
-  static constexpr ComplexTransform kTransformB = TransformB;
+  static int const kStages = Stages;
+  static ComplexTransform const kTransformA = TransformA;
+  static ComplexTransform const kTransformB = TransformB;
   using Operator = Operator_;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Number of warps present
   using WarpCount = GemmShape<Shape::kM / WarpShape::kM,
@@ -925,13 +925,13 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static int const kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static int const kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped
-  static constexpr int kAccessSizeInBits = 64;
+  static int const kAccessSizeInBits = 64;
 
   //
   // Shared memory layouts
@@ -972,7 +972,7 @@ struct DefaultMultistageMmaComplexCore<
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaComplexTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaComplexTensorOp<
       WarpShape, InstructionShape, 
       ElementA, SmemLayoutA, 
       ElementB, SmemLayoutB,
@@ -1012,9 +1012,9 @@ template <
     /// Multiply-add operator (arch::OpMultiplyAddComplex)
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMultistageMmaComplexCore<
     Shape_, WarpShape_, GemmShape<16, 8, 8>, 
     complex<float>, layout::RowMajor,
@@ -1035,12 +1035,12 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::RowMajor;
   using ElementC = complex<float>;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
-  static constexpr ComplexTransform kTransformA = TransformA;
-  static constexpr ComplexTransform kTransformB = TransformB;
+  static int const kStages = Stages;
+  static ComplexTransform const kTransformA = TransformA;
+  static ComplexTransform const kTransformB = TransformB;
   using Operator = Operator_;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Number of warps present
   using WarpCount = GemmShape<Shape::kM / WarpShape::kM,
@@ -1056,13 +1056,13 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static int const kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static int const kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped
-  static constexpr int kAccessSizeInBits = 64;
+  static int const kAccessSizeInBits = 64;
 
   //
   // Shared memory layouts
@@ -1103,7 +1103,7 @@ struct DefaultMultistageMmaComplexCore<
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaComplexTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaComplexTensorOp<
       WarpShape, InstructionShape, 
       ElementA, SmemLayoutA, 
       ElementB, SmemLayoutB,
@@ -1145,9 +1145,9 @@ template <
     /// Multiply-add operator (arch::OpMultiplyAddComplex, arch::OpMultiplyGaussianComplex)
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMultistageMmaComplexCore<
     Shape_, WarpShape_, GemmShape<1, 1, 1>, 
     complex<RealA>, layout::ColumnMajor,
@@ -1168,12 +1168,12 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::ColumnMajor;
   using ElementC = complex<RealC>;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
-  static constexpr ComplexTransform kTransformA = TransformA;
-  static constexpr ComplexTransform kTransformB = TransformB;
+  static int const kStages = Stages;
+  static ComplexTransform const kTransformA = TransformA;
+  static ComplexTransform const kTransformB = TransformB;
   using Operator = Operator_;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Number of warps present
   using WarpCount = GemmShape<Shape::kM / WarpShape::kM,
@@ -1189,16 +1189,16 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static int const kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static int const kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of access
-  static constexpr int kAccessSizeInBits = sizeof_bits<ElementA>::value;
+  static int const kAccessSizeInBits = sizeof_bits<ElementA>::value;
 
   /// No vectorized accesses
-  static constexpr int kElementsPerAccess = 1;
+  static int const kElementsPerAccess = 1;
 
   //
   // Shared memory layouts
@@ -1244,29 +1244,29 @@ struct DefaultMultistageMmaComplexCore<
   //
 
   // Define the warp-level op
-  static constexpr int WarpNumThreadsM = 4;
-  static constexpr int WarpNumThreadsN = 8;
+  static const int WarpNumThreadsM = 4;
+  static const int WarpNumThreadsN = 8;
   static_assert(!(WarpShape::kM % WarpNumThreadsM) && !(WarpShape::kN % WarpNumThreadsN),
       "WarpShape must be divisible by ThreadTile shape.");
-  static constexpr int ThreadTileM = WarpShape::kM / WarpNumThreadsM;
-  static constexpr int ThreadTileN = WarpShape::kN / WarpNumThreadsN;
-  static constexpr int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
-  static constexpr int numElementsA = 128 / sizeof_bits<ElementA>::value;
-  static constexpr int numElementsB = 128 / sizeof_bits<ElementB>::value;
-  static constexpr int LaneM = nihilus_gemm::const_min(numElementsA, ThreadTileM);
-  static constexpr int LaneN = nihilus_gemm::const_min(numElementsB, ThreadTileN);
+  static const int ThreadTileM = WarpShape::kM / WarpNumThreadsM;
+  static const int ThreadTileN = WarpShape::kN / WarpNumThreadsN;
+  static const int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
+  static const int numElementsA = 128 / sizeof_bits<ElementA>::value;
+  static const int numElementsB = 128 / sizeof_bits<ElementB>::value;
+  static const int LaneM = cutlass::const_min(numElementsA, ThreadTileM);
+  static const int LaneN = cutlass::const_min(numElementsB, ThreadTileN);
   // these should have max of thread tile also
-  using LaneMmaShape = nihilus_gemm::gemm::GemmShape<
+  using LaneMmaShape = cutlass::gemm::GemmShape<
       LaneM,
       LaneN,
       1>;
-  using Policy = nihilus_gemm::gemm::warp::MmaSimtPolicy<
-      nihilus_gemm::MatrixShape<WarpNumThreadsM, WarpNumThreadsN>,   // WarpShape
-      nihilus_gemm::layout::RowMajorInterleaved<LaneLayout>,         // LaneLayout
+  using Policy = cutlass::gemm::warp::MmaSimtPolicy<
+      cutlass::MatrixShape<WarpNumThreadsM, WarpNumThreadsN>,   // WarpShape
+      cutlass::layout::RowMajorInterleaved<LaneLayout>,         // LaneLayout
       LaneMmaShape
   >;
 
-  using MmaWarpSimt = nihilus_gemm::gemm::warp::MmaSimt<
+  using MmaWarpSimt = cutlass::gemm::warp::MmaSimt<
     WarpShape,    /// Size of the Gemm problem - concept: gemm::GemmShape<> 128, 128, 8
     ElementA,     /// Data type of A elements
     SmemLayoutA,  /// Layout of A matrix (concept: MatrixLayout)
@@ -1315,9 +1315,9 @@ template <
     /// Multiply-add operator (arch::OpMultiplyAddComplex, arch::OpMultiplyGaussianComplex)
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMultistageMmaComplexCore<
     Shape_, WarpShape_, GemmShape<1, 1, 1>, 
     complex<RealA>, layout::ColumnMajor,
@@ -1338,12 +1338,12 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::RowMajor;
   using ElementC = complex<RealC>;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
-  static constexpr ComplexTransform kTransformA = TransformA;
-  static constexpr ComplexTransform kTransformB = TransformB;
+  static int const kStages = Stages;
+  static ComplexTransform const kTransformA = TransformA;
+  static ComplexTransform const kTransformB = TransformB;
   using Operator = Operator_;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Number of warps present
   using WarpCount = GemmShape<Shape::kM / WarpShape::kM,
@@ -1359,16 +1359,16 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static int const kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static int const kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of access
-  static constexpr int kAccessSizeInBits = sizeof_bits<ElementA>::value;
+  static int const kAccessSizeInBits = sizeof_bits<ElementA>::value;
 
   /// No vectorized accesses
-  static constexpr int kElementsPerAccess = 1;
+  static int const kElementsPerAccess = 1;
 
   //
   // Shared memory layouts
@@ -1411,29 +1411,29 @@ struct DefaultMultistageMmaComplexCore<
   //
 
   // Define the warp-level op
-  static constexpr int WarpNumThreadsM = 4;
-  static constexpr int WarpNumThreadsN = 8;
+  static const int WarpNumThreadsM = 4;
+  static const int WarpNumThreadsN = 8;
   static_assert(!(WarpShape::kM % WarpNumThreadsM) && !(WarpShape::kN % WarpNumThreadsN),
       "WarpShape must be divisible by ThreadTile shape.");
-  static constexpr int ThreadTileM = WarpShape::kM / WarpNumThreadsM;
-  static constexpr int ThreadTileN = WarpShape::kN / WarpNumThreadsN;
-  static constexpr int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
-  static constexpr int numElementsA = 128 / sizeof_bits<ElementA>::value;
-  static constexpr int numElementsB = 128 / sizeof_bits<ElementB>::value;
-  static constexpr int LaneM = nihilus_gemm::const_min(numElementsA, ThreadTileM);
-  static constexpr int LaneN = nihilus_gemm::const_min(numElementsB, ThreadTileN);
+  static const int ThreadTileM = WarpShape::kM / WarpNumThreadsM;
+  static const int ThreadTileN = WarpShape::kN / WarpNumThreadsN;
+  static const int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
+  static const int numElementsA = 128 / sizeof_bits<ElementA>::value;
+  static const int numElementsB = 128 / sizeof_bits<ElementB>::value;
+  static const int LaneM = cutlass::const_min(numElementsA, ThreadTileM);
+  static const int LaneN = cutlass::const_min(numElementsB, ThreadTileN);
   // these should have max of thread tile also
-  using LaneMmaShape = nihilus_gemm::gemm::GemmShape<
+  using LaneMmaShape = cutlass::gemm::GemmShape<
       LaneM,
       LaneN,
       1>;
-  using Policy = nihilus_gemm::gemm::warp::MmaSimtPolicy<
-      nihilus_gemm::MatrixShape<WarpNumThreadsM, WarpNumThreadsN>,   // WarpShape
-      nihilus_gemm::layout::RowMajorInterleaved<LaneLayout>,         // LaneLayout
+  using Policy = cutlass::gemm::warp::MmaSimtPolicy<
+      cutlass::MatrixShape<WarpNumThreadsM, WarpNumThreadsN>,   // WarpShape
+      cutlass::layout::RowMajorInterleaved<LaneLayout>,         // LaneLayout
       LaneMmaShape
   >;
 
-  using MmaWarpSimt = nihilus_gemm::gemm::warp::MmaSimt<
+  using MmaWarpSimt = cutlass::gemm::warp::MmaSimt<
     WarpShape,    /// Size of the Gemm problem - concept: gemm::GemmShape<> 128, 128, 8
     ElementA,     /// Data type of A elements
     SmemLayoutA,  /// Layout of A matrix (concept: MatrixLayout)
@@ -1482,9 +1482,9 @@ template <
     /// Multiply-add operator (arch::OpMultiplyAddComplex, arch::OpMultiplyGaussianComplex)
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMultistageMmaComplexCore<
     Shape_, WarpShape_, GemmShape<1, 1, 1>, 
     complex<RealA>, layout::RowMajor,
@@ -1505,12 +1505,12 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::ColumnMajor;
   using ElementC = complex<RealC>;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
-  static constexpr ComplexTransform kTransformA = TransformA;
-  static constexpr ComplexTransform kTransformB = TransformB;
+  static int const kStages = Stages;
+  static ComplexTransform const kTransformA = TransformA;
+  static ComplexTransform const kTransformB = TransformB;
   using Operator = Operator_;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Number of warps present
   using WarpCount = GemmShape<Shape::kM / WarpShape::kM,
@@ -1526,16 +1526,16 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static int const kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static int const kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of access
-  static constexpr int kAccessSizeInBits = sizeof_bits<ElementA>::value;
+  static int const kAccessSizeInBits = sizeof_bits<ElementA>::value;
 
   /// No vectorized accesses
-  static constexpr int kElementsPerAccess = 1;
+  static int const kElementsPerAccess = 1;
 
   //
   // Shared memory layouts
@@ -1584,29 +1584,29 @@ struct DefaultMultistageMmaComplexCore<
   //
 
   // Define the warp-level op
-  static constexpr int WarpNumThreadsM = 4;
-  static constexpr int WarpNumThreadsN = 8;
+  static const int WarpNumThreadsM = 4;
+  static const int WarpNumThreadsN = 8;
   static_assert(!(WarpShape::kM % WarpNumThreadsM) && !(WarpShape::kN % WarpNumThreadsN),
       "WarpShape must be divisible by ThreadTile shape.");
-  static constexpr int ThreadTileM = WarpShape::kM / WarpNumThreadsM;
-  static constexpr int ThreadTileN = WarpShape::kN / WarpNumThreadsN;
-  static constexpr int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
-  static constexpr int numElementsA = 128 / sizeof_bits<ElementA>::value;
-  static constexpr int numElementsB = 128 / sizeof_bits<ElementB>::value;
-  static constexpr int LaneM = nihilus_gemm::const_min(numElementsA, ThreadTileM);
-  static constexpr int LaneN = nihilus_gemm::const_min(numElementsB, ThreadTileN);
+  static const int ThreadTileM = WarpShape::kM / WarpNumThreadsM;
+  static const int ThreadTileN = WarpShape::kN / WarpNumThreadsN;
+  static const int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
+  static const int numElementsA = 128 / sizeof_bits<ElementA>::value;
+  static const int numElementsB = 128 / sizeof_bits<ElementB>::value;
+  static const int LaneM = cutlass::const_min(numElementsA, ThreadTileM);
+  static const int LaneN = cutlass::const_min(numElementsB, ThreadTileN);
   // these should have max of thread tile also
-  using LaneMmaShape = nihilus_gemm::gemm::GemmShape<
+  using LaneMmaShape = cutlass::gemm::GemmShape<
       LaneM,
       LaneN,
       1>;
-  using Policy = nihilus_gemm::gemm::warp::MmaSimtPolicy<
-      nihilus_gemm::MatrixShape<WarpNumThreadsM, WarpNumThreadsN>,   // WarpShape
-      nihilus_gemm::layout::RowMajorInterleaved<LaneLayout>,         // LaneLayout
+  using Policy = cutlass::gemm::warp::MmaSimtPolicy<
+      cutlass::MatrixShape<WarpNumThreadsM, WarpNumThreadsN>,   // WarpShape
+      cutlass::layout::RowMajorInterleaved<LaneLayout>,         // LaneLayout
       LaneMmaShape
   >;
 
-  using MmaWarpSimt = nihilus_gemm::gemm::warp::MmaSimt<
+  using MmaWarpSimt = cutlass::gemm::warp::MmaSimt<
     WarpShape,    /// Size of the Gemm problem - concept: gemm::GemmShape<> 128, 128, 8
     ElementA,     /// Data type of A elements
     SmemLayoutA,  /// Layout of A matrix (concept: MatrixLayout)
@@ -1655,9 +1655,9 @@ template <
     /// Multiply-add operator (arch::OpMultiplyAddComplex, arch::OpMultiplyGaussianComplex)
     typename Operator_,
     /// Cache operation of operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Cache operation of operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB>
+    cutlass::arch::CacheOperation::Kind CacheOpB>
 struct DefaultMultistageMmaComplexCore<
     Shape_, WarpShape_, GemmShape<1, 1, 1>, 
     complex<RealA>, layout::RowMajor,
@@ -1678,12 +1678,12 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::RowMajor;
   using ElementC = complex<RealC>;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
-  static constexpr ComplexTransform kTransformA = TransformA;
-  static constexpr ComplexTransform kTransformB = TransformB;
+  static int const kStages = Stages;
+  static ComplexTransform const kTransformA = TransformA;
+  static ComplexTransform const kTransformB = TransformB;
   using Operator = Operator_;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = nihilus_gemm::arch::CacheOperation::Always;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = nihilus_gemm::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
   /// Number of warps present
   using WarpCount = GemmShape<Shape::kM / WarpShape::kM,
@@ -1699,16 +1699,16 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static int const kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static int const kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of access
-  static constexpr int kAccessSizeInBits = sizeof_bits<ElementA>::value;
+  static int const kAccessSizeInBits = sizeof_bits<ElementA>::value;
 
   /// No vectorized accesses
-  static constexpr int kElementsPerAccess = 1;
+  static int const kElementsPerAccess = 1;
 
   //
   // Shared memory layouts
@@ -1754,29 +1754,29 @@ struct DefaultMultistageMmaComplexCore<
   //
 
   // Define the warp-level op
-  static constexpr int WarpNumThreadsM = 4;
-  static constexpr int WarpNumThreadsN = 8;
+  static const int WarpNumThreadsM = 4;
+  static const int WarpNumThreadsN = 8;
   static_assert(!(WarpShape::kM % WarpNumThreadsM) && !(WarpShape::kN % WarpNumThreadsN),
       "WarpShape must be divisible by ThreadTile shape.");
-  static constexpr int ThreadTileM = WarpShape::kM / WarpNumThreadsM;
-  static constexpr int ThreadTileN = WarpShape::kN / WarpNumThreadsN;
-  static constexpr int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
-  static constexpr int numElementsA = 128 / sizeof_bits<ElementA>::value;
-  static constexpr int numElementsB = 128 / sizeof_bits<ElementB>::value;
-  static constexpr int LaneM = nihilus_gemm::const_min(numElementsA, ThreadTileM);
-  static constexpr int LaneN = nihilus_gemm::const_min(numElementsB, ThreadTileN);
+  static const int ThreadTileM = WarpShape::kM / WarpNumThreadsM;
+  static const int ThreadTileN = WarpShape::kN / WarpNumThreadsN;
+  static const int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
+  static const int numElementsA = 128 / sizeof_bits<ElementA>::value;
+  static const int numElementsB = 128 / sizeof_bits<ElementB>::value;
+  static const int LaneM = cutlass::const_min(numElementsA, ThreadTileM);
+  static const int LaneN = cutlass::const_min(numElementsB, ThreadTileN);
   // these should have max of thread tile also
-  using LaneMmaShape = nihilus_gemm::gemm::GemmShape<
+  using LaneMmaShape = cutlass::gemm::GemmShape<
       LaneM,
       LaneN,
       1>;
-  using Policy = nihilus_gemm::gemm::warp::MmaSimtPolicy<
-      nihilus_gemm::MatrixShape<WarpNumThreadsM, WarpNumThreadsN>,   // WarpShape
-      nihilus_gemm::layout::RowMajorInterleaved<LaneLayout>,         // LaneLayout
+  using Policy = cutlass::gemm::warp::MmaSimtPolicy<
+      cutlass::MatrixShape<WarpNumThreadsM, WarpNumThreadsN>,   // WarpShape
+      cutlass::layout::RowMajorInterleaved<LaneLayout>,         // LaneLayout
       LaneMmaShape
   >;
 
-  using MmaWarpSimt = nihilus_gemm::gemm::warp::MmaSimt<
+  using MmaWarpSimt = cutlass::gemm::warp::MmaSimt<
     WarpShape,    /// Size of the Gemm problem - concept: gemm::GemmShape<> 128, 128, 8
     ElementA,     /// Data type of A elements
     SmemLayoutA,  /// Layout of A matrix (concept: MatrixLayout)
@@ -1803,6 +1803,6 @@ struct DefaultMultistageMmaComplexCore<
 
 }  // namespace threadblock
 }  // namespace gemm
-}  // namespace nihilus_gemm
+}  // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -32,14 +32,14 @@
 
 #include <nihilus_cute/config.hpp>
 #include <nihilus_cute/util/type_traits.hpp>
-#include <nihilus_cute/numeric/integral_constant.hpp>  // nihilus_cute::true_type, nihilus_cute::false_type
+#include <nihilus_cute/numeric/integral_constant.hpp>  // cute::true_type, cute::false_type
 #include <nihilus_cute/numeric/integer_sequence.hpp>
 
 #include <nihilus_cute/container/cuda_types.hpp>
 #include <nihilus_cute/container/type_list.hpp>
 //#include <nihilus_cute/container/array.hpp>            // Advanced optimizations
 
-// nihilus_cute::tuple is like std::tuple, with differences:
+// cute::tuple is like std::tuple, with differences:
 //
 // 1. It works on both host and device.
 // 2. Its template arguments must be semiregular types.
@@ -52,14 +52,14 @@
 // (See std::tie for an example of a tuple of references.)
 //
 // Standard-layout types preserve ABI across host-device boundaries. They are safe to use as device kernel parameters.
-// The standard-layout requirement prevents a more common EBO-based implemented of nihilus_cute::tuple.
+// The standard-layout requirement prevents a more common EBO-based implemented of cute::tuple.
 //
-// The nihilus_cute::tuple is also simplified over the implementations in std::, cuda::std::, and thrust:: by ignoring much of
+// The cute::tuple is also simplified over the implementations in std::, cuda::std::, and thrust:: by ignoring much of
 // the conversion SFINAE, special overloading, and avoiding cvref template types.
 //
 // Over standard-conforming tuple implementations, this appears to accelerate compilation times by over 3x.
 
-namespace nihilus_cute
+namespace cute
 {
 
 template <class... T>
@@ -69,7 +69,7 @@ namespace eso
 {
 
 // ESO stands for "empty structure optimization."
-// We use this technique to ensure that nihilus_cute::tuple doesn't waste space
+// We use this technique to ensure that cute::tuple doesn't waste space
 // storing template arguments that have no data (like integral_constant).
 // Empty types in the template argument list are not even constructed,
 // and do not have unique element addresses. Calling `get`
@@ -79,9 +79,9 @@ template <bool IsFirstEmpty, bool IsRestEmpty, class... T>
 struct ESO;
 
 template <class First, class... Rest>
-static constexpr bool is_first_empty_v = nihilus_cute::is_empty<First>::value;
+static constexpr bool is_first_empty_v = cute::is_empty<First>::value;
 template <class First, class... Rest>
-static constexpr bool is_rest_empty_v  = (nihilus_cute::is_empty<Rest>::value && ...);
+static constexpr bool is_rest_empty_v  = (cute::is_empty<Rest>::value && ...);
 
 template <class... T>
 using ESO_t = ESO<is_first_empty_v<T...>, is_rest_empty_v<T...>, T...>;
@@ -150,45 +150,45 @@ getr(S&& s) noexcept
 // Compilers disagree on decltype(auto), so these implementations avoid it at cost
 template <size_t N, bool F, bool R, class... T>
 CUTE_HOST_DEVICE constexpr
-nihilus_cute::conditional_t<nihilus_cute::is_empty<nihilus_cute::tuple_element_t<N, nihilus_cute::tuple<T...>>>::value,
-                    nihilus_cute::tuple_element_t<N, nihilus_cute::tuple<T...>>,
-                    nihilus_cute::tuple_element_t<N, nihilus_cute::tuple<T...>> const&>
+cute::conditional_t<cute::is_empty<cute::tuple_element_t<N, cute::tuple<T...>>>::value,
+                    cute::tuple_element_t<N, cute::tuple<T...>>,
+                    cute::tuple_element_t<N, cute::tuple<T...>> const&>
 getv_cr(ESO<F, R, T...> const& s) noexcept
 {
-  if constexpr (nihilus_cute::is_empty<nihilus_cute::tuple_element_t<N, nihilus_cute::tuple<T...>>>::value) {
+  if constexpr (cute::is_empty<cute::tuple_element_t<N, cute::tuple<T...>>>::value) {
     return {};
   } else {
-    return getr<nihilus_cute::tuple_element_t<N, nihilus_cute::tuple<T...>> const&, N>(s);
+    return getr<cute::tuple_element_t<N, cute::tuple<T...>> const&, N>(s);
   }
   CUTE_GCC_UNREACHABLE;
 }
 
 template <size_t N, bool F, bool R, class... T>
 CUTE_HOST_DEVICE constexpr
-nihilus_cute::conditional_t<nihilus_cute::is_empty<nihilus_cute::tuple_element_t<N, nihilus_cute::tuple<T...>>>::value,
-                    nihilus_cute::tuple_element_t<N, nihilus_cute::tuple<T...>>,
-                    nihilus_cute::tuple_element_t<N, nihilus_cute::tuple<T...>> &>
+cute::conditional_t<cute::is_empty<cute::tuple_element_t<N, cute::tuple<T...>>>::value,
+                    cute::tuple_element_t<N, cute::tuple<T...>>,
+                    cute::tuple_element_t<N, cute::tuple<T...>> &>
 getv_r(ESO<F, R, T...>& s) noexcept
 {
-  if constexpr (nihilus_cute::is_empty<nihilus_cute::tuple_element_t<N, nihilus_cute::tuple<T...>>>::value) {
+  if constexpr (cute::is_empty<cute::tuple_element_t<N, cute::tuple<T...>>>::value) {
     return {};
   } else {
-    return getr<nihilus_cute::tuple_element_t<N, nihilus_cute::tuple<T...>> &, N>(s);
+    return getr<cute::tuple_element_t<N, cute::tuple<T...>> &, N>(s);
   }
   CUTE_GCC_UNREACHABLE;
 }
 
 template <size_t N, bool F, bool R, class... T>
 CUTE_HOST_DEVICE constexpr
-nihilus_cute::conditional_t<nihilus_cute::is_empty<nihilus_cute::tuple_element_t<N, nihilus_cute::tuple<T...>>>::value,
-                    nihilus_cute::tuple_element_t<N, nihilus_cute::tuple<T...>>,
-                    nihilus_cute::tuple_element_t<N, nihilus_cute::tuple<T...>> &&>
+cute::conditional_t<cute::is_empty<cute::tuple_element_t<N, cute::tuple<T...>>>::value,
+                    cute::tuple_element_t<N, cute::tuple<T...>>,
+                    cute::tuple_element_t<N, cute::tuple<T...>> &&>
 getv_rr(ESO<F, R, T...>&& s) noexcept
 {
-  if constexpr (nihilus_cute::is_empty<nihilus_cute::tuple_element_t<N, nihilus_cute::tuple<T...>>>::value) {
+  if constexpr (cute::is_empty<cute::tuple_element_t<N, cute::tuple<T...>>>::value) {
     return {};
   } else {
-    return getr<nihilus_cute::tuple_element_t<N, nihilus_cute::tuple<T...>> &&, N>(static_cast<ESO<F, R, T...>&&>(s));
+    return getr<cute::tuple_element_t<N, cute::tuple<T...>> &&, N>(static_cast<ESO<F, R, T...>&&>(s));
   }
   CUTE_GCC_UNREACHABLE;
 }
@@ -255,7 +255,7 @@ CUTE_HOST_DEVICE constexpr
 auto
 find(tuple<T...> const&) noexcept
 {
-  return nihilus_cute::C<find_true_v<nihilus_cute::is_same_v<X,T>...>>{};
+  return cute::C<find_true_v<cute::is_same_v<X,T>...>>{};
 }
 
 //
@@ -274,10 +274,10 @@ template <class T>
 struct is_tuple : decltype(detail::has_tuple_size((T*)0)) {};
 
 template <class T>
-static constexpr bool is_tuple_v = nihilus_cute::is_tuple<T>::value;
+static constexpr bool is_tuple_v = cute::is_tuple<T>::value;
 
 //
-// tuple_cat concatenates multiple nihilus_cute::tuple into a single nihilus_cute::tuple,
+// tuple_cat concatenates multiple cute::tuple into a single cute::tuple,
 // just like std::tuple_cat for std::tuple.
 //
 
@@ -293,7 +293,7 @@ auto
 tuple_cat(T0 const& t0, T1 const& t1,
           index_sequence<I0...>, index_sequence<I1...>)
 {
-  return nihilus_cute::make_tuple(get<I0>(t0)..., get<I1>(t1)...);
+  return cute::make_tuple(get<I0>(t0)..., get<I1>(t1)...);
 }
 
 } // end namespace detail
@@ -329,7 +329,7 @@ CUTE_HOST_DEVICE constexpr
 auto
 tuple_cat(T0 const& t0, T1 const& t1, T2 const& t2, Ts const&... ts)
 {
-  return nihilus_cute::tuple_cat(nihilus_cute::tuple_cat(t0,t1),t2,ts...);
+  return cute::tuple_cat(cute::tuple_cat(t0,t1),t2,ts...);
 }
 #endif
 
@@ -345,7 +345,7 @@ auto
 tuple_cat(T0 const& t0, T1 const& t1,
           index_sequence<I0...>, index_sequence<I1...>)
 {
-  return nihilus_cute::make_tuple(get<I0>(t0)..., get<I1>(t1)...);
+  return cute::make_tuple(get<I0>(t0)..., get<I1>(t1)...);
 }
 
 template <class T0, class T1, class T2,
@@ -355,7 +355,7 @@ auto
 tuple_cat(T0 const& t0, T1 const& t1, T2 const& t2,
           index_sequence<I0...>, index_sequence<I1...>, index_sequence<I2...>)
 {
-  return nihilus_cute::make_tuple(get<I0>(t0)..., get<I1>(t1)..., get<I2>(t2)...);
+  return cute::make_tuple(get<I0>(t0)..., get<I1>(t1)..., get<I2>(t2)...);
 }
 
 template <class T0, class T1, class T2, class T3,
@@ -365,7 +365,7 @@ auto
 tuple_cat(T0 const& t0, T1 const& t1, T2 const& t2, T3 const& t3,
           index_sequence<I0...>, index_sequence<I1...>, index_sequence<I2...>, index_sequence<I3...>)
 {
-  return nihilus_cute::make_tuple(get<I0>(t0)..., get<I1>(t1)..., get<I2>(t2)..., get<I3>(t3)...);
+  return cute::make_tuple(get<I0>(t0)..., get<I1>(t1)..., get<I2>(t2)..., get<I3>(t3)...);
 }
 
 template <class T0, class T1, class T2, class T3, class T4,
@@ -375,7 +375,7 @@ auto
 tuple_cat(T0 const& t0, T1 const& t1, T2 const& t2, T3 const& t3, T4 const& t4,
           index_sequence<I0...>, index_sequence<I1...>, index_sequence<I2...>, index_sequence<I3...>, index_sequence<I4...>)
 {
-  return nihilus_cute::make_tuple(get<I0>(t0)..., get<I1>(t1)..., get<I2>(t2)..., get<I3>(t3)..., get<I4>(t4)...);
+  return cute::make_tuple(get<I0>(t0)..., get<I1>(t1)..., get<I2>(t2)..., get<I3>(t3)..., get<I4>(t4)...);
 }
 
 template <class T0, class T1>
@@ -462,7 +462,7 @@ CUTE_HOST_DEVICE constexpr
 auto
 tuple_cat(T0 const& t0, T1 const& t1, T2 const& t2, T3 const& t3, T4 const& t4, T5 const& t5, Ts const&... ts)
 {
-  return nihilus_cute::tuple_cat(nihilus_cute::tuple_cat(t0,t1,t2,t3,t4), nihilus_cute::tuple_cat(t5, ts...));
+  return cute::tuple_cat(cute::tuple_cat(t0,t1,t2,t3,t4), cute::tuple_cat(t5, ts...));
 }
 #endif
 
@@ -474,7 +474,7 @@ namespace detail {
 template <size_t... Ns>
 struct tuple_cat_helper
 {
-  static constexpr nihilus_cute::array<size_t,sizeof...(Ns)> ns = {Ns...};
+  static constexpr cute::array<size_t,sizeof...(Ns)> ns = {Ns...};
 
   static constexpr size_t total_size() {
     size_t sum = 0;
@@ -484,7 +484,7 @@ struct tuple_cat_helper
   static constexpr size_t total_size_ = total_size();
 
   static constexpr auto values() {
-    nihilus_cute::array<size_t[2],total_size_> outer_inner = {};
+    cute::array<size_t[2],total_size_> outer_inner = {};
 
     size_t idx = 0;
     for (size_t i = 0; i < ns.size(); ++i) {
@@ -505,7 +505,7 @@ CUTE_HOST_DEVICE constexpr
 auto
 tuple_cat(Tuple const& t, index_sequence<I...>)
 {
-  return nihilus_cute::make_tuple(get<Helper::outer_inner_[I][1]>(get<Helper::outer_inner_[I][0]>(t))...);
+  return cute::make_tuple(get<Helper::outer_inner_[I][1]>(get<Helper::outer_inner_[I][0]>(t))...);
 }
 
 template <class T0, class T1,
@@ -515,7 +515,7 @@ auto
 tuple_cat(T0 const& t0, T1 const& t1,
           index_sequence<I0...>, index_sequence<I1...>)
 {
-  return nihilus_cute::make_tuple(get<I0>(t0)..., get<I1>(t1)...);
+  return cute::make_tuple(get<I0>(t0)..., get<I1>(t1)...);
 }
 
 } // end namespace detail
@@ -552,7 +552,7 @@ auto
 tuple_cat(Tuples const&... ts)
 {
   using Helper = detail::tuple_cat_helper<tuple_size<Tuples>::value...>;
-  return detail::tuple_cat<Helper>(nihilus_cute::make_tuple(ts...), typename Helper::total_sequence{});
+  return detail::tuple_cat<Helper>(cute::make_tuple(ts...), typename Helper::total_sequence{});
 }
 #endif
 
@@ -567,7 +567,7 @@ CUTE_HOST_DEVICE constexpr
 auto
 equal_impl(TupleA const& a, TupleB const& b, index_sequence<I...>)
 {
-  return (nihilus_cute::true_type{} && ... && (get<I>(a) == get<I>(b)));
+  return (cute::true_type{} && ... && (get<I>(a) == get<I>(b)));
 }
 
 } // end namespace detail
@@ -581,7 +581,7 @@ operator==(TupleT const& t, TupleU const& u)
   if constexpr (tuple_size<TupleT>::value == tuple_size<TupleU>::value) {
     return detail::equal_impl(t, u, make_index_sequence<tuple_size<TupleT>::value>{});
   } else {
-    return nihilus_cute::false_type{};
+    return cute::false_type{};
   }
 
   CUTE_GCC_UNREACHABLE;
@@ -593,7 +593,7 @@ CUTE_HOST_DEVICE constexpr
 auto
 operator==(TupleT const& t, TupleU const& u)
 {
-  return nihilus_cute::false_type{};
+  return cute::false_type{};
 }
 
 template <class TupleT, class TupleU,
@@ -611,7 +611,7 @@ CUTE_HOST_DEVICE constexpr
 auto
 operator!=(TupleT const& t, TupleU const& u)
 {
-  return nihilus_cute::true_type{};
+  return cute::true_type{};
 }
 
 //
@@ -626,7 +626,7 @@ operator!=(TupleT const& t, TupleU const& u)
 //  -- colexicographical comparison [reverse, reflected, revref]
 //  -- element-wise comparison [any,all]
 // This can be very confusing. To avoid errors in selecting the appropriate
-//   comparison, op<|op<=|op>|op>= are *not* implemented for nihilus_cute::tuple.
+//   comparison, op<|op<=|op>|op>= are *not* implemented for cute::tuple.
 //
 // That said, see int_tuple for more explicitly named common comparison ops.
 //
@@ -640,7 +640,7 @@ namespace detail {
 template <class Tuple, size_t... Is>
 CUTE_HOST_DEVICE void print_tuple(Tuple const& t, index_sequence<Is...>, char s = '(', char e = ')')
 {
-  using nihilus_cute::print;
+  using cute::print;
   if (sizeof...(Is) == 0) {
     print(s);
   } else {
@@ -680,18 +680,18 @@ CUTE_HOST std::ostream& operator<<(std::ostream& os, Tuple const& t)
 }
 #endif // !defined(__CUDACC_RTC__)
 
-} // end namespace nihilus_cute
+} // end namespace cute
 
 namespace CUTE_STL_NAMESPACE
 {
 
 template <class... T>
-struct tuple_size<nihilus_cute::tuple<T...>>
+struct tuple_size<cute::tuple<T...>>
     : CUTE_STL_NAMESPACE::integral_constant<size_t, sizeof...(T)>
 {};
 
 template <size_t I, class... T>
-struct tuple_element<I, nihilus_cute::tuple<T...>>
+struct tuple_element<I, cute::tuple<T...>>
     : CUTE_STL_NAMESPACE::tuple_element<I, CUTE_STL_NAMESPACE::tuple<T...>>
 {};
 
@@ -710,12 +710,12 @@ struct tuple_element;
 #endif
 
 template <class... T>
-struct tuple_size<nihilus_cute::tuple<T...>>
+struct tuple_size<cute::tuple<T...>>
     : CUTE_STL_NAMESPACE::integral_constant<size_t, sizeof...(T)>
 {};
 
 template <size_t I, class... T>
-struct tuple_element<I, nihilus_cute::tuple<T...>>
+struct tuple_element<I, cute::tuple<T...>>
     : CUTE_STL_NAMESPACE::tuple_element<I, CUTE_STL_NAMESPACE::tuple<T...>>
 {};
 

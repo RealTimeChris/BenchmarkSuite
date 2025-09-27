@@ -39,23 +39,21 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Tracing options
-#ifndef NIHILUS_DEBUG_TRACE_LEVEL
-	#define NIHILUS_DEBUG_TRACE_LEVEL 0
+#ifndef CUTLASS_DEBUG_TRACE_LEVEL
+#define CUTLASS_DEBUG_TRACE_LEVEL 0
 #endif
 
-#if NIHILUS_DEBUG_TRACE_LEVEL
-	#include <iostream>
-	#include "nihilus_gemm/core_io.h"
-	#if defined(__CUDA_ARCH__)
-		#define NIHILUS_TRACE_HOST(x)
-	#else
-		#define NIHILUS_TRACE_HOST(x) \
-			{ \
-				std::cout << __FILE__ << ":" << __LINE__ << "  " << x << std::endl; \
-			}
-	#endif
+#if CUTLASS_DEBUG_TRACE_LEVEL
+#include <iostream>
+#include "nihilus_gemm/core_io.h"
+#if defined(__CUDA_ARCH__)
+#define CUTLASS_TRACE_HOST(x)
 #else
-	#define NIHILUS_TRACE_HOST(x)
+#define CUTLASS_TRACE_HOST(x) { std::cout << __FILE__ << ":" << __LINE__ << "  " << x << std::endl; }
+#endif
+#else
+#define CUTLASS_TRACE_HOST(x)
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+

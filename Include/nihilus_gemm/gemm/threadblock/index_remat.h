@@ -34,17 +34,74 @@
 
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
+#include "nihilus_gemm/cutlass.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace threadblock {
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// Helper to rematerialize block Idx. Reduces register liveness.
+CUTLASS_DEVICE
+int RematerializeThreadIdxX() {
+  return threadIdx.x;
+}
+
+/// Helper to rematerialize block Idx. Reduces register liveness.
+CUTLASS_DEVICE
+int RematerializeThreadIdxY() {
+  return threadIdx.y;
+}
+
+/// Helper to rematerialize block Idx. Reduces register liveness.
+CUTLASS_DEVICE
+int RematerializeThreadIdxZ() {
+  return threadIdx.z;
+}
+
+/// Helper to rematerialize block Idx. Reduces register liveness.
+CUTLASS_DEVICE
+int RematerializeBlockIdxX() {
+  return blockIdx.x;
+}
+
+/// Helper to rematerialize block Idx. Reduces register liveness.
+CUTLASS_DEVICE
+int RematerializeBlockIdxY() {
+  return blockIdx.y;
+}
+
+/// Helper to rematerialize block Idx. Reduces register liveness.
+CUTLASS_DEVICE
+int RematerializeBlockIdxZ() {
+  return blockIdx.z;
+}
+
+/// Helper to rematerialize block Dim. Reduces register liveness.
+CUTLASS_DEVICE
+int RematerializeBlockDimX() {
+  return blockDim.x;
+}
+
+/// Helper to rematerialize block Dim. Reduces register liveness.
+CUTLASS_DEVICE
+int RematerializeBlockDimY() {
+  return blockDim.y;
+}
+
+/// Helper to rematerialize block Dim. Reduces register liveness.
+CUTLASS_DEVICE
+int RematerializeBlockDimZ() {
+  return blockDim.z;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace threadblock
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 

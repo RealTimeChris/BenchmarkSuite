@@ -34,15 +34,15 @@
 
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
+#include "nihilus_gemm/cutlass.h"
 #include "nihilus_gemm/array.h"
-
+#include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/gemm/gemm.h"
 #include "nihilus_gemm/arch/mma.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace thread {
 
@@ -75,7 +75,7 @@ struct Mma;
 
 } // namespace thread
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 

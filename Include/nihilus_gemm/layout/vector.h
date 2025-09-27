@@ -33,20 +33,20 @@
 */
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
+#include "nihilus_gemm/cutlass.h"
 #include "nihilus_gemm/coord.h"
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace layout {
 
 /// Tensor layout for densely packed vectors.
 class PackedVectorLayout {
 public:
   /// Logical rank of tensor
-  static constexpr int kRank = 1;
+  static int const kRank = 1;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static int const kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -72,34 +72,34 @@ public:
   // Methods
   //
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PackedVectorLayout() { }
 
   /// Helper returns a layout to a tightly packed tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static PackedVectorLayout packed(TensorCoord const &size) {
-    NIHILUS_UNUSED(size);
+    CUTLASS_UNUSED(size);
     return PackedVectorLayout();
   }
 
   /// Returns the offset of a coordinate in linear memory
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex operator()(TensorCoord const &coord) const {
     return coord[0];
   }
 
   /// Returns the stride of the layout
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride stride() const {
     return make_Coord(1);
   }
 
   /// Compute the number of contiguous elements needed to store a tensor with the given size
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex capacity(TensorCoord const &size) const {
     return size[0];
   }
 };
 
 } // namespace layout
-} // namespace nihilus_gemm
+} // namespace cutlass

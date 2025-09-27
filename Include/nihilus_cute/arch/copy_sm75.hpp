@@ -75,7 +75,7 @@
 #endif
 
 
-namespace nihilus_cute
+namespace cute
 {
 
 struct SM75_U32x1_LDSM_N
@@ -266,4 +266,4 @@ copy_ldsm_trans(uint128_t const* const smem_ptr,
   }
 }
 
-} // end namespace nihilus_cute
+} // end namespace cute

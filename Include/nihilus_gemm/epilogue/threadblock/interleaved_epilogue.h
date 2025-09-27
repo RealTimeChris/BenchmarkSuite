@@ -38,8 +38,8 @@
 
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
-
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/layout/vector.h"
 #include "nihilus_gemm/layout/tensor.h"
@@ -56,7 +56,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace threadblock {
 
@@ -95,7 +95,7 @@ public:
 
   using Shape = Shape_;
   using WarpMmaOperator = WarpMmaOperator_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static int const kPartitionsK = PartitionsK;
   using AccumulatorFragmentIterator = AccumulatorFragmentIterator_;
   using OutputTileIterator = OutputTileIterator_;
   using OutputOp = OutputOp_;
@@ -113,14 +113,14 @@ public:
   using ElementOutput = typename OutputTileIterator::Element;
 
   /// Output access size
-  static constexpr int kElementsPerAccess = OutputTileIterator::kElementsPerAccess;
+  static int const kElementsPerAccess = OutputTileIterator::kElementsPerAccess;
 
   /// Tensor reference to destination tensor
   using TensorRef = typename OutputTileIterator::TensorRef;
 
   /// Tensor reference to sync tensor
   using SyncTensorRef =
-      typename nihilus_gemm::TensorRef<int, nihilus_gemm::layout::PackedVectorLayout>;
+      typename cutlass::TensorRef<int, cutlass::layout::PackedVectorLayout>;
 
   /// Const tensor reference to source tensor
   using ConstTensorRef = typename OutputTileIterator::ConstTensorRef;
@@ -153,12 +153,12 @@ public:
   struct SourceAspectNotNeeded
   {
     /// Constructor
-    NIHILUS_DEVICE
+    CUTLASS_DEVICE
     SourceAspectNotNeeded()
     {}
 
     /// Invoke the output functor over each vector of output
-    NIHILUS_DEVICE
+    CUTLASS_DEVICE
     void apply_output_operator(
       typename OutputTileIterator::Fragment &output_fragment,
       OutputOp const &output_op,
@@ -173,7 +173,7 @@ public:
       int const kOutputOpIterations =
         OutputTileIterator::Fragment::kElements / OutputTileIterator::kElementsPerAccess;
 
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int i = 0; i < kOutputOpIterations; ++i)
       {
         // Call the output operator
@@ -191,7 +191,7 @@ public:
     typename OutputTileIterator::Fragment source_fragment;
 
     /// Invoke the output functor over each vector of output
-    NIHILUS_DEVICE
+    CUTLASS_DEVICE
     static void apply_output_operator(
       typename OutputTileIterator::Fragment &output_fragment,
       OutputOp const &output_op,
@@ -210,7 +210,7 @@ public:
       int const kOutputOpIterations =
         OutputTileIterator::Fragment::kElements / OutputTileIterator::kElementsPerAccess;
 
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int i = 0; i < kOutputOpIterations; ++i)
       {
         // Call the output operator
@@ -219,7 +219,7 @@ public:
     }
 
     /// Constructor
-    NIHILUS_DEVICE
+    CUTLASS_DEVICE
     SourceAspectNeeded(OutputTileIterator source_iterator) :
       source_iterator(source_iterator)
     {
@@ -227,7 +227,7 @@ public:
     }
 
     /// Invoke the output functor over each vector of output
-    NIHILUS_DEVICE
+    CUTLASS_DEVICE
     void apply_output_operator(
       typename OutputTileIterator::Fragment &output_fragment,
       OutputOp const &output_op,
@@ -249,7 +249,7 @@ public:
 public:
 
   /// Constructor
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   InterleavedEpilogue(
       SharedStorage &shared_storage,  ///< Shared storage object
       int thread_idx,                 ///< ID of a thread within the threadblock
@@ -262,7 +262,7 @@ public:
 
   /// Aggregates the accumulator sets shared by peer blocks in the global workspace,
   /// performing epilogue computations, writing to output
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void reduce(
       int peer_idx_begin,
       int peer_idx_end,
@@ -300,7 +300,7 @@ public:
 
 
   /// Perform the epilogue computations and stream the result to global memory.
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void operator()(
     OutputOp const &output_op,                      ///< Output operator
     OutputTileIterator destination_iterator,        ///< Tile iterator for destination
@@ -312,7 +312,7 @@ public:
 
   /// Perform the epilogue computations and stream the result to global memory.  Implements
   /// two alternative codepaths, depending on whether the output op requires addend data to be loaded.
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void operator()(
     OutputOp const &output_op,                      ///< Output operator
     OutputTileIterator destination_iterator,        ///< Tile iterator for destination
@@ -332,7 +332,7 @@ public:
 
   /// Perform the epilogue computations and stream the result to global memory.  Implements a
   /// single codepath, regardless of whether the output op requires addend data to be loaded
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void unified(
     OutputOp const &output_op,                      ///< Output operator
     OutputTileIterator destination_iterator,        ///< Tile iterator for destination
@@ -351,7 +351,7 @@ public:
 
   /// Streams the result to global memory
   template <typename SourceAspect>
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void operator()(
     OutputOp const &output_op,                      ///< Output operator
     OutputTileIterator destination_iterator,        ///< Tile iterator for destination
@@ -368,7 +368,7 @@ public:
     // Iterate over accumulator tile
     //
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int iter = 0; iter < OutputTileIterator::kIterations; ++iter) {
 
       //
@@ -402,6 +402,6 @@ public:
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////

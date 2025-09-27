@@ -33,12 +33,12 @@
 */
 
 #pragma once
-#include "nihilus_gemm/nihilus_gemm.h"
+#include "nihilus_gemm/cutlass.h"
 #include CUDA_STD_HEADER(cassert)
 #include "nihilus_gemm/layout/matrix.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-namespace nihilus_gemm {
+namespace cutlass {
 namespace arch {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -60,9 +60,9 @@ struct Wmma<
   LayoutB_,                                 ///< LayoutB
   int32_t,                                  ///< ElementC
   LayoutC_,                                 ///< LayoutC
-  nihilus_gemm::arch::OpMultiplyAdd              ///< Operator (multiply-add, xor.popc)
+  cutlass::arch::OpMultiplyAdd              ///< Operator (multiply-add, xor.popc)
 > {
-#if defined(NIHILUS_ARCH_WMMA_SM72_ENABLED)
+#if defined(CUTLASS_ARCH_WMMA_SM72_ENABLED)
   using Shape = Shape_;
   using ElementA = int8_t;
   using LayoutA = LayoutA_;
@@ -70,14 +70,14 @@ struct Wmma<
   using LayoutB = LayoutB_;
   using ElementC = int32_t;
   using LayoutC = LayoutC_;
-  using Operator = nihilus_gemm::arch::OpMultiplyAdd;
-  using ArchTag = arch::Sm120;
+  using Operator = cutlass::arch::OpMultiplyAdd;
+  using ArchTag = arch::Sm72;
 
   // check supported wmma shape for the given multiplicand data types
   static_assert(
-    platform::is_same<nihilus_gemm::gemm::GemmShape<16, 16, 16>, Shape>::value ||
-    platform::is_same<nihilus_gemm::gemm::GemmShape< 8, 32, 16>, Shape>::value ||
-    platform::is_same<nihilus_gemm::gemm::GemmShape<32,  8, 16>, Shape>::value,
+    platform::is_same<cutlass::gemm::GemmShape<16, 16, 16>, Shape>::value ||
+    platform::is_same<cutlass::gemm::GemmShape< 8, 32, 16>, Shape>::value ||
+    platform::is_same<cutlass::gemm::GemmShape<32,  8, 16>, Shape>::value,
     "Supported list of wmma operator shape for s8 multiplicands are: 16x16x16, 8x32x16, and 32x8x16");
 
 
@@ -106,7 +106,7 @@ struct Wmma<
           typename CutlassToWmmaDataType<ElementC>::Type>;
 
   /// Performs a nvcuda::wmma matrix multiply-accumulate operation
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void operator()(
     FragmentC &D, 
     FragmentA const &A, 
@@ -141,9 +141,9 @@ struct Wmma<
   LayoutB_,                                 ///< LayoutB
   int32_t,                                  ///< ElementC
   LayoutC_,                                 ///< LayoutC
-  nihilus_gemm::arch::OpMultiplyAdd              ///< Operator (multiply-add, xor.popc)
+  cutlass::arch::OpMultiplyAdd              ///< Operator (multiply-add, xor.popc)
 > {
-#if defined(NIHILUS_ARCH_WMMA_SM72_ENABLED)
+#if defined(CUTLASS_ARCH_WMMA_SM72_ENABLED)
   using Shape = Shape_;
   using ElementA = uint8_t;
   using LayoutA = LayoutA_;
@@ -151,14 +151,14 @@ struct Wmma<
   using LayoutB = LayoutB_;
   using ElementC = int32_t;
   using LayoutC = LayoutC_;
-  using Operator = nihilus_gemm::arch::OpMultiplyAdd;
-  using ArchTag = arch::Sm120;
+  using Operator = cutlass::arch::OpMultiplyAdd;
+  using ArchTag = arch::Sm72;
 
   // check supported wmma shape for the given multiplicand data types
   static_assert(
-    platform::is_same<nihilus_gemm::gemm::GemmShape<16, 16, 16>, Shape>::value ||
-    platform::is_same<nihilus_gemm::gemm::GemmShape< 8, 32, 16>, Shape>::value ||
-    platform::is_same<nihilus_gemm::gemm::GemmShape<32,  8, 16>, Shape>::value,
+    platform::is_same<cutlass::gemm::GemmShape<16, 16, 16>, Shape>::value ||
+    platform::is_same<cutlass::gemm::GemmShape< 8, 32, 16>, Shape>::value ||
+    platform::is_same<cutlass::gemm::GemmShape<32,  8, 16>, Shape>::value,
     "Supported list of wmma operator shape for u8 multiplicands are: 16x16x16, 8x32x16, and 32x8x16");
 
   // Wmma Fragment
@@ -186,7 +186,7 @@ struct Wmma<
           typename CutlassToWmmaDataType<ElementC>::Type>;
   
   /// Performs a nvcuda::wmma matrix multiply-accumulate operation
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void operator()(
     FragmentC &D, 
     FragmentA const &A, 
@@ -203,4 +203,4 @@ struct Wmma<
 };
 
 } // namespace arch
-} // namespace nihilus_gemm
+} // namespace cutlass

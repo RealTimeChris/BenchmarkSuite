@@ -37,10 +37,10 @@
 
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
+#include "nihilus_gemm/cutlass.h"
 #include "nihilus_gemm/array.h"
 
-
+#include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/matrix_shape.h"
 
 
@@ -53,7 +53,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace threadblock {
 
@@ -115,13 +115,13 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<8, 8, 4>, ElementA_,
   );
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static int const kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static int const kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int kAccessSizeInBits = 128;
+  static int const kAccessSizeInBits = 128;
 
   //
   // Shared memory layouts
@@ -179,22 +179,22 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<8, 8, 4>, ElementA_,
   //
 
   // Define the warp-level tensor op
-  using Policy = nihilus_gemm::gemm::warp::MmaTensorOpPolicy<
-    nihilus_gemm::arch::Mma<
-      nihilus_gemm::gemm::GemmShape<16, 16, 4>,
+  using Policy = cutlass::gemm::warp::MmaTensorOpPolicy<
+    cutlass::arch::Mma<
+      cutlass::gemm::GemmShape<16, 16, 4>,
       32,
       ElementA,
       LayoutA,
       ElementB,
       LayoutB,
       ElementC,
-      nihilus_gemm::layout::RowMajor,
-      nihilus_gemm::arch::OpMultiplyAdd
+      cutlass::layout::RowMajor,
+      cutlass::arch::OpMultiplyAdd
     >,
-    nihilus_gemm::MatrixShape<1, 1>
+    cutlass::MatrixShape<1, 1>
   >;
 
-  using MmaTensorOp = nihilus_gemm::gemm::warp::MmaVoltaTensorOp<
+  using MmaTensorOp = cutlass::gemm::warp::MmaVoltaTensorOp<
     WarpShape,
     ElementA,
     SmemLayoutA,
@@ -270,13 +270,13 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<8, 8, 4>, ElementA_,
   );
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static int const kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static int const kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int kAccessSizeInBits = 128;
+  static int const kAccessSizeInBits = 128;
 
   //
   // Shared memory layouts
@@ -332,22 +332,22 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<8, 8, 4>, ElementA_,
   //
 
   // Define the warp-level tensor op
-  using Policy = nihilus_gemm::gemm::warp::MmaTensorOpPolicy<
-    nihilus_gemm::arch::Mma<
-      nihilus_gemm::gemm::GemmShape<16, 16, 4>,
+  using Policy = cutlass::gemm::warp::MmaTensorOpPolicy<
+    cutlass::arch::Mma<
+      cutlass::gemm::GemmShape<16, 16, 4>,
       32,
       ElementA,
       LayoutA,
       ElementB,
       LayoutB,
       ElementC,
-      nihilus_gemm::layout::RowMajor,
-      nihilus_gemm::arch::OpMultiplyAdd
+      cutlass::layout::RowMajor,
+      cutlass::arch::OpMultiplyAdd
     >,
-    nihilus_gemm::MatrixShape<1, 1>
+    cutlass::MatrixShape<1, 1>
   >;
 
-  using MmaTensorOp = nihilus_gemm::gemm::warp::MmaVoltaTensorOp<
+  using MmaTensorOp = cutlass::gemm::warp::MmaVoltaTensorOp<
     WarpShape,
     ElementA,
     SmemLayoutA,
@@ -425,13 +425,13 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<8, 8, 4>, ElementA_,
   );
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static int const kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static int const kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int kAccessSizeInBits = 128;
+  static int const kAccessSizeInBits = 128;
 
   //
   // Shared memory layouts
@@ -487,22 +487,22 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<8, 8, 4>, ElementA_,
   //
 
   // Define the warp-level tensor op
-  using Policy = nihilus_gemm::gemm::warp::MmaTensorOpPolicy<
-    nihilus_gemm::arch::Mma<
-      nihilus_gemm::gemm::GemmShape<16, 16, 4>,
+  using Policy = cutlass::gemm::warp::MmaTensorOpPolicy<
+    cutlass::arch::Mma<
+      cutlass::gemm::GemmShape<16, 16, 4>,
       32,
       ElementA,
       LayoutA,
       ElementB,
       LayoutB,
       ElementC,
-      nihilus_gemm::layout::RowMajor,
-      nihilus_gemm::arch::OpMultiplyAdd
+      cutlass::layout::RowMajor,
+      cutlass::arch::OpMultiplyAdd
     >,
-    nihilus_gemm::MatrixShape<1, 1>
+    cutlass::MatrixShape<1, 1>
   >;
 
-  using MmaTensorOp = nihilus_gemm::gemm::warp::MmaVoltaTensorOp<
+  using MmaTensorOp = cutlass::gemm::warp::MmaVoltaTensorOp<
     WarpShape,
     ElementA,
     SmemLayoutA,
@@ -580,13 +580,13 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<8, 8, 4>, ElementA_,
   );
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static int const kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static int const kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int kAccessSizeInBits = 128;
+  static int const kAccessSizeInBits = 128;
 
   //
   // Shared memory layouts
@@ -642,22 +642,22 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<8, 8, 4>, ElementA_,
   //
 
   // Define the warp-level tensor op
-  using Policy = nihilus_gemm::gemm::warp::MmaTensorOpPolicy<
-    nihilus_gemm::arch::Mma<
-      nihilus_gemm::gemm::GemmShape<16, 16, 4>,
+  using Policy = cutlass::gemm::warp::MmaTensorOpPolicy<
+    cutlass::arch::Mma<
+      cutlass::gemm::GemmShape<16, 16, 4>,
       32,
       ElementA,
       LayoutA,
       ElementB,
       LayoutB,
       ElementC,
-      nihilus_gemm::layout::RowMajor,
-      nihilus_gemm::arch::OpMultiplyAdd
+      cutlass::layout::RowMajor,
+      cutlass::arch::OpMultiplyAdd
     >,
-    nihilus_gemm::MatrixShape<1, 1>
+    cutlass::MatrixShape<1, 1>
   >;
 
-  using MmaTensorOp = nihilus_gemm::gemm::warp::MmaVoltaTensorOp<
+  using MmaTensorOp = cutlass::gemm::warp::MmaVoltaTensorOp<
     WarpShape,
     ElementA,
     SmemLayoutA,
@@ -679,4 +679,4 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<8, 8, 4>, ElementA_,
 
 } // namespace threadblock
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass

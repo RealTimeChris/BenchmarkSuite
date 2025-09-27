@@ -35,16 +35,17 @@
 
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
+#include "nihilus_gemm/cutlass.h"
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/platform/platform.h"
 
 #include "nihilus_gemm/numeric_conversion.h"
-
+#include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/matrix_shape.h"
 
 #include "nihilus_gemm/arch/memory_sm75.h"
-
+#include "nihilus_gemm/arch/mma_sm75.h" 
+#include "nihilus_gemm/arch/mma_sm80.h"
 
 #include "nihilus_gemm/gemm/gemm.h"
 #include "nihilus_gemm/gemm/warp/mma.h"
@@ -56,7 +57,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace warp {
 
@@ -69,7 +70,7 @@ struct ConvertAndPack {
 
   using Converter = NumericArrayConverter<T, S, N, Round>;
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<S, N> const &source) {
     Converter converter;
 
@@ -80,7 +81,7 @@ struct ConvertAndPack {
 template <typename T, int N, FloatRoundStyle Round>
 struct ConvertAndPack<T, T, N, Round> {
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &source) {
 		return source;
   }
@@ -91,13 +92,13 @@ struct ConvertAndPack<bfloat16_t, float, N, Round> {
 
   using Converter = NumericArrayConverter<bfloat16_t, float, N, Round>;
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Array<bfloat16_t, N> operator()(Array<float, N> const &source) {
     Converter converter;
 
     Array<float, N> tmp;
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < N; ++i) {
       int idx = (((i << 1) & 2) | ((i >> 1) & 1) | (i & 0xfffffffc));
       tmp[i] = source[idx];
@@ -112,13 +113,13 @@ struct ConvertAndPack<half_t, float, N, Round> {
 
   using Converter = NumericArrayConverter<half_t, float, N, Round>;
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Array<half_t, N> operator()(Array<float, N> const &source) {
     Converter converter;
 
     Array<float, N> tmp;
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int i = 0; i < N; ++i) {
       int idx = (((i << 1) & 2) | ((i >> 1) & 1) | (i & 0xfffffffc));
       tmp[i] = source[idx];
@@ -205,23 +206,23 @@ public:
   using InstructionShape = typename ArchMmaOperator::Shape;
 
   /// Complex transform on A operand
-  static constexpr ComplexTransform kTransformA = ComplexTransform::kNone;
+  static ComplexTransform const kTransformA = ComplexTransform::kNone;
 
   /// Complex transform on B operand
-  static constexpr ComplexTransform kTransformB = ComplexTransform::kNone;
+  static ComplexTransform const kTransformB = ComplexTransform::kNone;
 
   /// Number of threads participating in warp-level matrix product
-  static constexpr int kThreadCount = 32;
+  static int const kThreadCount = 32;
 
   /// Number of partitions along K dimension
-  static constexpr int kPartitionsK = PartitionsK_;
+  static int const kPartitionsK = PartitionsK_;
 
   #if defined(__CUDA_ARCH__) && ((__CUDA_ARCH__ < 800) || (__CUDA_ARCH__ == 890)) 
-    static constexpr int kVerticalVisit = true;
+    static int const kVerticalVisit = true;
   #elif defined(__CUDA_ARCH__) && (__CUDA_ARCH__ == 1200) 
-    static constexpr int kVerticalVisit = true;
+    static int const kVerticalVisit = true;
   #else
-    static constexpr int kVerticalVisit = false;
+    static int const kVerticalVisit = false;
   #endif
 
 public:
@@ -278,11 +279,11 @@ public:
   //
 
   /// Ctor
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   MmaTensorOp() {}
 
   /// Performs a warp-level matrix multiply-accumulate operation
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void operator()(
     FragmentC &D, 
     TransformedFragmentA const &A, 
@@ -302,10 +303,10 @@ public:
 
       
     if (kVerticalVisit) {
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int n = 0; n < MmaIterations::kColumn; ++n) {
 
-        NIHILUS_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int m = 0; m < MmaIterations::kRow; ++m) {
 
           int m_serpentine = ((n % 2) ? (MmaIterations::kRow - 1 - m) : m);
@@ -326,10 +327,10 @@ public:
         }
       }
     } else {
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int m = 0; m < MmaIterations::kRow; ++m) {
 
-        NIHILUS_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int n = 0; n < MmaIterations::kColumn; ++n) {
 
           int n_serpentine = ((m % 2) ? (MmaIterations::kColumn - 1 - n) : n);
@@ -352,7 +353,7 @@ public:
   }
 
   /// Transform the mma operands to the required types
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void transform(TransformedFragmentA &dst_A, TransformedFragmentB &dst_B,
                  FragmentA const &A, FragmentB const &B) const {
 
@@ -407,7 +408,7 @@ public:
 
 } // namespace warp
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 

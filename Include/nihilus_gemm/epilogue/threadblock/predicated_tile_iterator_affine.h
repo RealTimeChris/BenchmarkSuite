@@ -39,8 +39,8 @@
 
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
-
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/layout/matrix.h"
 #include "nihilus_gemm/layout/tensor.h"
@@ -54,7 +54,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -91,9 +91,9 @@ public:
   using LongIndex = typename Layout::LongIndex;
   using TensorCoord = typename Layout::TensorCoord;
 
-  static constexpr int kElementsPerAccess = ThreadMap::kElementsPerAccess;
-  static constexpr int kThreads = ThreadMap::kThreads;
-  static constexpr int kIterations = ThreadMap::Count::kTile;
+  static int const kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static int const kThreads = ThreadMap::kThreads;
+  static int const kIterations = ThreadMap::Count::kTile;
 
   static_assert( ThreadMap::Iterations::kRow > 0,"ThreadMap::Iterations::kRow must be > 0");
   static_assert( ThreadMap::Iterations::kGroup > 0,"ThreadMap::Iterations::kGroup must be > 0");
@@ -103,7 +103,7 @@ public:
     "Layout rank must be even. This assumes the first half of the modes correspond to the 'row' "
     "and the second half of the modes correspond to the 'column'");
 
-  static constexpr bool kBigEndian = false;
+  static bool const kBigEndian = false;
 
   /// Fragment object
   using Fragment = Array<
@@ -147,13 +147,13 @@ public:
     //
     // Methods
     //
-    NIHILUS_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params() { }
 
-    NIHILUS_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(TensorCoord const &extent, Layout const &layout_): layout(layout_) {
 
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int i = 0; i < Layout::kRank / 2; ++i) {
         stride_m[i] = OffsetBytes<Element>(layout_.stride()[i]);
         stride_n[i] = OffsetBytes<Element>(layout_.stride()[i + Layout::kRank / 2]);
@@ -161,7 +161,7 @@ public:
 
       if (kBigEndian) {
         // "Big Endian" scheme
-        NIHILUS_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int i = 0; i < Layout::kRank / 2 - 1; ++i) {
           divmod_m[i] = FastDivmod(extent[i + 1]);
           divmod_n[i] = FastDivmod(extent[i + Layout::kRank / 2 + 1]);
@@ -169,7 +169,7 @@ public:
       }
       else {
         // "Little Endian" scheme
-        NIHILUS_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int i = 0; i < Layout::kRank / 2 - 1; ++i) {
           divmod_m[i] = FastDivmod(extent[i]);
           divmod_n[i] = FastDivmod(extent[i + Layout::kRank / 2]);
@@ -182,7 +182,7 @@ public:
       //
       printf("PredicatedTileIteratorAffine::Params() entered\n");
 
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int i = 0; i < Layout::kRank; ++i) {
         printf("  extent[%d]: %d\n", i, extent[i]);
       }
@@ -193,10 +193,10 @@ public:
       #endif
     }
 
-    NIHILUS_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params(Layout const &layout_): layout(layout_) {
 
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int i = 0; i < Layout::kRank / 2; ++i) {
         stride_m[i] = OffsetBytes<Element>(layout_.stride()[i]);
         stride_n[i] = OffsetBytes<Element>(layout_.stride()[i + Layout::kRank / 2]);
@@ -210,7 +210,7 @@ public:
   /// Mask object
   struct Mask {
 
-    static constexpr int kCount = ThreadMap::Iterations::kColumn;
+    static int const kCount = ThreadMap::Iterations::kColumn;
 
     /// Predicate state
     bool predicates[kCount];
@@ -218,22 +218,22 @@ public:
     //
     // Mask
     //
-    NIHILUS_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Mask() {
       enable();
     }
 
     ///< Efficiently disables all accesses guarded by mask
-    NIHILUS_HOST_DEVICE void clear() {
-      NIHILUS_PRAGMA_UNROLL
+    CUTLASS_HOST_DEVICE void clear() {
+      CUTLASS_PRAGMA_UNROLL
       for (int i = 0; i < kCount; ++i) {
         predicates[i] = false;
       }
     }
 
-    ///< NIHILUS_HOST_DEVICE enables all accesses guarded by mask
-    NIHILUS_DEVICE void enable() {
-      NIHILUS_PRAGMA_UNROLL
+    ///< CUTLASS_HOST_DEVICE enables all accesses guarded by mask
+    CUTLASS_DEVICE void enable() {
+      CUTLASS_PRAGMA_UNROLL
       for (int i = 0; i < kCount; ++i) {
         predicates[i] = true;
       }
@@ -293,7 +293,7 @@ public:
   //
 
   /// Constructor
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   PredicatedTileIteratorAffineRankN(
     Params const & params,
     Element *pointer,
@@ -315,7 +315,7 @@ public:
 
     if (Layout::kRank > 2) {
       // Initialize predicates
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int c = 0; c < ThreadMap::Iterations::kColumn; ++c) {
 
         // 
@@ -358,27 +358,27 @@ public:
   }
 
   /// Adds a pointer offset in units of Element
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     byte_pointer_ += pointer_offset * sizeof_bits<Element>::value / 8;
   }
 
   /// Loads a fragment from memory
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void load_with_byte_offset(Fragment &frag, int64_t byte_offset) {
     uint8_t const *byte_pointer = byte_pointer_;
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int cluster = 0; cluster < ThreadMap::Iterations::kCluster; ++cluster) {
 
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int group = 0; group < ThreadMap::Iterations::kGroup; ++group) {
 
         int row_begin = thread_start_row_ + group * ThreadMap::Delta::kGroup + cluster * ThreadMap::Delta::kCluster;
         int64_t offset_modes_m = row_begin * params_.stride_m[0];
 
-        NIHILUS_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int row = 0; row < ThreadMap::Iterations::kRow; ++row) {
 
           int frag_row_idx = 
@@ -409,7 +409,7 @@ public:
           bool row_guard = (coord_m < extent_row_);
           int64_t offset_modes_n = thread_start_column_ * params_.stride_n[0];
 
-          NIHILUS_PRAGMA_UNROLL
+          CUTLASS_PRAGMA_UNROLL
           for (int column = 0; column < ThreadMap::Iterations::kColumn; ++column) {
 
             // 
@@ -432,7 +432,7 @@ public:
               ((thread_start_column_ + ThreadMap::Delta::kColumn * column) < extent_col_);
             }
 
-            nihilus_gemm::arch::global_load<
+            cutlass::arch::global_load<
               AccessType, 
               sizeof(AccessType)
             >(
@@ -455,28 +455,28 @@ public:
   }
 
   /// Loads a fragment from memory
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void load(Fragment &frag) {
 
     load_with_byte_offset(frag, 0);
   }
 
   /// Stores a fragment to memory
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void store_with_byte_offset(Fragment const &frag, int64_t byte_offset) {
     uint8_t *byte_pointer = byte_pointer_;
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int cluster = 0; cluster < ThreadMap::Iterations::kCluster; ++cluster) {
 
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int group = 0; group < ThreadMap::Iterations::kGroup; ++group) {
 
         int row_begin = thread_start_row_ + group * ThreadMap::Delta::kGroup + cluster * ThreadMap::Delta::kCluster;
         int64_t offset_modes_m = row_begin * params_.stride_m[0];
 
-        NIHILUS_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int row = 0; row < ThreadMap::Iterations::kRow; ++row) {
 
           int frag_row_idx = 
@@ -507,7 +507,7 @@ public:
           bool row_guard = (coord_m < extent_row_);
           int64_t offset_modes_n = thread_start_column_ * params_.stride_n[0];
 
-          NIHILUS_PRAGMA_UNROLL
+          CUTLASS_PRAGMA_UNROLL
           for (int column = 0; column < ThreadMap::Iterations::kColumn; ++column) {
 
             // 
@@ -528,7 +528,7 @@ public:
               guard = (coord_m < extent_row_) && ((thread_start_column_ + ThreadMap::Delta::kColumn * column) < extent_col_);
             }
 
-            nihilus_gemm::arch::global_store<AccessType, sizeof(AccessType)>(
+            cutlass::arch::global_store<AccessType, sizeof(AccessType)>(
                 frag_ptr[frag_row_idx * ThreadMap::Iterations::kColumn + column],
                 (void *)(byte_pointer + offset_modes_m + offset_modes_n + byte_offset),
                 guard);
@@ -547,14 +547,14 @@ public:
   }
 
   /// Stores a fragment to memory
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void store(Fragment const &frag) {
 
     store_with_byte_offset(frag, 0);
   }
 
   /// Advances to the next position to load or store
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileIteratorAffineRankN &operator++() {
 
     ++state_[0];
@@ -586,22 +586,22 @@ public:
   }
 
   ///< Efficiently disables all accesses guarded by mask
-  NIHILUS_DEVICE void clear_mask() {
+  CUTLASS_DEVICE void clear_mask() {
     mask_.clear();
   }
 
   ///< Efficiently enables all accesses guarded by mask
-  NIHILUS_DEVICE void enable_mask() {
+  CUTLASS_DEVICE void enable_mask() {
     mask_.enable();
   }
 
   ///< Sets the mask
-  NIHILUS_DEVICE void get_mask(Mask &mask) {
+  CUTLASS_DEVICE void get_mask(Mask &mask) {
     mask = mask_;
   }
 
   ///< Sets the mask
-  NIHILUS_DEVICE void set_mask(Mask const &mask) {
+  CUTLASS_DEVICE void set_mask(Mask const &mask) {
     mask_ = mask;
   }
 };
@@ -610,6 +610,6 @@ public:
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////

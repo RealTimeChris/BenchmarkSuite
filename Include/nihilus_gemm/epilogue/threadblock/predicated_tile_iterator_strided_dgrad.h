@@ -38,8 +38,8 @@
 
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
-
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/layout/matrix.h"
 #include "nihilus_gemm/layout/tensor.h"
@@ -54,7 +54,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -86,9 +86,9 @@ public:
   using LongIndex = typename Layout::LongIndex;
   using TensorCoord = MatrixCoord;
 
-  static constexpr int kElementsPerAccess = ThreadMap::kElementsPerAccess;
-  static constexpr int kThreads = ThreadMap::kThreads;
-  static constexpr int kIterations = ThreadMap::Count::kTile;
+  static int const kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static int const kThreads = ThreadMap::kThreads;
+  static int const kIterations = ThreadMap::Count::kTile;
 
   static_assert( ThreadMap::Iterations::kRow > 0,"ThreadMap::Iterations::kRow must be > 0");
   static_assert( ThreadMap::Iterations::kGroup > 0,"ThreadMap::Iterations::kGroup must be > 0");
@@ -114,14 +114,14 @@ public:
   struct Params : PredicatedTileIteratorParams {
 
     /// Convolution problem size
-    nihilus_gemm::conv::Conv2dProblemSize problem_size;
+    cutlass::conv::Conv2dProblemSize problem_size;
     int tiled_rows_per_filter;
 
-    NIHILUS_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Params() { }
 
-    NIHILUS_HOST_DEVICE
-    Params(Layout const &layout, nihilus_gemm::conv::Conv2dProblemSize problem_size_, int threadblock_row): 
+    CUTLASS_HOST_DEVICE
+    Params(Layout const &layout, cutlass::conv::Conv2dProblemSize problem_size_, int threadblock_row): 
       problem_size(problem_size_), 
       PredicatedTileIteratorParams(
         layout.stride(0) * int(sizeof(AccessType)) / kElementsPerAccess,
@@ -138,7 +138,7 @@ public:
   /// Mask object
   struct Mask {
 
-    static constexpr int kCount = ThreadMap::Iterations::kColumn;
+    static int const kCount = ThreadMap::Iterations::kColumn;
 
     /// Predicate state
     bool predicates[kCount];
@@ -146,22 +146,22 @@ public:
     //
     // Mask
     //
-    NIHILUS_HOST_DEVICE
+    CUTLASS_HOST_DEVICE
     Mask() {
       enable();
     }
 
     ///< Efficiently disables all accesses guarded by mask
-    NIHILUS_HOST_DEVICE void clear() {
-      NIHILUS_PRAGMA_UNROLL
+    CUTLASS_HOST_DEVICE void clear() {
+      CUTLASS_PRAGMA_UNROLL
       for (int i = 0; i < kCount; ++i) {
         predicates[i] = false;
       }
     }
 
-    ///< NIHILUS_HOST_DEVICE enables all accesses guarded by mask
-    NIHILUS_DEVICE void enable() {
-      NIHILUS_PRAGMA_UNROLL
+    ///< CUTLASS_HOST_DEVICE enables all accesses guarded by mask
+    CUTLASS_DEVICE void enable() {
+      CUTLASS_PRAGMA_UNROLL
       for (int i = 0; i < kCount; ++i) {
         predicates[i] = true;
       }
@@ -222,7 +222,7 @@ public:
   //
 
   /// Constructor
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   PredicatedTileIteratorStridedDgrad(
     Params const & params,
     Element *pointer,
@@ -240,7 +240,7 @@ public:
     int r = start_r;
     int s = start_s;
 
-    if (params_.problem_size.mode == nihilus_gemm::conv::Mode::kConvolution) {
+    if (params_.problem_size.mode == cutlass::conv::Mode::kConvolution) {
       r = (params_.problem_size.R - 1 - r);
       s = (params_.problem_size.S - 1 - s);
     }
@@ -260,7 +260,7 @@ public:
     thread_start_column_ = thread_offset.column();
 
     // Initialize predicates
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int c = 0; c < ThreadMap::Iterations::kColumn; ++c) {
 
       mask_.predicates[c] = ((thread_offset.column() 
@@ -280,25 +280,25 @@ public:
   }
 
   /// Adds a pointer offset in units of Element
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     byte_pointer_ += pointer_offset * sizeof_bits<Element>::value / 8;
   }
 
   /// Loads a fragment from memory
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void load_with_byte_offset(Fragment &frag, int64_t byte_offset) {
 
     uint8_t *byte_pointer = byte_pointer_;
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int cluster = 0; cluster < ThreadMap::Iterations::kCluster; ++cluster) {
 
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int group = 0; group < ThreadMap::Iterations::kGroup; ++group) {
 
-        NIHILUS_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int row = 0; row < ThreadMap::Iterations::kRow; ++row) {
 
           int frag_row_idx = 
@@ -324,14 +324,14 @@ public:
 
           int64_t row_byte_offset = mapped_row_offset * params_.stride;
 
-          NIHILUS_PRAGMA_UNROLL
+          CUTLASS_PRAGMA_UNROLL
           for (int column = 0; column < ThreadMap::Iterations::kColumn; ++column) {
 
             int64_t column_byte_offset = (thread_start_column_ + column * ThreadMap::Delta::kColumn) * (sizeof_bits<Element>::value / 8);
 
             bool guard = row_guard && mask_.predicates[column];
 
-            nihilus_gemm::arch::global_load<
+            cutlass::arch::global_load<
               AccessType, 
               sizeof(AccessType)
             >(
@@ -347,25 +347,25 @@ public:
 
 
   /// Loads a fragment from memory
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void load(Fragment &frag) {
 
     load_with_byte_offset(frag, 0);
   }
 
   /// Stores a fragment to memory
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void store_with_byte_offset(Fragment const &frag, int64_t byte_offset) {
     uint8_t *byte_pointer = byte_pointer_;
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int cluster = 0; cluster < ThreadMap::Iterations::kCluster; ++cluster) {
 
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int group = 0; group < ThreadMap::Iterations::kGroup; ++group) {
 
-        NIHILUS_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int row = 0; row < ThreadMap::Iterations::kRow; ++row) {
 
           int frag_row_idx = 
@@ -391,14 +391,14 @@ public:
 
           int64_t row_byte_offset = mapped_row_offset * params_.stride;
           
-          NIHILUS_PRAGMA_UNROLL
+          CUTLASS_PRAGMA_UNROLL
           for (int column = 0; column < ThreadMap::Iterations::kColumn; ++column) {
 
             int64_t column_byte_offset = (thread_start_column_ + column * ThreadMap::Delta::kColumn) * (sizeof_bits<Element>::value / 8);
 
             bool guard = row_guard && mask_.predicates[column];
 
-            nihilus_gemm::arch::global_store<AccessType, sizeof(AccessType) >(
+            cutlass::arch::global_store<AccessType, sizeof(AccessType) >(
                 frag_ptr[frag_row_idx * ThreadMap::Iterations::kColumn + column],
                 (void *)(byte_pointer + row_byte_offset + column_byte_offset + byte_offset),
                 guard);            
@@ -410,14 +410,14 @@ public:
 
 
   /// Stores a fragment to memory
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void store(Fragment const &frag) {
 
     store_with_byte_offset(frag, 0);
   }
 
   /// Advances to the next position to load or store
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileIteratorStridedDgrad &operator++() {
 
     ++state_[0];
@@ -450,22 +450,22 @@ public:
   }
 
   ///< Efficiently disables all accesses guarded by mask
-  NIHILUS_DEVICE void clear_mask() {
+  CUTLASS_DEVICE void clear_mask() {
     mask_.clear();
   }
 
   ///< Efficiently enables all accesses guarded by mask
-  NIHILUS_DEVICE void enable_mask() {
+  CUTLASS_DEVICE void enable_mask() {
     mask_.enable();
   }
 
   ///< Sets the mask
-  NIHILUS_DEVICE void get_mask(Mask &mask) {
+  CUTLASS_DEVICE void get_mask(Mask &mask) {
     mask = mask_;
   }
 
   ///< Sets the mask
-  NIHILUS_DEVICE void set_mask(Mask const &mask) {
+  CUTLASS_DEVICE void set_mask(Mask const &mask) {
     mask_ = mask;
   }
 };
@@ -474,6 +474,6 @@ public:
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////

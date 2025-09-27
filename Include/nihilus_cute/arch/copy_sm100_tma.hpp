@@ -39,7 +39,7 @@
 #include <nihilus_cute/arch/copy_sm90.hpp>
 #include "nihilus_gemm/arch/synclog.hpp"
 
-namespace nihilus_cute
+namespace cute
 {
 
 constexpr uint32_t Sm100MmaPeerBitMask = 0xFEFFFFFF;
@@ -663,4 +663,4 @@ struct SM100_TMA_2SM_LOAD_IM2COL_MULTICAST
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-} // end namespace nihilus_cute
+} // end namespace cute

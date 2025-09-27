@@ -38,8 +38,8 @@
 
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
-
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/layout/matrix.h"
 #include "nihilus_gemm/matrix_shape.h"
@@ -49,7 +49,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace threadblock {
 
@@ -79,13 +79,13 @@ public:
   using LongIndex = typename Layout::LongIndex;
   using TensorCoord = MatrixCoord;
 
-  static constexpr int kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static int const kElementsPerAccess = ThreadMap::kElementsPerAccess;
 
-  static constexpr int kMinAlignment = ThreadMap_::kElementsPerAccess * sizeof_bits<Element_>::value / 8;
+  static int const kMinAlignment = ThreadMap_::kElementsPerAccess * sizeof_bits<Element_>::value / 8;
 
-  static constexpr int kAlignment = (MaxAlignment < kMinAlignment ? MaxAlignment : kMinAlignment);
+  static int const kAlignment = (MaxAlignment < kMinAlignment ? MaxAlignment : kMinAlignment);
 
-  static constexpr int kThreads = ThreadMap::kThreads;
+  static int const kThreads = ThreadMap::kThreads;
 
   /// Fragment object
   using Fragment = Array<
@@ -109,7 +109,7 @@ public:
     const_min(16, kAlignment)
   >;
 
-  static constexpr int kLoadsPerAccess = AccessType::kElements / LoadType::kElements;
+  static int const kLoadsPerAccess = AccessType::kElements / LoadType::kElements;
 
 private:
 
@@ -130,7 +130,7 @@ public:
   //
 
   /// Constructor
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   SharedLoadIterator(
     TensorRef ref,
     int thread_idx
@@ -147,12 +147,12 @@ public:
   }
 
   /// Adds a pointer offset in units of Element
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void add_pointer_offset(LongIndex pointer_offset) {
     byte_pointer_ += pointer_offset * sizeof_bits<Element>::value / 8;
   }
 
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void add_tile_offset(TensorCoord const &offset) {
     byte_pointer_ += 
       offset.row() * Shape::kRow * stride_ + 
@@ -160,17 +160,17 @@ public:
   }
 
   /// Loads a fragment from memory
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
 
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int cluster = 0; cluster < ThreadMap::Iterations::kCluster; ++cluster) {
 
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int group = 0; group < ThreadMap::Iterations::kGroup; ++group) {
 
-        NIHILUS_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int row = 0; row < ThreadMap::Iterations::kRow; ++row) {
 
           uint8_t const *byte_pointer = byte_pointer_ + 
@@ -185,12 +185,12 @@ public:
           LoadType *frag_ptr = reinterpret_cast<LoadType *>(&frag);
           LoadType const *memory_pointer = reinterpret_cast<LoadType const *>(byte_pointer);
 
-          NIHILUS_PRAGMA_UNROLL
+          CUTLASS_PRAGMA_UNROLL
           for (int column = 0; column < ThreadMap::Iterations::kColumn; ++column) {
             
             int frag_idx = frag_row_idx * ThreadMap::Iterations::kColumn + column;
 
-            NIHILUS_PRAGMA_UNROLL
+            CUTLASS_PRAGMA_UNROLL
             for (int v = 0; v < kLoadsPerAccess; ++v) {
               frag_ptr[frag_idx * kLoadsPerAccess + v] = 
                 memory_pointer[(column * ThreadMap::Delta::kColumn / kElementsPerAccess) * kLoadsPerAccess + v];
@@ -202,12 +202,12 @@ public:
   }
 
   /// Loads a fragment from memory
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void set_smem_base_address(Index address) {
   }
 
   /// Loads a fragment
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void load(Fragment &frag) const {
 
     load_with_pointer_offset(frag, 0);
@@ -218,6 +218,6 @@ public:
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

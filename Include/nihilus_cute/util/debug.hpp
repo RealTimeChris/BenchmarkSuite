@@ -39,7 +39,7 @@
 
 #include <nihilus_cute/config.hpp>
 
-namespace nihilus_cute
+namespace cute
 {
 
 /******************************************************************************
@@ -161,4 +161,4 @@ block0()
   return block(0);
 }
 
-}  // end namespace nihilus_cute
+}  // end namespace cute

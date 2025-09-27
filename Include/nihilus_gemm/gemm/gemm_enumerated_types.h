@@ -34,12 +34,12 @@
 
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
+#include "nihilus_gemm/cutlass.h"
 #include "nihilus_gemm/coord.h"
 #include "nihilus_gemm/gemm_coord.h"
 #include "nihilus_gemm/layout/matrix.h"
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -75,6 +75,6 @@ enum class SharedMemoryClearOption {
 /////////////////////////////////////////////////////////////////////////
 
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

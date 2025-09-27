@@ -36,7 +36,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace thread {
 
@@ -46,13 +46,13 @@ struct LinearCombinationParams {
   uint64_t alpha_data[2];
   uint64_t beta_data[2];
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LinearCombinationParams()
   : alpha_data {0lu, 0lu}, beta_data {0lu, 0lu} 
   { }
 
   template <typename ElementCompute>
-  NIHILUS_HOST_DEVICE 
+  CUTLASS_HOST_DEVICE 
   LinearCombinationParams(ElementCompute alpha, ElementCompute beta) 
   : alpha_data {0lu, 0lu}, beta_data {0lu, 0lu} 
   {
@@ -70,6 +70,6 @@ struct LinearCombinationParams {
 
 } // namespace thread
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

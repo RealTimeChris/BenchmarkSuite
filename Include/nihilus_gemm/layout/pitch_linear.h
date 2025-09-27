@@ -34,15 +34,15 @@
 
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
+#include "nihilus_gemm/cutlass.h"
 #include "nihilus_gemm/coord.h"
 #include "nihilus_gemm/pitch_linear_coord.h"
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace layout {
 
 template <int Contiguous, int Strided>
-  using PitchLinearShape = nihilus_gemm::PitchLinearShape < Contiguous, Strided >;
+  using PitchLinearShape = cutlass::PitchLinearShape < Contiguous, Strided >;
   using PitchLinearCoord = PitchLinearCoord;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -51,10 +51,10 @@ template <int Contiguous, int Strided>
 class PitchLinear {
 public:
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static int const kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static int const kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -82,28 +82,28 @@ public:
   //
   
   /// Constructor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PitchLinear(LongIndex ldm = 0): stride_(ldm) { }
 
   /// Constructor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PitchLinear(Stride _stride): stride_(_stride) { }
 
   /// Helper returns a layout to a tightly packed tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static PitchLinear packed(TensorCoord const &extent) {
     return PitchLinear(extent.contiguous());
   }
 
   /// Returns the offset of a coordinate in linear memory. 
   /// Assumes coordinate has convention (contiguous, strided)
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex operator()(TensorCoord const &coord) const {
     return LongIndex(coord.contiguous()) + LongIndex(coord.strided()) * LongIndex(stride_[0]);
   }
 
   /// Returns the logical coordinate given an offset.
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TensorCoord inverse(LongIndex index) const {
     return make_Coord(
       TensorCoord::Index(index % stride_[0]),
@@ -112,31 +112,31 @@ public:
   }
 
   /// Returns the stride of the layout
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride stride() const {
     return stride_;
   }
 
   /// Returns the stride of the layout
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride & stride() {
     return stride_;
   }
 
   /// Returns the stride of the layout
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex stride(int rank) const {
     return stride_[rank];
   }
 
   /// Returns the stride of the layout
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex & stride(int rank) {
     return stride_[rank];
   }
 
   /// Compute the number of contiguous elements needed to store a tensor with the given size
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex capacity(TensorCoord const &extent) const {
     return extent.strided() * stride_[0];
   }
@@ -145,5 +145,5 @@ public:
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace layout
-} // namespace nihilus_gemm
+} // namespace cutlass
 

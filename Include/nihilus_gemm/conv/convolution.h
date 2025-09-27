@@ -33,7 +33,7 @@
 
 This file contains definitions and utility functions for describing convolution problem sizes in terms of
 activation (NHWC), filter (KRSC), output (NPQK), padding (pad_h, pad_w), stride (stride_h, stride_w), and
-dilation (dilation_h, dilation_w).  Furthermore, it defines helper functions to map NIHILUS's implicit gemm
+dilation (dilation_h, dilation_w).  Furthermore, it defines helper functions to map CUTLASS's implicit gemm
 tensor extents, sizes, and data types to that of the convolution's extents, sizes, and data types.
 
                         * Mapping convolutions to Gemm computation *
@@ -72,14 +72,14 @@ Map elements' data types (Conv -> ImplicitGemm): ConvToGemmElementMap
 
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
+#include "nihilus_gemm/cutlass.h"
 #include "nihilus_gemm/layout/tensor.h"
 #include "nihilus_gemm/tensor_coord.h"
 #include "nihilus_gemm/fast_math.h"
 #include "nihilus_gemm/gemm/gemm_enumerated_types.h"
 #include "nihilus_gemm/matrix_coord.h"
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace conv {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -140,23 +140,23 @@ template <
   int C = 1
 >
 struct TensorNHWCShape {
-  static constexpr int kN = N;
-  static constexpr int kH = H;
-  static constexpr int kW = W;
-  static constexpr int kC = C;
+  static int const kN = N;
+  static int const kH = H;
+  static int const kW = W;
+  static int const kC = C;
 
-  static constexpr int kHW = H * W;
-  static constexpr int kNHW = N * kHW;
-  static constexpr int kNHWC = N * H * W * C;
+  static int const kHW = H * W;
+  static int const kNHW = N * kHW;
+  static int const kNHWC = N * H * W * C;
 
-  static constexpr int kCount = kNHWC;
+  static int const kCount = kNHWC;
 
   //
   // Static member functions
   //
 
   /// Returns a Coord object
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static Coord<4> toCoord() {
     return make_Coord(kN, kH, kW, kC);
   }
@@ -172,15 +172,15 @@ template <
   int v = 1
 >
 struct Stride2D {
-  static constexpr int kU = u;
-  static constexpr int kV = v;
+  static int const kU = u;
+  static int const kV = v;
 
   //
   // Static member functions
   //
 
   /// Returns a Coord object
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static Coord<2> toCoord() {
     return make_Coord(kU, kV);
   }
@@ -189,6 +189,6 @@ struct Stride2D {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace conv
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

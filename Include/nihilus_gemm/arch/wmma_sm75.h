@@ -33,18 +33,18 @@
 */
 
 #pragma once
-#include "nihilus_gemm/nihilus_gemm.h"
-#include <cuda/std/cassert>
+#include "nihilus_gemm/cutlass.h"
+#include CUDA_STD_HEADER(cassert)
 #include "nihilus_gemm/layout/matrix.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-namespace nihilus_gemm {
+namespace cutlass {
 namespace arch {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 // WMMA template structure defines nvcuda::wmma::fragments and static assert for
-// wmma native instruction sizes supported for nihilus_gemm::int4b_t (experimental::s4).
+// wmma native instruction sizes supported for cutlass::int4b_t (experimental::s4).
 //
 ////////////////////////////////////////////////////////////////////////////////
 template <
@@ -54,28 +54,28 @@ typename LayoutB_,
 typename LayoutC_>
 struct Wmma<
   Shape_,                                   ///< Size of the matrix product (concept: GemmShape)
-  nihilus_gemm::int4b_t,                         ///< ElementA
+  cutlass::int4b_t,                         ///< ElementA
   LayoutA_,                                 ///< LayoutA
-  nihilus_gemm::int4b_t,                         ///< ElementB
+  cutlass::int4b_t,                         ///< ElementB
   LayoutB_,                                 ///< LayoutB
   int32_t,                                  ///< ElementC
   LayoutC_,                                 ///< LayoutC
-  nihilus_gemm::arch::OpMultiplyAdd              ///< Operator (multiply-add, xor.popc)
+  cutlass::arch::OpMultiplyAdd              ///< Operator (multiply-add, xor.popc)
 > {
-#if defined(NIHILUS_ARCH_WMMA_SM75_ENABLED)
+#if defined(CUTLASS_ARCH_WMMA_SM75_ENABLED)
   using Shape = Shape_;
-  using ElementA = nihilus_gemm::int4b_t;
+  using ElementA = cutlass::int4b_t;
   using LayoutA = LayoutA_;
-  using ElementB = nihilus_gemm::int4b_t;
+  using ElementB = cutlass::int4b_t;
   using LayoutB = LayoutB_;
   using ElementC = int32_t;
   using LayoutC = LayoutC_;
-  using Operator = nihilus_gemm::arch::OpMultiplyAdd;
-  using ArchTag = arch::Sm120;
+  using Operator = cutlass::arch::OpMultiplyAdd;
+  using ArchTag = arch::Sm75;
 
   // check supported wmma shape for the given multiplicand data types
   static_assert(
-    platform::is_same<nihilus_gemm::gemm::GemmShape<8, 8, 32>, Shape>::value,
+    platform::is_same<cutlass::gemm::GemmShape<8, 8, 32>, Shape>::value,
     "Supported list of wmma operator shape for s8 multiplicands is: 8x8x32");
 
 
@@ -104,7 +104,7 @@ struct Wmma<
           typename CutlassToWmmaDataType<ElementC>::Type>;
 
   /// Performs a nvcuda::wmma matrix multiply-accumulate operation
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void operator()(
     FragmentC &D, 
     FragmentA const &A, 
@@ -123,7 +123,7 @@ struct Wmma<
 ////////////////////////////////////////////////////////////////////////////////
 //
 // WMMA template structure defines nvcuda::wmma::fragments and static assert for
-// wmma native instruction sizes supported for nihilus_gemm::uint1b_t (experimental::b1).
+// wmma native instruction sizes supported for cutlass::uint1b_t (experimental::b1).
 //
 ////////////////////////////////////////////////////////////////////////////////
 template <
@@ -133,28 +133,28 @@ typename LayoutB_,
 typename LayoutC_>
 struct Wmma<
   Shape_,                                   ///< Size of the matrix product (concept: GemmShape)
-  nihilus_gemm::uint1b_t,                        ///< ElementA
+  cutlass::uint1b_t,                        ///< ElementA
   LayoutA_,                                 ///< LayoutA
-  nihilus_gemm::uint1b_t,                        ///< ElementB
+  cutlass::uint1b_t,                        ///< ElementB
   LayoutB_,                                 ///< LayoutB
   int32_t,                                  ///< ElementC
   LayoutC_,                                 ///< LayoutC
-  nihilus_gemm::arch::OpXorPopc                  ///< Operator (multiply-add, xor.popc)
+  cutlass::arch::OpXorPopc                  ///< Operator (multiply-add, xor.popc)
 > {
-#if defined(NIHILUS_ARCH_WMMA_SM75_ENABLED)
+#if defined(CUTLASS_ARCH_WMMA_SM75_ENABLED)
   using Shape = Shape_;
-  using ElementA = nihilus_gemm::uint1b_t;
+  using ElementA = cutlass::uint1b_t;
   using LayoutA = LayoutA_;
-  using ElementB = nihilus_gemm::uint1b_t;
+  using ElementB = cutlass::uint1b_t;
   using LayoutB = LayoutB_;
   using ElementC = int32_t;
   using LayoutC = LayoutC_;
-  using Operator = nihilus_gemm::arch::OpXorPopc;
-  using ArchTag = arch::Sm120;
+  using Operator = cutlass::arch::OpXorPopc;
+  using ArchTag = arch::Sm75;
 
   // check supported wmma shape for the given multiplicand data types
   static_assert(
-    platform::is_same<nihilus_gemm::gemm::GemmShape<8, 8, 128>, Shape>::value,
+    platform::is_same<cutlass::gemm::GemmShape<8, 8, 128>, Shape>::value,
     "Supported list of wmma operator shape for b1 multiplicands is: 8x8x128");
 
 
@@ -183,7 +183,7 @@ struct Wmma<
           typename CutlassToWmmaDataType<ElementC>::Type>;
   
   /// Performs a nvcuda::wmma matrix multiply-accumulate operation
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void operator()(
     FragmentC &D, 
     FragmentA const &A, 
@@ -200,4 +200,4 @@ struct Wmma<
 };
 
 } // namespace arch
-} // namespace nihilus_gemm
+} // namespace cutlass

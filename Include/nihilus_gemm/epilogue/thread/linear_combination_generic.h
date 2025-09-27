@@ -34,8 +34,8 @@
 
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
-
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/functional.h"
 #include "nihilus_gemm/numeric_conversion.h"
@@ -43,7 +43,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace thread {
 
@@ -72,20 +72,20 @@ struct LinearCombinationGenericParams {
   // Methods
   //
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LinearCombinationGenericParams():
     alpha(T(1)),
     beta(T(0)),
     alpha_ptr(nullptr),
     beta_ptr(nullptr) { }
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LinearCombinationGenericParams(
     T alpha,
     T beta = T(0)
   ): alpha(alpha), beta(beta), alpha_ptr(nullptr), beta_ptr(nullptr) { }
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LinearCombinationGenericParams(
     T const *alpha_ptr,
     T const *beta_ptr = nullptr
@@ -117,8 +117,8 @@ public:
   using ElementAccumulator = ElementAccumulator_;
   using ElementCompute = ElementCompute_;
 
-  static constexpr bool kIsHeavy = IsHeavy;
-  static constexpr int kCount = Count;
+  static bool const kIsHeavy = IsHeavy;
+  static int const kCount = Count;
   static const ScaleType::Kind kScale = Scale;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
@@ -126,7 +126,7 @@ public:
   using FragmentSource = Array<ElementOutput, kCount>;
   using FragmentCompute = Array<ElementCompute, kCount>;
 
-  static constexpr FloatRoundStyle kRound = Round;
+  static FloatRoundStyle const kRound = Round;
 
   /// Host-constructable parameters structure
   struct Params
@@ -147,7 +147,7 @@ private:
 public:
 
   /// Constructs the function object, possibly loading from pointers in host memory
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LinearCombinationGeneric(Params const &params) {
     params_ = params;
     params_.alpha = (params.alpha_ptr ? *params.alpha_ptr : params.alpha);
@@ -156,7 +156,7 @@ public:
   }
 
   /// Returns true if source is needed
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   bool is_source_needed() const {
     if (Scale == ScaleType::NoBetaScaling) return true;
 
@@ -168,7 +168,7 @@ public:
   }
 
   /// Functionally required for serial reduction in the epilogue
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_k_partition(int k_partition, int k_partition_count) {
     if (k_partition) {
       params_.beta = ElementCompute(1);
@@ -180,7 +180,7 @@ public:
   }
 
   /// Computes linear scaling: D = alpha * accumulator + beta * source
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   FragmentOutput operator()(
     FragmentAccumulator const &accumulator,
     FragmentOutput const &source) const {
@@ -223,7 +223,7 @@ public:
   }
 
   /// Computes linear scaling: D = alpha * accumulator
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   FragmentOutput operator()(
     FragmentAccumulator const &accumulator) const {
 
@@ -262,4 +262,4 @@ public:
 
 } // namespace thread
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass

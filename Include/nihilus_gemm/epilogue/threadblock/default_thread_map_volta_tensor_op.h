@@ -40,7 +40,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace threadblock {
 
@@ -77,9 +77,9 @@ struct DefaultThreadMapVoltaTensorOp<
 
   using ThreadblockShape = ThreadblockShape_;
   using WarpShape = WarpShape_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static int const kPartitionsK = PartitionsK;
   using ElementOutput = ElementOutput_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
+  static int const kElementsPerAccess = ElementsPerAccess;
   using ElementAccumulator = half_t;
 
   //
@@ -88,9 +88,9 @@ struct DefaultThreadMapVoltaTensorOp<
 
   struct Detail {
 
-    static constexpr int kTensorOpRows = 16;
-    static constexpr int kWarpSize = 32;
-    static constexpr int kInterleavedTilesM = WarpShape::kM / 32;
+    static int const kTensorOpRows = 16;
+    static int const kWarpSize = 32;
+    static int const kInterleavedTilesM = WarpShape::kM / 32;
 
     static_assert(
       !(ThreadblockShape::kM % WarpShape::kM) &&
@@ -104,9 +104,9 @@ struct DefaultThreadMapVoltaTensorOp<
     >;
 
     /// Number of participating threads
-    static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+    static int const kThreads = WarpCount::kCount * kWarpSize;
 
-    using Shape = nihilus_gemm::epilogue::threadblock::OutputTileShape<
+    using Shape = cutlass::epilogue::threadblock::OutputTileShape<
       ThreadblockShape::kN,   // column
       4,                      // row
       4,                      // group
@@ -115,7 +115,7 @@ struct DefaultThreadMapVoltaTensorOp<
     >;
     
     /// Number of iterations per subspace
-    using Count = nihilus_gemm::epilogue::threadblock::OutputTileShape<
+    using Count = cutlass::epilogue::threadblock::OutputTileShape<
       1,                                // column
       2,                                // row
       kInterleavedTilesM,               // group
@@ -158,9 +158,9 @@ struct DefaultThreadMapVoltaTensorOp<
 
   using ThreadblockShape = ThreadblockShape_;
   using WarpShape = WarpShape_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static int const kPartitionsK = PartitionsK;
   using ElementOutput = ElementOutput_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
+  static int const kElementsPerAccess = ElementsPerAccess;
   using ElementAccumulator = float;
 
   //
@@ -169,9 +169,9 @@ struct DefaultThreadMapVoltaTensorOp<
 
   struct Detail {
 
-    static constexpr int kTensorOpRows = 16;
-    static constexpr int kWarpSize = 32;
-    static constexpr int kInterleavedTilesM = WarpShape::kM / 32;
+    static int const kTensorOpRows = 16;
+    static int const kWarpSize = 32;
+    static int const kInterleavedTilesM = WarpShape::kM / 32;
 
     static_assert(
       !(ThreadblockShape::kM % WarpShape::kM) &&
@@ -185,9 +185,9 @@ struct DefaultThreadMapVoltaTensorOp<
     >;
 
     /// Number of participating threads
-    static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+    static int const kThreads = WarpCount::kCount * kWarpSize;
 
-    using Shape = nihilus_gemm::epilogue::threadblock::OutputTileShape<
+    using Shape = cutlass::epilogue::threadblock::OutputTileShape<
       ThreadblockShape::kN,   // column
       4,                      // row
       4,                      // group
@@ -196,7 +196,7 @@ struct DefaultThreadMapVoltaTensorOp<
     >;
     
     /// Number of iterations per subspace
-    using Count = nihilus_gemm::epilogue::threadblock::OutputTileShape<
+    using Count = cutlass::epilogue::threadblock::OutputTileShape<
       1,                                // column
       2,                                // row
       kInterleavedTilesM,               // group
@@ -223,6 +223,6 @@ struct DefaultThreadMapVoltaTensorOp<
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

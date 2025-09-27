@@ -32,7 +32,7 @@
 
 #include <nihilus_cute/config.hpp>
 
-namespace nihilus_cute
+namespace cute
 {
 
 /// Generic add
@@ -71,4 +71,4 @@ fma(A const& a, B const& b, C& c)
   return fma(c, a, b, c);
 }
 
-} // end namespace nihilus_cute
+} // end namespace cute

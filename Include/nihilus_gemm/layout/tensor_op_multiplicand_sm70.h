@@ -34,14 +34,14 @@
 
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
+#include "nihilus_gemm/cutlass.h"
 #include "nihilus_gemm/coord.h"
 #include "nihilus_gemm/layout/pitch_linear.h"
-#include "nihilus_gemm/matrix_coord.h" // nihilus_gemm::MatrixCoord
+#include "nihilus_gemm/matrix_coord.h" // cutlass::MatrixCoord
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace layout {
 
 // template <
@@ -67,10 +67,10 @@ template <int ElementSize>
 struct VoltaTensorOpMultiplicandCongruous {
 
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static int const kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static int const kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -89,7 +89,7 @@ struct VoltaTensorOpMultiplicandCongruous {
   //
 
   /// This layout is optimized for 128b accesses
-  static constexpr int kAccessSize = 128;
+  static int const kAccessSize = 128;
 
   /// Fundamental tile shape in units of vectors
   using TileShape = PitchLinearShape<8, 4>;
@@ -101,8 +101,8 @@ struct VoltaTensorOpMultiplicandCongruous {
   // Static constants
   //
 
-  static constexpr int kElementSize = ElementSize;
-  static constexpr int kElementsPerAccess = kAccessSize / kElementSize;
+  static int const kElementSize = ElementSize;
+  static int const kElementsPerAccess = kAccessSize / kElementSize;
   
   using PartitionCount = PitchLinearShape<
     TileShape::kContiguous / PartitionShape::kContiguous,
@@ -129,22 +129,22 @@ public:
   //
 
   /// Ctor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   VoltaTensorOpMultiplicandCongruous(Index ldm = 0): stride_(ldm) { }
 
   /// Ctor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   VoltaTensorOpMultiplicandCongruous(Stride stride): stride_(stride) { }
 
   /// Helper returns a layout to a tightly packed tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static VoltaTensorOpMultiplicandCongruous packed(TensorCoord const &extent) {
     return VoltaTensorOpMultiplicandCongruous(extent[0]);
   }
 
   /// Returns the offset of a coordinate in linear memory. 
   /// Assumes coordinate has convention (contiguous, strided)
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex operator()(TensorCoord const &coord) const {
     
     // First, compute c and s of vector within source (in units of vector accesses)
@@ -173,19 +173,19 @@ public:
   }
 
   /// Returns the stride of the layout
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride stride() const {
     return stride_;
   }
 
   /// Returns the stride of the layout
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride & stride() {
     return stride_;
   }
 
   /// Compute the number of contiguous elements needed to store a tensor with the given size
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex capacity(TensorCoord const &extent) const {
     return extent[1] * stride_[0];
   }
@@ -198,10 +198,10 @@ template <int ElementSize>
 struct ColumnMajorVoltaTensorOpMultiplicandCongruous {
 
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static int const kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static int const kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -222,7 +222,7 @@ struct ColumnMajorVoltaTensorOpMultiplicandCongruous {
   using Base = VoltaTensorOpMultiplicandCongruous<ElementSize>;
 
   /// This layout is optimized for 128b accesses
-  static constexpr int kAccessSize = Base::kAccessSize;
+  static int const kAccessSize = Base::kAccessSize;
   using TileShape = typename Base::TileShape;
   using PartitionShape = typename Base::PartitionShape;
 
@@ -230,8 +230,8 @@ struct ColumnMajorVoltaTensorOpMultiplicandCongruous {
   // Static constants
   //
 
-  static constexpr int kElementSize = Base::kElementSize;
-  static constexpr int kElementsPerAccess = Base::kElementsPerAccess;
+  static int const kElementSize = Base::kElementSize;
+  static int const kElementsPerAccess = Base::kElementsPerAccess;
   using PartitionCount =  typename Base::PartitionCount;
   using AccessCount = typename Base::AccessCount;
 
@@ -249,47 +249,47 @@ public:
   //
 
   /// Ctor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   ColumnMajorVoltaTensorOpMultiplicandCongruous(Index ldm = 0): layout_(ldm) { }
 
   /// Ctor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   ColumnMajorVoltaTensorOpMultiplicandCongruous(Stride stride): layout_(stride) { }
 
   /// Helper returns a layout to a tightly packed tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static ColumnMajorVoltaTensorOpMultiplicandCongruous packed(TensorCoord const &extent) {
     return ColumnMajorVoltaTensorOpMultiplicandCongruous(extent.row());
   }
 
   /// Returns the offset of a coordinate in linear memory. 
   /// Assumes coordinate has convention (contiguous, strided)
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex operator()(TensorCoord const &coord) const {
     return layout_(PitchLinearCoord(coord.row(), coord.column()));
   }
 
   /// Inverse of layout function, mapping linear offset to logical coordinate
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TensorCoord inverse(LongIndex offset) const {
     PitchLinearCoord coord = layout_.inverse(offset);
     return MatrixCoord(coord.contiguous(), coord.strided());
   }
 
   /// Returns the stride of the layout
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride stride() const {
     return layout_.stride();
   }
 
   /// Returns the stride of the layout
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride & stride() {
     return layout_.stride();
   }
 
   /// Compute the number of contiguous elements needed to store a tensor with the given size
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex capacity(TensorCoord const &extent) const {
     return layout_.capacity(PitchLinearCoord(extent.row(), extent.column()));
   }
@@ -300,10 +300,10 @@ template <int ElementSize>
 struct RowMajorVoltaTensorOpMultiplicandCongruous {
 
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static int const kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static int const kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -324,7 +324,7 @@ struct RowMajorVoltaTensorOpMultiplicandCongruous {
   using Base = VoltaTensorOpMultiplicandCongruous<ElementSize>;
 
   /// This layout is optimized for 128b accesses
-  static constexpr int kAccessSize = Base::kAccessSize;
+  static int const kAccessSize = Base::kAccessSize;
   using TileShape = typename Base::TileShape;
   using PartitionShape = typename Base::PartitionShape;
 
@@ -332,8 +332,8 @@ struct RowMajorVoltaTensorOpMultiplicandCongruous {
   // Static constants
   //
 
-  static constexpr int kElementSize = Base::kElementSize;
-  static constexpr int kElementsPerAccess = Base::kElementsPerAccess;
+  static int const kElementSize = Base::kElementSize;
+  static int const kElementsPerAccess = Base::kElementsPerAccess;
   using PartitionCount =  typename Base::PartitionCount;
   using AccessCount = typename Base::AccessCount;
 
@@ -351,47 +351,47 @@ public:
   //
 
   /// Ctor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   RowMajorVoltaTensorOpMultiplicandCongruous(Index ldm = 0): layout_(ldm) { }
 
   /// Ctor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   RowMajorVoltaTensorOpMultiplicandCongruous(Stride stride): layout_(stride) { }
 
   /// Helper returns a layout to a tightly packed tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static RowMajorVoltaTensorOpMultiplicandCongruous packed(TensorCoord const &extent) {
     return RowMajorVoltaTensorOpMultiplicandCongruous(extent.column());
   }
 
   /// Returns the offset of a coordinate in linear memory. 
   /// Assumes coordinate has convention (contiguous, strided)
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex operator()(TensorCoord const &coord) const {
     return layout_(PitchLinearCoord(coord.column(), coord.row()));
   }
 
   /// Inverse of layout function, mapping linear offset to logical coordinate
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TensorCoord inverse(LongIndex offset) const {
     PitchLinearCoord coord = layout_.inverse(offset);
     return MatrixCoord(coord.strided(), coord.contiguous());
   }
 
   /// Returns the stride of the layout
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride stride() const {
     return layout_.stride();
   }
 
   /// Returns the stride of the layout
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride & stride() {
     return layout_.stride();
   }
 
   /// Compute the number of contiguous elements needed to store a tensor with the given size
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex capacity(TensorCoord const &extent) const {
     return layout_.capacity(PitchLinearCoord(extent.column(), extent.row()));
   }
@@ -403,10 +403,10 @@ public:
 template <int ElementSize>
 struct VoltaTensorOpMultiplicandBCongruous {
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static int const kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static int const kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -425,7 +425,7 @@ struct VoltaTensorOpMultiplicandBCongruous {
   //
 
   /// This layout is optimized for 128b accesses
-  static constexpr int kAccessSize = 128;
+  static int const kAccessSize = 128;
 
   /// Fundamental tile shape in units of vectors
   using TileShape = PitchLinearShape<8, 4>;
@@ -437,8 +437,8 @@ struct VoltaTensorOpMultiplicandBCongruous {
   // Static constants
   //
 
-  static constexpr int kElementSize = ElementSize;
-  static constexpr int kElementsPerAccess = kAccessSize / kElementSize;
+  static int const kElementSize = ElementSize;
+  static int const kElementsPerAccess = kAccessSize / kElementSize;
   
   using PartitionCount = PitchLinearShape<
     TileShape::kContiguous / PartitionShape::kContiguous,
@@ -465,22 +465,22 @@ public:
   //
 
   /// Ctor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   VoltaTensorOpMultiplicandBCongruous(Index ldm = 0): stride_(ldm) { }
 
   /// Ctor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   VoltaTensorOpMultiplicandBCongruous(Stride stride): stride_(stride) { }
 
   /// Helper returns a layout to a tightly packed tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static VoltaTensorOpMultiplicandBCongruous packed(TensorCoord const &extent) {
     return VoltaTensorOpMultiplicandBCongruous(extent[0]);
   }
 
   /// Returns the offset of a coordinate in linear memory. 
   /// Assumes coordinate has convention (contiguous, strided)
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex operator()(TensorCoord const &coord) const {
     
     // First, compute c and s of vector within source (in units of vector accesses)
@@ -510,19 +510,19 @@ public:
   }
 
   /// Returns the stride of the layout
-  NIHILUS_HOST_DEVICE 
+  CUTLASS_HOST_DEVICE 
   Stride stride() const {
     return stride_;
   }
 
   /// Returns the stride of the layout
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride & stride() {
     return stride_;
   }
 
   /// Compute the number of contiguous elements needed to store a tensor with the given size
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex capacity(TensorCoord const &extent) const {
     return extent[1] * stride_[0];
   }
@@ -535,10 +535,10 @@ template <int ElementSize>
 struct ColumnMajorVoltaTensorOpMultiplicandBCongruous {
 
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static int const kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static int const kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -559,7 +559,7 @@ struct ColumnMajorVoltaTensorOpMultiplicandBCongruous {
   using Base = VoltaTensorOpMultiplicandBCongruous<ElementSize>;
 
   /// This layout is optimized for 128b accesses
-  static constexpr int kAccessSize = Base::kAccessSize;
+  static int const kAccessSize = Base::kAccessSize;
   using TileShape = typename Base::TileShape;
   using PartitionShape = typename Base::PartitionShape;
 
@@ -567,8 +567,8 @@ struct ColumnMajorVoltaTensorOpMultiplicandBCongruous {
   // Static constants
   //
 
-  static constexpr int kElementSize = Base::kElementSize;
-  static constexpr int kElementsPerAccess = Base::kElementsPerAccess;
+  static int const kElementSize = Base::kElementSize;
+  static int const kElementsPerAccess = Base::kElementsPerAccess;
   using PartitionCount =  typename Base::PartitionCount;
   using AccessCount = typename Base::AccessCount;
 
@@ -586,47 +586,47 @@ public:
   //
 
   /// Ctor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   ColumnMajorVoltaTensorOpMultiplicandBCongruous(Index ldm = 0): layout_(ldm) { }
 
   /// Ctor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   ColumnMajorVoltaTensorOpMultiplicandBCongruous(Stride stride): layout_(stride) { }
 
   /// Helper returns a layout to a tightly packed tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static ColumnMajorVoltaTensorOpMultiplicandBCongruous packed(TensorCoord const &extent) {
     return ColumnMajorVoltaTensorOpMultiplicandBCongruous(extent.row());
   }
 
   /// Returns the offset of a coordinate in linear memory. 
   /// Assumes coordinate has convention (contiguous, strided)
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex operator()(TensorCoord const &coord) const {
     return layout_(PitchLinearCoord(coord.row(), coord.column()));
   }
 
   /// Inverse of layout function, mapping linear offset to logical coordinate
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TensorCoord inverse(LongIndex offset) const {
     PitchLinearCoord coord = layout_.inverse(offset);
     return MatrixCoord(coord.contiguous(), coord.strided());
   }
 
   /// Returns the stride of the layout
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride stride() const {
     return layout_.stride();
   }
 
   /// Returns the stride of the layout
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride & stride() {
     return layout_.stride();
   }
 
   /// Compute the number of contiguous elements needed to store a tensor with the given size
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex capacity(TensorCoord const &extent) const {
     return layout_.capacity(PitchLinearCoord(extent.row(), extent.column()));
   }
@@ -637,10 +637,10 @@ template <int ElementSize>
 struct RowMajorVoltaTensorOpMultiplicandBCongruous {
 
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static int const kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static int const kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -661,7 +661,7 @@ struct RowMajorVoltaTensorOpMultiplicandBCongruous {
   using Base = VoltaTensorOpMultiplicandBCongruous<ElementSize>;
 
   /// This layout is optimized for 128b accesses
-  static constexpr int kAccessSize = Base::kAccessSize;
+  static int const kAccessSize = Base::kAccessSize;
   using TileShape = typename Base::TileShape;
   using PartitionShape = typename Base::PartitionShape;
 
@@ -669,8 +669,8 @@ struct RowMajorVoltaTensorOpMultiplicandBCongruous {
   // Static constants
   //
 
-  static constexpr int kElementSize = Base::kElementSize;
-  static constexpr int kElementsPerAccess = Base::kElementsPerAccess;
+  static int const kElementSize = Base::kElementSize;
+  static int const kElementsPerAccess = Base::kElementsPerAccess;
   using PartitionCount =  typename Base::PartitionCount;
   using AccessCount = typename Base::AccessCount;
 
@@ -688,47 +688,47 @@ public:
   //
 
   /// Ctor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   RowMajorVoltaTensorOpMultiplicandBCongruous(Index ldm = 0): layout_(ldm) { }
 
   /// Ctor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   RowMajorVoltaTensorOpMultiplicandBCongruous(Stride stride): layout_(stride) { }
 
   /// Helper returns a layout to a tightly packed tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static RowMajorVoltaTensorOpMultiplicandBCongruous packed(TensorCoord const &extent) {
     return RowMajorVoltaTensorOpMultiplicandBCongruous(extent.column());
   }
 
   /// Returns the offset of a coordinate in linear memory. 
   /// Assumes coordinate has convention (contiguous, strided)
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex operator()(TensorCoord const &coord) const {
     return layout_(PitchLinearCoord(coord.column(), coord.row()));
   }
 
   /// Inverse of layout function, mapping linear offset to logical coordinate
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TensorCoord inverse(LongIndex offset) const {
     PitchLinearCoord coord = layout_.inverse(offset);
     return MatrixCoord(coord.strided(), coord.contiguous());
   }
 
   /// Returns the stride of the layout
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride stride() const {
     return layout_.stride();
   }
 
   /// Returns the stride of the layout
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride & stride() {
     return layout_.stride();
   }
 
   /// Compute the number of contiguous elements needed to store a tensor with the given size
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex capacity(TensorCoord const &extent) const {
     return layout_.capacity(PitchLinearCoord(extent.column(), extent.row()));
   }
@@ -739,10 +739,10 @@ public:
 template <int ElementSize, int KBlock>
 struct VoltaTensorOpMultiplicandCrosswise {
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static int const kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static int const kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -761,15 +761,15 @@ struct VoltaTensorOpMultiplicandCrosswise {
   //
 
   /// This layout is optimized for 64b accesses
-  static constexpr int kAccessSize = 64;
+  static int const kAccessSize = 64;
 
   //
   // Static constants
   //
 
-  static constexpr int kElementSize = ElementSize;
-  static constexpr int kElementsPerAccess = kAccessSize / kElementSize;
-  static constexpr int kKBlock = KBlock;
+  static int const kElementSize = ElementSize;
+  static int const kElementsPerAccess = kAccessSize / kElementSize;
+  static int const kKBlock = KBlock;
 
  private:
   //
@@ -784,22 +784,22 @@ struct VoltaTensorOpMultiplicandCrosswise {
   //
 
   /// Ctor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   VoltaTensorOpMultiplicandCrosswise(Index ldm = 0) : stride_(ldm) {}
 
   /// Ctor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   VoltaTensorOpMultiplicandCrosswise(Stride stride) : stride_(stride) {}
 
   /// Helper returns a layout to a tightly packed tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static VoltaTensorOpMultiplicandCrosswise packed(TensorCoord const &extent) {
     return VoltaTensorOpMultiplicandCrosswise(extent[1]);
   }
 
   /// Returns the offset of a coordinate in linear memory.
   /// Assumes coordinate has convention (contiguous, strided)
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex operator()(TensorCoord const &coord) const {
 
     //
@@ -834,16 +834,16 @@ struct VoltaTensorOpMultiplicandCrosswise {
   }
 
   /// Returns the stride of the layout
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride stride() const { return stride_; }
 
   /// Returns the stride of the layout
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride &stride() { return stride_; }
 
   /// Compute the number of contiguous elements needed to store a tensor with
   /// the given size
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex capacity(TensorCoord const &extent) const {
     return extent[0] * stride_[0];
   }
@@ -854,10 +854,10 @@ struct VoltaTensorOpMultiplicandCrosswise {
 template <int ElementSize, int KBlock>
 struct ColumnMajorVoltaTensorOpMultiplicandCrosswise {
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static int const kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static int const kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -878,14 +878,14 @@ struct ColumnMajorVoltaTensorOpMultiplicandCrosswise {
   using Base = VoltaTensorOpMultiplicandCrosswise<ElementSize, KBlock>;
 
   /// This layout is optimized for 64b accesses
-  static constexpr int kAccessSize = Base::kAccessSize;
+  static int const kAccessSize = Base::kAccessSize;
 
   //
   // Static constants
   //
 
-  static constexpr int kElementSize = Base::kElementSize;
-  static constexpr int kElementsPerAccess = Base::kElementsPerAccess;
+  static int const kElementSize = Base::kElementSize;
+  static int const kElementsPerAccess = Base::kElementsPerAccess;
 
  private:
   //
@@ -900,15 +900,15 @@ struct ColumnMajorVoltaTensorOpMultiplicandCrosswise {
   //
 
   /// Ctor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   ColumnMajorVoltaTensorOpMultiplicandCrosswise(Index ldm = 0) : layout_(ldm) {}
 
   /// Ctor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   ColumnMajorVoltaTensorOpMultiplicandCrosswise(Stride stride) : layout_(stride) {}
 
   /// Helper returns a layout to a tightly packed tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static ColumnMajorVoltaTensorOpMultiplicandCrosswise packed(
       TensorCoord const &extent) {
     return ColumnMajorVoltaTensorOpMultiplicandCrosswise(extent.column());
@@ -916,29 +916,29 @@ struct ColumnMajorVoltaTensorOpMultiplicandCrosswise {
 
   /// Returns the offset of a coordinate in linear memory.
   /// Assumes coordinate has convention (contiguous, strided)
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex operator()(TensorCoord const &coord) const {
     return layout_(PitchLinearCoord(coord.row(), coord.column()));
   }
 
   /// Inverse of layout function, mapping linear offset to logical coordinate
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TensorCoord inverse(LongIndex offset) const {
     PitchLinearCoord coord = layout_.inverse(offset);
     return MatrixCoord(coord.contiguous(), coord.strided());
   }
 
   /// Returns the stride of the layout
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride stride() const { return layout_.stride(); }
 
   /// Returns the stride of the layout
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride &stride() { return layout_.stride(); }
 
   /// Compute the number of contiguous elements needed to store a tensor with
   /// the given size
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex capacity(TensorCoord const &extent) const {
     return layout_.capacity(PitchLinearCoord(extent.row(), extent.column()));
   }
@@ -949,10 +949,10 @@ struct ColumnMajorVoltaTensorOpMultiplicandCrosswise {
 template <int ElementSize, int KBlock>
 struct RowMajorVoltaTensorOpMultiplicandCrosswise {
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static int const kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static int const kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -973,14 +973,14 @@ struct RowMajorVoltaTensorOpMultiplicandCrosswise {
   using Base = VoltaTensorOpMultiplicandCrosswise<ElementSize, KBlock>;
 
   /// This layout is optimized for 64b accesses
-  static constexpr int kAccessSize = Base::kAccessSize;
+  static int const kAccessSize = Base::kAccessSize;
 
   //
   // Static constants
   //
 
-  static constexpr int kElementSize = Base::kElementSize;
-  static constexpr int kElementsPerAccess = Base::kElementsPerAccess;
+  static int const kElementSize = Base::kElementSize;
+  static int const kElementsPerAccess = Base::kElementsPerAccess;
 
  private:
   //
@@ -995,15 +995,15 @@ struct RowMajorVoltaTensorOpMultiplicandCrosswise {
   //
 
   /// Ctor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   RowMajorVoltaTensorOpMultiplicandCrosswise(Index ldm = 0) : layout_(ldm) {}
 
   /// Ctor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   RowMajorVoltaTensorOpMultiplicandCrosswise(Stride stride) : layout_(stride) {}
 
   /// Helper returns a layout to a tightly packed tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   static RowMajorVoltaTensorOpMultiplicandCrosswise packed(
       TensorCoord const &extent) {
     return RowMajorVoltaTensorOpMultiplicandCrosswise(extent.row());
@@ -1011,35 +1011,35 @@ struct RowMajorVoltaTensorOpMultiplicandCrosswise {
 
   /// Returns the offset of a coordinate in linear memory.
   /// Assumes coordinate has convention (contiguous, strided)
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex operator()(TensorCoord const &coord) const {
     return layout_(PitchLinearCoord(coord.column(), coord.row()));
   }
 
   /// Inverse of layout function, mapping linear offset to logical coordinate
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TensorCoord inverse(LongIndex offset) const {
     PitchLinearCoord coord = layout_.inverse(offset);
     return MatrixCoord(coord.strided(), coord.contiguous());
   }
 
   /// Returns the stride of the layout
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride stride() const { return layout_.stride(); }
 
   /// Returns the stride of the layout
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Stride &stride() { return layout_.stride(); }
 
   /// Compute the number of contiguous elements needed to store a tensor with
   /// the given size
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   LongIndex capacity(TensorCoord const &extent) const {
     return layout_.capacity(PitchLinearCoord(extent.column(), extent.row()));
   }
 };
 
 } // namespace layout
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

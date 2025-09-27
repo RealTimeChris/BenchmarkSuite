@@ -34,36 +34,36 @@
 */
 
 #pragma once
-#include "nihilus_gemm/nihilus_gemm.h"
+#include "nihilus_gemm/cutlass.h"
 #include CUDA_STD_HEADER(cassert)
 
 #include "mma.h"
 #include "nihilus_gemm/layout/matrix.h"
-
+#include "nihilus_gemm/numeric_types.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
 #if (__CUDACC_VER_MAJOR__ > 12) || (__CUDACC_VER_MAJOR__ == 12 && __CUDACC_VER_MINOR__ >= 4)
-#  define NIHILUS_ARCH_MMA_F32_SM89_SUPPORTED
+#  define CUTLASS_ARCH_MMA_F32_SM89_SUPPORTED
 #endif
 
 #if (__CUDACC_VER_MAJOR__ > 12) || (__CUDACC_VER_MAJOR__ == 12 && __CUDACC_VER_MINOR__ >= 8)
-#  define NIHILUS_ARCH_MMA_F16_SM89_SUPPORTED
+#  define CUTLASS_ARCH_MMA_F16_SM89_SUPPORTED
 #endif
 
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 890)
-#  if defined(NIHILUS_ARCH_MMA_F32_SM89_SUPPORTED)
-#    define NIHILUS_ARCH_MMA_F32_SM89_ENABLED
+#  if defined(CUTLASS_ARCH_MMA_F32_SM89_SUPPORTED)
+#    define CUTLASS_ARCH_MMA_F32_SM89_ENABLED
 #  endif
 
-#  if defined(NIHILUS_ARCH_MMA_F16_SM89_SUPPORTED)
-#    define NIHILUS_ARCH_MMA_F16_SM89_ENABLED
+#  if defined(CUTLASS_ARCH_MMA_F16_SM89_SUPPORTED)
+#    define CUTLASS_ARCH_MMA_F16_SM89_ENABLED
 #  endif
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace arch {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -75,13 +75,13 @@ template <class Operator>
 static constexpr bool is_sm89_staged_policy_v =
   (
     // ElementA must be FP8
-    platform::is_same<typename Operator::ElementA, nihilus_gemm::float_e4m3_t>::value ||
-    platform::is_same<typename Operator::ElementA, nihilus_gemm::float_e5m2_t>::value
+    platform::is_same<typename Operator::ElementA, cutlass::float_e4m3_t>::value ||
+    platform::is_same<typename Operator::ElementA, cutlass::float_e5m2_t>::value
   ) &&
   (
     // ElementB must be FP8
-    platform::is_same<typename Operator::ElementB, nihilus_gemm::float_e4m3_t>::value ||
-    platform::is_same<typename Operator::ElementB, nihilus_gemm::float_e5m2_t>::value
+    platform::is_same<typename Operator::ElementB, cutlass::float_e4m3_t>::value ||
+    platform::is_same<typename Operator::ElementB, cutlass::float_e5m2_t>::value
   ) &&
   (
     // The instruction shape must be 16x8x32
@@ -108,9 +108,9 @@ template <typename Operator_>
 struct Mma<
   gemm::GemmShape<16, 8, 32>,
   32,
-  nihilus_gemm::float_e4m3_t,
+  cutlass::float_e4m3_t,
   layout::RowMajor,
-  nihilus_gemm::float_e4m3_t,
+  cutlass::float_e4m3_t,
   layout::ColumnMajor,
   float,
   layout::RowMajor,
@@ -121,11 +121,11 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16, 8, 32>;
 
-  using ElementA = nihilus_gemm::float_e4m3_t;
+  using ElementA = cutlass::float_e4m3_t;
   using LayoutA = layout::RowMajor;
   using FragmentA = Array<ElementA, 16>;
 
-  using ElementB = nihilus_gemm::float_e4m3_t;
+  using ElementB = cutlass::float_e4m3_t;
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<ElementB, 8>;
 
@@ -134,13 +134,13 @@ struct Mma<
   using FragmentC = Array<float, 4>;
 
   using Operator = Operator_;
-  using ArchTag = arch::Sm120;
+  using ArchTag = arch::Sm89;
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(NIHILUS_ARCH_MMA_F32_SM89_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_F32_SM89_ENABLED)
 
   uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
   uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -159,11 +159,11 @@ struct Mma<
 
 #else
 
-    NIHILUS_UNUSED(d);
-    NIHILUS_UNUSED(a);
-    NIHILUS_UNUSED(b);
-    NIHILUS_UNUSED(c);
-    NIHILUS_NOT_IMPLEMENTED();
+    CUTLASS_UNUSED(d);
+    CUTLASS_UNUSED(a);
+    CUTLASS_UNUSED(b);
+    CUTLASS_UNUSED(c);
+    CUTLASS_NOT_IMPLEMENTED();
 
 #endif
   }
@@ -174,9 +174,9 @@ template <typename Operator_>
 struct Mma<
   gemm::GemmShape<16, 8, 32>,
   32,
-  nihilus_gemm::float_e4m3_t,
+  cutlass::float_e4m3_t,
   layout::RowMajor,
-  nihilus_gemm::float_e5m2_t,
+  cutlass::float_e5m2_t,
   layout::ColumnMajor,
   float,
   layout::RowMajor,
@@ -187,11 +187,11 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16, 8, 32>;
 
-  using ElementA = nihilus_gemm::float_e4m3_t;
+  using ElementA = cutlass::float_e4m3_t;
   using LayoutA = layout::RowMajor;
   using FragmentA = Array<ElementA, 16>;
 
-  using ElementB = nihilus_gemm::float_e5m2_t;
+  using ElementB = cutlass::float_e5m2_t;
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<ElementB, 8>;
 
@@ -200,13 +200,13 @@ struct Mma<
   using FragmentC = Array<float, 4>;
 
   using Operator = Operator_;
-  using ArchTag = arch::Sm120;
+  using ArchTag = arch::Sm89;
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(NIHILUS_ARCH_MMA_F32_SM89_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_F32_SM89_ENABLED)
 
   uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
   uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -225,11 +225,11 @@ struct Mma<
 
 #else
 
-    NIHILUS_UNUSED(d);
-    NIHILUS_UNUSED(a);
-    NIHILUS_UNUSED(b);
-    NIHILUS_UNUSED(c);
-    NIHILUS_NOT_IMPLEMENTED();
+    CUTLASS_UNUSED(d);
+    CUTLASS_UNUSED(a);
+    CUTLASS_UNUSED(b);
+    CUTLASS_UNUSED(c);
+    CUTLASS_NOT_IMPLEMENTED();
 
 #endif
   }
@@ -240,9 +240,9 @@ template <typename Operator_>
 struct Mma<
   gemm::GemmShape<16, 8, 32>,
   32,
-  nihilus_gemm::float_e5m2_t,
+  cutlass::float_e5m2_t,
   layout::RowMajor,
-  nihilus_gemm::float_e4m3_t,
+  cutlass::float_e4m3_t,
   layout::ColumnMajor,
   float,
   layout::RowMajor,
@@ -253,11 +253,11 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16, 8, 32>;
 
-  using ElementA = nihilus_gemm::float_e5m2_t;
+  using ElementA = cutlass::float_e5m2_t;
   using LayoutA = layout::RowMajor;
   using FragmentA = Array<ElementA, 16>;
 
-  using ElementB = nihilus_gemm::float_e4m3_t;
+  using ElementB = cutlass::float_e4m3_t;
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<ElementB, 8>;
 
@@ -266,13 +266,13 @@ struct Mma<
   using FragmentC = Array<float, 4>;
 
   using Operator = Operator_;
-  using ArchTag = arch::Sm120;
+  using ArchTag = arch::Sm89;
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(NIHILUS_ARCH_MMA_F32_SM89_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_F32_SM89_ENABLED)
 
   uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
   uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -291,11 +291,11 @@ struct Mma<
 
 #else
 
-    NIHILUS_UNUSED(d);
-    NIHILUS_UNUSED(a);
-    NIHILUS_UNUSED(b);
-    NIHILUS_UNUSED(c);
-    NIHILUS_NOT_IMPLEMENTED();
+    CUTLASS_UNUSED(d);
+    CUTLASS_UNUSED(a);
+    CUTLASS_UNUSED(b);
+    CUTLASS_UNUSED(c);
+    CUTLASS_NOT_IMPLEMENTED();
 
 #endif
   }
@@ -306,9 +306,9 @@ template <typename Operator_>
 struct Mma<
   gemm::GemmShape<16, 8, 32>,
   32,
-  nihilus_gemm::float_e5m2_t,
+  cutlass::float_e5m2_t,
   layout::RowMajor,
-  nihilus_gemm::float_e5m2_t,
+  cutlass::float_e5m2_t,
   layout::ColumnMajor,
   float,
   layout::RowMajor,
@@ -319,11 +319,11 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16, 8, 32>;
 
-  using ElementA = nihilus_gemm::float_e5m2_t;
+  using ElementA = cutlass::float_e5m2_t;
   using LayoutA = layout::RowMajor;
   using FragmentA = Array<ElementA, 16>;
 
-  using ElementB = nihilus_gemm::float_e5m2_t;
+  using ElementB = cutlass::float_e5m2_t;
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<ElementB, 8>;
 
@@ -332,13 +332,13 @@ struct Mma<
   using FragmentC = Array<float, 4>;
 
   using Operator = Operator_;
-  using ArchTag = arch::Sm120;
+  using ArchTag = arch::Sm89;
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(NIHILUS_ARCH_MMA_F32_SM89_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_F32_SM89_ENABLED)
 
   uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
   uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -357,11 +357,11 @@ struct Mma<
 
 #else
 
-    NIHILUS_UNUSED(d);
-    NIHILUS_UNUSED(a);
-    NIHILUS_UNUSED(b);
-    NIHILUS_UNUSED(c);
-    NIHILUS_NOT_IMPLEMENTED();
+    CUTLASS_UNUSED(d);
+    CUTLASS_UNUSED(a);
+    CUTLASS_UNUSED(b);
+    CUTLASS_UNUSED(c);
+    CUTLASS_NOT_IMPLEMENTED();
 
 #endif
   }
@@ -378,11 +378,11 @@ template <typename Operator_>
 struct Mma<
   gemm::GemmShape<16, 8, 32>,
   32,
-  nihilus_gemm::float_e4m3_t,
+  cutlass::float_e4m3_t,
   layout::RowMajor,
-  nihilus_gemm::float_e4m3_t,
+  cutlass::float_e4m3_t,
   layout::ColumnMajor,
-  nihilus_gemm::half_t,
+  cutlass::half_t,
   layout::RowMajor,
   Operator_> {
   static_assert(platform::is_same<Operator_, OpMultiplyAdd>::value ||
@@ -391,26 +391,26 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16, 8, 32>;
 
-  using ElementA = nihilus_gemm::float_e4m3_t;
+  using ElementA = cutlass::float_e4m3_t;
   using LayoutA = layout::RowMajor;
   using FragmentA = Array<ElementA, 16>;
 
-  using ElementB = nihilus_gemm::float_e4m3_t;
+  using ElementB = cutlass::float_e4m3_t;
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<ElementB, 8>;
 
-  using ElementC = nihilus_gemm::half_t;
+  using ElementC = cutlass::half_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<nihilus_gemm::half_t, 4>;
+  using FragmentC = Array<cutlass::half_t, 4>;
 
   using Operator = Operator_;
-  using ArchTag = arch::Sm120;
+  using ArchTag = arch::Sm89;
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(NIHILUS_ARCH_MMA_F16_SM89_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_F16_SM89_ENABLED)
 
   uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
   uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -429,11 +429,11 @@ struct Mma<
 
 #else
 
-    NIHILUS_UNUSED(d);
-    NIHILUS_UNUSED(a);
-    NIHILUS_UNUSED(b);
-    NIHILUS_UNUSED(c);
-    NIHILUS_NOT_IMPLEMENTED();
+    CUTLASS_UNUSED(d);
+    CUTLASS_UNUSED(a);
+    CUTLASS_UNUSED(b);
+    CUTLASS_UNUSED(c);
+    CUTLASS_NOT_IMPLEMENTED();
 
 #endif
   }
@@ -444,11 +444,11 @@ template <typename Operator_>
 struct Mma<
   gemm::GemmShape<16, 8, 32>,
   32,
-  nihilus_gemm::float_e4m3_t,
+  cutlass::float_e4m3_t,
   layout::RowMajor,
-  nihilus_gemm::float_e5m2_t,
+  cutlass::float_e5m2_t,
   layout::ColumnMajor,
-  nihilus_gemm::half_t,
+  cutlass::half_t,
   layout::RowMajor,
   Operator_> {
   static_assert(platform::is_same<Operator_, OpMultiplyAdd>::value ||
@@ -457,26 +457,26 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16, 8, 32>;
 
-  using ElementA = nihilus_gemm::float_e4m3_t;
+  using ElementA = cutlass::float_e4m3_t;
   using LayoutA = layout::RowMajor;
   using FragmentA = Array<ElementA, 16>;
 
-  using ElementB = nihilus_gemm::float_e5m2_t;
+  using ElementB = cutlass::float_e5m2_t;
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<ElementB, 8>;
 
-  using ElementC = nihilus_gemm::half_t;
+  using ElementC = cutlass::half_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<nihilus_gemm::half_t, 4>;
+  using FragmentC = Array<cutlass::half_t, 4>;
 
   using Operator = Operator_;
-  using ArchTag = arch::Sm120;
+  using ArchTag = arch::Sm89;
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(NIHILUS_ARCH_MMA_F16_SM89_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_F16_SM89_ENABLED)
 
   uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
   uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -495,11 +495,11 @@ struct Mma<
 
 #else
 
-    NIHILUS_UNUSED(d);
-    NIHILUS_UNUSED(a);
-    NIHILUS_UNUSED(b);
-    NIHILUS_UNUSED(c);
-    NIHILUS_NOT_IMPLEMENTED();
+    CUTLASS_UNUSED(d);
+    CUTLASS_UNUSED(a);
+    CUTLASS_UNUSED(b);
+    CUTLASS_UNUSED(c);
+    CUTLASS_NOT_IMPLEMENTED();
 
 #endif
   }
@@ -510,11 +510,11 @@ template <typename Operator_>
 struct Mma<
   gemm::GemmShape<16, 8, 32>,
   32,
-  nihilus_gemm::float_e5m2_t,
+  cutlass::float_e5m2_t,
   layout::RowMajor,
-  nihilus_gemm::float_e4m3_t,
+  cutlass::float_e4m3_t,
   layout::ColumnMajor,
-  nihilus_gemm::half_t,
+  cutlass::half_t,
   layout::RowMajor,
   Operator_> {
   static_assert(platform::is_same<Operator_, OpMultiplyAdd>::value ||
@@ -523,26 +523,26 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16, 8, 32>;
 
-  using ElementA = nihilus_gemm::float_e5m2_t;
+  using ElementA = cutlass::float_e5m2_t;
   using LayoutA = layout::RowMajor;
   using FragmentA = Array<ElementA, 16>;
 
-  using ElementB = nihilus_gemm::float_e4m3_t;
+  using ElementB = cutlass::float_e4m3_t;
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<ElementB, 8>;
 
-  using ElementC = nihilus_gemm::half_t;
+  using ElementC = cutlass::half_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<nihilus_gemm::half_t, 4>;
+  using FragmentC = Array<cutlass::half_t, 4>;
 
   using Operator = Operator_;
-  using ArchTag = arch::Sm120;
+  using ArchTag = arch::Sm89;
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(NIHILUS_ARCH_MMA_F16_SM89_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_F16_SM89_ENABLED)
 
   uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
   uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -561,11 +561,11 @@ struct Mma<
 
 #else
 
-    NIHILUS_UNUSED(d);
-    NIHILUS_UNUSED(a);
-    NIHILUS_UNUSED(b);
-    NIHILUS_UNUSED(c);
-    NIHILUS_NOT_IMPLEMENTED();
+    CUTLASS_UNUSED(d);
+    CUTLASS_UNUSED(a);
+    CUTLASS_UNUSED(b);
+    CUTLASS_UNUSED(c);
+    CUTLASS_NOT_IMPLEMENTED();
 
 #endif
   }
@@ -576,11 +576,11 @@ template <typename Operator_>
 struct Mma<
   gemm::GemmShape<16, 8, 32>,
   32,
-  nihilus_gemm::float_e5m2_t,
+  cutlass::float_e5m2_t,
   layout::RowMajor,
-  nihilus_gemm::float_e5m2_t,
+  cutlass::float_e5m2_t,
   layout::ColumnMajor,
-  nihilus_gemm::half_t,
+  cutlass::half_t,
   layout::RowMajor,
   Operator_> {
   static_assert(platform::is_same<Operator_, OpMultiplyAdd>::value ||
@@ -589,26 +589,26 @@ struct Mma<
 
   using Shape = gemm::GemmShape<16, 8, 32>;
 
-  using ElementA = nihilus_gemm::float_e5m2_t;
+  using ElementA = cutlass::float_e5m2_t;
   using LayoutA = layout::RowMajor;
   using FragmentA = Array<ElementA, 16>;
 
-  using ElementB = nihilus_gemm::float_e5m2_t;
+  using ElementB = cutlass::float_e5m2_t;
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<ElementB, 8>;
 
-  using ElementC = nihilus_gemm::half_t;
+  using ElementC = cutlass::half_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<nihilus_gemm::half_t, 4>;
+  using FragmentC = Array<cutlass::half_t, 4>;
 
   using Operator = Operator_;
-  using ArchTag = arch::Sm120;
+  using ArchTag = arch::Sm89;
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
                   FragmentC const &c) const {
 
-#if defined(NIHILUS_ARCH_MMA_F16_SM89_ENABLED)
+#if defined(CUTLASS_ARCH_MMA_F16_SM89_ENABLED)
 
   uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
   uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
@@ -627,15 +627,15 @@ struct Mma<
 
 #else
 
-    NIHILUS_UNUSED(d);
-    NIHILUS_UNUSED(a);
-    NIHILUS_UNUSED(b);
-    NIHILUS_UNUSED(c);
-    NIHILUS_NOT_IMPLEMENTED();
+    CUTLASS_UNUSED(d);
+    CUTLASS_UNUSED(a);
+    CUTLASS_UNUSED(b);
+    CUTLASS_UNUSED(c);
+    CUTLASS_NOT_IMPLEMENTED();
 
 #endif
   }
 };
 
 } // namespace arch
-} // namespace nihilus_gemm
+} // namespace cutlass

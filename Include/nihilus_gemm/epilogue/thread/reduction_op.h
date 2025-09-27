@@ -34,15 +34,15 @@
 
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
-
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/functional.h"
 #include "nihilus_gemm/numeric_conversion.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace thread {
 
@@ -59,7 +59,7 @@ class ReductionOpPlus {
 public:
 
   using Element = Element_;
-  static constexpr int kCount = Count;
+  static int const kCount = Count;
 
   using Fragment = Array<Element, kCount>;
   using Operator = plus<Fragment>;
@@ -75,13 +75,13 @@ private:
 public:
 
   /// Constructs the function object, possibly loading from pointers in host memory
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   ReductionOpPlus(Params const &params) {
 
   }
 
   /// Computes Compute => 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Fragment operator()(
     Fragment const &lhs,
     Fragment const &rhs) const {
@@ -94,4 +94,4 @@ public:
 
 } // namespace thread
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass

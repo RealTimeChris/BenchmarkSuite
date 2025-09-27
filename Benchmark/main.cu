@@ -2,8 +2,8 @@
 #include <cuda_runtime.h>
 #include <cuda_fp16.h>
 
-static constexpr uint64_t total_iterations{ 10 };
-static constexpr uint64_t measured_iterations{ 5 };
+static constexpr uint64_t total_iterations{ 6 };
+static constexpr uint64_t measured_iterations{ 3 };
 
 template<auto multiple, typename value_01_type = decltype(multiple)> BNCH_SWT_INLINE constexpr value_01_type round_up_to_multiple(value_01_type value) noexcept {
 	if constexpr ((multiple & (multiple - 1)) == 0) {
@@ -519,8 +519,7 @@ template<bool value, auto enum_error, auto... values> struct static_assert_print
 };
 
 template<typename value_type> struct get_value_type {
-	template<typename... value_types> BNCH_SWT_INLINE __device__ static constexpr decltype(auto) impl(value_types&&... args) noexcept {
-	};
+	template<typename... value_types> BNCH_SWT_INLINE __device__ static constexpr decltype(auto) impl(value_types&&... args) noexcept {};
 };
 
 template<int8_cuda_types value_type> struct get_value_type<value_type> {
@@ -1280,6 +1279,10 @@ template<uint64_t M, uint64_t K, typename input_type_01, typename input_type_02,
 			const uint64_t total_elements = M * K;
 
 			cutlass_dequantize_blocks<<<(total_elements + 255) / 256, 256>>>(A_quant_ptr, A_dequant_ptr, total_elements);
+			auto err = cudaDeviceSynchronize();
+			if (err != cudaSuccess) {
+				std::cerr << "GGML CUDA q8_0 kernel execution failed: " + std::string(cudaGetErrorString(err)) << std::endl;
+			}
 
 			cutlass_base_gemm_type gemm_op;
 			cutlass_base::Status status =
@@ -1294,6 +1297,10 @@ template<uint64_t M, uint64_t K, typename input_type_01, typename input_type_02,
 		cudaError_t err = cudaGetLastError();
 		if (err != cudaSuccess) {
 			std::cerr << "CUDA error after Cutlass Gemm: " << cudaGetErrorString(err) << std::endl;
+		}
+		err = cudaDeviceSynchronize();
+		if (err != cudaSuccess) {
+			std::cerr << "GGML CUDA q8_0 kernel execution failed: " + std::string(cudaGetErrorString(err)) << std::endl;
 		}
 
 		return inputs_a_size + inputs_b_size + outputs_C_size;
@@ -1354,9 +1361,9 @@ template<uint64_t M, uint64_t K, typename input_type_01, typename input_type_02,
 	using element_a = float;
 	using element_b = float;
 	using element_c = float;
-	using layout_a	= nihilus_gemm::layout::RowMajor;
-	using layout_b	= nihilus_gemm::layout::RowMajor;
-	using layout_c	= nihilus_gemm::layout::RowMajor;
+	using layout_a	= cutlass::layout::RowMajor;
+	using layout_b	= cutlass::layout::RowMajor;
+	using layout_c	= cutlass::layout::RowMajor;
 
 	BNCH_SWT_INLINE static uint64_t impl_prep(cuda_buffer& buffer, uint64_t& current_index, std::vector<std::vector<input_type_01>>& inputs_a,
 		std::vector<std::vector<input_type_02>>& inputs_b, std::vector<std::vector<output_type>>& outputs, uint64_t N) {
@@ -1396,8 +1403,9 @@ template<uint64_t M, uint64_t K, typename input_type_01, typename input_type_02,
 		offset			   = round_up_to_multiple<64>(offset + inputs_b_size);
 		output_type* C_ptr = reinterpret_cast<output_type*>(static_cast<uint8_t*>(buffer.data()) + offset);
 
-		using index_type		= nihilus_gemm::gemm::GemmCoord::Index;
-		using nihilus_gemm_type = nihilus_gemm::gemm::device::Gemm<M, K, element_a, layout_a, element_b, layout_b, element_c, layout_c>;
+		using index_type		= cutlass::gemm::GemmCoord::Index;
+		using nihilus_gemm_type = cutlass::gemm::device::Gemm<element_a, layout_a, element_b, layout_b, element_c, layout_c>;
+		nihilus_gemm_type op;
 
 		if constexpr (std::is_same_v<input_type_01, float>) {
 			offset			   = 0;
@@ -1406,11 +1414,11 @@ template<uint64_t M, uint64_t K, typename input_type_01, typename input_type_02,
 
 			const float* B_ptr = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
 
-			nihilus_gemm::Status status = nihilus_gemm_type::impl({ { N }, { A_ptr, static_cast<index_type>(K) }, { B_ptr, static_cast<index_type>(N) },
-				{ C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
+			cutlass::Status status = op({ { static_cast<index_type>(M), static_cast<index_type>(N), static_cast<index_type>(K) }, { A_ptr, static_cast<index_type>(K) },
+				{ B_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
 
-			if (status != nihilus_gemm::Status::kSuccess) {
-				std::cerr << "Nihilus float32 Gemm failed: " << nihilus_gemm::cutlassGetStatusString(status) << std::endl;
+			if (status != cutlass::Status::kSuccess) {
+				std::cerr << "Nihilus float32 Gemm failed: " << cutlass::cutlassGetStatusString(status) << std::endl;
 			}
 		} else if constexpr (std::is_same_v<input_type_01, block_q8_0>) {
 			const uint64_t dequant_A_size = get_byte_size_from_element_count<input_type_02>(M * K);
@@ -1426,20 +1434,14 @@ template<uint64_t M, uint64_t K, typename input_type_01, typename input_type_02,
 
 			const uint64_t total_elements = M * K;
 
-			if (N <= 256) {
-				using policy = mul_mat_1_to_128;
-				dim3 block(policy::threads_per_block);
-				dim3 grid((N + policy::block_tile_n - 1) / policy::block_tile_n, (M + policy::block_tile_m - 1) / policy::block_tile_m);
-				nihilus_gemm_kernel<M, K, policy><<<grid, block>>>(A_quant_ptr, B_ptr, C_ptr, N);
-			} else {
-				dequantize_blocks<<<(total_elements + 255) / 256, 256>>>(A_quant_ptr, A_dequant_ptr, total_elements);
+			dequantize_blocks<<<(total_elements + 255) / 256, 256>>>(A_quant_ptr, A_dequant_ptr, total_elements);
 
-				nihilus_gemm::Status status = nihilus_gemm_type::impl({ { N }, { A_dequant_ptr, static_cast<index_type>(K) }, { B_ptr, static_cast<index_type>(N) },
-					{ C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
+			cutlass::Status status =
+				op({ { static_cast<index_type>(M), static_cast<index_type>(N), static_cast<index_type>(K) }, { A_dequant_ptr, static_cast<index_type>(K) },
+					{ B_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
 
-				if (status != nihilus_gemm::Status::kSuccess) {
-					std::cerr << "Nihilus Q8_0 Gemm failed: " << nihilus_gemm::cutlassGetStatusString(status) << std::endl;
-				}
+			if (status != cutlass::Status::kSuccess) {
+				std::cerr << "Nihilus Q8_0 Gemm failed: " << cutlass::cutlassGetStatusString(status) << std::endl;
 			}
 		}
 
@@ -1627,8 +1629,8 @@ template<typename input_type_01, uint64_t M, uint64_t K, uint64_t mat_b_dim_00, 
 		cutlass_base_mul_mat<M, K, block_q8_0, float, float>>(buffer, current_index, inputs_a, inputs_b, outputs01, N);
 
 	current_index = 0;
-	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrepAndPost<"ggml_cuda_mul_mat_q8_0",
-		ggml_cuda_mul_mat<M, K, block_q8_0, float, float>>(buffer, current_index, inputs_a, inputs_b, outputs02, N);
+	//bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrepAndPost<"ggml_cuda_mul_mat_q8_0",
+	//ggml_cuda_mul_mat<M, K, block_q8_0, float, float>>(buffer, current_index, inputs_a, inputs_b, outputs02, N);
 
 	current_index = 0;
 	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrepAndPost<"nihilus_mul_mat_q8_0",
@@ -1681,8 +1683,8 @@ template<typename input_type_01, uint64_t M, uint64_t K, uint64_t mat_b_dim_00, 
 		cutlass_base_mul_mat<M, K, float, float, float>>(buffer, current_index, inputs_a, inputs_b, outputs01, N);
 
 	current_index = 0;
-	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrepAndPost<"ggml_cuda_mul_mat_float",
-		ggml_cuda_mul_mat<M, K, float, float, float>>(buffer, current_index, inputs_a, inputs_b, outputs02, N);
+	//bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrepAndPost<"ggml_cuda_mul_mat_float",
+	//ggml_cuda_mul_mat<M, K, float, float, float>>(buffer, current_index, inputs_a, inputs_b, outputs02, N);
 
 	current_index = 0;
 	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrepAndPost<"nihilus_mul_mat_float",
@@ -1694,6 +1696,7 @@ template<typename input_type_01, uint64_t M, uint64_t K, uint64_t mat_b_dim_00, 
 };
 
 int32_t main() {
+	/*
 	test_function<float, 4096, 4096, 4096, 1>();
 	test_function<float, 4096, 4096, 4096, 2>();
 	test_function<float, 4096, 4096, 4096, 4>();
@@ -1747,12 +1750,14 @@ int32_t main() {
 	test_function<block_q8_0, 14336, 4096, 4096, 32>();
 	test_function<block_q8_0, 14336, 4096, 4096, 64>();
 	test_function<block_q8_0, 14336, 4096, 4096, 128>();
+	*/
 	test_function<block_q8_0, 14336, 4096, 4096, 256>();
+	/*
 	test_function<block_q8_0, 14336, 4096, 4096, 512>();
 	test_function<block_q8_0, 14336, 4096, 4096, 1024>();
 	test_function<block_q8_0, 14336, 4096, 4096, 2048>();
 	test_function<block_q8_0, 14336, 4096, 4096, 4096>();
 	test_function<block_q8_0, 14336, 4096, 4096, 8192>();
-	test_function<block_q8_0, 14336, 4096, 4096, 16384>();
+	test_function<block_q8_0, 14336, 4096, 4096, 16384>();*/
 	return 0;
 }

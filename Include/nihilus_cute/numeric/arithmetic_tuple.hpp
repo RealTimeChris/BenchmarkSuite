@@ -38,7 +38,7 @@
 #include <nihilus_cute/algorithm/tuple_algorithms.hpp>
 #include <nihilus_cute/util/type_traits.hpp>
 
-namespace nihilus_cute
+namespace cute
 {
 
 template <class... T>
@@ -90,7 +90,7 @@ template <class... T, class... U>
 CUTE_HOST_DEVICE constexpr
 auto
 operator+(ArithmeticTuple<T...> const& t, ArithmeticTuple<U...> const& u) {
-  constexpr int R = nihilus_cute::max(int(sizeof...(T)), int(sizeof...(U)));
+  constexpr int R = cute::max(int(sizeof...(T)), int(sizeof...(U)));
   return transform_apply(append<R>(t,Int<0>{}), append<R>(u,Int<0>{}), plus{}, [](auto const&... a){ return make_arithmetic_tuple(a...); });
 }
 
@@ -113,7 +113,7 @@ template <class... T, class... U>
 CUTE_HOST_DEVICE constexpr
 auto
 operator-(ArithmeticTuple<T...> const& t, ArithmeticTuple<U...> const& u) {
-  constexpr int R = nihilus_cute::max(int(sizeof...(T)), int(sizeof...(U)));
+  constexpr int R = cute::max(int(sizeof...(T)), int(sizeof...(U)));
   return transform_apply(append<R>(t,Int<0>{}), append<R>(u,Int<0>{}), minus{}, [](auto const&... a){ return make_arithmetic_tuple(a...); });
 }
 
@@ -491,19 +491,19 @@ CUTE_HOST std::ostream& operator<<(std::ostream& os, ScaledBasis<T,Ns...> const&
 }
 #endif
 
-} // end namespace nihilus_cute
+} // end namespace cute
 
 
 namespace CUTE_STL_NAMESPACE
 {
 
 template <class... T>
-struct tuple_size<nihilus_cute::ArithmeticTuple<T...>>
+struct tuple_size<cute::ArithmeticTuple<T...>>
   : CUTE_STL_NAMESPACE::integral_constant<size_t, sizeof...(T)>
 {};
 
 template <size_t I, class... T>
-struct tuple_element<I, nihilus_cute::ArithmeticTuple<T...>>
+struct tuple_element<I, cute::ArithmeticTuple<T...>>
   : CUTE_STL_NAMESPACE::tuple_element<I, CUTE_STL_NAMESPACE::tuple<T...>>
 {};
 
@@ -522,12 +522,12 @@ struct tuple_element;
 #endif
 
 template <class... T>
-struct tuple_size<nihilus_cute::ArithmeticTuple<T...>>
+struct tuple_size<cute::ArithmeticTuple<T...>>
   : CUTE_STL_NAMESPACE::integral_constant<size_t, sizeof...(T)>
 {};
 
 template <size_t I, class... T>
-struct tuple_element<I, nihilus_cute::ArithmeticTuple<T...>>
+struct tuple_element<I, cute::ArithmeticTuple<T...>>
   : CUTE_STL_NAMESPACE::tuple_element<I, CUTE_STL_NAMESPACE::tuple<T...>>
 {};
 

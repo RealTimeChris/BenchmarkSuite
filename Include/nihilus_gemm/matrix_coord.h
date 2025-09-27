@@ -33,139 +33,132 @@
 */
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
+#include "nihilus_gemm/cutlass.h"
 #include "nihilus_gemm/coord.h"
 
-namespace nihilus_gemm {
+namespace cutlass {
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	/// MatrixCoord wraps Coord<2, int> to provide a helper for accessing named dimensions. Classes
-	/// expecting a coordinate in the rank=2 index space of a matrix should use MatrixCoord.
-	struct MatrixCoord : public Coord<2, int> {
-	  public:
-		/// Integer-valued index
-		using Index = int;
+/// MatrixCoord wraps Coord<2, int> to provide a helper for accessing named dimensions. Classes
+/// expecting a coordinate in the rank=2 index space of a matrix should use MatrixCoord.
+struct MatrixCoord : public Coord<2, int> {
 
-		/// Base type is a Coord of rank=2
-		using Base = Coord<2, Index>;
+public:
 
-		/// LongIndex type
-		using LongIndex = typename Base::LongIndex;
+  /// Integer-valued index
+  using Index = int;
 
-	  private:
-		/// Rows dimension
-		static constexpr int kRow = 0;
+  /// Base type is a Coord of rank=2
+  using Base = Coord<2, Index>;
 
-		/// Columns dimension
-		static constexpr int kColumn = 1;
+  /// LongIndex type
+  using LongIndex = typename Base::LongIndex;
 
-	  public:
-		//
-		// Methods
-		//
+private:
 
-		/// Default ctor
-		NIHILUS_HOST_DEVICE
-		MatrixCoord() {
-		}
+  /// Rows dimension
+  static int const kRow = 0;
 
-		/// Constructs from Coord<2>
-		NIHILUS_HOST_DEVICE
-		MatrixCoord(Coord<2, Index> const& coord) : Base(coord) {
-		}
+  /// Columns dimension
+  static int const kColumn = 1;
 
-		/// Helper to construct from a row and column
-		NIHILUS_HOST_DEVICE
-		MatrixCoord(Index row, Index column) : Base(make_Coord(row, column)) {
-		}
+public:
 
-		/// Helper to construct from a row and column, which are LongIndex based
-		NIHILUS_HOST_DEVICE
-		MatrixCoord(LongIndex row, LongIndex column) : Base(make_Coord(Index(row), Index(column))) {
-		}
+  //
+  // Methods
+  //
 
-		/// Returns the row of the coordinate
-		NIHILUS_HOST_DEVICE
-		Index const& row() const {
-			return this->at(kRow);
-		}
+  /// Default ctor
+  CUTLASS_HOST_DEVICE
+  MatrixCoord() { }
 
-		/// Returns the row of the coordinate
-		NIHILUS_HOST_DEVICE
-		Index& row() {
-			return this->at(kRow);
-		}
+  /// Constructs from Coord<2>
+  CUTLASS_HOST_DEVICE
+  MatrixCoord(Coord<2, Index> const &coord): Base(coord) { }
 
-		/// Returns the column of the coordinate
-		NIHILUS_HOST_DEVICE
-		Index const& column() const {
-			return this->at(kColumn);
-		}
+  /// Helper to construct from a row and column
+  CUTLASS_HOST_DEVICE
+  MatrixCoord(Index row, Index column): Base(make_Coord(row, column)) { }
 
-		/// Returns the column of the coordinate
-		NIHILUS_HOST_DEVICE
-		Index& column() {
-			return this->at(kColumn);
-		}
+  /// Helper to construct from a row and column, which are LongIndex based
+  CUTLASS_HOST_DEVICE
+  MatrixCoord(LongIndex row, LongIndex column): Base(make_Coord(Index(row), Index(column))) { }
 
-		//
-		// Coord operators
-		//
+  /// Returns the row of the coordinate
+  CUTLASS_HOST_DEVICE
+  Index const & row() const { return this->at(kRow); }
 
-		/// Element-wise addition
-		NIHILUS_HOST_DEVICE
-		MatrixCoord operator+(Base const& b) const {
-			return MatrixCoord(Base::operator+(b));
-		}
+  /// Returns the row of the coordinate
+  CUTLASS_HOST_DEVICE
+  Index & row() { return this->at(kRow); }
 
-		/// Element-wise subtraction
-		NIHILUS_HOST_DEVICE
-		MatrixCoord operator-(Base const& b) const {
-			return MatrixCoord(Base::operator-(b));
-		}
+  /// Returns the column of the coordinate
+  CUTLASS_HOST_DEVICE
+  Index const & column() const { return this->at(kColumn); }
 
-		/// Element-wise multiplication
-		NIHILUS_HOST_DEVICE
-		MatrixCoord operator*(Base const& b) const {
-			return MatrixCoord(Base::operator*(b));
-		}
+  /// Returns the column of the coordinate
+  CUTLASS_HOST_DEVICE
+  Index & column() { return this->at(kColumn); }
 
-		/// Element-wise division
-		NIHILUS_HOST_DEVICE
-		MatrixCoord operator/(Base const& b) const {
-			return MatrixCoord(Base::operator/(b));
-		}
+  //
+  // Coord operators
+  //
 
-		/// In-place addition
-		NIHILUS_HOST_DEVICE
-		MatrixCoord& operator+=(Base const& b) {
-			Base::operator+=(b);
-			return *this;
-		}
+  /// Element-wise addition
+  CUTLASS_HOST_DEVICE
+  MatrixCoord operator+(Base const& b) const {
+    return MatrixCoord(Base::operator+(b));
+  }
 
-		/// In-place subtraction
-		NIHILUS_HOST_DEVICE
-		MatrixCoord& operator-=(Base const& b) {
-			Base::operator-=(b);
-			return *this;
-		}
+  /// Element-wise subtraction
+  CUTLASS_HOST_DEVICE
+  MatrixCoord operator-(Base const& b) const {
+    return MatrixCoord(Base::operator-(b));
+  }
 
-		/// In-place multiplication
-		NIHILUS_HOST_DEVICE
-		MatrixCoord& operator*=(Base const& b) {
-			Base::operator*=(b);
-			return *this;
-		}
+  /// Element-wise multiplication
+  CUTLASS_HOST_DEVICE
+  MatrixCoord operator*(Base const& b) const {
+    return MatrixCoord(Base::operator*(b));
+  }
 
-		/// In-place division
-		NIHILUS_HOST_DEVICE
-		MatrixCoord& operator/=(Base const& b) {
-			Base::operator/=(b);
-			return *this;
-		}
-	};
+  /// Element-wise division
+  CUTLASS_HOST_DEVICE
+  MatrixCoord operator/(Base const& b) const {
+    return MatrixCoord(Base::operator/(b));
+  }
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////
+  /// In-place addition
+  CUTLASS_HOST_DEVICE
+  MatrixCoord& operator+=(Base const& b) {
+    Base::operator+=(b);
+    return *this;
+  }
 
-}// namespace nihilus_gemm
+  /// In-place subtraction
+  CUTLASS_HOST_DEVICE
+  MatrixCoord& operator-=(Base const& b) {
+    Base::operator-=(b);
+    return *this;
+  }
+
+  /// In-place multiplication
+  CUTLASS_HOST_DEVICE
+  MatrixCoord& operator*=(Base const& b) {
+    Base::operator*=(b);
+    return *this;
+  }
+
+  /// In-place division
+  CUTLASS_HOST_DEVICE
+  MatrixCoord& operator/=(Base const& b) {
+    Base::operator/=(b);
+    return *this;
+  }
+
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+} // namespace cutlass

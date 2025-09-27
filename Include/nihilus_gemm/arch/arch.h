@@ -34,11 +34,11 @@
 
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
+#include "nihilus_gemm/cutlass.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace arch {
 
 constexpr int sm100_smem_capacity_bytes = 232448;  
@@ -47,7 +47,7 @@ constexpr int sm120_smem_capacity_bytes = 101376;
 #if defined(__NVCC__) || defined(__CUDACC_RTC__) || (defined(__clang__) && defined(__CUDA__))
 
 /// Computes laneId within a warp
-NIHILUS_DEVICE
+CUTLASS_DEVICE
 int LaneId() {
   int ret;
   asm ("mov.u32 %0, %%laneid;" : "=r"(ret) : );
@@ -55,7 +55,7 @@ int LaneId() {
 }
 
 /// Computes SM number the thread is running on
-NIHILUS_DEVICE
+CUTLASS_DEVICE
 int SmId() {
   int ret;
   asm ("mov.u32 %0, %%smid;" : "=r"(ret) : );
@@ -65,13 +65,56 @@ int SmId() {
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+struct Sm50 {
+  static int const kMinComputeCapability = 50;
+}; 
+struct Sm60 {
+  static int const kMinComputeCapability = 60;
+}; 
+struct Sm61 {
+  static int const kMinComputeCapability = 61;
+};
+struct Sm70 {
+  static int const kMinComputeCapability = 70;
+};
+struct Sm72 {
+  static int const kMinComputeCapability = 72;
+};
+struct Sm75 {
+  static int const kMinComputeCapability = 75;
+};
+struct Sm80 {
+  static int const kMinComputeCapability = 80; 
+};
+struct Sm86 {
+  static int const kMinComputeCapability = 86;
+};
+struct Sm89 {
+  static int const kMinComputeCapability = 89;
+};
+struct Sm90 {
+  static int const kMinComputeCapability = 90; 
+};
+
+
+struct Sm100 {
+  static int const kMinComputeCapability = 100; 
+};
+
+struct Sm101 {
+  static int const kMinComputeCapability = 101; 
+};
 
 struct Sm120 {
-  static constexpr int kMinComputeCapability = 120;
+  static int const kMinComputeCapability = 120;
+};
+
+struct Sm103 {
+  static int const kMinComputeCapability = 103; 
 };
 
 /// Triggers a breakpoint on the device
-NIHILUS_DEVICE
+CUTLASS_DEVICE
 void device_breakpoint() {
 #if defined(__CUDA_ARCH__)
   asm volatile ("  brkpt;\n");
@@ -81,6 +124,6 @@ void device_breakpoint() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace arch
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

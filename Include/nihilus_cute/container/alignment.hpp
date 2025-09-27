@@ -35,7 +35,7 @@
 #include <nihilus_cute/numeric/numeric_types.hpp>
 #include <nihilus_cute/numeric/math.hpp>
 
-namespace nihilus_cute
+namespace cute
 {
 
 // Test if a pointer is aligned to N bytes
@@ -67,4 +67,4 @@ template <class Child> struct CUTE_ALIGNAS( 64) aligned_struct< 64, Child> {};
 template <class Child> struct CUTE_ALIGNAS(128) aligned_struct<128, Child> {};
 template <class Child> struct CUTE_ALIGNAS(256) aligned_struct<256, Child> {};
 
-} // end namespace nihilus_cute
+} // end namespace cute

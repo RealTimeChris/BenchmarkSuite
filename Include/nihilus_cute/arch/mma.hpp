@@ -31,10 +31,10 @@
 #pragma once
 
 #include <nihilus_cute/config.hpp>           // CUTE_HOST_DEVICE
-#include <nihilus_cute/numeric/complex.hpp>  // nihilus_cute::fma
-#include <nihilus_cute/numeric/real.hpp>     // nihilus_cute::fma
+#include <nihilus_cute/numeric/complex.hpp>  // cute::fma
+#include <nihilus_cute/numeric/real.hpp>     // cute::fma
 
-namespace nihilus_cute
+namespace cute
 {
 
 //
@@ -55,10 +55,10 @@ struct UniversalFMA
       B const& b,
       C const& c)
   {
-    // Forward to an ADL/nihilus_cute free function for these types
-    using nihilus_cute::fma;
+    // Forward to an ADL/cute free function for these types
+    using cute::fma;
     fma(d, a, b, c);
   }
 };
 
-} // end namespace nihilus_cute
+} // end namespace cute

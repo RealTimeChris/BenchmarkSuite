@@ -37,11 +37,11 @@
 
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
+#include "nihilus_gemm/cutlass.h"
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/platform/platform.h"
 
-
+#include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/matrix_shape.h"
 
 #include "nihilus_gemm/layout/tensor_op_multiplicand_sm75.h"
@@ -53,7 +53,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace threadblock {
 
@@ -114,41 +114,41 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   );
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static int const kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static int const kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int kAccessSizeInBits = 128;
+  static int const kAccessSizeInBits = 128;
 
   /// Default Operator
   using Operator = Operator_;
 
   // Warp thread arrangement
-  static constexpr int kWarpThreadArrangementContiguousA =
+  static int const kWarpThreadArrangementContiguousA =
       platform::min(Shape::kM / (kAccessSizeInBits / sizeof_bits<ElementA>::value), 8);
 
-  static constexpr int kWarpThreadArrangementStridedA =
+  static int const kWarpThreadArrangementStridedA =
       kWarpSize / kWarpThreadArrangementContiguousA;
 
-  static constexpr int kWarpThreadArrangementContiguousB =
+  static int const kWarpThreadArrangementContiguousB =
       platform::min(Shape::kN / (kAccessSizeInBits / sizeof_bits<ElementB>::value), 8);
 
-  static constexpr int kWarpThreadArrangementStridedB =
+  static int const kWarpThreadArrangementStridedB =
       kWarpSize / kWarpThreadArrangementContiguousB;
 
   //
   // Shared memory layouts
   //
-  static constexpr int Crosswise_A = platform::min(int(128 / sizeof(ElementA)),
+  static int const Crosswise_A = platform::min(int(128 / sizeof(ElementA)),
                                                Shape::kM);
   using SmemLayoutA = 
     layout::ColumnMajorTensorOpMultiplicandCongruous<
       sizeof_bits<ElementA>::value, Crosswise_A>;
 
   // Shared memory layout
-  static constexpr int Crosswise_B = platform::min(int(128 / sizeof(ElementB)),
+  static int const Crosswise_B = platform::min(int(128 / sizeof(ElementB)),
                                                Shape::kN);
   using SmemLayoutB = layout::RowMajorTensorOpMultiplicandCongruous<
     sizeof_bits<ElementB>::value, Crosswise_B>;
@@ -198,7 +198,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, ElementA, SmemLayoutA, ElementB, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK>::Type;
 
@@ -268,28 +268,28 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   );
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static int const kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static int const kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int kAccessSizeInBits = 128;
+  static int const kAccessSizeInBits = 128;
 
   /// Default Operator
   using Operator = Operator_;
 
   // Warp thread arrangement 
-  static constexpr int kWarpThreadArrangementContiguousA =
+  static int const kWarpThreadArrangementContiguousA =
       Shape::kK / (kAccessSizeInBits / sizeof_bits<ElementA>::value);
 
-  static constexpr int kWarpThreadArrangementStridedA =
+  static int const kWarpThreadArrangementStridedA =
       kWarpSize / kWarpThreadArrangementContiguousA;
 
-  static constexpr int kWarpThreadArrangementContiguousB =
+  static int const kWarpThreadArrangementContiguousB =
       Shape::kK / (kAccessSizeInBits / sizeof_bits<ElementB>::value);
 
-  static constexpr int kWarpThreadArrangementStridedB =
+  static int const kWarpThreadArrangementStridedB =
       kWarpSize / kWarpThreadArrangementContiguousB;
 
   //
@@ -344,7 +344,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, ElementA, SmemLayoutA, ElementB, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK>::Type;
 
@@ -414,28 +414,28 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   );
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static int const kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static int const kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int kAccessSizeInBits = 128;
+  static int const kAccessSizeInBits = 128;
 
   /// Default Operator
   using Operator = Operator_;
 
   // Warp thread arrangement 
-  static constexpr int kWarpThreadArrangementContiguousA =
+  static int const kWarpThreadArrangementContiguousA =
       Shape::kK / (kAccessSizeInBits / sizeof_bits<ElementA>::value);
 
-  static constexpr int kWarpThreadArrangementStridedA =
+  static int const kWarpThreadArrangementStridedA =
       kWarpSize / kWarpThreadArrangementContiguousA;
 
-  static constexpr int kWarpThreadArrangementContiguousB =
+  static int const kWarpThreadArrangementContiguousB =
       platform::min(Shape::kN / (kAccessSizeInBits / sizeof_bits<ElementB>::value), 8);
 
-  static constexpr int kWarpThreadArrangementStridedB =
+  static int const kWarpThreadArrangementStridedB =
       kWarpSize / kWarpThreadArrangementContiguousB;
 
   //
@@ -446,7 +446,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
       sizeof_bits<ElementA>::value, Shape::kK>;
 
   // Shared memory layout
-  static constexpr int Crosswise_B = platform::min(int(128 / sizeof(ElementB)),
+  static int const Crosswise_B = platform::min(int(128 / sizeof(ElementB)),
                                                Shape::kN);
 
   using SmemLayoutB = layout::RowMajorTensorOpMultiplicandCongruous<
@@ -495,7 +495,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, ElementA, SmemLayoutA, ElementB, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK>::Type;
 
@@ -561,34 +561,34 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
       "Threadblock-scoped GEMM should be divisible by warp-scoped GEMM size.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static int const kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static int const kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int kAccessSizeInBits = 128;
+  static int const kAccessSizeInBits = 128;
 
   /// Default Operator
   using Operator = Operator_; 
 
   // Warp thread arrangement 
-  static constexpr int kWarpThreadArrangementContiguousA =
+  static int const kWarpThreadArrangementContiguousA =
       platform::min(Shape::kM / (kAccessSizeInBits / sizeof_bits<ElementA>::value), 8);
 
-  static constexpr int kWarpThreadArrangementStridedA =
+  static int const kWarpThreadArrangementStridedA =
       kWarpSize / kWarpThreadArrangementContiguousA;
 
-  static constexpr int kWarpThreadArrangementContiguousB =
+  static int const kWarpThreadArrangementContiguousB =
       Shape::kK / (kAccessSizeInBits / sizeof_bits<ElementA>::value);
 
-  static constexpr int kWarpThreadArrangementStridedB =
+  static int const kWarpThreadArrangementStridedB =
       kWarpSize / kWarpThreadArrangementContiguousB;
 
   //
   // Shared memory layouts
   //
-  static constexpr int Crosswise_A = platform::min(int(128 / sizeof(ElementA)),
+  static int const Crosswise_A = platform::min(int(128 / sizeof(ElementA)),
                                                Shape::kM);
   using SmemLayoutA = layout::ColumnMajorTensorOpMultiplicandCongruous<
       sizeof_bits<ElementA>::value, Crosswise_A>;
@@ -630,7 +630,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, ElementA, SmemLayoutA, ElementB, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK>::Type;
 
@@ -691,13 +691,13 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, float,
   );
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static int const kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static int const kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int kAccessSizeInBits = 256;
+  static int const kAccessSizeInBits = 256;
 
   /// Default Operator
   using Operator = arch::OpMultiplyAdd;
@@ -757,7 +757,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, float,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, half_t, SmemLayoutA, half_t, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK>::Type;
 
@@ -819,28 +819,28 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, float,
   );
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static int const kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static int const kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int kAccessSizeInBits = 256;
+  static int const kAccessSizeInBits = 256;
 
   /// Default Operator
   using Operator = arch::OpMultiplyAdd;
 
   // Warp thread arrangement 
-  static constexpr int kWarpThreadArrangementContiguousA =
+  static int const kWarpThreadArrangementContiguousA =
       Shape::kK / (kAccessSizeInBits / sizeof_bits<ElementA>::value);
 
-  static constexpr int kWarpThreadArrangementStridedA =
+  static int const kWarpThreadArrangementStridedA =
       kWarpSize / kWarpThreadArrangementContiguousA;
 
-  static constexpr int kWarpThreadArrangementContiguousB =
+  static int const kWarpThreadArrangementContiguousB =
       Shape::kK / (kAccessSizeInBits / sizeof_bits<ElementA>::value);
 
-  static constexpr int kWarpThreadArrangementStridedB =
+  static int const kWarpThreadArrangementStridedB =
       kWarpSize / kWarpThreadArrangementContiguousB;
 
   //
@@ -896,7 +896,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, float,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, half_t, SmemLayoutA, half_t, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK>::Type;
 
@@ -958,22 +958,22 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, float,
   );
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static int const kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static int const kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int kAccessSizeInBits = 256;
+  static int const kAccessSizeInBits = 256;
 
   /// Default Operator
   using Operator = arch::OpMultiplyAdd;
 
   // Warp thread arrangement 
-  static constexpr int kWarpThreadArrangementContiguousA =
+  static int const kWarpThreadArrangementContiguousA =
       Shape::kK / (kAccessSizeInBits / sizeof_bits<ElementA>::value);
 
-  static constexpr int kWarpThreadArrangementStridedA =
+  static int const kWarpThreadArrangementStridedA =
       kWarpSize / kWarpThreadArrangementContiguousA;
 
   //
@@ -1029,7 +1029,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, float,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, half_t, SmemLayoutA, half_t, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK>::Type;
 
@@ -1087,22 +1087,22 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, float,
       "Threadblock-scoped GEMM should be divisible by warp-scoped GEMM size.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static int const kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static int const kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int kAccessSizeInBits = 256;
+  static int const kAccessSizeInBits = 256;
 
   /// Default Operator
   using Operator = arch::OpMultiplyAdd; 
 
   // Warp thread arrangement 
-  static constexpr int kWarpThreadArrangementContiguousB =
+  static int const kWarpThreadArrangementContiguousB =
       Shape::kK / (kAccessSizeInBits / sizeof_bits<ElementA>::value);
 
-  static constexpr int kWarpThreadArrangementStridedB =
+  static int const kWarpThreadArrangementStridedB =
       kWarpSize / kWarpThreadArrangementContiguousB;
 
   //
@@ -1148,7 +1148,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, float,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, half_t, SmemLayoutA, half_t, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK>::Type;
 
@@ -1211,7 +1211,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   using OperatorClass = arch::OpClassTensorOp;
-  static constexpr int kInterleavedK = InterleavedK;
+  static int const kInterleavedK = InterleavedK;
 
   /// Number of warps present
   using WarpCount = GemmShape<Shape::kM / WarpShape::kM,
@@ -1224,25 +1224,25 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
       "Threadblock-scoped GEMM should be divisible by warp-scoped GEMM size.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static int const kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static int const kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int kAccessSizeInBits = 128;
+  static int const kAccessSizeInBits = 128;
 
   /// Default Operator
   using Operator = Operator_;
 
   // Warp thread arrangement
-  static constexpr int kElementsPerAccess =
+  static int const kElementsPerAccess =
       kAccessSizeInBits / sizeof_bits<ElementA>::value;
 
-  static constexpr int kWarpThreadArrangementContiguous =
+  static int const kWarpThreadArrangementContiguous =
       kInterleavedK / kElementsPerAccess;
 
-  static constexpr int kWarpThreadArrangementStrided =
+  static int const kWarpThreadArrangementStrided =
       kWarpSize / kWarpThreadArrangementContiguous;
 
   //
@@ -1299,7 +1299,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   //
 
   // Define the warp-level tensor op
-  using MmaTensorOp = typename nihilus_gemm::gemm::warp::DefaultMmaTensorOp<
+  using MmaTensorOp = typename cutlass::gemm::warp::DefaultMmaTensorOp<
       WarpShape, InstructionShape, ElementA, SmemLayoutA, ElementB, SmemLayoutB,
       ElementC, LayoutC, Operator, WarpCount::kK, AccumulatorsInRowMajor>::Type;
 
@@ -1312,4 +1312,4 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
 
 } // namespace threadblock
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass

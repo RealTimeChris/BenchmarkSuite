@@ -41,7 +41,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace warp {
 
@@ -73,23 +73,23 @@ struct SimtPolicy<WarpShape_, Operator_, layout::RowMajor, MmaSimtPolicy_> {
   static_assert(!(WarpShape::kN % MmaSimtPolicy::WarpShape::kColumn), "Divisibility");
 
   /// Number of iterations
-  static constexpr int kIterations = WarpShape::kM / MmaSimtPolicy::WarpShape::kRow;
+  static int const kIterations = WarpShape::kM / MmaSimtPolicy::WarpShape::kRow;
 
   /// Number of accumulators written per iteration
-  static constexpr int kElementsPerIteration = 
+  static int const kElementsPerIteration = 
     (WarpShape::kN / MmaSimtPolicy::WarpShape::kColumn);
 
   /// Total number of accumulators
-  static constexpr int kAccumulatorElementCount = kElementsPerIteration * kIterations;
+  static int const kAccumulatorElementCount = kElementsPerIteration * kIterations;
 
   /// Number of consecutive elements
-  static constexpr int kElementsPerAccess = MmaSimtPolicy::LaneMmaShape::kN;
+  static int const kElementsPerAccess = MmaSimtPolicy::LaneMmaShape::kN;
 
   /// Number of rows per epilogue iteration
-  static constexpr int kRowsPerIteration = MmaSimtPolicy::WarpShape::kRow;
+  static int const kRowsPerIteration = MmaSimtPolicy::WarpShape::kRow;
 
   /// Number of accesses made in one iteration
-  static constexpr int kAccessesPerIteration = kElementsPerIteration / kElementsPerAccess;
+  static int const kAccessesPerIteration = kElementsPerIteration / kElementsPerAccess;
 
   /// Number of elements in between accumulator chunks of (LaneMmaShape::kM x LaneMmaShape::kN)
   using Delta = MatrixShape<
@@ -102,6 +102,6 @@ struct SimtPolicy<WarpShape_, Operator_, layout::RowMajor, MmaSimtPolicy_> {
 
 } // namespace warp
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

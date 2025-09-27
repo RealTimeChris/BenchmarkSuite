@@ -34,27 +34,125 @@
 
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
+#include "nihilus_gemm/cutlass.h"
 
 #include "nihilus_gemm/aligned_buffer.h"
 #include "nihilus_gemm/array.h"
 
-
+#include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/matrix_shape.h"
 
 #include "nihilus_gemm/gemm/gemm.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace kernel {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
+template <typename Mma, typename Epilogue, typename ThreadblockSwizzle>
+CUTLASS_GLOBAL void GemmPipelined(
+  cutlass::gemm::GemmCoord problem_size,
+  cutlass::gemm::GemmCoord grid_tiled_shape,
+  typename Mma::IteratorA::Params params_A,
+  typename Mma::IteratorA::TensorRef ref_A,
+  typename Mma::IteratorB::Params params_B,
+  typename Mma::IteratorB::TensorRef ref_B,
+  typename Epilogue::Params params_epilogue
+  ) {
+
+  // Shared storage needed by threadblock-scoped matrix multiply-accumulate
+  __shared__ union {
+    typename Mma::SharedStorage main_loop;
+    typename Epilogue::SharedStorage epilogue;
+  } shared_storage;
+
+  // Compute threadblock location
+  ThreadblockSwizzle threadblock_swizzle;
+
+  int swizzle_log_tile = ThreadblockSwizzle().get_log_tile(grid_tiled_shape);
+
+  cutlass::gemm::GemmCoord tb_tile_offset = threadblock_swizzle.get_tile_offset(swizzle_log_tile);
+
+  if (grid_tiled_shape.m() <= tb_tile_offset.m() ||
+    grid_tiled_shape.n() <= tb_tile_offset.n()) {
+
+    return;
+  }
+
+  // Compute initial location in logical coordinates
+  cutlass::MatrixCoord tb_offset_A{
+    tb_tile_offset.m() * Mma::Shape::kM,
+    tb_tile_offset.k()
+  };
+
+  cutlass::MatrixCoord tb_offset_B{
+    tb_tile_offset.k(),
+    tb_tile_offset.n() * Mma::Shape::kN
+  };
+
+  // Compute position within threadblock
+  int tb_thread_id = threadIdx.x;
+
+  // Construct iterators to A and B operands
+  typename Mma::IteratorA iterator_A(
+    params_A,
+    ref_A.data(),
+    {problem_size.m(), problem_size.k()},
+    tb_thread_id,
+    tb_offset_A);
+
+  typename Mma::IteratorB iterator_B(
+    params_B,
+    ref_B.data(),
+    {problem_size.k(), problem_size.n()},
+    tb_thread_id,
+    tb_offset_B);
+
+  int warp_id = canonical_warp_idx_sync();
+  int lane_id = threadIdx.x % 32;
+
+  //
+  // Main loop
+  //
+
+  // Construct thread-scoped matrix multiply
+  Mma mma(shared_storage.main_loop, tb_thread_id, warp_id, lane_id);
+
+  typename Mma::FragmentC accumulators;
+
+  accumulators.clear();
+
+  // Compute threadblock-scoped matrix multiply-add
+  mma(problem_size, accumulators, iterator_A, iterator_B, accumulators);
+
+  //
+  // Epilogue
+  //
+
+  Epilogue epilogue(
+    params_epilogue, 
+    shared_storage.epilogue, 
+    tb_thread_id, 
+    warp_id, 
+    lane_id);
+
+  tb_tile_offset = threadblock_swizzle.get_tile_offset(swizzle_log_tile);
+
+  //assume identity swizzle
+  MatrixCoord threadblock_offset(
+    tb_tile_offset.m() * Mma::Shape::kM,
+    tb_tile_offset.n() * Mma::Shape::kN
+  );
+
+  // run efficient epilogue
+  epilogue({problem_size.m(), problem_size.n()}, accumulators, threadblock_offset);
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace kernel
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass

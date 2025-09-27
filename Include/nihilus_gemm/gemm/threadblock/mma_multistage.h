@@ -38,16 +38,16 @@
 #include "nihilus_gemm/aligned_buffer.h"
 #include "nihilus_gemm/arch/memory.h"
 #include "nihilus_gemm/array.h"
-#include "nihilus_gemm/nihilus_gemm.h"
+#include "nihilus_gemm/cutlass.h"
 #include "nihilus_gemm/gemm/gemm.h"
 #include "nihilus_gemm/matrix_shape.h"
-
+#include "nihilus_gemm/numeric_types.h"
 
 #include "nihilus_gemm/gemm/threadblock/mma_base.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace threadblock {
 
@@ -66,7 +66,7 @@ template <
     /// (concept: WriteableTileIterator | RandomAccessTileIterator)
     typename SmemIteratorA_,
     /// Cache operation for operand A
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpA,
+    cutlass::arch::CacheOperation::Kind CacheOpA,
     /// Iterates over tiles of B operand in global memory
     //  (concept: ReadableTileIterator | ForwardTileIterator |
     //  MaskedTileIterator)
@@ -75,7 +75,7 @@ template <
     /// (concept: WriteableTileIterator | RandomAccessTileIterator)
     typename SmemIteratorB_,
     /// Cache operation for operand B
-    nihilus_gemm::arch::CacheOperation::Kind CacheOpB,
+    cutlass::arch::CacheOperation::Kind CacheOpB,
     /// Data type of accumulator matrix
     typename ElementC_,
     /// Data type of accumulator matrix
@@ -109,8 +109,8 @@ public:
   using SmemIteratorA = SmemIteratorA_;
   using SmemIteratorB = SmemIteratorB_;
 
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpA = CacheOpA;
-  static nihilus_gemm::arch::CacheOperation::Kind const kCacheOpB = CacheOpB;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpA = CacheOpA;
+  static cutlass::arch::CacheOperation::Kind const kCacheOpB = CacheOpB;
 
   //
   // Dependent types
@@ -122,42 +122,42 @@ public:
   /// Warp-level Mma
   using Operator = typename Policy::Operator;
 
-  /// Minimum architecture is Sm120 to support cp.async
-  using ArchTag = arch::Sm120;
+  /// Minimum architecture is Sm80 to support cp.async
+  using ArchTag = arch::Sm80;
 
   /// Complex transform on A operand
-  static constexpr ComplexTransform kTransformA = Operator::kTransformA;
+  static ComplexTransform const kTransformA = Operator::kTransformA;
 
   /// Complex transform on B operand
-  static constexpr ComplexTransform kTransformB = Operator::kTransformB;
+  static ComplexTransform const kTransformB = Operator::kTransformB;
 
   /// Internal structure exposed for introspection.
   struct Detail {
 
     /// Number of cp.async instructions to load one stage of operand A
-    static constexpr int AsyncCopyIterationsPerStageA =
+    static int const AsyncCopyIterationsPerStageA =
         IteratorA::ThreadMap::Iterations::kCount;
 
     /// Number of cp.async instructions to load one stage of operand B
-    static constexpr int AsyncCopyIterationsPerStageB =
+    static int const AsyncCopyIterationsPerStageB =
         IteratorB::ThreadMap::Iterations::kCount;
 
     /// Number of stages
-    static constexpr int kStages = Stages;
+    static int const kStages = Stages;
 
     /// Number of cp.async instructions to load on group of operand A
-    static constexpr int kAccessesPerGroupA =
+    static int const kAccessesPerGroupA =
         (AsyncCopyIterationsPerStageA + Base::kWarpGemmIterations - 1) / Base::kWarpGemmIterations;
 
     /// Number of cp.async instructions to load on group of operand B
-    static constexpr int kAccessesPerGroupB =
+    static int const kAccessesPerGroupB =
         (AsyncCopyIterationsPerStageB + Base::kWarpGemmIterations - 1) / Base::kWarpGemmIterations;
 
     // Optional staged-accumulation (e.g., tf32x3 kernels) for improved numerical
     // accuracy, where each mainloop iteration first accumulates into a temporary
     // set of freshly-cleared accumulators, which are subsequently added to the
     // final accumulator set.
-    static constexpr bool kStagedAccumulation = arch::detail::UseStagedAccumulation<Operator>::value;
+    static bool const kStagedAccumulation = arch::detail::UseStagedAccumulation<Operator>::value;
   };
 
  private:
@@ -209,7 +209,7 @@ public:
 public:
 
   /// Construct from tensor references
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   MmaMultistage(
       ///< Shared storage needed for internal use by threadblock-scoped GEMM
       typename Base::SharedStorage &shared_storage,
@@ -246,7 +246,7 @@ public:
   }
 
   /// Advance shared memory read-iterators to the next stage
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void advance_smem_read_stage()
   {
     ++smem_read_stage_idx_;
@@ -260,7 +260,7 @@ public:
   }
 
   /// Advance global memory read-iterators and shared memory write-iterators to the stage
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void advance_smem_write_stage(
     IteratorA &iterator_A,
     IteratorB &iterator_B)
@@ -284,7 +284,7 @@ public:
     }
   }
 
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void copy_tiles_and_advance(IteratorA &iterator_A, IteratorB &iterator_B,
                               int group_start_A = 0, int group_start_B = 0) {
     iterator_A.set_iteration_index(group_start_A *
@@ -292,7 +292,7 @@ public:
     this->smem_iterator_A_.set_iteration_index(group_start_A);
 
     // Async Copy for operand A
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int j = 0; j < Detail::kAccessesPerGroupA; ++j) {
       if (group_start_A + j < Detail::AsyncCopyIterationsPerStageA) {
         typename IteratorA::AccessType *dst_ptr =
@@ -303,15 +303,15 @@ public:
                               IteratorA::ThreadMap::kElementsPerAccess /
                               IteratorA::kAccessesPerVector / 8;
 
-        NIHILUS_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int v = 0; v < IteratorA::kAccessesPerVector; ++v) {
           auto gmem_ptr = iterator_A.get();
 
           if (SharedMemoryClear == SharedMemoryClearOption::kZfill) {
-            nihilus_gemm::arch::cp_async_zfill<kSrcBytes, kCacheOpA>(
+            cutlass::arch::cp_async_zfill<kSrcBytes, kCacheOpA>(
                 dst_ptr + v, gmem_ptr, iterator_A.valid());
           } else {
-            nihilus_gemm::arch::cp_async<kSrcBytes, kCacheOpA>(
+            cutlass::arch::cp_async<kSrcBytes, kCacheOpA>(
                 dst_ptr + v, gmem_ptr, iterator_A.valid());
           }
 
@@ -327,7 +327,7 @@ public:
     this->smem_iterator_B_.set_iteration_index(group_start_B);
 
     // Async Copy for operand B
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int j = 0; j < Detail::kAccessesPerGroupB; ++j) {
       if (group_start_B + j < Detail::AsyncCopyIterationsPerStageB) {
         typename IteratorB::AccessType *dst_ptr =
@@ -338,15 +338,15 @@ public:
                               IteratorB::ThreadMap::kElementsPerAccess /
                               IteratorB::kAccessesPerVector / 8;
 
-        NIHILUS_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int v = 0; v < IteratorB::kAccessesPerVector; ++v) {
           auto gmem_ptr = iterator_B.get();
 
           if (SharedMemoryClear == SharedMemoryClearOption::kZfill) {
-            nihilus_gemm::arch::cp_async_zfill<kSrcBytes, kCacheOpB>(
+            cutlass::arch::cp_async_zfill<kSrcBytes, kCacheOpB>(
                 dst_ptr + v, gmem_ptr, iterator_B.valid());
           } else {
-            nihilus_gemm::arch::cp_async<kSrcBytes, kCacheOpB>(
+            cutlass::arch::cp_async<kSrcBytes, kCacheOpB>(
                 dst_ptr + v, gmem_ptr, iterator_B.valid());
           }
 
@@ -359,14 +359,14 @@ public:
 
   /// GEMM prologue.  Bootstrap the global->shared memory pipeline by fetching
   /// the global fragments needed by the first kStages-1 threadblock mainloop iterations
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void prologue(
     IteratorA &iterator_A,      ///< [in|out] iterator over A operand in global memory
     IteratorB &iterator_B,      ///< [in|out] iterator over B operand in global memory
     int &gemm_k_iterations)     ///< [in|out] number of threadblock mainloop iterations remaining
   {
     // Issue several complete stages
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int stage = 0; stage < Base::kStages - 1; ++stage, --gemm_k_iterations) {
 
       // Disable global fetching if done with global fetch iterations
@@ -377,13 +377,13 @@ public:
       this->smem_iterator_A_.set_iteration_index(0);
 
       // Async Copy for operand A
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int j = 0; j < Detail::AsyncCopyIterationsPerStageA; ++j) {
         typename IteratorA::AccessType *dst_ptr =
             reinterpret_cast<typename IteratorA::AccessType *>(
                 this->smem_iterator_A_.get());
 
-        NIHILUS_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int v = 0; v < IteratorA::kAccessesPerVector; ++v) {
           int const kSrcBytes =
               sizeof_bits<typename IteratorA::Element>::value *
@@ -392,7 +392,7 @@ public:
 
           int src_bytes = (iterator_A.valid() ? kSrcBytes : 0);
 
-          nihilus_gemm::arch::cp_async_zfill<kSrcBytes, kCacheOpA>(
+          cutlass::arch::cp_async_zfill<kSrcBytes, kCacheOpA>(
               dst_ptr + v, iterator_A.get(), iterator_A.valid());
 
           ++iterator_A;
@@ -405,20 +405,20 @@ public:
       this->smem_iterator_B_.set_iteration_index(0);
 
       // Async Copy for operand B
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int j = 0; j < Detail::AsyncCopyIterationsPerStageB; ++j) {
         typename IteratorB::AccessType *dst_ptr =
             reinterpret_cast<typename IteratorB::AccessType *>(
                 this->smem_iterator_B_.get());
 
-        NIHILUS_PRAGMA_UNROLL
+        CUTLASS_PRAGMA_UNROLL
         for (int v = 0; v < IteratorB::kAccessesPerVector; ++v) {
           int const kSrcBytes =
               sizeof_bits<typename IteratorB::Element>::value *
               IteratorB::ThreadMap::kElementsPerAccess /
               IteratorB::kAccessesPerVector / 8;
 
-          nihilus_gemm::arch::cp_async_zfill<kSrcBytes, kCacheOpB>(
+          cutlass::arch::cp_async_zfill<kSrcBytes, kCacheOpB>(
               dst_ptr + v, iterator_B.get(), iterator_B.valid());
 
           ++iterator_B;
@@ -431,7 +431,7 @@ public:
       advance_smem_write_stage(iterator_A, iterator_B);
 
       // Defines the boundary of a stage of cp.async.
-      nihilus_gemm::arch::cp_async_fence();
+      cutlass::arch::cp_async_fence();
     }
 
     // Optionally clear the remaining stages of SMEM. This is a functional requirement for
@@ -446,7 +446,7 @@ public:
       last_smem_iterator_A.set_iteration_index(0);
 
       // Async Copy for operand A
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int j = 0; j < Detail::AsyncCopyIterationsPerStageA; ++j) {
 
         typename IteratorA::AccessType *dst_ptr =
@@ -466,7 +466,7 @@ public:
       last_smem_iterator_B.set_iteration_index(0);
 
       // Async Copy for operand B
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int j = 0; j < Detail::AsyncCopyIterationsPerStageB; ++j) {
 
         typename IteratorB::AccessType *dst_ptr =
@@ -482,17 +482,17 @@ public:
 
 
   /// Wait until we have at least one completed global fetch stage
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void gmem_wait()
   {
     // Wait until we have at least one committed global fetch stage. (#uncommitted = Base::kStages - 1 - #committed)
-    nihilus_gemm::arch::cp_async_wait<Base::kStages - 2>();
+    cutlass::arch::cp_async_wait<Base::kStages - 2>();
     __syncthreads();
   }
 
 
   /// Perform a threadblock mainloop iteration of matrix multiply-accumulate
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void mac_loop_iter(
     PipeState &pipe_state,          ///< [in|out] loop-carried pipeline state
     FragmentC &accum,               ///< [in|out] destination accumulator tile
@@ -501,7 +501,7 @@ public:
     int &gemm_k_iterations)         ///< [in|out] number of threadblock mainloop iterations remaining
   {
     // Unroll the warp-level MMA tiles of a threadblock's mainloop iteration
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int warp_mma_k = 0; warp_mma_k < Base::kWarpGemmIterations; ++warp_mma_k) {
 
       // Load the next warp-tile's A fragment from shared memory
@@ -577,7 +577,7 @@ public:
           group_start_iteration_B);
 
         // Inserts a memory fence between stages of cp.async instructions.
-        nihilus_gemm::arch::cp_async_fence();
+        cutlass::arch::cp_async_fence();
 
         // Wait until we have at least one completed global fetch stage
         gmem_wait();
@@ -610,7 +610,7 @@ public:
 
   /// Perform the specified number of threadblock mainloop iterations of matrix
   /// multiply-accumulate.  Assumes prologue has been initiated.
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void gemm_iters(
       int gemm_k_iterations,        ///< number of threadblock mainloop iterations
       FragmentC &accum,             ///< [in|out] accumulator tile
@@ -645,7 +645,7 @@ public:
     }
 
     // Mainloop
-    NIHILUS_GEMM_LOOP
+    CUTLASS_GEMM_LOOP
     for (; gemm_k_iterations > (-Base::kStages + 1);) {
       mac_loop_iter(
         pipe_state,
@@ -661,15 +661,15 @@ public:
     }
 
     // Commit and drain all pending and predicated cp.async pnz from the GEMM mainloop
-    nihilus_gemm::arch::cp_async_fence();
-    nihilus_gemm::arch::cp_async_wait<0>();
+    cutlass::arch::cp_async_fence();
+    cutlass::arch::cp_async_wait<0>();
     __syncthreads();
 
   }
 
 
   /// Prepares the class for another prologue.
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void wind_down()
   {
     // Catch-up the smem-read iterator to the smem-write iterator (so this class can be reused for another tile's prologue)
@@ -688,7 +688,7 @@ public:
     smem_read_stage_idx_++;
 
     // Then wrap back two full stages (one for the tile advancing we just did, and one to catch the write iterators)
-    static constexpr int kStageIters = Policy::kPartitionsK * Base::kWarpGemmIterations;
+    static const int kStageIters = Policy::kPartitionsK * Base::kWarpGemmIterations;
     if (smem_read_stage_idx_ > 1)
     {
       this->warp_tile_iterator_A_.add_tile_offset({0, (-2 * kStageIters)});
@@ -704,7 +704,7 @@ public:
 
 
   /// Perform a threadblock-scoped matrix multiply-accumulate
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void operator()(
       ///< problem size of GEMM
       int gemm_k_iterations,
@@ -735,7 +735,7 @@ public:
 
 }  // namespace threadblock
 }  // namespace gemm
-}  // namespace nihilus_gemm
+}  // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 

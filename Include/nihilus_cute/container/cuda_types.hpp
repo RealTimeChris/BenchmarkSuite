@@ -31,9 +31,9 @@
 #pragma once
 
 #include <nihilus_cute/config.hpp>                     // CUTE_HOST_DEVICE, CUTE_GCC_UNREACHABLE
-#include <nihilus_cute/numeric/integral_constant.hpp>  // nihilus_cute::integral_constant
+#include <nihilus_cute/numeric/integral_constant.hpp>  // cute::integral_constant
 
-namespace nihilus_cute
+namespace cute
 {
 
 //
@@ -92,17 +92,17 @@ uint32_t&& get(dim3&& a)
 {
   static_assert(I < 3, "Index out of range");
   if constexpr (I == 0) {
-    return nihilus_cute::move(a.x);
+    return cute::move(a.x);
   } else if constexpr (I == 1) {
-    return nihilus_cute::move(a.y);
+    return cute::move(a.y);
   } else if constexpr (I == 2) {
-    return nihilus_cute::move(a.z);
+    return cute::move(a.z);
   }
 
   CUTE_GCC_UNREACHABLE;
 }
 
-// Specialize nihilus_cute::tuple-traits for external types
+// Specialize cute::tuple-traits for external types
 template <>
 struct tuple_size<dim3>
     : integral_constant<size_t, 3>
@@ -158,17 +158,17 @@ uint32_t&& get(uint3&& a)
 {
   static_assert(I < 3, "Index out of range");
   if constexpr (I == 0) {
-    return nihilus_cute::move(a.x);
+    return cute::move(a.x);
   } else if constexpr (I == 1) {
-    return nihilus_cute::move(a.y);
+    return cute::move(a.y);
   } else if constexpr (I == 2) {
-    return nihilus_cute::move(a.z);
+    return cute::move(a.z);
   }
 
   CUTE_GCC_UNREACHABLE;
 }
 
-// Specialize nihilus_cute::tuple-traits for external types
+// Specialize cute::tuple-traits for external types
 template <>
 struct tuple_size<uint3>
     : integral_constant<size_t, 3>
@@ -180,4 +180,4 @@ struct tuple_element<I, uint3>
   using type = uint32_t;
 };
 
-} // end namespace nihilus_cute
+} // end namespace cute

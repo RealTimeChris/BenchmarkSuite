@@ -34,12 +34,12 @@
 
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
+#include "nihilus_gemm/cutlass.h"
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/aligned_buffer.h"
 #include "nihilus_gemm/numeric_conversion.h"
 
-
+#include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/matrix_shape.h"
 
 #include "nihilus_gemm/gemm/gemm.h"
@@ -47,7 +47,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace gemm {
 namespace threadblock {
 
@@ -128,10 +128,10 @@ public:
   using ArchTag = typename Policy::Operator::ArchTag;
 
   /// Complex transform on A operand
-  static constexpr ComplexTransform kTransformA = Operator::kTransformA;
+  static ComplexTransform const kTransformA = Operator::kTransformA;
 
   /// Complex transform on B operand
-  static constexpr ComplexTransform kTransformB = Operator::kTransformB;
+  static ComplexTransform const kTransformB = Operator::kTransformB;
 
   // staticaly assert kStages for MmaPipelined is two (Double-buffered pipeline)
   static_assert((Base::kStages==2), "MmaPipelined requires kStages set to value 2");
@@ -163,7 +163,7 @@ protected:
 public:
 
   /// Construct from tensor references
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   MmaPipelined(
     typename Base::SharedStorage &shared_storage,       ///< Shared storage needed for internal use by threadblock-scoped GEMM
     int thread_idx,                                     ///< ID within the threadblock
@@ -199,7 +199,7 @@ public:
 
 
   /// Advance shared memory write-iterators to the next stage
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void advance_smem_write_stage()
   {
     ++this->smem_iterator_A_;
@@ -215,7 +215,7 @@ public:
   }
 
   /// Advance shared memory read- and write-iterators to the next stage
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void advance_smem_stages()
   {
     ++this->smem_iterator_A_;
@@ -242,7 +242,7 @@ public:
 
   /// GEMM prologue.  Bootstrap the global->shared memory pipeline by fetching
   /// the global fragments needed by the first kStages-1 threadblock mainloop iterations
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void prologue(
     IteratorA &iterator_A,      ///< [in|out] iterator over A operand in global memory
     IteratorB &iterator_B,      ///< [in|out] iterator over B operand in global memory
@@ -271,7 +271,7 @@ public:
   }
 
   /// Wait until we have at least one completed global fetch stage
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void gmem_wait()
   {
     __syncthreads();
@@ -280,7 +280,7 @@ public:
 
   /// Perform the specified number of threadblock mainloop iterations of matrix
   /// multiply-accumulate.  Assumes prologue has been initiated.
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void gemm_iters(
     int gemm_k_iterations,        ///< number of threadblock mainloop iterations
     FragmentC &accum,             ///< [in|out] accumulator tile
@@ -317,13 +317,13 @@ public:
     //
 
     // Note: The main loop does not support Base::kWarpGemmIterations == 2.
-    NIHILUS_GEMM_LOOP
+    CUTLASS_GEMM_LOOP
     for (; gemm_k_iterations > 0; --gemm_k_iterations) {
       //
       // Loop over GEMM K dimension
       //
 
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int warp_mma_k = 0; warp_mma_k < Base::kWarpGemmIterations; ++warp_mma_k) {
 
         // Load warp-level tiles from shared memory, wrapping to k offset if this is the last group
@@ -381,7 +381,7 @@ public:
 
 
   /// Prepares the class for another prologue.
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void wind_down()
   {
     // First, increment remaining warp tiles to catch it up with the write stage.
@@ -407,7 +407,7 @@ public:
   }
 
   /// Perform a threadblock-scoped matrix multiply-accumulate
-  NIHILUS_DEVICE
+  CUTLASS_DEVICE
   void operator()(
     int gemm_k_iterations,                            ///< number of iterations of the mainloop
     FragmentC &accum,                                 ///< destination accumulator tile
@@ -434,6 +434,6 @@ public:
 
 } // namespace threadblock
 } // namespace gemm
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

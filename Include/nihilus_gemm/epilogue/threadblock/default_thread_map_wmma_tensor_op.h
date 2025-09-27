@@ -41,7 +41,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace threadblock {
 
@@ -61,9 +61,9 @@ struct DefaultThreadMapWmmaTensorOp {
   using ThreadblockShape = ThreadblockShape_;
   using WarpShape = WarpShape_;
   using InstructionShape = InstructionShape_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static int const kPartitionsK = PartitionsK;
   using Element = Element_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
+  static int const kElementsPerAccess = ElementsPerAccess;
 
   //
   // Definitions
@@ -72,8 +72,8 @@ struct DefaultThreadMapWmmaTensorOp {
   struct Detail {
 
     /// Wmma Tensor Operations fundamentally perform operations on InstructionShape::kM rows
-    static constexpr int kTensorOpRows = InstructionShape::kM;
-    static constexpr int kWarpSize = 32;
+    static int const kTensorOpRows = InstructionShape::kM;
+    static int const kWarpSize = 32;
 
     static_assert(
       !(ThreadblockShape::kM % WarpShape::kM) &&
@@ -87,7 +87,7 @@ struct DefaultThreadMapWmmaTensorOp {
     >;
 
     /// Number of participating threads
-    static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+    static int const kThreads = WarpCount::kCount * kWarpSize;
   };
 
   //
@@ -108,6 +108,6 @@ struct DefaultThreadMapWmmaTensorOp {
 
 } // namespace threadblock
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////

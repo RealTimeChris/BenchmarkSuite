@@ -38,8 +38,8 @@
 
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
-
+#include "nihilus_gemm/cutlass.h"
+#include "nihilus_gemm/numeric_types.h"
 #include "nihilus_gemm/array.h"
 
 #include "nihilus_gemm/gemm/gemm.h"
@@ -70,7 +70,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace threadblock {
 
@@ -90,9 +90,9 @@ struct DefaultEpilogueVoltaTensorOp {
 
   using Shape = Shape_;
   using WarpMmaTensorOp = WarpMmaTensorOp_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static int const kPartitionsK = PartitionsK;
   using OutputOp = OutputOp_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
+  static int const kElementsPerAccess = ElementsPerAccess;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using LayoutC = typename WarpMmaTensorOp::LayoutC;
@@ -102,7 +102,7 @@ struct DefaultEpilogueVoltaTensorOp {
   // Thread map
   //
 
-  using OutputTileThreadMap = typename nihilus_gemm::epilogue::threadblock::DefaultThreadMapVoltaTensorOp<
+  using OutputTileThreadMap = typename cutlass::epilogue::threadblock::DefaultThreadMapVoltaTensorOp<
     Shape,
     typename WarpMmaTensorOp::Shape,
     kPartitionsK,
@@ -111,32 +111,32 @@ struct DefaultEpilogueVoltaTensorOp {
     ElementAccumulator
   >::Type;
 
-  using OutputTileIterator = nihilus_gemm::epilogue::threadblock::PredicatedTileIterator<
+  using OutputTileIterator = cutlass::epilogue::threadblock::PredicatedTileIterator<
     OutputTileThreadMap,
     ElementOutput,
     ScatterD,
     PermuteDLayout
   >;
 
-  using AccumulatorFragmentIterator = nihilus_gemm::epilogue::warp::FragmentIteratorVoltaTensorOp<
+  using AccumulatorFragmentIterator = cutlass::epilogue::warp::FragmentIteratorVoltaTensorOp<
     typename WarpMmaTensorOp::Shape,
     gemm::GemmShape<32, 32, 4>,
     ElementAccumulator,
     LayoutC
   >;
 
-  using WarpTileIterator = nihilus_gemm::epilogue::warp::TileIteratorVoltaTensorOp<
+  using WarpTileIterator = cutlass::epilogue::warp::TileIteratorVoltaTensorOp<
     typename WarpMmaTensorOp::Shape,
     gemm::GemmShape<32, 32, 4>,
     ElementAccumulator,
     LayoutC
   >;
 
-  static constexpr int kSharedMemAlignment = sizeof_bits<ElementAccumulator>::value * WarpTileIterator::kElementsPerAccess / 8;
+  static int const kSharedMemAlignment = sizeof_bits<ElementAccumulator>::value * WarpTileIterator::kElementsPerAccess / 8;
 
   static_assert(kSharedMemAlignment == 8, "Shared memory alignment must be 8B");
 
-  using SharedLoadIterator = nihilus_gemm::epilogue::threadblock::SharedLoadIterator<
+  using SharedLoadIterator = cutlass::epilogue::threadblock::SharedLoadIterator<
     typename OutputTileThreadMap::CompactedThreadMap,
     ElementAccumulator,
     kSharedMemAlignment
@@ -148,7 +148,7 @@ struct DefaultEpilogueVoltaTensorOp {
   //
   // Define the epilogue
   //
-  using Epilogue = nihilus_gemm::epilogue::threadblock::Epilogue<
+  using Epilogue = cutlass::epilogue::threadblock::Epilogue<
     Shape,
     WarpMmaTensorOp,
     kPartitionsK,
@@ -175,9 +175,9 @@ struct DefaultEpilogueVoltaTensorOpStridedDgrad {
 
   using Shape = Shape_;
   using WarpMmaTensorOp = WarpMmaTensorOp_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static int const kPartitionsK = PartitionsK;
   using OutputOp = OutputOp_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
+  static int const kElementsPerAccess = ElementsPerAccess;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using LayoutC = typename WarpMmaTensorOp::LayoutC;
@@ -187,7 +187,7 @@ struct DefaultEpilogueVoltaTensorOpStridedDgrad {
   // Thread map
   //
 
-  using OutputTileThreadMap = typename nihilus_gemm::epilogue::threadblock::DefaultThreadMapVoltaTensorOp<
+  using OutputTileThreadMap = typename cutlass::epilogue::threadblock::DefaultThreadMapVoltaTensorOp<
     Shape,
     typename WarpMmaTensorOp::Shape,
     kPartitionsK,
@@ -196,30 +196,30 @@ struct DefaultEpilogueVoltaTensorOpStridedDgrad {
     ElementAccumulator
   >::Type;
 
-  using OutputTileIterator = nihilus_gemm::epilogue::threadblock::PredicatedTileIteratorStridedDgrad<
+  using OutputTileIterator = cutlass::epilogue::threadblock::PredicatedTileIteratorStridedDgrad<
     OutputTileThreadMap,
     ElementOutput
   >;
 
-  using AccumulatorFragmentIterator = nihilus_gemm::epilogue::warp::FragmentIteratorVoltaTensorOp<
+  using AccumulatorFragmentIterator = cutlass::epilogue::warp::FragmentIteratorVoltaTensorOp<
     typename WarpMmaTensorOp::Shape,
     gemm::GemmShape<32, 32, 4>,
     ElementAccumulator,
     LayoutC
   >;
 
-  using WarpTileIterator = nihilus_gemm::epilogue::warp::TileIteratorVoltaTensorOp<
+  using WarpTileIterator = cutlass::epilogue::warp::TileIteratorVoltaTensorOp<
     typename WarpMmaTensorOp::Shape,
     gemm::GemmShape<32, 32, 4>,
     ElementAccumulator,
     LayoutC
   >;
 
-  static constexpr int kSharedMemAlignment = sizeof_bits<ElementAccumulator>::value * WarpTileIterator::kElementsPerAccess / 8;
+  static int const kSharedMemAlignment = sizeof_bits<ElementAccumulator>::value * WarpTileIterator::kElementsPerAccess / 8;
 
   static_assert(kSharedMemAlignment == 8, "Shared memory alignment must be 8B");
 
-  using SharedLoadIterator = nihilus_gemm::epilogue::threadblock::SharedLoadIterator<
+  using SharedLoadIterator = cutlass::epilogue::threadblock::SharedLoadIterator<
     typename OutputTileThreadMap::CompactedThreadMap,
     ElementAccumulator,
     kSharedMemAlignment
@@ -231,7 +231,7 @@ struct DefaultEpilogueVoltaTensorOpStridedDgrad {
   //
   // Define the epilogue
   //
-  using Epilogue = nihilus_gemm::epilogue::threadblock::Epilogue<
+  using Epilogue = cutlass::epilogue::threadblock::Epilogue<
     Shape,
     WarpMmaTensorOp,
     kPartitionsK,
@@ -259,9 +259,9 @@ struct DefaultEpilogueVoltaTensorOpAffineRankN {
 
   using Shape = Shape_;
   using WarpMmaTensorOp = WarpMmaTensorOp_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static int const kPartitionsK = PartitionsK;
   using OutputOp = OutputOp_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
+  static int const kElementsPerAccess = ElementsPerAccess;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using LayoutC = typename WarpMmaTensorOp::LayoutC;
@@ -271,7 +271,7 @@ struct DefaultEpilogueVoltaTensorOpAffineRankN {
   // Thread map
   //
 
-  using OutputTileThreadMap = typename nihilus_gemm::epilogue::threadblock::DefaultThreadMapVoltaTensorOp<
+  using OutputTileThreadMap = typename cutlass::epilogue::threadblock::DefaultThreadMapVoltaTensorOp<
     Shape,
     typename WarpMmaTensorOp::Shape,
     kPartitionsK,
@@ -280,31 +280,31 @@ struct DefaultEpilogueVoltaTensorOpAffineRankN {
     ElementAccumulator
   >::Type;
 
-  using OutputTileIterator = nihilus_gemm::epilogue::threadblock::PredicatedTileIteratorAffineRankN<
+  using OutputTileIterator = cutlass::epilogue::threadblock::PredicatedTileIteratorAffineRankN<
     OutputTileThreadMap,
     ElementOutput,
     Rank
   >;
 
-  using AccumulatorFragmentIterator = nihilus_gemm::epilogue::warp::FragmentIteratorVoltaTensorOp<
+  using AccumulatorFragmentIterator = cutlass::epilogue::warp::FragmentIteratorVoltaTensorOp<
     typename WarpMmaTensorOp::Shape,
     gemm::GemmShape<32, 32, 4>,
     ElementAccumulator,
     LayoutC
   >;
 
-  using WarpTileIterator = nihilus_gemm::epilogue::warp::TileIteratorVoltaTensorOp<
+  using WarpTileIterator = cutlass::epilogue::warp::TileIteratorVoltaTensorOp<
     typename WarpMmaTensorOp::Shape,
     gemm::GemmShape<32, 32, 4>,
     ElementAccumulator,
     LayoutC
   >;
 
-  static constexpr int kSharedMemAlignment = sizeof_bits<ElementAccumulator>::value * WarpTileIterator::kElementsPerAccess / 8;
+  static int const kSharedMemAlignment = sizeof_bits<ElementAccumulator>::value * WarpTileIterator::kElementsPerAccess / 8;
 
   static_assert(kSharedMemAlignment == 8, "Shared memory alignment must be 8B");
 
-  using SharedLoadIterator = nihilus_gemm::epilogue::threadblock::SharedLoadIterator<
+  using SharedLoadIterator = cutlass::epilogue::threadblock::SharedLoadIterator<
     typename OutputTileThreadMap::CompactedThreadMap,
     ElementAccumulator,
     kSharedMemAlignment
@@ -316,7 +316,7 @@ struct DefaultEpilogueVoltaTensorOpAffineRankN {
   //
   // Define the epilogue
   //
-  using Epilogue = nihilus_gemm::epilogue::threadblock::Epilogue<
+  using Epilogue = cutlass::epilogue::threadblock::Epilogue<
     Shape,
     WarpMmaTensorOp,
     kPartitionsK,
@@ -332,6 +332,6 @@ struct DefaultEpilogueVoltaTensorOpAffineRankN {
 /////////////////////////////////////////////////////////////////////////////////////////////////
 } // namespace threadblock
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

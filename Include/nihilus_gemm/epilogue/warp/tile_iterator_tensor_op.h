@@ -43,7 +43,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace epilogue {
 namespace warp {
 
@@ -97,14 +97,14 @@ public:
   //using AccumulatorTile = typename Operator::FragmentC;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static int const kIterations = Policy::kIterations;
 
   /// Number of times this iterator can be incremented
   using TileIterations = typename Policy::TileIterations;
 
   // Internal constants
   struct Detail {
-    static constexpr int kLanesInQuad = 4;
+    static int const kLanesInQuad = 4;
   };
 
   /// Padding quantity
@@ -133,11 +133,11 @@ private:
 public:
 
   /// Default constructor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOp(): pointer_(nullptr) { }
 
   /// Constructor from TensorRef
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOp(
     TensorRef const &ref,
     unsigned lane_id
@@ -156,14 +156,14 @@ public:
   }
 
   /// Adds a pointer offset
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOp & add_pointer_offset(Index pointer_offset) {
     pointer_ += pointer_offset / Policy::kElementsPerAccess;
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOp & add_tile_offset(TensorCoord const &tile_offset) {
 
     MatrixCoord coord_offset(
@@ -182,55 +182,55 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOp & operator+=(TensorCoord const &tile_offset) {
     add_tile_offset(tile_offset);
     return *this;
   }
 
   /// Store
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int n = 0; n < Policy::OperatorCount::kColumn; ++n) {
       pointer_[n * Detail::kLanesInQuad + pointer_offset / Policy::kElementsPerAccess] = frag_ptr[n];
     }
   }
 
   /// Store
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag) {
     store_with_pointer_offset(frag, 0);
   }
 
   /// Load
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
 
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int n = 0; n < Policy::OperatorCount::kColumn; ++n) {
       frag_ptr[n] = pointer_[n * Detail::kLanesInQuad + pointer_offset / Policy::kElementsPerAccess];
     }
   }
 
   /// Load
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load(Fragment &frag) const {
     load_with_pointer_offset(frag, 0);
   }
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOp & operator++() {
     return add_tile_offset({1, 0});
   }
   
   /// Set smem base address
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_smem_base_address(Index address) {
   }
 };
@@ -286,7 +286,7 @@ public:
 
   // Internal constants
   struct Detail {
-    static constexpr int kLanesInQuad = 4;
+    static int const kLanesInQuad = 4;
   };
 
   /// Padding quantity
@@ -315,11 +315,11 @@ private:
 public:
 
   /// Default constructor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOp(): pointer_(nullptr) { }
 
   /// Constructor from TensorRef
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOp(
     TensorRef const &ref,
     unsigned lane_id
@@ -338,14 +338,14 @@ public:
   }
 
   /// Adds a pointer offset
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOp & add_pointer_offset(Index pointer_offset) {
     pointer_ += pointer_offset / Policy::kElementsPerAccess;
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOp & add_tile_offset(TensorCoord const &tile_offset) {
 
     MatrixCoord coord_offset(
@@ -364,24 +364,24 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOp & operator+=(TensorCoord const &tile_offset) {
     add_tile_offset(tile_offset);
     return *this;
   }
 
   /// Store
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
       
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int n = 0; n < Policy::OperatorCount::kRow * Policy::kIterationsPerInstruction; n++ ) {
 
       AccessType *ptr = pointer_ + layout_({n * Policy::kRowsPerIteration, 0}) / Policy::kElementsPerAccess;
 
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int a = 0; a < Policy::kAccessPerIteration; ++a) {
         ptr[a + pointer_offset / Policy::kElementsPerAccess] = frag_ptr[n * Policy::kAccessPerIteration + a];
 
@@ -392,23 +392,23 @@ public:
   }
 
   /// Store
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag) {
     store_with_pointer_offset(frag, 0);
   }
 
   /// Load
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
 
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int n = 0; n < Policy::OperatorCount::kRow * Policy::kIterationsPerInstruction; n++ ) {
 
       AccessType *ptr = pointer_ + layout_({n * Policy::kRowsPerIteration, 0}) / Policy::kElementsPerAccess;
 
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int a = 0; a < Policy::kAccessPerIteration; ++a) {
         frag_ptr[n * Policy::kAccessPerIteration + a] = ptr[a + pointer_offset / Policy::kElementsPerAccess];
       }
@@ -416,18 +416,18 @@ public:
   }
 
   /// Load
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load(Fragment &frag) const {
     load_with_pointer_offset(frag, 0);
   }
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOp & operator++() {
     return add_tile_offset({0, 1});
   }
 
   /// Set smem base address
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_smem_base_address(Index address) {
   }
 };
@@ -457,8 +457,8 @@ public:
 
   using Policy = TensorOpPolicy<WarpShape, OperatorShape, Layout>;
 
-  static constexpr int kAccessSize = 1;
-  static constexpr int kAccessCount = Policy::kElementsPerAccess / kAccessSize;
+  static int const kAccessSize = 1;
+  static int const kAccessCount = Policy::kElementsPerAccess / kAccessSize;
 
   /// Shape of the tile in memory
   using Shape = MatrixShape<
@@ -475,11 +475,11 @@ public:
   //using AccumulatorTile = typename Operator::FragmentC;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static int const kIterations = Policy::kIterations;
 
   // Internal constants
   struct Detail {
-    static constexpr int kLanesInQuad = 4;
+    static int const kLanesInQuad = 4;
   };
 
   /// Padding quantity
@@ -514,11 +514,11 @@ private:
 public:
 
   /// Default constructor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpCanonical(): pointer_(nullptr) { }
 
   /// Constructor from TensorRef
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpCanonical(
     TensorRef const &ref,
     unsigned lane_id
@@ -539,7 +539,7 @@ public:
   }
 
   /// Constructor from TensorRef
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpCanonical(
     TensorRef const &ref,
     TensorCoord const &extent,
@@ -561,14 +561,14 @@ public:
   }
 
   /// Adds a pointer offset
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpCanonical & add_pointer_offset(Index pointer_offset) {
     pointer_ += pointer_offset;
     return *this;
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpCanonical & add_tile_offset(TensorCoord const &tile_offset) {
 
     MatrixCoord coord_offset(
@@ -587,21 +587,21 @@ public:
   }
 
   ///< advances in units of whole tiles along the logical coordinate space of the tensor
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpCanonical & operator+=(TensorCoord const &tile_offset) {
     add_tile_offset(tile_offset);
     return *this;
   }
 
   /// Store
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int n = 0; n < Policy::OperatorCount::kColumn; ++n) {
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int a = 0; a < kAccessCount; ++a) {
 
         int ptr_idx = n * Detail::kLanesInQuad * kAccessCount + pointer_offset + a;
@@ -617,20 +617,20 @@ public:
   }
 
   /// Store
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void store(Fragment const &frag) {
     store_with_pointer_offset(frag, 0);
   }
 
   /// Load
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
 
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
     
-    NIHILUS_PRAGMA_UNROLL
+    CUTLASS_PRAGMA_UNROLL
     for (int n = 0; n < Policy::OperatorCount::kColumn; ++n) {
-      NIHILUS_PRAGMA_UNROLL
+      CUTLASS_PRAGMA_UNROLL
       for (int a = 0; a < kAccessCount; ++a) {
 
         int ptr_idx = n * Detail::kLanesInQuad * kAccessCount + pointer_offset + a;
@@ -646,18 +646,18 @@ public:
   }
 
   /// Load
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void load(Fragment &frag) const {
     load_with_pointer_offset(frag, 0);
   }
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   TileIteratorTensorOpCanonical & operator++() {
     return add_tile_offset({1, 0});
   }
   
   /// Set smem base address
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   void set_smem_base_address(Index address) {
   }
 };
@@ -666,6 +666,6 @@ public:
 
 } // namespace warp
 } // namespace epilogue
-} // namespace nihilus_gemm
+} // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

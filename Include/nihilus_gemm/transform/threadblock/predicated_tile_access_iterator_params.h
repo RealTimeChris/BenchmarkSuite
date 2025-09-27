@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
+#include "nihilus_gemm/cutlass.h"
 #include "nihilus_gemm/array.h"
 #include "nihilus_gemm/detail/helper_macros.hpp"
 #include "nihilus_gemm/layout/matrix.h"
@@ -42,7 +42,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 namespace transform {
 namespace threadblock {
 
@@ -63,7 +63,7 @@ struct PredicatedTileAccessIteratorDesc {
 
   PredicatedTileAccessIteratorDesc() = default;
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIteratorDesc(
     int element_size_bits_,
     int advance_rank_,
@@ -104,7 +104,7 @@ template <
 struct MakePredicatedTileAccessIteratorDesc <
     Shape, Element, layout::PitchLinear, AdvanceRank, ThreadMap> {
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIteratorDesc operator()() {
 
     return PredicatedTileAccessIteratorDesc(
@@ -126,13 +126,13 @@ template <
 struct MakePredicatedTileAccessIteratorDesc <
     Shape, Element, layout::ColumnMajor, AdvanceRank, ThreadMap> {
 
-  static constexpr int kAdvanceRank = AdvanceRank;
+  static int const kAdvanceRank = AdvanceRank;
 
   using UnderlyingMakeOperator = MakePredicatedTileAccessIteratorDesc<
       layout::PitchLinearShape<Shape::kRow, Shape::kColumn>, Element,
       layout::PitchLinear, (kAdvanceRank == 0 ? 0 : 1), ThreadMap>;
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIteratorDesc operator()() {
 
     return UnderlyingMakeOperator()();
@@ -148,13 +148,13 @@ template <
 struct MakePredicatedTileAccessIteratorDesc <
     Shape, Element, layout::RowMajor, AdvanceRank, ThreadMap> {
 
-  static constexpr int kAdvanceRank = AdvanceRank;
+  static int const kAdvanceRank = AdvanceRank;
 
   using UnderlyingMakeOperator = MakePredicatedTileAccessIteratorDesc<
       layout::PitchLinearShape<Shape::kColumn, Shape::kRow>, Element,
       layout::PitchLinear, (kAdvanceRank == 0 ? 1 : 0), ThreadMap>;
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIteratorDesc operator()() {
 
     return UnderlyingMakeOperator()();
@@ -170,14 +170,14 @@ template <
 struct MakePredicatedTileAccessIteratorDesc <
     Shape, Element, layout::ColumnMajorInterleaved<InterleavedK>, AdvanceRank, ThreadMap> {
 
-  static constexpr int kAdvanceRank = AdvanceRank;
-  static constexpr int kInterleavedK = InterleavedK;
+  static int const kAdvanceRank = AdvanceRank;
+  static int const kInterleavedK = InterleavedK;
 
   using UnderlyingMakeOperator = MakePredicatedTileAccessIteratorDesc<
       layout::PitchLinearShape<Shape::kRow * kInterleavedK, Shape::kColumn / kInterleavedK>, Element,
       layout::PitchLinear, (kAdvanceRank == 0 ? 0 : 1), ThreadMap>;
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIteratorDesc operator()() {
 
     return UnderlyingMakeOperator()();
@@ -193,14 +193,14 @@ template <
 struct MakePredicatedTileAccessIteratorDesc <
     Shape, Element, layout::RowMajorInterleaved<InterleavedK>, AdvanceRank, ThreadMap> {
 
-  static constexpr int kAdvanceRank = AdvanceRank;
-  static constexpr int kInterleavedK = InterleavedK;
+  static int const kAdvanceRank = AdvanceRank;
+  static int const kInterleavedK = InterleavedK;
 
   using UnderlyingMakeOperator = MakePredicatedTileAccessIteratorDesc<
       layout::PitchLinearShape<Shape::kColumn * kInterleavedK, Shape::kRow / kInterleavedK>, Element,
       layout::PitchLinear, (kAdvanceRank == 0 ? 1 : 0), ThreadMap>;
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIteratorDesc operator()() {
 
     return UnderlyingMakeOperator()();
@@ -237,10 +237,10 @@ struct PredicatedTileAccessIteratorParams {
   // Methods
   //
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Status initialize(LongIndex stride, PredicatedTileAccessIteratorDesc desc) {
-    NIHILUS_ASSERT(desc.element_size_bits > 0);
-    NIHILUS_ASSERT(desc.advance_rank == 0 || desc.advance_rank == 1);
+    CUTLASS_ASSERT(desc.element_size_bits > 0);
+    CUTLASS_ASSERT(desc.advance_rank == 0 || desc.advance_rank == 1);
 
     stride_ = stride;
 
@@ -263,19 +263,19 @@ struct PredicatedTileAccessIteratorParams {
     return Status::kSuccess;
   }
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   Status initialize(Index stride, PredicatedTileAccessIteratorDesc desc) {
     return initialize(LongIndex(stride), desc);
   }
 
   PredicatedTileAccessIteratorParams() = default;
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIteratorParams(Index stride, PredicatedTileAccessIteratorDesc desc) {
     initialize(stride, desc);
   }
 
-  NIHILUS_HOST_DEVICE
+  CUTLASS_HOST_DEVICE
   PredicatedTileAccessIteratorParams(LongIndex stride, PredicatedTileAccessIteratorDesc desc) {
     initialize(stride, desc);
   }
@@ -285,6 +285,6 @@ struct PredicatedTileAccessIteratorParams {
 
 }  // namespace threadblock
 }  // namespace transform
-}  // namespace nihilus_gemm
+}  // namespace cutlass
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -30,42 +30,69 @@
  **************************************************************************************************/
 /*!
     \file
-    \brief Top-level include for all NIHILUS numeric types.
+    \brief Top-level include for all CUTLASS numeric types.
 */
 
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
+#include "nihilus_gemm/cutlass.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace nihilus_gemm {
+namespace cutlass {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////
 
-	/// Defines the size of an element in bits
-	template<typename T> struct sizeof_bits {
-		static constexpr int value = int(sizeof(T) * 8);
-	};
+/// Defines the size of an element in bits
+template <typename T>
+struct sizeof_bits {
+  static constexpr int value = int(sizeof(T) * 8);
+};
 
-	template<typename T> struct sizeof_bits<T const> : sizeof_bits<T> {};
+template <typename T>
+struct sizeof_bits<T const> : sizeof_bits<T> {};
 
-	template<typename T> struct sizeof_bits<T volatile> : sizeof_bits<T> {};
+template <typename T>
+struct sizeof_bits<T volatile> : sizeof_bits<T> {};
 
-	template<typename T> struct sizeof_bits<T const volatile> : sizeof_bits<T> {};
+template <typename T>
+struct sizeof_bits<T const volatile> : sizeof_bits<T> {};
 
-	template<> struct sizeof_bits<void> {
-		static constexpr int value = 0;
-	};
+template <>
+struct sizeof_bits<void> {
+  static constexpr int value = 0;
+};
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////
 
-	template<class T> struct is_subbyte {
-		static constexpr bool value = sizeof_bits<T>::value < 8;
-	};
+/// Returns the number of bytes required to hold a specified number of bits
+template <class R = int, class T>
+CUTLASS_HOST_DEVICE
+constexpr
+R
+bits_to_bytes(T bits) {
+  return (R(bits) + R(7)) / R(8);
+}
 
-	template<class T> struct is_subbyte<T const> : is_subbyte<T> {};
+/// Returns the number of bits required to hold a specified number of bytes
+template <class R = int, class T>
+CUTLASS_HOST_DEVICE
+constexpr
+R
+bytes_to_bits(T bytes) {
+  return R(bytes) * R(8);
+}
 
-}// namespace nihilus_gemm
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <class T>
+struct is_subbyte {
+  static constexpr bool value = sizeof_bits<T>::value < 8;
+};
+
+template <class T>
+struct is_subbyte<T const> : is_subbyte<T> {};
+
+}  // namespace cutlass
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

@@ -30,137 +30,165 @@
  **************************************************************************************************/
 #pragma once
 
-#include <nihilus_cute/config.hpp>// CUTE_INLINE_CONSTANT, CUTE_HOST_DEVICE
-#include <nihilus_cute/container/tuple.hpp>// nihilus_cute::is_tuple
-#include <nihilus_cute/numeric/integral_constant.hpp>// nihilus_cute::false_type, nihilus_cute::true_type
+#include <nihilus_cute/config.hpp>                     // CUTE_INLINE_CONSTANT, CUTE_HOST_DEVICE
+#include <nihilus_cute/container/tuple.hpp>            // cute::is_tuple
+#include <nihilus_cute/numeric/integral_constant.hpp>  // cute::false_type, cute::true_type
 
-namespace nihilus_cute {
+namespace cute
+{
 
-	// For slicing
-	struct Underscore : Int<0> {};
+// For slicing
+struct Underscore : Int<0> {};
 
-	CUTE_INLINE_CONSTANT Underscore _;
+CUTE_INLINE_CONSTANT Underscore _;
 
-	// Convenient alias
-	using X = Underscore;
+// Convenient alias
+using X = Underscore;
 
-	// Treat Underscore as an integral like integral_constant
-	template<> struct is_integral<Underscore> : true_type {};
+// Treat Underscore as an integral like integral_constant
+template <>
+struct is_integral<Underscore> : true_type {};
 
-	template<class T> struct is_underscore : false_type {};
-	template<> struct is_underscore<Underscore> : true_type {};
+template <class T>
+struct is_underscore : false_type {};
+template <>
+struct is_underscore<Underscore> : true_type {};
 
-	// Tuple trait for detecting static member element
-	template<class Tuple, class Elem, class Enable = void> struct has_elem : false_type {};
-	template<class Elem> struct has_elem<Elem, Elem> : true_type {};
-	template<class Tuple, class Elem> struct has_elem<Tuple, Elem, enable_if_t<is_tuple<Tuple>::value>> : has_elem<Tuple, Elem, tuple_seq<Tuple>> {};
-	template<class Tuple, class Elem, int... Is> struct has_elem<Tuple, Elem, seq<Is...>> : disjunction<has_elem<tuple_element_t<Is, Tuple>, Elem>...> {};
+// Tuple trait for detecting static member element
+template <class Tuple, class Elem, class Enable = void>
+struct has_elem : false_type {};
+template <class Elem>
+struct has_elem<Elem, Elem> : true_type {};
+template <class Tuple, class Elem>
+struct has_elem<Tuple, Elem, enable_if_t<is_tuple<Tuple>::value> >
+    : has_elem<Tuple, Elem, tuple_seq<Tuple> > {};
+template <class Tuple, class Elem, int... Is>
+struct has_elem<Tuple, Elem, seq<Is...>>
+    : disjunction<has_elem<tuple_element_t<Is, Tuple>, Elem>...> {};
 
-	// Tuple trait for detecting static member element
-	template<class Tuple, class Elem, class Enable = void> struct all_elem : false_type {};
-	template<class Elem> struct all_elem<Elem, Elem> : true_type {};
-	template<class Tuple, class Elem> struct all_elem<Tuple, Elem, enable_if_t<is_tuple<Tuple>::value>> : all_elem<Tuple, Elem, tuple_seq<Tuple>> {};
-	template<class Tuple, class Elem, int... Is> struct all_elem<Tuple, Elem, seq<Is...>> : conjunction<all_elem<tuple_element_t<Is, Tuple>, Elem>...> {};
+// Tuple trait for detecting static member element
+template <class Tuple, class Elem, class Enable = void>
+struct all_elem : false_type {};
+template <class Elem>
+struct all_elem<Elem, Elem> : true_type {};
+template <class Tuple, class Elem>
+struct all_elem<Tuple, Elem, enable_if_t<is_tuple<Tuple>::value> >
+    : all_elem<Tuple, Elem, tuple_seq<Tuple> > {};
+template <class Tuple, class Elem, int... Is>
+struct all_elem<Tuple, Elem, seq<Is...>>
+    : conjunction<all_elem<tuple_element_t<Is, Tuple>, Elem>...> {};
 
-	// Tuple trait for detecting Underscore member
-	template<class Tuple> using has_underscore = has_elem<Tuple, Underscore>;
+// Tuple trait for detecting Underscore member
+template <class Tuple>
+using has_underscore = has_elem<Tuple, Underscore>;
 
-	template<class Tuple> using all_underscore = all_elem<Tuple, Underscore>;
+template <class Tuple>
+using all_underscore = all_elem<Tuple, Underscore>;
 
-	template<class Tuple> using has_int1 = has_elem<Tuple, Int<1>>;
+template <class Tuple>
+using has_int1 = has_elem<Tuple, Int<1>>;
 
-	template<class Tuple> using has_int0 = has_elem<Tuple, Int<0>>;
+template <class Tuple>
+using has_int0 = has_elem<Tuple, Int<0>>;
 
-	//
-	// Slice keeps only the elements of Tuple B that are paired with an Underscore
-	//
+//
+// Slice keeps only the elements of Tuple B that are paired with an Underscore
+//
 
-	namespace detail {
+namespace detail {
 
-		template<class A, class B> CUTE_HOST_DEVICE constexpr auto lift_slice(A const& a, B const& b) {
-			if constexpr (is_tuple<A>::value) {
-				static_assert(tuple_size<A>::value == tuple_size<B>::value, "Mismatched Ranks");
-				return filter_tuple(a, b, [](auto const& x, auto const& y) {
-					return lift_slice(x, y);
-				});
-			} else if constexpr (is_underscore<A>::value) {
-				return nihilus_cute::tuple<B>{ b };
-			} else {
-				return nihilus_cute::tuple<>{};
-			}
+template <class A, class B>
+CUTE_HOST_DEVICE constexpr
+auto
+lift_slice(A const& a, B const& b)
+{
+  if constexpr (is_tuple<A>::value) {
+    static_assert(tuple_size<A>::value == tuple_size<B>::value, "Mismatched Ranks");
+    return filter_tuple(a, b, [](auto const& x, auto const& y) { return lift_slice(x,y); });
+  } else if constexpr (is_underscore<A>::value) {
+    return cute::tuple<B>{b};
+  } else {
+    return cute::tuple<>{};
+  }
 
-			CUTE_GCC_UNREACHABLE;
-		}
+  CUTE_GCC_UNREACHABLE;
+}
 
-	}// end namespace detail
+} // end namespace detail
 
-	// Entry point overrides the lifting so that slice(_,b) == b
-	template<class A, class B> CUTE_HOST_DEVICE constexpr auto slice(A const& a, B const& b) {
-		if constexpr (is_tuple<A>::value) {
-			static_assert(tuple_size<A>::value == tuple_size<B>::value, "Mismatched Ranks");
-			return filter_tuple(a, b, [](auto const& x, auto const& y) {
-				return detail::lift_slice(x, y);
-			});
-		} else if constexpr (is_underscore<A>::value) {
-			return b;
-		} else {
-			return nihilus_cute::tuple<>{};
-		}
+// Entry point overrides the lifting so that slice(_,b) == b
+template <class A, class B>
+CUTE_HOST_DEVICE constexpr
+auto
+slice(A const& a, B const& b)
+{
+  if constexpr (is_tuple<A>::value) {
+    static_assert(tuple_size<A>::value == tuple_size<B>::value, "Mismatched Ranks");
+    return filter_tuple(a, b, [](auto const& x, auto const& y) { return detail::lift_slice(x,y); });
+  } else if constexpr (is_underscore<A>::value) {
+    return b;
+  } else {
+    return cute::tuple<>{};
+  }
 
-		CUTE_GCC_UNREACHABLE;
-	}
+  CUTE_GCC_UNREACHABLE;
+}
 
-	//
-	// Dice keeps only the elements of Tuple B that are paired with an Int
-	//
+//
+// Dice keeps only the elements of Tuple B that are paired with an Int
+//
 
-	namespace detail {
+namespace detail {
 
-		template<class A, class B> CUTE_HOST_DEVICE constexpr auto lift_dice(A const& a, B const& b) {
-			if constexpr (is_tuple<A>::value) {
-				static_assert(tuple_size<A>::value == tuple_size<B>::value, "Mismatched Ranks");
-				return filter_tuple(a, b, [](auto const& x, auto const& y) {
-					return lift_dice(x, y);
-				});
-			} else if constexpr (is_underscore<A>::value) {
-				return nihilus_cute::tuple<>{};
-			} else {
-				return nihilus_cute::tuple<B>{ b };
-			}
+template <class A, class B>
+CUTE_HOST_DEVICE constexpr
+auto
+lift_dice(A const& a, B const& b)
+{
+  if constexpr (is_tuple<A>::value) {
+    static_assert(tuple_size<A>::value == tuple_size<B>::value, "Mismatched Ranks");
+    return filter_tuple(a, b, [](auto const& x, auto const& y) { return lift_dice(x,y); });
+  } else if constexpr (is_underscore<A>::value) {
+    return cute::tuple<>{};
+  } else {
+    return cute::tuple<B>{b};
+  }
 
-			CUTE_GCC_UNREACHABLE;
-		}
+  CUTE_GCC_UNREACHABLE;
+}
 
-	}// end namespace detail
+} // end namespace detail
 
-	// Entry point overrides the lifting so that dice(1,b) == b
-	template<class A, class B> CUTE_HOST_DEVICE constexpr auto dice(A const& a, B const& b) {
-		if constexpr (is_tuple<A>::value) {
-			static_assert(tuple_size<A>::value == tuple_size<B>::value, "Mismatched Ranks");
-			return filter_tuple(a, b, [](auto const& x, auto const& y) {
-				return detail::lift_dice(x, y);
-			});
-		} else if constexpr (is_underscore<A>::value) {
-			return nihilus_cute::tuple<>{};
-		} else {
-			return b;
-		}
+// Entry point overrides the lifting so that dice(1,b) == b
+template <class A, class B>
+CUTE_HOST_DEVICE constexpr
+auto
+dice(A const& a, B const& b)
+{
+  if constexpr (is_tuple<A>::value) {
+    static_assert(tuple_size<A>::value == tuple_size<B>::value, "Mismatched Ranks");
+    return filter_tuple(a, b, [](auto const& x, auto const& y) { return detail::lift_dice(x,y); });
+  } else if constexpr (is_underscore<A>::value) {
+    return cute::tuple<>{};
+  } else {
+    return b;
+  }
 
-		CUTE_GCC_UNREACHABLE;
-	}
+  CUTE_GCC_UNREACHABLE;
+}
 
-	//
-	// Display utilities
-	//
+//
+// Display utilities
+//
 
-	CUTE_HOST_DEVICE void print(Underscore const&) {
-		printf("_");
-	}
+CUTE_HOST_DEVICE void print(Underscore const&) {
+  printf("_");
+}
 
 #if !defined(__CUDACC_RTC__)
-	CUTE_HOST std::ostream& operator<<(std::ostream& os, Underscore const&) {
-		return os << "_";
-	}
+CUTE_HOST std::ostream& operator<<(std::ostream& os, Underscore const&) {
+  return os << "_";
+}
 #endif
 
-}// end namespace nihilus_cute
+} // end namespace cute

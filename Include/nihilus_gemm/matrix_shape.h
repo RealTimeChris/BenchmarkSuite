@@ -33,32 +33,33 @@
 */
 #pragma once
 
-#include "nihilus_gemm/nihilus_gemm.h"
+#include "nihilus_gemm/cutlass.h"
 #include "nihilus_gemm/coord.h"
 
-namespace nihilus_gemm {
+namespace cutlass {
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////
 
-	/// Describes the size of a matrix tile
-	template<int Row_,///< rows of a matrix
-		int Column_///< columns of a matrix
-		>
-	struct MatrixShape {
-		static constexpr int kRow	 = Row_;///< rows of a matrix
-		static constexpr int kColumn = Column_;///< columns of a matrix
-		static constexpr int kCount	 = Row_ * Column_;///< total number of elements in a matrix
+/// Describes the size of a matrix tile
+template <
+  int Row_,     ///< rows of a matrix
+  int Column_      ///< columns of a matrix
+>
+struct MatrixShape {
+  static int const kRow = Row_;           ///< rows of a matrix
+  static int const kColumn = Column_;           ///< columns of a matrix
+  static int const kCount = Row_ * Column_;  ///< total number of elements in a matrix
 
-		//
-		// Static member functions
-		//
+  //
+  // Static member functions
+  //
 
-		NIHILUS_HOST_DEVICE
-		static Coord<2> toCoord() {
-			return make_Coord(kRow, kColumn);
-		}
-	};
+  CUTLASS_HOST_DEVICE
+  static Coord<2> toCoord() {
+    return make_Coord(kRow, kColumn);
+  }
+};
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////
 
-}// namespace nihilus_gemm
+} // namespace cutlass
