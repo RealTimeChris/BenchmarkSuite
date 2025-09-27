@@ -35,7 +35,7 @@
 #include <nihilus_cute/arch/util.hpp>
 #include <nihilus_cute/numeric/numeric_types.hpp>
 
-namespace cute
+namespace nihilus_cute
 {
 
 //
@@ -104,4 +104,4 @@ prefetch(void const* gmem_ptr)
 #endif
 }
 
-} // end namespace cute
+} // end namespace nihilus_cute

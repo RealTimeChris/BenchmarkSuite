@@ -84,7 +84,7 @@ struct ThreadblockSwizzleStreamK {
                 //       SK-blocks per SK-tile)
   };
 
-  static ReductionStrategy const kReductionStrategy = kMixed;
+  static constexpr ReductionStrategy kReductionStrategy = kMixed;
 
 
   //
@@ -95,20 +95,20 @@ struct ThreadblockSwizzleStreamK {
   static float constexpr kDpEfficiencyThreshold = 0.92f;
 
   /// Minimum number of MAC-iterations per streamk block
-  static int const kMinItersPerSkBlock = 2;
+  static constexpr int kMinItersPerSkBlock = 2;
 
   /// Height in CTAs of a grid rasterization cohort
-  static int const kCohortCtasM = 8;
+  static constexpr int kCohortCtasM = 8;
 
   /// Width in CTAs of a grid rasterization cohort
-  static int const kCohortCtasN = 4;
+  static constexpr int kCohortCtasN = 4;
 
   /// Number of CTAs per cohort
-  static int const kCtasPerCohort = kCohortCtasN * kCohortCtasM;
+  static constexpr int kCtasPerCohort = kCohortCtasN * kCohortCtasM;
 
   /// Cost-equivalent number of SM-iterations for fixup I/O
-  static int const kFixupStartupIterEquiv = 10;
-  static int const kFixupPeerIterEquiv = 3;
+  static constexpr int kFixupStartupIterEquiv = 10;
+  static constexpr int kFixupPeerIterEquiv = 3;
 
 
   //

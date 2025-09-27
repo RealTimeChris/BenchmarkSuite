@@ -284,20 +284,20 @@ namespace std {
 /// Numeric limits
 template <>
 struct numeric_limits<cutlass::tfloat32_t> {
-  static bool const is_specialized = true;
-  static bool const is_signed = true;
-  static bool const is_integer = false;
-  static bool const is_exact = false;
-  static bool const has_infinity = true;
-  static bool const has_quiet_NaN = true;
-  static bool const has_signaling_NaN = false;
+  static constexpr bool is_specialized = true;
+  static constexpr bool is_signed = true;
+  static constexpr bool is_integer = false;
+  static constexpr bool is_exact = false;
+  static constexpr bool has_infinity = true;
+  static constexpr bool has_quiet_NaN = true;
+  static constexpr bool has_signaling_NaN = false;
   static std::float_denorm_style const has_denorm = std::denorm_present;
-  static bool const has_denorm_loss = true;
+  static constexpr bool has_denorm_loss = true;
   static std::float_round_style const round_style = std::round_to_nearest;
-  static bool const is_iec559 = false;
-  static bool const is_bounded = true;
-  static bool const is_modulo = false;
-  static int const digits = 19;
+  static constexpr bool is_iec559 = false;
+  static constexpr bool is_bounded = true;
+  static constexpr bool is_modulo = false;
+  static constexpr int digits = 19;
 
   /// Least positive value
   static cutlass::tfloat32_t min() { return cutlass::tfloat32_t::bitcast(0x01); }

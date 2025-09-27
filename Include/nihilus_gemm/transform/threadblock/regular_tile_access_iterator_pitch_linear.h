@@ -75,8 +75,8 @@ class RegularTileAccessIterator<
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::PitchLinear;
-  static int const kAdvanceRank = AdvanceRank;
-  static int const kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -230,8 +230,8 @@ class RegularTileAccessIterator<
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::ColumnMajor;
-  static int const kAdvanceRank = AdvanceRank;
-  static int const kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -327,8 +327,8 @@ class RegularTileAccessIterator<
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::RowMajor;
-  static int const kAdvanceRank = AdvanceRank;
-  static int const kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;

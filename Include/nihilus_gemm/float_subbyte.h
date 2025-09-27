@@ -480,9 +480,9 @@ struct sizeof_bits<type_erased_dynamic_float4_t> {
 template <class F6Type>
 struct mx_float6_t
 {
-  static_assert(cute::is_same_v<F6Type,cutlass::float_e2m3_t>
-                || cute::is_same_v<F6Type,cutlass::float_e3m2_t>
-                || cute::is_same_v<F6Type,type_erased_dynamic_float6_t>
+  static_assert(nihilus_cute::is_same_v<F6Type,cutlass::float_e2m3_t>
+                || nihilus_cute::is_same_v<F6Type,cutlass::float_e3m2_t>
+                || nihilus_cute::is_same_v<F6Type,type_erased_dynamic_float6_t>
                 , "Only float_e2m3_t, float_e3m2_t can have scale factors for MXFP6");
   using ScaleFactorType = cutlass::float_ue8m0_t;
   using DataType = F6Type;
@@ -493,8 +493,8 @@ using type_erased_dynamic_mx_float6_t = mx_float6_t<type_erased_dynamic_float6_t
 template <class F4Type>
 struct mx_float4_t
 {
-  static_assert(cute::is_same_v<F4Type,cutlass::float_e2m1_t>
-                || cute::is_same_v<F4Type,type_erased_dynamic_float4_t>
+  static_assert(nihilus_cute::is_same_v<F4Type,cutlass::float_e2m1_t>
+                || nihilus_cute::is_same_v<F4Type,type_erased_dynamic_float4_t>
                 , "Only float_e2m1_t type_erased_dynamic_float4_t can have scale factors for MXFP4");
   using ScaleFactorType = cutlass::float_ue8m0_t;
   using DataType = F4Type;
@@ -505,8 +505,8 @@ using type_erased_dynamic_mx_float4_t = mx_float4_t<type_erased_dynamic_float4_t
 template <class F4Type>
 struct nv_float4_t
 {
-  static_assert(cute::is_same_v<F4Type,cutlass::float_e2m1_t>
-                || cute::is_same_v<F4Type,type_erased_dynamic_float4_t>
+  static_assert(nihilus_cute::is_same_v<F4Type,cutlass::float_e2m1_t>
+                || nihilus_cute::is_same_v<F4Type,type_erased_dynamic_float4_t>
                 , "Only float_e2m1_t type_erased_dynamic_float4_t can have scale factors for NVFP4");
   using ScaleFactorType = cutlass::float_ue4m3_t;
   using DataType = F4Type;
@@ -571,20 +571,20 @@ private:
   using type = T;
 
 public:
-  static bool const is_specialized = true;
-  static bool const is_signed = true;
-  static bool const is_integer = false;
-  static bool const is_exact = false;
-  static bool const has_quiet_NaN = false;
-  static bool const has_signaling_NaN = false;
-  static bool const has_denorm_loss = true;
+  static constexpr bool is_specialized = true;
+  static constexpr bool is_signed = true;
+  static constexpr bool is_integer = false;
+  static constexpr bool is_exact = false;
+  static constexpr bool has_quiet_NaN = false;
+  static constexpr bool has_signaling_NaN = false;
+  static constexpr bool has_denorm_loss = true;
   static cutlass::platform::float_denorm_style const has_denorm = cutlass::platform::denorm_present;
   static cutlass::platform::float_round_style const round_style = cutlass::platform::round_to_nearest;
-  static bool const is_iec559 = false;
-  static bool const is_bounded = true;
-  static bool const is_modulo = false;
-  static int const digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
-  static bool const has_infinity = false;
+  static constexpr bool is_iec559 = false;
+  static constexpr bool is_bounded = true;
+  static constexpr bool is_modulo = false;
+  static constexpr int digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
+  static constexpr bool has_infinity = false;
 
   /// Least positive value
   static type min() { return type::bitcast(0x01); }
@@ -654,20 +654,20 @@ private:
   using type = T;
 
 public:
-  static bool const is_specialized = true;
-  static bool const is_signed = true;
-  static bool const is_integer = false;
-  static bool const is_exact = false;
-  static bool const has_quiet_NaN = false;
-  static bool const has_signaling_NaN = false;
-  static bool const has_denorm_loss = true;
+  static constexpr bool is_specialized = true;
+  static constexpr bool is_signed = true;
+  static constexpr bool is_integer = false;
+  static constexpr bool is_exact = false;
+  static constexpr bool has_quiet_NaN = false;
+  static constexpr bool has_signaling_NaN = false;
+  static constexpr bool has_denorm_loss = true;
   static cutlass::platform::float_denorm_style const has_denorm = cutlass::platform::denorm_present;
   static cutlass::platform::float_round_style const round_style = cutlass::platform::round_to_nearest;
-  static bool const is_iec559 = false;
-  static bool const is_bounded = true;
-  static bool const is_modulo = false;
-  static int const digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
-  static bool const has_infinity = false;
+  static constexpr bool is_iec559 = false;
+  static constexpr bool is_bounded = true;
+  static constexpr bool is_modulo = false;
+  static constexpr int digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
+  static constexpr bool has_infinity = false;
 
   /// Least positive value
   static type min() { return type::bitcast(0x01); }

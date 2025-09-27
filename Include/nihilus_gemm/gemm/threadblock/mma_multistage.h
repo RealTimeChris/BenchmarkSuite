@@ -126,38 +126,38 @@ public:
   using ArchTag = arch::Sm80;
 
   /// Complex transform on A operand
-  static ComplexTransform const kTransformA = Operator::kTransformA;
+  static constexpr ComplexTransform kTransformA = Operator::kTransformA;
 
   /// Complex transform on B operand
-  static ComplexTransform const kTransformB = Operator::kTransformB;
+  static constexpr ComplexTransform kTransformB = Operator::kTransformB;
 
   /// Internal structure exposed for introspection.
   struct Detail {
 
     /// Number of cp.async instructions to load one stage of operand A
-    static int const AsyncCopyIterationsPerStageA =
+    static constexpr int AsyncCopyIterationsPerStageA =
         IteratorA::ThreadMap::Iterations::kCount;
 
     /// Number of cp.async instructions to load one stage of operand B
-    static int const AsyncCopyIterationsPerStageB =
+    static constexpr int AsyncCopyIterationsPerStageB =
         IteratorB::ThreadMap::Iterations::kCount;
 
     /// Number of stages
-    static int const kStages = Stages;
+    static constexpr int kStages = Stages;
 
     /// Number of cp.async instructions to load on group of operand A
-    static int const kAccessesPerGroupA =
+    static constexpr int kAccessesPerGroupA =
         (AsyncCopyIterationsPerStageA + Base::kWarpGemmIterations - 1) / Base::kWarpGemmIterations;
 
     /// Number of cp.async instructions to load on group of operand B
-    static int const kAccessesPerGroupB =
+    static constexpr int kAccessesPerGroupB =
         (AsyncCopyIterationsPerStageB + Base::kWarpGemmIterations - 1) / Base::kWarpGemmIterations;
 
     // Optional staged-accumulation (e.g., tf32x3 kernels) for improved numerical
     // accuracy, where each mainloop iteration first accumulates into a temporary
     // set of freshly-cleared accumulators, which are subsequently added to the
     // final accumulator set.
-    static bool const kStagedAccumulation = arch::detail::UseStagedAccumulation<Operator>::value;
+    static constexpr bool kStagedAccumulation = arch::detail::UseStagedAccumulation<Operator>::value;
   };
 
  private:
@@ -688,7 +688,7 @@ public:
     smem_read_stage_idx_++;
 
     // Then wrap back two full stages (one for the tile advancing we just did, and one to catch the write iterators)
-    static const int kStageIters = Policy::kPartitionsK * Base::kWarpGemmIterations;
+    static constexpr int kStageIters = Policy::kPartitionsK * Base::kWarpGemmIterations;
     if (smem_read_stage_idx_ > 1)
     {
       this->warp_tile_iterator_A_.add_tile_offset({0, (-2 * kStageIters)});

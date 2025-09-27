@@ -69,13 +69,13 @@ struct InvertComplexTransform;
 /// Invert ComplexTransform from kNone to kConjugate
 template <>
 struct InvertComplexTransform<ComplexTransform::kNone> {
-  static ComplexTransform const transform = ComplexTransform::kConjugate;
+  static constexpr ComplexTransform transform = ComplexTransform::kConjugate;
 };
 
 /// Invert ComplexTransform from kConjugate to kNone
 template <>
 struct InvertComplexTransform<ComplexTransform::kConjugate> {
-  static ComplexTransform const transform = ComplexTransform::kNone;
+  static constexpr ComplexTransform transform = ComplexTransform::kNone;
 };
 /////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -633,7 +633,7 @@ struct RealType< complex<T> >
   using Type = T;
 
   /// Number of elements
-  static int const kExtent = 2;
+  static constexpr int kExtent = 2;
 
   CUTLASS_HOST_DEVICE
   static complex<T> from_real(double x) {
@@ -665,12 +665,12 @@ cutlass::complex<double> from_real<cutlass::complex<double> >(double r) {
 
 template <typename T>
 struct is_complex {
-  static bool const value = false;
+  static constexpr bool value = false;
 };
 
 template <typename T>
 struct is_complex<complex<T>> {
-  static bool const value = true;
+  static constexpr bool value = true;
 };
 
 

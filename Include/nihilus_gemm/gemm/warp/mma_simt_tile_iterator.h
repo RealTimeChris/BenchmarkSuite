@@ -102,7 +102,7 @@ public:
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kA;
+  static constexpr Operand kOperand = Operand::kA;
 
   /// Element type
   using Element = Element_;
@@ -312,7 +312,7 @@ public:
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kA;
+  static constexpr Operand kOperand = Operand::kA;
 
   /// Element type
   using Element = Element_;
@@ -565,7 +565,7 @@ public:
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kB;
+  static constexpr Operand kOperand = Operand::kB;
 
   /// Element type
   using Element = Element_;
@@ -775,7 +775,7 @@ public:
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kB;
+  static constexpr Operand kOperand = Operand::kB;
 
   /// Element type
   using Element = Element_;
@@ -1022,7 +1022,7 @@ public:
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kC;
+  static constexpr Operand kOperand = Operand::kC;
 
   /// Element type
   using Element = Element_;
@@ -1234,7 +1234,7 @@ public:
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kC;
+  static constexpr Operand kOperand = Operand::kC;
 
   /// Element type
   using Element = Element_;
@@ -1453,7 +1453,7 @@ public:
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kA;
+  static constexpr Operand kOperand = Operand::kA;
 
   /// Element type
   using Element = Element_;
@@ -1477,13 +1477,13 @@ public:
   using TensorCoord = typename TensorRef::TensorCoord;
 
   /// Iterleave factor
-  static const int kInterleave = 4;
+  static constexpr int kInterleave = 4;
   
   /// Number of partitions along K dimension
-  static const int kPartitionsK = PartitionsK;
+  static constexpr int kPartitionsK = PartitionsK;
 
   /// Number of KGroups per kPartition
-  static const int kGroupPerTile = PartitionGroupSize / Shape::kColumn;
+  static constexpr int kGroupPerTile = PartitionGroupSize / Shape::kColumn;
 
   //
   // Derived quantities
@@ -1679,7 +1679,7 @@ public:
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kB;
+  static constexpr Operand kOperand = Operand::kB;
 
   /// Element type
   using Element = Element_;
@@ -1703,13 +1703,13 @@ public:
   using TensorCoord = typename TensorRef::TensorCoord;
 
   /// Interleave factor
-  static const int kInterleave = 4;
+  static constexpr int kInterleave = 4;
 
   /// Number of partitions along K dimension
-  static const int kPartitionsK = PartitionsK;
+  static constexpr int kPartitionsK = PartitionsK;
 
   /// Number of KGroups per kPartition
-  static const int kGroupPerTile = PartitionGroupSize / Shape::kRow;
+  static constexpr int kGroupPerTile = PartitionGroupSize / Shape::kRow;
 
   //
   // Derived quantities

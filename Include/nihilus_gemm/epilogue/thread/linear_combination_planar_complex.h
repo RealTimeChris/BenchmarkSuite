@@ -74,14 +74,14 @@ public:
   using ElementCompute = ElementCompute_;
   using ElementScalar = complex<ElementCompute>;
 
-  static int const kCount = Count;
+  static constexpr int kCount = Count;
   static const ScaleType::Kind kScale = Scale;
 
   using FragmentOutput = ArrayPlanarComplex<ElementOutput, kCount>;
   using FragmentAccumulator = ArrayPlanarComplex<ElementAccumulator, kCount>;
   using ComputeFragment = ArrayPlanarComplex<ElementCompute, kCount>;
 
-  static FloatRoundStyle const kRound = Round;
+  static constexpr FloatRoundStyle kRound = Round;
 
   /// Host-constructable parameters structure
   struct Params {

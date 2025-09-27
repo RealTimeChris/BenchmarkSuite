@@ -113,7 +113,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
     "MmaTensorOpMultiplicandIterator may only be instantiated for A or B operands to warp-level Mma.");
@@ -129,13 +129,13 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// Number of partitions along K dimension
-  static int const kPartitionsK = PartitionsK_;
+  static constexpr int kPartitionsK = PartitionsK_;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -159,8 +159,8 @@ class MmaTensorOpMultiplicandTileIterator<
         "Shape of warp-level Mma must be divisible by operator shape.");
 
     // Determine number of elements along outer dimension per individual LDSM op
-    static int const kLdsmOpOuter = Layout::kElementsPerAccess;
-    static int const kLdsmOpInner = 8;
+    static constexpr int kLdsmOpOuter = Layout::kElementsPerAccess;
+    static constexpr int kLdsmOpInner = 8;
 
     static_assert(!(Shape::kContiguous % kLdsmOpOuter),
       "Shape of warp-level mma must be divisible by LDSM's fundamental tile size.");
@@ -169,9 +169,9 @@ class MmaTensorOpMultiplicandTileIterator<
       "Shape of warp-level mma must be divisible by LDSM's fundamental tile size.");
 
     /// Shape of one individual LDSM instruction
-    static int const LdsmShapeStrided =
+    static constexpr int LdsmShapeStrided =
         InstructionShape::kStrided / kLdsmOpInner;
-    static int const LdsmShapeContiguous = 4 / LdsmShapeStrided;
+    static constexpr int LdsmShapeContiguous = 4 / LdsmShapeStrided;
     using LdsmShape =
         layout::PitchLinearShape<LdsmShapeContiguous, LdsmShapeStrided>;
 
@@ -181,7 +181,7 @@ class MmaTensorOpMultiplicandTileIterator<
         1>;
 
     /// Number of groups for each tile
-    static int const kGroupsPerTile =
+    static constexpr int kGroupsPerTile =
         Shape::kStrided / InstructionShape::kStrided;
   };
 
@@ -192,7 +192,7 @@ private:
     "Alternative arrangements not supported at present.");
 
   /// Number of internal pointers needed to reference shared memory
-  static int const kPointerCount =
+  static constexpr int kPointerCount =
       Layout::TileShape::kContiguous / Policy::LdsmShape::kContiguous;
 
   /// Pointer type used for accesses
@@ -510,7 +510,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand == Operand::kB,
                 "MmaTensorOpMultiplicandIterator may only be instantiated for "
@@ -527,13 +527,13 @@ class MmaTensorOpMultiplicandTileIterator<
 
   /// Delta between *MMA operations (in units of *MMA operations, concept:
   /// MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// Number of partitions along K dimension
-  static int const kPartitionsK = PartitionsK_;
+  static constexpr int kPartitionsK = PartitionsK_;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -559,8 +559,8 @@ class MmaTensorOpMultiplicandTileIterator<
     // Determine number of elements along outer dimension per individual 32bit
     // shared memory load op.  Every one warp of 32bit shared memory load loads
     // 8x4 elements
-    static int const kLdsOpInner = Layout::TileShape::kStrided;
-    static int const kLdsOpOuter = kThreads / kLdsOpInner;
+    static constexpr int kLdsOpInner = Layout::TileShape::kStrided;
+    static constexpr int kLdsOpOuter = kThreads / kLdsOpInner;
 
     static_assert(!(Shape::kContiguous % kLdsOpOuter),
                   "Shape of warp-level mma must be divisible by 32bit "
@@ -574,9 +574,9 @@ class MmaTensorOpMultiplicandTileIterator<
     /// 1688  A 2x2
     /// 1688  B 1x2
     /// 16816 B 1x4
-    static int const LdsShapeContiguous =
+    static constexpr int LdsShapeContiguous =
         InstructionShape::kContiguous / kLdsOpOuter;
-    static int const LdsShapeStrided = InstructionShape::kStrided / kLdsOpInner;
+    static constexpr int LdsShapeStrided = InstructionShape::kStrided / kLdsOpInner;
     using LdsShape =
         layout::PitchLinearShape<LdsShapeContiguous, LdsShapeStrided>;
 
@@ -585,7 +585,7 @@ class MmaTensorOpMultiplicandTileIterator<
         Shape::kContiguous / LdsShapeContiguous / kLdsOpOuter, 1>;
 
     /// Number of groups for each tile
-    static int const kGroupsPerTile =
+    static constexpr int kGroupsPerTile =
         Shape::kStrided / InstructionShape::kStrided;
   };
 
@@ -595,12 +595,12 @@ class MmaTensorOpMultiplicandTileIterator<
                 "Alternative arrangements not supported at present.");
 
   /// Number of internal pointers needed to reference shared memory
-  static int const kPointerCount = Layout::TileShape::kContiguous *
+  static constexpr int kPointerCount = Layout::TileShape::kContiguous *
                                    Layout::kElementsPerAccess /
                                    Policy::kLdsOpOuter;
 
   /// Vectorized access is not used
-  static int const kElementsPerAccess = 1;
+  static constexpr int kElementsPerAccess = 1;
 
   /// Pointer type used for accesses
   using AccessType = Element;
@@ -876,7 +876,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
     "MmaTensorOpMultiplicandIterator may only be instantiated for A or B operands to warp-level Mma.");
@@ -885,7 +885,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// Element number when the layout crosses
-  static int const kCrosswise = 32;
+  static constexpr int kCrosswise = 32;
 
   /// Layout of source tile
   using Layout = cutlass::layout::TensorOpMultiplicandCongruous<
@@ -895,13 +895,13 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// Number of partitions along K dimension
-  static int const kPartitionsK = PartitionsK_;
+  static constexpr int kPartitionsK = PartitionsK_;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -925,8 +925,8 @@ class MmaTensorOpMultiplicandTileIterator<
         "Shape of warp-level Mma must be divisible by operator shape.");
 
     // Determine number of elements along outer dimension per individual LDSM op
-    static int const kLdsmOpOuter = Layout::kElementsPerAccess;
-    static int const kLdsmOpInner = 8;
+    static constexpr int kLdsmOpOuter = Layout::kElementsPerAccess;
+    static constexpr int kLdsmOpInner = 8;
 
     static_assert(!(Shape::kContiguous % kLdsmOpOuter),
       "Shape of warp-level mma must be divisible by LDSM's fundamental tile size.");
@@ -935,9 +935,9 @@ class MmaTensorOpMultiplicandTileIterator<
       "Shape of warp-level mma must be divisible by LDSM's fundamental tile size.");
 
     /// Shape of one individual LDSM instruction
-    static int const LdsmShapeStrided =
+    static constexpr int LdsmShapeStrided =
         InstructionShape::kStrided / kLdsmOpInner;
-    static int const LdsmShapeContiguous = 4 / LdsmShapeStrided;
+    static constexpr int LdsmShapeContiguous = 4 / LdsmShapeStrided;
     using LdsmShape =
         layout::PitchLinearShape<LdsmShapeContiguous, LdsmShapeStrided>;
 
@@ -947,7 +947,7 @@ class MmaTensorOpMultiplicandTileIterator<
         1>;
 
     /// Number of groups for each tile
-    static int const kGroupsPerTile =
+    static constexpr int kGroupsPerTile =
         Shape::kStrided / InstructionShape::kStrided;
   };
 
@@ -958,7 +958,7 @@ private:
     "Alternative arrangements not supported at present.");
 
   /// Number of internal pointers needed to reference shared memory
-  static int const kPointerCount =
+  static constexpr int kPointerCount =
       Layout::TileShape::kContiguous / Policy::LdsmShape::kContiguous / Layout::kFactor;
 
   /// Pointer type used for accesses
@@ -1280,7 +1280,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
     "MmaTensorOpMultiplicandIterator may only be instantiated for A or B operands to warp-level Mma.");
@@ -1289,7 +1289,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// Element number when the layout crosses
-  static int const kCrosswise = 16;
+  static constexpr int kCrosswise = 16;
 
   /// Layout of source tile
   using Layout = cutlass::layout::TensorOpMultiplicandCongruous<
@@ -1299,13 +1299,13 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// Number of partitions along K dimension
-  static int const kPartitionsK = PartitionsK_;
+  static constexpr int kPartitionsK = PartitionsK_;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -1329,8 +1329,8 @@ class MmaTensorOpMultiplicandTileIterator<
         "Shape of warp-level Mma must be divisible by operator shape.");
 
     // Determine number of elements along outer dimension per individual LDSM op
-    static int const kLdsmOpOuter = Layout::kElementsPerAccess;
-    static int const kLdsmOpInner = 8;
+    static constexpr int kLdsmOpOuter = Layout::kElementsPerAccess;
+    static constexpr int kLdsmOpInner = 8;
 
     static_assert(!(Shape::kContiguous % kLdsmOpOuter),
       "Shape of warp-level mma must be divisible by LDSM's fundamental tile size.");
@@ -1339,9 +1339,9 @@ class MmaTensorOpMultiplicandTileIterator<
       "Shape of warp-level mma must be divisible by LDSM's fundamental tile size.");
 
     /// Shape of one individual LDSM instruction
-    static int const LdsmShapeStrided =
+    static constexpr int LdsmShapeStrided =
         InstructionShape::kStrided / kLdsmOpInner;
-    static int const LdsmShapeContiguous = 4 / LdsmShapeStrided;
+    static constexpr int LdsmShapeContiguous = 4 / LdsmShapeStrided;
     using LdsmShape =
         layout::PitchLinearShape<LdsmShapeContiguous, LdsmShapeStrided>;
 
@@ -1351,7 +1351,7 @@ class MmaTensorOpMultiplicandTileIterator<
         1>;
 
     /// Number of groups for each tile
-    static int const kGroupsPerTile =
+    static constexpr int kGroupsPerTile =
         Shape::kStrided / InstructionShape::kStrided;
   };
 
@@ -1362,7 +1362,7 @@ private:
     "Alternative arrangements not supported at present.");
 
   /// Number of internal pointers needed to reference shared memory
-  static int const kPointerCount =
+  static constexpr int kPointerCount =
       Layout::TileShape::kContiguous / Policy::LdsmShape::kContiguous / Layout::kFactor;
 
   /// Pointer type used for accesses
@@ -1685,7 +1685,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA,
                 "MmaTensorOpMultiplicandIterator for ColumnMajor Congruous may "
@@ -1695,7 +1695,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// MBlock or NBlock size
-  static int const kCrosswise = Crosswise;
+  static constexpr int kCrosswise = Crosswise;
 
   /// Layout of source tile
   using Layout = cutlass::layout::ColumnMajorTensorOpMultiplicandCongruous<
@@ -1705,10 +1705,10 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -1922,7 +1922,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kB,
                 "MmaTensorOpMultiplicandIterator for RowMajor Congruous may "
@@ -1932,7 +1932,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// Element number when the layout crosses
-  static int const kCrosswise = Crosswise;
+  static constexpr int kCrosswise = Crosswise;
 
   /// Layout of source tile
   using Layout = cutlass::layout::RowMajorTensorOpMultiplicandCongruous<
@@ -1942,10 +1942,10 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -2156,7 +2156,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand == Operand::kB,
                 "MmaTensorOpMultiplicandIterator may only be instantiated for "
@@ -2166,7 +2166,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// Element number when the layout crosses
-  static int const kCrosswise = Crosswise;
+  static constexpr int kCrosswise = Crosswise;
 
   /// Layout of source tile
   using Layout = cutlass::layout::TensorOpMultiplicandCrosswise<
@@ -2177,13 +2177,13 @@ class MmaTensorOpMultiplicandTileIterator<
 
   /// Delta between *MMA operations (in units of *MMA operations, concept:
   /// MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// Number of partitions along K dimension
-  static int const kPartitionsK = PartitionsK_;
+  static constexpr int kPartitionsK = PartitionsK_;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -2207,8 +2207,8 @@ class MmaTensorOpMultiplicandTileIterator<
         "Shape of warp-level Mma must be divisible by operator shape.");
 
     // Determine number of elements along outer dimension per individual LDSM op
-    static int const kLdsmOpOuter = Layout::kElementsPerAccess;
-    static int const kLdsmOpInner = 8;
+    static constexpr int kLdsmOpOuter = Layout::kElementsPerAccess;
+    static constexpr int kLdsmOpInner = 8;
 
     static_assert(!(Shape::kContiguous % kLdsmOpOuter),
                   "Shape of warp-level mma must be divisible by LDSM's "
@@ -2219,9 +2219,9 @@ class MmaTensorOpMultiplicandTileIterator<
                   "fundamental tile size.");
 
     /// Shape of one individual LDSM instruction
-    static int const LdsmShapeContiguous =
+    static constexpr int LdsmShapeContiguous =
         InstructionShape::kContiguous / kLdsmOpOuter;
-    static int const LdsmShapeStrided =
+    static constexpr int LdsmShapeStrided =
         ((4 / LdsmShapeContiguous * kLdsmOpInner) > Shape::kStrided)
             ? (Shape::kStrided / kLdsmOpInner)
             : (4 / LdsmShapeContiguous);
@@ -2234,7 +2234,7 @@ class MmaTensorOpMultiplicandTileIterator<
                                         LdsmShape::kStrided>;
 
     ///
-    static int const kGroupsPerTile = Layout::TileShape::kContiguous /
+    static constexpr int kGroupsPerTile = Layout::TileShape::kContiguous /
                                       Layout::kFactor / LdsmShape::kContiguous;
   };
 
@@ -2723,7 +2723,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kB,
                 "MmaTensorOpMultiplicandIterator for ColumnMajor Crosswise may "
@@ -2733,7 +2733,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// KBlock size
-  static int const kCrosswise = Crosswise;
+  static constexpr int kCrosswise = Crosswise;
 
   /// Layout of source tile
   using Layout = cutlass::layout::ColumnMajorTensorOpMultiplicandCrosswise<
@@ -2744,10 +2744,10 @@ class MmaTensorOpMultiplicandTileIterator<
 
   /// Delta between *MMA operations (in units of *MMA operations, concept:
   /// MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -2961,7 +2961,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA,
                 "MmaTensorOpMultiplicandIterator for RowMajor Crosswise may "
@@ -2971,7 +2971,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// Element number when the layout crosses
-  static int const kCrosswise = Crosswise;
+  static constexpr int kCrosswise = Crosswise;
 
   /// Layout of source tile
   using Layout = cutlass::layout::RowMajorTensorOpMultiplicandCrosswise<
@@ -2982,10 +2982,10 @@ class MmaTensorOpMultiplicandTileIterator<
 
   /// Delta between *MMA operations (in units of *MMA operations, concept:
   /// MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -3208,7 +3208,7 @@ class MmaTensorOpAccumulatorTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kC;
+  static constexpr Operand kOperand = Operand::kC;
 
   /// Element type
   using Element = Element_;
@@ -3223,7 +3223,7 @@ class MmaTensorOpAccumulatorTileIterator<
   using OpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -3239,7 +3239,7 @@ class MmaTensorOpAccumulatorTileIterator<
 
   /// Internal structure of iterator - made public to enable introspection
   struct Policy {
-    static bool const kDivisible =
+    static constexpr bool kDivisible =
         !(Shape::kRow % InstructionShape::kM) &&
             !(Shape::kColumn % InstructionShape::kN);
 
@@ -3258,9 +3258,9 @@ private:
   // Assume accumulator tile is an arrangement of 8-by-8 tiles replicated over the entire
   // shape, with each quad mapped to one row and each thread mapped to 1/4 of the elements
   // of that row. The accumulators within one row are assumed to be consecutive.
- static int const kElementsPerAccess = InstructionShape::kN / 4;
- static int const kRowsPerTile = 8;
- static int const kAccumulatorRows = InstructionShape::kM / kRowsPerTile;
+ static constexpr int kElementsPerAccess = InstructionShape::kN / 4;
+ static constexpr int kRowsPerTile = 8;
+ static constexpr int kAccumulatorRows = InstructionShape::kM / kRowsPerTile;
 
 public:
 
@@ -3509,7 +3509,7 @@ class MmaTensorOpAccumulatorTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kC;
+  static constexpr Operand kOperand = Operand::kC;
 
   /// Element type
   using Element = Element_;
@@ -3524,7 +3524,7 @@ class MmaTensorOpAccumulatorTileIterator<
   using OpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -3540,7 +3540,7 @@ class MmaTensorOpAccumulatorTileIterator<
 
   /// Internal structure of iterator - made public to enable introspection
   struct Policy {
-    static bool const kDivisible =
+    static constexpr bool kDivisible =
         !(Shape::kRow % InstructionShape::kM) &&
             !(Shape::kColumn % InstructionShape::kN);
 
@@ -3559,9 +3559,9 @@ private:
   // Assume accumulator tile is an arrangement of 8-by-8 tiles replicated over the entire
   // shape, with each quad mapped to one row and each thread mapped to 1/4 of the elements
   // of that row. The accumulators within one row are assumed to be consecutive.
- static int const kElementsPerAccess = InstructionShape::kN / 4;
- static int const kRowsPerTile = 8;
- static int const kAccumulatorRows = InstructionShape::kM / kRowsPerTile;
+ static constexpr int kElementsPerAccess = InstructionShape::kN / 4;
+ static constexpr int kRowsPerTile = 8;
+ static constexpr int kAccumulatorRows = InstructionShape::kM / kRowsPerTile;
 
 public:
 
@@ -3810,7 +3810,7 @@ class MmaTensorOpAccumulatorTileIterator<Shape_, Element_,
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kC;
+  static constexpr Operand kOperand = Operand::kC;
 
   /// Element type
   using Element = Element_;
@@ -3825,7 +3825,7 @@ class MmaTensorOpAccumulatorTileIterator<Shape_, Element_,
   using OpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -3841,7 +3841,7 @@ class MmaTensorOpAccumulatorTileIterator<Shape_, Element_,
 
   /// Internal structure of iterator - made public to enable introspection
   struct Policy {
-    static bool const kDivisible = 
+    static constexpr bool kDivisible = 
         !(Shape::kRow % InstructionShape::kM) &&
             !(Shape::kColumn % InstructionShape::kN);
 
@@ -3860,9 +3860,9 @@ private:
   // Assume accumulator tile is an arrangement of 8-by-8 tiles replicated over the entire
   // shape, with each quad mapped to one row and each thread mapped to 1/4 of the elements
   // of that row. The accumulators within one row are assumed to be consecutive.
- static int const kElementsPerAccess = InstructionShape::kN / 4;
- static int const kRowsPerTile = 8;
- static int const kAccumulatorRows = InstructionShape::kM / kRowsPerTile;
+ static constexpr int kElementsPerAccess = InstructionShape::kN / 4;
+ static constexpr int kRowsPerTile = 8;
+ static constexpr int kAccumulatorRows = InstructionShape::kM / kRowsPerTile;
 
 public:
 
@@ -4114,7 +4114,7 @@ class MmaTensorOpAccumulatorTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kC;
+  static constexpr Operand kOperand = Operand::kC;
 
   /// Element type
   using Element = Element_;
@@ -4129,7 +4129,7 @@ class MmaTensorOpAccumulatorTileIterator<
   using OpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -4160,7 +4160,7 @@ class MmaTensorOpAccumulatorTileIterator<
 
 private:
 
-  static int const kElementsPerAccess = 2;
+  static constexpr int kElementsPerAccess = 2;
 
 public:
 
@@ -4403,7 +4403,7 @@ class MmaTensorOpAccumulatorTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kC;
+  static constexpr Operand kOperand = Operand::kC;
 
   /// Element type
   using Element = int8_t;
@@ -4418,7 +4418,7 @@ class MmaTensorOpAccumulatorTileIterator<
   using OpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -4443,10 +4443,10 @@ class MmaTensorOpAccumulatorTileIterator<
         "Shape of warp-level Mma must be divisible by operator shape.");
 
     /// Number of elements in strided dimension that each STG writes
-    static int const kStridedPerSTG = 8;
+    static constexpr int kStridedPerSTG = 8;
 
     /// Factor to calculate reorder index to pack accumulator.
-    static int const kPackedFactor = Shape::kColumn / 32;
+    static constexpr int kPackedFactor = Shape::kColumn / 32;
 
     /// Number of mma operations performed
     using MmaIterations = MatrixShape<Shape::kRow / kStridedPerSTG,
@@ -4455,7 +4455,7 @@ class MmaTensorOpAccumulatorTileIterator<
 
 private:
 
-  static int const kElementsPerAccess = InterleavedN / 4;
+  static constexpr int kElementsPerAccess = InterleavedN / 4;
 
 public:
 

@@ -98,7 +98,7 @@ class MmaTensorOpGaussianComplexAccumulatorTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kC;
+  static constexpr Operand kOperand = Operand::kC;
 
   /// Element type
   using Element = complex<RealElement>;
@@ -113,7 +113,7 @@ class MmaTensorOpGaussianComplexAccumulatorTileIterator<
   using OpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -147,9 +147,9 @@ private:
   // Assume accumulator tile is an arrangement of 8-by-8 tiles replicated over the entire
   // shape, with each quad mapped to one row and each thread mapped to 1/4 of the elements
   // of that row. The accumulators within one row are assumed to be consecutive.
- static int const kElementsPerAccess = InstructionShape::kN / 4;
- static int const kRowsPerTile = 8;
- static int const kAccumulatorRows = InstructionShape::kM / kRowsPerTile;
+ static constexpr int kElementsPerAccess = InstructionShape::kN / 4;
+ static constexpr int kRowsPerTile = 8;
+ static constexpr int kAccumulatorRows = InstructionShape::kM / kRowsPerTile;
 
 public:
 
@@ -162,9 +162,9 @@ public:
   /// arranged as [part1, part2, part3]
   using Fragment = Array<RealElement, (Shape::kCount / kThreads) * 3>;
 
-  static int const kPart1Index = (Shape::kCount / kThreads) * 0;
-  static int const kPart2Index = (Shape::kCount / kThreads) * 1;
-  static int const kPart3Index = (Shape::kCount / kThreads) * 2;
+  static constexpr int kPart1Index = (Shape::kCount / kThreads) * 0;
+  static constexpr int kPart2Index = (Shape::kCount / kThreads) * 1;
+  static constexpr int kPart3Index = (Shape::kCount / kThreads) * 2;
 
 private:
 

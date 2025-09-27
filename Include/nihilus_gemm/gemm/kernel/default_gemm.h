@@ -204,7 +204,7 @@ struct DefaultGemm<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignment
       Operator, false, SharedMemoryClear, GatherA, GatherB, 
       PermuteALayout, PermuteBLayout>::ThreadblockMma;
 
-  static const int kPartitionsK = ThreadblockShape::kK / WarpShape::kK;
+  static constexpr int kPartitionsK = ThreadblockShape::kK / WarpShape::kK;
 
   /// Define the epilogue
   using Epilogue =
@@ -282,7 +282,7 @@ struct DefaultGemm<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignment
       Operator, false, SharedMemoryClear, GatherA, GatherB,
       PermuteALayout, PermuteBLayout>::ThreadblockMma;
 
-  static const int kPartitionsK = ThreadblockShape::kK / WarpShape::kK;
+  static constexpr int kPartitionsK = ThreadblockShape::kK / WarpShape::kK;
 
   /// Define the epilogue
   using Epilogue =
@@ -367,7 +367,7 @@ struct DefaultGemm<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignment
       Operator, false, SharedMemoryClear, GatherA, GatherB,
       PermuteALayout, PermuteBLayout>::ThreadblockMma;
 
-  static const int kPartitionsK = ThreadblockShape::kK / WarpShape::kK;
+  static constexpr int kPartitionsK = ThreadblockShape::kK / WarpShape::kK;
 
   /// Define the epilogue
   using RegularEpilogue =
@@ -486,7 +486,7 @@ struct DefaultGemm<
     PermuteBLayout
   >::ThreadblockMma;
 
-  static const int kPartitionsK = ThreadblockShape::kK / WarpShape::kK;
+  static constexpr int kPartitionsK = ThreadblockShape::kK / WarpShape::kK;
 
   /// Define the epilogue
   using Epilogue = typename cutlass::epilogue::threadblock::DefaultEpilogueTensorOp<
@@ -559,7 +559,7 @@ struct DefaultGemm<
       ThreadblockShape, WarpShape, InstructionShape, Stages, Operator,
       true, SharedMemoryClear>::ThreadblockMma;
 
-  static const int kPartitionsK = ThreadblockShape::kK / WarpShape::kK;
+  static constexpr int kPartitionsK = ThreadblockShape::kK / WarpShape::kK;
 
   /// Define the epilogue
   using Epilogue = typename cutlass::epilogue::threadblock::
@@ -625,7 +625,7 @@ struct DefaultGemm<ElementA, layout::ColumnMajorInterleaved<InterleavedK>,
       arch::OpClassTensorOp, arch::Sm75, ThreadblockShape, WarpShape,
       InstructionShape, 2, Operator, true>::ThreadblockMma;
 
-  static const int kPartitionsK = ThreadblockShape::kK / WarpShape::kK;
+  static constexpr int kPartitionsK = ThreadblockShape::kK / WarpShape::kK;
 
   /// Define the epilogue
   using Epilogue = typename cutlass::epilogue::threadblock::
@@ -733,7 +733,7 @@ struct DefaultGemm<
     PermuteBLayout
   >::ThreadblockMma;
 
-  static const int kPartitionsK = ThreadblockShape::kK / WarpShape::kK;
+  static constexpr int kPartitionsK = ThreadblockShape::kK / WarpShape::kK;
 
   /// Define the epilogue
   using Epilogue = typename cutlass::epilogue::threadblock::DefaultEpilogueVoltaTensorOp<
@@ -858,7 +858,7 @@ struct DefaultGemm<
       PermuteALayout,
       PermuteBLayout>::ThreadblockMma;
 
-  static int const kEpilogueElementsPerAccess = EpilogueOutputOp::kCount;
+  static constexpr int kEpilogueElementsPerAccess = EpilogueOutputOp::kCount;
   static_assert(kEpilogueElementsPerAccess == 1, "simt epilogue must operate on scalars");
 
   /// Define the epilogue
@@ -977,7 +977,7 @@ struct DefaultGemm<ElementA,
       Operator, false, SharedMemoryClear, GatherA, GatherB,
       PermuteALayout, PermuteBLayout>::ThreadblockMma;
 
-  static int const kEpilogueElementsPerAccess = EpilogueOutputOp::kCount;
+  static constexpr int kEpilogueElementsPerAccess = EpilogueOutputOp::kCount;
   static_assert(kEpilogueElementsPerAccess == 1, "simt epilogue must operate on scalars");
 
   /// Define the epilogue
@@ -1072,7 +1072,7 @@ struct DefaultGemm<int8_t, LayoutA, kAlignmentA, int8_t, LayoutB, kAlignmentB,
       Operator
       >::ThreadblockMma;
 
-  static int const kEpilogueElementsPerAccess = EpilogueOutputOp::kCount;
+  static constexpr int kEpilogueElementsPerAccess = EpilogueOutputOp::kCount;
   static_assert(kEpilogueElementsPerAccess == 1, "simt epilogue must operate on scalars");
 
   /// Define the epilogue
@@ -1164,7 +1164,7 @@ struct DefaultGemm<
       Stages,
       Operator>::ThreadblockMma;
 
-  static const int kPartitionsK = ThreadblockShape::kK / WarpShape::kK;
+  static constexpr int kPartitionsK = ThreadblockShape::kK / WarpShape::kK;
 
   /// Define the epilogue 
   using Epilogue = typename cutlass::epilogue::threadblock::DefaultEpilogueWmmaTensorOp<

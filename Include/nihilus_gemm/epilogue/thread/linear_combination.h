@@ -76,14 +76,14 @@ public:
   using ElementC = ElementSource_;
   using ElementD = ElementOutput_;
 
-  static int const kCount = Count;
+  static constexpr int kCount = Count;
   static const ScaleType::Kind kScale = Scale;
   using FragmentOutput = Array<ElementOutput, kCount>;
   using FragmentSource = Array<ElementSource, kCount>;
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
   using FragmentCompute = Array<ElementCompute, kCount>;
 
-  static FloatRoundStyle const kRound = Round;
+  static constexpr FloatRoundStyle kRound = Round;
 
   /// Host-constructable parameters structure
   struct Params 
@@ -275,7 +275,7 @@ public:
   }
 
   //
-  // Specializations for scalar (for use with cute::collective::DefaultEpilogue)
+  // Specializations for scalar (for use with nihilus_cute::collective::DefaultEpilogue)
   //
   CUTLASS_HOST_DEVICE
   ElementD operator()(ElementAccumulator const accumulator, ElementC const source) const {
@@ -356,7 +356,7 @@ public:
   using ElementC = ElementSource_;
   using ElementD = ElementOutput_;
 
-  static int const kCount = Count;
+  static constexpr int kCount = Count;
   static const ScaleType::Kind kScale = ScaleType::PerChannelScaling;
   static constexpr bool IsPerChannelScalingSupported = true;
 
@@ -365,7 +365,7 @@ public:
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
   using FragmentCompute = Array<ElementCompute, kCount>;
 
-  static FloatRoundStyle const kRound = Round;
+  static constexpr FloatRoundStyle kRound = Round;
 
   /// Host-constructable parameters structure
   struct Params

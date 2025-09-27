@@ -58,10 +58,10 @@ public:
 private:
 
   /// Rows dimension
-  static int const kRow = 0;
+  static constexpr int kRow = 0;
 
   /// Columns dimension
-  static int const kColumn = 1;
+  static constexpr int kColumn = 1;
 
 public:
 

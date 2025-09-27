@@ -31,17 +31,17 @@
 #pragma once
 
 #include <nihilus_cute/config.hpp>                     // CUTE_HOST_DEVICE
-#include <nihilus_cute/util/type_traits.hpp>           // cute::__CUTE_REQUIRES
-#include <nihilus_cute/container/tuple.hpp>            // cute::is_tuple
-#include <nihilus_cute/numeric/integral_constant.hpp>  // cute::is_integral
-#include <nihilus_cute/numeric/integer_sequence.hpp>   // cute::seq
-#include <nihilus_cute/numeric/math.hpp>               // cute::divmod
-#include <nihilus_cute/numeric/arithmetic_tuple.hpp>   // cute::basis_get
-#include <nihilus_cute/algorithm/functional.hpp>       // cute::identity
-#include <nihilus_cute/algorithm/tuple_algorithms.hpp> // cute::fold
-#include <nihilus_cute/int_tuple.hpp>                  // cute::is_congruent
+#include <nihilus_cute/util/type_traits.hpp>           // nihilus_cute::__CUTE_REQUIRES
+#include <nihilus_cute/container/tuple.hpp>            // nihilus_cute::is_tuple
+#include <nihilus_cute/numeric/integral_constant.hpp>  // nihilus_cute::is_integral
+#include <nihilus_cute/numeric/integer_sequence.hpp>   // nihilus_cute::seq
+#include <nihilus_cute/numeric/math.hpp>               // nihilus_cute::divmod
+#include <nihilus_cute/numeric/arithmetic_tuple.hpp>   // nihilus_cute::basis_get
+#include <nihilus_cute/algorithm/functional.hpp>       // nihilus_cute::identity
+#include <nihilus_cute/algorithm/tuple_algorithms.hpp> // nihilus_cute::fold
+#include <nihilus_cute/int_tuple.hpp>                  // nihilus_cute::is_congruent
 
-namespace cute
+namespace nihilus_cute
 {
 
 /** crd2idx(c,s,d) maps a coordinate within <Shape,Stride> to an index
@@ -297,12 +297,12 @@ compact(Shape   const& shape,
   if constexpr (is_tuple<Shape>::value) { // Shape::tuple Current::int
     using Lambda = CompactLambda<Major>;                  // Append or Prepend
     using Seq    = typename Lambda::template seq<Shape>;  // Seq or RSeq
-    return cute::detail::fold(shape, cute::make_tuple(cute::make_tuple(), current), Lambda{}, Seq{});
+    return nihilus_cute::detail::fold(shape, nihilus_cute::make_tuple(nihilus_cute::make_tuple(), current), Lambda{}, Seq{});
   } else {                                // Shape::int Current::int
     if constexpr (is_constant<1, Shape>::value) {
-      return cute::make_tuple(Int<0>{}, current); // If current is dynamic, this could save a reg
+      return nihilus_cute::make_tuple(Int<0>{}, current); // If current is dynamic, this could save a reg
     } else {
-      return cute::make_tuple(current, current * shape);
+      return nihilus_cute::make_tuple(current, current * shape);
     }
   }
 
@@ -317,7 +317,7 @@ struct CompactLambda<LayoutLeft>
   CUTE_HOST_DEVICE constexpr auto
   operator()(Init const& init, Shape const& si) {
     auto result = detail::compact<LayoutLeft>(si, get<1>(init));
-    return cute::make_tuple(append(get<0>(init), get<0>(result)), get<1>(result));  // Append
+    return nihilus_cute::make_tuple(append(get<0>(init), get<0>(result)), get<1>(result));  // Append
   }
 
   template <class Shape>
@@ -332,7 +332,7 @@ struct CompactLambda<LayoutRight>
   CUTE_HOST_DEVICE constexpr auto
   operator()(Init const& init, Shape const& si) {
     auto result = detail::compact<LayoutRight>(si, get<1>(init));
-    return cute::make_tuple(prepend(get<0>(init), get<0>(result)), get<1>(result));  // Prepend
+    return nihilus_cute::make_tuple(prepend(get<0>(init), get<0>(result)), get<1>(result));  // Prepend
   }
 
   template <class Shape>
@@ -438,7 +438,7 @@ compact_order(Shape const& shape, Order const& order)
 
   auto flat_order = flatten_to_tuple(order);
   // Find the largest static element of order
-  auto max_order = cute::fold(flat_order, Int<0>{}, [](auto v, auto order) {
+  auto max_order = nihilus_cute::fold(flat_order, Int<0>{}, [](auto v, auto order) {
     if constexpr (is_constant<true, decltype(v < order)>::value) {
       return order;
     } else {
@@ -449,7 +449,7 @@ compact_order(Shape const& shape, Order const& order)
   });
   // Replace any dynamic elements within order with large-static elements
   auto max_seq = make_range<max_order+1, max_order+1+rank(flat_order)>{};
-  auto ref_order = cute::transform(max_seq, flat_order, [](auto seq_v, auto order) {
+  auto ref_order = nihilus_cute::transform(max_seq, flat_order, [](auto seq_v, auto order) {
     if constexpr (is_static<decltype(order)>::value) {
       return order;
     } else {
@@ -492,7 +492,7 @@ void
 increment(Coord& coord, Shape const& shape, Order const& order)
 {
   ++basis_get(get<0>(order), coord);
-  cute::for_each(make_range<1, tuple_size<Order>::value>{}, [&](auto i){
+  nihilus_cute::for_each(make_range<1, tuple_size<Order>::value>{}, [&](auto i){
     if (basis_get(get<i-1>(order), coord) == basis_get(get<i-1>(order), shape)) {
       basis_get(get<i-1>(order), coord) = 0;
       ++basis_get(get<i>(order), coord);
@@ -595,4 +595,4 @@ make_coord_iterator(Shape const& shape)
   return make_coord_iterator(repeat_like(shape, int(0)), shape);
 }
 
-} // end namespace cute
+} // end namespace nihilus_cute

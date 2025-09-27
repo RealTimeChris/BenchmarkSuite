@@ -122,13 +122,13 @@ public:
   using InstructionShape = typename ArchMmaOperator::Shape;
 
   /// Complex transform on A operand
-  static ComplexTransform const kTransformA = ComplexTransform::kNone;
+  static constexpr ComplexTransform kTransformA = ComplexTransform::kNone;
 
   /// Complex transform on B operand
-  static ComplexTransform const kTransformB = ComplexTransform::kNone;
+  static constexpr ComplexTransform kTransformB = ComplexTransform::kNone;
 
   /// Number of threads participating in warp-level matrix product
-  static int const kThreadCount = 32;
+  static constexpr int kThreadCount = 32;
 
   /// interleaved 32x32 tiles
   using InterleavedTileShape = GemmShape<32, 32, 4>;

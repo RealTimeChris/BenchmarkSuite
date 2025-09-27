@@ -58,10 +58,10 @@ namespace layout {
 class RowMajor {
 public:
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -150,10 +150,10 @@ public:
 class ColumnMajor {
 public:
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -245,10 +245,10 @@ template <int Interleave>
 struct RowMajorInterleaved {
   
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -263,7 +263,7 @@ struct RowMajorInterleaved {
   using Stride = Coord<kStrideRank, LongIndex>;
 
   /// Size of interleaved columns
-  static int const kInterleave = Interleave;
+  static constexpr int kInterleave = Interleave;
 
 private:
   //
@@ -351,10 +351,10 @@ template <int Interleave>
 struct ColumnMajorInterleaved {
   
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -369,7 +369,7 @@ struct ColumnMajorInterleaved {
   using Stride = Coord<kStrideRank, LongIndex>;
 
   /// Size of interleaved columns
-  static int const kInterleave = Interleave;
+  static constexpr int kInterleave = Interleave;
 
 private:
   //
@@ -463,10 +463,10 @@ enum class Matrix {
 struct ContiguousMatrix {
 
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -590,10 +590,10 @@ template <int Rank>
 struct AffineRankN {
 
   /// Logical rank of tensor
-  static int const kRank = Rank;
+  static constexpr int kRank = Rank;
 
   /// Rank of stride vector
-  static int const kStrideRank = kRank;
+  static constexpr int kStrideRank = kRank;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -730,10 +730,10 @@ public:
 struct AffineRank2ColumnMajor {
 
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 2;
+  static constexpr int kStrideRank = 2;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -838,10 +838,10 @@ public:
 struct AffineRank2RowMajor {
 
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 2;
+  static constexpr int kStrideRank = 2;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -993,10 +993,10 @@ static cutlass::layout::AffineRankN<2> layout_factory(
 template <int BlockRows, int BlockColumns>
 struct ColumnMajorBlockLinear {
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -1011,10 +1011,10 @@ struct ColumnMajorBlockLinear {
   using Stride = Coord<kStrideRank, LongIndex>;
 
   /// Size of a block in rows
-  static int const kBlockRows = BlockRows;
+  static constexpr int kBlockRows = BlockRows;
 
   /// Size of a block in columns
-  static int const kBlockColumns = BlockColumns;
+  static constexpr int kBlockColumns = BlockColumns;
 
 private:
   //
@@ -1093,10 +1093,10 @@ public:
 template <int BlockRows, int BlockColumns>
 struct RowMajorBlockLinear {
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -1111,10 +1111,10 @@ struct RowMajorBlockLinear {
   using Stride = Coord<kStrideRank, LongIndex>;
 
   /// Size of a block in rows
-  static int const kBlockRows = BlockRows;
+  static constexpr int kBlockRows = BlockRows;
 
   /// Size of a block in columns
-  static int const kBlockColumns = BlockColumns;
+  static constexpr int kBlockColumns = BlockColumns;
 
 private:
   //
@@ -1192,10 +1192,10 @@ public:
 struct GeneralMatrix {
 
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 2;
+  static constexpr int kStrideRank = 2;
 
   /// Index type used for coordinates
   using Index = int32_t;

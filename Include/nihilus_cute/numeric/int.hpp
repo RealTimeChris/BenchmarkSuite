@@ -40,7 +40,7 @@
 
 #include <nihilus_gemm/numeric_types.h>  // cutlass::int2b_t, cutlass::int4b_t
 
-namespace cute
+namespace nihilus_cute
 {
 
 //
@@ -108,4 +108,4 @@ using uint_byte = uint_bit<8*N>;
 template <int N>
 using uint_byte_t = typename uint_byte<N>::type;
 
-} // namespace cute
+} // namespace nihilus_cute

@@ -46,16 +46,16 @@
 
 #include <nihilus_cute/config.hpp> // CUTE_STL_NAMESPACE
 
-namespace cute
+namespace nihilus_cute
 {
   using CUTE_STL_NAMESPACE::enable_if;
   using CUTE_STL_NAMESPACE::enable_if_t;
 }
 
-#define __CUTE_REQUIRES(...)   typename cute::enable_if<(__VA_ARGS__)>::type* = nullptr
-#define __CUTE_REQUIRES_V(...) typename cute::enable_if<decltype((__VA_ARGS__))::value>::type* = nullptr
+#define __CUTE_REQUIRES(...)   typename nihilus_cute::enable_if<(__VA_ARGS__)>::type* = nullptr
+#define __CUTE_REQUIRES_V(...) typename nihilus_cute::enable_if<decltype((__VA_ARGS__))::value>::type* = nullptr
 
-namespace cute
+namespace nihilus_cute
 {
 
 // <type_traits>
@@ -234,10 +234,10 @@ inline constexpr bool dependent_false = false;
 // tuple_size, tuple_element
 //
 // @brief CuTe-local tuple-traits to prevent conflicts with other libraries.
-// For cute:: types, we specialize std::tuple-traits, which is explicitly allowed.
-//   cute::tuple, cute::array, cute::array_subbyte, etc
+// For nihilus_cute:: types, we specialize std::tuple-traits, which is explicitly allowed.
+//   nihilus_cute::tuple, nihilus_cute::array, nihilus_cute::array_subbyte, etc
 // But CuTe wants to treat some external types as tuples as well. For those,
-// we specialize cute::tuple-traits to avoid polluting external traits.
+// we specialize nihilus_cute::tuple-traits to avoid polluting external traits.
 //   dim3, uint3, etc
 
 template <class T, class = void>
@@ -319,4 +319,4 @@ struct is_any_of {
 template <class T, class... Us>
 inline constexpr bool is_any_of_v = is_any_of<T, Us...>::value;
 
-} // end namespace cute
+} // end namespace nihilus_cute

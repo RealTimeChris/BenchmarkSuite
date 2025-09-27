@@ -73,10 +73,10 @@ class TensorCSRTK {};
 class TensorNHWC {
 public:
   /// Logical rank of tensor
-  static int const kRank = 4;
+  static constexpr int kRank = 4;
 
   /// Rank of stride vector
-  static int const kStrideRank = 3;
+  static constexpr int kStrideRank = 3;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -220,10 +220,10 @@ public:
 class TensorNCHW {
 public:
   /// Logical rank of tensor
-  static int const kRank = 4;
+  static constexpr int kRank = 4;
 
   /// Rank of stride vector
-  static int const kStrideRank = 3;
+  static constexpr int kStrideRank = 3;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -302,13 +302,13 @@ class TensorNCxHWx {
 public:
 
   /// Interleaving quantity
-  static int const kInterleave = Interleave;
+  static constexpr int kInterleave = Interleave;
 
   /// Logical rank of tensor
-  static int const kRank = 4;
+  static constexpr int kRank = 4;
 
   /// Rank of stride vector
-  static int const kStrideRank = 3;
+  static constexpr int kStrideRank = 3;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -411,13 +411,13 @@ class TensorCxRSKx {
 public:
 
   /// Interleaving quantity
-  static int const kInterleave = Interleave;
+  static constexpr int kInterleave = Interleave;
 
   /// Logical rank of tensor
-  static int const kRank = 4;
+  static constexpr int kRank = 4;
 
   /// Rank of stride vector
-  static int const kStrideRank = 3;
+  static constexpr int kStrideRank = 3;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -527,10 +527,10 @@ public:
 class TensorNDHWC {
 public:
   /// Logical rank of tensor
-  static int const kRank = 5;
+  static constexpr int kRank = 5;
 
   /// Rank of stride vector
-  static int const kStrideRank = 4;
+  static constexpr int kStrideRank = 4;
 
   /// Index type used for coordinates
   using Index = int32_t;

@@ -265,7 +265,7 @@ namespace detail {
 /// Helper for determining whether staged accumulation should be used for a given operator
 template <typename Operator>
 struct UseStagedAccumulation {
-  static bool const value = platform::is_same<typename Operator::MathOperator, OpMultiplyAddFastF32>::value ||
+  static constexpr bool value = platform::is_same<typename Operator::MathOperator, OpMultiplyAddFastF32>::value ||
                             platform::is_same<typename Operator::MathOperator, OpMultiplyAddComplexFastF32>::value ||
                             is_sm89_staged_policy_v<Operator>;
 };

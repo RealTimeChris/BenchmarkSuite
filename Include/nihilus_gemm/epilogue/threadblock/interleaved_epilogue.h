@@ -95,7 +95,7 @@ public:
 
   using Shape = Shape_;
   using WarpMmaOperator = WarpMmaOperator_;
-  static int const kPartitionsK = PartitionsK;
+  static constexpr int kPartitionsK = PartitionsK;
   using AccumulatorFragmentIterator = AccumulatorFragmentIterator_;
   using OutputTileIterator = OutputTileIterator_;
   using OutputOp = OutputOp_;
@@ -113,7 +113,7 @@ public:
   using ElementOutput = typename OutputTileIterator::Element;
 
   /// Output access size
-  static int const kElementsPerAccess = OutputTileIterator::kElementsPerAccess;
+  static constexpr int kElementsPerAccess = OutputTileIterator::kElementsPerAccess;
 
   /// Tensor reference to destination tensor
   using TensorRef = typename OutputTileIterator::TensorRef;

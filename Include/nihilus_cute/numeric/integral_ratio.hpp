@@ -31,23 +31,23 @@
 #pragma once
 
 #include <nihilus_cute/config.hpp>                     // CUTE_HOST_DEVICE
-#include <nihilus_cute/numeric/integral_constant.hpp>  // cute::false_type, cute::true_type
-#include <nihilus_cute/numeric/math.hpp>               // cute::signum
+#include <nihilus_cute/numeric/integral_constant.hpp>  // nihilus_cute::false_type, nihilus_cute::true_type
+#include <nihilus_cute/numeric/math.hpp>               // nihilus_cute::signum
 #include <nihilus_cute/util/type_traits.hpp>           // __CUTE_REQUIRES
 
-namespace cute
+namespace nihilus_cute
 {
 
 /** Compile-time rational arithmetic type.
- * Like cute::C for std::integral_constant, cute::R for std::ratio has a short name
+ * Like nihilus_cute::C for std::integral_constant, nihilus_cute::R for std::ratio has a short name
  *   for error messages and compile times.
  * The static data members @a num and @a den represent the reduced numerator and denominator
- *   of the rational value. Thus, two cute::R types with different @a n or @a d are distinct types
+ *   of the rational value. Thus, two nihilus_cute::R types with different @a n or @a d are distinct types
  *   even if they represent the same rational value.
- * A cute::R exposes the reduced canonical type via its ::type member.
- *   That is, cute::R<3,6>::type is cute::R<1,2> and cute::R<6,3>::type is cute::C<2>.
- * A cute::R<n,d>::value can be used much like any other trait::value. It can be involved in
- *   arithmetic expressions (according to the operator-overloads for cute::C and cute::R,
+ * A nihilus_cute::R exposes the reduced canonical type via its ::type member.
+ *   That is, nihilus_cute::R<3,6>::type is nihilus_cute::R<1,2> and nihilus_cute::R<6,3>::type is nihilus_cute::C<2>.
+ * A nihilus_cute::R<n,d>::value can be used much like any other trait::value. It can be involved in
+ *   arithmetic expressions (according to the operator-overloads for nihilus_cute::C and nihilus_cute::R,
  *   though these may be incomplete) but with a potential rational value rather than an integral value.
  */
 template <auto n, auto d>
@@ -156,7 +156,7 @@ operator*(C<c>, R<a,b>) {
 
 // Product with dynamic type needs to produce an integer...
 template <class C, auto a, auto b,
-          __CUTE_REQUIRES(cute::is_std_integral<C>::value)>
+          __CUTE_REQUIRES(nihilus_cute::is_std_integral<C>::value)>
 CUTE_HOST_DEVICE constexpr
 auto
 operator*(C const& c, R<a,b>) {
@@ -165,7 +165,7 @@ operator*(C const& c, R<a,b>) {
 
 // Product with dynamic type needs to produce an integer...
 template <auto a, auto b, class C,
-          __CUTE_REQUIRES(cute::is_std_integral<C>::value)>
+          __CUTE_REQUIRES(nihilus_cute::is_std_integral<C>::value)>
 CUTE_HOST_DEVICE constexpr
 auto
 operator*(R<a,b>, C const& c) {
@@ -287,7 +287,7 @@ log_2(R<a,b>) {
   return log_2(static_cast<uint32_t>(R<a,b>::num)) - log_2(static_cast<uint32_t>(R<a,b>::den));
 }
 
-// @return A non-reduced ratio cute::R of the Trait0::value / Trait1::value
+// @return A non-reduced ratio nihilus_cute::R of the Trait0::value / Trait1::value
 template <class Trait0, class Trait1>
 CUTE_HOST_DEVICE constexpr
 auto
@@ -311,4 +311,4 @@ CUTE_HOST std::ostream& operator<<(std::ostream& os, R<a,b>) {
 }
 #endif
 
-} // end namespace cute
+} // end namespace nihilus_cute

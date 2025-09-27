@@ -75,8 +75,8 @@ class RegularTileAccessIterator<
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::TensorOpMultiplicandCongruous64b;
-  static int const kAdvanceRank = AdvanceRank;
-  static int const kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -94,7 +94,7 @@ class RegularTileAccessIterator<
   struct Detail {
     /// This iterator is specialized for an access size that is 128 bits in
     /// length.
-    static int const kAccessSizeInBits = 64;
+    static constexpr int kAccessSizeInBits = 64;
 
     static_assert(sizeof_bits<Element_>::value *
                           ThreadMap::kElementsPerAccess ==
@@ -102,7 +102,7 @@ class RegularTileAccessIterator<
                   "This iterator requires a policy whose access size is 64b");
 
     ///< Number of pointers
-    static int const kPointerCount = 1;
+    static constexpr int kPointerCount = 1;
   };
 
   /// Element type per access
@@ -251,8 +251,8 @@ class RegularTileAccessIterator<
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::ColumnMajorTensorOpMultiplicandCongruous64b;
-  static int const kAdvanceRank = AdvanceRank;
-  static int const kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -344,8 +344,8 @@ class RegularTileAccessIterator<Shape_, Element_,
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::RowMajorTensorOpMultiplicandCongruous64b;
-  static int const kAdvanceRank = AdvanceRank;
-  static int const kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -439,8 +439,8 @@ class RegularTileAccessIterator<
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::TensorOpMultiplicand64bCrosswise;
-  static int const kAdvanceRank = AdvanceRank;
-  static int const kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -458,7 +458,7 @@ class RegularTileAccessIterator<
   struct Detail {
     /// This iterator is specialized for an access size that is 128 bits in
     /// length.
-    static int const kAccessSizeInBits = 64;
+    static constexpr int kAccessSizeInBits = 64;
 
     static_assert(sizeof_bits<Element_>::value *
                           ThreadMap::kElementsPerAccess ==
@@ -467,7 +467,7 @@ class RegularTileAccessIterator<
 
     ///< Number of pointers - two pointers are needed if making more than 4 iterations along
     ///< strided dimension
-    static int const kPointerCount = (ThreadMap::Iterations::kStrided > 4 ? 2 : 1);
+    static constexpr int kPointerCount = (ThreadMap::Iterations::kStrided > 4 ? 2 : 1);
   };
 
   /// Element type per access
@@ -626,8 +626,8 @@ class RegularTileAccessIterator<
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::ColumnMajorTensorOpMultiplicand64bCrosswise;
-  static int const kAdvanceRank = AdvanceRank;
-  static int const kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -719,8 +719,8 @@ class RegularTileAccessIterator<Shape_, Element_,
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::RowMajorTensorOpMultiplicand64bCrosswise;
-  static int const kAdvanceRank = AdvanceRank;
-  static int const kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -814,8 +814,8 @@ class RegularTileAccessIterator<
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::TensorOpMultiplicandCongruous128b;
-  static int const kAdvanceRank = AdvanceRank;
-  static int const kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -833,7 +833,7 @@ class RegularTileAccessIterator<
   struct Detail {
     /// This iterator is specialized for an access size that is 128 bits in
     /// length.
-    static int const kAccessSizeInBits = 128;
+    static constexpr int kAccessSizeInBits = 128;
 
     static_assert(sizeof_bits<Element_>::value *
                           ThreadMap::kElementsPerAccess ==
@@ -841,7 +841,7 @@ class RegularTileAccessIterator<
                   "This iterator requires a policy whose access size is 128b");
 
     ///< Number of pointers
-    static int const kPointerCount = 1;
+    static constexpr int kPointerCount = 1;
   };
 
   /// Element type per access
@@ -990,8 +990,8 @@ class RegularTileAccessIterator<
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::ColumnMajorTensorOpMultiplicandCongruous128b;
-  static int const kAdvanceRank = AdvanceRank;
-  static int const kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -1083,8 +1083,8 @@ class RegularTileAccessIterator<Shape_, Element_,
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::RowMajorTensorOpMultiplicandCongruous128b;
-  static int const kAdvanceRank = AdvanceRank;
-  static int const kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -1179,8 +1179,8 @@ class RegularTileAccessIterator<
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::TensorOpMultiplicandCrosswise128x4;
-  static int const kAdvanceRank = AdvanceRank;
-  static int const kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -1198,7 +1198,7 @@ class RegularTileAccessIterator<
   struct Detail {
     /// This iterator is specialized for an access size that is 128 bits in
     /// length.
-    static int const kAccessSizeInBits = 128;
+    static constexpr int kAccessSizeInBits = 128;
 
     static_assert(sizeof_bits<Element_>::value *
                           ThreadMap::kElementsPerAccess ==
@@ -1206,7 +1206,7 @@ class RegularTileAccessIterator<
                   "This iterator requires a policy whose access size is 128b");
 
     ///< Number of pointers
-    static int const kPointerCount = 1;
+    static constexpr int kPointerCount = 1;
   };
 
 
@@ -1359,8 +1359,8 @@ class RegularTileAccessIterator<
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::ColumnMajorTensorOpMultiplicandCrosswise128x4;
-  static int const kAdvanceRank = AdvanceRank;
-  static int const kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -1452,8 +1452,8 @@ class RegularTileAccessIterator<Shape_, Element_,
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::RowMajorTensorOpMultiplicandCrosswise128x4;
-  static int const kAdvanceRank = AdvanceRank;
-  static int const kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;

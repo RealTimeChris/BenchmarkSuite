@@ -158,7 +158,7 @@ class PredicatedTileIterator2dThreadTile<Shape_, Element_, layout::PitchLinear, 
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::PitchLinear;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
 
   using Index = typename Layout::Index;
@@ -178,12 +178,12 @@ class PredicatedTileIterator2dThreadTile<Shape_, Element_, layout::PitchLinear, 
 
     Array<Element, ThreadMap::kElementsPerAccess> storage;
 
-    static int const kElements = ThreadMap::kElementsPerAccess;
+    static constexpr int kElements = ThreadMap::kElementsPerAccess;
   };
 
   /// Optionally this fragment can be 4x4 transposed
   using Transform = thread::Transpose< ThreadMap::Iterations::kCount * ThreadMap::ThreadAccessShape::kCount , layout::PitchLinearShape<4,4>, Element>;
-  static bool const transpose = Transpose_;
+  static constexpr bool transpose = Transpose_;
 
   /// Underlying iterator to compute the addresses
   using TileAccessIterator =
@@ -410,9 +410,9 @@ public:
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::ColumnMajor;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
-  static bool const Transpose = Transpose_;
+  static constexpr bool Transpose = Transpose_;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -607,9 +607,9 @@ public:
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::RowMajor;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
-  static bool const Transpose = Transpose_;
+  static constexpr bool Transpose = Transpose_;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;

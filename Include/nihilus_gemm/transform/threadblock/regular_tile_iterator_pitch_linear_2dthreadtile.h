@@ -79,9 +79,9 @@ public:
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::PitchLinear;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
-  static int const kAlignment = Alignment;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -271,9 +271,9 @@ public:
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::RowMajorInterleaved<4>;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
-  static int const kAlignment = Alignment;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -393,9 +393,9 @@ public:
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::ColumnMajorInterleaved<4>;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
-  static int const kAlignment = Alignment;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;

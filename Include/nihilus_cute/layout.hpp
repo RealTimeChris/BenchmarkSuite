@@ -37,27 +37,27 @@
 #include <nihilus_cute/numeric/arithmetic_tuple.hpp>
 #include <nihilus_cute/numeric/integral_constant.hpp>
 #include <nihilus_cute/numeric/integral_ratio.hpp>
-#include <nihilus_cute/numeric/numeric_types.hpp>  // cute::sizeof_bits
+#include <nihilus_cute/numeric/numeric_types.hpp>  // nihilus_cute::sizeof_bits
 
-namespace cute
+namespace nihilus_cute
 {
 
 // Aliases
 
 template <class... Shapes>
-using Shape = cute::tuple<Shapes...>;
+using Shape = nihilus_cute::tuple<Shapes...>;
 
 template <class... Strides>
-using Stride = cute::tuple<Strides...>;
+using Stride = nihilus_cute::tuple<Strides...>;
 
 template <class... Strides>
-using Step = cute::tuple<Strides...>;
+using Step = nihilus_cute::tuple<Strides...>;
 
 template <class... Coords>
-using Coord = cute::tuple<Coords...>;
+using Coord = nihilus_cute::tuple<Coords...>;
 
 template <class... Layouts>
-using Tile = cute::tuple<Layouts...>;
+using Tile = nihilus_cute::tuple<Layouts...>;
 
 template <class... Ts>
 CUTE_HOST_DEVICE constexpr
@@ -97,7 +97,7 @@ make_tile(Ts const&... t)
 
 template <class Shape, class Stride = LayoutLeft::Apply<Shape> >
 struct Layout
-    : private cute::tuple<Shape, Stride>   // EBO for static layouts
+    : private nihilus_cute::tuple<Shape, Stride>   // EBO for static layouts
 {
   // Expensive in compilation time...
   //static_assert(is_congruent<Shape, Stride>::value, "Shape and Stride must be congruent");
@@ -105,7 +105,7 @@ struct Layout
   // NOTE: This defaults static Shapes/Strides correctly, but not dynamic
   CUTE_HOST_DEVICE constexpr
   Layout(Shape  const& shape  = {}, Stride const& stride = {})
-      : cute::tuple<Shape, Stride>(shape, stride)
+      : nihilus_cute::tuple<Shape, Stride>(shape, stride)
   {}
 
   //
@@ -130,28 +130,28 @@ struct Layout
   CUTE_HOST_DEVICE constexpr
   decltype(auto)
   shape() {
-    return get<0,I...>(static_cast<cute::tuple<Shape, Stride>&>(*this));
+    return get<0,I...>(static_cast<nihilus_cute::tuple<Shape, Stride>&>(*this));
   }
 
   template <int... I>
   CUTE_HOST_DEVICE constexpr
   decltype(auto)
   shape() const {
-    return get<0,I...>(static_cast<cute::tuple<Shape, Stride> const&>(*this));
+    return get<0,I...>(static_cast<nihilus_cute::tuple<Shape, Stride> const&>(*this));
   }
 
   template <int... I>
   CUTE_HOST_DEVICE constexpr
   decltype(auto)
   stride() {
-    return get<1,I...>(static_cast<cute::tuple<Shape, Stride>&>(*this));
+    return get<1,I...>(static_cast<nihilus_cute::tuple<Shape, Stride>&>(*this));
   }
 
   template <int... I>
   CUTE_HOST_DEVICE constexpr
   decltype(auto)
   stride() const {
-    return get<1,I...>(static_cast<cute::tuple<Shape, Stride> const&>(*this));
+    return get<1,I...>(static_cast<nihilus_cute::tuple<Shape, Stride> const&>(*this));
   }
 
   //
@@ -250,7 +250,7 @@ struct Layout
   CUTE_HOST_DEVICE constexpr
   auto
   get_hier_coord(IInt const& idx) const {
-    return cute::idx2crd(idx, shape(), stride());
+    return nihilus_cute::idx2crd(idx, shape(), stride());
   }
 
   // Return the (flat) ND logical coordinate corresponding to the linear index
@@ -261,7 +261,7 @@ struct Layout
   CUTE_HOST_DEVICE constexpr
   auto
   get_flat_coord(IInt const& idx) const {
-    return cute::crd2crd(this->get_hier_coord(idx), shape(), repeat<rank>(Int<1>{}));
+    return nihilus_cute::crd2crd(this->get_hier_coord(idx), shape(), repeat<rank>(Int<1>{}));
   }
 
   // Return the generalized column-major 1D logical coordinate corresponding to the linear index
@@ -272,7 +272,7 @@ struct Layout
   CUTE_HOST_DEVICE constexpr
   auto
   get_1d_coord(IInt const& idx) const {
-    return cute::crd2idx(this->get_hier_coord(idx), shape());
+    return nihilus_cute::crd2idx(this->get_hier_coord(idx), shape());
   }
 
   //
@@ -286,7 +286,7 @@ struct Layout
   CUTE_HOST_DEVICE constexpr
   auto
   crd_2_hier_coord(Coord const& crd) const {
-    return cute::crd2crd(crd, shape(), shape());
+    return nihilus_cute::crd2crd(crd, shape(), shape());
   }
 
   // Return the (flat) ND logical coordinate corresponding to the linear index
@@ -295,7 +295,7 @@ struct Layout
   CUTE_HOST_DEVICE constexpr
   auto
   crd_2_flat_coord(Coord const& crd) const {
-    return cute::crd2crd(crd, shape(), product_each(shape()));
+    return nihilus_cute::crd2crd(crd, shape(), product_each(shape()));
   }
 
   // Return the generalized column-major 1D logical coordinate corresponding to the linear index
@@ -304,8 +304,8 @@ struct Layout
   CUTE_HOST_DEVICE constexpr
   auto
   crd_2_1d_coord(Coord const& crd) const {
-    //return cute::crd2crd(crd, shape(), product(shape()));
-    return cute::crd2idx(crd, shape());
+    //return nihilus_cute::crd2crd(crd, shape(), product(shape()));
+    return nihilus_cute::crd2idx(crd, shape());
   }
 #endif
 };
@@ -699,7 +699,7 @@ CUTE_HOST_DEVICE constexpr
 auto
 slice_and_offset(Coord const& c, Layout<Shape,Stride> const& layout)
 {
-  return cute::make_tuple(slice(c, layout), crd2idx(c, layout));
+  return nihilus_cute::make_tuple(slice(c, layout), crd2idx(c, layout));
 }
 
 template <class Coord, class Shape, class Stride>
@@ -718,7 +718,7 @@ CUTE_HOST_DEVICE constexpr
 auto
 domain_offset(Coord const& coord, Layout<Shape,Stride> const& layout)
 {
-  return cute::make_tuple(layout, layout(coord));
+  return nihilus_cute::make_tuple(layout, layout(coord));
 }
 
 //
@@ -813,7 +813,7 @@ bw_coalesce(OldShape const& old_shape, OldStride const& old_stride,
   CUTE_GCC_UNREACHABLE;
 }
 
-// cute::coalesce promises to not change the Layout as a function from integers to codomain.
+// nihilus_cute::coalesce promises to not change the Layout as a function from integers to codomain.
 // It accomplishes this inside of the Layout's domain, but not always outside of the domain.
 //   Example: (_4,_1):(_1,_0) coalesces to _4:_1.
 // detail::coalesce_x preserves the Layout function inside its domain and outside.
@@ -846,7 +846,7 @@ coalesce_x(Layout<Shape,Stride> const& layout, IntTuple const& trg_profile)
 {
   if constexpr (is_tuple<IntTuple>::value) {
     static_assert(tuple_size<IntTuple>::value <= Layout<Shape,Stride>::rank);
-    return cute::transform_layout(layout, trg_profile, [](auto const& l, auto const& t) { return coalesce_x(l,t); });
+    return nihilus_cute::transform_layout(layout, trg_profile, [](auto const& l, auto const& t) { return coalesce_x(l,t); });
   } else {
     return coalesce_x(layout);
   }
@@ -899,7 +899,7 @@ coalesce(Shape const& shape)
 {
   static_assert(is_integral<Shape>::value || is_tuple<Shape>::value);
 
-  return cute::fold_first(flatten(shape), [](auto const& init, auto const& a) {
+  return nihilus_cute::fold_first(flatten(shape), [](auto const& init, auto const& a) {
     if constexpr (is_static<decltype(back(init))>::value == is_static<decltype(a)>::value) {
       return replace_back(init, back(init) * a);  // Both static or both dynamic, coalesce and replace
     } else {
@@ -1051,9 +1051,9 @@ composition_impl(LShape const& lhs_shape, [[maybe_unused]] LStride const& lhs_st
     constexpr int R = tuple_size<LShape>::value;
 
     auto [result_shape, result_stride, rest_shape, rest_stride] =
-      cute::fold(make_seq<R-1>{},                           // t = [0,1,2,...,R-1)
-                 cute::make_tuple(cute::tuple<>{},          // v = (result_shape,
-                                  cute::tuple<>{},          //      result_stride,
+      nihilus_cute::fold(make_seq<R-1>{},                           // t = [0,1,2,...,R-1)
+                 nihilus_cute::make_tuple(nihilus_cute::tuple<>{},          // v = (result_shape,
+                                  nihilus_cute::tuple<>{},          //      result_stride,
                                   rhs_shape,                //      rest_shape:Integral,
                                   rhs_stride),              //      rest_stride:Integral)
                  [&](auto const& init, auto curr_i) {       // f(v,t) -> v'
@@ -1081,17 +1081,17 @@ composition_impl(LShape const& lhs_shape, [[maybe_unused]] LStride const& lhs_st
                    }
 
                    // next_shape:  ceil(exclusive_prefix_product<r>(lhs_shape) / rhs_stride)
-                   [[maybe_unused]] auto next_shape  = cute::ceil_div(curr_shape, abs(rest_stride));
+                   [[maybe_unused]] auto next_shape  = nihilus_cute::ceil_div(curr_shape, abs(rest_stride));
                    // next_stride: ceil(rhs_stride / exclusive_prefix_product<r>(lhs_shape))
-                   [[maybe_unused]] auto next_stride = cute::ceil_div(abs(rest_stride), curr_shape) * signum(rest_stride);
+                   [[maybe_unused]] auto next_stride = nihilus_cute::ceil_div(abs(rest_stride), curr_shape) * signum(rest_stride);
 
                    if constexpr (is_constant<1, decltype(next_shape)>::value or is_constant<1, decltype(rest_shape)>::value) {
-                     return cute::make_tuple(result_shape,
+                     return nihilus_cute::make_tuple(result_shape,
                                              result_stride,
                                              rest_shape,
                                              next_stride);
                    } else {
-                     auto new_shape = cute::min(next_shape, rest_shape);
+                     auto new_shape = nihilus_cute::min(next_shape, rest_shape);
 
                      // Strong divisibility condition
                      //CUTE_STATIC_ASSERT_V(((rest_shape % new_shape) == Int<0>{}), "Shape Divisibility Condition");
@@ -1104,7 +1104,7 @@ composition_impl(LShape const& lhs_shape, [[maybe_unused]] LStride const& lhs_st
                        //assert(((rest_shape % new_shape) == 0) && "Shape Divisibility Condition");
                      }
 
-                     return cute::make_tuple(append(result_shape,  new_shape),
+                     return nihilus_cute::make_tuple(append(result_shape,  new_shape),
                                              append(result_stride, rest_stride * curr_stride),
                                              rest_shape / new_shape,
                                              next_stride);
@@ -1192,17 +1192,17 @@ complement(Shape const& shape, Stride const& stride, CoTarget const& cotarget)
     // Then we could even handle dynamic strides (but they would destroy all static strides)
     auto [shape_, stride_, result_shape_, result_stride] =
       fold(make_seq<R-1>{},
-           cute::make_tuple(shape, stride, cute::make_tuple(), cute::make_tuple(Int<1>{})),
+           nihilus_cute::make_tuple(shape, stride, nihilus_cute::make_tuple(), nihilus_cute::make_tuple(Int<1>{})),
            [](auto const& init, auto i)
            {
               auto [shape, stride, result_shape, result_stride] = init;
-              auto min_stride = cute::min(stride);
-              auto min_idx    = cute::find(stride, min_stride);
+              auto min_stride = nihilus_cute::min(stride);
+              auto min_idx    = nihilus_cute::find(stride, min_stride);
               auto new_shape  = min_stride / get<i>(result_stride);
               auto new_stride = min_stride * get<min_idx>(shape);
               static_assert(not is_constant<0, decltype(new_shape)>::value, "Non-injective Layout detected in complement.");
 
-              return cute::make_tuple(remove<min_idx>(shape),              // Remove the min_idx from shape
+              return nihilus_cute::make_tuple(remove<min_idx>(shape),              // Remove the min_idx from shape
                                       remove<min_idx>(stride),             // Remove the min_idx from stride
                                       append(result_shape , new_shape ),   // new shape  = min_stride / last_stride
                                       append(result_stride, new_stride));  // new stride = min_stride * curr_shape
@@ -1270,11 +1270,11 @@ right_inverse(Layout<Shape,Stride> const& layout)
   auto lshape  = wrap(clayout.shape());
 
   // Prefix product of the shape
-  auto preprod_shape = cute::fold(lshape, cute::tuple<_1>{}, [](auto c, auto vi) { return append(c, vi*back(c)); });
+  auto preprod_shape = nihilus_cute::fold(lshape, nihilus_cute::tuple<_1>{}, [](auto c, auto vi) { return append(c, vi*back(c)); });
 
   // Filter out any dynamic strides
   [[maybe_unused]] auto filtered_seq    = filter_tuple(make_seq<rank(lstride)>{}, lstride, [](auto i, auto d) {
-                                                         return conditional_return<is_static_v<decltype(d)>>(cute::tuple{i}, cute::tuple<>{}); });
+                                                         return conditional_return<is_static_v<decltype(d)>>(nihilus_cute::tuple{i}, nihilus_cute::tuple<>{}); });
   [[maybe_unused]] auto filtered_stride = transform(filtered_seq, [&](auto i) { return get<i>(lstride); });
 
   // Sort by strides
@@ -1282,7 +1282,7 @@ right_inverse(Layout<Shape,Stride> const& layout)
   auto sorted_seq = typename Sorted::val_type{};
   //auto sorted_stride = typename Sorted::key_type{};
 
-  auto [result_shape, result_stride, curr] = cute::fold(sorted_seq, tuple<tuple<_1>,tuple<_0>,_1>{},
+  auto [result_shape, result_stride, curr] = nihilus_cute::fold(sorted_seq, tuple<tuple<_1>,tuple<_0>,_1>{},
     [&](auto const& init, auto i) {
       [[maybe_unused]] auto ishape  = get<i>(lshape);
       [[maybe_unused]] auto istride = get<i>(lstride);
@@ -1329,7 +1329,7 @@ left_inverse(Layout<Shape,Stride> const& layout)
   auto lshape  = wrap(clayout.shape());
 
   // Prefix product of the shape
-  auto preprod_shape = cute::fold(lshape, cute::tuple<_1>{}, [](auto c, auto vi) { return append(c, vi*back(c)); });
+  auto preprod_shape = nihilus_cute::fold(lshape, nihilus_cute::tuple<_1>{}, [](auto c, auto vi) { return append(c, vi*back(c)); });
 
   // Sort by strides
   static_assert(is_static<decltype(lstride)>::value, "Left inverse requires static strides.");
@@ -1337,7 +1337,7 @@ left_inverse(Layout<Shape,Stride> const& layout)
   auto sorted_seq = typename Sorted::val_type{};
   //auto sorted_stride = typename Sorted::key_type{};
 
-  auto [result_shape, result_stride] = cute::fold(sorted_seq, tuple<tuple<>,tuple<_0>>{},
+  auto [result_shape, result_stride] = nihilus_cute::fold(sorted_seq, tuple<tuple<>,tuple<_0>>{},
     [&](auto const& init, auto i) {
       [[maybe_unused]] auto istride = get<i>(lstride);
 
@@ -1458,10 +1458,10 @@ domain_distribute(ShapeA const& a, ShapeB const& b)
   static_assert(is_static<decltype(flat_shape_a)>::value);
 
   // Compute the shape of the result
-  auto [result_shape, b_rest] = cute::fold(flat_shape_a, cute::make_tuple(cute::tuple<>{}, size(b)), [](auto init, auto a_) {
+  auto [result_shape, b_rest] = nihilus_cute::fold(flat_shape_a, nihilus_cute::make_tuple(nihilus_cute::tuple<>{}, size(b)), [](auto init, auto a_) {
     auto [result, b_] = init;
     auto gcd_ = gcd(a_, b_);
-    return cute::make_tuple(append(result, gcd_), b_ / gcd_);
+    return nihilus_cute::make_tuple(append(result, gcd_), b_ / gcd_);
   });
 
   // Compute the stride of the result
@@ -1487,7 +1487,7 @@ nullspace(Layout<Shape,Stride> const& layout)
   [[maybe_unused]] auto flat_stride = flatten(layout.stride());
 
   // Select all indices corresponding to stride-0s
-  auto iseq = cute::fold(make_seq<rank_v<decltype(flat_stride)>>{}, cute::tuple<>{},
+  auto iseq = nihilus_cute::fold(make_seq<rank_v<decltype(flat_stride)>>{}, nihilus_cute::tuple<>{},
                          [&](auto init, auto i){
                            if constexpr (is_constant_v<0, decltype(get<i>(flat_stride))>) { return append(init, i); }
                            else                                                           { return init;            }
@@ -1726,7 +1726,7 @@ flat_product(Layout<LShape,LStride> const& block,
 // blocked_product -- Reproduce a block over a tiler.
 // Think of every element of "tiler" as a "block"
 //   and return the layout of the resulting structure.
-// @post rank(@a result) == cute::max(rank(@a block), rank(@a tiler))
+// @post rank(@a result) == nihilus_cute::max(rank(@a block), rank(@a tiler))
 template <class TShape, class TStride,
           class UShape, class UStride>
 CUTE_HOST_DEVICE constexpr
@@ -1734,7 +1734,7 @@ auto
 blocked_product(Layout<TShape,TStride> const& block,
                 Layout<UShape,UStride> const& tiler)
 {
-  constexpr int R = cute::max(rank_v<TShape>, rank_v<UShape>);
+  constexpr int R = nihilus_cute::max(rank_v<TShape>, rank_v<UShape>);
 
   auto result = logical_product(append<R>(block), append<R>(tiler));
 
@@ -1744,7 +1744,7 @@ blocked_product(Layout<TShape,TStride> const& block,
 // raked_product -- Reproduce a block over a tiler with block-interleaving.
 // Think of every element of "tiler" as a "block", interleave those blocks,
 //   and return the layout of the resulting structure.
-// @post rank(@a result) == cute::max(rank(@a block), rank(@a tiler))
+// @post rank(@a result) == nihilus_cute::max(rank(@a block), rank(@a tiler))
 template <class TShape, class TStride,
           class UShape, class UStride>
 CUTE_HOST_DEVICE constexpr
@@ -1752,7 +1752,7 @@ auto
 raked_product(Layout<TShape,TStride> const& block,
               Layout<UShape,UStride> const& tiler)
 {
-  constexpr int R = cute::max(rank_v<TShape>, rank_v<UShape>);
+  constexpr int R = nihilus_cute::max(rank_v<TShape>, rank_v<UShape>);
 
   auto result = logical_product(append<R>(block), append<R>(tiler));
 
@@ -1928,4 +1928,4 @@ CUTE_HOST std::ostream& operator<<(std::ostream& os, Layout<Shape,Stride> const&
 }
 #endif
 
-} // end namespace cute
+} // end namespace nihilus_cute

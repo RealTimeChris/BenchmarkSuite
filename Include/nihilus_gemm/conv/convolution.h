@@ -140,16 +140,16 @@ template <
   int C = 1
 >
 struct TensorNHWCShape {
-  static int const kN = N;
-  static int const kH = H;
-  static int const kW = W;
-  static int const kC = C;
+  static constexpr int kN = N;
+  static constexpr int kH = H;
+  static constexpr int kW = W;
+  static constexpr int kC = C;
 
-  static int const kHW = H * W;
-  static int const kNHW = N * kHW;
-  static int const kNHWC = N * H * W * C;
+  static constexpr int kHW = H * W;
+  static constexpr int kNHW = N * kHW;
+  static constexpr int kNHWC = N * H * W * C;
 
-  static int const kCount = kNHWC;
+  static constexpr int kCount = kNHWC;
 
   //
   // Static member functions
@@ -172,8 +172,8 @@ template <
   int v = 1
 >
 struct Stride2D {
-  static int const kU = u;
-  static int const kV = v;
+  static constexpr int kU = u;
+  static constexpr int kV = v;
 
   //
   // Static member functions

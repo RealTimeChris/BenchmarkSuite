@@ -62,11 +62,11 @@ struct Gemm {
   using Epilogue = Epilogue_;
   using OutputOp = typename Epilogue::OutputOp;
   using ThreadblockSwizzle = ThreadblockSwizzle_;
-  static bool const kSplitKSerial = SplitKSerial;
+  static constexpr bool kSplitKSerial = SplitKSerial;
 
   /// Warp count (concept: GemmShape)
   using WarpCount = typename Mma::WarpCount;
-  static int const kThreadCount = 32 * WarpCount::kCount;
+  static constexpr int kThreadCount = 32 * WarpCount::kCount;
 
   /// Parameters structure
   struct Params {
@@ -157,21 +157,21 @@ struct Gemm {
     typename Epilogue::OutputTileIterator::TensorRef ref_C,
     typename Epilogue::OutputTileIterator::TensorRef ref_D) {
 
-    static int const kAlignmentA = (platform::is_same<typename Mma::IteratorA::Layout,
+    static constexpr int kAlignmentA = (platform::is_same<typename Mma::IteratorA::Layout,
                                                       layout::ColumnMajorInterleaved<32>>::value)
                                    ? 32
                                    : (platform::is_same<typename Mma::IteratorA::Layout,
                                                         layout::ColumnMajorInterleaved<64>>::value)
                                      ? 64
                                      : Mma::IteratorA::AccessType::kElements;
-    static int const kAlignmentB =  (platform::is_same<typename Mma::IteratorB::Layout,
+    static constexpr int kAlignmentB =  (platform::is_same<typename Mma::IteratorB::Layout,
                                                        layout::RowMajorInterleaved<32>>::value)
                                    ? 32
                                    : (platform::is_same<typename Mma::IteratorB::Layout,
                                                         layout::RowMajorInterleaved<64>>::value)
                                      ? 64
                                      : Mma::IteratorB::AccessType::kElements;
-    static int const kAlignmentC = (platform::is_same<typename Epilogue::OutputTileIterator::Layout,
+    static constexpr int kAlignmentC = (platform::is_same<typename Epilogue::OutputTileIterator::Layout,
                                                       layout::ColumnMajorInterleaved<32>>::value)
                                    ? 32
                                    : (platform::is_same<typename Epilogue::OutputTileIterator::Layout,

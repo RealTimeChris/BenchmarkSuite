@@ -78,12 +78,12 @@ struct DefaultGemmConfiguration<
   ElementC, 
   ElementAccumulator> {
   
-  static int const kAlignmentA = 1;
-  static int const kAlignmentB = 1;
+  static constexpr int kAlignmentA = 1;
+  static constexpr int kAlignmentB = 1;
   using ThreadblockShape = GemmShape<128, 128, 8>;
   using WarpShape = GemmShape<32, 64, 8>;
   using InstructionShape = GemmShape<1, 1, 1>;
-  static int const kStages = 2;
+  static constexpr int kStages = 2;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombination<
     ElementC,
@@ -102,12 +102,12 @@ template <
   typename ElementC>
 struct DefaultGemmConfiguration<arch::OpClassSimt, ArchTag, int8_t, int8_t, ElementC, int32_t> {
   
-  static int const kAlignmentA = 4;
-  static int const kAlignmentB = 4;
+  static constexpr int kAlignmentA = 4;
+  static constexpr int kAlignmentB = 4;
   using ThreadblockShape = GemmShape<128, 128, 32>;
   using WarpShape = GemmShape<32, 64, 32>;
   using InstructionShape = GemmShape<1, 1, 4>;
-  static int const kStages = 2;
+  static constexpr int kStages = 2;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombinationClamp<
     ElementC,
@@ -135,10 +135,10 @@ struct DefaultGemmConfiguration<
   ElementC, 
   ElementAccumulator> {
   
-  static int const kAlignmentA = 128 / sizeof_bits<ElementA>::value;
-  static int const kAlignmentB = 128 / sizeof_bits<ElementB>::value;
+  static constexpr int kAlignmentA = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int kAlignmentB = 128 / sizeof_bits<ElementB>::value;
 
-  static int const kStages = 2;
+  static constexpr int kStages = 2;
   
   using EpilogueOutputOp = epilogue::thread::LinearCombination<
     ElementC,
@@ -165,13 +165,13 @@ struct DefaultGemmConfiguration<
   ElementC, 
   ElementAccumulator> {
   
-  static int const kAlignmentA = 128 / sizeof_bits<ElementA>::value;
-  static int const kAlignmentB = 128 / sizeof_bits<ElementB>::value;
+  static constexpr int kAlignmentA = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int kAlignmentB = 128 / sizeof_bits<ElementB>::value;
 
   using ThreadblockShape = GemmShape<128, 256, 32>;
   using WarpShape = GemmShape<64, 64, 32>;
   using InstructionShape = GemmShape<8, 8, 4>;
-  static int const kStages = 2;
+  static constexpr int kStages = 2;
   
   using EpilogueOutputOp = epilogue::thread::LinearCombination<
     ElementC,
@@ -198,12 +198,12 @@ struct DefaultGemmConfiguration<
   ElementC, 
   ElementAccumulator> {
 
-  static int const kAlignmentA = 128 / sizeof_bits<ElementA>::value;
-  static int const kAlignmentB = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int kAlignmentA = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int kAlignmentB = 128 / sizeof_bits<ElementA>::value;
   using ThreadblockShape = GemmShape<128, 256, 32>;
   using WarpShape = GemmShape<64, 64, 32>;
   using InstructionShape = GemmShape<16, 8, 8>;
-  static int const kStages = 2;
+  static constexpr int kStages = 2;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombination<
     ElementC,
@@ -232,13 +232,13 @@ struct DefaultGemmConfiguration<
   ElementC, 
   int32_t> {
   
-  static int const kAlignmentA = 128 / sizeof_bits<int8_t>::value;
-  static int const kAlignmentB = 128 / sizeof_bits<int8_t>::value;
+  static constexpr int kAlignmentA = 128 / sizeof_bits<int8_t>::value;
+  static constexpr int kAlignmentB = 128 / sizeof_bits<int8_t>::value;
 
   using ThreadblockShape = GemmShape<128, 256, 64>;
   using WarpShape = GemmShape<64, 64, 64>;
   using InstructionShape = GemmShape<8, 8, 16>;
-  static int const kStages = 2;
+  static constexpr int kStages = 2;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombinationClamp<
       ElementC, 128 / sizeof_bits<ElementC>::value, int32_t, float>;
@@ -258,13 +258,13 @@ struct DefaultGemmConfiguration<
   ElementC, 
   int32_t> {
   
-  static int const kAlignmentA = 128 / sizeof_bits<int8_t>::value;
-  static int const kAlignmentB = 128 / sizeof_bits<uint8_t>::value;
+  static constexpr int kAlignmentA = 128 / sizeof_bits<int8_t>::value;
+  static constexpr int kAlignmentB = 128 / sizeof_bits<uint8_t>::value;
  
   using ThreadblockShape = GemmShape<128, 256, 64>;
   using WarpShape = GemmShape<64, 64, 64>;
   using InstructionShape = GemmShape<8, 8, 16>;
-  static int const kStages = 2;
+  static constexpr int kStages = 2;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombinationClamp<
       ElementC, 128 / sizeof_bits<ElementC>::value, int32_t, float>;
@@ -284,13 +284,13 @@ struct DefaultGemmConfiguration<
   ElementC, 
   int32_t> {
   
-  static int const kAlignmentA = 128 / sizeof_bits<uint8_t>::value;
-  static int const kAlignmentB = 128 / sizeof_bits<int8_t>::value;
+  static constexpr int kAlignmentA = 128 / sizeof_bits<uint8_t>::value;
+  static constexpr int kAlignmentB = 128 / sizeof_bits<int8_t>::value;
  
   using ThreadblockShape = GemmShape<128, 256, 64>;
   using WarpShape = GemmShape<64, 64, 64>;
   using InstructionShape = GemmShape<8, 8, 16>;
-  static int const kStages = 2;
+  static constexpr int kStages = 2;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombinationClamp<
       ElementC, 128 / sizeof_bits<ElementC>::value, int32_t, float>;
@@ -310,13 +310,13 @@ struct DefaultGemmConfiguration<
   ElementC, 
   int32_t> {
   
-  static int const kAlignmentA = 128 / sizeof_bits<uint8_t>::value;
-  static int const kAlignmentB = 128 / sizeof_bits<uint8_t>::value;
+  static constexpr int kAlignmentA = 128 / sizeof_bits<uint8_t>::value;
+  static constexpr int kAlignmentB = 128 / sizeof_bits<uint8_t>::value;
  
   using ThreadblockShape = GemmShape<128, 256, 64>;
   using WarpShape = GemmShape<64, 64, 64>;
   using InstructionShape = GemmShape<8, 8, 16>;
-  static int const kStages = 2;
+  static constexpr int kStages = 2;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombinationClamp<
       ElementC, 128 / sizeof_bits<ElementC>::value, int32_t, float>;
@@ -336,13 +336,13 @@ struct DefaultGemmConfiguration<
   ElementC, 
   int32_t> {
    
-  static int const kAlignmentA = 128 / sizeof_bits<int4b_t>::value;
-  static int const kAlignmentB = 128 / sizeof_bits<int4b_t>::value;
+  static constexpr int kAlignmentA = 128 / sizeof_bits<int4b_t>::value;
+  static constexpr int kAlignmentB = 128 / sizeof_bits<int4b_t>::value;
  
   using ThreadblockShape = GemmShape<128, 256, 128>;
   using WarpShape = GemmShape<64, 64, 128>;
   using InstructionShape = GemmShape<8, 8, 32>;
-  static int const kStages = 2;
+  static constexpr int kStages = 2;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombinationClamp<
       ElementC, 128 / sizeof_bits<ElementC>::value, int32_t, float>;
@@ -362,13 +362,13 @@ struct DefaultGemmConfiguration<
   ElementC, 
   int32_t> {
     
-  static int const kAlignmentA = 128 / sizeof_bits<int4b_t>::value;
-  static int const kAlignmentB = 128 / sizeof_bits<uint4b_t>::value;
+  static constexpr int kAlignmentA = 128 / sizeof_bits<int4b_t>::value;
+  static constexpr int kAlignmentB = 128 / sizeof_bits<uint4b_t>::value;
  
   using ThreadblockShape = GemmShape<128, 256, 128>;
   using WarpShape = GemmShape<64, 64, 128>;
   using InstructionShape = GemmShape<8, 8, 32>;
-  static int const kStages = 2;
+  static constexpr int kStages = 2;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombinationClamp<
       ElementC, 128 / sizeof_bits<ElementC>::value, int32_t, float>;
@@ -388,13 +388,13 @@ struct DefaultGemmConfiguration<
   ElementC, 
   int32_t> {
   
-  static int const kAlignmentA = 128 / sizeof_bits<uint4b_t>::value;
-  static int const kAlignmentB = 128 / sizeof_bits<int4b_t>::value;
+  static constexpr int kAlignmentA = 128 / sizeof_bits<uint4b_t>::value;
+  static constexpr int kAlignmentB = 128 / sizeof_bits<int4b_t>::value;
 
   using ThreadblockShape = GemmShape<128, 256, 128>;
   using WarpShape = GemmShape<64, 64, 128>;
   using InstructionShape = GemmShape<8, 8, 32>;
-  static int const kStages = 2;
+  static constexpr int kStages = 2;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombinationClamp<
       ElementC, 128 / sizeof_bits<ElementC>::value, int32_t, float>;
@@ -414,13 +414,13 @@ struct DefaultGemmConfiguration<
   ElementC, 
   int32_t> {
    
-  static int const kAlignmentA = 128 / sizeof_bits<uint4b_t>::value;
-  static int const kAlignmentB = 128 / sizeof_bits<uint4b_t>::value;
+  static constexpr int kAlignmentA = 128 / sizeof_bits<uint4b_t>::value;
+  static constexpr int kAlignmentB = 128 / sizeof_bits<uint4b_t>::value;
  
   using ThreadblockShape = GemmShape<128, 256, 128>;
   using WarpShape = GemmShape<64, 64, 128>;
   using InstructionShape = GemmShape<8, 8, 32>;
-  static int const kStages = 2;
+  static constexpr int kStages = 2;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombinationClamp<
       ElementC, 128 / sizeof_bits<ElementC>::value, int32_t, float>;
@@ -440,13 +440,13 @@ struct DefaultGemmConfiguration<
   ElementC, 
   int32_t> {
     
-  static int const kAlignmentA = 128 / sizeof_bits<uint1b_t>::value;
-  static int const kAlignmentB = 128 / sizeof_bits<uint1b_t>::value;
+  static constexpr int kAlignmentA = 128 / sizeof_bits<uint1b_t>::value;
+  static constexpr int kAlignmentB = 128 / sizeof_bits<uint1b_t>::value;
  
   using ThreadblockShape = GemmShape<128, 256, 512>;
   using WarpShape = GemmShape<64, 64, 512>;
   using InstructionShape = GemmShape<8, 8, 128>;
-  static int const kStages = 2;
+  static constexpr int kStages = 2;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombinationClamp<
       ElementC, 128 / sizeof_bits<ElementC>::value, int32_t, float>;
@@ -461,13 +461,13 @@ template <typename ElementA, typename ElementB, typename ElementC,
 struct DefaultGemmConfiguration<arch::OpClassTensorOp, arch::Sm80, ElementA,
                                 ElementB, ElementC, ElementAccumulator> {
 
-  static int const kAlignmentA = 128 / sizeof_bits<ElementA>::value;
-  static int const kAlignmentB = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int kAlignmentA = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int kAlignmentB = 128 / sizeof_bits<ElementA>::value;
   
   using ThreadblockShape = GemmShape<128, 256, 64>;
   using WarpShape = GemmShape<64, 64, 64>;
   using InstructionShape = GemmShape<16, 8, 16>;
-  static int const kStages = 3;
+  static constexpr int kStages = 3;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombination<
       ElementC, 128 / sizeof_bits<ElementC>::value, ElementAccumulator,
@@ -487,13 +487,13 @@ template <typename ElementC,
 struct DefaultGemmConfiguration<arch::OpClassTensorOp, arch::Sm80, double,
                                 double, ElementC, ElementAccumulator> {
 
-  static int const kAlignmentA = 1;
-  static int const kAlignmentB = 1;
+  static constexpr int kAlignmentA = 1;
+  static constexpr int kAlignmentB = 1;
   
   using ThreadblockShape = GemmShape<128, 128, 16>;
   using WarpShape = GemmShape<32, 64, 16>;
   using InstructionShape = GemmShape<8, 8, 4>;
-  static int const kStages = 3;
+  static constexpr int kStages = 3;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombination<
       ElementC, 1, ElementAccumulator,
@@ -513,13 +513,13 @@ struct DefaultGemmConfiguration<
     complex<double>
   > {
 
-  static int const kAlignmentA = 1;
-  static int const kAlignmentB = 1;
+  static constexpr int kAlignmentA = 1;
+  static constexpr int kAlignmentB = 1;
   
   using ThreadblockShape = GemmShape<64, 64, 16>;
   using WarpShape = GemmShape<32, 32, 16>;
   using InstructionShape = GemmShape<8, 8, 4>;
-  static int const kStages = 3;
+  static constexpr int kStages = 3;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombination<
       complex<double>, 1, complex<double>,
@@ -540,13 +540,13 @@ struct DefaultGemmConfiguration<
   ElementC, 
   int32_t> {
      
-  static int const kAlignmentA = 128 / sizeof_bits<int8_t>::value;
-  static int const kAlignmentB = 128 / sizeof_bits<int8_t>::value;
+  static constexpr int kAlignmentA = 128 / sizeof_bits<int8_t>::value;
+  static constexpr int kAlignmentB = 128 / sizeof_bits<int8_t>::value;
  
   using ThreadblockShape = GemmShape<128, 256, 64>;
   using WarpShape = GemmShape<64, 64, 64>;
   using InstructionShape = GemmShape<16, 8, 32>;
-  static int const kStages = 3;
+  static constexpr int kStages = 3;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombinationClamp<
       ElementC, 128 / sizeof_bits<ElementC>::value, int32_t, float>;
@@ -566,13 +566,13 @@ struct DefaultGemmConfiguration<
   ElementC, 
   int32_t> {
       
-  static int const kAlignmentA = 128 / sizeof_bits<int8_t>::value;
-  static int const kAlignmentB = 128 / sizeof_bits<uint8_t>::value;
+  static constexpr int kAlignmentA = 128 / sizeof_bits<int8_t>::value;
+  static constexpr int kAlignmentB = 128 / sizeof_bits<uint8_t>::value;
   
   using ThreadblockShape = GemmShape<128, 256, 64>;
   using WarpShape = GemmShape<64, 64, 64>;
   using InstructionShape = GemmShape<16, 8, 32>;
-  static int const kStages = 3;
+  static constexpr int kStages = 3;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombinationClamp<
       ElementC, 128 / sizeof_bits<ElementC>::value, int32_t, float>;
@@ -592,13 +592,13 @@ struct DefaultGemmConfiguration<
   ElementC, 
   int32_t> {
       
-  static int const kAlignmentA = 128 / sizeof_bits<uint8_t>::value;
-  static int const kAlignmentB = 128 / sizeof_bits<int8_t>::value;
+  static constexpr int kAlignmentA = 128 / sizeof_bits<uint8_t>::value;
+  static constexpr int kAlignmentB = 128 / sizeof_bits<int8_t>::value;
   
   using ThreadblockShape = GemmShape<128, 256, 64>;
   using WarpShape = GemmShape<64, 64, 64>;
   using InstructionShape = GemmShape<16, 8, 32>;
-  static int const kStages = 3;
+  static constexpr int kStages = 3;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombinationClamp<
       ElementC, 128 / sizeof_bits<ElementC>::value, int32_t, float>;
@@ -618,13 +618,13 @@ struct DefaultGemmConfiguration<
   ElementC, 
   int32_t> {
       
-  static int const kAlignmentA = 128 / sizeof_bits<uint8_t>::value;
-  static int const kAlignmentB = 128 / sizeof_bits<uint8_t>::value;
+  static constexpr int kAlignmentA = 128 / sizeof_bits<uint8_t>::value;
+  static constexpr int kAlignmentB = 128 / sizeof_bits<uint8_t>::value;
   
   using ThreadblockShape = GemmShape<128, 256, 64>;
   using WarpShape = GemmShape<64, 64, 64>;
   using InstructionShape = GemmShape<16, 8, 32>;
-  static int const kStages = 3;
+  static constexpr int kStages = 3;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombinationClamp<
       ElementC, 128 / sizeof_bits<ElementC>::value, int32_t, float>;
@@ -644,13 +644,13 @@ struct DefaultGemmConfiguration<
   ElementC, 
   int32_t> {
       
-  static int const kAlignmentA = 128 / sizeof_bits<int4b_t>::value;
-  static int const kAlignmentB = 128 / sizeof_bits<int4b_t>::value;
+  static constexpr int kAlignmentA = 128 / sizeof_bits<int4b_t>::value;
+  static constexpr int kAlignmentB = 128 / sizeof_bits<int4b_t>::value;
   
   using ThreadblockShape = GemmShape<128, 256, 128>;
   using WarpShape = GemmShape<64, 64, 128>;
   using InstructionShape = GemmShape<16, 8, 64>;
-  static int const kStages = 3;
+  static constexpr int kStages = 3;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombinationClamp<
       ElementC, 128 / sizeof_bits<ElementC>::value, int32_t, float>;
@@ -670,13 +670,13 @@ struct DefaultGemmConfiguration<
   ElementC, 
   int32_t> {
        
-  static int const kAlignmentA = 128 / sizeof_bits<int4b_t>::value;
-  static int const kAlignmentB = 128 / sizeof_bits<uint4b_t>::value;
+  static constexpr int kAlignmentA = 128 / sizeof_bits<int4b_t>::value;
+  static constexpr int kAlignmentB = 128 / sizeof_bits<uint4b_t>::value;
   
   using ThreadblockShape = GemmShape<128, 256, 128>;
   using WarpShape = GemmShape<64, 64, 128>;
   using InstructionShape = GemmShape<16, 8, 64>;
-  static int const kStages = 3;
+  static constexpr int kStages = 3;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombinationClamp<
       ElementC, 128 / sizeof_bits<ElementC>::value, int32_t, float>;
@@ -696,13 +696,13 @@ struct DefaultGemmConfiguration<
   ElementC, 
   int32_t> {
        
-  static int const kAlignmentA = 128 / sizeof_bits<uint4b_t>::value;
-  static int const kAlignmentB = 128 / sizeof_bits<int4b_t>::value;
+  static constexpr int kAlignmentA = 128 / sizeof_bits<uint4b_t>::value;
+  static constexpr int kAlignmentB = 128 / sizeof_bits<int4b_t>::value;
   
   using ThreadblockShape = GemmShape<128, 256, 128>;
   using WarpShape = GemmShape<64, 64, 128>;
   using InstructionShape = GemmShape<16, 8, 64>;
-  static int const kStages = 3;
+  static constexpr int kStages = 3;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombinationClamp<
       ElementC, 128 / sizeof_bits<ElementC>::value, int32_t, float>;
@@ -722,13 +722,13 @@ struct DefaultGemmConfiguration<
   ElementC, 
   int32_t> {
        
-  static int const kAlignmentA = 128 / sizeof_bits<uint4b_t>::value;
-  static int const kAlignmentB = 128 / sizeof_bits<uint4b_t>::value;
+  static constexpr int kAlignmentA = 128 / sizeof_bits<uint4b_t>::value;
+  static constexpr int kAlignmentB = 128 / sizeof_bits<uint4b_t>::value;
   
   using ThreadblockShape = GemmShape<128, 256, 128>;
   using WarpShape = GemmShape<64, 64, 128>;
   using InstructionShape = GemmShape<16, 8, 64>;
-  static int const kStages = 3;
+  static constexpr int kStages = 3;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombinationClamp<
       ElementC, 128 / sizeof_bits<ElementC>::value, int32_t, float>;
@@ -748,13 +748,13 @@ struct DefaultGemmConfiguration<
   ElementC, 
   int32_t> {
        
-  static int const kAlignmentA = 128 / sizeof_bits<uint1b_t>::value;
-  static int const kAlignmentB = 128 / sizeof_bits<uint1b_t>::value;
+  static constexpr int kAlignmentA = 128 / sizeof_bits<uint1b_t>::value;
+  static constexpr int kAlignmentB = 128 / sizeof_bits<uint1b_t>::value;
   
   using ThreadblockShape = GemmShape<128, 256, 512>;
   using WarpShape = GemmShape<64, 64, 512>;
   using InstructionShape = GemmShape<16, 8, 256>;
-  static int const kStages = 3;
+  static constexpr int kStages = 3;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombinationClamp<
       ElementC, 128 / sizeof_bits<ElementC>::value, int32_t, float>;
@@ -774,13 +774,13 @@ struct DefaultGemmConfiguration<
   ElementC,
   int32_t> {
 
-  static int const kAlignmentA = 128 / sizeof_bits<int4b_t>::value;
-  static int const kAlignmentB = 128 / sizeof_bits<int8_t>::value;
+  static constexpr int kAlignmentA = 128 / sizeof_bits<int4b_t>::value;
+  static constexpr int kAlignmentB = 128 / sizeof_bits<int8_t>::value;
 
   using ThreadblockShape = GemmShape<128, 256, 64>;
   using WarpShape = GemmShape<64, 64, 64>;
   using InstructionShape = GemmShape<16, 8, 32>;
-  static int const kStages = 3;
+  static constexpr int kStages = 3;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombinationClamp<
       ElementC, 128 / sizeof_bits<ElementC>::value, int32_t, float>;
@@ -800,13 +800,13 @@ struct DefaultGemmConfiguration<
   ElementC,
   int32_t> {
 
-  static int const kAlignmentA = 128 / sizeof_bits<int8_t>::value;
-  static int const kAlignmentB = 128 / sizeof_bits<int4b_t>::value;
+  static constexpr int kAlignmentA = 128 / sizeof_bits<int8_t>::value;
+  static constexpr int kAlignmentB = 128 / sizeof_bits<int4b_t>::value;
 
   using ThreadblockShape = GemmShape<128, 256, 64>;
   using WarpShape = GemmShape<64, 64, 64>;
   using InstructionShape = GemmShape<16, 8, 32>;
-  static int const kStages = 3;
+  static constexpr int kStages = 3;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombinationClamp<
       ElementC, 128 / sizeof_bits<ElementC>::value, int32_t, float>;
@@ -830,13 +830,13 @@ struct DefaultGemmConfigurationSm89F8 {
                  platform::is_same<ElementB, cutlass::float_e5m2_t>::value),
                 "ElementB must be of type float_e4m3_t or float_e5m2_t");
 
-  static int const kAlignmentA = 128 / sizeof_bits<ElementA>::value;
-  static int const kAlignmentB = 128 / sizeof_bits<ElementB>::value;
+  static constexpr int kAlignmentA = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int kAlignmentB = 128 / sizeof_bits<ElementB>::value;
 
   using ThreadblockShape = GemmShape<128, 256, 64>;
   using WarpShape = GemmShape<64, 64, 64>;
   using InstructionShape = GemmShape<16, 8, 32>;
-  static int const kStages = 3;
+  static constexpr int kStages = 3;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombination<
       ElementC, 128 / sizeof_bits<ElementC>::value, ElementAccumulator,
@@ -908,13 +908,13 @@ template <typename ElementC,
 struct DefaultGemmConfiguration<arch::OpClassTensorOp, arch::Sm90, double,
                                 double, ElementC, ElementAccumulator> {
 
-  static int const kAlignmentA = 1;
-  static int const kAlignmentB = 1;
+  static constexpr int kAlignmentA = 1;
+  static constexpr int kAlignmentB = 1;
   
   using ThreadblockShape = GemmShape<128, 256, 64>;
   using WarpShape = GemmShape<64, 64, 64>;
   using InstructionShape = GemmShape<16, 8, 4>;
-  static int const kStages = 3;
+  static constexpr int kStages = 3;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombination<
       ElementC, 1, ElementAccumulator,
@@ -933,13 +933,13 @@ struct DefaultGemmConfiguration<
     complex<double>
   > {
 
-  static int const kAlignmentA = 1;
-  static int const kAlignmentB = 1;
+  static constexpr int kAlignmentA = 1;
+  static constexpr int kAlignmentB = 1;
   
   using ThreadblockShape = GemmShape<64, 64, 16>;
   using WarpShape = GemmShape<32, 32, 16>;
   using InstructionShape = GemmShape<16, 8, 4>;
-  static int const kStages = 3;
+  static constexpr int kStages = 3;
 
   using EpilogueOutputOp = epilogue::thread::LinearCombination<
       complex<double>, 1, complex<double>,

@@ -62,17 +62,17 @@ public:
   using ElementOutput = ElementOutput_;
   using ElementAccumulator = ElementAccumulator_;
   using ElementCompute = ElementAccumulator_;
-  using ElementD = ElementOutput;                     // for use with cute::collective::DefaultEpilogue
+  using ElementD = ElementOutput;                     // for use with nihilus_cute::collective::DefaultEpilogue
 
-  static int const kCount = Count;
+  static constexpr int kCount = Count;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
   using ComputeFragment = FragmentAccumulator;
 
-  static FloatRoundStyle const kRound = Round;
+  static constexpr FloatRoundStyle kRound = Round;
 
-  static bool const kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
 
   /// Host-constructable parameters structure
   struct Params {
@@ -126,7 +126,7 @@ public:
   }
 
   //
-  // Specializations for scalar (for use with cute::collective::DefaultEpilogue)
+  // Specializations for scalar (for use with nihilus_cute::collective::DefaultEpilogue)
   //
   CUTLASS_HOST_DEVICE
   ElementD operator()(ElementAccumulator const accumulator, ElementAccumulator const source) const {

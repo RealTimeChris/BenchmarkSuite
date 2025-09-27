@@ -49,10 +49,10 @@ namespace layout {
 /// memory and Crosswise size (in elements).
 struct TensorOpMultiplicandCongruous64b {
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -70,8 +70,8 @@ struct TensorOpMultiplicandCongruous64b {
   // Static constants
   //
 
-  static int const kElementSize = 64;
-  static int const kElementsPerAccess = 1;
+  static constexpr int kElementSize = 64;
+  static constexpr int kElementsPerAccess = 1;
 
  private:
 
@@ -151,10 +151,10 @@ struct TensorOpMultiplicandCongruous64b {
 struct ColumnMajorTensorOpMultiplicandCongruous64b {
 
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -241,10 +241,10 @@ public:
 struct RowMajorTensorOpMultiplicandCongruous64b {
 
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -330,10 +330,10 @@ public:
 /// memory and Crosswise size (in elements).
 struct TensorOpMultiplicand64bCrosswise {
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -351,8 +351,8 @@ struct TensorOpMultiplicand64bCrosswise {
   // Static constants
   //
 
-  static int const kElementSize = 64;
-  static int const kElementsPerAccess = 1;
+  static constexpr int kElementSize = 64;
+  static constexpr int kElementsPerAccess = 1;
 
  private:
 
@@ -429,10 +429,10 @@ struct TensorOpMultiplicand64bCrosswise {
 /// memory and Crosswise size (in elements).
 struct ColumnMajorTensorOpMultiplicand64bCrosswise {
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -512,10 +512,10 @@ public:
 struct RowMajorTensorOpMultiplicand64bCrosswise {
 
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -594,10 +594,10 @@ public:
 /// memory and Crosswise size (in elements).
 struct TensorOpMultiplicandCongruous128b {
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -615,8 +615,8 @@ struct TensorOpMultiplicandCongruous128b {
   // Static constants
   //
 
-  static int const kElementSize = 128;
-  static int const kElementsPerAccess = 1;
+  static constexpr int kElementSize = 128;
+  static constexpr int kElementsPerAccess = 1;
 
  private:
 
@@ -696,10 +696,10 @@ struct TensorOpMultiplicandCongruous128b {
 struct ColumnMajorTensorOpMultiplicandCongruous128b {
 
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -786,10 +786,10 @@ public:
 struct RowMajorTensorOpMultiplicandCongruous128b {
 
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -875,10 +875,10 @@ public:
 /// memory and Crosswise size (in elements).
 struct TensorOpMultiplicandCrosswise128x4 {
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -896,8 +896,8 @@ struct TensorOpMultiplicandCrosswise128x4 {
   // Static constants
   //
 
-  static int const kElementSize = 128;
-  static int const kElementsPerAccess = 1;
+  static constexpr int kElementSize = 128;
+  static constexpr int kElementsPerAccess = 1;
 
  private:
 
@@ -972,10 +972,10 @@ struct TensorOpMultiplicandCrosswise128x4 {
 struct ColumnMajorTensorOpMultiplicandCrosswise128x4 {
 
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -1055,10 +1055,10 @@ public:
 struct RowMajorTensorOpMultiplicandCrosswise128x4 {
 
   /// Logical rank of tensor
-  static int const kRank = 2;
+  static constexpr int kRank = 2;
 
   /// Rank of stride vector
-  static int const kStrideRank = 1;
+  static constexpr int kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;

@@ -31,12 +31,12 @@
 #pragma once
 
 #include <nihilus_cute/config.hpp>                      // CUTE_HOST_DEVICE
-#include <nihilus_cute/container/tuple.hpp>             // cute::is_tuple
-#include <nihilus_cute/numeric/integral_constant.hpp>   // cute::constant
-#include <nihilus_cute/numeric/math.hpp>                // cute::max, cute::min
-#include <nihilus_cute/algorithm/tuple_algorithms.hpp>  // cute::transform_apply
+#include <nihilus_cute/container/tuple.hpp>             // nihilus_cute::is_tuple
+#include <nihilus_cute/numeric/integral_constant.hpp>   // nihilus_cute::constant
+#include <nihilus_cute/numeric/math.hpp>                // nihilus_cute::max, nihilus_cute::min
+#include <nihilus_cute/algorithm/tuple_algorithms.hpp>  // nihilus_cute::transform_apply
 
-namespace cute
+namespace nihilus_cute
 {
 
 // A generic Swizzle functor
@@ -63,10 +63,10 @@ struct Swizzle
   static_assert(abs(num_shft) >= num_bits, "abs(SShift) must be more than BBits.");
 
   // using 'int' type here to avoid unintentially casting to unsigned... unsure.
-  using bit_msk = cute::constant<int, (1 << num_bits) - 1>;
-  using yyy_msk = cute::constant<int, bit_msk{} << (num_base + max(0,num_shft))>;
-  using zzz_msk = cute::constant<int, bit_msk{} << (num_base - min(0,num_shft))>;
-  using msk_sft = cute::constant<int, num_shft>;
+  using bit_msk = nihilus_cute::constant<int, (1 << num_bits) - 1>;
+  using yyy_msk = nihilus_cute::constant<int, bit_msk{} << (num_base + max(0,num_shft))>;
+  using zzz_msk = nihilus_cute::constant<int, bit_msk{} << (num_base - min(0,num_shft))>;
+  using msk_sft = nihilus_cute::constant<int, num_shft>;
 
   static constexpr uint32_t swizzle_code = uint32_t(yyy_msk::value | zzz_msk::value);
 
@@ -110,7 +110,7 @@ make_swizzle()
   static_assert(BZ == BY, "Number of bits in Y and Z don't match");
   constexpr uint32_t TZ_Y = countr_zero(Y);               // Number of trailing zeros in Y
   constexpr uint32_t TZ_Z = countr_zero(Z);               // Number of trailing zeros in Z
-  constexpr uint32_t M = cute::min(TZ_Y, TZ_Z) % 32;
+  constexpr uint32_t M = nihilus_cute::min(TZ_Y, TZ_Z) % 32;
   constexpr  int32_t S = int32_t(TZ_Y) - int32_t(TZ_Z);   // Difference in trailing zeros
   static_assert((Y | Z) == Swizzle<BZ,M,S>::swizzle_code, "Something went wrong.");
   return Swizzle<BZ,M,S>{};
@@ -381,7 +381,7 @@ upcast(MixedBits<S0,F0> const& m)
   return safe_div(m, C<N>{});
 }
 
-template <uint32_t N, class T, __CUTE_REQUIRES(cute::is_integral<T>::value)>
+template <uint32_t N, class T, __CUTE_REQUIRES(nihilus_cute::is_integral<T>::value)>
 CUTE_HOST_DEVICE constexpr
 auto
 upcast(T const& m)
@@ -400,7 +400,7 @@ downcast(MixedBits<S0,F0> const& m)
                          C<F0 * N>{});
 }
 
-template <uint32_t N, class T, __CUTE_REQUIRES(cute::is_integral<T>::value)>
+template <uint32_t N, class T, __CUTE_REQUIRES(nihilus_cute::is_integral<T>::value)>
 CUTE_HOST_DEVICE constexpr
 auto
 downcast(T const& m)
@@ -442,7 +442,7 @@ to_mixed_bits(Shape const& shape, Stride const& stride, Coord const& coord)
     static_assert(decltype(shape*stride)::value == 0 || has_single_bit(decltype(shape*stride)::value), "Requires pow2 shape*stride.");
     return make_mixed_bits(Int<0>{}, coord * stride, (shape - Int<1>{}) * stride);
   } else {
-    static_assert(is_integral<Shape>::value && is_integral<Stride>::value && is_integral<Coord>::value, "Either Shape, Stride, and Coord must be all tuples, or they must be all integral (in the sense of cute::is_integral).");
+    static_assert(is_integral<Shape>::value && is_integral<Stride>::value && is_integral<Coord>::value, "Either Shape, Stride, and Coord must be all tuples, or they must be all integral (in the sense of nihilus_cute::is_integral).");
   }
 
   CUTE_GCC_UNREACHABLE;
@@ -495,4 +495,4 @@ struct get_swizzle { using type = Swizzle<0,4,3>; };
 template <class T>
 using get_swizzle_t = typename get_swizzle<T>::type;
 
-} // end namespace cute
+} // end namespace nihilus_cute

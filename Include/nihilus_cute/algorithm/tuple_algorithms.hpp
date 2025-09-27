@@ -51,13 +51,13 @@
 /// CuTe generally does not bother forwarding functions, as
 /// reference-qualified member functions are rare in this code base.
 ///
-/// Throughout CUTLASS, cute::make_tuple always needs to be called
-/// namespace-qualified, EVEN If inside the cute namespace and/or in
-/// scope of a "using namespace cute" declaration. Otherwise, the
-/// compiler may select std::make_tuple instead of cute::make_tuple,
+/// Throughout CUTLASS, nihilus_cute::make_tuple always needs to be called
+/// namespace-qualified, EVEN If inside the nihilus_cute namespace and/or in
+/// scope of a "using namespace nihilus_cute" declaration. Otherwise, the
+/// compiler may select std::make_tuple instead of nihilus_cute::make_tuple,
 /// due to argument-dependent lookup.
 
-namespace cute
+namespace nihilus_cute
 {
 
 //
@@ -207,7 +207,7 @@ auto
 transform(T const& t, F&& f)
 {
   if constexpr (is_tuple<T>::value) {
-    return detail::tapply(t, f, [](auto const&... a){ return cute::make_tuple(a...); }, tuple_seq<T>{});
+    return detail::tapply(t, f, [](auto const&... a){ return nihilus_cute::make_tuple(a...); }, tuple_seq<T>{});
   } else {
     return f(t);
   }
@@ -222,7 +222,7 @@ transform(T0 const& t0, T1 const& t1, F&& f)
 {
   if constexpr (is_tuple<T0>::value) {
     static_assert(tuple_size<T0>::value == tuple_size<T1>::value, "Mismatched tuple_size");
-    return detail::tapply(t0, t1, f, [](auto const&... a){ return cute::make_tuple(a...); }, tuple_seq<T0>{});
+    return detail::tapply(t0, t1, f, [](auto const&... a){ return nihilus_cute::make_tuple(a...); }, tuple_seq<T0>{});
   } else {
     return f(t0, t1);
   }
@@ -238,7 +238,7 @@ transform(T0 const& t0, T1 const& t1, T2 const& t2, F&& f)
   if constexpr (is_tuple<T0>::value) {
     static_assert(tuple_size<T0>::value == tuple_size<T1>::value, "Mismatched tuple_size");
     static_assert(tuple_size<T0>::value == tuple_size<T2>::value, "Mismatched tuple_size");
-    return detail::tapply(t0, t1, t2, f, [](auto const&... a){ return cute::make_tuple(a...); }, tuple_seq<T0>{});
+    return detail::tapply(t0, t1, t2, f, [](auto const&... a){ return nihilus_cute::make_tuple(a...); }, tuple_seq<T0>{});
   } else {
     return f(t0, t1, t2);
   }
@@ -284,9 +284,9 @@ auto
 find_if(T const& t, F&& f)
 {
   if constexpr (is_tuple<T>::value) {
-    return detail::tapply(t, f, [] (auto... a) { return cute::C<find_true_v<decltype(a)::value...>>{}; }, tuple_seq<T>{});
+    return detail::tapply(t, f, [] (auto... a) { return nihilus_cute::C<find_true_v<decltype(a)::value...>>{}; }, tuple_seq<T>{});
   } else {
-    return cute::C<decltype(f(t))::value ? 0 : 1>{};
+    return nihilus_cute::C<decltype(f(t))::value ? 0 : 1>{};
   }
 
   CUTE_GCC_UNREACHABLE;
@@ -346,7 +346,7 @@ CUTE_HOST_DEVICE constexpr
 auto
 filter_tuple(T const& t, F&& f)
 {
-  return transform_apply(t, f, [](auto const&... a) { return cute::tuple_cat(a...); });
+  return transform_apply(t, f, [](auto const&... a) { return nihilus_cute::tuple_cat(a...); });
 }
 
 template <class T0, class T1, class F>
@@ -354,7 +354,7 @@ CUTE_HOST_DEVICE constexpr
 auto
 filter_tuple(T0 const& t0, T1 const& t1, F&& f)
 {
-  return transform_apply(t0, t1, f, [](auto const&... a) { return cute::tuple_cat(a...); });
+  return transform_apply(t0, t1, f, [](auto const&... a) { return nihilus_cute::tuple_cat(a...); });
 }
 
 template <class T0, class T1, class T2, class F>
@@ -362,7 +362,7 @@ CUTE_HOST_DEVICE constexpr
 auto
 filter_tuple(T0 const& t0, T1 const& t1, T2 const& t2, F&& f)
 {
-  return transform_apply(t0, t1, t2, f, [](auto const&... a) { return cute::tuple_cat(a...); });
+  return transform_apply(t0, t1, t2, f, [](auto const&... a) { return nihilus_cute::tuple_cat(a...); });
 }
 
 //
@@ -477,7 +477,7 @@ take(T const& t)
     }
   } else
   if constexpr (B <= E) {
-    return detail::apply(t, [](auto const&... a) { return cute::make_tuple(a...); }, make_range<B,E>{});
+    return detail::apply(t, [](auto const&... a) { return nihilus_cute::make_tuple(a...); }, make_range<B,E>{});
   } else {
     static_assert(B <= E);
   }
@@ -491,7 +491,7 @@ CUTE_HOST_DEVICE constexpr
 auto
 select(T const& t)
 {
-  return cute::make_tuple(get<I>(t)...);
+  return nihilus_cute::make_tuple(get<I>(t)...);
 }
 
 // Wrap non-tuples into rank-1 tuples or forward
@@ -503,7 +503,7 @@ wrap(T const& t)
   if constexpr (is_tuple<T>::value) {
     return t;
   } else {
-    return cute::make_tuple(t);
+    return nihilus_cute::make_tuple(t);
   }
 
   CUTE_GCC_UNREACHABLE;
@@ -552,7 +552,7 @@ flatten_to_tuple(T const& t)
       return filter_tuple(t, [](auto const& a) { return flatten_to_tuple(a); });
     }
   } else {
-    return cute::make_tuple(t);
+    return nihilus_cute::make_tuple(t);
   }
 
   CUTE_GCC_UNREACHABLE;
@@ -586,13 +586,13 @@ auto
 unflatten_impl(FlatTuple const& flat_tuple, TargetProfile const& target_profile)
 {
   if constexpr (is_tuple<TargetProfile>::value) {
-    return fold(target_profile, cute::make_tuple(cute::make_tuple(), flat_tuple), [](auto const& v, auto const& t) {
+    return fold(target_profile, nihilus_cute::make_tuple(nihilus_cute::make_tuple(), flat_tuple), [](auto const& v, auto const& t) {
       auto [result, remaining_tuple] = v;
       auto [sub_result, sub_tuple] = unflatten_impl(remaining_tuple, t);
-      return cute::make_tuple(append(result, sub_result), sub_tuple);
+      return nihilus_cute::make_tuple(append(result, sub_result), sub_tuple);
     });
   } else {
-    return cute::make_tuple(get<0>(flat_tuple), take<1, decltype(rank(flat_tuple))::value>(flat_tuple));
+    return nihilus_cute::make_tuple(get<0>(flat_tuple), take<1, decltype(rank(flat_tuple))::value>(flat_tuple));
   }
 
   CUTE_GCC_UNREACHABLE;
@@ -621,13 +621,13 @@ unflatten(FlatTuple const& flat_tuple, TargetProfile const& target_profile)
 
 namespace detail {
 
-// Shortcut around cute::tuple_cat for common insert/remove/repeat cases
+// Shortcut around nihilus_cute::tuple_cat for common insert/remove/repeat cases
 template <class T, class X, int... I, int... J, int... K>
 CUTE_HOST_DEVICE constexpr
 auto
 construct(T const& t, X const& x, seq<I...>, seq<J...>, seq<K...>)
 {
-  return cute::make_tuple(get<I>(t)..., (void(J),x)..., get<K>(t)...);
+  return nihilus_cute::make_tuple(get<I>(t)..., (void(J),x)..., get<K>(t)...);
 }
 
 } // end namespace detail
@@ -791,7 +791,7 @@ append(T const& a, X const& x)
     if constexpr (N == 1) {
       return a;
     } else {
-      return detail::construct(cute::make_tuple(a), x, seq<0>{}, make_seq<N-1>{}, seq<>{});
+      return detail::construct(nihilus_cute::make_tuple(a), x, seq<0>{}, make_seq<N-1>{}, seq<>{});
     }
   }
 
@@ -806,7 +806,7 @@ append(T const& a, X const& x)
   if constexpr (is_tuple<T>::value) {
     return detail::construct(a, x, make_seq<tuple_size<T>::value>{}, seq<0>{}, seq<>{});
   } else {
-    return cute::make_tuple(a, x);
+    return nihilus_cute::make_tuple(a, x);
   }
 
   CUTE_GCC_UNREACHABLE;
@@ -829,7 +829,7 @@ prepend(T const& a, X const& x)
       return a;
     } else {
       static_assert(N > 1);
-      return detail::construct(cute::make_tuple(a), x, seq<>{}, make_seq<N-1>{}, seq<0>{});
+      return detail::construct(nihilus_cute::make_tuple(a), x, seq<>{}, make_seq<N-1>{}, seq<0>{});
     }
   }
 
@@ -844,7 +844,7 @@ prepend(T const& a, X const& x)
   if constexpr (is_tuple<T>::value) {
     return detail::construct(a, x, seq<>{}, seq<0>{}, make_seq<tuple_size<T>::value>{});
   } else {
-    return cute::make_tuple(x, a);
+    return nihilus_cute::make_tuple(x, a);
   }
 
   CUTE_GCC_UNREACHABLE;
@@ -952,7 +952,7 @@ CUTE_HOST_DEVICE constexpr
 auto
 zip_(Ts const&... ts)
 {
-  return cute::make_tuple(get<J>(ts)...);
+  return nihilus_cute::make_tuple(get<J>(ts)...);
 }
 
 template <class T, int... Is, int... Js>
@@ -961,7 +961,7 @@ auto
 zip(T const& t, seq<Is...>, seq<Js...>)
 {
   static_assert(conjunction<bool_constant<tuple_size<tuple_element_t<0,T>>::value == tuple_size<tuple_element_t<Is,T>>::value>...>::value, "Mismatched Ranks");
-  return cute::make_tuple(zip_<Js>(get<Is>(t)...)...);
+  return nihilus_cute::make_tuple(zip_<Js>(get<Is>(t)...)...);
 }
 
 } // end namespace detail
@@ -975,7 +975,7 @@ zip(T const& t)
     if constexpr (is_tuple<tuple_element_t<0,T>>::value) {
       return detail::zip(t, tuple_seq<T>{}, tuple_seq<tuple_element_t<0,T>>{});
     } else {
-      return cute::make_tuple(t);
+      return nihilus_cute::make_tuple(t);
     }
   } else {
     return t;
@@ -990,7 +990,7 @@ CUTE_HOST_DEVICE constexpr
 auto
 zip(T0 const& t0, T1 const& t1, Ts const&... ts)
 {
-  return zip(cute::make_tuple(t0, t1, ts...));
+  return zip(nihilus_cute::make_tuple(t0, t1, ts...));
 }
 
 //
@@ -1008,11 +1008,11 @@ auto
 zip2_by(T const& t, TG const& guide, seq<Is...>, seq<Js...>)
 {
   // zip2_by produces the modes like ((A,a),(B,b),...)
-  auto split = cute::make_tuple(zip2_by(get<Is>(t), get<Is>(guide))...);
+  auto split = nihilus_cute::make_tuple(zip2_by(get<Is>(t), get<Is>(guide))...);
 
   // Rearrange and append missing modes from t to make ((A,B,...),(a,b,...,x,y))
-  return cute::make_tuple(cute::make_tuple(get<0>(get<Is>(split))...),
-                          cute::make_tuple(get<1>(get<Is>(split))..., get<Js>(t)...));
+  return nihilus_cute::make_tuple(nihilus_cute::make_tuple(get<0>(get<Is>(split))...),
+                          nihilus_cute::make_tuple(get<1>(get<Is>(split))..., get<Js>(t)...));
 }
 
 } // end namespace detail
@@ -1044,10 +1044,10 @@ auto
 reverse(T const& t)
 {
   if constexpr (is_tuple<T>::value) {
-    return detail::apply(t, [](auto const&... a){ return cute::make_tuple(a...); }, tuple_rseq<T>{});
+    return detail::apply(t, [](auto const&... a){ return nihilus_cute::make_tuple(a...); }, tuple_rseq<T>{});
   } else {
     return t;
   }
 }
 
-} // end namespace cute
+} // end namespace nihilus_cute

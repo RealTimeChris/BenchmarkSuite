@@ -34,7 +34,7 @@
 #include <nihilus_cute/util/type_traits.hpp>
 #include <nihilus_cute/numeric/integral_constant.hpp>
 
-namespace cute
+namespace nihilus_cute
 {
 
 using CUTE_STL_NAMESPACE::integer_sequence;
@@ -150,19 +150,19 @@ template <class T>
 using to_seq_t = typename to_seq<T>::type;
 
 //
-// Specialize cute::tuple-traits for std::integer_sequence
+// Specialize nihilus_cute::tuple-traits for std::integer_sequence
 //
 
 template <class T, T... Ints>
 struct tuple_size<integer_sequence<T, Ints...>>
-    : cute::integral_constant<size_t, sizeof...(Ints)>
+    : nihilus_cute::integral_constant<size_t, sizeof...(Ints)>
 {};
 
 template <size_t I, class T, T... Is>
 struct tuple_element<I, integer_sequence<T, Is...>>
 {
   constexpr static T idx[sizeof...(Is)] = {Is...};
-  using type = cute::integral_constant<T, idx[I]>;
+  using type = nihilus_cute::integral_constant<T, idx[I]>;
 };
 
 template <size_t I, class T, T... Ints>
@@ -173,4 +173,4 @@ get(integer_sequence<T, Ints...>) {
   return {};
 }
 
-} // end namespace cute
+} // end namespace nihilus_cute

@@ -97,14 +97,14 @@ public:
   //using AccumulatorTile = typename Operator::FragmentC;
 
   /// Number of times this iterator can be incremented
-  static int const kIterations = Policy::kIterations;
+  static constexpr int kIterations = Policy::kIterations;
 
   /// Number of times this iterator can be incremented
   using TileIterations = typename Policy::TileIterations;
 
   // Internal constants
   struct Detail {
-    static int const kLanesInQuad = 4;
+    static constexpr int kLanesInQuad = 4;
   };
 
   /// Padding quantity
@@ -286,7 +286,7 @@ public:
 
   // Internal constants
   struct Detail {
-    static int const kLanesInQuad = 4;
+    static constexpr int kLanesInQuad = 4;
   };
 
   /// Padding quantity
@@ -457,8 +457,8 @@ public:
 
   using Policy = TensorOpPolicy<WarpShape, OperatorShape, Layout>;
 
-  static int const kAccessSize = 1;
-  static int const kAccessCount = Policy::kElementsPerAccess / kAccessSize;
+  static constexpr int kAccessSize = 1;
+  static constexpr int kAccessCount = Policy::kElementsPerAccess / kAccessSize;
 
   /// Shape of the tile in memory
   using Shape = MatrixShape<
@@ -475,11 +475,11 @@ public:
   //using AccumulatorTile = typename Operator::FragmentC;
 
   /// Number of times this iterator can be incremented
-  static int const kIterations = Policy::kIterations;
+  static constexpr int kIterations = Policy::kIterations;
 
   // Internal constants
   struct Detail {
-    static int const kLanesInQuad = 4;
+    static constexpr int kLanesInQuad = 4;
   };
 
   /// Padding quantity

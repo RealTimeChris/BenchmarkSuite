@@ -31,11 +31,11 @@
 #pragma once
 
 #include <nihilus_cute/config.hpp>                     // CUTE_HOST_DEVICE
-#include <nihilus_cute/numeric/numeric_types.hpp>      // cute::sizeof_bits
+#include <nihilus_cute/numeric/numeric_types.hpp>      // nihilus_cute::sizeof_bits
 #include <nihilus_cute/numeric/integral_constant.hpp>  // Int<0>
-#include <nihilus_cute/util/type_traits.hpp>           // cute::declval, cute::void_t, etc
+#include <nihilus_cute/util/type_traits.hpp>           // nihilus_cute::declval, nihilus_cute::void_t, etc
 
-namespace cute
+namespace nihilus_cute
 {
 
 //
@@ -328,4 +328,4 @@ CUTE_HOST std::ostream& operator<<(std::ostream& os, transform_iter<Fn,Iterator>
 }
 #endif // !defined(__CUDACC_RTC__)
 
-} // end namespace cute
+} // end namespace nihilus_cute

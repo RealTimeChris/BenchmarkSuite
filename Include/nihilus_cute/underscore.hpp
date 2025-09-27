@@ -31,10 +31,10 @@
 #pragma once
 
 #include <nihilus_cute/config.hpp>                     // CUTE_INLINE_CONSTANT, CUTE_HOST_DEVICE
-#include <nihilus_cute/container/tuple.hpp>            // cute::is_tuple
-#include <nihilus_cute/numeric/integral_constant.hpp>  // cute::false_type, cute::true_type
+#include <nihilus_cute/container/tuple.hpp>            // nihilus_cute::is_tuple
+#include <nihilus_cute/numeric/integral_constant.hpp>  // nihilus_cute::false_type, nihilus_cute::true_type
 
-namespace cute
+namespace nihilus_cute
 {
 
 // For slicing
@@ -106,9 +106,9 @@ lift_slice(A const& a, B const& b)
     static_assert(tuple_size<A>::value == tuple_size<B>::value, "Mismatched Ranks");
     return filter_tuple(a, b, [](auto const& x, auto const& y) { return lift_slice(x,y); });
   } else if constexpr (is_underscore<A>::value) {
-    return cute::tuple<B>{b};
+    return nihilus_cute::tuple<B>{b};
   } else {
-    return cute::tuple<>{};
+    return nihilus_cute::tuple<>{};
   }
 
   CUTE_GCC_UNREACHABLE;
@@ -128,7 +128,7 @@ slice(A const& a, B const& b)
   } else if constexpr (is_underscore<A>::value) {
     return b;
   } else {
-    return cute::tuple<>{};
+    return nihilus_cute::tuple<>{};
   }
 
   CUTE_GCC_UNREACHABLE;
@@ -149,9 +149,9 @@ lift_dice(A const& a, B const& b)
     static_assert(tuple_size<A>::value == tuple_size<B>::value, "Mismatched Ranks");
     return filter_tuple(a, b, [](auto const& x, auto const& y) { return lift_dice(x,y); });
   } else if constexpr (is_underscore<A>::value) {
-    return cute::tuple<>{};
+    return nihilus_cute::tuple<>{};
   } else {
-    return cute::tuple<B>{b};
+    return nihilus_cute::tuple<B>{b};
   }
 
   CUTE_GCC_UNREACHABLE;
@@ -169,7 +169,7 @@ dice(A const& a, B const& b)
     static_assert(tuple_size<A>::value == tuple_size<B>::value, "Mismatched Ranks");
     return filter_tuple(a, b, [](auto const& x, auto const& y) { return detail::lift_dice(x,y); });
   } else if constexpr (is_underscore<A>::value) {
-    return cute::tuple<>{};
+    return nihilus_cute::tuple<>{};
   } else {
     return b;
   }
@@ -191,4 +191,4 @@ CUTE_HOST std::ostream& operator<<(std::ostream& os, Underscore const&) {
 }
 #endif
 
-} // end namespace cute
+} // end namespace nihilus_cute

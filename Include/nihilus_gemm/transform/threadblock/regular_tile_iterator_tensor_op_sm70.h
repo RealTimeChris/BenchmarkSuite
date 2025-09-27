@@ -87,7 +87,7 @@ public:
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::VoltaTensorOpMultiplicandCongruous<sizeof_bits<Element_>::value>;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -102,14 +102,14 @@ public:
   struct Detail {
 
     /// This iterator is specialized for an access size that is 128 bits in length.
-    static int const kAccessSizeInBits = 128;
+    static constexpr int kAccessSizeInBits = 128;
 
     static_assert(
       sizeof_bits<Element_>::value * ThreadMap::kElementsPerAccess == kAccessSizeInBits,
       "This iterator requires a policy whose access size is 128bs");
 
     ///< Number of pointers
-    static int const kPointerCount = (ThreadMap::Iterations::kStrided > 1 ? 2 : 1);
+    static constexpr int kPointerCount = (ThreadMap::Iterations::kStrided > 1 ? 2 : 1);
   };
 
 
@@ -304,7 +304,7 @@ public:
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::ColumnMajorVoltaTensorOpMultiplicandCongruous<sizeof_bits<Element_>::value>;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -434,7 +434,7 @@ public:
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::RowMajorVoltaTensorOpMultiplicandCongruous<sizeof_bits<Element_>::value>;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -560,7 +560,7 @@ public:
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::VoltaTensorOpMultiplicandBCongruous<sizeof_bits<Element_>::value>;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -575,14 +575,14 @@ public:
   struct Detail {
 
     /// This iterator is specialized for an access size that is 128 bits in length.
-    static int const kAccessSizeInBits = 128;
+    static constexpr int kAccessSizeInBits = 128;
 
     static_assert(
       sizeof_bits<Element_>::value * ThreadMap::kElementsPerAccess == kAccessSizeInBits,
       "This iterator requires a policy whose access size is 128bs");
 
     ///< Number of pointers
-    static int const kPointerCount = (ThreadMap::Iterations::kStrided > 1 ? 2 : 1);
+    static constexpr int kPointerCount = (ThreadMap::Iterations::kStrided > 1 ? 2 : 1);
   };
 
 
@@ -777,7 +777,7 @@ public:
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::ColumnMajorVoltaTensorOpMultiplicandBCongruous<sizeof_bits<Element_>::value>;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -907,7 +907,7 @@ public:
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::RowMajorVoltaTensorOpMultiplicandBCongruous<sizeof_bits<Element_>::value>;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -1040,7 +1040,7 @@ class RegularTileIterator<
   using Layout =
       layout::VoltaTensorOpMultiplicandCrosswise<sizeof_bits<Element_>::value,
                                                  Shape::kContiguous>;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -1054,14 +1054,14 @@ class RegularTileIterator<
   struct Detail {
 
     ///< Number of pointers
-    static int const kPointerCount = (ThreadMap::Iterations::kStrided > 1 ? 2 : 1);
+    static constexpr int kPointerCount = (ThreadMap::Iterations::kStrided > 1 ? 2 : 1);
 
     /// Iterations for the kElementsPerAccess of ThreadMap
-    static int const kIterarionsPerAccess =
+    static constexpr int kIterarionsPerAccess =
         ThreadMap::kElementsPerAccess / Layout::kElementsPerAccess;
 
     /// Contiguous elements per line
-    static int const kContiguousElementsPerLine = 4;
+    static constexpr int kContiguousElementsPerLine = 4;
   };
 
  private:
@@ -1257,7 +1257,7 @@ class RegularTileIterator<Shape_, Element_,
   using Element = Element_;
   using Layout = layout::ColumnMajorVoltaTensorOpMultiplicandCrosswise<
       sizeof_bits<Element_>::value, Shape::kRow>;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -1369,8 +1369,8 @@ class RegularTileIterator<Shape_, Element_,
   using Element = Element_;
   using Layout = layout::RowMajorVoltaTensorOpMultiplicandCrosswise<
       sizeof_bits<Element_>::value, Shape::kColumn>;
-  static int const kAdvanceRank = AdvanceRank;
-  static int const kAlignment = Alignment;
+  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;

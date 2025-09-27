@@ -67,7 +67,7 @@ struct kIsHeavy_member_or_false<Op, typename cutlass::platform::enable_if<Op::kI
 // Identity operator
 template <typename T>
 struct Identity {
-  static const bool kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
 
   CUTLASS_HOST_DEVICE
   T operator()(T value) const {
@@ -125,7 +125,7 @@ template <template <class> class Activation, typename T>
 struct Scale<Activation<T>> {
   using Arguments = typename Scale<T>::Arguments;
 
-  static const bool kIsHeavy = Activation<T>::kIsHeavy;
+  static constexpr bool kIsHeavy = Activation<T>::kIsHeavy;
 
   CUTLASS_HOST_DEVICE
   T operator()(T value, typename Arguments::scale_type scale) const {
@@ -143,7 +143,7 @@ struct Scale<Activation<T>> {
 /// ReLu operator - propagates NaNs
 template <typename T>
 struct ReLu {
-  static const bool kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
 
   CUTLASS_HOST_DEVICE
   T operator()(T threshold, T value) const {
@@ -167,7 +167,7 @@ using ReLU = ReLu<T>;
 
 template <typename T, int N>
 struct ReLu<Array<T, N>> {
-  static const bool kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
 
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(T const & threshold, Array<T, N> const &frag) const {
@@ -270,7 +270,7 @@ struct LowerBound<Array<T,N>> {
 template <typename T>
 struct LeakyReLU {
 
-  static const bool kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
 
   struct Arguments {
     T leaky_alpha = T(0);
@@ -291,7 +291,7 @@ struct LeakyReLU {
 template <typename T, int N>
 struct LeakyReLU<Array<T, N> > {
 
-  static const bool kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
 
   using Arguments = typename LeakyReLU<T>::Arguments;
 
@@ -365,7 +365,7 @@ struct ThresholdReLU<Array<T,N>> {
 // Tanh operator
 template <typename T>
 struct Tanh {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   T operator()(T const &value) const {
@@ -375,7 +375,7 @@ struct Tanh {
 
 template <typename T, int N>
 struct Tanh<Array<T, N> > {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &value) const {
@@ -394,7 +394,7 @@ struct Tanh<Array<T, N> > {
 template <int N>
 struct Tanh<Array<half_t, N>> {
   using T = half_t;
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& z) const {
@@ -406,7 +406,7 @@ struct Tanh<Array<half_t, N>> {
 // Sigmoid operator
 template <typename T>
 struct Sigmoid {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   T operator()(T const &value) const {
@@ -420,7 +420,7 @@ struct Sigmoid {
 
 template <typename T, int N>
 struct Sigmoid<Array<T, N>> {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& z) const {
@@ -450,7 +450,7 @@ struct Sigmoid<Array<T, N>> {
 // Reference: https://pytorch.org/docs/stable/generated/torch.nn.SiLU.html
 template <typename T>
 struct SiLu {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   T operator()(T const &value) const {
@@ -461,7 +461,7 @@ struct SiLu {
 
 template <typename T, int N>
 struct SiLu<Array<T, N>> {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &value) const {
@@ -481,7 +481,7 @@ using ScaledSiLu = Scale<SiLu<T>>;
 // Reference: https://pytorch.org/docs/stable/generated/torch.nn.Hardswish.html
 template <typename T>
 struct HardSwish {
-  static const bool kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
 
   CUTLASS_HOST_DEVICE
   T operator()(T const &x) const {
@@ -495,7 +495,7 @@ struct HardSwish {
 template <>
 struct HardSwish<float> {
   using T = float;
-  static const bool kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
   static constexpr float kOneSixth = 0.16666667f;
 
   CUTLASS_HOST_DEVICE
@@ -510,7 +510,7 @@ struct HardSwish<float> {
 template <>
 struct HardSwish<cutlass::half_t> {
   using T = cutlass::half_t;
-  static const bool kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
   static constexpr float kOneSixth = 0.16666667f;
 
   CUTLASS_HOST_DEVICE
@@ -524,7 +524,7 @@ struct HardSwish<cutlass::half_t> {
 
 template <typename T, int N>
 struct HardSwish<Array<T, N> > {
-  static const bool kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
 
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &value) const {
@@ -543,7 +543,7 @@ struct HardSwish<Array<T, N> > {
 template <int N>
 struct HardSwish<Array<half_t, N> > {
   using T = half_t;
-  static const bool kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
   static constexpr float kOneSixth = 0.16666667f;
 
   CUTLASS_HOST_DEVICE
@@ -572,7 +572,7 @@ using ScaledHardSwish = Scale<HardSwish<T>>;
 // GELU operator
 template <typename T>
 struct GELU {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   T operator()(T const &value) const {
@@ -583,7 +583,7 @@ struct GELU {
 
 template <>
 struct GELU<float> {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   float operator()(float const &value) const {
@@ -594,7 +594,7 @@ struct GELU<float> {
 
 template <>
 struct GELU<double> {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   double operator()(double const &value) const {
@@ -605,7 +605,7 @@ struct GELU<double> {
 
 template <typename T, int N>
 struct GELU<Array<T, N> > {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &value) const {
@@ -627,7 +627,7 @@ using ScaledGELU = Scale<GELU<T>>;
 // GELU operator implemented using the Taylor series approximation
 template <typename T>
 struct GELU_taylor {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   T operator()(T const &z) const {
@@ -642,7 +642,7 @@ struct GELU_taylor {
 
 template <>
 struct GELU_taylor <float>{
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
   using T = float;
   CUTLASS_HOST_DEVICE
   T operator()(T const &z) const {
@@ -664,7 +664,7 @@ struct GELU_taylor <float>{
 
 template <int N>
 struct GELU_taylor<Array<half_t, N> > {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   Array<half_t, N> operator()(Array<half_t, N> const &z) const {
@@ -691,7 +691,7 @@ struct GELU_taylor<Array<half_t, N> > {
 
 template <int N>
 struct GELU_taylor<Array<float, N> > {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   Array<float, N> operator()(Array<float, N> const &value) const {
@@ -715,7 +715,7 @@ struct GELU_taylor<Array<float, N> > {
 
 template <typename T, int N>
 struct GELU_taylor<Array<T, N> > {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &value) const {
@@ -738,7 +738,7 @@ using ScaledGELU_taylor = Scale<GELU_taylor<T>>;
 /// z is computed from the forward pass.
 template <typename T>
 struct dGELU {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   T operator()(T const &d_t, T const &z) const {
@@ -758,7 +758,7 @@ struct dGELU {
 
 template <typename T, int N>
 struct dGELU<Array<T, N> > {
-  static const bool kIsHeavy = true;
+  static constexpr bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &d_t, Array<T, N> const &z) const {
@@ -860,7 +860,7 @@ struct dReLU_Z<Array<T, N>> {
 template <typename T>
 struct ElementwiseFilter {
 
-  static const bool kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
 
   struct Arguments {
     T value_to_filter = T(-0.0);
@@ -882,7 +882,7 @@ struct ElementwiseFilter {
 template <typename T, int N>
 struct ElementwiseFilter<Array<T, N> > {
 
-  static const bool kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
 
   using Arguments = typename ElementwiseFilter<T>::Arguments;
 

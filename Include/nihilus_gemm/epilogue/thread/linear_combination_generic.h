@@ -117,8 +117,8 @@ public:
   using ElementAccumulator = ElementAccumulator_;
   using ElementCompute = ElementCompute_;
 
-  static bool const kIsHeavy = IsHeavy;
-  static int const kCount = Count;
+  static constexpr bool kIsHeavy = IsHeavy;
+  static constexpr int kCount = Count;
   static const ScaleType::Kind kScale = Scale;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
@@ -126,7 +126,7 @@ public:
   using FragmentSource = Array<ElementOutput, kCount>;
   using FragmentCompute = Array<ElementCompute, kCount>;
 
-  static FloatRoundStyle const kRound = Round;
+  static constexpr FloatRoundStyle kRound = Round;
 
   /// Host-constructable parameters structure
   struct Params

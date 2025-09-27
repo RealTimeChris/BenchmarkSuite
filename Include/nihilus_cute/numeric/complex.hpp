@@ -34,7 +34,7 @@
 
 #include <nihilus_gemm/complex.h>  // cutlass::complexm, cutlass::real, cutlass::imag, cutlass::is_complex
 
-namespace cute
+namespace nihilus_cute
 {
 
 using cutlass::complex;
@@ -73,4 +73,4 @@ fma(complex<A> const& a,
   return fma(c, a, b, c);
 }
 
-} // end namespace cute
+} // end namespace nihilus_cute

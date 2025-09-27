@@ -103,7 +103,7 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kA;
+  static constexpr Operand kOperand = Operand::kA;
 
   /// Element type
   using Element = Element_;
@@ -115,10 +115,10 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -161,7 +161,7 @@ private:
     "Alternative arrangements not supported at present.");
 
   /// Number of internal pointers needed to reference shared memory
-  static int const kPointerCount = 2;
+  static constexpr int kPointerCount = 2;
 
   /// Pointer type used for accesses
   using AccessType = AlignedArray<Element, Layout::kElementsPerAccess>;
@@ -418,7 +418,7 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kB;
+  static constexpr Operand kOperand = Operand::kB;
 
     /// Element type
   using Element = Element_;
@@ -430,10 +430,10 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -706,7 +706,7 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kA;
+  static constexpr Operand kOperand = Operand::kA;
 
   /// Element type
   using Element = Element_;
@@ -718,10 +718,10 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -925,7 +925,7 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kB;
+  static constexpr Operand kOperand = Operand::kB;
 
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
     "MmaTensorOpMultiplicandIterator may only be instantiated for A or B operands to warp-level Mma.");
@@ -940,10 +940,10 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -1147,7 +1147,7 @@ class MmaVoltaTensorOpAccumulatorTileIterator {
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kC;
+  static constexpr Operand kOperand = Operand::kC;
 
   /// Element type
   using Element = Element_;
@@ -1162,7 +1162,7 @@ class MmaVoltaTensorOpAccumulatorTileIterator {
   using OpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -1202,13 +1202,13 @@ class MmaVoltaTensorOpAccumulatorTileIterator {
 private:
 
   // Assume accumulator tile is multipile interleaved 32x32 tile.
-  static int const kElementsPerPartial = 4;
+  static constexpr int kElementsPerPartial = 4;
   using EleShapePerPatial = typename platform::conditional<
                               platform::is_same<Element, float>::value,
                               MatrixShape<2, 2>,
                               MatrixShape<1, 4> >::type;
-  static int const kElementsPerMma = 8;
-  static int const kAccumulatorPatials = 2;
+  static constexpr int kElementsPerMma = 8;
+  static constexpr int kAccumulatorPatials = 2;
   using QuadShapePerPatialMma = MatrixShape<4, 4>;
 
 public:
@@ -1497,7 +1497,7 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand == Operand::kB,
                 "MmaVoltaTensorOpMultiplicandIterator may only be instantiated for "
@@ -1507,7 +1507,7 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// KBlock size
-  static int const kKBlock = KBlock;
+  static constexpr int kKBlock = KBlock;
 
   /// Layout of source tile
   using Layout = cutlass::layout::VoltaTensorOpMultiplicandCrosswise<
@@ -1518,10 +1518,10 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
 
   /// Delta between *MMA operations (in units of *MMA operations, concept:
   /// MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -1548,10 +1548,10 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
     using LdsIterations = layout::PitchLinearShape<1, Shape::kStrided / 32>;
 
     /// Using LDS.128
-    static int const kElementsPerAccess = 8;
+    static constexpr int kElementsPerAccess = 8;
 
     /// Contiguous elements per line
-    static int const kContiguousElementsPerLine = 4;
+    static constexpr int kContiguousElementsPerLine = 4;
   };
 
  private:
@@ -1828,7 +1828,7 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand == Operand::kB,
                 "MmaTensorOpMultiplicandIterator may only be instantiated for "
@@ -1838,7 +1838,7 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// KBlock size
-  static int const kKBlock = KBlock;
+  static constexpr int kKBlock = KBlock;
 
 
   /// Layout of source tile
@@ -1850,10 +1850,10 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
 
   /// Delta between *MMA operations (in units of *MMA operations, concept:
   /// MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -2055,7 +2055,7 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand == Operand::kB,
                 "MmaTensorOpMultiplicandIterator may only be instantiated for "
@@ -2065,7 +2065,7 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// KBlock size
-  static int const kKBlock = KBlock;
+  static constexpr int kKBlock = KBlock;
 
   /// Layout of source tile
   using Layout = cutlass::layout::RowMajorVoltaTensorOpMultiplicandCrosswise<
@@ -2076,10 +2076,10 @@ class MmaVoltaTensorOpMultiplicandTileIterator<
 
   /// Delta between *MMA operations (in units of *MMA operations, concept:
   /// MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -2276,7 +2276,7 @@ class MmaVoltaTensorOpMultiplicandTileIteratorCanonicalInner {
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   /// Basic check
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
@@ -2292,10 +2292,10 @@ class MmaVoltaTensorOpMultiplicandTileIteratorCanonicalInner {
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -2310,13 +2310,13 @@ class MmaVoltaTensorOpMultiplicandTileIteratorCanonicalInner {
   using TensorCoord = typename TensorRef::TensorCoord;
 
   /// Number of elements accessed per Shared Memory load
-  static int const kElementsPerAccess = 4;
+  static constexpr int kElementsPerAccess = 4;
 
 private:
 
-  static int const kInterleavedTileRows = 32;
-  static int const kInterleavedTileColumns = 32;
-  static int const kInstructionsPerTile = 2;
+  static constexpr int kInterleavedTileRows = 32;
+  static constexpr int kInterleavedTileColumns = 32;
+  static constexpr int kInstructionsPerTile = 2;
   
   /// Rounded up instruction counts
   using TileCount = MatrixShape<
@@ -2627,7 +2627,7 @@ class MmaVoltaTensorOpMultiplicandTileIteratorCanonicalOuter {
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   /// Basic check
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
@@ -2643,10 +2643,10 @@ class MmaVoltaTensorOpMultiplicandTileIteratorCanonicalOuter {
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -2661,13 +2661,13 @@ class MmaVoltaTensorOpMultiplicandTileIteratorCanonicalOuter {
   using TensorCoord = typename TensorRef::TensorCoord;
 
   /// Number of elements accessed per Shared Memory load
-  static int const kElementsPerAccess = 4;
+  static constexpr int kElementsPerAccess = 4;
 
 private:
 
-  static int const kInterleavedTileRows = 32;
-  static int const kInterleavedTileColumns = 32;
-  static int const kInstructionsPerTile = 2;
+  static constexpr int kInterleavedTileRows = 32;
+  static constexpr int kInterleavedTileColumns = 32;
+  static constexpr int kInstructionsPerTile = 2;
   
   /// Rounded up instruction counts
   using TileCount = MatrixShape<

@@ -54,13 +54,13 @@ struct AlignedBuffer {
   using Storage = uint8_t;
 
   /// Number of logical elements held in buffer
-  static int const kCount = N;
+  static constexpr int kCount = N;
 
   /// Alignment requirement in bytes
-  static int const kAlign = Align;
+  static constexpr int kAlign = Align;
 
   /// Number of storage elements
-  static int const kBytes = 
+  static constexpr int kBytes = 
     (sizeof_bits<T>::value * N + 7) / 8;
 
 private:

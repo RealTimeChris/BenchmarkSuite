@@ -252,13 +252,13 @@ class Gemm {
   using EpilogueOutputOp = EpilogueOutputOp_;
   using ThreadblockSwizzle = ThreadblockSwizzle_;
   using Operator = Operator_;
-  static int const kStages = Stages;
-  static int const kAlignmentA = AlignmentA;
-  static int const kAlignmentB = AlignmentB;
-  static int const kAlignmentC = EpilogueOutputOp::kCount;
-  static bool const kSplitKSerial = SplitKSerial;
-  static ComplexTransform const kTransformA = ComplexTransform::kNone;
-  static ComplexTransform const kTransformB = ComplexTransform::kNone;
+  static constexpr int kStages = Stages;
+  static constexpr int kAlignmentA = AlignmentA;
+  static constexpr int kAlignmentB = AlignmentB;
+  static constexpr int kAlignmentC = EpilogueOutputOp::kCount;
+  static constexpr bool kSplitKSerial = SplitKSerial;
+  static constexpr ComplexTransform kTransformA = ComplexTransform::kNone;
+  static constexpr ComplexTransform kTransformB = ComplexTransform::kNone;
 
   /// Define the kernel
   using GemmKernel = typename kernel::DefaultGemm<
@@ -596,12 +596,12 @@ class Gemm<ElementA_, LayoutA_, ElementB_, LayoutB_, ElementC_,
   using EpilogueOutputOp = EpilogueOutputOp_;
   using ThreadblockSwizzle = ThreadblockSwizzle_;
   using Operator = Operator_;
-  static int const kStages = Stages;
-  static int const kAlignmentA = AlignmentA;
-  static int const kAlignmentB = AlignmentB;
-  static ComplexTransform const kTransformA = ComplexTransform::kNone;
-  static ComplexTransform const kTransformB = ComplexTransform::kNone;
-  static bool const kSplitKSerial = SplitKSerial;
+  static constexpr int kStages = Stages;
+  static constexpr int kAlignmentA = AlignmentA;
+  static constexpr int kAlignmentB = AlignmentB;
+  static constexpr ComplexTransform kTransformA = ComplexTransform::kNone;
+  static constexpr ComplexTransform kTransformB = ComplexTransform::kNone;
+  static constexpr bool kSplitKSerial = SplitKSerial;
 
   using UnderlyingOperator = Gemm< 
     ElementB,
@@ -631,7 +631,7 @@ class Gemm<ElementA_, LayoutA_, ElementB_, LayoutB_, ElementC_,
 
   using UnderlyingArguments = typename UnderlyingOperator::Arguments;
   using GemmKernel = typename UnderlyingOperator::GemmKernel;
-  static int const kAlignmentC = UnderlyingOperator::kAlignmentC;
+  static constexpr int kAlignmentC = UnderlyingOperator::kAlignmentC;
 
   /// Argument structure
   struct Arguments {

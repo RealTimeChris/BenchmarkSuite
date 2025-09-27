@@ -91,7 +91,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
     "MmaTensorOpMultiplicandIterator may only be instantiated for A or B operands to warp-level Mma.");
@@ -110,13 +110,13 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// Number of partitions along K dimension
-  static int const kPartitionsK = PartitionsK_;
+  static constexpr int kPartitionsK = PartitionsK_;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -134,7 +134,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using TensorCoord = typename TensorRef::TensorCoord;
 
   /// Load two elements per access
-  static int const kElementsPerAccess = 1;
+  static constexpr int kElementsPerAccess = 1;
 
   /// Policy defining internal details of tile iterator
   struct Policy {
@@ -375,7 +375,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
     "MmaTensorOpMultiplicandIterator may only be instantiated for A or B operands to warp-level Mma.");
@@ -390,10 +390,10 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -600,7 +600,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
     "MmaTensorOpMultiplicandIterator may only be instantiated for A or B operands to warp-level Mma.");
@@ -615,10 +615,10 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -820,7 +820,7 @@ class MmaTensorOpAccumulatorTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand::kC;
+  static constexpr Operand kOperand = Operand::kC;
 
   /// Element type
   using Element = complex<RealElement>;
@@ -835,7 +835,7 @@ class MmaTensorOpAccumulatorTileIterator<
   using OpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -872,9 +872,9 @@ private:
   // Assume accumulator tile is an arrangement of 8-by-8 tiles replicated over the entire
   // shape, with each quad mapped to one row and each thread mapped to 1/4 of the elements
   // of that row. The accumulators within one row are assumed to be consecutive.
- static int const kElementsPerAccess = InstructionShape::kN / 4;
- static int const kRowsPerTile = 8;
- static int const kAccumulatorRows = InstructionShape::kM / kRowsPerTile;
+ static constexpr int kElementsPerAccess = InstructionShape::kN / 4;
+ static constexpr int kRowsPerTile = 8;
+ static constexpr int kAccumulatorRows = InstructionShape::kM / kRowsPerTile;
 
 public:
 
@@ -887,8 +887,8 @@ public:
   /// followed by the imaginary parts.
   using Fragment = Array<RealElement, Shape::kCount / kThreads * 2>;
 
-  static int const kRealIndex = 0;
-  static int const kImaginaryIndex = Shape::kCount / kThreads;
+  static constexpr int kRealIndex = 0;
+  static constexpr int kImaginaryIndex = Shape::kCount / kThreads;
 
 private:
 
@@ -1137,7 +1137,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
     "MmaTensorOpMultiplicandIterator may only be instantiated for A or B operands to warp-level Mma.");
@@ -1156,13 +1156,13 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// Number of partitions along K dimension
-  static int const kPartitionsK = PartitionsK_;
+  static constexpr int kPartitionsK = PartitionsK_;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -1180,7 +1180,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using TensorCoord = typename TensorRef::TensorCoord;
 
   /// Load two elements per access
-  static int const kElementsPerAccess = 1;
+  static constexpr int kElementsPerAccess = 1;
 
   /// Policy defining internal details of tile iterator
   struct Policy {
@@ -1429,7 +1429,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
     "MmaTensorOpMultiplicandIterator may only be instantiated for A or B operands to warp-level Mma.");
@@ -1444,10 +1444,10 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -1655,7 +1655,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
     "MmaTensorOpMultiplicandIterator may only be instantiated for A or B operands to warp-level Mma.");
@@ -1670,10 +1670,10 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -1886,7 +1886,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
     "MmaTensorOpMultiplicandIterator may only be instantiated for A or B operands to warp-level Mma.");
@@ -1903,13 +1903,13 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// Number of partitions along K dimension
-  static int const kPartitionsK = PartitionsK_;
+  static constexpr int kPartitionsK = PartitionsK_;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -1927,7 +1927,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using TensorCoord = typename TensorRef::TensorCoord;
 
   /// Load two elements per access
-  static int const kElementsPerAccess = 2;
+  static constexpr int kElementsPerAccess = 2;
 
   /// Policy defining internal details of tile iterator
   struct Policy {
@@ -2193,7 +2193,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Shape = Shape_;
 
   /// Operand tag
-  static Operand const kOperand = Operand_;
+  static constexpr Operand kOperand = Operand_;
 
   static_assert(kOperand == Operand::kA || kOperand== Operand::kB,
     "MmaTensorOpMultiplicandIterator may only be instantiated for A or B operands to warp-level Mma.");
@@ -2212,13 +2212,13 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static int const kOpDelta = OpDelta_;
+  static constexpr int kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static int const kThreads = 32;
+  static constexpr int kThreads = 32;
 
   /// Number of partitions along K dimension
-  static int const kPartitionsK = PartitionsK_;
+  static constexpr int kPartitionsK = PartitionsK_;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -2236,7 +2236,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using TensorCoord = typename TensorRef::TensorCoord;
 
   /// Load two elements per access
-  static int const kElementsPerAccess = 2;
+  static constexpr int kElementsPerAccess = 2;
 
   /// Policy defining internal details of tile iterator
   struct Policy {

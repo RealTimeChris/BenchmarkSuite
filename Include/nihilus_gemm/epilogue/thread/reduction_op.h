@@ -59,7 +59,7 @@ class ReductionOpPlus {
 public:
 
   using Element = Element_;
-  static int const kCount = Count;
+  static constexpr int kCount = Count;
 
   using Fragment = Array<Element, kCount>;
   using Operator = plus<Fragment>;

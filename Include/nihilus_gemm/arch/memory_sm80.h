@@ -100,8 +100,8 @@ template <
    bool IsHermitianData = false>
 struct cp_async_diag;
 
-static const uint32_t OOB_NAN_F16 = 0x7eff;
-static const uint32_t OOB_NAN_F16x2 = ((OOB_NAN_F16 << 16) | OOB_NAN_F16);
+static constexpr uint32_t OOB_NAN_F16 = 0x7eff;
+static constexpr uint32_t OOB_NAN_F16x2 = ((OOB_NAN_F16 << 16) | OOB_NAN_F16);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -188,7 +188,7 @@ struct cp_async_zfill<SizeInBytes, CacheOperation::Always> {
 /// Partial specialization
 template <>
 struct cp_async_nan<16, CacheOperation::Always> {
-  static int const kSizeInBytes = 16;
+  static constexpr int kSizeInBytes = 16;
 
   /// Copy with nan fill
   CUTLASS_DEVICE
@@ -395,7 +395,7 @@ struct cp_async_zfill<SizeInBytes, CacheOperation::Global> {
 /// Partial specialization
 template <>
 struct cp_async_nan<16, CacheOperation::Global> {
-  static int const kSizeInBytes = 16;
+  static constexpr int kSizeInBytes = 16;
 
   /// Copy with nan fill
   CUTLASS_DEVICE

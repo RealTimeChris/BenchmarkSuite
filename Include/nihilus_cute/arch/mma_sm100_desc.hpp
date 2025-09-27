@@ -43,11 +43,11 @@
 #include <nihilus_cute/arch/mma.hpp>
 
 #include <nihilus_cute/container/bit_field.hpp>
-#include <nihilus_cute/container/array.hpp> // cute::array
+#include <nihilus_cute/container/array.hpp> // nihilus_cute::array
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cute {
+namespace nihilus_cute {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // UMMA Descriptor and utilities
@@ -290,9 +290,9 @@ template <typename ShapeType, int FLT_S, int CTA_M, int CTA_N>
 CUTE_HOST_DEVICE constexpr auto
 make_column_zero_mask(ShapeType conv_q, int32_t cta_coord_q, int32_t num_pixels_skip_left) {
 
-  static_assert(cute::is_same_v<ShapeType, cutlass::FastDivmod> || cute::is_integral<ShapeType>::value);
+  static_assert(nihilus_cute::is_same_v<ShapeType, cutlass::FastDivmod> || nihilus_cute::is_integral<ShapeType>::value);
 
-  cute::array<MaskAndShiftB, FLT_S> column_zero_masks{};
+  nihilus_cute::array<MaskAndShiftB, FLT_S> column_zero_masks{};
 
   static_assert(FLT_S == 3, "Filter size not supported.");
   constexpr int MAX_USE_SPAN_COUNT = 256;
@@ -345,8 +345,8 @@ make_column_zero_mask(ShapeType conv_q, int32_t cta_coord_q, int32_t num_pixels_
       } else {
         nzm = 0;
       }
-      skip_span = cute::max(cute::abs(skip_span_), 1);
-      use_span = cute::min(conv_q_int - static_cast<int32_t>(skip_span), MAX_USE_SPAN_COUNT);
+      skip_span = nihilus_cute::max(nihilus_cute::abs(skip_span_), 1);
+      use_span = nihilus_cute::min(conv_q_int - static_cast<int32_t>(skip_span), MAX_USE_SPAN_COUNT);
       if (use_span > 0) {
         first_span = index >= skip_span ? 0 : 1;
         if ((first_span == 0) && (index + CTA_N < conv_q_int + skip_span)) {
@@ -648,4 +648,4 @@ make_runtime_instr_desc_block_scaled(UMMA::InstrDescriptorBlockScaled desc_i,
 }
 
 } // end namespace UMMA
-} // namespace cute
+} // namespace nihilus_cute

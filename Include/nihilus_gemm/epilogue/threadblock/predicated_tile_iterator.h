@@ -91,9 +91,9 @@ public:
   using LongIndex = typename Layout::LongIndex;
   using TensorCoord = MatrixCoord;
 
-  static int const kElementsPerAccess = ThreadMap::kElementsPerAccess;
-  static int const kThreads = ThreadMap::kThreads;
-  static int const kIterations = ThreadMap::Count::kTile;
+  static constexpr int kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static constexpr int kThreads = ThreadMap::kThreads;
+  static constexpr int kIterations = ThreadMap::Count::kTile;
 
   static bool constexpr PermuteD = !layout::is_trivial_permute<PermuteDLayout>;
 
@@ -154,7 +154,7 @@ public:
   /// Mask object
   struct Mask {
 
-    static int const kCount = ThreadMap::Iterations::kColumn;
+    static constexpr int kCount = ThreadMap::Iterations::kColumn;
 
     /// Predicate state
     bool predicates[kCount];
@@ -818,9 +818,9 @@ public:
   using LongIndex = typename Layout::LongIndex;
   using TensorCoord = layout::PitchLinearCoord;
 
-  static int const kElementsPerAccess = ThreadMap::kElementsPerAccess;
-  static int const kThreads = ThreadMap::kThreads;
-  static int const kIterations = ThreadMap::Iterations::kCount;
+  static constexpr int kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static constexpr int kThreads = ThreadMap::kThreads;
+  static constexpr int kIterations = ThreadMap::Iterations::kCount;
 
   /// Fragment object
   using Fragment = Array<Element, ThreadMap::kElementsPerAccess>;
@@ -849,7 +849,7 @@ public:
 
   /// Mask object
   struct Mask {
-    static int const kCount = (ThreadMap::Iterations::kContiguous < 8)
+    static constexpr int kCount = (ThreadMap::Iterations::kContiguous < 8)
                                   ? 8
                                   : ThreadMap::Iterations::kContiguous;
 
@@ -1092,9 +1092,9 @@ public:
   using LongIndex = typename Layout::LongIndex;
   using TensorCoord = Tensor4DCoord;
 
-  static int const kElementsPerAccess = ThreadMap::kElementsPerAccess;
-  static int const kThreads = ThreadMap::kThreads;
-  static int const kIterations = ThreadMap::Iterations::kCount;
+  static constexpr int kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static constexpr int kThreads = ThreadMap::kThreads;
+  static constexpr int kIterations = ThreadMap::Iterations::kCount;
 
   /// Fragment object
   using Fragment = Array<Element, ThreadMap::kElementsPerAccess>;
@@ -1149,7 +1149,7 @@ public:
 
   /// Mask object
   struct Mask {
-    static int const kCount =
+    static constexpr int kCount =
         (ThreadMap::Iterations::kRow < 8) ? 8 : ThreadMap::Iterations::kRow;
 
     /// Predicate state

@@ -32,11 +32,11 @@
 #pragma once
 
 #include <nihilus_cute/config.hpp>                     // CUTE_HOST_DEVICE
-#include <nihilus_cute/pointer_base.hpp>               // cute::iter_adaptor
-#include <nihilus_cute/numeric/integral_constant.hpp>  // cute::false_type, cute::true_type
-#include <nihilus_cute/numeric/integral_ratio.hpp>     // cute::ratio
+#include <nihilus_cute/pointer_base.hpp>               // nihilus_cute::iter_adaptor
+#include <nihilus_cute/numeric/integral_constant.hpp>  // nihilus_cute::false_type, nihilus_cute::true_type
+#include <nihilus_cute/numeric/integral_ratio.hpp>     // nihilus_cute::ratio
 
-namespace cute
+namespace nihilus_cute
 {
 
 // A data type that holds one physical element meant to represent Sparsity number of logical elements
@@ -85,7 +85,7 @@ struct sizeof_bits<sparse_elem<S,T>> {
 
   // Interesting experiment that allows any sparsity level to be used by potentially presenting
   // an integral_ratio rather than size_t. This is valid in most integer expressions as well.
-  static constexpr auto value = cute::ratio(cute::Int<cute::sizeof_bits_v<T>>{}, cute::Int<S>{});
+  static constexpr auto value = nihilus_cute::ratio(nihilus_cute::Int<nihilus_cute::sizeof_bits_v<T>>{}, nihilus_cute::Int<S>{});
 };
 
 //
@@ -169,4 +169,4 @@ CUTE_HOST std::ostream& operator<<(std::ostream& os, sparse_ptr<S,Iter> ptr)
 }
 #endif
 
-} // end namespace cute
+} // end namespace nihilus_cute

@@ -79,14 +79,14 @@ class SharedLoadIteratorPitchLinear {
   using LongIndex = typename Layout::LongIndex;
   using TensorCoord = MatrixCoord;
 
-  static int const kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static constexpr int kElementsPerAccess = ThreadMap::kElementsPerAccess;
 
-  static int const kMinAlignment =
+  static constexpr int kMinAlignment =
       ThreadMap_::kElementsPerAccess * sizeof_bits<Element_>::value / 8;
 
-  static int const kAlignment = (MaxAlignment < kMinAlignment ? MaxAlignment : kMinAlignment);
+  static constexpr int kAlignment = (MaxAlignment < kMinAlignment ? MaxAlignment : kMinAlignment);
 
-  static int const kThreads = ThreadMap::kThreads;
+  static constexpr int kThreads = ThreadMap::kThreads;
 
   /// Fragment object
   using Fragment = Array<Element, ThreadMap::Iterations::kCount * kElementsPerAccess>;
@@ -100,7 +100,7 @@ class SharedLoadIteratorPitchLinear {
                    const_min(128 / sizeof_bits<Element>::value, ThreadMap::kElementsPerAccess),
                    const_min(16, kAlignment)>;
 
-  static int const kLoadsPerAccess = AccessType::kElements / LoadType::kElements;
+  static constexpr int kLoadsPerAccess = AccessType::kElements / LoadType::kElements;
 
  private:
   //

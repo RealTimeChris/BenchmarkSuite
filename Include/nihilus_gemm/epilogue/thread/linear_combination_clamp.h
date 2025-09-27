@@ -83,16 +83,16 @@ public:
   using ElementAccumulator = ElementAccumulator_;
   using ElementCompute = ElementCompute_;
 
-  static int const kCount = Count;
+  static constexpr int kCount = Count;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
   using ComputeFragment = Array<ElementCompute, kCount>;
   using FragmentSource = Array<ElementOutput, kCount>;
 
-  static FloatRoundStyle const kRound = Round;
+  static constexpr FloatRoundStyle kRound = Round;
 
-  static bool const kIsHeavy = detail::LinearCombinationClampIsHeavy();
+  static constexpr bool kIsHeavy = detail::LinearCombinationClampIsHeavy();
 
   /// Host-constructable parameters structure
   struct Params {
@@ -302,15 +302,15 @@ public:
       cutlass::platform::numeric_limits<ElementOutput>::is_integer,
       "This elementwise op expects the output to be int.");
 
-  static int const kCount = Count;
+  static constexpr int kCount = Count;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
   using ComputeFragment = Array<ElementCompute, kCount>;
 
-  static FloatRoundStyle const kRound = Round;
+  static constexpr FloatRoundStyle kRound = Round;
 
-  static bool const kIsHeavy = detail::LinearCombinationClampIsHeavy();
+  static constexpr bool kIsHeavy = detail::LinearCombinationClampIsHeavy();
 
   /// Host-constructable parameters structure
   struct Params {
@@ -501,15 +501,15 @@ class FastLinearCombinationClamp {
       cutlass::platform::numeric_limits<ElementOutput>::is_integer,
       "This elementwise op expects the output to be int.");
 
-  static int const kCount = Count;
+  static constexpr int kCount = Count;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
   using ComputeFragment = Array<ElementCompute, kCount>;
 
-  static FloatRoundStyle const kRound = Round;
+  static constexpr FloatRoundStyle kRound = Round;
 
-  static bool const kIsHeavy = false;
+  static constexpr bool kIsHeavy = false;
 
   /// Host-constructable parameters structure
   struct Params {

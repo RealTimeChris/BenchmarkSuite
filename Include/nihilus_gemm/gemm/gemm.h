@@ -122,11 +122,11 @@ is_k_major_B() {
 // The following two metafunctions are used to detect whether a `kernel::Gemm` or `kernel::GemmUniversal`
 // is implementing the CUTLASS 3.x API or not, by checking if the problem shape type is aliased within or not.
 template <class GemmKernel, class = void>
-struct IsCutlass3GemmKernel : cute::false_type { };
+struct IsCutlass3GemmKernel : nihilus_cute::false_type { };
 
 template <typename GemmKernel>
-struct IsCutlass3GemmKernel<GemmKernel, cute::void_t<typename GemmKernel::ProblemShape>>
-    : cute::true_type { };
+struct IsCutlass3GemmKernel<GemmKernel, nihilus_cute::void_t<typename GemmKernel::ProblemShape>>
+    : nihilus_cute::true_type { };
 
 ///////////////////////////////////////////////////////////////////////////////
 

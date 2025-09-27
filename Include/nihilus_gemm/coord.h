@@ -59,7 +59,7 @@ public:
   //
 
   /// Number of elements in Coord
-  static int const kRank = Rank_;
+  static constexpr int kRank = Rank_;
 
   /// Index type used to store elements
   using Index = Index_;

@@ -95,7 +95,7 @@ public:
   using OutputAccumulatorTile = AccumulatorTile;
 
   /// Number of times this iterator can be incremented
-  static int const kIterations = Policy::kIterations;
+  static constexpr int kIterations = Policy::kIterations;
 
 private:
 
@@ -141,7 +141,7 @@ public:
 
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
-    static int const kAccessesPerMma = Policy::kElementsPerMma / Policy::kElementsPerAccess;
+    static constexpr int kAccessesPerMma = Policy::kElementsPerMma / Policy::kElementsPerAccess;
 
     CUTLASS_PRAGMA_UNROLL
     for (int tile_n = 0; tile_n < Policy::TileIterations::kColumn; ++tile_n) {
@@ -188,7 +188,7 @@ public:
   using AccumulatorTile = typename Policy::AccumulatorTile;
 
   /// Number of times this iterator can be incremented
-  static int const kIterations = Policy::kIterations;
+  static constexpr int kIterations = Policy::kIterations;
 
 private:
 

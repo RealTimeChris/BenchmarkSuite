@@ -87,7 +87,7 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::PitchLi
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::PitchLinear;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
   using AccessType = AccessType_;
 
@@ -102,14 +102,14 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::PitchLi
   using Pointer = Element *;
   using NonConstPointer = typename platform::remove_const<Element>::type *;
 
-  static int const kPredicatesPerByte = 4;
-  static int const kPredicatesPerWord = 4 * kPredicatesPerByte;
+  static constexpr int kPredicatesPerByte = 4;
+  static constexpr int kPredicatesPerWord = 4 * kPredicatesPerByte;
 
   /// Number of 32b words containing predicates
-  static int const kPredicateByteCount = (ThreadMap::Iterations::kCount * ThreadMap::ThreadAccessShape::kStrided + kPredicatesPerByte - 1) / kPredicatesPerByte;
-  static int const kPredicateWordCount = (kPredicateByteCount + 3) / 4;
+  static constexpr int kPredicateByteCount = (ThreadMap::Iterations::kCount * ThreadMap::ThreadAccessShape::kStrided + kPredicatesPerByte - 1) / kPredicatesPerByte;
+  static constexpr int kPredicateWordCount = (kPredicateByteCount + 3) / 4;
 
-  static unsigned const kPredicateMask = (1u << kPredicatesPerByte) - 1u;
+  static constexpr unsigned kPredicateMask = (1u << kPredicatesPerByte) - 1u;
 
   static_assert(kPredicateWordCount <= 4, "Too many predicates.");
 
@@ -487,7 +487,7 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::ColumnM
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::ColumnMajor;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
   using AccessType = AccessType_;
 
@@ -666,7 +666,7 @@ class PredicatedTileAccessIterator2dThreadTile<Shape_, Element_, layout::RowMajo
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::RowMajor;
-  static int const kAdvanceRank = AdvanceRank;
+  static constexpr int kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
   using AccessType = AccessType_;
 

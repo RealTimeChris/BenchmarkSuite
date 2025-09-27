@@ -31,12 +31,12 @@
 #pragma once
 
 #include <nihilus_cute/config.hpp>          // CUTE_HOST_DEVICE
-#include <nihilus_cute/numeric/int.hpp>     // cute::int2_t, cute::int4_t, etc
+#include <nihilus_cute/numeric/int.hpp>     // nihilus_cute::int2_t, nihilus_cute::int4_t, etc
 
 #include <nihilus_gemm/numeric_size.h>   // cutlass::sizeof_bits
 #include <nihilus_gemm/numeric_types.h>  // cutlass::float_e4m3_t, cutlass::float_e5m2_t, etc
 
-namespace cute {
+namespace nihilus_cute {
 
 template <class T>
 struct sizeof_bits : cutlass::sizeof_bits<T> {};
@@ -189,4 +189,4 @@ pretty_print_float_exmy_base(cutlass::float_exmy_base<Encoding, Derived> t) {
   printf("%*.2f", 8, static_cast<float>(t));
 }
 
-} // namespace cute
+} // namespace nihilus_cute

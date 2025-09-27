@@ -112,9 +112,9 @@ struct MmaGeneric {
     ElementC, LayoutC,
     Operator>;
 
-  static bool const kMultipleOf2 = ((Shape::kM % 2 == 0) && (Shape::kN % 2 == 0));
+  static constexpr bool kMultipleOf2 = ((Shape::kM % 2 == 0) && (Shape::kN % 2 == 0));
 
-  static bool const kAllFp32 = platform::is_same<ElementA, float>::value &&
+  static constexpr bool kAllFp32 = platform::is_same<ElementA, float>::value &&
       platform::is_same<ElementB, float>::value &&
       platform::is_same<ElementC, float>::value;
   //

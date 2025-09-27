@@ -39,7 +39,7 @@
 
 #include <nihilus_cute/config.hpp>
 
-#include <nihilus_cute/arch/util.hpp>   // cute::cast_smem_ptr_to_uint
+#include <nihilus_cute/arch/util.hpp>   // nihilus_cute::cast_smem_ptr_to_uint
 #include <nihilus_cute/arch/config.hpp> // CUTE_ARCH_TMA_SMxx_ENABLED
 #include <nihilus_cute/arch/copy.hpp>
 #include <nihilus_cute/arch/copy_sm90.hpp>
@@ -49,7 +49,7 @@
 #include <nihilus_cute/container/array.hpp>
 #include <nihilus_cute/numeric/numeric_types.hpp>
 
-namespace cute
+namespace nihilus_cute
 {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -358,8 +358,8 @@ tma_descriptor_replace_addr_in_shared_mem(TmaDescriptor& smem_desc,
 CUTE_HOST_DEVICE
 void
 tma_descriptor_replace_dims_strides_in_shared_mem(TmaDescriptor                 & smem_desc,
-                                                  cute::array<uint32_t, 5> const& prob_shape,
-                                                  cute::array<uint64_t, 5> const& prob_stride)
+                                                  nihilus_cute::array<uint32_t, 5> const& prob_shape,
+                                                  nihilus_cute::array<uint64_t, 5> const& prob_stride)
 {
 #if defined(CUTE_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED)
   uint32_t smem_int_desc = cast_smem_ptr_to_uint(&smem_desc);
@@ -472,4 +472,4 @@ tma_descriptor_fence_acquire(TmaDescriptor const* desc_ptr)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-} // end namespace cute
+} // end namespace nihilus_cute
