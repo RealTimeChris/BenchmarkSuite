@@ -30,7 +30,7 @@
  **************************************************************************************************/
 #pragma once
 
-#include "nihilus_gemm/numeric_types.h"
+#include "cutlass_new/numeric_types.h"
 
 #if !defined(__CUDACC_RTC__)
 #include <cuda.h>

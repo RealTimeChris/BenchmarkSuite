@@ -33,7 +33,7 @@
 #include <nihilus_cute/config.hpp>            // CUTE_HOST_DEVICE
 #include <nihilus_cute/util/type_traits.hpp>  // __CUTE_REQUIRES
 
-#include <nihilus_gemm/fast_math.h>
+#include <cutlass_new/fast_math.h>
 
 namespace nihilus_cute
 {

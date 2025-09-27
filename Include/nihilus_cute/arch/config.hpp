@@ -30,7 +30,7 @@
  **************************************************************************************************/
 #pragma once
 
-#include <nihilus_gemm/arch/config.h> // CUTLASS_ARCH_MMA_SMxx_ENABLED
+#include <cutlass_new/arch/config.h> // CUTLASS_ARCH_MMA_SMxx_ENABLED
 
 // MMA SM90A
 #if defined(CUTLASS_ARCH_MMA_SM90A_ENABLED)

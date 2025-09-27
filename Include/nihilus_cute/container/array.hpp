@@ -391,7 +391,7 @@ nihilus_cute::array<T,N> reverse(nihilus_cute::array<T,N> const& t)
 //
 // Specialize tuple-related functionality for nihilus_cute::array
 //
-#include "nihilus_gemm/cutlass.h"
+#include "cutlass_new/cutlass.h"
 #if defined(__CUDACC_RTC__)
 #include CUDA_STD_HEADER(tuple)
 #else

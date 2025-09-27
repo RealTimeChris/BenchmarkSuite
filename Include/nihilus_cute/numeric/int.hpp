@@ -29,7 +29,7 @@
  *
  **************************************************************************************************/
 #pragma once
-#include "nihilus_gemm/cutlass.h"
+#include "cutlass_new/cutlass.h"
 #if defined(__CUDACC_RTC__)
 #include CUDA_STD_HEADER(cstdint)
 #else
@@ -38,7 +38,7 @@
 
 #include <nihilus_cute/config.hpp>          // CUTE_STL_NAMESPACE
 
-#include <nihilus_gemm/numeric_types.h>  // cutlass::int2b_t, cutlass::int4b_t
+#include <cutlass_new/numeric_types.h>  // cutlass::int2b_t, cutlass::int4b_t
 
 namespace nihilus_cute
 {

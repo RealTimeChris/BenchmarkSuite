@@ -35,7 +35,7 @@
 #include <nihilus_cute/arch/config.hpp> // CUTE_ARCH_TMA_SMxx_ENABLED
 #include <nihilus_cute/arch/copy.hpp>
 #include <nihilus_cute/arch/copy_sm90.hpp>
-#include "nihilus_gemm/arch/synclog.hpp"
+#include "cutlass_new/arch/synclog.hpp"
 
 namespace nihilus_cute
 {

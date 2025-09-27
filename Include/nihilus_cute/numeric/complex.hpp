@@ -32,7 +32,7 @@
 
 #include <nihilus_cute/config.hpp>    // CUTE_HOST_DEVICE
 
-#include <nihilus_gemm/complex.h>  // cutlass::complexm, cutlass::real, cutlass::imag, cutlass::is_complex
+#include <cutlass_new/complex.h>  // cutlass::complexm, cutlass::real, cutlass::imag, cutlass::is_complex
 
 namespace nihilus_cute
 {

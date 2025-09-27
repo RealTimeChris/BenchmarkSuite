@@ -37,7 +37,7 @@
 
 #include <nihilus_cute/arch/copy.hpp>
 #include <nihilus_cute/arch/copy_sm90.hpp>
-#include "nihilus_gemm/arch/synclog.hpp"
+#include "cutlass_new/arch/synclog.hpp"
 
 namespace nihilus_cute
 {

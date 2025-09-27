@@ -77,7 +77,7 @@ find(type_list<T...> const&) noexcept {
 //
 // Specialize tuple-related functionality for nihilus_cute::type_list
 //
-#include "nihilus_gemm/cutlass.h"
+#include "cutlass_new/cutlass.h"
 #if defined(__CUDACC_RTC__)
 #include CUDA_STD_HEADER(tuple)
 #else

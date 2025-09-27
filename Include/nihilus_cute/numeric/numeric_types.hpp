@@ -33,8 +33,8 @@
 #include <nihilus_cute/config.hpp>          // CUTE_HOST_DEVICE
 #include <nihilus_cute/numeric/int.hpp>     // nihilus_cute::int2_t, nihilus_cute::int4_t, etc
 
-#include <nihilus_gemm/numeric_size.h>   // cutlass::sizeof_bits
-#include <nihilus_gemm/numeric_types.h>  // cutlass::float_e4m3_t, cutlass::float_e5m2_t, etc
+#include <cutlass_new/numeric_size.h>   // cutlass::sizeof_bits
+#include <cutlass_new/numeric_types.h>  // cutlass::float_e4m3_t, cutlass::float_e5m2_t, etc
 
 namespace nihilus_cute {
 

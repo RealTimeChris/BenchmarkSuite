@@ -1332,7 +1332,7 @@ template<uint64_t M, uint64_t K, typename input_type_01, typename input_type_02,
 	}
 };
 
-#include <nihilus_gemm/gemm/device/gemm.h>
+#include <cutlass_new/gemm/device/gemm.h>
 
 template<uint64_t M, uint64_t K> __global__ void nihilus_custom_cuda_kernel(const float* input_A, const float* input_B, float* output, uint64_t N) {
 	const uint64_t row = blockIdx.y * blockDim.y + threadIdx.y;
