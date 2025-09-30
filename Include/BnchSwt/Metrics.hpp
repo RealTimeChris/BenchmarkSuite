@@ -28,7 +28,22 @@
 
 namespace bnch_swt {
 
-	struct performance_metrics {
+	BNCH_SWT_INLINE double calculateThroughputMBps(double nanoseconds, double bytesProcessed) {
+		constexpr double bytesPerMB		= 1024.0 * 1024.0;
+		constexpr double nanosPerSecond = 1e9;
+		double megabytes				= bytesProcessed / bytesPerMB;
+		double seconds					= nanoseconds / nanosPerSecond;
+		if (seconds == 0.0) {
+			return 0.0;
+		}
+		return megabytes / seconds;
+	}
+
+	BNCH_SWT_INLINE double calculateUnitsPs(double nanoseconds, double bytesProcessed) {
+		return (bytesProcessed * 1000000000.0) / nanoseconds;
+	}
+
+	template<benchmark_types benchmark_type> struct performance_metrics {
 		double throughputPercentageDeviation{ std::numeric_limits<double>::max() };
 		std::optional<double> cacheReferencesPerExecution{};
 		std::optional<uint64_t> measuredIterationCount{};
@@ -54,148 +69,129 @@ namespace bnch_swt {
 		BNCH_SWT_INLINE bool operator<(const performance_metrics& other) const {
 			return throughputMbPerSec < other.throughputMbPerSec;
 		}
-	};
-}
 
-namespace bnch_swt::internal {
+		template<string_literal benchmarkNameNew, bool mbps = true, benchmark_types benchmark_type>
+		BNCH_SWT_INLINE static performance_metrics<benchmark_type> collectMetrics(std::span<internal::event_count<benchmark_type>>&& eventsNewer, size_t totalIterationCount) {
+			static constexpr string_literal benchmarkName{ benchmarkNameNew };
+			performance_metrics metrics{};
+			metrics.name = benchmarkName.operator std::string();
+			metrics.measuredIterationCount.emplace(eventsNewer.size());
+			metrics.totalIterationCount.emplace(totalIterationCount);
+			double throughPut{};
+			double throughPutTotal{};
+			double throughPutAvg{};
+			double throughPutMin{ std::numeric_limits<double>::max() };
+			uint64_t bytesProcessed{};
+			uint64_t bytesProcessedTotal{};
+			uint64_t bytesProcessedAvg{};
+			double ns{};
+			double nsTotal{};
+			double nsAvg{};
+			double cycles{};
+			double cyclesTotal{};
+			double cyclesAvg{};
+			double instructions{};
+			double instructionsTotal{};
+			double instructionsAvg{};
+			double branches{};
+			double branchesTotal{};
+			double branchesAvg{};
+			double branchMisses{};
+			double branchMissesTotal{};
+			double branchMissesAvg{};
+			double cacheReferences{};
+			double cacheReferencesTotal{};
+			double cacheReferencesAvg{};
+			double cacheMisses{};
+			double cacheMissesTotal{};
+			double cacheMissesAvg{};
+			for (const internal::event_count<benchmark_type>& e: eventsNewer) {
+				ns = e.elapsedNs();
+				nsTotal += ns;
 
-	BNCH_SWT_INLINE double calculateThroughputMBps(double nanoseconds, double bytesProcessed) {
-		constexpr double bytesPerMB		= 1024.0 * 1024.0;
-		constexpr double nanosPerSecond = 1e9;
-		double megabytes = bytesProcessed / bytesPerMB;
-		double seconds	 = nanoseconds / nanosPerSecond;
-		if (seconds == 0.0) {
-			return 0.0;
-		}
-		return megabytes / seconds;
-	}
-
-	BNCH_SWT_INLINE double calculateUnitsPs(double nanoseconds, double bytesProcessed) {
-		return (bytesProcessed * 1000000000.0) / nanoseconds;
-	}
-
-	template<string_literal benchmarkNameNew, bool mbps = true>
-	BNCH_SWT_INLINE static performance_metrics collectMetrics(std::span<event_count>&& eventsNewer, size_t totalIterationCount) {
-		static constexpr string_literal benchmarkName{ benchmarkNameNew };
-		performance_metrics metrics{};
-		metrics.name = benchmarkName.operator std::string();
-		metrics.measuredIterationCount.emplace(eventsNewer.size());
-		metrics.totalIterationCount.emplace(totalIterationCount);
-		double throughPut{};
-		double throughPutTotal{};
-		double throughPutAvg{};
-		double throughPutMin{ std::numeric_limits<double>::max() };
-		uint64_t bytesProcessed{};
-		uint64_t bytesProcessedTotal{};
-		uint64_t bytesProcessedAvg{};
-		double ns{};
-		double nsTotal{};
-		double nsAvg{};
-		double cycles{};
-		double cyclesTotal{};
-		double cyclesAvg{};
-		double instructions{};
-		double instructionsTotal{};
-		double instructionsAvg{};
-		double branches{};
-		double branchesTotal{};
-		double branchesAvg{};
-		double branchMisses{};
-		double branchMissesTotal{};
-		double branchMissesAvg{};
-		double cacheReferences{};
-		double cacheReferencesTotal{};
-		double cacheReferencesAvg{};
-		double cacheMisses{};
-		double cacheMissesTotal{};
-		double cacheMissesAvg{};
-		for (const event_count& e: eventsNewer) {
-			ns = e.elapsedNs();
-			nsTotal += ns;
-
-			if (e.bytesProcessed(bytesProcessed)) {
-				bytesProcessedTotal += bytesProcessed;
-				if constexpr (mbps) {
-					throughPut = calculateThroughputMBps(ns, static_cast<double>(bytesProcessed));
-				} else {
-					throughPut = calculateUnitsPs(ns, static_cast<double>(bytesProcessed));
+				if (e.bytesProcessed(bytesProcessed)) {
+					bytesProcessedTotal += bytesProcessed;
+					if constexpr (mbps) {
+						throughPut = calculateThroughputMBps(ns, static_cast<double>(bytesProcessed));
+					} else {
+						throughPut = calculateUnitsPs(ns, static_cast<double>(bytesProcessed));
+					}
+					throughPutTotal += throughPut;
+					throughPutMin = throughPut < throughPutMin ? throughPut : throughPutMin;
 				}
-				throughPutTotal += throughPut;
-				throughPutMin = throughPut < throughPutMin ? throughPut : throughPutMin;
+
+				if (e.cycles(cycles)) {
+					cyclesTotal += cycles;
+				}
+
+				if (e.instructions(instructions)) {
+					instructionsTotal += instructions;
+				}
+
+				if (e.branches(branches)) {
+					branchesTotal += branches;
+				}
+
+				if (e.branchMisses(branchMisses)) {
+					branchMissesTotal += branchMisses;
+				}
+
+				if (e.cacheReferences(cacheReferences)) {
+					cacheReferencesTotal += cacheReferences;
+				}
+
+				if (e.cacheMisses(cacheMisses)) {
+					cacheMissesTotal += cacheMisses;
+				}
+			}
+			if (eventsNewer.size() > 0) {
+				bytesProcessedAvg  = bytesProcessedTotal / eventsNewer.size();
+				nsAvg			   = nsTotal / static_cast<double>(eventsNewer.size());
+				throughPutAvg	   = throughPutTotal / static_cast<double>(eventsNewer.size());
+				cyclesAvg		   = cyclesTotal / static_cast<double>(eventsNewer.size());
+				instructionsAvg	   = instructionsTotal / static_cast<double>(eventsNewer.size());
+				branchesAvg		   = branchesTotal / static_cast<double>(eventsNewer.size());
+				branchMissesAvg	   = branchMissesTotal / static_cast<double>(eventsNewer.size());
+				cacheReferencesAvg = cacheReferencesTotal / static_cast<double>(eventsNewer.size());
+				cacheMissesAvg	   = cacheMissesTotal / static_cast<double>(eventsNewer.size());
+				metrics.timeInNs   = nsAvg;
+			} else {
+				return {};
 			}
 
-			if (e.cycles(cycles)) {
-				cyclesTotal += cycles;
-			}
-
-			if (e.instructions(instructions)) {
-				instructionsTotal += instructions;
-			}
-
-			if (e.branches(branches)) {
-				branchesTotal += branches;
-			}
-
-			if (e.branchMisses(branchMisses)) {
-				branchMissesTotal += branchMisses;
-			}
-
-			if (e.cacheReferences(cacheReferences)) {
-				cacheReferencesTotal += cacheReferences;
-			}
-
-			if (e.cacheMisses(cacheMisses)) {
-				cacheMissesTotal += cacheMisses;
-			}
-		}
-		if (eventsNewer.size() > 0) {
-			bytesProcessedAvg  = bytesProcessedTotal / eventsNewer.size();
-			nsAvg			   = nsTotal / static_cast<double>(eventsNewer.size());
-			throughPutAvg	   = throughPutTotal / static_cast<double>(eventsNewer.size());
-			cyclesAvg		   = cyclesTotal / static_cast<double>(eventsNewer.size());
-			instructionsAvg	   = instructionsTotal / static_cast<double>(eventsNewer.size());
-			branchesAvg		   = branchesTotal / static_cast<double>(eventsNewer.size());
-			branchMissesAvg	   = branchMissesTotal / static_cast<double>(eventsNewer.size());
-			cacheReferencesAvg = cacheReferencesTotal / static_cast<double>(eventsNewer.size());
-			cacheMissesAvg	   = cacheMissesTotal / static_cast<double>(eventsNewer.size());
-			metrics.timeInNs   = nsAvg;
-		} else {
-			return {};
-		}
-
-		constexpr double epsilon = 1e-6;
-		if (std::abs(nsAvg) > epsilon) {
-			metrics.bytesProcessed				  = bytesProcessedAvg;
-			metrics.throughputMbPerSec			  = throughPutAvg;
-			metrics.throughputPercentageDeviation = ((throughPutAvg - throughPutMin) * 100.0) / throughPutAvg;
-		}
-		if (std::abs(cyclesAvg) > epsilon) {
-			if (metrics.bytesProcessed > 0) {
-				metrics.cyclesPerByte.emplace(cyclesAvg / static_cast<double>(metrics.bytesProcessed));
-			}
-			metrics.cyclesPerExecution.emplace(cyclesTotal / static_cast<double>(eventsNewer.size()));
-			metrics.frequencyGHz.emplace(cyclesAvg / nsAvg);
-		}
-		if (std::abs(instructionsAvg) > epsilon) {
-			if (metrics.bytesProcessed > 0) {
-				metrics.instructionsPerByte.emplace(instructionsAvg / static_cast<double>(metrics.bytesProcessed));
+			constexpr double epsilon = 1e-6;
+			if (std::abs(nsAvg) > epsilon) {
+				metrics.bytesProcessed				  = bytesProcessedAvg;
+				metrics.throughputMbPerSec			  = throughPutAvg;
+				metrics.throughputPercentageDeviation = ((throughPutAvg - throughPutMin) * 100.0) / throughPutAvg;
 			}
 			if (std::abs(cyclesAvg) > epsilon) {
-				metrics.instructionsPerCycle.emplace(instructionsAvg / cyclesAvg);
+				if (metrics.bytesProcessed > 0) {
+					metrics.cyclesPerByte.emplace(cyclesAvg / static_cast<double>(metrics.bytesProcessed));
+				}
+				metrics.cyclesPerExecution.emplace(cyclesTotal / static_cast<double>(eventsNewer.size()));
+				metrics.frequencyGHz.emplace(cyclesAvg / nsAvg);
 			}
-			metrics.instructionsPerExecution.emplace(instructionsTotal / static_cast<double>(eventsNewer.size()));
+			if (std::abs(instructionsAvg) > epsilon) {
+				if (metrics.bytesProcessed > 0) {
+					metrics.instructionsPerByte.emplace(instructionsAvg / static_cast<double>(metrics.bytesProcessed));
+				}
+				if (std::abs(cyclesAvg) > epsilon) {
+					metrics.instructionsPerCycle.emplace(instructionsAvg / cyclesAvg);
+				}
+				metrics.instructionsPerExecution.emplace(instructionsTotal / static_cast<double>(eventsNewer.size()));
+			}
+			if (std::abs(branchesAvg) > epsilon) {
+				metrics.branchMissesPerExecution.emplace(branchMissesAvg / static_cast<double>(eventsNewer.size()));
+				metrics.branchesPerExecution.emplace(branchesAvg / static_cast<double>(eventsNewer.size()));
+			}
+			if (std::abs(cacheMissesAvg) > epsilon) {
+				metrics.cacheMissesPerExecution.emplace(cacheMissesAvg / static_cast<double>(eventsNewer.size()));
+			}
+			if (std::abs(cacheReferencesAvg) > epsilon) {
+				metrics.cacheReferencesPerExecution.emplace(cacheReferencesAvg / static_cast<double>(eventsNewer.size()));
+			}
+			return metrics;
 		}
-		if (std::abs(branchesAvg) > epsilon) {
-			metrics.branchMissesPerExecution.emplace(branchMissesAvg / static_cast<double>(eventsNewer.size()));
-			metrics.branchesPerExecution.emplace(branchesAvg / static_cast<double>(eventsNewer.size()));
-		}
-		if (std::abs(cacheMissesAvg) > epsilon) {
-			metrics.cacheMissesPerExecution.emplace(cacheMissesAvg / static_cast<double>(eventsNewer.size()));
-		}
-		if (std::abs(cacheReferencesAvg) > epsilon) {
-			metrics.cacheReferencesPerExecution.emplace(cacheReferencesAvg / static_cast<double>(eventsNewer.size()));
-		}
-		return metrics;
-	}
-
+	};
 }

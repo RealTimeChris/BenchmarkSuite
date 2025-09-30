@@ -68,16 +68,6 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template<typename T>
-CUTLASS_HOST_DEVICE void __CUTLASS_UNUSED(T const &) 
-{ }
-
-#if defined(__GNUC__)
-  #define CUTLASS_UNUSED(expr) __CUTLASS_UNUSED(expr)
-#else
-  #define CUTLASS_UNUSED(expr) do { ; } while (&expr != &expr)
-#endif
-
 #ifdef _MSC_VER
 // Provides support for alternative operators 'and', 'or', and 'not'
 #include <ciso646>
@@ -132,12 +122,6 @@ CUTLASS_HOST_DEVICE void __CUTLASS_UNUSED(T const &)
 // #endif
 //   return isnan(x);
 // }
-
-#if defined(__CUDA_ARCH__)
-#  define CUTLASS_CMATH_NAMESPACE
-#else
-#  define CUTLASS_CMATH_NAMESPACE std
-#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

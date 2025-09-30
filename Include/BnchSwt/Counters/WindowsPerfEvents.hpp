@@ -32,7 +32,7 @@
 
 namespace bnch_swt::internal {
 
-	template<typename event_count, uint64_t count> struct event_collector_type : public std::vector<event_count> {
+	template<typename event_count, uint64_t count, benchmark_types benchmark_types = benchmark_types::cpu> struct event_collector_type : public std::vector<event_count> {
 		uint64_t currentIndex{};
 
 		BNCH_SWT_INLINE event_collector_type() : std::vector<event_count>{ count } {};

@@ -41,20 +41,20 @@
 namespace bnch_swt {
 
 	template<string_literal stageNameNew, uint64_t maxExecutionCount = 200, uint64_t measuredIterationCount = 25, bool clearCpuCacheBetweenEachIteration = false,
-		string_literal metricNameNew = string_literal<1>{}>
+		string_literal metricNameNew = string_literal<1>{}, benchmark_types benchmark_type = benchmark_types::cpu>
 	struct benchmark_stage {
 		static_assert(maxExecutionCount % measuredIterationCount == 0, "Sorry, but please enter a maxExecutionCount that is divisible by measuredIterationCount.");
 		//static_assert(maxExecutionCount > 1, "Sorry, but please enter a maxExecutionCount that is greater than 1.");
-		inline static thread_local std::unordered_map<std::string_view, performance_metrics> results{};
+		inline static thread_local std::unordered_map<std::string_view,  performance_metrics<benchmark_type>> results{};
 		static constexpr bool useNonMbpsMetric{ metricNameNew.size() == 0 };
 
 		BNCH_SWT_INLINE static void printResults(bool showComparison = true, bool showMetrics = true) {
-			std::vector<performance_metrics> resultsNew{};
+			std::vector< performance_metrics<benchmark_type>> resultsNew{};
 			for (const auto& [key, value]: results) {
 				resultsNew.emplace_back(value);
 			}
 			if (resultsNew.size() > 0) {
-				std::sort(resultsNew.begin(), resultsNew.end(), std::greater<performance_metrics>{});
+				std::sort(resultsNew.begin(), resultsNew.end(), std::greater< performance_metrics<benchmark_type>>{});
 				std::cout << "Performance Metrics for: " << stageNameNew.operator std::string_view() << std::endl;
 				if (showMetrics) {
 					for (const auto& value: resultsNew) {
@@ -86,8 +86,8 @@ namespace bnch_swt {
 							instructionCount = "Instructions per Byte";
 						}
 						printMetric("Total Iterations", maxExecutionCount);
-						printMetric("Total Iterations to Stabilize", value.totalIterationCount);
 						printMetric("Measured Iterations", value.measuredIterationCount);
+						printMetric("Total Iterations to Stabilization Window", value.totalIterationCount.value() - value.measuredIterationCount.value());
 						printMetric(metricName, value.bytesProcessed);
 						printMetric("Nanoseconds per Execution", value.timeInNs);
 						printMetric("Frequency (GHz)", value.frequencyGHz);
@@ -120,25 +120,25 @@ namespace bnch_swt {
 		}
 
 		template<string_literal subjectNameNew, typename function_type, internal::not_invocable... arg_types>
-		BNCH_SWT_INLINE static performance_metrics runBenchmark(arg_types&&... args) {
+		BNCH_SWT_INLINE static  performance_metrics<benchmark_type> runBenchmark(arg_types&&... args) {
 			static constexpr string_literal subjectName{ subjectNameNew };
 			static_assert(std::convertible_to<std::invoke_result_t<decltype(function_type::impl), arg_types...>, uint64_t>,
 				"Sorry, but the lambda passed to runBenchmark() must return a uint64_t, reflecting the number of bytes processed!");
-			internal::event_collector<maxExecutionCount> events{};
-			internal::cache_clearer cacheClearer{};
-			performance_metrics lowestResults{};
-			performance_metrics resultsTemp{};
+			internal::event_collector<maxExecutionCount, benchmark_type> events{};
+			internal::cache_clearer<benchmark_type> cacheClearer{};
+			 performance_metrics<benchmark_type> lowestResults{};
+			 performance_metrics<benchmark_type> resultsTemp{};
 			uint64_t currentGlobalIndex{ measuredIterationCount };
 			for (uint64_t x = 0; x < maxExecutionCount; ++x) {
-				if constexpr (clearCpuCacheBetweenEachIteration) {
+				if constexpr (clearCpuCacheBetweenEachIteration && benchmark_type == benchmark_types::cpu) {
 					cacheClearer.evictCaches();
 				}
 				events.template run<function_type>(std::forward<arg_types>(args)...);
 			}
-			std::span<internal::event_count> newPtr{ static_cast<std::vector<internal::event_count>&>(events) };
+			std::span<internal::event_count<benchmark_type>> newPtr{ static_cast<std::vector<internal::event_count<benchmark_type>>&>(events) };
 			static constexpr uint64_t finalMeasuredIterationCount{ maxExecutionCount - measuredIterationCount > 0 ? maxExecutionCount - measuredIterationCount : 1 };
 			for (uint64_t x = 0; x < finalMeasuredIterationCount; ++x, ++currentGlobalIndex) {
-				resultsTemp	  = collectMetrics<subjectName, useNonMbpsMetric>(newPtr.subspan(x, measuredIterationCount), currentGlobalIndex);
+				resultsTemp	  = performance_metrics<benchmark_type>::template collectMetrics<subjectName, useNonMbpsMetric>(newPtr.subspan(x, measuredIterationCount), currentGlobalIndex);
 				lowestResults = resultsTemp.throughputPercentageDeviation < lowestResults.throughputPercentageDeviation ? resultsTemp : lowestResults;
 			}
 			results[subjectName.operator std::string_view()] = lowestResults;
@@ -146,26 +146,26 @@ namespace bnch_swt {
 		}
 
 		template<string_literal subjectNameNew, typename function_type, internal::not_invocable... arg_types>
-		BNCH_SWT_INLINE static performance_metrics runBenchmark(function_type&& functionNew, arg_types&&... args) {
+		BNCH_SWT_INLINE static  performance_metrics<benchmark_type> runBenchmark(function_type&& functionNew, arg_types&&... args) {
 			static constexpr string_literal subjectName{ subjectNameNew };
 			static_assert(std::convertible_to<std::invoke_result_t<function_type, arg_types...>, uint64_t>,
 				"Sorry, but the lambda passed to runBenchmark() must return a uint64_t, reflecting the number of bytes processed!");
 			std::remove_cvref_t<function_type> functionNewer{ std::forward<function_type>(functionNew) };
-			internal::event_collector<maxExecutionCount> events{};
-			internal::cache_clearer cacheClearer{};
-			performance_metrics lowestResults{};
-			performance_metrics resultsTemp{};
+			internal::event_collector<maxExecutionCount, benchmark_type> events{};
+			internal::cache_clearer<benchmark_type> cacheClearer{};
+			 performance_metrics<benchmark_type> lowestResults{};
+			 performance_metrics<benchmark_type> resultsTemp{};
 			uint64_t currentGlobalIndex{ measuredIterationCount };
 			for (uint64_t x = 0; x < maxExecutionCount; ++x) {
-				if constexpr (clearCpuCacheBetweenEachIteration) {
+				if constexpr (clearCpuCacheBetweenEachIteration && benchmark_type == benchmark_types::cpu) {
 					cacheClearer.evictCaches();
 				}
 				events.run(functionNewer, std::forward<arg_types>(args)...);
 			}
-			std::span<internal::event_count> newPtr{ static_cast<std::vector<internal::event_count>&>(events) };
+			std::span<internal::event_count<benchmark_type>> newPtr{ static_cast<std::vector<internal::event_count<benchmark_type>>&>(events) };
 			static constexpr uint64_t finalMeasuredIterationCount{ maxExecutionCount - measuredIterationCount > 0 ? maxExecutionCount - measuredIterationCount : 1 };
 			for (uint64_t x = 0; x < finalMeasuredIterationCount; ++x, ++currentGlobalIndex) {
-				resultsTemp	  = collectMetrics<subjectName, useNonMbpsMetric>(newPtr.subspan(x, measuredIterationCount), currentGlobalIndex);
+				resultsTemp	  = performance_metrics<benchmark_type>::template collectMetrics<subjectName, useNonMbpsMetric>(newPtr.subspan(x, measuredIterationCount), currentGlobalIndex);
 				lowestResults = resultsTemp.throughputPercentageDeviation < lowestResults.throughputPercentageDeviation ? resultsTemp : lowestResults;
 			}
 			results[subjectName.operator std::string_view()] = lowestResults;
@@ -174,59 +174,59 @@ namespace bnch_swt {
 		static constexpr uint64_t finalMeasuredIterationCount{ maxExecutionCount - measuredIterationCount > 0 ? maxExecutionCount - measuredIterationCount : 1 };
 
 		template<string_literal subjectNameNew, typename prep_function_type, typename function_type, internal::not_invocable... arg_types>
-		BNCH_SWT_INLINE static performance_metrics runBenchmarkWithPrep(arg_types&&... args) {
+		BNCH_SWT_INLINE static  performance_metrics<benchmark_type> runBenchmarkWithPrep(arg_types&&... args) {
 			static constexpr string_literal subjectName{ subjectNameNew };
 			//static_assert(std::convertible_to<std::invoke_result_t<decltype(function_type::impl), arg_types...>, uint64_t>,
 			//"Sorry, but the lambda passed to runBenchmark() must return a uint64_t, reflecting the number of bytes processed!");
-			internal::event_collector<maxExecutionCount> events{};
-			internal::cache_clearer cacheClearer{};
+			internal::event_collector<maxExecutionCount, benchmark_type> events{};
+			internal::cache_clearer<benchmark_type> cacheClearer{};
 			uint64_t currentGlobalIndex{ measuredIterationCount };
 			for (uint64_t x = 0; x < maxExecutionCount; ++x) {
 				prep_function_type::impl(std::forward<arg_types>(args)...);
-				if constexpr (clearCpuCacheBetweenEachIteration) {
+				if constexpr (clearCpuCacheBetweenEachIteration && benchmark_type == benchmark_types::cpu) {
 					cacheClearer.evictCaches();
 				}
 				events.template run<function_type>(std::forward<arg_types>(args)...);
 			}
-			std::span<internal::event_count> newPtr{ static_cast<std::vector<internal::event_count>&>(events) };
+			std::span<internal::event_count<benchmark_type>> newPtr{ static_cast<std::vector<internal::event_count<benchmark_type>>&>(events) };
 			results[subjectName.operator std::string_view()] = sort_results<subjectName>(currentGlobalIndex, newPtr);
 			return results[subjectName.operator std::string_view()];
 		}
 
 		template<string_literal subjectNameNew, typename function_type, internal::not_invocable... arg_types>
-		BNCH_SWT_INLINE static performance_metrics runBenchmarkWithPrepAndPost(arg_types&&... args) {
+		BNCH_SWT_INLINE static  performance_metrics<benchmark_type> runBenchmarkWithPrepAndPost(arg_types&&... args) {
 			static constexpr string_literal subjectName{ subjectNameNew };
 			//static_assert(std::convertible_to<std::invoke_result_t<decltype(function_type::impl), arg_types...>, uint64_t>,
 			//"Sorry, but the lambda passed to runBenchmark() must return a uint64_t, reflecting the number of bytes processed!");
-			internal::event_collector<maxExecutionCount> events{};
-			internal::cache_clearer cacheClearer{};
+			internal::event_collector<maxExecutionCount, benchmark_type> events{};
+			internal::cache_clearer<benchmark_type> cacheClearer{};
 			uint64_t currentGlobalIndex{ measuredIterationCount };
 			for (uint64_t x = 0; x < maxExecutionCount; ++x) {
 				function_type::impl_prep(std::forward<arg_types>(args)...);
-				if constexpr (clearCpuCacheBetweenEachIteration) {
+				if constexpr (clearCpuCacheBetweenEachIteration && benchmark_type == benchmark_types::cpu) {
 					cacheClearer.evictCaches();
 				}
 				events.template run<function_type>(std::forward<arg_types>(args)...);
 				function_type::impl_post(std::forward<arg_types>(args)...);
 			}
-			std::span<internal::event_count> newPtr{ static_cast<std::vector<internal::event_count>&>(events) };
+			std::span<internal::event_count<benchmark_type>> newPtr{ static_cast<std::vector<internal::event_count<benchmark_type>>&>(events) };
 			results[subjectName.operator std::string_view()] = sort_results<subjectName>(currentGlobalIndex, newPtr);
 			return results[subjectName.operator std::string_view()];
 		}
 
-		template<string_literal subjectNameNew>  BNCH_SWT_INLINE static auto sort_results(uint64_t currentGlobalIndex, auto& newPtr) {
-			performance_metrics lowestResults{};
-			performance_metrics resultsTemp{};
+		template<string_literal subjectNameNew> BNCH_SWT_INLINE static auto sort_results(uint64_t currentGlobalIndex, auto& newPtr) {
+			 performance_metrics<benchmark_type> lowestResults{};
+			 performance_metrics<benchmark_type> resultsTemp{};
 			if constexpr (measuredIterationCount == 1) {
-				std::vector<performance_metrics> vector{};
+				std::vector< performance_metrics<benchmark_type>> vector{};
 				for (uint64_t x = 0; x < finalMeasuredIterationCount; ++x, ++currentGlobalIndex) {
-					vector.emplace_back(collectMetrics<subjectNameNew, useNonMbpsMetric>(newPtr.subspan(x, measuredIterationCount), currentGlobalIndex));
+					vector.emplace_back(performance_metrics<benchmark_type>::template collectMetrics<subjectNameNew, useNonMbpsMetric>(newPtr.subspan(x, measuredIterationCount), currentGlobalIndex));
 				}
-				std::sort(vector.data(), vector.data() + vector.size(), std::less<performance_metrics>{});
+				std::sort(vector.data(), vector.data() + vector.size(), std::less< performance_metrics<benchmark_type>>{});
 				return vector[0];
 			} else {
 				for (uint64_t x = 0; x < finalMeasuredIterationCount; ++x, ++currentGlobalIndex) {
-					resultsTemp	  = collectMetrics<subjectNameNew, useNonMbpsMetric>(newPtr.subspan(x, measuredIterationCount), currentGlobalIndex);
+					resultsTemp	  = performance_metrics<benchmark_type>::template collectMetrics<subjectNameNew, useNonMbpsMetric>(newPtr.subspan(x, measuredIterationCount), currentGlobalIndex);
 					lowestResults = resultsTemp.throughputPercentageDeviation < lowestResults.throughputPercentageDeviation ? resultsTemp : lowestResults;
 				}
 			}
@@ -234,23 +234,23 @@ namespace bnch_swt {
 		}
 
 		template<string_literal subjectNameNew, typename prep_function_type, typename function_type, internal::not_invocable... arg_types>
-		BNCH_SWT_INLINE static performance_metrics runBenchmarkWithPrep(prep_function_type&& prepFunctionNew, function_type&& functionNew, arg_types&&... args) {
+		BNCH_SWT_INLINE static  performance_metrics<benchmark_type> runBenchmarkWithPrep(prep_function_type&& prepFunctionNew, function_type&& functionNew, arg_types&&... args) {
 			static constexpr string_literal subjectName{ subjectNameNew };
 			static_assert(std::convertible_to<std::invoke_result_t<function_type, arg_types...>, uint64_t>,
 				"Sorry, but the lambda passed to runBenchmarkWithPrep() must return a uint64_t, reflecting the number of bytes processed!");
 			std::remove_cvref_t<prep_function_type> prepFunctionNewer{ std::forward<prep_function_type>(prepFunctionNew) };
 			std::remove_cvref_t<function_type> functionNewer{ std::forward<function_type>(functionNew) };
-			internal::event_collector<maxExecutionCount> events{};
-			internal::cache_clearer cacheClearer{};
+			internal::event_collector<maxExecutionCount, benchmark_type> events{};
+			internal::cache_clearer<benchmark_type> cacheClearer{};
 			uint64_t currentGlobalIndex{ measuredIterationCount };
 			for (uint64_t x = 0; x < maxExecutionCount; ++x) {
 				prepFunctionNewer();
-				if constexpr (clearCpuCacheBetweenEachIteration) {
+				if constexpr (clearCpuCacheBetweenEachIteration && benchmark_type == benchmark_types::cpu) {
 					cacheClearer.evictCaches();
 				}
 				events.run(functionNewer, std::forward<arg_types>(args)...);
 			}
-			std::span<internal::event_count> newPtr{ static_cast<std::vector<internal::event_count>&>(events) };
+			std::span<internal::event_count<benchmark_type>> newPtr{ static_cast<std::vector<internal::event_count<benchmark_type>>&>(events) };
 			results[subjectName.operator std::string_view()] = sort_results<subjectName>(currentGlobalIndex, newPtr);
 			return results[subjectName.operator std::string_view()];
 		}
