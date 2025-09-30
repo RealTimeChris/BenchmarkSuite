@@ -81,7 +81,7 @@ template <
     /// Indicates type of math operator (arch::OpClassSimt or arch::OpClassTensorOp)
     typename OperatorClass,
     /// Number of stages
-    int Stages = 2,
+    int32_t Stages = 2,
     /// Operation performed by MMA
     typename Operator = typename platform::conditional<
         (platform::is_same<OperatorClass,

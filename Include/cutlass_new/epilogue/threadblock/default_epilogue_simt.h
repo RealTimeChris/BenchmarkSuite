@@ -48,7 +48,6 @@
 #include "cutlass_new/gemm/warp/mma.h"
 
 #include "cutlass_new/epilogue/thread/linear_combination.h"
-#include "cutlass_new/epilogue/thread/linear_combination_clamp.h"
 #include "cutlass_new/epilogue/thread/linear_combination_relu.h"
 #include "cutlass_new/epilogue/thread/linear_combination_gelu.h"
 #include "cutlass_new/epilogue/thread/linear_combination_sigmoid.h"
@@ -88,25 +87,25 @@ template <
   typename Shape_,
   typename WarpMmaSimt_,
   typename OutputOp_,
-  int ElementsPerAccess,
+  int32_t ElementsPerAccess,
   bool ScatterD = false,
   typename PermuteDLayout = layout::NoPermute,
   conv::StrideSupport StrideSupport = conv::StrideSupport::kUnity,
-  int Rank = 4
+  int32_t Rank = 4
 >
 struct DefaultEpilogueSimt {
 
   using Shape = Shape_;
   using WarpMmaSimt = WarpMmaSimt_;
   using OutputOp = OutputOp_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
-  static constexpr int kPartitionsK = Shape::kK / WarpMmaSimt::Shape::kK;
+  static constexpr int32_t kElementsPerAccess = ElementsPerAccess;
+  static constexpr int32_t kPartitionsK = Shape::kK / WarpMmaSimt::Shape::kK;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using LayoutC = typename WarpMmaSimt::LayoutC;
   using ElementAccumulator = typename WarpMmaSimt::ElementC;
   static conv::StrideSupport const kStrideSupport = StrideSupport;
-  static constexpr int kRank = Rank;
+  static constexpr int32_t kRank = Rank;
 
   //
   // Thread map
@@ -190,15 +189,15 @@ template <
   typename Shape_,
   typename WarpMmaSimt_,
   typename OutputOp_,
-  int ElementsPerAccess
+  int32_t ElementsPerAccess
 >
 struct DefaultEpilogueSimtStridedDgrad {
 
   using Shape = Shape_;
   using WarpMmaSimt = WarpMmaSimt_;
   using OutputOp = OutputOp_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
-  static constexpr int kPartitionsK = Shape::kK / WarpMmaSimt::Shape::kK;
+  static constexpr int32_t kElementsPerAccess = ElementsPerAccess;
+  static constexpr int32_t kPartitionsK = Shape::kK / WarpMmaSimt::Shape::kK;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using LayoutC = typename WarpMmaSimt::LayoutC;
@@ -265,19 +264,19 @@ struct DefaultEpilogueSimtStridedDgrad {
 
 /// Defines sensible defaults for epilogues for SimtOps.
 template <
-  int Rank,
+  int32_t Rank,
   typename Shape_,
   typename WarpMmaSimt_,
   typename OutputOp_,
-  int ElementsPerAccess
+  int32_t ElementsPerAccess
 >
 struct DefaultEpilogueSimtAffineRankN {
 
   using Shape = Shape_;
   using WarpMmaSimt = WarpMmaSimt_;
   using OutputOp = OutputOp_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
-  static constexpr int kPartitionsK = Shape::kK / WarpMmaSimt::Shape::kK;
+  static constexpr int32_t kElementsPerAccess = ElementsPerAccess;
+  static constexpr int32_t kPartitionsK = Shape::kK / WarpMmaSimt::Shape::kK;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using LayoutC = typename WarpMmaSimt::LayoutC;
@@ -348,7 +347,7 @@ struct DefaultEpilogueSimtAffineRankN {
 template <typename Shape_,        // ThreadBlock Shape
           typename WarpMmaSimt_,  // mma_depthwise_simt
           typename OutputOp_,
-          int ElementsPerAccess_,
+          int32_t ElementsPerAccess_,
           typename ThreadOutputShape_ = cutlass::conv::TensorNHWCShape<1, 1, 1, 1>,
           typename ThreadBlockOutputShape_ = cutlass::conv::TensorNHWCShape<1, 1, 1, 1> >
 struct DefaultDirectConvEpilogueSimt {
@@ -358,7 +357,7 @@ struct DefaultDirectConvEpilogueSimt {
   using OutputOp = OutputOp_;
   using ThreadOutputShape = ThreadOutputShape_;
   using ThreadBlockOutputShape = ThreadBlockOutputShape_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess_;
+  static constexpr int32_t kElementsPerAccess = ElementsPerAccess_;
 
 
   using ElementOutput = typename OutputOp::ElementOutput;
@@ -371,9 +370,9 @@ struct DefaultDirectConvEpilogueSimt {
     Shape::kN / WarpShape::kN
   >;
 
-  static constexpr int kWarpSize = cutlass::gemm::warp::WarpSize<arch::OpClassSimt>::value;
+  static constexpr int32_t kWarpSize = cutlass::gemm::warp::WarpSize<arch::OpClassSimt>::value;
 
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   //
   // Thread map

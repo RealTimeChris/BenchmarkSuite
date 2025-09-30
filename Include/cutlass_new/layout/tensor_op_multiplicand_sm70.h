@@ -45,32 +45,32 @@ namespace cutlass {
 namespace layout {
 
 // template <
-//   int ElementSize,
+//   int32_t ElementSize,
 //   gemm::Operand Operand
 // >
 // struct VoltaTensorOpMultiplicandCongruous;
 
 // template <
-//   int ElementSize,
+//   int32_t ElementSize,
 //   gemm::Operand Operand
 // >
 // struct ColumnMajorVoltaTensorOpMultiplicandCongruous;
 // template <
-//   int ElementSize,
+//   int32_t ElementSize,
 //   gemm::Operand Operand
 // >
 // struct RowMajorVoltaTensorOpMultiplicandCongruous;
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Template based on element size (in bits) - defined in terms of pitch-linear memory.
-template <int ElementSize>
+template <int32_t ElementSize>
 struct VoltaTensorOpMultiplicandCongruous {
 
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static constexpr int32_t kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static constexpr int32_t kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -89,7 +89,7 @@ struct VoltaTensorOpMultiplicandCongruous {
   //
 
   /// This layout is optimized for 128b accesses
-  static constexpr int kAccessSize = 128;
+  static constexpr int32_t kAccessSize = 128;
 
   /// Fundamental tile shape in units of vectors
   using TileShape = PitchLinearShape<8, 4>;
@@ -101,8 +101,8 @@ struct VoltaTensorOpMultiplicandCongruous {
   // Static constants
   //
 
-  static constexpr int kElementSize = ElementSize;
-  static constexpr int kElementsPerAccess = kAccessSize / kElementSize;
+  static constexpr int32_t kElementSize = ElementSize;
+  static constexpr int32_t kElementsPerAccess = kAccessSize / kElementSize;
   
   using PartitionCount = PitchLinearShape<
     TileShape::kContiguous / PartitionShape::kContiguous,
@@ -148,26 +148,26 @@ public:
   LongIndex operator()(TensorCoord const &coord) const {
     
     // First, compute c and s of vector within source (in units of vector accesses)
-    int vec_contiguous_idx = coord.contiguous() / kElementsPerAccess;
-    int vec_strided_idx = coord.strided();
+    int32_t vec_contiguous_idx = coord.contiguous() / kElementsPerAccess;
+    int32_t vec_strided_idx = coord.strided();
 
     // Compute the fundamental tile being accessed
-    int tile_contiguous_idx = vec_contiguous_idx / TileShape::kContiguous;
-    int tile_strided_idx = vec_strided_idx / TileShape::kStrided;
+    int32_t tile_contiguous_idx = vec_contiguous_idx / TileShape::kContiguous;
+    int32_t tile_strided_idx = vec_strided_idx / TileShape::kStrided;
 
-    int tile_contiguous_residual = vec_contiguous_idx % TileShape::kContiguous;
-    int tile_strided_residual = vec_strided_idx % TileShape::kStrided;
+    int32_t tile_contiguous_residual = vec_contiguous_idx % TileShape::kContiguous;
+    int32_t tile_strided_residual = vec_strided_idx % TileShape::kStrided;
 
     // Then swizzle in a tile
     // Swizzle pattern is (tid[2:0] << 2)|(tid[4:3] ^ tid[2:1])
-    int permuted_strided_within_tile = (tile_contiguous_residual >> 1);
-    int permuted_contiguous_within_tile = (tile_strided_residual ^ permuted_strided_within_tile) |
+    int32_t permuted_strided_within_tile = (tile_contiguous_residual >> 1);
+    int32_t permuted_contiguous_within_tile = (tile_strided_residual ^ permuted_strided_within_tile) |
                                        ((tile_contiguous_residual & 1) << 2);
     // Compute final element location
-    int element_contiguous = (tile_contiguous_idx * TileShape::kContiguous +
+    int32_t element_contiguous = (tile_contiguous_idx * TileShape::kContiguous +
         permuted_contiguous_within_tile) * kElementsPerAccess + (coord.contiguous() % kElementsPerAccess);
 
-    int element_strided = tile_strided_idx * TileShape::kStrided + permuted_strided_within_tile;
+    int32_t element_strided = tile_strided_idx * TileShape::kStrided + permuted_strided_within_tile;
 
     return element_contiguous + element_strided * stride_[0];
   }
@@ -194,14 +194,14 @@ public:
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Template mapping a column-major view of pitch-linear memory to VoltaTensorOpMultiplicandCongruous
-template <int ElementSize>
+template <int32_t ElementSize>
 struct ColumnMajorVoltaTensorOpMultiplicandCongruous {
 
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static constexpr int32_t kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static constexpr int32_t kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -222,7 +222,7 @@ struct ColumnMajorVoltaTensorOpMultiplicandCongruous {
   using Base = VoltaTensorOpMultiplicandCongruous<ElementSize>;
 
   /// This layout is optimized for 128b accesses
-  static constexpr int kAccessSize = Base::kAccessSize;
+  static constexpr int32_t kAccessSize = Base::kAccessSize;
   using TileShape = typename Base::TileShape;
   using PartitionShape = typename Base::PartitionShape;
 
@@ -230,8 +230,8 @@ struct ColumnMajorVoltaTensorOpMultiplicandCongruous {
   // Static constants
   //
 
-  static constexpr int kElementSize = Base::kElementSize;
-  static constexpr int kElementsPerAccess = Base::kElementsPerAccess;
+  static constexpr int32_t kElementSize = Base::kElementSize;
+  static constexpr int32_t kElementsPerAccess = Base::kElementsPerAccess;
   using PartitionCount =  typename Base::PartitionCount;
   using AccessCount = typename Base::AccessCount;
 
@@ -296,14 +296,14 @@ public:
 };
 
 /// Template mapping a row-major view of pitch-linear memory to VoltaTensorOpMultiplicandCongruous
-template <int ElementSize>
+template <int32_t ElementSize>
 struct RowMajorVoltaTensorOpMultiplicandCongruous {
 
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static constexpr int32_t kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static constexpr int32_t kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -324,7 +324,7 @@ struct RowMajorVoltaTensorOpMultiplicandCongruous {
   using Base = VoltaTensorOpMultiplicandCongruous<ElementSize>;
 
   /// This layout is optimized for 128b accesses
-  static constexpr int kAccessSize = Base::kAccessSize;
+  static constexpr int32_t kAccessSize = Base::kAccessSize;
   using TileShape = typename Base::TileShape;
   using PartitionShape = typename Base::PartitionShape;
 
@@ -332,8 +332,8 @@ struct RowMajorVoltaTensorOpMultiplicandCongruous {
   // Static constants
   //
 
-  static constexpr int kElementSize = Base::kElementSize;
-  static constexpr int kElementsPerAccess = Base::kElementsPerAccess;
+  static constexpr int32_t kElementSize = Base::kElementSize;
+  static constexpr int32_t kElementsPerAccess = Base::kElementsPerAccess;
   using PartitionCount =  typename Base::PartitionCount;
   using AccessCount = typename Base::AccessCount;
 
@@ -399,14 +399,14 @@ public:
 
 
 /// Template based on element size (in bits) - defined in terms of pitch-linear memory.
-// template <int ElementSize, Operand Operand>
-template <int ElementSize>
+// template <int32_t ElementSize, Operand Operand>
+template <int32_t ElementSize>
 struct VoltaTensorOpMultiplicandBCongruous {
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static constexpr int32_t kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static constexpr int32_t kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -425,7 +425,7 @@ struct VoltaTensorOpMultiplicandBCongruous {
   //
 
   /// This layout is optimized for 128b accesses
-  static constexpr int kAccessSize = 128;
+  static constexpr int32_t kAccessSize = 128;
 
   /// Fundamental tile shape in units of vectors
   using TileShape = PitchLinearShape<8, 4>;
@@ -437,8 +437,8 @@ struct VoltaTensorOpMultiplicandBCongruous {
   // Static constants
   //
 
-  static constexpr int kElementSize = ElementSize;
-  static constexpr int kElementsPerAccess = kAccessSize / kElementSize;
+  static constexpr int32_t kElementSize = ElementSize;
+  static constexpr int32_t kElementsPerAccess = kAccessSize / kElementSize;
   
   using PartitionCount = PitchLinearShape<
     TileShape::kContiguous / PartitionShape::kContiguous,
@@ -484,27 +484,27 @@ public:
   LongIndex operator()(TensorCoord const &coord) const {
     
     // First, compute c and s of vector within source (in units of vector accesses)
-    int vec_contiguous_idx = coord.contiguous() / kElementsPerAccess;
-    int vec_strided_idx = coord.strided();
+    int32_t vec_contiguous_idx = coord.contiguous() / kElementsPerAccess;
+    int32_t vec_strided_idx = coord.strided();
 
     // Compute the fundamental tile being accessed
-    int tile_contiguous_idx = vec_contiguous_idx / TileShape::kContiguous;
-    int tile_strided_idx = vec_strided_idx / TileShape::kStrided;
+    int32_t tile_contiguous_idx = vec_contiguous_idx / TileShape::kContiguous;
+    int32_t tile_strided_idx = vec_strided_idx / TileShape::kStrided;
 
-    int tile_contiguous_residual = vec_contiguous_idx % TileShape::kContiguous;
-    int tile_strided_residual = vec_strided_idx % TileShape::kStrided;
+    int32_t tile_contiguous_residual = vec_contiguous_idx % TileShape::kContiguous;
+    int32_t tile_strided_residual = vec_strided_idx % TileShape::kStrided;
 
     // Then swizzle in a tile
     // Swizzle pattern is (tid[1:0] << 3)|(tid & 0x4)|(tid[1:0])
-    int permuted_strided_within_tile = (tile_contiguous_residual & 0x3);
-    int permuted_contiguous_within_tile = (tile_strided_residual ^ permuted_strided_within_tile) |
+    int32_t permuted_strided_within_tile = (tile_contiguous_residual & 0x3);
+    int32_t permuted_contiguous_within_tile = (tile_strided_residual ^ permuted_strided_within_tile) |
                                        (tile_contiguous_residual & 0x4);
   
     // Compute final element location
-    int element_contiguous = (tile_contiguous_idx * TileShape::kContiguous +
+    int32_t element_contiguous = (tile_contiguous_idx * TileShape::kContiguous +
         permuted_contiguous_within_tile) * kElementsPerAccess + (coord.contiguous() % kElementsPerAccess);
 
-    int element_strided = tile_strided_idx * TileShape::kStrided + permuted_strided_within_tile;
+    int32_t element_strided = tile_strided_idx * TileShape::kStrided + permuted_strided_within_tile;
 
     return element_contiguous + element_strided * stride_[0];
   }
@@ -531,14 +531,14 @@ public:
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Template mapping a column-major view of pitch-linear memory to VoltaTensorOpMultiplicandCongruous
-template <int ElementSize>
+template <int32_t ElementSize>
 struct ColumnMajorVoltaTensorOpMultiplicandBCongruous {
 
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static constexpr int32_t kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static constexpr int32_t kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -559,7 +559,7 @@ struct ColumnMajorVoltaTensorOpMultiplicandBCongruous {
   using Base = VoltaTensorOpMultiplicandBCongruous<ElementSize>;
 
   /// This layout is optimized for 128b accesses
-  static constexpr int kAccessSize = Base::kAccessSize;
+  static constexpr int32_t kAccessSize = Base::kAccessSize;
   using TileShape = typename Base::TileShape;
   using PartitionShape = typename Base::PartitionShape;
 
@@ -567,8 +567,8 @@ struct ColumnMajorVoltaTensorOpMultiplicandBCongruous {
   // Static constants
   //
 
-  static constexpr int kElementSize = Base::kElementSize;
-  static constexpr int kElementsPerAccess = Base::kElementsPerAccess;
+  static constexpr int32_t kElementSize = Base::kElementSize;
+  static constexpr int32_t kElementsPerAccess = Base::kElementsPerAccess;
   using PartitionCount =  typename Base::PartitionCount;
   using AccessCount = typename Base::AccessCount;
 
@@ -633,14 +633,14 @@ public:
 };
 
 /// Template mapping a row-major view of pitch-linear memory to VoltaTensorOpMultiplicandCongruous
-template <int ElementSize>
+template <int32_t ElementSize>
 struct RowMajorVoltaTensorOpMultiplicandBCongruous {
 
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static constexpr int32_t kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static constexpr int32_t kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -661,7 +661,7 @@ struct RowMajorVoltaTensorOpMultiplicandBCongruous {
   using Base = VoltaTensorOpMultiplicandBCongruous<ElementSize>;
 
   /// This layout is optimized for 128b accesses
-  static constexpr int kAccessSize = Base::kAccessSize;
+  static constexpr int32_t kAccessSize = Base::kAccessSize;
   using TileShape = typename Base::TileShape;
   using PartitionShape = typename Base::PartitionShape;
 
@@ -669,8 +669,8 @@ struct RowMajorVoltaTensorOpMultiplicandBCongruous {
   // Static constants
   //
 
-  static constexpr int kElementSize = Base::kElementSize;
-  static constexpr int kElementsPerAccess = Base::kElementsPerAccess;
+  static constexpr int32_t kElementSize = Base::kElementSize;
+  static constexpr int32_t kElementsPerAccess = Base::kElementsPerAccess;
   using PartitionCount =  typename Base::PartitionCount;
   using AccessCount = typename Base::AccessCount;
 
@@ -736,13 +736,13 @@ public:
 
 /// Template based on element size (in bits) - defined in terms of pitch-linear
 /// memory and KBlock size (in elements).
-template <int ElementSize, int KBlock>
+template <int32_t ElementSize, int32_t KBlock>
 struct VoltaTensorOpMultiplicandCrosswise {
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static constexpr int32_t kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static constexpr int32_t kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -761,15 +761,15 @@ struct VoltaTensorOpMultiplicandCrosswise {
   //
 
   /// This layout is optimized for 64b accesses
-  static constexpr int kAccessSize = 64;
+  static constexpr int32_t kAccessSize = 64;
 
   //
   // Static constants
   //
 
-  static constexpr int kElementSize = ElementSize;
-  static constexpr int kElementsPerAccess = kAccessSize / kElementSize;
-  static constexpr int kKBlock = KBlock;
+  static constexpr int32_t kElementSize = ElementSize;
+  static constexpr int32_t kElementsPerAccess = kAccessSize / kElementSize;
+  static constexpr int32_t kKBlock = KBlock;
 
  private:
   //
@@ -806,28 +806,28 @@ struct VoltaTensorOpMultiplicandCrosswise {
     // First, compute c and s of vector within source (in units of vector
     // accesses)
     //
-    int vec_contiguous_idx = coord.contiguous() / kElementsPerAccess;
-    int vec_strided_idx = coord.strided();
+    int32_t vec_contiguous_idx = coord.contiguous() / kElementsPerAccess;
+    int32_t vec_strided_idx = coord.strided();
 
     //
     // Then swizzle
     // The mapping is like this:
     // id[1:0]|(id[3]^id[4])|id[2]
 
-    int vec_strided_within_tile = vec_contiguous_idx & 0x7;
-    int permuted_vec_contiguous =
+    int32_t vec_strided_within_tile = vec_contiguous_idx & 0x7;
+    int32_t permuted_vec_contiguous =
         (vec_strided_idx & (~0xF)) + (vec_strided_idx & 0x3) * 4 +
         (((vec_strided_idx >> 2) ^ ((vec_strided_idx & 0x10) >> 3)) & 0x3);
 
     permuted_vec_contiguous ^= ((vec_strided_within_tile >> 1) & 0x3);
 
-    int permuted_vec_strided = vec_contiguous_idx;
+    int32_t permuted_vec_strided = vec_contiguous_idx;
 
     //
     // Compute final element location
     //
 
-    int element_contiguous = permuted_vec_contiguous *  kElementsPerAccess + 
+    int32_t element_contiguous = permuted_vec_contiguous *  kElementsPerAccess + 
                              (coord.contiguous() % kElementsPerAccess);
     
     return element_contiguous + permuted_vec_strided * (stride_[0] * kElementsPerAccess);
@@ -851,13 +851,13 @@ struct VoltaTensorOpMultiplicandCrosswise {
 
 /// Template mapping a column-major view of pitch-linear memory to
 /// VoltaTensorOpMultiplicandCrosswise
-template <int ElementSize, int KBlock>
+template <int32_t ElementSize, int32_t KBlock>
 struct ColumnMajorVoltaTensorOpMultiplicandCrosswise {
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static constexpr int32_t kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static constexpr int32_t kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -878,14 +878,14 @@ struct ColumnMajorVoltaTensorOpMultiplicandCrosswise {
   using Base = VoltaTensorOpMultiplicandCrosswise<ElementSize, KBlock>;
 
   /// This layout is optimized for 64b accesses
-  static constexpr int kAccessSize = Base::kAccessSize;
+  static constexpr int32_t kAccessSize = Base::kAccessSize;
 
   //
   // Static constants
   //
 
-  static constexpr int kElementSize = Base::kElementSize;
-  static constexpr int kElementsPerAccess = Base::kElementsPerAccess;
+  static constexpr int32_t kElementSize = Base::kElementSize;
+  static constexpr int32_t kElementsPerAccess = Base::kElementsPerAccess;
 
  private:
   //
@@ -946,13 +946,13 @@ struct ColumnMajorVoltaTensorOpMultiplicandCrosswise {
 
 /// Template mapping a row-major view of pitch-linear memory to
 /// TensorOpMultiplicandCrosswise
-template <int ElementSize, int KBlock>
+template <int32_t ElementSize, int32_t KBlock>
 struct RowMajorVoltaTensorOpMultiplicandCrosswise {
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static constexpr int32_t kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static constexpr int32_t kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -973,14 +973,14 @@ struct RowMajorVoltaTensorOpMultiplicandCrosswise {
   using Base = VoltaTensorOpMultiplicandCrosswise<ElementSize, KBlock>;
 
   /// This layout is optimized for 64b accesses
-  static constexpr int kAccessSize = Base::kAccessSize;
+  static constexpr int32_t kAccessSize = Base::kAccessSize;
 
   //
   // Static constants
   //
 
-  static constexpr int kElementSize = Base::kElementSize;
-  static constexpr int kElementsPerAccess = Base::kElementsPerAccess;
+  static constexpr int32_t kElementSize = Base::kElementSize;
+  static constexpr int32_t kElementsPerAccess = Base::kElementsPerAccess;
 
  private:
   //

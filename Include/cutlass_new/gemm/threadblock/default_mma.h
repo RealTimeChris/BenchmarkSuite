@@ -68,13 +68,13 @@ template <
     /// Layout type for A matrix operand
     typename LayoutA_,
     /// Access granularity of A matrix in units of elements
-    int kAlignmentA,
+    int32_t kAlignmentA,
     /// Element type for B matrix operand
     typename ElementB_,
     /// Layout type for B matrix operand
     typename LayoutB_,
     /// Access granularity of B matrix in units of elements
-    int kAlignmentB,
+    int32_t kAlignmentB,
     /// Element type for internal accumulation
     typename ElementAccumulator_,
     /// Layout type for C and D matrix operands
@@ -90,7 +90,7 @@ template <
     /// Instruction-level tile size (concept: GemmShape)
     typename InstructionShape_,
     /// Number of stages used in the pipelined mainloop
-    int Stages,
+    int32_t Stages,
     /// Operation performed by GEMM
     typename Operator,
     /// Store the accumulators in row major or column major.  Row major is used
@@ -118,13 +118,13 @@ template <
     /// Layout type for A matrix operand
     typename LayoutA,
     /// Access granularity of A matrix in units of elements
-    int kAlignmentA,
+    int32_t kAlignmentA,
     /// Element type for B matrix operand
     typename ElementB,
     /// Layout type for B matrix operand
     typename LayoutB,
     /// Access granularity of B matrix in units of elements
-    int kAlignmentB,
+    int32_t kAlignmentB,
     /// Element type for internal accumulation
     typename ElementAccumulator,
     /// Layout type for C and D matrix operand
@@ -194,13 +194,13 @@ template <
     /// Layout type for A matrix operand
     typename LayoutA,
     /// Access granularity of A matrix in units of elements
-    int kAlignmentA,
+    int32_t kAlignmentA,
     /// Element type for B matrix operand
     typename ElementB,
     /// Layout type for B matrix operand
     typename LayoutB,
     /// Access granularity of B matrix in units of elements
-    int kAlignmentB,
+    int32_t kAlignmentB,
     /// Element type for internal accumulation
     typename ElementAccumulator,
     /// Tag indicating architecture to tune for
@@ -262,11 +262,11 @@ template <
     /// Layout type for A matrix operand
     typename LayoutA,
     /// Access granularity of A matrix in units of elements
-    int kAlignmentA,
+    int32_t kAlignmentA,
     /// Layout type for B matrix operand
     typename LayoutB,
     /// Access granularity of B matrix in units of elements
-    int kAlignmentB,
+    int32_t kAlignmentB,
     /// Tag indicating architecture to tune for
     typename ArchTag,
     /// Threadblock-level tile size (concept: GemmShape)
@@ -327,13 +327,13 @@ template <
     /// Layout type for A matrix operand
     typename LayoutA,
     /// Access granularity of A matrix in units of elements
-    int kAlignmentA,
+    int32_t kAlignmentA,
     /// Element type for B matrix operand
     typename ElementB,
     /// Layout type for B matrix operand
     typename LayoutB,
     /// Access granularity of B matrix in units of elements
-    int kAlignmentB,
+    int32_t kAlignmentB,
     /// Element type for internal accumulation
     typename ElementAccumulator,
     /// Tag indicating architecture to tune for
@@ -349,7 +349,7 @@ template <
     /// Operation performed by GEMM
     typename Operator,
     /// Number of Interleaved K
-    int InterleavedK>
+    int32_t InterleavedK>
 struct DefaultMma<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB,
                   kAlignmentB, ElementAccumulator,
                   layout::ColumnMajorInterleaved<InterleavedK>, OperatorClass,
@@ -396,13 +396,13 @@ template <
     /// Layout type for A matrix operand
     typename LayoutA,
     /// Access granularity of A matrix in units of elements
-    int kAlignmentA,
+    int32_t kAlignmentA,
     /// Element type for B matrix operand
     typename ElementB,
     /// Layout type for B matrix operand
     typename LayoutB,
     /// Access granularity of B matrix in units of elements
-    int kAlignmentB,
+    int32_t kAlignmentB,
     /// Element type for internal accumulation
     typename ElementAccumulator,
     /// Layout type for C and D matrix operand
@@ -416,7 +416,7 @@ template <
     /// Instruction-level tile size (concept: GemmShape)
     typename InstructionShape,
     /// Number of stages used in the multistage mainloop
-    int Stages,
+    int32_t Stages,
     /// Operation performed by GEMM
     typename Operator,
     /// Gather operand A by using an index array
@@ -477,13 +477,13 @@ template <
     /// Layout type for A matrix operand
     typename LayoutA,
     /// Access granularity of A matrix in units of elements
-    int kAlignmentA,
+    int32_t kAlignmentA,
     /// Element type for B matrix operand
     typename ElementB,
     /// Layout type for B matrix operand
     typename LayoutB,
     /// Access granularity of B matrix in units of elements
-    int kAlignmentB,
+    int32_t kAlignmentB,
     /// Element type for internal accumulation
     typename ElementAccumulator,
     /// Layout type for C and D matrix operand
@@ -497,7 +497,7 @@ template <
     /// Instruction-level tile size (concept: GemmShape)
     typename InstructionShape,
     /// Number of stages used in the multistage mainloop
-    int Stages,
+    int32_t Stages,
     /// Operation performed by GEMM
     typename Operator,
     /// Use zfill or predicate for out-of-bound cp.async
@@ -570,13 +570,13 @@ template <
     /// Layout type for A matrix operand
     typename LayoutA,
     /// Access granularity of A matrix in units of elements
-    int kAlignmentA,
+    int32_t kAlignmentA,
     /// Element type for B matrix operand
     typename ElementB,
     /// Layout type for B matrix operand
     typename LayoutB,
     /// Access granularity of B matrix in units of elements
-    int kAlignmentB,
+    int32_t kAlignmentB,
     /// Element type for internal accumulation
     typename ElementAccumulator,
     /// Tag indicating architecture to tune for
@@ -590,11 +590,11 @@ template <
     /// Instruction-level tile size (concept: GemmShape)
     typename InstructionShape,
     /// Number of stages used in the multistage mainloop
-    int Stages,
+    int32_t Stages,
     /// Operation performed by GEMM
     typename Operator,
     /// Number of Interleaved K
-    int InterleavedK>
+    int32_t InterleavedK>
 struct DefaultMma<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB,
                   kAlignmentB, ElementAccumulator,
                   layout::ColumnMajorInterleaved<InterleavedK>, OperatorClass,
@@ -639,11 +639,11 @@ template <
     /// Layout type for A matrix operand
     typename LayoutA,
     /// Access granularity of A matrix in units of elements
-    int kAlignmentA,
+    int32_t kAlignmentA,
     /// Layout type for B matrix operand
     typename LayoutB,
     /// Access granularity of B matrix in units of elements
-    int kAlignmentB,
+    int32_t kAlignmentB,
     /// Element type for internal accumulation
     typename ElementAccumulator,
     /// Tag indicating architecture to tune for
@@ -702,13 +702,13 @@ template <
     /// Layout type for A matrix operand
     typename LayoutA,
     /// Access granularity of A matrix in units of elements
-    int kAlignmentA,
+    int32_t kAlignmentA,
     /// Element type for B matrix operand
     typename ElementB,
     /// Layout type for B matrix operand
     typename LayoutB,
     /// Access granularity of B matrix in units of elements
-    int kAlignmentB,
+    int32_t kAlignmentB,
     /// Element type for internal accumulation
     typename ElementAccumulator,
     /// Layout type for C and D matrix operands
@@ -762,13 +762,13 @@ template <
     /// Layout type for A matrix operand
     typename LayoutA,
     /// Access granularity of A matrix in units of elements
-    int kAlignmentA,
+    int32_t kAlignmentA,
     /// Element type for B matrix operand
     typename ElementB,
     /// Layout type for B matrix operand
     typename LayoutB,
     /// Access granularity of B matrix in units of elements
-    int kAlignmentB,
+    int32_t kAlignmentB,
     /// Element type for internal accumulation
     typename ElementAccumulator,
     /// Layout type for C and D matrix operands

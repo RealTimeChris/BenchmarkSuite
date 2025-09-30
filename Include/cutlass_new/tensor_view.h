@@ -81,7 +81,7 @@ class TensorView : public TensorRef<Element_, Layout_> {
   using Reference = Element &;
 
   /// Logical rank of tensor index space
-  static constexpr int kRank = Layout::kRank;
+  static constexpr int32_t kRank = Layout::kRank;
 
   /// Index type
   using Index = typename Layout::Index;
@@ -178,7 +178,7 @@ class TensorView : public TensorRef<Element_, Layout_> {
 
   /// Returns the extent along a particular logical dimension.
   CUTLASS_HOST_DEVICE
-  Index extent(int dim) const { return extent_.at(dim); }
+  Index extent(int32_t dim) const { return extent_.at(dim); }
 
   /// Returns the number of logical elements
   CUTLASS_HOST_DEVICE
@@ -190,7 +190,7 @@ class TensorView : public TensorRef<Element_, Layout_> {
   CUTLASS_HOST_DEVICE
   bool contains(TensorCoord const& coord) const {
     CUTLASS_PRAGMA_UNROLL
-    for (int dim = 0; dim < kRank; ++dim) {
+    for (int32_t dim = 0; dim < kRank; ++dim) {
       if (!(coord[dim] >= 0 && coord[dim] < extent(dim))) {
         return false;
       }

@@ -65,7 +65,7 @@ struct UniversalCopy
 //   that assumes alignment of pointers and dynamic layouts up to MaxVecBits
 //
 
-template <int MaxVecBits = 128>
+template <int32_t MaxVecBits = 128>
 struct AutoVectorizingCopyWithAssumedAlignment
      : UniversalCopy<uint_bit_t<MaxVecBits>>
 {

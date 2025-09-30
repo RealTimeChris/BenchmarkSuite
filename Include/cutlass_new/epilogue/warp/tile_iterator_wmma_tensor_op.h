@@ -162,7 +162,7 @@ public:
   CUTLASS_HOST_DEVICE
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) {
 
-    for(int n=0; n < Policy::OperatorCount::kColumn; n++) {
+    for(int32_t n=0; n < Policy::OperatorCount::kColumn; n++) {
       
       WmmaDataType* ptr = reinterpret_cast<WmmaDataType*> (ref_.data() + ref_.offset({0, n * OperatorShape::kN}) + pointer_offset);
 
@@ -186,7 +186,7 @@ public:
   CUTLASS_HOST_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
  
-    for(int n=0; n < Policy::OperatorCount::kColumn; n++) {
+    for(int32_t n=0; n < Policy::OperatorCount::kColumn; n++) {
 
       WmmaDataType* ptr = reinterpret_cast<WmmaDataType*> (ref_.data() + ref_.offset({0, n * OperatorShape::kN}) + pointer_offset);
 

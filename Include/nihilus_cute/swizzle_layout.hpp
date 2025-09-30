@@ -57,14 +57,14 @@ namespace nihilus_cute
 //
 // Helper Function
 //
-template <int B, int M, int S, class Offset, class LayoutB>
+template <int32_t B, int32_t M, int32_t S, class Offset, class LayoutB>
 struct get_swizzle<ComposedLayout<Swizzle<B,M,S>,Offset,LayoutB>> { using type = Swizzle<B,M,S>; };
 
 //
 // Constructors
 //
 
-template <int B, int M, int S>
+template <int32_t B, int32_t M, int32_t S>
 CUTE_HOST_DEVICE constexpr
 auto
 make_layout(Swizzle<B,M,S> const& sxor)
@@ -74,7 +74,7 @@ make_layout(Swizzle<B,M,S> const& sxor)
 
 namespace detail {
 
-template <int B, int M, int S, class OldShape, class OldStride, class NewShape, class NewStride>
+template <int32_t B, int32_t M, int32_t S, class OldShape, class OldStride, class NewShape, class NewStride>
 CUTE_HOST_DEVICE constexpr
 auto
 transfer_swizzle(Layout<OldShape,OldStride> const& old_layout,
@@ -116,7 +116,7 @@ transfer_swizzle(Layout<OldShape,OldStride> const& old_layout,
 
 } // end namespace detail
 
-template <int B, int M, int S, class Offset, class Layout>
+template <int32_t B, int32_t M, int32_t S, class Offset, class Layout>
 CUTE_HOST_DEVICE constexpr
 auto
 make_fragment_like(ComposedLayout<Swizzle<B,M,S>,Offset,Layout> const& layout)
@@ -129,7 +129,7 @@ make_fragment_like(ComposedLayout<Swizzle<B,M,S>,Offset,Layout> const& layout)
 //
 
 // Get just the Swizzle part of a composed layout.
-template <int B, int M, int S, class Offset, class LayoutB>
+template <int32_t B, int32_t M, int32_t S, class Offset, class LayoutB>
 CUTE_HOST_DEVICE constexpr
 auto
 get_swizzle_portion(ComposedLayout<Swizzle<B,M,S>,Offset,LayoutB>)
@@ -148,7 +148,7 @@ get_swizzle_portion(Layout<Shape,Stride>)
 
 // Get the "non-swizzle" part of a composed layout,
 // which is the underlying (non-composed) Layout.
-template <int B, int M, int S, class Offset, class LayoutB>
+template <int32_t B, int32_t M, int32_t S, class Offset, class LayoutB>
 CUTE_HOST_DEVICE constexpr
 auto
 get_nonswizzle_portion(ComposedLayout<Swizzle<B,M,S>,Offset,LayoutB> const& slayout)
@@ -166,7 +166,7 @@ get_nonswizzle_portion(Layout<Shape,Stride> const& slayout)
 }
 
 // Return the codomain size of a Swizzled ComposedLayout
-template <int... Is, int B, int M, int S, class Offset, class LayoutB>
+template <int32_t... Is, int32_t B, int32_t M, int32_t S, class Offset, class LayoutB>
 CUTE_HOST_DEVICE constexpr
 auto
 cosize(ComposedLayout<Swizzle<B,M,S>,Offset,LayoutB> const& layout)
@@ -180,7 +180,7 @@ cosize(ComposedLayout<Swizzle<B,M,S>,Offset,LayoutB> const& layout)
 
 namespace detail {
 
-template <class IntZ, class IntY, class Offset, int... I>
+template <class IntZ, class IntY, class Offset, int32_t... I>
 CUTE_HOST_DEVICE constexpr
 auto
 make_swizzle_strides(true_type,
@@ -201,7 +201,7 @@ make_swizzle_strides(true_type,
   return nihilus_cute::make_tuple(conditional_return((offset & (Y << Int<I>{})) == Int<0>{}, Z * Int<(1 << I)>{}, -Z * Int<(1 << I)>{})...);
 }
 
-template <class IntZ, class IntY, class Offset, int... I>
+template <class IntZ, class IntY, class Offset, int32_t... I>
 CUTE_HOST_DEVICE constexpr
 auto
 make_swizzle_strides(false_type,
@@ -224,7 +224,7 @@ make_swizzle_strides(false_type,
 
 } // end namespace detail
 
-template <class Coord, int B, int M, int S, class Offset, class Layout>
+template <class Coord, int32_t B, int32_t M, int32_t S, class Offset, class Layout>
 CUTE_HOST_DEVICE constexpr
 auto
 slice_and_offset(Coord const& coord, ComposedLayout<Swizzle<B,M,S>,Offset,Layout> const& layout)
@@ -303,7 +303,7 @@ slice_and_offset(Coord const& coord, ComposedLayout<Swizzle<B,M,S>,Offset,Layout
 //
 
 // Ignore identity case
-template <int M, int S,
+template <int32_t M, int32_t S,
           class Shape, class Stride>
 CUTE_HOST_DEVICE constexpr
 auto
@@ -314,7 +314,7 @@ composition(Swizzle<0,M,S> const&,
   return layout;
 }
 
-template <int B, int M, int S,
+template <int32_t B, int32_t M, int32_t S,
           class Shape, class Stride>
 CUTE_HOST_DEVICE constexpr
 auto
@@ -325,7 +325,7 @@ composition(Swizzle<B,M,S> const& sxor,
 }
 
 template <class ShapeA, class StrideA,
-          int B, int M, int S>
+          int32_t B, int32_t M, int32_t S>
 CUTE_HOST_DEVICE constexpr
 auto
 composition(Layout<ShapeA,StrideA> const& a,
@@ -345,7 +345,7 @@ composition(Layout<ShapeA,StrideA> const& a,
 //
 
 // Specialization to attempt to pass-through the Swizzle back to the left -- Needed?
-template <int B, int M, int S, class Offset, class Layout>
+template <int32_t B, int32_t M, int32_t S, class Offset, class Layout>
 CUTE_HOST_DEVICE constexpr
 auto
 right_inverse(ComposedLayout<Swizzle<B,M,S>,Offset,Layout> const& layout)
@@ -358,7 +358,7 @@ right_inverse(ComposedLayout<Swizzle<B,M,S>,Offset,Layout> const& layout)
 }
 
 // Specialization to attempt to pass-through the Swizzle back to the left -- Needed?
-template <int B, int M, int S, class Offset, class Layout>
+template <int32_t B, int32_t M, int32_t S, class Offset, class Layout>
 CUTE_HOST_DEVICE constexpr
 auto
 left_inverse(ComposedLayout<Swizzle<B,M,S>,Offset,Layout> const& layout)
@@ -370,7 +370,7 @@ left_inverse(ComposedLayout<Swizzle<B,M,S>,Offset,Layout> const& layout)
   }
 }
 
-template <int B, int M, int S>
+template <int32_t B, int32_t M, int32_t S>
 CUTE_HOST_DEVICE constexpr
 Swizzle<B,M,S>
 right_inverse(Swizzle<B,M,S> const& sw)
@@ -378,7 +378,7 @@ right_inverse(Swizzle<B,M,S> const& sw)
   return sw;
 }
 
-template <int B, int M, int S>
+template <int32_t B, int32_t M, int32_t S>
 CUTE_HOST_DEVICE constexpr
 Swizzle<B,M,S>
 left_inverse(Swizzle<B,M,S> const& sw)
@@ -408,14 +408,14 @@ left_inverse(T const& t)
 // Upcast and Downcast
 //
 
-template <int N, int B, int M, int S>
+template <int32_t N, int32_t B, int32_t M, int32_t S>
 CUTE_HOST_DEVICE constexpr
 auto
 upcast(Swizzle<B,M,S> const& swizzle)
 {
   static_assert(has_single_bit(N), "N must be a power of two");
-  constexpr int log2_n = bit_width(uint32_t(N)) - 1;
-  constexpr int NewM   = M - log2_n;
+  constexpr int32_t log2_n = bit_width(uint32_t(N)) - 1;
+  constexpr int32_t NewM   = M - log2_n;
   if constexpr (NewM >= 0) {
     return Swizzle<B,NewM,S>{};
   } else {
@@ -425,18 +425,18 @@ upcast(Swizzle<B,M,S> const& swizzle)
   CUTE_GCC_UNREACHABLE;
 }
 
-template <int N, int B, int M, int S>
+template <int32_t N, int32_t B, int32_t M, int32_t S>
 CUTE_HOST_DEVICE constexpr
 auto
 downcast(Swizzle<B,M,S> const& swizzle)
 {
   static_assert(has_single_bit(N), "N must be a power of two");
-  constexpr int log2_n = bit_width(uint32_t(N)) - 1;
+  constexpr int32_t log2_n = bit_width(uint32_t(N)) - 1;
   return Swizzle<B,(M + log2_n),S>{};
 }
 
 template <class OldType, class NewType,
-          int B, int M, int S>
+          int32_t B, int32_t M, int32_t S>
 CUTE_HOST_DEVICE constexpr
 auto
 recast_layout(Swizzle<B,M,S> const& swizzle)
@@ -457,7 +457,7 @@ recast_layout(Swizzle<B,M,S> const& swizzle)
   CUTE_GCC_UNREACHABLE;
 }
 
-template <int B, int M, int S>
+template <int32_t B, int32_t M, int32_t S>
 CUTE_HOST_DEVICE constexpr
 auto
 max_alignment(Swizzle<B,M,S> const&)
@@ -465,7 +465,7 @@ max_alignment(Swizzle<B,M,S> const&)
   return Int<(1 << M)>{};
 }
 
-template <int B, int M, int S, class Offset, class LayoutB>
+template <int32_t B, int32_t M, int32_t S, class Offset, class LayoutB>
 CUTE_HOST_DEVICE constexpr
 auto
 max_alignment(ComposedLayout<Swizzle<B,M,S>,Offset,LayoutB> const& layout)
@@ -479,7 +479,7 @@ max_alignment(ComposedLayout<Swizzle<B,M,S>,Offset,LayoutB> const& layout)
 // Other operations
 //
 
-template <int B, int M, int S, class Offset, class LayoutB, class Shape, class Stride>
+template <int32_t B, int32_t M, int32_t S, class Offset, class LayoutB, class Shape, class Stride>
 CUTE_HOST_DEVICE constexpr
 auto
 max_common_layout(ComposedLayout<Swizzle<B,M,S>,Offset,LayoutB> const& a,
@@ -494,7 +494,7 @@ max_common_layout(ComposedLayout<Swizzle<B,M,S>,Offset,LayoutB> const& a,
   }
 }
 
-template <class Shape, class Stride, int B, int M, int S, class Offset, class LayoutB>
+template <class Shape, class Stride, int32_t B, int32_t M, int32_t S, class Offset, class LayoutB>
 CUTE_HOST_DEVICE constexpr
 auto
 max_common_layout(Layout<Shape,Stride>                          const& a,
@@ -503,7 +503,7 @@ max_common_layout(Layout<Shape,Stride>                          const& a,
   return max_common_layout(b, a);
 }
 
-template <int B, int M, int S, class Offset, class LayoutB, class Shape, class Stride>
+template <int32_t B, int32_t M, int32_t S, class Offset, class LayoutB, class Shape, class Stride>
 CUTE_HOST_DEVICE constexpr
 auto
 max_common_vector(ComposedLayout<Swizzle<B,M,S>,Offset,LayoutB> const& a,
@@ -513,7 +513,7 @@ max_common_vector(ComposedLayout<Swizzle<B,M,S>,Offset,LayoutB> const& a,
   return nihilus_cute::min(max_common_vector(a.layout_b(), b), Int<(1 << M)>{});
 }
 
-template <class Shape, class Stride, int B, int M, int S, class Offset, class LayoutB>
+template <class Shape, class Stride, int32_t B, int32_t M, int32_t S, class Offset, class LayoutB>
 CUTE_HOST_DEVICE constexpr
 auto
 max_common_vector(Layout<Shape,Stride>                          const& a,
@@ -522,8 +522,8 @@ max_common_vector(Layout<Shape,Stride>                          const& a,
   return max_common_vector(b, a);
 }
 
-template <int B0, int M0, int S0, class Offset0, class LayoutB0,
-          int B1, int M1, int S1, class Offset1, class LayoutB1>
+template <int32_t B0, int32_t M0, int32_t S0, class Offset0, class LayoutB0,
+          int32_t B1, int32_t M1, int32_t S1, class Offset1, class LayoutB1>
 CUTE_HOST_DEVICE constexpr
 auto
 max_common_vector(ComposedLayout<Swizzle<B0,M0,S0>,Offset0,LayoutB0> const& a,
@@ -547,7 +547,7 @@ max_common_vector(ComposedLayout<Swizzle<B0,M0,S0>,Offset0,LayoutB0> const& a,
 // ComposedLayout as second argument is often more difficult...
 
 template <class Shape, class Stride,
-          int B, int M, int S, class Offset, class LayoutT>
+          int32_t B, int32_t M, int32_t S, class Offset, class LayoutT>
 CUTE_HOST_DEVICE constexpr
 auto
 logical_product(Layout<Shape,Stride>                          const& layout,

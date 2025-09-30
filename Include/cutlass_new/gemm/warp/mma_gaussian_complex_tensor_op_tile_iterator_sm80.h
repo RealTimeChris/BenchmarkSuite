@@ -113,7 +113,7 @@ class MmaTensorOpGaussianComplexAccumulatorTileIterator<
   using OpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int kThreads = 32;
+  static constexpr int32_t kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -147,9 +147,9 @@ private:
   // Assume accumulator tile is an arrangement of 8-by-8 tiles replicated over the entire
   // shape, with each quad mapped to one row and each thread mapped to 1/4 of the elements
   // of that row. The accumulators within one row are assumed to be consecutive.
- static constexpr int kElementsPerAccess = InstructionShape::kN / 4;
- static constexpr int kRowsPerTile = 8;
- static constexpr int kAccumulatorRows = InstructionShape::kM / kRowsPerTile;
+ static constexpr int32_t kElementsPerAccess = InstructionShape::kN / 4;
+ static constexpr int32_t kRowsPerTile = 8;
+ static constexpr int32_t kAccumulatorRows = InstructionShape::kM / kRowsPerTile;
 
 public:
 
@@ -162,9 +162,9 @@ public:
   /// arranged as [part1, part2, part3]
   using Fragment = Array<RealElement, (Shape::kCount / kThreads) * 3>;
 
-  static constexpr int kPart1Index = (Shape::kCount / kThreads) * 0;
-  static constexpr int kPart2Index = (Shape::kCount / kThreads) * 1;
-  static constexpr int kPart3Index = (Shape::kCount / kThreads) * 2;
+  static constexpr int32_t kPart1Index = (Shape::kCount / kThreads) * 0;
+  static constexpr int32_t kPart2Index = (Shape::kCount / kThreads) * 1;
+  static constexpr int32_t kPart3Index = (Shape::kCount / kThreads) * 2;
 
 private:
 
@@ -181,12 +181,12 @@ public:
   CUTLASS_HOST_DEVICE
   MmaTensorOpGaussianComplexAccumulatorTileIterator(
     TensorRef const &ref, 
-    int lane_id
+    int32_t lane_id
   ):
     ref_(ref) {
 
-    int quad = (lane_id >> 2);
-    int lane_in_quad = (lane_id & 3);
+    int32_t quad = (lane_id >> 2);
+    int32_t lane_in_quad = (lane_id & 3);
 
     MatrixCoord lane_offset(quad, lane_in_quad * kElementsPerAccess);
 
@@ -253,20 +253,20 @@ public:
     offset_ref.add_pointer_offset(pointer_offset);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
+    for (int32_t mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
       CUTLASS_PRAGMA_UNROLL
-      for (int mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
+      for (int32_t mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
         
-        int mma_accum_start = kAccumulatorRows * kElementsPerAccess * 
+        int32_t mma_accum_start = kAccumulatorRows * kElementsPerAccess * 
           (mma_n * Policy::MmaIterations::kRow + mma_m);
 
         CUTLASS_PRAGMA_UNROLL
-        for (int row = 0; row < kAccumulatorRows; ++row) {
+        for (int32_t row = 0; row < kAccumulatorRows; ++row) {
           CUTLASS_PRAGMA_UNROLL
-          for (int col = 0; col < kElementsPerAccess; ++col) {
-            int accum_m = mma_m * InstructionShape::kM * OpDelta::kRow +
+          for (int32_t col = 0; col < kElementsPerAccess; ++col) {
+            int32_t accum_m = mma_m * InstructionShape::kM * OpDelta::kRow +
                           row * kRowsPerTile;
-            int accum_n = mma_n * InstructionShape::kN * OpDelta::kColumn + col;
+            int32_t accum_n = mma_n * InstructionShape::kN * OpDelta::kColumn + col;
 
             Element z = offset_ref.at({accum_m, accum_n});
 
@@ -323,21 +323,21 @@ public:
     offset_ref.add_pointer_offset(pointer_offset);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
+    for (int32_t mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
       CUTLASS_PRAGMA_UNROLL
-      for (int mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
+      for (int32_t mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
         
-        int mma_accum_start = kAccumulatorRows * kElementsPerAccess * 
+        int32_t mma_accum_start = kAccumulatorRows * kElementsPerAccess * 
           (mma_n * Policy::MmaIterations::kRow + mma_m);
 
         CUTLASS_PRAGMA_UNROLL
-        for (int row = 0; row < kAccumulatorRows; ++row) {
+        for (int32_t row = 0; row < kAccumulatorRows; ++row) {
           CUTLASS_PRAGMA_UNROLL
-          for (int col = 0; col < kElementsPerAccess; ++col) {
-            int accum_m = mma_m * InstructionShape::kM * OpDelta::kRow +
+          for (int32_t col = 0; col < kElementsPerAccess; ++col) {
+            int32_t accum_m = mma_m * InstructionShape::kM * OpDelta::kRow +
                           row * kRowsPerTile;
-            int accum_n = mma_n * InstructionShape::kN * OpDelta::kColumn + col;
-            int idx = mma_accum_start + row * kElementsPerAccess + col;
+            int32_t accum_n = mma_n * InstructionShape::kN * OpDelta::kColumn + col;
+            int32_t idx = mma_accum_start + row * kElementsPerAccess + col;
 
             Element z(frag[kPart1Index + idx] - frag[kPart3Index + idx], 
                       frag[kPart1Index + idx] + frag[kPart2Index + idx]);

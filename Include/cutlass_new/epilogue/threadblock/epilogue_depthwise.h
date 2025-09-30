@@ -95,13 +95,13 @@ class EpilogueDepthwise {
   using ElementOutput = typename OutputTileIterator::Element;
 
   /// Output access size
-  static constexpr int kElementsPerAccess = OutputTileIterator::kElementsPerAccess;
+  static constexpr int32_t kElementsPerAccess = OutputTileIterator::kElementsPerAccess;
 
   /// Tensor reference to destination tensor
   using TensorRef = typename OutputTileIterator::TensorRef;
 
   /// Tensor reference to sync tensor
-  using SyncTensorRef = typename cutlass::TensorRef<int, cutlass::layout::PackedVectorLayout>;
+  using SyncTensorRef = typename cutlass::TensorRef<int32_t, cutlass::layout::PackedVectorLayout>;
 
   /// Const tensor reference to source tensor
   using ConstTensorRef = typename OutputTileIterator::ConstTensorRef;
@@ -179,19 +179,19 @@ class EpilogueDepthwise {
   WarpTileIterator warp_tile_iterator_;
 
   LongIndex warp_offset;
-  int thread_idx;
-  int warp_idx;
-  int lane_idx;
-  int warp_m, warp_n;  // warp coordinates within a cta
-  int tid_m, tid_n;    // thread coordinates within a warp
+  int32_t thread_idx;
+  int32_t warp_idx;
+  int32_t lane_idx;
+  int32_t warp_m, warp_n;  // warp coordinates within a cta
+  int32_t tid_m, tid_n;    // thread coordinates within a warp
 
  public:
   /// Constructor
   CUTLASS_DEVICE
   EpilogueDepthwise(SharedStorage &shared_storage,  ///< Shared storage object
-                    int thread_idx_,                ///< ID of a thread within the threadblock
-                    int warp_idx_,                  ///< ID of warp within threadblock
-                    int lane_idx_                   ///< Id of thread within warp
+                    int32_t thread_idx_,                ///< ID of a thread within the threadblock
+                    int32_t warp_idx_,                  ///< ID of warp within threadblock
+                    int32_t lane_idx_                   ///< Id of thread within warp
                     )
       : thread_idx(thread_idx_),
         warp_idx(warp_idx_),
@@ -206,7 +206,7 @@ class EpilogueDepthwise {
                   AccumulatorTile const &accumulators,  ///< Complete warp-level accumulator tile
                   OutputTileIterator source_iterator,   ///< Threadblock tile coordinate in GEMM (in
                                                         ///< units of threadblock tiles)
-                  const int smem_base_offset) {         ///< SMEM base offset for epilogue operation
+                  const int32_t smem_base_offset) {         ///< SMEM base offset for epilogue operation
     // initiate the smem base offset for different output tile.
     warp_tile_iterator_.set_smem_base_address(smem_base_offset);
 
@@ -294,11 +294,11 @@ class EpilogueDepthwise {
     OutputAccessType const *source_frag_ptr = 
       reinterpret_cast<OutputAccessType const *>(&source_fragment);
 
-    int const kOutputOpIterations = 
+    int32_t const kOutputOpIterations = 
       OutputTileIterator::Fragment::kElements / OutputTileIterator::kElementsPerAccess;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < kOutputOpIterations; ++i) {
+    for (int32_t i = 0; i < kOutputOpIterations; ++i) {
       // Call the output operator
       output_frag_ptr[i] = output_op(compute_frag_ptr[i], source_frag_ptr[i]);
     }
@@ -315,11 +315,11 @@ class EpilogueDepthwise {
     AccumulatorAccessType const *compute_frag_ptr =
         reinterpret_cast<AccumulatorAccessType const *>(&aligned_accum_fragment);
 
-    int const kOutputOpIterations =
+    int32_t const kOutputOpIterations =
         OutputTileIterator::Fragment::kElements / OutputTileIterator::kElementsPerAccess;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < kOutputOpIterations; ++i) {
+    for (int32_t i = 0; i < kOutputOpIterations; ++i) {
       // Call the output operator
       output_frag_ptr[i] = output_op(compute_frag_ptr[i]);
     }

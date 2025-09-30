@@ -73,7 +73,7 @@ namespace threadblock {
 template <
   typename ThreadMap_,       ///< Thread map (conept: OutputTileThreadMap)
   typename Element_,         ///< Element data type
-  int Rank
+  int32_t Rank
 >
 class PredicatedTileIteratorAffineRankN {
 public:
@@ -91,9 +91,9 @@ public:
   using LongIndex = typename Layout::LongIndex;
   using TensorCoord = typename Layout::TensorCoord;
 
-  static constexpr int kElementsPerAccess = ThreadMap::kElementsPerAccess;
-  static constexpr int kThreads = ThreadMap::kThreads;
-  static constexpr int kIterations = ThreadMap::Count::kTile;
+  static constexpr int32_t kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static constexpr int32_t kThreads = ThreadMap::kThreads;
+  static constexpr int32_t kIterations = ThreadMap::Count::kTile;
 
   static_assert( ThreadMap::Iterations::kRow > 0,"ThreadMap::Iterations::kRow must be > 0");
   static_assert( ThreadMap::Iterations::kGroup > 0,"ThreadMap::Iterations::kGroup must be > 0");
@@ -154,7 +154,7 @@ public:
     Params(TensorCoord const &extent, Layout const &layout_): layout(layout_) {
 
       CUTLASS_PRAGMA_UNROLL
-      for (int i = 0; i < Layout::kRank / 2; ++i) {
+      for (int32_t i = 0; i < Layout::kRank / 2; ++i) {
         stride_m[i] = OffsetBytes<Element>(layout_.stride()[i]);
         stride_n[i] = OffsetBytes<Element>(layout_.stride()[i + Layout::kRank / 2]);
       }
@@ -162,7 +162,7 @@ public:
       if (kBigEndian) {
         // "Big Endian" scheme
         CUTLASS_PRAGMA_UNROLL
-        for (int i = 0; i < Layout::kRank / 2 - 1; ++i) {
+        for (int32_t i = 0; i < Layout::kRank / 2 - 1; ++i) {
           divmod_m[i] = FastDivmod(extent[i + 1]);
           divmod_n[i] = FastDivmod(extent[i + Layout::kRank / 2 + 1]);
         }
@@ -170,7 +170,7 @@ public:
       else {
         // "Little Endian" scheme
         CUTLASS_PRAGMA_UNROLL
-        for (int i = 0; i < Layout::kRank / 2 - 1; ++i) {
+        for (int32_t i = 0; i < Layout::kRank / 2 - 1; ++i) {
           divmod_m[i] = FastDivmod(extent[i]);
           divmod_n[i] = FastDivmod(extent[i + Layout::kRank / 2]);
         }
@@ -183,10 +183,10 @@ public:
       printf("PredicatedTileIteratorAffine::Params() entered\n");
 
       CUTLASS_PRAGMA_UNROLL
-      for (int i = 0; i < Layout::kRank; ++i) {
+      for (int32_t i = 0; i < Layout::kRank; ++i) {
         printf("  extent[%d]: %d\n", i, extent[i]);
       }
-      for (int i = 0; i < Layout::kRank; ++i) {
+      for (int32_t i = 0; i < Layout::kRank; ++i) {
         printf("  stride[%d]: %ld\n", i, layout_.stride()[i]);
       }
       printf("PredicatedTileIteratorAffine::Params() returning\n");
@@ -197,7 +197,7 @@ public:
     Params(Layout const &layout_): layout(layout_) {
 
       CUTLASS_PRAGMA_UNROLL
-      for (int i = 0; i < Layout::kRank / 2; ++i) {
+      for (int32_t i = 0; i < Layout::kRank / 2; ++i) {
         stride_m[i] = OffsetBytes<Element>(layout_.stride()[i]);
         stride_n[i] = OffsetBytes<Element>(layout_.stride()[i + Layout::kRank / 2]);
       }
@@ -210,7 +210,7 @@ public:
   /// Mask object
   struct Mask {
 
-    static constexpr int kCount = ThreadMap::Iterations::kColumn;
+    static constexpr int32_t kCount = ThreadMap::Iterations::kColumn;
 
     /// Predicate state
     bool predicates[kCount];
@@ -226,7 +226,7 @@ public:
     ///< Efficiently disables all accesses guarded by mask
     CUTLASS_HOST_DEVICE void clear() {
       CUTLASS_PRAGMA_UNROLL
-      for (int i = 0; i < kCount; ++i) {
+      for (int32_t i = 0; i < kCount; ++i) {
         predicates[i] = false;
       }
     }
@@ -234,7 +234,7 @@ public:
     ///< CUTLASS_HOST_DEVICE enables all accesses guarded by mask
     CUTLASS_DEVICE void enable() {
       CUTLASS_PRAGMA_UNROLL
-      for (int i = 0; i < kCount; ++i) {
+      for (int32_t i = 0; i < kCount; ++i) {
         predicates[i] = true;
       }
     }
@@ -268,7 +268,7 @@ private:
   Index thread_start_column_;
 
   /// Internal state counter
-  int state_[3];
+  int32_t state_[3];
 
   /// Offsets in columns, cached for performance
   int64_t offset_modes_n_[ThreadMap::Iterations::kColumn];
@@ -298,9 +298,9 @@ public:
     Params const & params,
     Element *pointer,
     MatrixCoord extent,
-    int thread_idx,
+    int32_t thread_idx,
     MatrixCoord threadblock_offset = MatrixCoord(),
-    int const *indices = nullptr     ///< gather/scatter indices, note no support for gather/scatter at this specialization
+    int32_t const *indices = nullptr     ///< gather/scatter indices, note no support for gather/scatter at this specialization
   ): 
     params_(params)
   {
@@ -316,13 +316,13 @@ public:
     if (Layout::kRank > 2) {
       // Initialize predicates
       CUTLASS_PRAGMA_UNROLL
-      for (int c = 0; c < ThreadMap::Iterations::kColumn; ++c) {
+      for (int32_t c = 0; c < ThreadMap::Iterations::kColumn; ++c) {
 
         // 
         // Compute coordinate and decompose into N modes
         //
 
-        int coord_n = thread_start_column_ + c * ThreadMap::Delta::kColumn;
+        int32_t coord_n = thread_start_column_ + c * ThreadMap::Delta::kColumn;
 
         mask_.predicates[c] = coord_n < extent.column();
         
@@ -370,25 +370,25 @@ public:
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int cluster = 0; cluster < ThreadMap::Iterations::kCluster; ++cluster) {
+    for (int32_t cluster = 0; cluster < ThreadMap::Iterations::kCluster; ++cluster) {
 
       CUTLASS_PRAGMA_UNROLL
-      for (int group = 0; group < ThreadMap::Iterations::kGroup; ++group) {
+      for (int32_t group = 0; group < ThreadMap::Iterations::kGroup; ++group) {
 
-        int row_begin = thread_start_row_ + group * ThreadMap::Delta::kGroup + cluster * ThreadMap::Delta::kCluster;
+        int32_t row_begin = thread_start_row_ + group * ThreadMap::Delta::kGroup + cluster * ThreadMap::Delta::kCluster;
         int64_t offset_modes_m = row_begin * params_.stride_m[0];
 
         CUTLASS_PRAGMA_UNROLL
-        for (int row = 0; row < ThreadMap::Iterations::kRow; ++row) {
+        for (int32_t row = 0; row < ThreadMap::Iterations::kRow; ++row) {
 
-          int frag_row_idx = 
+          int32_t frag_row_idx = 
             (row + ThreadMap::Iterations::kRow * (group + ThreadMap::Iterations::kGroup * cluster));
 
           // 
           // Compute coordinate and decompose into M modes
           //
 
-          int coord_m = row * ThreadMap::Delta::kRow + row_begin;
+          int32_t coord_m = row * ThreadMap::Delta::kRow + row_begin;
 
           Coord<Layout::kRank / 2, Index> modes_m;
 
@@ -410,7 +410,7 @@ public:
           int64_t offset_modes_n = thread_start_column_ * params_.stride_n[0];
 
           CUTLASS_PRAGMA_UNROLL
-          for (int column = 0; column < ThreadMap::Iterations::kColumn; ++column) {
+          for (int32_t column = 0; column < ThreadMap::Iterations::kColumn; ++column) {
 
             // 
             // Compute coordinate and decompose into N modes
@@ -468,25 +468,25 @@ public:
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int cluster = 0; cluster < ThreadMap::Iterations::kCluster; ++cluster) {
+    for (int32_t cluster = 0; cluster < ThreadMap::Iterations::kCluster; ++cluster) {
 
       CUTLASS_PRAGMA_UNROLL
-      for (int group = 0; group < ThreadMap::Iterations::kGroup; ++group) {
+      for (int32_t group = 0; group < ThreadMap::Iterations::kGroup; ++group) {
 
-        int row_begin = thread_start_row_ + group * ThreadMap::Delta::kGroup + cluster * ThreadMap::Delta::kCluster;
+        int32_t row_begin = thread_start_row_ + group * ThreadMap::Delta::kGroup + cluster * ThreadMap::Delta::kCluster;
         int64_t offset_modes_m = row_begin * params_.stride_m[0];
 
         CUTLASS_PRAGMA_UNROLL
-        for (int row = 0; row < ThreadMap::Iterations::kRow; ++row) {
+        for (int32_t row = 0; row < ThreadMap::Iterations::kRow; ++row) {
 
-          int frag_row_idx = 
+          int32_t frag_row_idx = 
             (row + ThreadMap::Iterations::kRow * (group + ThreadMap::Iterations::kGroup * cluster));
 
           // 
           // Compute coordinate and decompose into M modes
           //
 
-          int coord_m = row * ThreadMap::Delta::kRow + row_begin;
+          int32_t coord_m = row * ThreadMap::Delta::kRow + row_begin;
 
           Coord<Layout::kRank / 2, Index> modes_m;
 
@@ -508,7 +508,7 @@ public:
           int64_t offset_modes_n = thread_start_column_ * params_.stride_n[0];
 
           CUTLASS_PRAGMA_UNROLL
-          for (int column = 0; column < ThreadMap::Iterations::kColumn; ++column) {
+          for (int32_t column = 0; column < ThreadMap::Iterations::kColumn; ++column) {
 
             // 
             // Compute coordinate and decompose into N modes

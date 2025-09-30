@@ -95,18 +95,18 @@ public:
   using AccumulatorTile = typename Policy::AccumulatorTile;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static constexpr int32_t kIterations = Policy::kIterations;
 
   /// Number of elements per access
-  static constexpr int kElementsPerAccess = Policy::kElementsPerAccess;
+  static constexpr int32_t kElementsPerAccess = Policy::kElementsPerAccess;
 
   // Internal constants
   struct Detail {
-    static constexpr int kLanesInQuad = 4;
-    static constexpr int kRowsPerQuad = 4;
-    static constexpr int kColumnsPerQuad = 8;
-    static constexpr int kAccessesPerQuad = kColumnsPerQuad / Policy::kElementsPerAccess;
-    static constexpr int kAccessQuadDelta = 16;
+    static constexpr int32_t kLanesInQuad = 4;
+    static constexpr int32_t kRowsPerQuad = 4;
+    static constexpr int32_t kColumnsPerQuad = 8;
+    static constexpr int32_t kAccessesPerQuad = kColumnsPerQuad / Policy::kElementsPerAccess;
+    static constexpr int32_t kAccessQuadDelta = 16;
   };
 
   /// Padding quantity
@@ -141,14 +141,14 @@ public:
     pointer_(reinterpret_cast<AccessType *>(ref.data())),
     layout_(ref.stride()[0] / Policy::kElementsPerAccess) { 
 
-    int quad_id = lane_id / Detail::kLanesInQuad;
-    int lane_in_quad = (lane_id % Detail::kLanesInQuad);
+    int32_t quad_id = lane_id / Detail::kLanesInQuad;
+    int32_t lane_in_quad = (lane_id % Detail::kLanesInQuad);
 
-    int quad_row_idx = ((quad_id & 4) >> 1) + (quad_id & 1);
-    int quad_col_idx = ((quad_id & 2) >> 1);
+    int32_t quad_row_idx = ((quad_id & 4) >> 1) + (quad_id & 1);
+    int32_t quad_col_idx = ((quad_id & 2) >> 1);
 
-    int row = quad_row_idx * Detail::kRowsPerQuad + lane_in_quad;
-    int column = quad_col_idx * Detail::kColumnsPerQuad;
+    int32_t row = quad_row_idx * Detail::kRowsPerQuad + lane_in_quad;
+    int32_t column = quad_col_idx * Detail::kColumnsPerQuad;
 
     pointer_ += layout_({row, column / kElementsPerAccess});
   }
@@ -185,19 +185,19 @@ public:
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int tile_idx = 0; tile_idx < Policy::TileIterations::kColumn; ++tile_idx) {
+    for (int32_t tile_idx = 0; tile_idx < Policy::TileIterations::kColumn; ++tile_idx) {
 
       CUTLASS_PRAGMA_UNROLL
-      for (int access_idx = 0; access_idx < Policy::kAccessesPerInterleavedTile; ++access_idx) {
+      for (int32_t access_idx = 0; access_idx < Policy::kAccessesPerInterleavedTile; ++access_idx) {
 
-        int access_quad = access_idx / 2;
-        int access = access_idx % 2;
+        int32_t access_quad = access_idx / 2;
+        int32_t access = access_idx % 2;
 
-        int ptr_offset = tile_idx * InterleavedTileShape::kN / Policy::kElementsPerAccess +
+        int32_t ptr_offset = tile_idx * InterleavedTileShape::kN / Policy::kElementsPerAccess +
           access_quad * Detail::kAccessQuadDelta / Policy::kElementsPerAccess + 
           access + pointer_offset / Policy::kElementsPerAccess;
 
-        int frag_idx = tile_idx * Policy::kAccessesPerInterleavedTile + access_idx;
+        int32_t frag_idx = tile_idx * Policy::kAccessesPerInterleavedTile + access_idx;
 
         AccessType access_vector = frag_ptr[frag_idx];
 
@@ -219,18 +219,18 @@ public:
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int tile_idx = 0; tile_idx < Policy::TileIterations::kColumn; ++tile_idx) {
+    for (int32_t tile_idx = 0; tile_idx < Policy::TileIterations::kColumn; ++tile_idx) {
 
       CUTLASS_PRAGMA_UNROLL
-      for (int access_idx = 0; access_idx < Policy::kAccessesPerInterleavedTile; ++access_idx) {
+      for (int32_t access_idx = 0; access_idx < Policy::kAccessesPerInterleavedTile; ++access_idx) {
 
-        int access_quad = access_idx / 2;
-        int access = access_idx % 2;
+        int32_t access_quad = access_idx / 2;
+        int32_t access = access_idx % 2;
 
-        int ptr_offset = tile_idx * Detail::kTileDelta + access_quad * Detail::kAccessQuadDelta + 
+        int32_t ptr_offset = tile_idx * Detail::kTileDelta + access_quad * Detail::kAccessQuadDelta + 
           access + pointer_offset / Policy::kElementsPerAccess;
 
-        int frag_idx = tile_idx * Policy::kAccessesPerInterleavedTile + access_idx;
+        int32_t frag_idx = tile_idx * Policy::kAccessesPerInterleavedTile + access_idx;
 
         frag_ptr[frag_idx] = pointer_[ptr_offset];
       }
@@ -286,18 +286,18 @@ public:
   using AccumulatorTile = typename Policy::AccumulatorTile;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static constexpr int32_t kIterations = Policy::kIterations;
 
   /// Number of elements per access
-  static constexpr int kElementsPerAccess = Policy::kElementsPerAccess;
+  static constexpr int32_t kElementsPerAccess = Policy::kElementsPerAccess;
 
   // Internal constants
   struct Detail {
-    static constexpr int kLanesInQuad = 4;
-    static constexpr int kRowsPerQuad = 4;
-    static constexpr int kColumnsPerQuad = 8;
-    static constexpr int kAccessesPerQuad = kColumnsPerQuad / Policy::kElementsPerAccess;
-    static constexpr int kAccessQuadDelta = 16;
+    static constexpr int32_t kLanesInQuad = 4;
+    static constexpr int32_t kRowsPerQuad = 4;
+    static constexpr int32_t kColumnsPerQuad = 8;
+    static constexpr int32_t kAccessesPerQuad = kColumnsPerQuad / Policy::kElementsPerAccess;
+    static constexpr int32_t kAccessQuadDelta = 16;
   };
 
   /// Padding quantity
@@ -332,20 +332,20 @@ public:
     pointer_(reinterpret_cast<AccessType *>(ref.data())),
     layout_(ref.stride()[0] / Policy::kElementsPerAccess) { 
 
-    int quad_id = lane_id / Detail::kLanesInQuad;
-    int lane_in_quad = (lane_id % Detail::kLanesInQuad);
+    int32_t quad_id = lane_id / Detail::kLanesInQuad;
+    int32_t lane_in_quad = (lane_id % Detail::kLanesInQuad);
 
-    int const kQuadRowDelta = 4;
-    int const kQuadColumnDelta = 2 * Policy::MmaIterations::kColumn;
+    int32_t const kQuadRowDelta = 4;
+    int32_t const kQuadColumnDelta = 2 * Policy::MmaIterations::kColumn;
 
-    int quad_row_offset = ((quad_id & 4) / 2 + (quad_id & 1)) * kQuadRowDelta;
-    int quad_column_offset = (quad_id & 2) / 2 * kQuadColumnDelta;
+    int32_t quad_row_offset = ((quad_id & 4) / 2 + (quad_id & 1)) * kQuadRowDelta;
+    int32_t quad_column_offset = (quad_id & 2) / 2 * kQuadColumnDelta;
 
-    int thread_row_offset = (lane_in_quad & 1);
-    int thread_column_offset = (lane_in_quad & 2) / 2;
+    int32_t thread_row_offset = (lane_in_quad & 1);
+    int32_t thread_column_offset = (lane_in_quad & 2) / 2;
 
-    int row = quad_row_offset + thread_row_offset;
-    int column = quad_column_offset + thread_column_offset;
+    int32_t row = quad_row_offset + thread_row_offset;
+    int32_t column = quad_column_offset + thread_column_offset;
 
     pointer_ += layout_({row, column});
   }
@@ -381,23 +381,23 @@ public:
 
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
-    int const kAccessesPerRow = Policy::TileIterations::kColumn * Policy::MmaIterations::kColumn * 2;
+    int32_t const kAccessesPerRow = Policy::TileIterations::kColumn * Policy::MmaIterations::kColumn * 2;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int row_idx = 0; row_idx < Policy::kRowsPerMmaTile; ++row_idx) {
+    for (int32_t row_idx = 0; row_idx < Policy::kRowsPerMmaTile; ++row_idx) {
 
       CUTLASS_PRAGMA_UNROLL
-      for (int access_idx = 0; access_idx < kAccessesPerRow; ++access_idx) {
+      for (int32_t access_idx = 0; access_idx < kAccessesPerRow; ++access_idx) {
 
-        int frag_idx = row_idx * kAccessesPerRow + access_idx;
+        int32_t frag_idx = row_idx * kAccessesPerRow + access_idx;
 
-        int ptr_column_offset = (access_idx & 1) * 2 + 
+        int32_t ptr_column_offset = (access_idx & 1) * 2 + 
           (access_idx & 2) * Policy::MmaIterations::kColumn * 2 + 
           (access_idx & 4) * Policy::MmaIterations::kColumn * 2;
 
-        int ptr_row_offset = row_idx * 2;
+        int32_t ptr_row_offset = row_idx * 2;
 
-        int ptr_offset = layout_({ptr_row_offset, ptr_column_offset}) + pointer_offset / Policy::kElementsPerAccess;
+        int32_t ptr_offset = layout_({ptr_row_offset, ptr_column_offset}) + pointer_offset / Policy::kElementsPerAccess;
 
         pointer_[ptr_offset] = frag_ptr[frag_idx];
       }

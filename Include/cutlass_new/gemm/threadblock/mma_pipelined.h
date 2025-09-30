@@ -158,7 +158,7 @@ protected:
   TransformB transform_B_;
 
   /// Shared memory write stage index
-  int smem_write_stage_idx;
+  int32_t smem_write_stage_idx;
 
 public:
 
@@ -166,9 +166,9 @@ public:
   CUTLASS_DEVICE
   MmaPipelined(
     typename Base::SharedStorage &shared_storage,       ///< Shared storage needed for internal use by threadblock-scoped GEMM
-    int thread_idx,                                     ///< ID within the threadblock
-    int warp_idx,                                       ///< ID of warp
-    int lane_idx,                                       ///< ID of each thread within a warp
+    int32_t thread_idx,                                     ///< ID within the threadblock
+    int32_t warp_idx,                                       ///< ID of warp
+    int32_t lane_idx,                                       ///< ID of each thread within a warp
     TransformA transform_A = TransformA(),              ///< transformation applied to A fragment
     TransformB transform_B = TransformB()               ///< transformation applied to B fragment
   ):
@@ -186,11 +186,11 @@ public:
     //   _n: the warp's position within the threadblock along the N dimension
     //   _k: the warp's position within the threadblock along the K dimension
 
-    int warp_idx_mn = warp_idx % (Base::WarpCount::kM * Base::WarpCount::kN);
-    int warp_idx_k = warp_idx / (Base::WarpCount::kM * Base::WarpCount::kN);
+    int32_t warp_idx_mn = warp_idx % (Base::WarpCount::kM * Base::WarpCount::kN);
+    int32_t warp_idx_k = warp_idx / (Base::WarpCount::kM * Base::WarpCount::kN);
 
-    int warp_idx_m = warp_idx_mn % Base::WarpCount::kM;
-    int warp_idx_n = warp_idx_mn / Base::WarpCount::kM;
+    int32_t warp_idx_m = warp_idx_mn % Base::WarpCount::kM;
+    int32_t warp_idx_n = warp_idx_mn / Base::WarpCount::kM;
 
     // Add per-warp offsets in units of warp-level tiles
     this->warp_tile_iterator_A_.add_tile_offset({warp_idx_m, Base::kWarpGemmIterations * warp_idx_k});
@@ -246,7 +246,7 @@ public:
   void prologue(
     IteratorA &iterator_A,      ///< [in|out] iterator over A operand in global memory
     IteratorB &iterator_B,      ///< [in|out] iterator over B operand in global memory
-    int &gemm_k_iterations)     ///< [in|out] number of threadblock mainloop iterations remaining
+    int32_t &gemm_k_iterations)     ///< [in|out] number of threadblock mainloop iterations remaining
   {
     // The last kblock is loaded in the prolog
 
@@ -282,7 +282,7 @@ public:
   /// multiply-accumulate.  Assumes prologue has been initiated.
   CUTLASS_DEVICE
   void gemm_iters(
-    int gemm_k_iterations,        ///< number of threadblock mainloop iterations
+    int32_t gemm_k_iterations,        ///< number of threadblock mainloop iterations
     FragmentC &accum,             ///< [in|out] accumulator tile
     IteratorA &iterator_A,        ///< [in|out] iterator over A operand in global memory
     IteratorB &iterator_B)        ///< [in|out] iterator over B operand in global memory
@@ -324,7 +324,7 @@ public:
       //
 
       CUTLASS_PRAGMA_UNROLL
-      for (int warp_mma_k = 0; warp_mma_k < Base::kWarpGemmIterations; ++warp_mma_k) {
+      for (int32_t warp_mma_k = 0; warp_mma_k < Base::kWarpGemmIterations; ++warp_mma_k) {
 
         // Load warp-level tiles from shared memory, wrapping to k offset if this is the last group
         // as the case may be.
@@ -386,7 +386,7 @@ public:
   {
     // First, increment remaining warp tiles to catch it up with the write stage.
     #pragma unroll
-    for (int warp_mma_k = 1; warp_mma_k < Base::kWarpGemmIterations; ++warp_mma_k)
+    for (int32_t warp_mma_k = 1; warp_mma_k < Base::kWarpGemmIterations; ++warp_mma_k)
     {
       this->warp_tile_iterator_A_.set_kgroup_index(warp_mma_k);
       this->warp_tile_iterator_B_.set_kgroup_index(warp_mma_k);
@@ -409,7 +409,7 @@ public:
   /// Perform a threadblock-scoped matrix multiply-accumulate
   CUTLASS_DEVICE
   void operator()(
-    int gemm_k_iterations,                            ///< number of iterations of the mainloop
+    int32_t gemm_k_iterations,                            ///< number of iterations of the mainloop
     FragmentC &accum,                                 ///< destination accumulator tile
     IteratorA iterator_A,                             ///< iterator over A operand in global memory
     IteratorB iterator_B,                             ///< iterator over B operand in global memory

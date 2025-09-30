@@ -91,8 +91,8 @@ public:
   using LongIndex = typename Layout::LongIndex;
   using TensorCoord = MatrixCoord;
 
-  static constexpr int kElementsPerAccess = ThreadMap::kElementsPerAccess;
-  static constexpr int kThreads = ThreadMap::kThreads;
+  static constexpr int32_t kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static constexpr int32_t kThreads = ThreadMap::kThreads;
 
   using ConvProblemSize = typename cutlass::conv::Conv2dProblemSize;
 
@@ -102,7 +102,7 @@ public:
   /// Memory access size
   using AccessType = AlignedArray<Element, kElementsPerAccess>;
 
-  static constexpr int kLoadsPerAccess = AccessType::kElements / AccessType::kElements;
+  static constexpr int32_t kLoadsPerAccess = AccessType::kElements / AccessType::kElements;
 
   using ThreadTileCount = MatrixShape<
     ThreadBlockOutputShape::kH / ThreadOutputShape::kH,
@@ -123,7 +123,7 @@ public:
     CUTLASS_HOST_DEVICE
     Params(Layout const &layout, cutlass::conv::Conv2dProblemSize const &problem_size): 
       PredicatedTileIteratorDirect2dConvParams(
-        layout.stride(0) * int(sizeof(AccessType)) / kElementsPerAccess,
+        layout.stride(0) * int32_t(sizeof(AccessType)) / kElementsPerAccess,
         problem_size,
         {ThreadBlockOutputShape::kH, ThreadBlockOutputShape::kW}
       ) 
@@ -137,7 +137,7 @@ public:
   /// Mask object
   struct Mask {
 
-    static constexpr int kCount = ThreadMap::Iterations::kContiguous;
+    static constexpr int32_t kCount = ThreadMap::Iterations::kContiguous;
 
     /// Predicate state
     bool predicates[kCount];
@@ -153,7 +153,7 @@ public:
     ///< Efficiently disables all accesses guarded by mask
     CUTLASS_HOST_DEVICE void clear() {
       CUTLASS_PRAGMA_UNROLL
-      for (int i = 0; i < kCount; ++i) {
+      for (int32_t i = 0; i < kCount; ++i) {
         predicates[i] = false;
       }
     }
@@ -161,7 +161,7 @@ public:
     ///< CUTLASS_HOST_DEVICE enables all accesses guarded by mask
     CUTLASS_DEVICE void enable() {
       CUTLASS_PRAGMA_UNROLL
-      for (int i = 0; i < kCount; ++i) {
+      for (int32_t i = 0; i < kCount; ++i) {
         predicates[i] = true;
       }
     }
@@ -199,10 +199,10 @@ private:
   Index thread_start_column_;
 
   /// Initial thread output location
-  int thread_start_n_, thread_start_p_, thread_start_q_;
+  int32_t thread_start_n_, thread_start_p_, thread_start_q_;
 
   /// Current threadblock tile index
-  int tile_index_;
+  int32_t tile_index_;
 
   //
   // Static asserts about internal strides
@@ -232,7 +232,7 @@ public:
     PredicatedTileIteratorDirect2dConvParams const & params,
     Element *pointer,
     TensorCoord extent,
-    int thread_idx,
+    int32_t thread_idx,
     TensorCoord threadblock_offset = TensorCoord()
   ): 
     params_(params), pointer_(pointer)
@@ -255,9 +255,9 @@ public:
 
   /// Adds a pointer offset in units of Element
   CUTLASS_HOST_DEVICE
-  void set_tile_index(const int index) { 
+  void set_tile_index(const int32_t index) { 
    
-    int residual;
+    int32_t residual;
     params_.pq_divmod(thread_start_n_, residual, tile_index_ + index);
     params_.q_divmod(thread_start_p_, thread_start_q_, residual);
 
@@ -267,7 +267,7 @@ public:
 
     // Initialize predicates
     CUTLASS_PRAGMA_UNROLL
-    for (int c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
+    for (int32_t c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
       mask_.predicates[c] = ((thread_start_column_ 
         + c * ThreadMap::Delta::kContiguous) < extent_column_);
     }
@@ -289,22 +289,22 @@ public:
   CUTLASS_DEVICE
   void load_with_byte_offset(Fragment &frag, int64_t byte_offset) const {
     CUTLASS_PRAGMA_UNROLL
-    for (int s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
+    for (int32_t s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
       CUTLASS_PRAGMA_UNROLL
-      for (int c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
-        int frag_base_idx = s * ThreadMap::Iterations::kContiguous + c;
+      for (int32_t c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
+        int32_t frag_base_idx = s * ThreadMap::Iterations::kContiguous + c;
 
-        int current_row = thread_start_row_ + s * ThreadMap::Delta::kStrided;
-        int p = current_row / ThreadBlockOutputShape::kW;
-        int q = current_row % ThreadBlockOutputShape::kW;
+        int32_t current_row = thread_start_row_ + s * ThreadMap::Delta::kStrided;
+        int32_t p = current_row / ThreadBlockOutputShape::kW;
+        int32_t q = current_row % ThreadBlockOutputShape::kW;
 
-        int current_p = thread_start_p_ + p;
-        int current_q = thread_start_q_ + q;
+        int32_t current_p = thread_start_p_ + p;
+        int32_t current_q = thread_start_q_ + q;
 
         bool row_guard = (current_p) < params_.P && (current_q) < params_.Q &&
                          (thread_start_n_ < params_.N) && current_row < ThreadMap::Shape::kStrided;
 
-        int output_row_offset =
+        int32_t output_row_offset =
             thread_start_n_ * params_.stride_n + current_p * params_.stride_p + current_q;
 
         uint8_t *byte_pointer =
@@ -335,22 +335,22 @@ public:
   CUTLASS_DEVICE
   void store_with_byte_offset(Fragment const &frag, int64_t byte_offset) const {
     CUTLASS_PRAGMA_UNROLL
-    for (int s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
+    for (int32_t s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
       CUTLASS_PRAGMA_UNROLL
-      for (int c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
-        int frag_base_idx = s * ThreadMap::Iterations::kContiguous + c;
+      for (int32_t c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
+        int32_t frag_base_idx = s * ThreadMap::Iterations::kContiguous + c;
 
-        int current_row = thread_start_row_ + s * ThreadMap::Delta::kStrided;
-        int p = current_row / ThreadBlockOutputShape::kW;
-        int q = current_row % ThreadBlockOutputShape::kW;
+        int32_t current_row = thread_start_row_ + s * ThreadMap::Delta::kStrided;
+        int32_t p = current_row / ThreadBlockOutputShape::kW;
+        int32_t q = current_row % ThreadBlockOutputShape::kW;
 
-        int current_p = thread_start_p_ + p;
-        int current_q = thread_start_q_ + q;
+        int32_t current_p = thread_start_p_ + p;
+        int32_t current_q = thread_start_q_ + q;
 
         bool row_guard = (current_p) < params_.P && (current_q) < params_.Q &&
                          (thread_start_n_ < params_.N) && current_row < ThreadMap::Shape::kStrided;
 
-        int output_row_offset =
+        int32_t output_row_offset =
             thread_start_n_ * params_.stride_n + current_p * params_.stride_p + current_q;
 
         uint8_t *byte_pointer =

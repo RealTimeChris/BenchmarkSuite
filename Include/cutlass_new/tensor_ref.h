@@ -47,14 +47,14 @@ namespace cutlass {
 /// in memory.
 ///
 /// All layout functions must define at least the members shown in IdentityTensorLayout<>.
-template <int Rank>
+template <int32_t Rank>
 class IdentityTensorLayout {
 public:
   /// Logical rank of tensor
-  static constexpr int kRank = Rank;
+  static constexpr int32_t kRank = Rank;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = Rank;
+  static constexpr int32_t kStrideRank = Rank;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -107,7 +107,7 @@ public:
   /// Compute the number of contiguous elements needed to store a tensor with the given size
   CUTLASS_HOST_DEVICE
   LongIndex capacity(TensorCoord const &size) const {
-    int idx = stride_.max_dim_index();
+    int32_t idx = stride_.max_dim_index();
     return stride_[idx] * size[idx];
   }
 };
@@ -136,11 +136,11 @@ public:
   4. A helper exists to define a TensorRef for a contiguous matrix whose layout
      is not known at compile time.
 
-    int ldm;                     // leading dimension
+    int32_t ldm;                     // leading dimension
     layout::Matrix kind;         // Could be layout::Matrix::kRowMajor or layout::Matrix::kColumnMajor
     
 
-    TensorRef<int, layout::ContiguousMatrix> E(ptr_E, {ldm, kind});
+    TensorRef<int32_t, layout::ContiguousMatrix> E(ptr_E, {ldm, kind});
 
 */
 template <
@@ -165,7 +165,7 @@ class TensorRef {
     >::type;
 
   /// Logical rank of tensor index space
-  static constexpr int kRank = Layout::kRank;
+  static constexpr int32_t kRank = Layout::kRank;
 
   /// Index type
   using Index = typename Layout::Index;
@@ -225,7 +225,7 @@ class TensorRef {
   }
 
   /// Converting constructor from TensorRef to non-constant data.
-  template<typename _Magic = int>
+  template<typename _Magic = int32_t>
   CUTLASS_HOST_DEVICE
   TensorRef(
     NonConstTensorRef const &ref,              ///< TensorRef to non-const data
@@ -301,13 +301,13 @@ class TensorRef {
 
   /// Returns the layout object's stride in a given physical dimension
   CUTLASS_HOST_DEVICE
-  typename Layout::Stride::Index stride(int dim) const {
+  typename Layout::Stride::Index stride(int32_t dim) const {
     return layout_.stride().at(dim);
   }
 
   /// Returns the layout object's stride in a given physical dimension
   CUTLASS_HOST_DEVICE
-  typename Layout::Stride::Index & stride(int dim) {
+  typename Layout::Stride::Index & stride(int32_t dim) {
     return layout_.stride().at(dim);
   }
 
@@ -396,16 +396,16 @@ template <
   typename Layout
 >
 CUTLASS_HOST_DEVICE
-bool TensorRef_aligned(TensorRef<Element, Layout> const &ref, int alignment) {
+bool TensorRef_aligned(TensorRef<Element, Layout> const &ref, int32_t alignment) {
 
-  int const kStrideRank = Layout::kStrideRank;
+  int32_t const kStrideRank = Layout::kStrideRank;
 
   if (reinterpret_cast<uintptr_t>(ref.data()) % alignment) {
     return false;
   }
 
   CUTLASS_PRAGMA_UNROLL
-  for (int i = 0; i < kStrideRank; ++i) {
+  for (int32_t i = 0; i < kStrideRank; ++i) {
     if (ref.stride(i) % alignment) {
       return false;
     }

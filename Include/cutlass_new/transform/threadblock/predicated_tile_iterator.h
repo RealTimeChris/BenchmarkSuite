@@ -107,7 +107,7 @@ namespace threadblock {
 //
 //
 //   #pragma unroll
-//   for (int i = Remaining - 1; i >= 0; --i) {
+//   for (int32_t i = Remaining - 1; i >= 0; --i) {
 //
 //     f(fragment);
 //
@@ -134,9 +134,9 @@ template <
   typename Shape,
   typename Element,
   typename Layout,
-  int AdvanceRank,
+  int32_t AdvanceRank,
   typename ThreadMap,
-  int AccessSize = ThreadMap::kElementsPerAccess,
+  int32_t AccessSize = ThreadMap::kElementsPerAccess,
   bool Gather = false,
   typename PermuteLayout = layout::NoPermute
 >
@@ -151,8 +151,8 @@ class PredicatedTileIterator;
 ///            WriteableContiguousTileIteratorConcept |
 ///            MaskedTileIteratorConcept
 ///
-template <typename Shape_, typename Element_, int AdvanceRank,
-          typename ThreadMap_, int AccessSize, bool Gather, typename PermuteLayout>
+template <typename Shape_, typename Element_, int32_t AdvanceRank,
+          typename ThreadMap_, int32_t AccessSize, bool Gather, typename PermuteLayout>
 class PredicatedTileIterator<Shape_, Element_, layout::PitchLinear, AdvanceRank,
                              ThreadMap_, AccessSize, Gather, PermuteLayout> {
  public:
@@ -164,7 +164,7 @@ class PredicatedTileIterator<Shape_, Element_, layout::PitchLinear, AdvanceRank,
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::PitchLinear;
-  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int32_t kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
 
   using Index = typename Layout::Index;
@@ -185,7 +185,7 @@ class PredicatedTileIterator<Shape_, Element_, layout::PitchLinear, AdvanceRank,
       PredicatedTileAccessIterator<Shape, Element, Layout, kAdvanceRank,
                                    ThreadMap, AccessType, Gather, PermuteLayout>;
 
-  static constexpr int kAccessesPerVector = TileAccessIterator::kAccessesPerVector;
+  static constexpr int32_t kAccessesPerVector = TileAccessIterator::kAccessesPerVector;
 
   /// Fragment object to be loaded or stored
   using Fragment = cutlass::Array<Element, ThreadMap::Iterations::kCount *
@@ -246,11 +246,11 @@ class PredicatedTileIterator<Shape_, Element_, layout::PitchLinear, AdvanceRank,
       /// Extent of tensor
       TensorCoord extent,
       /// ID of each participating thread
-      int thread_id,
+      int32_t thread_id,
       /// Initial offset of threadblock
       TensorCoord const &threadblock_offset,
       /// Gather indices
-      int const *indices = nullptr)
+      int32_t const *indices = nullptr)
       : address_iterator_(params.params_, pointer, extent, thread_id,
                           threadblock_offset, indices) {}
 
@@ -260,7 +260,7 @@ class PredicatedTileIterator<Shape_, Element_, layout::PitchLinear, AdvanceRank,
       Params const &params,  ///< Precomputed parameters object
       Pointer pointer,       ///< Pointer to start of tensor
       TensorCoord extent,    ///< Extent of tensor
-      int thread_id          ///< ID of each participating thread
+      int32_t thread_id          ///< ID of each participating thread
       )
       : PredicatedTileIterator(params, pointer, extent, thread_id,
                                make_Coord(0, 0)) {}
@@ -294,7 +294,7 @@ class PredicatedTileIterator<Shape_, Element_, layout::PitchLinear, AdvanceRank,
   /// Subsequent calls are lightweight and must only update the internal
   /// pointer.
   CUTLASS_HOST_DEVICE
-  PredicatedTileIterator operator++(int) {
+  PredicatedTileIterator operator++(int32_t) {
     PredicatedTileIterator self(*this);
     operator++();
     return self;
@@ -327,14 +327,14 @@ class PredicatedTileIterator<Shape_, Element_, layout::PitchLinear, AdvanceRank,
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
+    for (int32_t s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
       CUTLASS_PRAGMA_UNROLL
-      for (int c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
+      for (int32_t c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
 
         CUTLASS_PRAGMA_UNROLL
-        for (int v = 0; v < kAccessesPerVector; ++v) {
+        for (int32_t v = 0; v < kAccessesPerVector; ++v) {
 
-          int idx = v + kAccessesPerVector * (c + s * ThreadMap::Iterations::kContiguous);
+          int32_t idx = v + kAccessesPerVector * (c + s * ThreadMap::Iterations::kContiguous);
           
           address_iterator_.set_iteration_index(idx);
           char const *byte_ptr = reinterpret_cast<char const *>(address_iterator_.get()) + byte_offset;
@@ -369,13 +369,13 @@ class PredicatedTileIterator<Shape_, Element_, layout::PitchLinear, AdvanceRank,
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
+    for (int32_t s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
       CUTLASS_PRAGMA_UNROLL
-      for (int c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
+      for (int32_t c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
         CUTLASS_PRAGMA_UNROLL
-        for (int v = 0; v < kAccessesPerVector; ++v) {
+        for (int32_t v = 0; v < kAccessesPerVector; ++v) {
 
-          int idx = v + kAccessesPerVector * (c + s * ThreadMap::Iterations::kContiguous);
+          int32_t idx = v + kAccessesPerVector * (c + s * ThreadMap::Iterations::kContiguous);
 
           char *byte_ptr = reinterpret_cast<char *>(address_iterator_.get()) + byte_offset;
           AccessType *access_ptr = reinterpret_cast<AccessType *>(byte_ptr);
@@ -406,9 +406,9 @@ class PredicatedTileIterator<Shape_, Element_, layout::PitchLinear, AdvanceRank,
 template <
   typename Shape_,
   typename Element_,
-  int AdvanceRank,
+  int32_t AdvanceRank,
   typename ThreadMap_,
-  int AccessSize,
+  int32_t AccessSize,
   bool Gather,
   typename PermuteLayout
 >
@@ -423,7 +423,7 @@ public:
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::ColumnMajor;
-  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int32_t kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
 
   using Index = typename Layout::Index;
@@ -500,9 +500,9 @@ public:
     Params const &params,                         ///< Precomputed parameters object 
     Pointer pointer,                              ///< Pointer to start of tensor
     TensorCoord extent,                           ///< Extent of tensor
-    int thread_id,                                ///< ID of each participating thread
+    int32_t thread_id,                                ///< ID of each participating thread
     TensorCoord const &threadblock_offset,         ///< Initial offset of threadblock
-    int const *indices = nullptr     ///< gather/scatter indices, note no support for gather/scatter at this specialization
+    int32_t const *indices = nullptr     ///< gather/scatter indices, note no support for gather/scatter at this specialization
   ):
     iterator_(
       params.params_,
@@ -519,7 +519,7 @@ public:
     Params const &params,                         ///< Precomputed parameters object
     Pointer pointer,                              ///< Pointer to start of tensor
     TensorCoord extent,                           ///< Extent of tensor
-    int thread_id                                 ///< ID of each participating thread
+    int32_t thread_id                                 ///< ID of each participating thread
   ): PredicatedTileIterator(params, pointer, extent, thread_id, make_Coord(0, 0)) { }
 
   /// Adds a pointer offset in units of Element
@@ -545,7 +545,7 @@ public:
   /// internal pointer is reverted to the first "steady state" tile. Subsequent calls
   /// are lightweight and must only update the internal pointer.
   CUTLASS_HOST_DEVICE
-  PredicatedTileIterator operator++(int) {
+  PredicatedTileIterator operator++(int32_t) {
     PredicatedTileIterator self(*this);
     operator++();
     return self;
@@ -624,9 +624,9 @@ public:
 template <
   typename Shape_,
   typename Element_,
-  int AdvanceRank,
+  int32_t AdvanceRank,
   typename ThreadMap_,
-  int AccessSize,
+  int32_t AccessSize,
   bool Gather,
   typename PermuteLayout
 >
@@ -641,7 +641,7 @@ public:
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::RowMajor;
-  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int32_t kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
 
   using Index = typename Layout::Index;
@@ -717,9 +717,9 @@ public:
     Params const &params,                         ///< Precomputed parameters object 
     Pointer pointer,                              ///< Pointer to start of tensor
     TensorCoord extent,                           ///< Extent of tensor
-    int thread_id,                                ///< ID of each participating thread
+    int32_t thread_id,                                ///< ID of each participating thread
     TensorCoord const &threadblock_offset,        ///< Initial offset of threadblock
-    int const *indices = nullptr                        ///< Gather indices
+    int32_t const *indices = nullptr                        ///< Gather indices
   ):
     iterator_(
       params.params_,
@@ -736,7 +736,7 @@ public:
     Params const &params,                         ///< Precomputed parameters object
     Pointer pointer,                              ///< Pointer to start of tensor
     TensorCoord extent,                           ///< Extent of tensor
-    int thread_id                                 ///< ID of each participating thread
+    int32_t thread_id                                 ///< ID of each participating thread
   ): PredicatedTileIterator(params, pointer, extent, thread_id, make_Coord(0, 0)) { }
 
   /// Adds a pointer offset in units of Element
@@ -762,7 +762,7 @@ public:
   /// internal pointer is reverted to the first "steady state" tile. Subsequent calls
   /// are lightweight and must only update the internal pointer.
   CUTLASS_HOST_DEVICE
-  PredicatedTileIterator operator++(int) {
+  PredicatedTileIterator operator++(int32_t) {
     PredicatedTileIterator self(*this);
     operator++();
     return self;
@@ -838,8 +838,8 @@ public:
 ///            WriteableContiguousTileIteratorConcept |
 ///            MaskedTileIteratorConcept
 ///
-template <typename Shape_, typename Element_, int AdvanceRank,
-          typename ThreadMap_, int AccessSize>
+template <typename Shape_, typename Element_, int32_t AdvanceRank,
+          typename ThreadMap_, int32_t AccessSize>
 class PredicatedTileIterator<Shape_, Element_, layout::AffineRankN<2>, AdvanceRank,
                              ThreadMap_, AccessSize, false> {
  public:
@@ -851,7 +851,7 @@ class PredicatedTileIterator<Shape_, Element_, layout::AffineRankN<2>, AdvanceRa
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::AffineRankN<2>;
-  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int32_t kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
 
   using Index = typename Layout::Index;
@@ -872,7 +872,7 @@ class PredicatedTileIterator<Shape_, Element_, layout::AffineRankN<2>, AdvanceRa
       PredicatedTileAccessIterator<Shape, Element, Layout, kAdvanceRank,
                                    ThreadMap, AccessType>;
 
-  static constexpr int kAccessesPerVector = TileAccessIterator::kAccessesPerVector;
+  static constexpr int32_t kAccessesPerVector = TileAccessIterator::kAccessesPerVector;
 
   /// Fragment object to be loaded or stored
   using Fragment = cutlass::Array<Element, ThreadMap::Iterations::kCount *
@@ -928,10 +928,10 @@ class PredicatedTileIterator<Shape_, Element_, layout::AffineRankN<2>, AdvanceRa
       /// Extent of tensor
       TensorCoord extent,
       /// ID of each participating thread
-      int thread_id,
+      int32_t thread_id,
       /// Initial offset of threadblock
       TensorCoord const &threadblock_offset,
-      int const *indices = nullptr     ///< gather/scatter indices, note no support for gather/scatter at this specialization
+      int32_t const *indices = nullptr     ///< gather/scatter indices, note no support for gather/scatter at this specialization
       )
       : address_iterator_(params.params_, pointer, extent, thread_id,
                           threadblock_offset) {}
@@ -942,7 +942,7 @@ class PredicatedTileIterator<Shape_, Element_, layout::AffineRankN<2>, AdvanceRa
       Params const &params,  ///< Precomputed parameters object
       Pointer pointer,       ///< Pointer to start of tensor
       TensorCoord extent,    ///< Extent of tensor
-      int thread_id          ///< ID of each participating thread
+      int32_t thread_id          ///< ID of each participating thread
       )
       : PredicatedTileIterator(params, pointer, extent, thread_id,
                                make_Coord(0, 0)) {}
@@ -976,7 +976,7 @@ class PredicatedTileIterator<Shape_, Element_, layout::AffineRankN<2>, AdvanceRa
   /// Subsequent calls are lightweight and must only update the internal
   /// pointer.
   CUTLASS_HOST_DEVICE
-  PredicatedTileIterator operator++(int) {
+  PredicatedTileIterator operator++(int32_t) {
     PredicatedTileIterator self(*this);
     operator++();
     return self;
@@ -1009,14 +1009,14 @@ class PredicatedTileIterator<Shape_, Element_, layout::AffineRankN<2>, AdvanceRa
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
+    for (int32_t s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
       CUTLASS_PRAGMA_UNROLL
-      for (int c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
+      for (int32_t c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
 
         CUTLASS_PRAGMA_UNROLL
-        for (int v = 0; v < kAccessesPerVector; ++v) {
+        for (int32_t v = 0; v < kAccessesPerVector; ++v) {
 
-          int idx = v + kAccessesPerVector * (c + s * ThreadMap::Iterations::kContiguous);
+          int32_t idx = v + kAccessesPerVector * (c + s * ThreadMap::Iterations::kContiguous);
           
           address_iterator_.set_iteration_index(idx);
           char const *byte_ptr = reinterpret_cast<char const *>(address_iterator_.get()) + byte_offset;
@@ -1051,13 +1051,13 @@ class PredicatedTileIterator<Shape_, Element_, layout::AffineRankN<2>, AdvanceRa
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
+    for (int32_t s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
       CUTLASS_PRAGMA_UNROLL
-      for (int c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
+      for (int32_t c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
         CUTLASS_PRAGMA_UNROLL
-        for (int v = 0; v < kAccessesPerVector; ++v) {
+        for (int32_t v = 0; v < kAccessesPerVector; ++v) {
 
-          int idx = v + kAccessesPerVector * (c + s * ThreadMap::Iterations::kContiguous);
+          int32_t idx = v + kAccessesPerVector * (c + s * ThreadMap::Iterations::kContiguous);
 
           char *byte_ptr = reinterpret_cast<char *>(address_iterator_.get()) + byte_offset;
           AccessType *access_ptr = reinterpret_cast<AccessType *>(byte_ptr);
@@ -1088,9 +1088,9 @@ class PredicatedTileIterator<Shape_, Element_, layout::AffineRankN<2>, AdvanceRa
 template <
   typename Shape_,
   typename Element_,
-  int AdvanceRank,
+  int32_t AdvanceRank,
   typename ThreadMap_,
-  int AccessSize
+  int32_t AccessSize
 >
 class PredicatedTileIterator<Shape_, Element_, layout::AffineRank2ColumnMajor, AdvanceRank, ThreadMap_, AccessSize, false> {
 public:
@@ -1102,7 +1102,7 @@ public:
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::AffineRank2ColumnMajor;
-  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int32_t kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
 
   using Index = typename Layout::Index;
@@ -1173,9 +1173,9 @@ public:
     Params const &params,                         ///< Precomputed parameters object 
     Pointer pointer,                              ///< Pointer to start of tensor
     TensorCoord extent,                           ///< Extent of tensor
-    int thread_id,                                ///< ID of each participating thread
+    int32_t thread_id,                                ///< ID of each participating thread
     TensorCoord const &threadblock_offset,         ///< Initial offset of threadblock
-    int const *indices = nullptr     ///< gather/scatter indices, note no support for gather/scatter at this specialization
+    int32_t const *indices = nullptr     ///< gather/scatter indices, note no support for gather/scatter at this specialization
   ):
     iterator_(
       params.params_,
@@ -1191,7 +1191,7 @@ public:
     Params const &params,                         ///< Precomputed parameters object
     Pointer pointer,                              ///< Pointer to start of tensor
     TensorCoord extent,                           ///< Extent of tensor
-    int thread_id                                 ///< ID of each participating thread
+    int32_t thread_id                                 ///< ID of each participating thread
   ): PredicatedTileIterator(params, pointer, extent, thread_id, make_Coord(0, 0)) { }
 
   /// Adds a pointer offset in units of Element
@@ -1217,7 +1217,7 @@ public:
   /// internal pointer is reverted to the first "steady state" tile. Subsequent calls
   /// are lightweight and must only update the internal pointer.
   CUTLASS_HOST_DEVICE
-  PredicatedTileIterator operator++(int) {
+  PredicatedTileIterator operator++(int32_t) {
     PredicatedTileIterator self(*this);
     operator++();
     return self;
@@ -1296,9 +1296,9 @@ public:
 template <
   typename Shape_,
   typename Element_,
-  int AdvanceRank,
+  int32_t AdvanceRank,
   typename ThreadMap_,
-  int AccessSize
+  int32_t AccessSize
 >
 class PredicatedTileIterator<Shape_, Element_, layout::AffineRank2RowMajor, AdvanceRank, ThreadMap_, AccessSize, false> {
 public:
@@ -1310,7 +1310,7 @@ public:
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::AffineRank2RowMajor;
-  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int32_t kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
 
   using Index = typename Layout::Index;
@@ -1381,9 +1381,9 @@ public:
     Params const &params,                         ///< Precomputed parameters object 
     Pointer pointer,                              ///< Pointer to start of tensor
     TensorCoord extent,                           ///< Extent of tensor
-    int thread_id,                                ///< ID of each participating thread
+    int32_t thread_id,                                ///< ID of each participating thread
     TensorCoord const &threadblock_offset,         ///< Initial offset of threadblock
-    int const *indices = nullptr     ///< gather/scatter indices, note no support for gather/scatter at this specialization
+    int32_t const *indices = nullptr     ///< gather/scatter indices, note no support for gather/scatter at this specialization
   ):
     iterator_(
       params.params_,
@@ -1399,7 +1399,7 @@ public:
     Params const &params,                         ///< Precomputed parameters object
     Pointer pointer,                              ///< Pointer to start of tensor
     TensorCoord extent,                           ///< Extent of tensor
-    int thread_id                                 ///< ID of each participating thread
+    int32_t thread_id                                 ///< ID of each participating thread
   ): PredicatedTileIterator(params, pointer, extent, thread_id, make_Coord(0, 0)) { }
 
   /// Adds a pointer offset in units of Element
@@ -1425,7 +1425,7 @@ public:
   /// internal pointer is reverted to the first "steady state" tile. Subsequent calls
   /// are lightweight and must only update the internal pointer.
   CUTLASS_HOST_DEVICE
-  PredicatedTileIterator operator++(int) {
+  PredicatedTileIterator operator++(int32_t) {
     PredicatedTileIterator self(*this);
     operator++();
     return self;
@@ -1503,8 +1503,8 @@ public:
 ///            MaskedTileIteratorConcept
 ///
 
-template <typename Shape_, typename Element_, int AdvanceRank,
-          typename ThreadMap_, int AccessSize, int InterleavedK>
+template <typename Shape_, typename Element_, int32_t AdvanceRank,
+          typename ThreadMap_, int32_t AccessSize, int32_t InterleavedK>
 class PredicatedTileIterator<Shape_, Element_,
                              layout::ColumnMajorInterleaved<InterleavedK>,
                              AdvanceRank, ThreadMap_, AccessSize, false> {
@@ -1516,9 +1516,9 @@ class PredicatedTileIterator<Shape_, Element_,
 
   using Shape = Shape_;
   using Element = Element_;
-  static constexpr int kInterleavedK = InterleavedK;
+  static constexpr int32_t kInterleavedK = InterleavedK;
   using Layout = layout::ColumnMajorInterleaved<kInterleavedK>;
-  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int32_t kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
 
   using Index = typename Layout::Index;
@@ -1594,10 +1594,10 @@ class PredicatedTileIterator<Shape_, Element_,
       /// Extent of tensor
       TensorCoord extent,
       /// ID of each participating thread
-      int thread_id,
+      int32_t thread_id,
       /// Initial offset of threadblock
       TensorCoord const &threadblock_offset,
-      int const *indices = nullptr     ///< gather/scatter indices, note no support for gather/scatter at this specialization
+      int32_t const *indices = nullptr     ///< gather/scatter indices, note no support for gather/scatter at this specialization
       )
       : iterator_(params.params_, pointer,
                   layout::PitchLinearCoord(extent.row() * kInterleavedK,
@@ -1613,7 +1613,7 @@ class PredicatedTileIterator<Shape_, Element_,
       Params const &params,  ///< Precomputed parameters object
       Pointer pointer,       ///< Pointer to start of tensor
       TensorCoord extent,    ///< Extent of tensor
-      int thread_id          ///< ID of each participating thread
+      int32_t thread_id          ///< ID of each participating thread
       )
       : PredicatedTileIterator(params, pointer, extent, thread_id,
                                make_Coord(0, 0)) {}
@@ -1643,7 +1643,7 @@ class PredicatedTileIterator<Shape_, Element_,
   /// Subsequent calls are lightweight and must only update the internal
   /// pointer.
   CUTLASS_HOST_DEVICE
-  PredicatedTileIterator operator++(int) {
+  PredicatedTileIterator operator++(int32_t) {
     PredicatedTileIterator self(*this);
     operator++();
     return self;
@@ -1696,8 +1696,8 @@ class PredicatedTileIterator<Shape_, Element_,
 ///            WriteableContiguousTileIteratorConcept |
 ///            MaskedTileIteratorConcept
 ///
-template <typename Shape_, typename Element_, int AdvanceRank,
-          typename ThreadMap_, int AccessSize, int InterleavedK>
+template <typename Shape_, typename Element_, int32_t AdvanceRank,
+          typename ThreadMap_, int32_t AccessSize, int32_t InterleavedK>
 class PredicatedTileIterator<Shape_, Element_,
                              layout::RowMajorInterleaved<InterleavedK>,
                              AdvanceRank, ThreadMap_, AccessSize, false> {
@@ -1709,9 +1709,9 @@ class PredicatedTileIterator<Shape_, Element_,
 
   using Shape = Shape_;
   using Element = Element_;
-  static constexpr int kInterleavedK = InterleavedK;
+  static constexpr int32_t kInterleavedK = InterleavedK;
   using Layout = layout::RowMajorInterleaved<kInterleavedK>;
-  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int32_t kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
 
   using Index = typename Layout::Index;
@@ -1786,10 +1786,10 @@ class PredicatedTileIterator<Shape_, Element_,
       /// Extent of tensor
       TensorCoord extent,
       /// ID of each participating thread
-      int thread_id,
+      int32_t thread_id,
       /// Initial offset of threadblock
       TensorCoord const &threadblock_offset,
-      int const *indices = nullptr     ///< gather/scatter indices, note no support for gather/scatter at this specialization
+      int32_t const *indices = nullptr     ///< gather/scatter indices, note no support for gather/scatter at this specialization
       )
       : iterator_(params.params_, pointer,
                   layout::PitchLinearCoord(extent.column() * kInterleavedK,
@@ -1805,7 +1805,7 @@ class PredicatedTileIterator<Shape_, Element_,
       Params const &params,  ///< Precomputed parameters object
       Pointer pointer,       ///< Pointer to start of tensor
       TensorCoord extent,    ///< Extent of tensor
-      int thread_id          ///< ID of each participating thread
+      int32_t thread_id          ///< ID of each participating thread
       )
       : PredicatedTileIterator(params, pointer, extent, thread_id,
                                make_Coord(0, 0)) {}
@@ -1835,7 +1835,7 @@ class PredicatedTileIterator<Shape_, Element_,
   /// Subsequent calls are lightweight and must only update the internal
   /// pointer.
   CUTLASS_HOST_DEVICE
-  PredicatedTileIterator operator++(int) {
+  PredicatedTileIterator operator++(int32_t) {
     PredicatedTileIterator self(*this);
     operator++();
     return self;

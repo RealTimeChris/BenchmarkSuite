@@ -75,7 +75,7 @@ struct Identity {
   }
 };
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct Identity<Array<T, N> > {
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> value) const {
@@ -103,7 +103,7 @@ struct Scale {
   }
 };
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct Scale<Array<T, N>> {
   using Arguments = typename Scale<T>::Arguments;
 
@@ -165,7 +165,7 @@ struct ReLu {
 template <typename T>
 using ReLU = ReLu<T>;
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct ReLu<Array<T, N>> {
   static constexpr bool kIsHeavy = false;
 
@@ -208,7 +208,7 @@ struct Clamp {
   }
 };
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct Clamp<Array<T,N>> {
   using Arguments = typename Clamp<T>::Arguments;
 
@@ -248,7 +248,7 @@ struct LowerBound {
   }
 };
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct LowerBound<Array<T,N>> {
   using Arguments = typename LowerBound<T>::Arguments;
 
@@ -288,7 +288,7 @@ struct LeakyReLU {
   }
 };
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct LeakyReLU<Array<T, N> > {
 
   static constexpr bool kIsHeavy = false;
@@ -301,7 +301,7 @@ struct LeakyReLU<Array<T, N> > {
     LeakyReLU<T> leaky_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < int(values.size()); ++i) {
+    for (int32_t i = 0; i < int32_t(values.size()); ++i) {
       y[i] = leaky_op(values[i], leaky_alpha);
     }
 
@@ -337,7 +337,7 @@ struct ThresholdReLU {
   }
 };
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct ThresholdReLU<Array<T,N>> {
   static constexpr bool kIsHeavy = false;
 
@@ -349,7 +349,7 @@ struct ThresholdReLU<Array<T,N>> {
 
     Array<T,N> retvals;
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       retvals[i] = relu(values[i], threshold, upper_bound);    
     }
 
@@ -373,7 +373,7 @@ struct Tanh {
   }
 };
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct Tanh<Array<T, N> > {
   static constexpr bool kIsHeavy = true;
 
@@ -383,7 +383,7 @@ struct Tanh<Array<T, N> > {
     Tanh<T> tanh_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       y[i] = tanh_op(value[i]);
     }
 
@@ -391,7 +391,7 @@ struct Tanh<Array<T, N> > {
   }
 };
 
-template <int N>
+template <int32_t N>
 struct Tanh<Array<half_t, N>> {
   using T = half_t;
   static constexpr bool kIsHeavy = true;
@@ -418,7 +418,7 @@ struct Sigmoid {
   }
 };
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct Sigmoid<Array<T, N>> {
   static constexpr bool kIsHeavy = true;
 
@@ -459,7 +459,7 @@ struct SiLu {
   }
 };
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct SiLu<Array<T, N>> {
   static constexpr bool kIsHeavy = true;
 
@@ -522,7 +522,7 @@ struct HardSwish<cutlass::half_t> {
   }
 };
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct HardSwish<Array<T, N> > {
   static constexpr bool kIsHeavy = false;
 
@@ -532,7 +532,7 @@ struct HardSwish<Array<T, N> > {
     HardSwish<T> hardswish_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       y[i] = hardswish_op(value[i]);
     }
 
@@ -540,7 +540,7 @@ struct HardSwish<Array<T, N> > {
   }
 };
 
-template <int N>
+template <int32_t N>
 struct HardSwish<Array<half_t, N> > {
   using T = half_t;
   static constexpr bool kIsHeavy = false;
@@ -603,7 +603,7 @@ struct GELU<double> {
   }
 };
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct GELU<Array<T, N> > {
   static constexpr bool kIsHeavy = true;
 
@@ -613,7 +613,7 @@ struct GELU<Array<T, N> > {
     GELU<T> gelu_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       y[i] = gelu_op(value[i]);
     }
 
@@ -662,7 +662,7 @@ struct GELU_taylor <float>{
   }
 };
 
-template <int N>
+template <int32_t N>
 struct GELU_taylor<Array<half_t, N> > {
   static constexpr bool kIsHeavy = true;
 
@@ -689,7 +689,7 @@ struct GELU_taylor<Array<half_t, N> > {
   }
 };
 
-template <int N>
+template <int32_t N>
 struct GELU_taylor<Array<float, N> > {
   static constexpr bool kIsHeavy = true;
 
@@ -713,7 +713,7 @@ struct GELU_taylor<Array<float, N> > {
   }
 };
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct GELU_taylor<Array<T, N> > {
   static constexpr bool kIsHeavy = true;
 
@@ -723,7 +723,7 @@ struct GELU_taylor<Array<T, N> > {
     GELU_taylor<T> gelu_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       y[i] = gelu_op(value[i]);
     }
 
@@ -756,7 +756,7 @@ struct dGELU {
   }
 };
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct dGELU<Array<T, N> > {
   static constexpr bool kIsHeavy = true;
 
@@ -766,7 +766,7 @@ struct dGELU<Array<T, N> > {
     dGELU<T> gelu_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       y[i] = gelu_op(d_t[i], z[i]);
     }
 
@@ -788,7 +788,7 @@ struct dReLU {
   }
 };
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct dReLU<Array<T, N>> {
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& d_t, bool const (&d_relu)[N]) const {
@@ -796,7 +796,7 @@ struct dReLU<Array<T, N>> {
     dReLU<T> relu_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       y[i] = relu_op(d_t[i], d_relu[i]);
     }
 
@@ -820,7 +820,7 @@ struct dReLU<Array<T, N>> {
     dReLU<T> relu_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       y[i] = relu_op(d_t[i], d_relu[i]);
     }
 
@@ -838,7 +838,7 @@ struct dReLU_Z {
   }
 };
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct dReLU_Z<Array<T, N>> {
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& d_t, Array<T, N> const& z) const {
@@ -846,7 +846,7 @@ struct dReLU_Z<Array<T, N>> {
     dReLU_Z<T> relu_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       y[i] = relu_op(d_t[i], z[i]);
     }
 
@@ -879,7 +879,7 @@ struct ElementwiseFilter {
   }
 };
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct ElementwiseFilter<Array<T, N> > {
 
   static constexpr bool kIsHeavy = false;
@@ -892,7 +892,7 @@ struct ElementwiseFilter<Array<T, N> > {
     ElementwiseFilter<T> filter_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < int(values.size()); ++i) {
+    for (int32_t i = 0; i < int32_t(values.size()); ++i) {
       y[i] = filter_op(values[i], value_to_filter, filtered_value);
     }
 

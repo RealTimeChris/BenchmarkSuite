@@ -46,7 +46,7 @@ namespace cutlass {
 /// Defines the size of an element in bits
 template <typename T>
 struct sizeof_bits {
-  static constexpr int value = int(sizeof(T) * 8);
+  static constexpr int32_t value = int32_t(sizeof(T) * 8);
 };
 
 template <typename T>
@@ -60,13 +60,13 @@ struct sizeof_bits<T const volatile> : sizeof_bits<T> {};
 
 template <>
 struct sizeof_bits<void> {
-  static constexpr int value = 0;
+  static constexpr int32_t value = 0;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Returns the number of bytes required to hold a specified number of bits
-template <class R = int, class T>
+template <class R = int32_t, class T>
 CUTLASS_HOST_DEVICE
 constexpr
 R
@@ -75,7 +75,7 @@ bits_to_bytes(T bits) {
 }
 
 /// Returns the number of bits required to hold a specified number of bytes
-template <class R = int, class T>
+template <class R = int32_t, class T>
 CUTLASS_HOST_DEVICE
 constexpr
 R

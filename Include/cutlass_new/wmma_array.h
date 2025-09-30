@@ -52,7 +52,7 @@ template <
   /// Element type
   typename T,
   /// Number of elements in the array
-  int N,
+  int32_t N,
   /// Whether the element type of T is half_t or __half
   bool IsHalfType = (platform::is_same<typename T::element_type, cutlass::half_t>::value ||
                      platform::is_same<typename T::element_type, __half>::value)
@@ -64,7 +64,7 @@ public:
   CUTLASS_HOST_DEVICE
   void clear()
   {
-    for(int i = 0; i < Array<T, N, true>::kElements; i++)
+    for(int32_t i = 0; i < Array<T, N, true>::kElements; i++)
     {
       nvcuda::wmma::fill_fragment((*this)[i], (typename T::element_type)0);
     }
@@ -76,7 +76,7 @@ public:
     using element_type = typename T::element_type;
     plus<T> add;
 
-    for (int i = 0; i < Array<T, N, true>::kElements; i++)
+    for (int32_t i = 0; i < Array<T, N, true>::kElements; i++)
     {
       (*this)[i] = add((*this)[i], rhs[i]);
     }
@@ -93,7 +93,7 @@ template <
   /// Element type
   typename T,
   /// Number of elements in the array
-  int N
+  int32_t N
 >
 class WmmaFragmentArray<T, N, true>: public Array<T, N, true> {
 public:
@@ -102,7 +102,7 @@ public:
   CUTLASS_HOST_DEVICE
   void clear()
   {
-    for(int i = 0; i < Array<T, N, true>::kElements; i++)
+    for(int32_t i = 0; i < Array<T, N, true>::kElements; i++)
     {
       nvcuda::wmma::fill_fragment((*this)[i], __float2half(0.f));
     }
@@ -114,7 +114,7 @@ public:
     using element_type = typename T::element_type;
     plus<T> add;
 
-    for (int i = 0; i < Array<T, N, true>::kElements; i++)
+    for (int32_t i = 0; i < Array<T, N, true>::kElements; i++)
     {
       (*this)[i] = add((*this)[i], rhs[i]);
     }

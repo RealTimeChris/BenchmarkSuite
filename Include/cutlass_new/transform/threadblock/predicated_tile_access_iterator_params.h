@@ -51,8 +51,8 @@ namespace threadblock {
 /// Predicated tile access iterator descriptor object containing template dependent state
 struct PredicatedTileAccessIteratorDesc {
 
-  int element_size_bits = -1;
-  int advance_rank = -1;
+  int32_t element_size_bits = -1;
+  int32_t advance_rank = -1;
   layout::PitchLinearCoord threadblock_shape;
   layout::PitchLinearCoord threadmap_iterations;
   layout::PitchLinearCoord threadmap_delta;
@@ -65,8 +65,8 @@ struct PredicatedTileAccessIteratorDesc {
 
   CUTLASS_HOST_DEVICE
   PredicatedTileAccessIteratorDesc(
-    int element_size_bits_,
-    int advance_rank_,
+    int32_t element_size_bits_,
+    int32_t advance_rank_,
     layout::PitchLinearCoord threadblock_shape_,
     layout::PitchLinearCoord threadmap_iterations_,
     layout::PitchLinearCoord threadmap_delta_
@@ -93,13 +93,13 @@ struct PredicatedTileAccessIteratorDesc {
 // dependent state
 template <
   typename Shape, typename Element, typename Layout,
-  int AdvanceRank, typename ThreadMap>
+  int32_t AdvanceRank, typename ThreadMap>
   struct MakePredicatedTileAccessIteratorDesc;
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Specialization of PredicatedTileAccessIterator for pitch-linear data.
 template <
-  typename Shape, typename Element, int AdvanceRank, 
+  typename Shape, typename Element, int32_t AdvanceRank, 
   typename ThreadMap>
 struct MakePredicatedTileAccessIteratorDesc <
     Shape, Element, layout::PitchLinear, AdvanceRank, ThreadMap> {
@@ -121,12 +121,12 @@ struct MakePredicatedTileAccessIteratorDesc <
 
 /// Specialization of PredicatedTileAccessIterator for column-major data.
 template <
-  typename Shape, typename Element, int AdvanceRank, 
+  typename Shape, typename Element, int32_t AdvanceRank, 
   typename ThreadMap>
 struct MakePredicatedTileAccessIteratorDesc <
     Shape, Element, layout::ColumnMajor, AdvanceRank, ThreadMap> {
 
-  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int32_t kAdvanceRank = AdvanceRank;
 
   using UnderlyingMakeOperator = MakePredicatedTileAccessIteratorDesc<
       layout::PitchLinearShape<Shape::kRow, Shape::kColumn>, Element,
@@ -143,12 +143,12 @@ struct MakePredicatedTileAccessIteratorDesc <
 
 /// Specialization of PredicatedTileAccessIterator for row-major data.
 template <
-  typename Shape, typename Element, int AdvanceRank, 
+  typename Shape, typename Element, int32_t AdvanceRank, 
   typename ThreadMap>
 struct MakePredicatedTileAccessIteratorDesc <
     Shape, Element, layout::RowMajor, AdvanceRank, ThreadMap> {
 
-  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int32_t kAdvanceRank = AdvanceRank;
 
   using UnderlyingMakeOperator = MakePredicatedTileAccessIteratorDesc<
       layout::PitchLinearShape<Shape::kColumn, Shape::kRow>, Element,
@@ -165,13 +165,13 @@ struct MakePredicatedTileAccessIteratorDesc <
 
 /// Specialization of PredicatedTileAccessIterator for column-major interleaved data.
 template <
-  typename Shape, typename Element, int AdvanceRank, 
-  typename ThreadMap, int InterleavedK>
+  typename Shape, typename Element, int32_t AdvanceRank, 
+  typename ThreadMap, int32_t InterleavedK>
 struct MakePredicatedTileAccessIteratorDesc <
     Shape, Element, layout::ColumnMajorInterleaved<InterleavedK>, AdvanceRank, ThreadMap> {
 
-  static constexpr int kAdvanceRank = AdvanceRank;
-  static constexpr int kInterleavedK = InterleavedK;
+  static constexpr int32_t kAdvanceRank = AdvanceRank;
+  static constexpr int32_t kInterleavedK = InterleavedK;
 
   using UnderlyingMakeOperator = MakePredicatedTileAccessIteratorDesc<
       layout::PitchLinearShape<Shape::kRow * kInterleavedK, Shape::kColumn / kInterleavedK>, Element,
@@ -188,13 +188,13 @@ struct MakePredicatedTileAccessIteratorDesc <
 
 /// Specialization of PredicatedTileAccessIterator for roww-major interleaved data.
 template <
-  typename Shape, typename Element, int AdvanceRank, 
-  typename ThreadMap, int InterleavedK>
+  typename Shape, typename Element, int32_t AdvanceRank, 
+  typename ThreadMap, int32_t InterleavedK>
 struct MakePredicatedTileAccessIteratorDesc <
     Shape, Element, layout::RowMajorInterleaved<InterleavedK>, AdvanceRank, ThreadMap> {
 
-  static constexpr int kAdvanceRank = AdvanceRank;
-  static constexpr int kInterleavedK = InterleavedK;
+  static constexpr int32_t kAdvanceRank = AdvanceRank;
+  static constexpr int32_t kInterleavedK = InterleavedK;
 
   using UnderlyingMakeOperator = MakePredicatedTileAccessIteratorDesc<
       layout::PitchLinearShape<Shape::kColumn * kInterleavedK, Shape::kRow / kInterleavedK>, Element,

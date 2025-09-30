@@ -44,7 +44,7 @@ namespace cutlass {
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Array holding planar complex elements
-template <typename Element_, int N>
+template <typename Element_, int32_t N>
 struct ArrayPlanarComplex {
 
   /// Underlying real element
@@ -75,7 +75,7 @@ public:
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Helper to deduce template arguments
-template <typename Element, int N>
+template <typename Element, int32_t N>
 CUTLASS_HOST_DEVICE
 ArrayPlanarComplex<Element, N> 
 make_ArrayPlanarComplex(Array<Element, N> const &real, Array<Element, N> const &imag) {

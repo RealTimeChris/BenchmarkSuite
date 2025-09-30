@@ -128,32 +128,32 @@ struct alignas(1) float8_base {
     static constexpr bool IS_E5M2 = (T == FloatEncoding::E5M2);
 
     // Number of Bits representing mantissa and exponents
-    static constexpr int FP32_NUM_BITS = 32;
-    static constexpr int FP32_NUM_EXPONENT_BITS = 8;
-    static constexpr int FP32_NUM_MANTISSA_BITS = 23;
+    static constexpr int32_t FP32_NUM_BITS = 32;
+    static constexpr int32_t FP32_NUM_EXPONENT_BITS = 8;
+    static constexpr int32_t FP32_NUM_MANTISSA_BITS = 23;
     static constexpr uint32_t FP32_NAN = 0x7fffffff;
     static constexpr uint32_t FP32_INFINITY_MASK = 0x7f800000;
-    static constexpr int FP32_MAX_EXPONENT  =  127;
-    static constexpr int FP32_MIN_EXPONENT  = -126;
-    static constexpr int FP32_EXPONENT_BIAS =  127;
+    static constexpr int32_t FP32_MAX_EXPONENT  =  127;
+    static constexpr int32_t FP32_MIN_EXPONENT  = -126;
+    static constexpr int32_t FP32_EXPONENT_BIAS =  127;
 
-    static constexpr int FP16_NUM_BITS = 16;
-    static constexpr int FP16_NUM_EXPONENT_BITS = 5;
-    static constexpr int FP16_NUM_MANTISSA_BITS = 10;
+    static constexpr int32_t FP16_NUM_BITS = 16;
+    static constexpr int32_t FP16_NUM_EXPONENT_BITS = 5;
+    static constexpr int32_t FP16_NUM_MANTISSA_BITS = 10;
     static constexpr uint16_t FP16_NAN = 0x7fff;
     static constexpr uint16_t FP16_INFINITY_MASK = 0x7c00;
-    static constexpr int FP16_MAX_EXPONENT  = 15;
-    static constexpr int FP16_MIN_EXPONENT  = -14;
-    static constexpr int FP16_EXPONENT_BIAS = 15;
+    static constexpr int32_t FP16_MAX_EXPONENT  = 15;
+    static constexpr int32_t FP16_MIN_EXPONENT  = -14;
+    static constexpr int32_t FP16_EXPONENT_BIAS = 15;
 
-    static constexpr int FP8_NUM_BITS = 8;
-    static constexpr int FP8_NUM_EXPONENT_BITS = IS_E4M3 ? 4 : 5;
-    static constexpr int FP8_NUM_MANTISSA_BITS = IS_E4M3 ? 3 : 2;
+    static constexpr int32_t FP8_NUM_BITS = 8;
+    static constexpr int32_t FP8_NUM_EXPONENT_BITS = IS_E4M3 ? 4 : 5;
+    static constexpr int32_t FP8_NUM_MANTISSA_BITS = IS_E4M3 ? 3 : 2;
     static constexpr uint8_t  FP8_NAN = 0x7f; // Also F8_INF
     static constexpr uint8_t  FP8_INFINITY_MASK = IS_E4M3 ? 0x78 : 0x7c;
-    static constexpr int FP8_MAX_EXPONENT  = IS_E4M3 ?  7 :  15;
-    static constexpr int FP8_MIN_EXPONENT  = IS_E4M3 ? -6 : -14;
-    static constexpr int FP8_EXPONENT_BIAS = IS_E4M3 ?  7 :  15;
+    static constexpr int32_t FP8_MAX_EXPONENT  = IS_E4M3 ?  7 :  15;
+    static constexpr int32_t FP8_MIN_EXPONENT  = IS_E4M3 ? -6 : -14;
+    static constexpr int32_t FP8_EXPONENT_BIAS = IS_E4M3 ?  7 :  15;
 
     static constexpr uint8_t  FP8_EXPONENT_MASK = (1 << FP8_NUM_EXPONENT_BITS) - 1;
     static constexpr uint8_t  FP8_MANTISSA_MASK = (1 << FP8_NUM_MANTISSA_BITS) - 1;
@@ -235,7 +235,7 @@ struct alignas(1) float8_base {
         // Extract the bits in the FP32 type
         uint8_t sign = uint8_t((s >> 24 & 0x80));
         int32_t exp = int32_t((s >> FP32_NUM_MANTISSA_BITS) & 0xff) - FP32_EXPONENT_BIAS;
-        int mantissa = s & 0x7fffff;
+        int32_t mantissa = s & 0x7fffff;
         uint8_t u = 0;
 
         uint8_t const kF8_NaN = 0x7f;
@@ -259,7 +259,7 @@ struct alignas(1) float8_base {
             return (sign | FP8_MAX_FLT);
         }
 
-        int sticky_bit = 0;
+        int32_t sticky_bit = 0;
 
         bool skip_sign = false;
         bool may_be_nan = false;
@@ -271,7 +271,7 @@ struct alignas(1) float8_base {
             u = uint8_t(u | (mantissa >> (FP32_NUM_MANTISSA_BITS - FP8_NUM_MANTISSA_BITS)));
         } else if(exp < FP8_MIN_EXPONENT) {
             // normal single-precision to subnormal float8-precision representation
-            int rshift = (FP8_MIN_EXPONENT - exp);
+            int32_t rshift = (FP8_MIN_EXPONENT - exp);
             if (rshift < FP32_NUM_BITS) {
                 mantissa |= (1 << FP32_NUM_MANTISSA_BITS);
 
@@ -303,8 +303,8 @@ struct alignas(1) float8_base {
         }
 
         // round to nearest even
-        int NUM_BITS_SHIFT = FP32_NUM_MANTISSA_BITS - (FP8_NUM_MANTISSA_BITS + 1);
-        int round_bit = ((mantissa >> NUM_BITS_SHIFT) & 1);
+        int32_t NUM_BITS_SHIFT = FP32_NUM_MANTISSA_BITS - (FP8_NUM_MANTISSA_BITS + 1);
+        int32_t round_bit = ((mantissa >> NUM_BITS_SHIFT) & 1);
         sticky_bit |= ((mantissa & ((1 << NUM_BITS_SHIFT) - 1)) != 0);
 
         if ((round_bit && sticky_bit) || (round_bit && (u & 1))) {
@@ -398,7 +398,7 @@ struct alignas(1) float_e4m3_t : float8_base<FloatEncoding::E4M3> {
 
     using Base = float8_base<FloatEncoding::E4M3>;
 
-    static constexpr int MAX_EXPONENT = Base::FP8_MAX_EXPONENT;
+    static constexpr int32_t MAX_EXPONENT = Base::FP8_MAX_EXPONENT;
 
     //
     // Static conversion operators
@@ -504,7 +504,7 @@ struct alignas(1) float_e4m3_t : float8_base<FloatEncoding::E4M3> {
 
     /// Integer conversion
     CUTLASS_HOST_DEVICE
-    explicit float_e4m3_t(int x): float_e4m3_t(float(x)) {
+    explicit float_e4m3_t(int32_t x): float_e4m3_t(float(x)) {
     }
 
     CUTLASS_HOST_DEVICE
@@ -542,13 +542,13 @@ struct alignas(1) float_e4m3_t : float8_base<FloatEncoding::E4M3> {
         return double(to_float(*this));
     }
 
-    /// Converts to int
+    /// Converts to int32_t
     CUTLASS_HOST_DEVICE
-    explicit operator int() const {
+    explicit operator int32_t() const {
     #if defined(__CUDA_ARCH__)
         return __half2int_rn(to_half(*this));
     #else
-        return int(to_float(*this));
+        return int32_t(to_float(*this));
     #endif
     }
 
@@ -558,7 +558,7 @@ struct alignas(1) float_e4m3_t : float8_base<FloatEncoding::E4M3> {
     #if defined(__CUDA_ARCH__)
         return bool(__half2int_rn(to_half(*this)));
     #else
-        return bool(int(to_float(*this)));
+        return bool(int32_t(to_float(*this)));
     #endif
     }
 
@@ -582,20 +582,20 @@ struct alignas(1) float_e4m3_t : float8_base<FloatEncoding::E4M3> {
 
     /// Returns the biased exponent
     CUTLASS_HOST_DEVICE
-    int exponent_biased() const {
-        return int((storage >> FP8_NUM_MANTISSA_BITS) & Base::FP8_EXPONENT_MASK);
+    int32_t exponent_biased() const {
+        return int32_t((storage >> FP8_NUM_MANTISSA_BITS) & Base::FP8_EXPONENT_MASK);
     }
 
     /// Returns the unbiased exponent
     CUTLASS_HOST_DEVICE
-    int exponent() const {
+    int32_t exponent() const {
         return exponent_biased() - 15;
     }
 
     /// Returns the mantissa
     CUTLASS_HOST_DEVICE
-    int mantissa() const {
-        return int(storage & Base::FP8_MANTISSA_MASK);
+    int32_t mantissa() const {
+        return int32_t(storage & Base::FP8_MANTISSA_MASK);
     }
 
     CUTLASS_HOST_DEVICE
@@ -613,7 +613,7 @@ struct alignas(1) float_e5m2_t : float8_base<FloatEncoding::E5M2> {
 
     using Base = float8_base<FloatEncoding::E5M2>;
 
-    static constexpr int MAX_EXPONENT = Base::FP8_MAX_EXPONENT;
+    static constexpr int32_t MAX_EXPONENT = Base::FP8_MAX_EXPONENT;
 
     //
     // Static conversion operators
@@ -719,7 +719,7 @@ struct alignas(1) float_e5m2_t : float8_base<FloatEncoding::E5M2> {
 
     /// Integer conversion
     CUTLASS_HOST_DEVICE
-    explicit float_e5m2_t(int x): float_e5m2_t(float(x)) {
+    explicit float_e5m2_t(int32_t x): float_e5m2_t(float(x)) {
     }
 
     CUTLASS_HOST_DEVICE
@@ -757,13 +757,13 @@ struct alignas(1) float_e5m2_t : float8_base<FloatEncoding::E5M2> {
         return double(to_float(*this));
     }
 
-    /// Converts to int
+    /// Converts to int32_t
     CUTLASS_HOST_DEVICE
-    explicit operator int() const {
+    explicit operator int32_t() const {
     #if defined(__CUDA_ARCH__)
         return __half2int_rn(to_half(*this));
     #else
-        return int(to_float(*this));
+        return int32_t(to_float(*this));
     #endif
     }
 
@@ -773,7 +773,7 @@ struct alignas(1) float_e5m2_t : float8_base<FloatEncoding::E5M2> {
     #if defined(__CUDA_ARCH__)
         return bool(__half2int_rn(to_half(*this)));
     #else
-        return bool(int(to_float(*this)));
+        return bool(int32_t(to_float(*this)));
     #endif
     }
 
@@ -797,20 +797,20 @@ struct alignas(1) float_e5m2_t : float8_base<FloatEncoding::E5M2> {
 
     /// Returns the biased exponent
     CUTLASS_HOST_DEVICE
-    int exponent_biased() const {
-        return int((storage >> FP8_NUM_MANTISSA_BITS) & Base::FP8_EXPONENT_MASK);
+    int32_t exponent_biased() const {
+        return int32_t((storage >> FP8_NUM_MANTISSA_BITS) & Base::FP8_EXPONENT_MASK);
     }
 
     /// Returns the unbiased exponent
     CUTLASS_HOST_DEVICE
-    int exponent() const {
+    int32_t exponent() const {
         return exponent_biased() - 15;
     }
 
     /// Returns the mantissa
     CUTLASS_HOST_DEVICE
-    int mantissa() const {
-        return int(storage & Base::FP8_MANTISSA_MASK);
+    int32_t mantissa() const {
+        return int32_t(storage & Base::FP8_MANTISSA_MASK);
     }
     
     CUTLASS_HOST_DEVICE
@@ -921,7 +921,7 @@ float_e4m3_t& operator--(float_e4m3_t & lhs) {
 }
 
 CUTLASS_HOST_DEVICE
-float_e4m3_t operator++(float_e4m3_t & lhs, int) {
+float_e4m3_t operator++(float_e4m3_t & lhs, int32_t) {
     float_e4m3_t ret(lhs);
     float tmp(lhs);
     tmp++;
@@ -930,7 +930,7 @@ float_e4m3_t operator++(float_e4m3_t & lhs, int) {
 }
 
 CUTLASS_HOST_DEVICE
-float_e4m3_t operator--(float_e4m3_t & lhs, int) {
+float_e4m3_t operator--(float_e4m3_t & lhs, int32_t) {
     float_e4m3_t ret(lhs);
     float tmp(lhs);
     tmp--;
@@ -1034,7 +1034,7 @@ float_e5m2_t& operator--(float_e5m2_t & lhs) {
 }
 
 CUTLASS_HOST_DEVICE
-float_e5m2_t operator++(float_e5m2_t & lhs, int) {
+float_e5m2_t operator++(float_e5m2_t & lhs, int32_t) {
     float_e5m2_t ret(lhs);
     float tmp(lhs);
     tmp++;
@@ -1043,7 +1043,7 @@ float_e5m2_t operator++(float_e5m2_t & lhs, int) {
 }
 
 CUTLASS_HOST_DEVICE
-float_e5m2_t operator--(float_e5m2_t & lhs, int) {
+float_e5m2_t operator--(float_e5m2_t & lhs, int32_t) {
     float_e5m2_t ret(lhs);
     float tmp(lhs);
     tmp--;
@@ -1105,7 +1105,7 @@ struct float_ue4m3_t : public float_exmy_base<cutlass::detail::FpEncoding::UE4M3
   }
 
   CUTLASS_HOST_DEVICE
-  explicit float_ue4m3_t(int x) : Base(x) {
+  explicit float_ue4m3_t(int32_t x) : Base(x) {
   }
 
   CUTLASS_HOST_DEVICE
@@ -1126,7 +1126,7 @@ struct float_ue4m3_t : public float_exmy_base<cutlass::detail::FpEncoding::UE4M3
 /// Defines the size of an element in bits - specialized for float_ue4m3_t
 template <>
 struct sizeof_bits<float_ue4m3_t> {
-  static constexpr int value = sizeof_bits<float_exmy_base<cutlass::detail::FpEncoding::UE4M3, float_ue4m3_t>>::value;
+  static constexpr int32_t value = sizeof_bits<float_exmy_base<cutlass::detail::FpEncoding::UE4M3, float_ue4m3_t>>::value;
 };
 
 
@@ -1224,7 +1224,7 @@ struct float_ue8m0_t : public float_exmy_base<cutlass::detail::FpEncoding::UE8M0
   }
 
   CUTLASS_HOST_DEVICE
-  explicit float_ue8m0_t(int x) : Base(x) {
+  explicit float_ue8m0_t(int32_t x) : Base(x) {
   }
 
   CUTLASS_HOST_DEVICE
@@ -1245,7 +1245,7 @@ struct float_ue8m0_t : public float_exmy_base<cutlass::detail::FpEncoding::UE8M0
 /// Defines the size of an element in bits - specialized for float_ue8m0_t
 template <>
 struct sizeof_bits<float_ue8m0_t> {
-  static constexpr int value = sizeof_bits<float_exmy_base<cutlass::detail::FpEncoding::UE8M0, float_ue8m0_t>>::value;
+  static constexpr int32_t value = sizeof_bits<float_exmy_base<cutlass::detail::FpEncoding::UE8M0, float_ue8m0_t>>::value;
 };
 
 
@@ -1346,7 +1346,7 @@ public:
   static constexpr bool is_iec559 = false;
   static constexpr bool is_bounded = true;
   static constexpr bool is_modulo = false;
-  static constexpr int digits = F8Type::FP8_NUM_MANTISSA_BITS;
+  static constexpr int32_t digits = F8Type::FP8_NUM_MANTISSA_BITS;
 
   /// Least positive value
   CUTLASS_HOST_DEVICE
@@ -1423,7 +1423,7 @@ public:
   static constexpr bool is_iec559 = false;
   static constexpr bool is_bounded = true;
   static constexpr bool is_modulo = false;
-  static constexpr int digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
+  static constexpr int32_t digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
   static constexpr bool has_infinity = false;
 
   /// Least positive value
@@ -1498,7 +1498,7 @@ public:
   static constexpr bool is_iec559 = false;
   static constexpr bool is_bounded = true;
   static constexpr bool is_modulo = false;
-  static constexpr int digits = F8Type::FP8_NUM_MANTISSA_BITS;
+  static constexpr int32_t digits = F8Type::FP8_NUM_MANTISSA_BITS;
 
   /// Least positive value
   CUTLASS_HOST_DEVICE
@@ -1579,7 +1579,7 @@ public:
   static constexpr bool is_iec559 = false;
   static constexpr bool is_bounded = true;
   static constexpr bool is_modulo = false;
-  static constexpr int digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
+  static constexpr int32_t digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
   static constexpr bool has_infinity = false;
 
   /// Least positive value
@@ -1643,7 +1643,7 @@ cutlass::float_e4m3_t operator "" _fe4m3(long double x) {
 
 CUTLASS_HOST_DEVICE
 cutlass::float_e4m3_t operator "" _fe4m3(unsigned long long int x) {
-  return cutlass::float_e4m3_t(int(x));
+  return cutlass::float_e4m3_t(int32_t(x));
 }
 
 
@@ -1654,7 +1654,7 @@ cutlass::float_ue4m3_t operator "" _fue4m3(long double x) {
 
 CUTLASS_HOST_DEVICE
 cutlass::float_ue4m3_t operator "" _fue4m3(unsigned long long int x) {
-  return cutlass::float_ue4m3_t(int(x));
+  return cutlass::float_ue4m3_t(int32_t(x));
 }
 
 
@@ -1665,7 +1665,7 @@ cutlass::float_e5m2_t operator "" _fe5m2(long double x) {
 
 CUTLASS_HOST_DEVICE
 cutlass::float_e5m2_t operator "" _fe5m2(unsigned long long int x) {
-  return cutlass::float_e5m2_t(int(x));
+  return cutlass::float_e5m2_t(int32_t(x));
 }
 
 
@@ -1678,7 +1678,7 @@ cutlass::float_ue8m0_t operator "" _fue8m0(long double x)
 CUTLASS_HOST_DEVICE
 cutlass::float_ue8m0_t operator "" _fue8m0(unsigned long long int x)
 {
-  return cutlass::float_ue8m0_t(int(x));
+  return cutlass::float_ue8m0_t(int32_t(x));
 }
 
 

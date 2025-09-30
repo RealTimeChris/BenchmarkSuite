@@ -55,10 +55,10 @@ class Quaternion : public Array<Element_, 4> {
 public:
 
   /// Logical rank of tensor index space
-  static constexpr int kRank = 1;
+  static constexpr int32_t kRank = 1;
 
   /// Number of elements
-  static constexpr int kExtent = 4;
+  static constexpr int32_t kExtent = 4;
 
   /// Base class is a four-element array
   using Base = Array<Element_, kExtent>;
@@ -70,19 +70,19 @@ public:
   using Reference = typename Base::reference;
 
   /// Index type
-  using Index = int;
+  using Index = int32_t;
 
   /// Quaternion storage - imaginary part
-  static constexpr int kX = 0;
+  static constexpr int32_t kX = 0;
 
   /// Quaternion storage - imaginary part
-  static constexpr int kY = 1;
+  static constexpr int32_t kY = 1;
 
   /// Quaternion storage - imaginary part
-  static constexpr int kZ = 2;
+  static constexpr int32_t kZ = 2;
 
   /// Quaternion storage - real part
-  static constexpr int kW = 3;
+  static constexpr int32_t kW = 3;
 
 public:
 
@@ -643,7 +643,7 @@ struct RealType< Quaternion<T> > {
   using Type = T;
 
   /// Number of elements
-  static constexpr int kExtent = Quaternion<T>::kExtent;
+  static constexpr int32_t kExtent = Quaternion<T>::kExtent;
 
 CUTLASS_HOST_DEVICE
   static Quaternion<T> from_real(double x) {

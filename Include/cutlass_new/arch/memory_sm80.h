@@ -59,7 +59,7 @@ namespace arch {
 ///
 template <
     /// Size of the access in bytes
-    int SizeInBytes,
+    int32_t SizeInBytes,
     /// Cache operation
     CacheOperation::Kind cache_op = CacheOperation::Always>
 struct cp_async;
@@ -71,7 +71,7 @@ struct cp_async;
 ///
 template <
     /// Size of the access in bytes
-    int SizeInBytes,
+    int32_t SizeInBytes,
     /// Cache operation
     CacheOperation::Kind cache_op = CacheOperation::Always>
 struct cp_async_zfill;
@@ -83,7 +83,7 @@ struct cp_async_zfill;
 ///
 template <
     /// Size of the access in bytes
-    int SizeInBytes,
+    int32_t SizeInBytes,
     /// Cache operation
     CacheOperation::Kind cache_op = CacheOperation::Always>
 struct cp_async_nan;
@@ -108,7 +108,7 @@ static constexpr uint32_t OOB_NAN_F16x2 = ((OOB_NAN_F16 << 16) | OOB_NAN_F16);
 /// Partial specialization
 template <
     /// Size of the access in bytes
-    int SizeInBytes>
+    int32_t SizeInBytes>
 struct cp_async<SizeInBytes, CacheOperation::Always> {
 
   /// Copy
@@ -131,7 +131,7 @@ struct cp_async<SizeInBytes, CacheOperation::Always> {
 #else
           "  @p cp.async.ca.shared.global [%1], [%2], %3;\n"
 #endif
-          "}\n" ::"r"((int)pred_guard),
+          "}\n" ::"r"((int32_t)pred_guard),
           "r"(smem_int_ptr), "l"(global_ptr), "n"(SizeInBytes));
 
     #else
@@ -147,7 +147,7 @@ struct cp_async<SizeInBytes, CacheOperation::Always> {
 /// Partial specialization
 template <
     /// Size of the access in bytes
-    int SizeInBytes>
+    int32_t SizeInBytes>
 struct cp_async_zfill<SizeInBytes, CacheOperation::Always> {
 
   /// Copy with zero fill
@@ -160,7 +160,7 @@ struct cp_async_zfill<SizeInBytes, CacheOperation::Always> {
                 "Size is not supported");
 
       unsigned smem_int_ptr = cutlass_get_smem_pointer(smem_ptr);
-      int src_in_bytes = (pred_guard ? SizeInBytes : 0);
+      int32_t src_in_bytes = (pred_guard ? SizeInBytes : 0);
 
       asm volatile(
 #if CUTLASS_ENABLE_L2_PREFETCH
@@ -188,7 +188,7 @@ struct cp_async_zfill<SizeInBytes, CacheOperation::Always> {
 /// Partial specialization
 template <>
 struct cp_async_nan<16, CacheOperation::Always> {
-  static constexpr int kSizeInBytes = 16;
+  static constexpr int32_t kSizeInBytes = 16;
 
   /// Copy with nan fill
   CUTLASS_DEVICE
@@ -212,7 +212,7 @@ struct cp_async_nan<16, CacheOperation::Always> {
           "  @!p st.shared.v4.u32 [%1], {%4, %5, %6, %7};\n"
           "}\n"
           :
-          : "r"((int)pred_guard), "r"(smem_int_ptr), "l"(global_ptr),
+          : "r"((int32_t)pred_guard), "r"(smem_int_ptr), "l"(global_ptr),
             "n"(kSizeInBytes), "r"(OOB_NAN_F16x8.x), "r"(OOB_NAN_F16x8.y), "r"(OOB_NAN_F16x8.z),
             "r"(OOB_NAN_F16x8.w));
 
@@ -315,7 +315,7 @@ struct cp_async_diag <Element_, true> {
 /// Partial specialization
 template <
     /// Size of the access in bytes
-    int SizeInBytes>
+    int32_t SizeInBytes>
 struct cp_async<SizeInBytes, CacheOperation::Global> {
 
   /// Copy
@@ -338,7 +338,7 @@ struct cp_async<SizeInBytes, CacheOperation::Global> {
 #else
           "  @p cp.async.cg.shared.global [%1], [%2], %3;\n"
 #endif
-          "}\n" ::"r"((int)pred_guard),
+          "}\n" ::"r"((int32_t)pred_guard),
           "r"(smem_int_ptr), "l"(global_ptr), "n"(SizeInBytes));
 
     #else
@@ -354,7 +354,7 @@ struct cp_async<SizeInBytes, CacheOperation::Global> {
 /// Partial specialization
 template <
     /// Size of the access in bytes
-    int SizeInBytes>
+    int32_t SizeInBytes>
 struct cp_async_zfill<SizeInBytes, CacheOperation::Global> {
 
   /// Copy with zero fill
@@ -366,7 +366,7 @@ struct cp_async_zfill<SizeInBytes, CacheOperation::Global> {
         "cp.async only supports CacheOperation::Global when access size is 16B.");
 
       unsigned smem_int_ptr = cutlass_get_smem_pointer(smem_ptr);
-      int src_in_bytes = (pred_guard ? SizeInBytes : 0);
+      int32_t src_in_bytes = (pred_guard ? SizeInBytes : 0);
       cutlass::arch::synclog_emit_cp_async_zfill(__LINE__, smem_int_ptr, global_ptr, pred_guard, SizeInBytes);
 
       asm volatile(
@@ -395,7 +395,7 @@ struct cp_async_zfill<SizeInBytes, CacheOperation::Global> {
 /// Partial specialization
 template <>
 struct cp_async_nan<16, CacheOperation::Global> {
-  static constexpr int kSizeInBytes = 16;
+  static constexpr int32_t kSizeInBytes = 16;
 
   /// Copy with nan fill
   CUTLASS_DEVICE
@@ -420,7 +420,7 @@ struct cp_async_nan<16, CacheOperation::Global> {
           "  @!p st.shared.v4.u32 [%1], {%4, %5, %6, %7};\n"
           "}\n"
           :
-          : "r"((int)pred_guard), "r"(smem_int_ptr), "l"(global_ptr),
+          : "r"((int32_t)pred_guard), "r"(smem_int_ptr), "l"(global_ptr),
             "n"(kSizeInBytes), "r"(OOB_NAN_F16x8.x), "r"(OOB_NAN_F16x8.y), "r"(OOB_NAN_F16x8.z),
             "r"(OOB_NAN_F16x8.w));
 
@@ -448,7 +448,7 @@ void cp_async_fence() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Blocks until all but <N> previous cp.async.commit_group operations have committed.
-template <int N>
+template <int32_t N>
 CUTLASS_DEVICE void cp_async_wait() {
   #if CUDA_CP_ASYNC_ACTIVATED
   asm volatile("cp.async.wait_group %0;\n" ::"n"(N));

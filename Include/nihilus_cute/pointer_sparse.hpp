@@ -41,10 +41,10 @@ namespace nihilus_cute
 
 // A data type that holds one physical element meant to represent Sparsity number of logical elements
 // This class is purposely not compatible with anything -- know what you're doing if you attempt to use it
-template <int Sparsity, class T>
+template <int32_t Sparsity, class T>
 struct sparse_elem
 {
-  static constexpr int sparsity = Sparsity;
+  static constexpr int32_t sparsity = Sparsity;
   using raw_type = T;
   T elem_;
 
@@ -63,7 +63,7 @@ template <class T>
 struct is_sparse : false_type {};
 template <class T>
 struct is_sparse<T const> : is_sparse<T> {};
-template <int S, class T>
+template <int32_t S, class T>
 struct is_sparse<sparse_elem<S,T>> : true_type {};
 template<class T>
 static constexpr auto is_sparse_v = is_sparse<T>::value;
@@ -76,7 +76,7 @@ static constexpr auto is_sparse_v = is_sparse<T>::value;
 //   Defining sizeof_bits like this makes reasonable expressions like N * sizeof_bits_v<E> meaningful
 //   even when E is subbyte or sparse. However, this also means that sparse_elem can rather easily be
 //   confused with subbyte elements and special care should be taken with each.
-template <int S, class T>
+template <int32_t S, class T>
 struct sizeof_bits<sparse_elem<S,T>> {
   // Simple implementation that conforms to sizeof_bits
   //static constexpr auto value = sizeof_bits<T>::value / S;
@@ -97,7 +97,7 @@ struct is_sparse_ptr : false_type {};
 template <class T>
 struct is_sparse_ptr<T, void_t<typename T::iterator>> : is_sparse_ptr<typename T::iterator> {};
 
-template <int Sparsity, class Iterator>
+template <int32_t Sparsity, class Iterator>
 struct sparse_ptr : iter_adaptor<Iterator, sparse_ptr<Sparsity, Iterator>>
 {
   using reference    = typename iterator_traits<Iterator>::reference;
@@ -128,10 +128,10 @@ struct sparse_ptr : iter_adaptor<Iterator, sparse_ptr<Sparsity, Iterator>>
   }
 };
 
-template <int S, class I>
+template <int32_t S, class I>
 struct is_sparse_ptr<sparse_ptr<S,I>> : true_type {};
 
-template <int Sparsity, class Iter>
+template <int32_t Sparsity, class Iter>
 CUTE_HOST_DEVICE constexpr
 auto
 make_sparse_ptr(Iter const& iter) {
@@ -143,7 +143,7 @@ make_sparse_ptr(Iter const& iter) {
   CUTE_GCC_UNREACHABLE;
 }
 
-template <class NewT, int S, class Iter>
+template <class NewT, int32_t S, class Iter>
 CUTE_HOST_DEVICE constexpr
 auto
 recast_ptr(sparse_ptr<S,Iter> const& ptr) {
@@ -155,14 +155,14 @@ recast_ptr(sparse_ptr<S,Iter> const& ptr) {
 // Display utilities
 //
 
-template <int S, class Iter>
+template <int32_t S, class Iter>
 CUTE_HOST_DEVICE void print(sparse_ptr<S,Iter> ptr)
 {
   printf("sparse<%d>_", S); print(ptr.get());
 }
 
 #if !defined(__CUDACC_RTC__)
-template <int S, class Iter>
+template <int32_t S, class Iter>
 CUTE_HOST std::ostream& operator<<(std::ostream& os, sparse_ptr<S,Iter> ptr)
 {
   return os << "sparse<" << S << ">_" << ptr.get();

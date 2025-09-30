@@ -96,7 +96,7 @@ public:
   using OutputAccumulatorTile = AccumulatorTile;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static constexpr int32_t kIterations = Policy::kIterations;
 
 private:
 
@@ -113,7 +113,7 @@ private:
   AccessType const *accumulators_;
 
   /// Internal index
-  int index_;
+  int32_t index_;
 
 public:
 
@@ -141,14 +141,14 @@ public:
 
   /// Loads a fragment from the referenced part of the accumulator tile
   CUTLASS_HOST_DEVICE
-  void load(Fragment &frag, int index_offset = 0) const {
+  void load(Fragment &frag, int32_t index_offset = 0) const {
 
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int n = 0; n < Policy::kAccessesPerIteration; ++n) {
+    for (int32_t n = 0; n < Policy::kAccessesPerIteration; ++n) {
 
-      int accumulator_access_offset = index_ * Policy::kAccessesPerIteration + n;
+      int32_t accumulator_access_offset = index_ * Policy::kAccessesPerIteration + n;
 
       frag_ptr[n] = accumulators_[accumulator_access_offset];
     }

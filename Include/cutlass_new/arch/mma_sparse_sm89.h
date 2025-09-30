@@ -97,11 +97,11 @@ struct SparseMma<
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
 
-  static constexpr int kSparse = 2;
+  static constexpr int32_t kSparse = 2;
 
-  static constexpr int kMetaSizeInBits = 2;
+  static constexpr int32_t kMetaSizeInBits = 2;
 
-  static constexpr int kMaxID2 = 1;
+  static constexpr int32_t kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_HOST_DEVICE
@@ -111,7 +111,7 @@ struct SparseMma<
     FragmentB const &b,
     FragmentC const &c,
     uint32_t const &E,
-    int const id2
+    int32_t const id2
   ) const {
 
 #if defined(CUTLASS_ARCH_SPARSE_MMA_F32_SM89_ENABLED)
@@ -182,11 +182,11 @@ struct SparseMma<
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
 
-  static constexpr int kSparse = 2;
+  static constexpr int32_t kSparse = 2;
 
-  static constexpr int kMetaSizeInBits = 2;
+  static constexpr int32_t kMetaSizeInBits = 2;
 
-  static constexpr int kMaxID2 = 1;
+  static constexpr int32_t kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_HOST_DEVICE
@@ -196,7 +196,7 @@ struct SparseMma<
     FragmentB const &b,
     FragmentC const &c,
     uint32_t const &E,
-    int const id2
+    int32_t const id2
   ) const {
 
 #if defined(CUTLASS_ARCH_SPARSE_MMA_F32_SM89_ENABLED)
@@ -267,11 +267,11 @@ struct SparseMma<
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
 
-  static constexpr int kSparse = 2;
+  static constexpr int32_t kSparse = 2;
 
-  static constexpr int kMetaSizeInBits = 2;
+  static constexpr int32_t kMetaSizeInBits = 2;
 
-  static constexpr int kMaxID2 = 1;
+  static constexpr int32_t kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_HOST_DEVICE
@@ -281,7 +281,7 @@ struct SparseMma<
     FragmentB const &b,
     FragmentC const &c,
     uint32_t const &E,
-    int const id2
+    int32_t const id2
   ) const {
 
 #if defined(CUTLASS_ARCH_SPARSE_MMA_F32_SM89_ENABLED)
@@ -352,11 +352,11 @@ struct SparseMma<
   using Operator = Operator_;
   using ArchTag = arch::Sm89;
 
-  static constexpr int kSparse = 2;
+  static constexpr int32_t kSparse = 2;
 
-  static constexpr int kMetaSizeInBits = 2;
+  static constexpr int32_t kMetaSizeInBits = 2;
 
-  static constexpr int kMaxID2 = 1;
+  static constexpr int32_t kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_HOST_DEVICE
@@ -366,7 +366,7 @@ struct SparseMma<
     FragmentB const &b,
     FragmentC const &c,
     uint32_t const &E,
-    int const id2
+    int32_t const id2
   ) const {
 
 #if defined(CUTLASS_ARCH_SPARSE_MMA_F32_SM89_ENABLED)

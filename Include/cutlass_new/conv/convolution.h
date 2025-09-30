@@ -134,22 +134,22 @@ enum class GroupMode {
 
 /// Shape of a tensor
 template <
-  int N = 1,
-  int H = 1,
-  int W = 1,
-  int C = 1
+  int32_t N = 1,
+  int32_t H = 1,
+  int32_t W = 1,
+  int32_t C = 1
 >
 struct TensorNHWCShape {
-  static constexpr int kN = N;
-  static constexpr int kH = H;
-  static constexpr int kW = W;
-  static constexpr int kC = C;
+  static constexpr int32_t kN = N;
+  static constexpr int32_t kH = H;
+  static constexpr int32_t kW = W;
+  static constexpr int32_t kC = C;
 
-  static constexpr int kHW = H * W;
-  static constexpr int kNHW = N * kHW;
-  static constexpr int kNHWC = N * H * W * C;
+  static constexpr int32_t kHW = H * W;
+  static constexpr int32_t kNHW = N * kHW;
+  static constexpr int32_t kNHWC = N * H * W * C;
 
-  static constexpr int kCount = kNHWC;
+  static constexpr int32_t kCount = kNHWC;
 
   //
   // Static member functions
@@ -167,13 +167,13 @@ struct TensorNHWCShape {
 /// Shape of a conv2d stride, which controls how the filter convolves around the input volume
 template <
   /// Stride in horizontal direction
-  int u = 1,
+  int32_t u = 1,
   /// Stride in vertical direction
-  int v = 1
+  int32_t v = 1
 >
 struct Stride2D {
-  static constexpr int kU = u;
-  static constexpr int kV = v;
+  static constexpr int32_t kU = u;
+  static constexpr int32_t kV = v;
 
   //
   // Static member functions

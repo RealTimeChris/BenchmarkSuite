@@ -143,7 +143,7 @@ template <
   /// Size of the matrix product (concept: GemmShape)
   typename Shape_,
   /// Number of threads participating
-  int kThreads_,
+  int32_t kThreads_,
   /// Data type of A elements
   typename ElementA,
   /// Layout of A matrix (concept: MatrixLayout)
@@ -218,7 +218,7 @@ template <
   /// Size of the matrix product (concept: GemmShape)
   typename Shape_,
   /// Number of threads participating
-  int kThreads_,
+  int32_t kThreads_,
   /// Data type of A elements
   typename ElementA,
   /// Layout of A matrix (concept: MatrixLayout)

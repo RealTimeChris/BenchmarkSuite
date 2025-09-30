@@ -112,7 +112,7 @@ struct Layout
   // Accessors
   //
 
-  static constexpr int rank  = rank_v<Shape>;
+  static constexpr int32_t rank  = rank_v<Shape>;
 
   CUTE_HOST_DEVICE constexpr
   decltype(auto)
@@ -126,28 +126,28 @@ struct Layout
     return *this;
   }
 
-  template <int... I>
+  template <int32_t... I>
   CUTE_HOST_DEVICE constexpr
   decltype(auto)
   shape() {
     return get<0,I...>(static_cast<nihilus_cute::tuple<Shape, Stride>&>(*this));
   }
 
-  template <int... I>
+  template <int32_t... I>
   CUTE_HOST_DEVICE constexpr
   decltype(auto)
   shape() const {
     return get<0,I...>(static_cast<nihilus_cute::tuple<Shape, Stride> const&>(*this));
   }
 
-  template <int... I>
+  template <int32_t... I>
   CUTE_HOST_DEVICE constexpr
   decltype(auto)
   stride() {
     return get<1,I...>(static_cast<nihilus_cute::tuple<Shape, Stride>&>(*this));
   }
 
-  template <int... I>
+  template <int32_t... I>
   CUTE_HOST_DEVICE constexpr
   decltype(auto)
   stride() const {
@@ -454,7 +454,7 @@ CUTE_HOST_DEVICE constexpr
 auto
 make_fragment_like(Layout<Shape,Stride> const& layout)
 {
-  constexpr int R = Layout<Shape,Stride>::rank;
+  constexpr int32_t R = Layout<Shape,Stride>::rank;
   if constexpr (R > 1 && is_static<Shape>::value) {
     return tiled_product(make_layout(get<0>(layout.shape()),
                                      compact_major<LayoutLeft>(filter_zeros(get<0>(layout.stride()), get<0>(layout.shape())))),
@@ -503,7 +503,7 @@ get(Layout<Shape,Stride> const& layout)
 }
 
 // Return a new layout with only the modes in the range [B,E)
-template <int B, int E, class Shape, class Stride>
+template <int32_t B, int32_t E, class Shape, class Stride>
 CUTE_HOST_DEVICE constexpr
 auto
 take(Layout<Shape,Stride> const& layout)
@@ -515,7 +515,7 @@ take(Layout<Shape,Stride> const& layout)
 }
 
 // Return a new layout with only the modes Is... = <I0,I1,...,IN>
-template <int... Is, class Shape, class Stride>
+template <int32_t... Is, class Shape, class Stride>
 CUTE_HOST_DEVICE constexpr
 auto
 select(Layout<Shape,Stride> const& layout)
@@ -552,7 +552,7 @@ unflatten(Layout<Shape,Stride> const& layout, TargetProfile const& target_profil
 //
 
 // Return the sublayout of mode I...
-template <int... Is, class Shape, class Stride>
+template <int32_t... Is, class Shape, class Stride>
 CUTE_HOST_DEVICE constexpr
 decltype(auto)
 layout(Layout<Shape,Stride> const& layout)
@@ -567,7 +567,7 @@ layout(Layout<Shape,Stride> const& layout)
 }
 
 // Return the shape of a mode
-template <int... Is, class Shape, class Stride>
+template <int32_t... Is, class Shape, class Stride>
 CUTE_HOST_DEVICE constexpr
 decltype(auto)
 shape(Layout<Shape,Stride>& layout)
@@ -575,7 +575,7 @@ shape(Layout<Shape,Stride>& layout)
   return layout.template shape<Is...>();
 }
 
-template <int... Is, class Shape, class Stride>
+template <int32_t... Is, class Shape, class Stride>
 CUTE_HOST_DEVICE constexpr
 decltype(auto)
 shape(Layout<Shape,Stride> const& layout)
@@ -584,7 +584,7 @@ shape(Layout<Shape,Stride> const& layout)
 }
 
 // Return the stride of a mode
-template <int... Is, class Shape, class Stride>
+template <int32_t... Is, class Shape, class Stride>
 CUTE_HOST_DEVICE constexpr
 decltype(auto)
 stride(Layout<Shape,Stride>& layout)
@@ -592,7 +592,7 @@ stride(Layout<Shape,Stride>& layout)
   return layout.template stride<Is...>();
 }
 
-template <int... Is, class Shape, class Stride>
+template <int32_t... Is, class Shape, class Stride>
 CUTE_HOST_DEVICE constexpr
 decltype(auto)
 stride(Layout<Shape,Stride> const& layout)
@@ -601,7 +601,7 @@ stride(Layout<Shape,Stride> const& layout)
 }
 
 // Return the number of elements in a mode
-template <int... Is, class Shape, class Stride>
+template <int32_t... Is, class Shape, class Stride>
 CUTE_HOST_DEVICE constexpr
 auto
 size(Layout<Shape,Stride> const& layout)
@@ -610,7 +610,7 @@ size(Layout<Shape,Stride> const& layout)
 }
 
 // Return the number of modes
-template <int... Is, class Shape, class Stride>
+template <int32_t... Is, class Shape, class Stride>
 CUTE_HOST_DEVICE constexpr
 auto
 rank(Layout<Shape,Stride> const& layout)
@@ -619,7 +619,7 @@ rank(Layout<Shape,Stride> const& layout)
 }
 
 // Return the depth of the layout
-template <int... Is, class Shape, class Stride>
+template <int32_t... Is, class Shape, class Stride>
 CUTE_HOST_DEVICE constexpr
 auto
 depth(Layout<Shape,Stride> const& layout)
@@ -630,7 +630,7 @@ depth(Layout<Shape,Stride> const& layout)
 // Return the coprofile of a mode as a tuple of _0s
 // @post congruent(coprofile(@a layout), @a layout(i)) for any i
 // @return T Tuple that is congruent with the codomain of @a a.
-template <int... Is, class Shape, class Stride>
+template <int32_t... Is, class Shape, class Stride>
 CUTE_HOST_DEVICE constexpr
 auto
 coprofile(Layout<Shape,Stride> const& layout)
@@ -643,7 +643,7 @@ coprofile(Layout<Shape,Stride> const& layout)
 // @return C Coordinate with smallest elements such that
 //           elem_less(@a sub_layout(c), C) for all c < size(@a sub_layout)
 //           where @a sub_layout = get<Is...>(layout).
-template <int... Is, class Shape, class Stride>
+template <int32_t... Is, class Shape, class Stride>
 CUTE_HOST_DEVICE constexpr
 auto
 coshape(Layout<Shape,Stride> const& layout)
@@ -658,7 +658,7 @@ coshape(Layout<Shape,Stride> const& layout)
 // @return M smallest integer such that
 //           size(@a sub_layout(c)) < M for all c < size(@a sub_layout)
 //           where @a sub_layout = get<Is...>(layout).
-template <int... Is, class Shape, class Stride>
+template <int32_t... Is, class Shape, class Stride>
 CUTE_HOST_DEVICE constexpr
 auto
 cosize(Layout<Shape,Stride> const& layout)
@@ -727,7 +727,7 @@ domain_offset(Coord const& coord, Layout<Shape,Stride> const& layout)
 
 namespace detail {
 
-template <class Tuple, class F, int... I>
+template <class Tuple, class F, int32_t... I>
 CUTE_HOST_DEVICE constexpr
 auto
 transform_layout(Tuple const& t, F&& f, seq<I...>)
@@ -735,7 +735,7 @@ transform_layout(Tuple const& t, F&& f, seq<I...>)
   return make_layout(f(get<I>(t))...);
 }
 
-template <class Tuple0, class Tuple1, class F, int... I, int... I0, int... I1>
+template <class Tuple0, class Tuple1, class F, int32_t... I, int32_t... I0, int32_t... I1>
 CUTE_HOST_DEVICE constexpr
 auto
 transform_layout(Tuple0 const& t0, Tuple1 const& t1, F&& f, seq<I...>, seq<I0...>, seq<I1...>)
@@ -758,9 +758,9 @@ CUTE_HOST_DEVICE constexpr
 auto
 transform_layout(Tuple0 const& t0, Tuple1 const& t1, F&& f)
 {
-  constexpr int R0 = decltype(rank(t0))::value;
-  constexpr int R1 = decltype(rank(t1))::value;
-  constexpr int R  = (R0 < R1) ? R0 : R1;
+  constexpr int32_t R0 = decltype(rank(t0))::value;
+  constexpr int32_t R1 = decltype(rank(t1))::value;
+  constexpr int32_t R  = (R0 < R1) ? R0 : R1;
   return detail::transform_layout(t0, t1, f, make_seq<R>{}, make_range<R,R0>{}, make_range<R,R1>{});
 }
 
@@ -778,7 +778,7 @@ namespace detail {
 //      s0:d0           s1:d1     =>  prepend          s1:d1
 //
 // @pre OldShape and OldStride are flat
-template <int I, class OldShape, class OldStride, class NewShape, class NewStride>
+template <int32_t I, class OldShape, class OldStride, class NewShape, class NewStride>
 CUTE_HOST_DEVICE constexpr
 auto
 bw_coalesce(OldShape const& old_shape, OldStride const& old_stride,
@@ -828,7 +828,7 @@ coalesce_x(Layout<Shape,Stride> const& layout)
   auto flat_shape  = flatten(layout.shape());
   auto flat_stride = flatten(layout.stride());
 
-  constexpr int R = decltype(rank(flat_shape))::value;
+  constexpr int32_t R = decltype(rank(flat_shape))::value;
   if constexpr (is_constant<1, decltype(get<R-1>(flat_shape))>::value) {
     return detail::bw_coalesce<R-2>(flat_shape, flat_stride,             Int<2>{}, get<R-1>(flat_stride));
   } else {
@@ -869,7 +869,7 @@ coalesce(Layout<Shape,Stride> const& layout)
   auto flat_shape  = flatten(layout.shape());
   auto flat_stride = flatten(layout.stride());
 
-  constexpr int R = decltype(rank(flat_shape))::value;
+  constexpr int32_t R = decltype(rank(flat_shape))::value;
   return detail::bw_coalesce<R-2>(flat_shape, flat_stride, get<R-1>(flat_shape), get<R-1>(flat_stride));
 }
 
@@ -958,7 +958,7 @@ filter(Layout<Shape,Stride> const& layout, IntTuple const& trg_profile)
 // Append, Prepend, Replace
 //
 
-template <int N, class ShapeA, class StrideA, class ShapeX = _1, class StrideX = _0>
+template <int32_t N, class ShapeA, class StrideA, class ShapeX = _1, class StrideX = _0>
 CUTE_HOST_DEVICE constexpr
 auto
 append(Layout<ShapeA,StrideA> const& layout,
@@ -978,7 +978,7 @@ append(Layout<ShapeA,StrideA> const& layout,
                      append(layout.stride(), x.stride()));
 }
 
-template <int N, class ShapeA, class StrideA, class ShapeX = _1, class StrideX = _0>
+template <int32_t N, class ShapeA, class StrideA, class ShapeX = _1, class StrideX = _0>
 CUTE_HOST_DEVICE constexpr
 auto
 prepend(Layout<ShapeA,StrideA> const& layout,
@@ -998,7 +998,7 @@ prepend(Layout<ShapeA,StrideA> const& layout,
                      prepend(layout.stride(), x.stride()));
 }
 
-template <int N, class ShapeA, class StrideA, class ShapeX, class StrideX>
+template <int32_t N, class ShapeA, class StrideA, class ShapeX, class StrideX>
 CUTE_HOST_DEVICE constexpr
 auto
 replace(Layout<ShapeA,StrideA> const& layout,
@@ -1008,7 +1008,7 @@ replace(Layout<ShapeA,StrideA> const& layout,
                      replace<N>(layout.stride(), x.stride()));
 }
 
-template <int B, int E, class Shape, class Stride>
+template <int32_t B, int32_t E, class Shape, class Stride>
 CUTE_HOST_DEVICE constexpr
 auto
 group(Layout<Shape,Stride> const& layout)
@@ -1048,7 +1048,7 @@ composition_impl(LShape const& lhs_shape, [[maybe_unused]] LStride const& lhs_st
   if constexpr (is_integral<LShape>::value) {              // Special case shortcut for any LHS integral shape
     return Layout{rhs_shape, rhs_stride * lhs_stride};
   } else {                                                 // General case: LHS tuple, RHS integral
-    constexpr int R = tuple_size<LShape>::value;
+    constexpr int32_t R = tuple_size<LShape>::value;
 
     auto [result_shape, result_stride, rest_shape, rest_stride] =
       nihilus_cute::fold(make_seq<R-1>{},                           // t = [0,1,2,...,R-1)
@@ -1184,7 +1184,7 @@ complement(Shape const& shape, Stride const& stride, CoTarget const& cotarget)
     return make_layout(coalesce(cotarget));
   } else {
     // General case
-    constexpr int R = rank_v<Shape>;
+    constexpr int32_t R = rank_v<Shape>;
     static_assert(R == 1 || is_static<Stride>::value,
                   "Dynamic-stride complement only for rank-1 layouts");
 
@@ -1734,7 +1734,7 @@ auto
 blocked_product(Layout<TShape,TStride> const& block,
                 Layout<UShape,UStride> const& tiler)
 {
-  constexpr int R = nihilus_cute::max(rank_v<TShape>, rank_v<UShape>);
+  constexpr int32_t R = nihilus_cute::max(rank_v<TShape>, rank_v<UShape>);
 
   auto result = logical_product(append<R>(block), append<R>(tiler));
 
@@ -1752,7 +1752,7 @@ auto
 raked_product(Layout<TShape,TStride> const& block,
               Layout<UShape,UStride> const& tiler)
 {
-  constexpr int R = nihilus_cute::max(rank_v<TShape>, rank_v<UShape>);
+  constexpr int32_t R = nihilus_cute::max(rank_v<TShape>, rank_v<UShape>);
 
   auto result = logical_product(append<R>(block), append<R>(tiler));
 
@@ -1780,7 +1780,7 @@ tile_to_shape(Layout<Shape,Stride> const& block,
               ModeOrder            const& ord_shape = {})
 {
   CUTE_STATIC_ASSERT_V(rank(block) <= rank(trg_shape), "Rank of layout must be <= rank of target shape.");
-  constexpr int R = rank_v<TrgShape>;
+  constexpr int32_t R = rank_v<TrgShape>;
 
   auto padded_block = append<R>(block);
 
@@ -1803,7 +1803,7 @@ tile_to_shape(Layout<Shape,Stride> const& block,
 //   For stride-1 mode, divide size by N. Divide all other strides by N.
 //
 
-template <int N, class Shape, class Stride>
+template <int32_t N, class Shape, class Stride>
 CUTE_HOST_DEVICE constexpr
 auto
 upcast(Shape const& shape, Stride const& stride)
@@ -1825,7 +1825,7 @@ upcast(Shape const& shape, Stride const& stride)
   CUTE_GCC_UNREACHABLE;
 }
 
-template <int N, class Shape, class Stride>
+template <int32_t N, class Shape, class Stride>
 CUTE_HOST_DEVICE constexpr
 auto
 upcast(Layout<Shape,Stride> const& layout)
@@ -1838,7 +1838,7 @@ upcast(Layout<Shape,Stride> const& layout)
 //   For stride-1 mode, multiply size by N. Multiply all other strides by N.
 //
 
-template <int N, class Shape, class Stride>
+template <int32_t N, class Shape, class Stride>
 CUTE_HOST_DEVICE constexpr
 auto
 downcast(Shape const& shape, Stride const& stride)
@@ -1854,7 +1854,7 @@ downcast(Shape const& shape, Stride const& stride)
   CUTE_GCC_UNREACHABLE;
 }
 
-template <int N, class Shape, class Stride>
+template <int32_t N, class Shape, class Stride>
 CUTE_HOST_DEVICE constexpr
 auto
 downcast(Layout<Shape,Stride> const& layout)

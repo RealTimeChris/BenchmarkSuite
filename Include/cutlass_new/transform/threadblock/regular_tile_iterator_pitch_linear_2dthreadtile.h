@@ -58,9 +58,9 @@ template <
   typename Shape,
   typename Element,
   typename Layout,
-  int AdvanceRank,
+  int32_t AdvanceRank,
   typename ThreadMap,
-  int Alignment = sizeof_bits<Element>::value * ThreadMap::kElementsPerAccess / 8
+  int32_t Alignment = sizeof_bits<Element>::value * ThreadMap::kElementsPerAccess / 8
 >
 class RegularTileIterator2dThreadTile;
 
@@ -69,9 +69,9 @@ class RegularTileIterator2dThreadTile;
 template <
   typename Shape_,
   typename Element_,
-  int AdvanceRank,
+  int32_t AdvanceRank,
   typename ThreadMap_,
-  int Alignment
+  int32_t Alignment
 >
 class RegularTileIterator2dThreadTile<Shape_, Element_, layout::PitchLinear, AdvanceRank, ThreadMap_, Alignment> {
 public:
@@ -79,9 +79,9 @@ public:
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::PitchLinear;
-  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int32_t kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
-  static constexpr int kAlignment = Alignment;
+  static constexpr int32_t kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -127,8 +127,8 @@ public:
   CUTLASS_DEVICE
   RegularTileIterator2dThreadTile(
     TensorRef const &ref, 
-    int thread_idx,
-    int interleave
+    int32_t thread_idx,
+    int32_t interleave
   ){ 
     
     TensorCoord t = ThreadMap::initial_offset(thread_idx);
@@ -152,14 +152,14 @@ public:
     uint8_t const *byte_pointer = pointer_ + pointer_offset * sizeof_bits<Element>::value / 8;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
+    for (int32_t s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
 
       AccessType const *access_ptr = reinterpret_cast<AccessType const *>(byte_pointer);
 
       CUTLASS_PRAGMA_UNROLL
-      for (int c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
+      for (int32_t c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
 
-          int idx = c + s * ThreadMap::Iterations::kContiguous;
+          int32_t idx = c + s * ThreadMap::Iterations::kContiguous;
            frag_ptr[idx] = access_ptr[c * ThreadMap::Delta::kContiguous / ThreadMap::ThreadAccessShape::kStrided];
         }
 
@@ -193,14 +193,14 @@ public:
     uint8_t *byte_pointer = pointer_ + pointer_offset * sizeof_bits<Element>::value / 8;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
+    for (int32_t s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
 
       AccessType *access_ptr = reinterpret_cast<AccessType *>(byte_pointer);
 
       CUTLASS_PRAGMA_UNROLL
-      for (int c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
+      for (int32_t c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
 
-          int idx = c + s * ThreadMap::Iterations::kContiguous;
+          int32_t idx = c + s * ThreadMap::Iterations::kContiguous;
           access_ptr[c * ThreadMap::Delta::kContiguous / ThreadMap::ThreadAccessShape::kStrided] = frag_ptr[idx];
       }
 
@@ -248,7 +248,7 @@ public:
   /// Adds a tile offset
   CUTLASS_DEVICE
   void add_tile_offset(TensorCoord const &coord) {
-    int offset = sizeof_bits<Element>::value *
+    int32_t offset = sizeof_bits<Element>::value *
         (coord.contiguous() * Shape::kContiguous + coord.strided() * Shape::kStrided * stride_) / 8;
     add_pointer_offset(offset);
   }
@@ -261,9 +261,9 @@ public:
 template <
   typename Shape_,
   typename Element_,
-  int AdvanceRank,
+  int32_t AdvanceRank,
   typename ThreadMap_,
-  int Alignment
+  int32_t Alignment
 >
 class RegularTileIterator2dThreadTile<Shape_, Element_, layout::RowMajorInterleaved<4>, AdvanceRank, ThreadMap_, Alignment> {
 public:
@@ -271,9 +271,9 @@ public:
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::RowMajorInterleaved<4>;
-  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int32_t kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
-  static constexpr int kAlignment = Alignment;
+  static constexpr int32_t kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -307,7 +307,7 @@ public:
   CUTLASS_DEVICE
   RegularTileIterator2dThreadTile(
     TensorRef const &ref, 
-    int thread_idx
+    int32_t thread_idx
   ):
     iterator_({ref.data(), ref.stride()}, thread_idx, 4) {
 
@@ -383,9 +383,9 @@ public:
 template <
   typename Shape_,
   typename Element_,
-  int AdvanceRank,
+  int32_t AdvanceRank,
   typename ThreadMap_,
-  int Alignment
+  int32_t Alignment
 >
 class RegularTileIterator2dThreadTile<Shape_, Element_, layout::ColumnMajorInterleaved<4>, AdvanceRank, ThreadMap_, Alignment> {
 public:
@@ -393,9 +393,9 @@ public:
   using Shape = Shape_;
   using Element = Element_;
   using Layout = layout::ColumnMajorInterleaved<4>;
-  static constexpr int kAdvanceRank = AdvanceRank;
+  static constexpr int32_t kAdvanceRank = AdvanceRank;
   using ThreadMap = ThreadMap_;
-  static constexpr int kAlignment = Alignment;
+  static constexpr int32_t kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -431,7 +431,7 @@ public:
   CUTLASS_DEVICE
   RegularTileIterator2dThreadTile(
     TensorRef const &ref, 
-    int thread_idx
+    int32_t thread_idx
   ):
     iterator_({ref.data(), ref.stride()}, thread_idx, 4) {
 

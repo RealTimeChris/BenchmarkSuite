@@ -90,13 +90,13 @@ enum class FpEncoding
 
 #if (CUTLASS_CXX17_OR_LATER)
 template<uint32_t NumExpBits, uint32_t NumMantissaBits>
-constexpr int exponent_bias_cxx17() {
+constexpr int32_t exponent_bias_cxx17() {
   if CUTLASS_CONSTEXPR_IF_CXX17 (NumExpBits == 0) {
     static_assert(NumMantissaBits <= static_cast<uint32_t>(cutlass::platform::numeric_limits<int32_t>::max()));
-    return -1 * static_cast<int>(NumMantissaBits);
+    return -1 * static_cast<int32_t>(NumMantissaBits);
   }
   else {
-    return static_cast<int>((1 << (NumExpBits - 1))) - 1;
+    return static_cast<int32_t>((1 << (NumExpBits - 1))) - 1;
   }
 
   CUTLASS_GCC_UNREACHABLE;
@@ -105,7 +105,7 @@ constexpr int exponent_bias_cxx17() {
 
 namespace impl {
 template<uint32_t NumExpBitsMinusOne>
-constexpr int shift_num_bits_expression_cxx11() {
+constexpr int32_t shift_num_bits_expression_cxx11() {
 #if (CUTLASS_CXX17_OR_LATER)
   static_assert(NumExpBitsMinusOne <= 31u);
 #endif
@@ -113,37 +113,37 @@ constexpr int shift_num_bits_expression_cxx11() {
 }
 
 template<uint32_t NumExpBitsMinusOne>
-constexpr int inner_shift_expression_cxx11() {
-  return static_cast<int>((1u << shift_num_bits_expression_cxx11<NumExpBitsMinusOne>()) - 1u);
+constexpr int32_t inner_shift_expression_cxx11() {
+  return static_cast<int32_t>((1u << shift_num_bits_expression_cxx11<NumExpBitsMinusOne>()) - 1u);
 }
 
 } // namespace impl
 
 // C++11 equivalent of exponent_bias_cxx17()
 template<uint32_t NumExpBits, uint32_t NumMantissaBits>
-constexpr int exponent_bias_cxx11() {
+constexpr int32_t exponent_bias_cxx11() {
 #if (CUTLASS_CXX17_OR_LATER)
   return exponent_bias_cxx17<NumExpBits, NumMantissaBits>();
 #else
   return (NumExpBits == 0) ?
-    -1 * static_cast<int>(NumMantissaBits) : impl::inner_shift_expression_cxx11<NumExpBits - 1u>();
+    -1 * static_cast<int32_t>(NumMantissaBits) : impl::inner_shift_expression_cxx11<NumExpBits - 1u>();
 #endif
 }
 
 // C++11 equivalent of maximum_exponent_cxx17()
 template<uint32_t NumExpBits, uint32_t NumMantissaBits, NanInfEncoding NaNEncoding>
-constexpr int maximum_exponent_cxx11() {
+constexpr int32_t maximum_exponent_cxx11() {
   return
     ((NumExpBits == 0) ?
       (0 - exponent_bias_cxx11<NumExpBits, NumMantissaBits>()) :
       ((NaNEncoding == NanInfEncoding::IEEE_754) ?
-        ((static_cast<int>((1 << NumExpBits)) - 2) - exponent_bias_cxx11<NumExpBits, NumMantissaBits>()) :
+        ((static_cast<int32_t>((1 << NumExpBits)) - 2) - exponent_bias_cxx11<NumExpBits, NumMantissaBits>()) :
         ((NaNEncoding == NanInfEncoding::CANONICAL_ONLY) ?
           ((NumMantissaBits > 0) ?
-            static_cast<int>((1 << NumExpBits)) - 1 - exponent_bias_cxx11<NumExpBits, NumMantissaBits>() :
-            static_cast<int>((1 << NumExpBits)) - 2 - exponent_bias_cxx11<NumExpBits, NumMantissaBits>()
+            static_cast<int32_t>((1 << NumExpBits)) - 1 - exponent_bias_cxx11<NumExpBits, NumMantissaBits>() :
+            static_cast<int32_t>((1 << NumExpBits)) - 2 - exponent_bias_cxx11<NumExpBits, NumMantissaBits>()
           ) :
-          (static_cast<int>((1 << NumExpBits)) - 1 - exponent_bias_cxx11<NumExpBits, NumMantissaBits>())
+          (static_cast<int32_t>((1 << NumExpBits)) - 1 - exponent_bias_cxx11<NumExpBits, NumMantissaBits>())
         )
       )
     );
@@ -151,8 +151,8 @@ constexpr int maximum_exponent_cxx11() {
 
 #if (CUTLASS_CXX17_OR_LATER)
 template<uint32_t NumExpBits, uint32_t NumMantissaBits, NanInfEncoding NaNEncoding>
-constexpr int maximum_exponent_cxx17() {
-  constexpr int exp_bias = exponent_bias_cxx17<NumExpBits, NumMantissaBits>();
+constexpr int32_t maximum_exponent_cxx17() {
+  constexpr int32_t exp_bias = exponent_bias_cxx17<NumExpBits, NumMantissaBits>();
   if CUTLASS_CONSTEXPR_IF_CXX17 (NumExpBits == 0) {
     // If no exponent bits, return fixed hidden bias
     return 0 - exp_bias;
@@ -161,7 +161,7 @@ constexpr int maximum_exponent_cxx17() {
     if CUTLASS_CONSTEXPR_IF_CXX17 (NaNEncoding == NanInfEncoding::IEEE_754) {
       // We have IEEE style NaN and infinity
       // All values when exp_bits = 1...1s are used.
-      int max_exp_bits = static_cast<int>((1 << NumExpBits)) - 2;
+      int32_t max_exp_bits = static_cast<int32_t>((1 << NumExpBits)) - 2;
       return max_exp_bits - exp_bias;
     }
     else {
@@ -172,16 +172,16 @@ constexpr int maximum_exponent_cxx17() {
       // bit, then maximum exponent is 1...1 - exponent_bias
       if CUTLASS_CONSTEXPR_IF_CXX17 (NaNEncoding == NanInfEncoding::CANONICAL_ONLY) {
         if CUTLASS_CONSTEXPR_IF_CXX17 (NumMantissaBits > 0) {
-          int max_exp_bits = static_cast<int>((1 << NumExpBits)) - 1;
+          int32_t max_exp_bits = static_cast<int32_t>((1 << NumExpBits)) - 1;
           return max_exp_bits - exp_bias;
         }
         else { // no mantissa bits
-          int max_exp_bits = static_cast<int>((1 << NumExpBits)) - 2;
+          int32_t max_exp_bits = static_cast<int32_t>((1 << NumExpBits)) - 2;
           return max_exp_bits - exp_bias;
         }
       }
       // No NaNs or infs
-      int max_exp_bits = static_cast<int>((1 << NumExpBits)) - 1;
+      int32_t max_exp_bits = static_cast<int32_t>((1 << NumExpBits)) - 1;
       return max_exp_bits - exp_bias;
     }
   }
@@ -191,7 +191,7 @@ constexpr int maximum_exponent_cxx17() {
 #endif
 
 template<uint32_t NumExpBits, uint32_t NumMantissaBits>
-constexpr int minimum_exponent_cxx11() {
+constexpr int32_t minimum_exponent_cxx11() {
   return
     ((NumExpBits == 0) ?
       0 - exponent_bias_cxx11<NumExpBits, NumMantissaBits>() :
@@ -203,8 +203,8 @@ constexpr int minimum_exponent_cxx11() {
 
 #if (CUTLASS_CXX17_OR_LATER)
 template<uint32_t NumExpBits, uint32_t NumMantissaBits>
-constexpr int minimum_exponent_cxx17() {
-  constexpr int exp_bias = exponent_bias_cxx17<NumExpBits, NumMantissaBits>();
+constexpr int32_t minimum_exponent_cxx17() {
+  constexpr int32_t exp_bias = exponent_bias_cxx17<NumExpBits, NumMantissaBits>();
   constexpr bool has_denorm = (NumMantissaBits > 0);
   if CUTLASS_CONSTEXPR_IF_CXX17 (NumExpBits == 0) {
     // If no exponent bits, return fixed hidden bias
@@ -288,9 +288,9 @@ constexpr Storage max_pos_normal_value_cxx17() {
     // if there are no exponent bits, we don't have normal values.
     return Storage(0);
   }
-  constexpr int exp_bias = exponent_bias_cxx17<NumExpBits, NumMantissaBits>();
-  constexpr int max_exp = maximum_exponent_cxx17<NumExpBits, NumMantissaBits, NaNEncoding>();
-  constexpr int exp = max_exp + exp_bias;
+  constexpr int32_t exp_bias = exponent_bias_cxx17<NumExpBits, NumMantissaBits>();
+  constexpr int32_t max_exp = maximum_exponent_cxx17<NumExpBits, NumMantissaBits, NaNEncoding>();
+  constexpr int32_t exp = max_exp + exp_bias;
 
   // place the exponent
   Storage val = static_cast<Storage>(exp) << NumMantissaBits;
@@ -429,9 +429,9 @@ public:
 
   // Note: All biased/real exponent calculation are done with signed ints
   // Use unsigned to represent data not exponent.
-  static constexpr int EXP_BIAS = detail::exponent_bias_cxx11<NUM_EXPONENT_BITS, NUM_MANTISSA_BITS>();
-  static constexpr int MAX_EXP = detail::maximum_exponent_cxx11<NUM_EXPONENT_BITS, NUM_MANTISSA_BITS, NAN_TYPE>();
-  static constexpr int MIN_EXP = detail::minimum_exponent_cxx11<NUM_EXPONENT_BITS, NUM_MANTISSA_BITS>();
+  static constexpr int32_t EXP_BIAS = detail::exponent_bias_cxx11<NUM_EXPONENT_BITS, NUM_MANTISSA_BITS>();
+  static constexpr int32_t MAX_EXP = detail::maximum_exponent_cxx11<NUM_EXPONENT_BITS, NUM_MANTISSA_BITS, NAN_TYPE>();
+  static constexpr int32_t MIN_EXP = detail::minimum_exponent_cxx11<NUM_EXPONENT_BITS, NUM_MANTISSA_BITS>();
 
   // Floating-point Limits
   static constexpr Storage MAX_POS_NORMAL_VAL = detail::max_pos_normal_value_cxx11<Storage, NUM_EXPONENT_BITS, NUM_MANTISSA_BITS, NAN_TYPE>();
@@ -537,16 +537,16 @@ public:
   }
 
   CUTLASS_HOST_DEVICE
-  static CUTLASS_CONSTEXPR_IF_CXX17 int exponent(Storage flt) {
+  static CUTLASS_CONSTEXPR_IF_CXX17 int32_t exponent(Storage flt) {
     if CUTLASS_CONSTEXPR_IF_CXX17 (NUM_EXPONENT_BITS == ZERO) {
-      return -int(EXP_BIAS);
+      return -int32_t(EXP_BIAS);
     }
 
     if (HAS_DENORM && (exponent_bits(flt) == ZERO)) {
-      return 1 - int(EXP_BIAS);
+      return 1 - int32_t(EXP_BIAS);
     }
 
-    return int(flt >> (NUM_MANTISSA_BITS) & EXPONENT_MASK) - int(EXP_BIAS);
+    return int32_t(flt >> (NUM_MANTISSA_BITS) & EXPONENT_MASK) - int32_t(EXP_BIAS);
   }
 
   CUTLASS_HOST_DEVICE
@@ -637,7 +637,7 @@ private:
   // Current assumption round to nearest even
   template<class T>
   CUTLASS_HOST_DEVICE
-  static CUTLASS_CONSTEXPR_IF_CXX17 T round_significand(T src, int shift_amount) {
+  static CUTLASS_CONSTEXPR_IF_CXX17 T round_significand(T src, int32_t shift_amount) {
     T dst_mantissa = src;
     // If the shift amount is positive, we are shifting left
     // Type with less mantissa bits is rounded to a type with more
@@ -650,10 +650,10 @@ private:
       // we need to round the destination number up for all
       // lower precision bits removed.
       // We assume round-to-nearest-even here.
-      int pos_shift_amount = -shift_amount;
+      int32_t pos_shift_amount = -shift_amount;
 
       // Too large shift return all zeros to prevent undefined behavior for shift.
-      if (pos_shift_amount >= static_cast<int>(sizeof(T) * 8)) {
+      if (pos_shift_amount >= static_cast<int32_t>(sizeof(T) * 8)) {
         return T(0);
       }
 
@@ -700,7 +700,7 @@ private:
 
     LargeStorage src_exp_bits = src_encoding.exponent_bits(src_val);
     LargeStorage src_significand = src_encoding.significand(src_val);
-    int src_exp = src_encoding.exponent(src_val);
+    int32_t src_exp = src_encoding.exponent(src_val);
 
     // The source value is 0. Return a signed 0.
     if (src_exp_bits == LargeStorage(0) && src_significand == LargeStorage(0)) {
@@ -741,8 +741,8 @@ private:
         src_sign_bit, src_exp_bits, src_exp, src_significand);
 #endif
 
-      int shift_amount = int(DstFpBits::NUM_MANTISSA_BITS) - int(SrcFpBits::NUM_MANTISSA_BITS);
-      int dst_exponent = src_exp + DstFpBits::EXP_BIAS;
+      int32_t shift_amount = int32_t(DstFpBits::NUM_MANTISSA_BITS) - int32_t(SrcFpBits::NUM_MANTISSA_BITS);
+      int32_t dst_exponent = src_exp + DstFpBits::EXP_BIAS;
       LargeStorage dst_mantissa = src_significand;
 
       // if we have an M0 case, the floating point number is always denormal.
@@ -810,8 +810,8 @@ private:
         src_sign_bit, src_exp, src_significand, DstFpBits::MIN_EXP);
 #endif
 
-      int exp_diff = src_exp - DstFpBits::MIN_EXP;
-      int shift_amount = int(DstFpBits::NUM_MANTISSA_BITS) - int(SrcFpBits::NUM_MANTISSA_BITS);
+      int32_t exp_diff = src_exp - DstFpBits::MIN_EXP;
+      int32_t shift_amount = int32_t(DstFpBits::NUM_MANTISSA_BITS) - int32_t(SrcFpBits::NUM_MANTISSA_BITS);
       shift_amount += exp_diff;
       LargeStorage dst_mantissa = src_significand;
       dst_mantissa = round_significand(dst_mantissa, shift_amount);
@@ -1015,7 +1015,7 @@ struct float_exmy_base
     return detail::copy_bits<FP32BitRepresentation::Storage, float>(fp32_bits);
   }
 
-  // Note: Only consider float/int conversions in this Base class
+  // Note: Only consider float/int32_t conversions in this Base class
   // Types inheriting from this class should define their own constructors and
   // specialized type conversions
 
@@ -1027,7 +1027,7 @@ struct float_exmy_base
 
   // Integer conversion
   CUTLASS_HOST_DEVICE
-  explicit float_exmy_base<T, Derived>(int x) {
+  explicit float_exmy_base<T, Derived>(int32_t x) {
     storage = static_cast<Derived*>(this)->convert_from_float(float(x)).storage;
   }
 
@@ -1042,10 +1042,10 @@ struct float_exmy_base
     return static_cast<const Derived*>(this)->convert_to_float(*this);
   }
 
-  /// Converts to int
+  /// Converts to int32_t
   CUTLASS_HOST_DEVICE
-  explicit operator int() const {
-    return int(static_cast<const Derived*>(this)->convert_to_float(*this));
+  explicit operator int32_t() const {
+    return int32_t(static_cast<const Derived*>(this)->convert_to_float(*this));
   }
 
   /// Accesses raw internal state
@@ -1068,20 +1068,20 @@ struct float_exmy_base
 
   /// Returns the biased exponent
   CUTLASS_HOST_DEVICE
-  int exponent_biased() const {
-    return int(BitRepresentation::exponent_bits(storage));
+  int32_t exponent_biased() const {
+    return int32_t(BitRepresentation::exponent_bits(storage));
   }
 
   /// Returns the unbiased exponent
   CUTLASS_HOST_DEVICE
-  int exponent() const {
-    return int(BitRepresentation::exponent(storage));
+  int32_t exponent() const {
+    return int32_t(BitRepresentation::exponent(storage));
   }
 
   /// Returns the mantissa
   CUTLASS_HOST_DEVICE
-  int mantissa() const {
-    return int(BitRepresentation::mantissa_bits(storage));
+  int32_t mantissa() const {
+    return int32_t(BitRepresentation::mantissa_bits(storage));
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1191,7 +1191,7 @@ struct float_exmy_base
   }
 
   CUTLASS_HOST_DEVICE
-  friend float_exmy_base operator++(float_exmy_base &lhs, int) {
+  friend float_exmy_base operator++(float_exmy_base &lhs, int32_t) {
     float_exmy_base ret(lhs);
     float tmp(lhs);
     tmp++;
@@ -1200,7 +1200,7 @@ struct float_exmy_base
   }
 
   CUTLASS_HOST_DEVICE
-  friend float_exmy_base operator--(float_exmy_base &lhs, int) {
+  friend float_exmy_base operator--(float_exmy_base &lhs, int32_t) {
     float_exmy_base ret(lhs);
     float tmp(lhs);
     tmp--;

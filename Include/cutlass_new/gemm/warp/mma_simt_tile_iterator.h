@@ -71,9 +71,9 @@ template <
   /// Shape of the warp in units of thread (concept: MmaSimtPolicy)
   typename Policy_,
   /// Number of partitions along K dimension - used in sliced-K
-  int PartitionsK = 1,
+  int32_t PartitionsK = 1,
   /// Group Size along kPartition - used in sliced-K
-  int PartitionGroupSize = 1
+  int32_t PartitionGroupSize = 1
 >
 class MmaSimtTileIterator;
 
@@ -91,9 +91,9 @@ template <
   /// Shape of the warp in units of thread (concept: MmaSimtPolicy)
   typename Policy_,
   /// Number of partitions along K dimension - used in sliced-K
-  int PartitionsK,
+  int32_t PartitionsK,
   /// Group Size along kPartition - used in sliced-K
-  int PartitionGroupSize
+  int32_t PartitionGroupSize
 >
 class MmaSimtTileIterator<Shape_, Operand::kA, Element_, layout::ColumnMajor, Policy_, PartitionsK, PartitionGroupSize> {
 public:
@@ -170,7 +170,7 @@ public:
   CUTLASS_HOST_DEVICE
   MmaSimtTileIterator(
     TensorRef ref, 
-    int lane_id
+    int32_t lane_id
   ) {
 
     // compute offset based on thread ID and lane layout
@@ -230,9 +230,9 @@ public:
       reinterpret_cast<Array<Element, Policy::LaneMmaShape::kM> *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int k = 0; k < Iterations::kColumn; ++k) {
+    for (int32_t k = 0; k < Iterations::kColumn; ++k) {
       CUTLASS_PRAGMA_UNROLL
-      for (int m = 0; m < Iterations::kRow; ++m) {
+      for (int32_t m = 0; m < Iterations::kRow; ++m) {
 
         // This logic has been replaced with calls to inline PTX to guarantee vectorization.
         #if 0
@@ -259,9 +259,9 @@ public:
       reinterpret_cast<Array<Element, Policy::LaneMmaShape::kM> *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int k = 0; k < Iterations::kN; ++k) {
+    for (int32_t k = 0; k < Iterations::kN; ++k) {
       CUTLASS_PRAGMA_UNROLL
-      for (int m = 0; m < Iterations::kM; ++m) {
+      for (int32_t m = 0; m < Iterations::kM; ++m) {
         *(ref_.data() + ref_.offset(m * Policy::WarpShape::kM, k) + pointer_offset / Policy::LaneMmaShape::kM) = 
           src_ptr[m + k * Iterations::kM];
       }
@@ -282,7 +282,7 @@ public:
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
     // no operation here
   }
 };
@@ -301,9 +301,9 @@ template <
   /// Shape of the warp in units of thread (concept: MmaSimtPolicy)
   typename Policy_,
   /// Number of partitions along K dimension - used in sliced-K
-  int PartitionsK,
+  int32_t PartitionsK,
   /// Group Size along kPartition - used in sliced-K
-  int PartitionGroupSize
+  int32_t PartitionGroupSize
 >
 class MmaSimtTileIterator<Shape_, Operand::kA, Element_, layout::RowMajor, Policy_, PartitionsK, PartitionGroupSize> {
 public:
@@ -389,7 +389,7 @@ public:
   CUTLASS_HOST_DEVICE
   MmaSimtTileIterator(
     TensorRef ref, 
-    int lane_id
+    int32_t lane_id
   ) : extent_(Shape::kRow, Shape::kColumn), divisible_ (true) {
 
     // compute offset based on thread ID and lane layout
@@ -411,7 +411,7 @@ public:
   MmaSimtTileIterator(
     TensorRef ref,
     TensorCoord extent, 
-    int lane_id
+    int32_t lane_id
   ) : extent_(extent), divisible_ (false) {
 
     // compute offset based on thread ID and lane layout
@@ -473,17 +473,17 @@ public:
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
 
     CUTLASS_PRAGMA_UNROLL
-    for (int k = 0; k < Iterations::kColumn; ++k) {
+    for (int32_t k = 0; k < Iterations::kColumn; ++k) {
       CUTLASS_PRAGMA_UNROLL
-      for (int m = 0; m < Iterations::kRow; ++m) {
+      for (int32_t m = 0; m < Iterations::kRow; ++m) {
         CUTLASS_PRAGMA_UNROLL
-        for (int i = 0; i < Policy::LaneMmaShape::kM; i++) {
+        for (int32_t i = 0; i < Policy::LaneMmaShape::kM; i++) {
           
           MatrixCoord offset(m * Policy::WarpShape::kRow * Policy::LaneMmaShape::kM + i, k);
             
           MatrixCoord access_coord = origin_ + offset;
 
-          int frag_idx = m * Policy::LaneMmaShape::kM + i + k * Iterations::kRow;
+          int32_t frag_idx = m * Policy::LaneMmaShape::kM + i + k * Iterations::kRow;
 
           if (divisible_ || 
               (access_coord.row() < extent_.row() && access_coord.column() < extent_.column())) {
@@ -508,11 +508,11 @@ public:
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) const {
 
     CUTLASS_PRAGMA_UNROLL
-    for (int k = 0; k < Iterations::kColumn; ++k) {
+    for (int32_t k = 0; k < Iterations::kColumn; ++k) {
       CUTLASS_PRAGMA_UNROLL
-      for (int m = 0; m < Iterations::kRow; ++m) {
+      for (int32_t m = 0; m < Iterations::kRow; ++m) {
         CUTLASS_PRAGMA_UNROLL
-        for (int i = 0; i < Policy::LaneMmaShape::kM; i++) {
+        for (int32_t i = 0; i < Policy::LaneMmaShape::kM; i++) {
 
           *(ref_.data() + ref_.offset(m * Policy::WarpShape::kM * Policy::LaneMmaShape::kM + i, k) + pointer_offset) = 
             frag[m * Policy::LaneMmaShape::kM + i + k * Iterations::kM];
@@ -535,7 +535,7 @@ public:
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
     // no operation here
   }
 };
@@ -554,9 +554,9 @@ template <
   /// Shape of the warp in units of thread (concept: MmaSimtPolicy)
   typename Policy_,
   /// Number of partitions along K dimension
-  int PartitionsK,
+  int32_t PartitionsK,
   /// Group Size along kPartition - used in sliced-K
-  int PartitionGroupSize
+  int32_t PartitionGroupSize
 >
 class MmaSimtTileIterator<Shape_, Operand::kB, Element_, layout::RowMajor, Policy_, PartitionsK, PartitionGroupSize> {
 public:
@@ -633,7 +633,7 @@ public:
   CUTLASS_HOST_DEVICE
   MmaSimtTileIterator(
     TensorRef ref, 
-    int lane_id
+    int32_t lane_id
   ) {
 
     // compute offset based on thread ID and lane layout
@@ -693,9 +693,9 @@ public:
       reinterpret_cast<Array<Element, Policy::LaneMmaShape::kN> *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int k = 0; k < Iterations::kRow; ++k) {
+    for (int32_t k = 0; k < Iterations::kRow; ++k) {
       CUTLASS_PRAGMA_UNROLL
-      for (int n = 0; n < Iterations::kColumn; ++n) {
+      for (int32_t n = 0; n < Iterations::kColumn; ++n) {
 
         #if 0
         dst_ptr[n + k * Iterations::kColumn] = 
@@ -722,9 +722,9 @@ public:
       reinterpret_cast<Array<Element, Policy::LaneMmaShape::kN> *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int k = 0; k < Iterations::kM; ++k) {
+    for (int32_t k = 0; k < Iterations::kM; ++k) {
       CUTLASS_PRAGMA_UNROLL
-      for (int n = 0; n < Iterations::kN; ++n) {
+      for (int32_t n = 0; n < Iterations::kN; ++n) {
         *(ref_.data() + ref_.offset({k, n * Policy::WarpShape::kN}) + pointer_offset / Policy::LaneMmaShape::kN) = 
           src_ptr[n + k * Iterations::kN];
       }
@@ -745,7 +745,7 @@ public:
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
     // no operation here
   }
 };
@@ -764,9 +764,9 @@ template <
   /// Shape of the warp in units of thread (concept: MmaSimtPolicy)
   typename Policy_,
   /// Number of partitions along K dimension
-  int PartitionsK,
+  int32_t PartitionsK,
   /// Group Size along kPartition - used in sliced-K
-  int PartitionGroupSize
+  int32_t PartitionGroupSize
 >
 class MmaSimtTileIterator<Shape_, Operand::kB, Element_, layout::ColumnMajor, Policy_, PartitionsK, PartitionGroupSize> {
 public:
@@ -852,7 +852,7 @@ public:
   CUTLASS_HOST_DEVICE
   MmaSimtTileIterator(
     TensorRef ref, 
-    int lane_id
+    int32_t lane_id
   ): extent_(Shape::kRow, Shape::kColumn), divisible_(true) {
 
     // compute offset based on thread ID and lane layout
@@ -873,7 +873,7 @@ public:
   MmaSimtTileIterator(
     TensorRef ref,
     TensorCoord extent, 
-    int lane_id
+    int32_t lane_id
   ): extent_(extent), divisible_(false) {
 
     // compute offset based on thread ID and lane layout
@@ -934,17 +934,17 @@ public:
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
 
     CUTLASS_PRAGMA_UNROLL
-    for (int k = 0; k < Iterations::kRow; ++k) {
+    for (int32_t k = 0; k < Iterations::kRow; ++k) {
       CUTLASS_PRAGMA_UNROLL
-      for (int n = 0; n < Iterations::kColumn; ++n) {
+      for (int32_t n = 0; n < Iterations::kColumn; ++n) {
         CUTLASS_PRAGMA_UNROLL
-        for (int i = 0; i < Policy::LaneMmaShape::kN; ++i) {
+        for (int32_t i = 0; i < Policy::LaneMmaShape::kN; ++i) {
 
           MatrixCoord offset(k, n * Policy::WarpShape::kColumn * Policy::LaneMmaShape::kN + i);
             
           MatrixCoord access_coord = origin_ + offset;
 
-          int frag_idx = n * Policy::LaneMmaShape::kN + i + k * Iterations::kColumn;
+          int32_t frag_idx = n * Policy::LaneMmaShape::kN + i + k * Iterations::kColumn;
 
           if (divisible_ || 
               (access_coord.row() < extent_.row() && access_coord.column() < extent_.column())) {
@@ -973,9 +973,9 @@ public:
       reinterpret_cast<Array<Element, Policy::LaneMmaShape::kN> *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int k = 0; k < Iterations::kM; ++k) {
+    for (int32_t k = 0; k < Iterations::kM; ++k) {
       CUTLASS_PRAGMA_UNROLL
-      for (int n = 0; n < Iterations::kN; ++n) {
+      for (int32_t n = 0; n < Iterations::kN; ++n) {
         *(ref_.data() + ref_.offset({k, n * Policy::WarpShape::kN}) + pointer_offset / Policy::LaneMmaShape::kN) = 
           src_ptr[n + k * Iterations::kN];
       }
@@ -996,7 +996,7 @@ public:
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
     // no operation here
   }
 };
@@ -1098,7 +1098,7 @@ public:
   CUTLASS_HOST_DEVICE
   MmaSimtTileIterator(
     TensorRef const &ref, 
-    int lane_id
+    int32_t lane_id
   ):
     ref_(ref) {
 
@@ -1154,16 +1154,16 @@ public:
     Index pointer_offset) const {               ///< linear offset (in units of Element) when loading
 
     CUTLASS_PRAGMA_UNROLL
-    for (int mma_n = 0; mma_n < Iterations::kN; ++mma_n) {
+    for (int32_t mma_n = 0; mma_n < Iterations::kN; ++mma_n) {
       CUTLASS_PRAGMA_UNROLL
-      for (int n = 0; n < Policy::LaneMmaShape::kN; ++n) {
+      for (int32_t n = 0; n < Policy::LaneMmaShape::kN; ++n) {
 
         Array<Element, Policy::LaneMmaShape::kM> const *src_ptr = 
           reinterpret_cast<Array<Element, Policy::LaneMmaShape::kM> const *>(
             ref_.data() + pointer_offset + ref_.offset({0, mma_n * Delta::kN + n}));
 
         CUTLASS_PRAGMA_UNROLL
-        for (int mma_m = 0; mma_m < Iterations::kM; ++mma_m) {
+        for (int32_t mma_m = 0; mma_m < Iterations::kM; ++mma_m) {
 
           Array<Element, Policy::LaneMmaShape::kM> *dst_ptr = 
             reinterpret_cast<Array<Element, Policy::LaneMmaShape::kM> *>(&frag) + 
@@ -1186,16 +1186,16 @@ public:
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) const {
     
     CUTLASS_PRAGMA_UNROLL
-    for (int mma_n = 0; mma_n < Iterations::kColumn; ++mma_n) {
+    for (int32_t mma_n = 0; mma_n < Iterations::kColumn; ++mma_n) {
       CUTLASS_PRAGMA_UNROLL
-      for (int n = 0; n < Policy::LaneMmaShape::kN; ++n) {
+      for (int32_t n = 0; n < Policy::LaneMmaShape::kN; ++n) {
 
         Array<Element, Policy::LaneMmaShape::kM> *dst_ptr= 
           reinterpret_cast<Array<Element, Policy::LaneMmaShape::kM> *>(
             ref_.data() + pointer_offset + ref_.offset({0, mma_n * Delta::kColumn + n}));
 
         CUTLASS_PRAGMA_UNROLL
-        for (int mma_m = 0; mma_m < Iterations::kRow; ++mma_m) {
+        for (int32_t mma_m = 0; mma_m < Iterations::kRow; ++mma_m) {
 
           Array<Element, Policy::LaneMmaShape::kM> const *src_ptr = 
             reinterpret_cast<Array<Element, Policy::LaneMmaShape::kM> const *>(&frag) + 
@@ -1310,7 +1310,7 @@ public:
   CUTLASS_HOST_DEVICE
   MmaSimtTileIterator(
     TensorRef const &ref, 
-    int lane_id
+    int32_t lane_id
   ):
     ref_(ref) {
 
@@ -1366,16 +1366,16 @@ public:
     Index pointer_offset) const {               ///< linear offset (in units of Element) when loading
 
     CUTLASS_PRAGMA_UNROLL
-    for (int mma_m = 0; mma_m < Iterations::kRow; ++mma_m) {
+    for (int32_t mma_m = 0; mma_m < Iterations::kRow; ++mma_m) {
       CUTLASS_PRAGMA_UNROLL
-      for (int m = 0; m < Policy::LaneMmaShape::kM; ++m) {
+      for (int32_t m = 0; m < Policy::LaneMmaShape::kM; ++m) {
 
         Array<Element, Policy::LaneMmaShape::kN> const *src_ptr = 
           reinterpret_cast<Array<Element, Policy::LaneMmaShape::kN> const *>(
             ref_.data() + pointer_offset + ref_.offset({mma_m * Delta::kRow + m, 0}));
 
         CUTLASS_PRAGMA_UNROLL
-        for (int mma_n = 0; mma_n < Iterations::kColumn; ++mma_n) {
+        for (int32_t mma_n = 0; mma_n < Iterations::kColumn; ++mma_n) {
 
           Array<Element, Policy::LaneMmaShape::kN> *dst_ptr = 
             reinterpret_cast<Array<Element, Policy::LaneMmaShape::kN> *>(&frag) + 
@@ -1398,16 +1398,16 @@ public:
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) const {
     
     CUTLASS_PRAGMA_UNROLL
-    for (int mma_m = 0; mma_m < Iterations::kRow; ++mma_m) {
+    for (int32_t mma_m = 0; mma_m < Iterations::kRow; ++mma_m) {
       CUTLASS_PRAGMA_UNROLL
-      for (int m = 0; m < Policy::LaneMmaShape::kM; ++m) {
+      for (int32_t m = 0; m < Policy::LaneMmaShape::kM; ++m) {
 
         Array<Element, Policy::LaneMmaShape::kN> *dst_ptr = 
           reinterpret_cast<Array<Element, Policy::LaneMmaShape::kN> *>(
             ref_.data() + pointer_offset + ref_.offset({mma_m * Delta::kRow + m, 0}));
 
         CUTLASS_PRAGMA_UNROLL
-        for (int mma_n = 0; mma_n < Iterations::kColumn; ++mma_n) {
+        for (int32_t mma_n = 0; mma_n < Iterations::kColumn; ++mma_n) {
 
           Array<Element, Policy::LaneMmaShape::kN> const *src_ptr = 
             reinterpret_cast<Array<Element, Policy::LaneMmaShape::kN> const *>(&frag) + 
@@ -1442,9 +1442,9 @@ template <
   /// Shape of the warp in units of thread (concept: MmaSimtPolicy)
   typename Policy_,
   /// Number of partitions along K dimension
-  int PartitionsK,
+  int32_t PartitionsK,
   /// Number of KGroups per kPartition
-  int PartitionGroupSize
+  int32_t PartitionGroupSize
 >
 class MmaSimtTileIterator<Shape_, Operand::kA, Element_, layout::ColumnMajorInterleaved<4>, Policy_, PartitionsK, PartitionGroupSize> {
 public:
@@ -1477,13 +1477,13 @@ public:
   using TensorCoord = typename TensorRef::TensorCoord;
 
   /// Iterleave factor
-  static constexpr int kInterleave = 4;
+  static constexpr int32_t kInterleave = 4;
   
   /// Number of partitions along K dimension
-  static constexpr int kPartitionsK = PartitionsK;
+  static constexpr int32_t kPartitionsK = PartitionsK;
 
   /// Number of KGroups per kPartition
-  static constexpr int kGroupPerTile = PartitionGroupSize / Shape::kColumn;
+  static constexpr int32_t kGroupPerTile = PartitionGroupSize / Shape::kColumn;
 
   //
   // Derived quantities
@@ -1521,7 +1521,7 @@ private:
   cutlass::TensorRef<Array<Element, Policy::LaneMmaShape::kMK>, layout::ColumnMajorInterleaved<4>> ref_;
 
   /// group index within tile
-  int k_group_idx_;
+  int32_t k_group_idx_;
 
 public:
   CUTLASS_HOST_DEVICE
@@ -1531,7 +1531,7 @@ public:
   CUTLASS_HOST_DEVICE
   MmaSimtTileIterator(
     TensorRef ref, 
-    int lane_id
+    int32_t lane_id
   ) {
 
     // compute offset based on thread ID and lane layout
@@ -1600,10 +1600,10 @@ public:
       reinterpret_cast<Array<Element, Policy::LaneMmaShape::kMK> *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int k = 0; k < Iterations::kColumn; ++k) {
+    for (int32_t k = 0; k < Iterations::kColumn; ++k) {
 
       CUTLASS_PRAGMA_UNROLL
-      for (int m = 0; m < Iterations::kRow; ++m) {
+      for (int32_t m = 0; m < Iterations::kRow; ++m) {
 
         dst_ptr[m + k * Iterations::kRow] = 
           *((ref_.data() + ref_.offset({m * Policy::WarpShape::kRow / kInterleave, 
@@ -1626,9 +1626,9 @@ public:
       reinterpret_cast<Array<Element, Policy::LaneMmaShape::kMK > *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int k = 0; k < Iterations::kN; ++k) {
+    for (int32_t k = 0; k < Iterations::kN; ++k) {
       CUTLASS_PRAGMA_UNROLL
-      for (int m = 0; m < Iterations::kM; ++m) {
+      for (int32_t m = 0; m < Iterations::kM; ++m) {
         *(ref_.data() + ref_.offset(m * Policy::WarpShape::kM, k) + pointer_offset / Policy::LaneMmaShape::kM) = 
           src_ptr[m + k * Iterations::kM];
       }
@@ -1649,7 +1649,7 @@ public:
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
     // no operation here
   }
 };
@@ -1668,9 +1668,9 @@ template <
   /// Shape of the warp in units of thread (concept: MmaSimtPolicy)
   typename Policy_,
   /// Number of partitions along K dimension
-  int PartitionsK,
+  int32_t PartitionsK,
   /// Number of KGroups per kPartition
-  int PartitionGroupSize
+  int32_t PartitionGroupSize
 >
 class MmaSimtTileIterator<Shape_, Operand::kB, Element_, layout::RowMajorInterleaved<4>, Policy_, PartitionsK, PartitionGroupSize> {
 public:
@@ -1703,13 +1703,13 @@ public:
   using TensorCoord = typename TensorRef::TensorCoord;
 
   /// Interleave factor
-  static constexpr int kInterleave = 4;
+  static constexpr int32_t kInterleave = 4;
 
   /// Number of partitions along K dimension
-  static constexpr int kPartitionsK = PartitionsK;
+  static constexpr int32_t kPartitionsK = PartitionsK;
 
   /// Number of KGroups per kPartition
-  static constexpr int kGroupPerTile = PartitionGroupSize / Shape::kRow;
+  static constexpr int32_t kGroupPerTile = PartitionGroupSize / Shape::kRow;
 
   //
   // Derived quantities
@@ -1748,7 +1748,7 @@ private:
   cutlass::TensorRef<Array<Element, Policy::LaneMmaShape::kKN>, layout::RowMajorInterleaved<4>> ref_;
 
   /// group index within tile
-  int k_group_idx_;
+  int32_t k_group_idx_;
 
 public:
   
@@ -1760,7 +1760,7 @@ public:
   CUTLASS_HOST_DEVICE
   MmaSimtTileIterator(
     TensorRef ref, 
-    int lane_id
+    int32_t lane_id
   ) {
 
     // compute offset based on thread ID and lane layout
@@ -1831,9 +1831,9 @@ public:
       reinterpret_cast<Array<Element, Policy::LaneMmaShape::kKN> *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int k = 0; k < Iterations::kRow; ++k) {
+    for (int32_t k = 0; k < Iterations::kRow; ++k) {
       CUTLASS_PRAGMA_UNROLL
-      for (int n = 0; n < Iterations::kColumn; ++n) {
+      for (int32_t n = 0; n < Iterations::kColumn; ++n) {
         dst_ptr[n + k * Iterations::kColumn] = 
           *(ref_.data() + ref_.offset({k * Policy::LaneMmaShape::kK, 
                 n * Policy::WarpShape::kColumn / kInterleave}) + pointer_offset / Policy::LaneMmaShape::kN);
@@ -1855,9 +1855,9 @@ public:
       reinterpret_cast<Array<Element, Policy::LaneMmaShape::kN> *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int k = 0; k < Iterations::kM; ++k) {
+    for (int32_t k = 0; k < Iterations::kM; ++k) {
       CUTLASS_PRAGMA_UNROLL
-      for (int n = 0; n < Iterations::kN; ++n) {
+      for (int32_t n = 0; n < Iterations::kN; ++n) {
         *(ref_.data() + ref_.offset({k, n * Policy::WarpShape::kN}) + pointer_offset / Policy::LaneMmaShape::kN) = 
           src_ptr[n + k * Iterations::kN];
       }
@@ -1878,7 +1878,7 @@ public:
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
     // no operation here
   }
 };

@@ -95,7 +95,7 @@ struct FastF32 {
 namespace detail {
 
   template<
-    int N,
+    int32_t N,
     FloatRoundStyle RoundBig = FloatRoundStyle::round_toward_zero,
     FloatRoundStyle RoundSmall = FloatRoundStyle::round_half_ulp_truncate
   >
@@ -118,8 +118,8 @@ namespace detail {
     using ConverterFragment = Array<tfloat32_t, 2>;
 
     /// Index in fargments for the big and small part
-    static constexpr int kBigIndex = 0;
-    static constexpr int kSmallIndex = 1;
+    static constexpr int32_t kBigIndex = 0;
+    static constexpr int32_t kSmallIndex = 1;
 
     CUTLASS_HOST_DEVICE
     void operator()(SourceFragment const &source,
@@ -130,7 +130,7 @@ namespace detail {
       ConverterFragment result_;
 
       CUTLASS_PRAGMA_UNROLL
-      for (int i = 0; i < N; ++i) {
+      for (int32_t i = 0; i < N; ++i) {
         // convert source to result fragment
         result_ = convert_(source[i]);
 
@@ -163,7 +163,7 @@ template <
   /// Policy describing warp-level MmaTensorOp (concept: MmaTensorOp policy)
   typename Policy_,
   /// Number of partitions along K dimension
-  int PartitionsK_ = 1,
+  int32_t PartitionsK_ = 1,
   /// Store the accumulators in row major or column major.  Row major is used
   /// when output layout is interleaved.
   bool AccumulatorsInRowMajor = false,
@@ -187,7 +187,7 @@ template <
   /// Policy describing warp-level MmaTensorOp (concept: MmaTensorOp policy)
   typename Policy_,
   /// Number of partitions along K dimension
-  int PartitionsK_,
+  int32_t PartitionsK_,
   /// Store the accumulators in row major or column major.  Row major is used
   /// when output layout is interleaved.
   bool AccumulatorsInRowMajor,
@@ -248,10 +248,10 @@ public:
   static constexpr ComplexTransform kTransformB = ComplexTransform::kNone;
 
   /// Number of threads participating in warp-level matrix product
-  static constexpr int kThreadCount = 32;
+  static constexpr int32_t kThreadCount = 32;
 
   /// Number of partitions along K dimension
-  static constexpr int kPartitionsK = PartitionsK_;
+  static constexpr int32_t kPartitionsK = PartitionsK_;
 
   /// Tune F32 to TF32 big small conversion for float operation
   /// Different combination of big small conversin can cause different tradeoff
@@ -314,8 +314,8 @@ public:
       Array<typename ArchMmaOperator::ElementB, FragmentB::kElements>;
 
   /// Index in fargments for the big and small part
-  static constexpr int kBigIndex = 0;
-  static constexpr int kSmallIndex = 1;
+  static constexpr int32_t kBigIndex = 0;
+  static constexpr int32_t kSmallIndex = 1;
 
   /// Iterates over the C operand in memory
   using IteratorC = MmaTensorOpAccumulatorTileIterator<
@@ -394,13 +394,13 @@ public:
 
       // Serpentine visitation order maximizing reuse of Ra
       CUTLASS_PRAGMA_UNROLL
-      for (int m = 0; m < MmaIterations::kRow; ++m) {
+      for (int32_t m = 0; m < MmaIterations::kRow; ++m) {
 
         CUTLASS_PRAGMA_UNROLL
-        for (int n = 0; n < MmaIterations::kColumn; ++n) {
+        for (int32_t n = 0; n < MmaIterations::kColumn; ++n) {
 
           // This allows to reuse of Rb when at serpentine turns
-          int n_serpentine = ((m % 2) ? (MmaIterations::kColumn - 1 - n) : n);
+          int32_t n_serpentine = ((m % 2) ? (MmaIterations::kColumn - 1 - n) : n);
 
           if (AccumulatorsInRowMajor) {  // matrix B is reordered
             mma(

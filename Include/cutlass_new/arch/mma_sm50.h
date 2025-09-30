@@ -115,18 +115,18 @@ template <
   /// Layout of C matrix
   typename LayoutC
 >
-struct Mma<gemm::GemmShape<1, 1, 1>, 1, int, LayoutA, int, LayoutB, int, LayoutC, OpMultiplyAdd> {
+struct Mma<gemm::GemmShape<1, 1, 1>, 1, int32_t, LayoutA, int32_t, LayoutB, int32_t, LayoutC, OpMultiplyAdd> {
 
   using Shape = gemm::GemmShape<1, 1, 1>;
   using Operator = OpMultiplyAdd;
-  using ElementC = int;
+  using ElementC = int32_t;
 
   CUTLASS_HOST_DEVICE
   void operator()(
-    Array<int, 1> &d,
-    Array<int, 1> const &a,
-    Array<int, 1> const &b,
-    Array<int, 1> const &c
+    Array<int32_t, 1> &d,
+    Array<int32_t, 1> const &a,
+    Array<int32_t, 1> const &b,
+    Array<int32_t, 1> const &c
   ) {
 
     d[tag<0>{}] = a[tag<0>{}] * b[tag<0>{}] + c[tag<0>{}];

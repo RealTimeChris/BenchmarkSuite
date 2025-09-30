@@ -45,7 +45,6 @@
 #include "cutlass_new/gemm/gemm.h"
 
 #include "cutlass_new/epilogue/thread/linear_combination.h"
-#include "cutlass_new/epilogue/thread/linear_combination_clamp.h"
 #include "cutlass_new/epilogue/thread/linear_combination_relu.h"
 #include "cutlass_new/epilogue/thread/linear_combination_gelu.h"
 #include "cutlass_new/epilogue/thread/linear_combination_sigmoid.h"
@@ -78,9 +77,9 @@ namespace threadblock {
 template <
   typename Shape_,
   typename WarpMmaTensorOp_,
-  int PartitionsK,
+  int32_t PartitionsK,
   typename OutputOp_,
-  int ElementsPerAccess,
+  int32_t ElementsPerAccess,
   bool ScatterD = false,
   typename PermuteDLayout = layout::NoPermute
 >
@@ -88,9 +87,9 @@ struct DefaultEpilogueWmmaTensorOp {
 
   using Shape = Shape_;
   using WarpMmaTensorOp = WarpMmaTensorOp_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static constexpr int32_t kPartitionsK = PartitionsK;
   using OutputOp = OutputOp_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
+  static constexpr int32_t kElementsPerAccess = ElementsPerAccess;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using LayoutC = typename WarpMmaTensorOp::LayoutC;

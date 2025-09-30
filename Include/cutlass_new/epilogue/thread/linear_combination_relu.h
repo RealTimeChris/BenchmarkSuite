@@ -68,7 +68,7 @@ constexpr bool LinearCombinationReluIsHeavy() {
 ///
 template <
   typename ElementOutput_,                             ///< Data type used to load and store tensors
-  int Count,                                           ///< Number of elements computed per operation
+  int32_t Count,                                           ///< Number of elements computed per operation
                                                        ///< Usually it is 128/sizeof_bits<ElementOutput_>,
                                                        ///< but we use 64 or 32 sometimes when there are not enough data to store
   typename ElementAccumulator_ = ElementOutput_,       ///< Accumulator data type
@@ -83,7 +83,7 @@ public:
   using ElementAccumulator = ElementAccumulator_;
   using ElementCompute = ElementCompute_;
 
-  static constexpr int kCount = Count;
+  static constexpr int32_t kCount = Count;
   static const ScaleType::Kind kScale = Scale;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
@@ -172,7 +172,7 @@ public:
 
   /// Functionally required for serial reduction in the epilogue
   CUTLASS_HOST_DEVICE
-  void set_k_partition(int k_partition, int k_partition_count) {
+  void set_k_partition(int32_t k_partition, int32_t k_partition_count) {
     if (k_partition) {
       beta_ = ElementCompute(1);
     }
@@ -298,24 +298,24 @@ public:
 ///
 /// D = alpha * accumulator + beta * source + uniform
 ///
-/// Special handling for int types
+/// Special handling for int32_t types
 
 template <
   typename ElementOutput_,                             ///< Data type used to load and store tensors
-  int Count,                                           ///< Number of elements computed per operation
+  int32_t Count,                                           ///< Number of elements computed per operation
   ScaleType::Kind Scale,                               ///< Control Alpha and Beta scaling
   FloatRoundStyle Round
 >
-class LinearCombinationRelu <ElementOutput_, Count, int, float, Scale, Round> {
+class LinearCombinationRelu <ElementOutput_, Count, int32_t, float, Scale, Round> {
 public:
 
   using ElementOutput = ElementOutput_;
-  using ElementAccumulator = int;
+  using ElementAccumulator = int32_t;
   using ElementCompute = float;
 
   static constexpr bool kIsHeavy = detail::LinearCombinationReluIsHeavy();
 
-  static constexpr int kCount = Count;
+  static constexpr int32_t kCount = Count;
   static const ScaleType::Kind kScale = Scale;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
@@ -402,7 +402,7 @@ public:
 
   /// Functionally required for serial reduction in the epilogue
   CUTLASS_HOST_DEVICE
-  void set_k_partition(int k_partition, int k_partition_count) {
+  void set_k_partition(int32_t k_partition, int32_t k_partition_count) {
     if (k_partition) {
       beta_ = ElementCompute(1);
     }
@@ -451,12 +451,12 @@ public:
       // Convert floats back to INT
       FragmentAccumulator scaled_accumulator;
 
-      NumericArrayConverter<int, ElementCompute, kCount, Round> compute_converter;
+      NumericArrayConverter<int32_t, ElementCompute, kCount, Round> compute_converter;
 
       scaled_accumulator = compute_converter(intermediate);
 
       // Convert to destination numeric type
-      NumericArrayConverter<ElementOutput, int, kCount, Round>
+      NumericArrayConverter<ElementOutput, int32_t, kCount, Round>
           destination_converter;
 
       return destination_converter(scaled_accumulator);
@@ -496,12 +496,12 @@ public:
       // Convert floats back to INT
       FragmentAccumulator scaled_accumulator;
 
-      NumericArrayConverter<int, ElementCompute, kCount, Round> compute_converter;
+      NumericArrayConverter<int32_t, ElementCompute, kCount, Round> compute_converter;
 
       scaled_accumulator = compute_converter(intermediate);
 
       // Convert to destination numeric type
-      NumericArrayConverter<ElementOutput, int, kCount, Round>
+      NumericArrayConverter<ElementOutput, int32_t, kCount, Round>
           destination_converter;
 
       return destination_converter(scaled_accumulator);
@@ -544,12 +544,12 @@ public:
       // Convert floats back to INT
       FragmentAccumulator scaled_accumulator;
 
-      NumericArrayConverter<int, ElementCompute, kCount, Round> compute_converter;
+      NumericArrayConverter<int32_t, ElementCompute, kCount, Round> compute_converter;
 
       scaled_accumulator = compute_converter(intermediate);
 
       // Convert to destination numeric type
-      NumericArrayConverter<ElementOutput, int, kCount, Round>
+      NumericArrayConverter<ElementOutput, int32_t, kCount, Round>
           destination_converter;
 
       return destination_converter(scaled_accumulator);

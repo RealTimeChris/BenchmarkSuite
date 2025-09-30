@@ -311,7 +311,7 @@ struct NumericConverter<int8_t, cutlass::half_t, FloatRoundStyle::round_to_neare
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-template<int Bits, FloatRoundStyle Round>
+template<int32_t Bits, FloatRoundStyle Round>
 struct NumericConverter<integer_subbyte<Bits, /* Signed = */ true>, float, Round> {
 private:
   static constexpr bool result_is_signed = true;
@@ -323,10 +323,10 @@ public:
 
   CUTLASS_HOST_DEVICE static result_type
   convert(source_type const& src) {
-    using middle_type = int;
+    using middle_type = int32_t;
     static_assert(8 * sizeof(middle_type) > Bits, "This conversion "
       "requires that integer_subbyte have fewer representation bits "
-      "than the number of bits in int.");
+      "than the number of bits in int32_t.");
 
     auto middle = NumericConverter<middle_type, source_type, Round>::convert(src);
     return NumericConverter<result_type, middle_type, Round>::convert(middle);
@@ -338,7 +338,7 @@ public:
   }
 };
 
-template<int Bits, FloatRoundStyle Round>
+template<int32_t Bits, FloatRoundStyle Round>
 struct NumericConverter<integer_subbyte<Bits, /* Signed = */ false>, float, Round> {
 private:
   static constexpr bool result_is_signed = false;
@@ -353,7 +353,7 @@ public:
     using middle_type = unsigned;
     static_assert(8 * sizeof(middle_type) > Bits, "This conversion "
       "requires that integer_subbyte have fewer representation bits "
-      "than the number of bits in unsigned int.");
+      "than the number of bits in uint32_t.");
 
     auto middle = NumericConverter<middle_type, source_type, Round>::convert(src);
     return NumericConverter<result_type, middle_type, Round>::convert(middle);
@@ -456,7 +456,7 @@ struct NumericConverter<cutlass::half_t, float, FloatRoundStyle::round_toward_ze
     unsigned const& s = reinterpret_cast<unsigned const &>(flt);
     uint16_t sign = uint16_t((s >> 16) & 0x8000);
     int32_t exp = int32_t((s >> 23) & 0xff) - 127;
-    int mantissa = s & 0x7fffff;
+    int32_t mantissa = s & 0x7fffff;
     uint16_t u = 0;
 
     if ((s & 0x7fffffff) == 0) {
@@ -481,7 +481,7 @@ struct NumericConverter<cutlass::half_t, float, FloatRoundStyle::round_toward_ze
       u = uint16_t(u | (mantissa >> 13));
     } else {
       // normal single-precision to subnormal cutlass::half_t-precision representation
-      int rshift = (-14 - exp);
+      int32_t rshift = (-14 - exp);
       if (rshift < 32) {
         mantissa |= (1 << 23);
         mantissa = (mantissa >> rshift);
@@ -843,7 +843,7 @@ struct NumericConverterClamp<cutlass::half_t, S> {
 template <
   typename T,
   typename S,
-  int N,
+  int32_t N,
   FloatRoundStyle Round = FloatRoundStyle::round_to_nearest,
   typename Transform = cutlass::transform::thread::UnaryTransform::Identity
 >
@@ -864,7 +864,7 @@ struct NumericArrayConverter {
     NumericConverter<T, S, Round> convert_;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       if (platform::is_same<Transform, cutlass::transform::thread::UnaryTransform::Identity>::value) {
         result[i] = convert_(s[i]);
       } else { // conjugate
@@ -883,7 +883,7 @@ struct NumericArrayConverter {
 
 template <
   typename T,
-  int N,
+  int32_t N,
   FloatRoundStyle Round,
   typename Transform
 >
@@ -903,7 +903,7 @@ struct NumericArrayConverter<T, T, N, Round, Transform> {
       return source;
     } else {
       result_type result;
-      for (int i = 0; i < N; ++i) {
+      for (int32_t i = 0; i < N; ++i) {
         result[i] = conj(static_cast<typename source_type::Element>(source[i]));
       }
       return result;
@@ -987,7 +987,7 @@ struct NumericArrayConverter<float, cutlass::half_t, 2, Round> {
 
 /// Partial specialization for Array<half> <= Array<float>
 template <
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<cutlass::half_t, float, N, Round> {
@@ -1008,7 +1008,7 @@ struct NumericArrayConverter<cutlass::half_t, float, N, Round> {
     Array<float, 2> const *source_ptr = reinterpret_cast<Array<float, 2> const *>(&source);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = convert_vector_(source_ptr[i]);
     }
 
@@ -1028,7 +1028,7 @@ struct NumericArrayConverter<cutlass::half_t, float, N, Round> {
 
 /// Partial specialization for Array<half> <= Array<float>
 template <
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<float, cutlass::half_t, N, Round> {
@@ -1049,7 +1049,7 @@ struct NumericArrayConverter<float, cutlass::half_t, N, Round> {
     Array<cutlass::half_t, 2> const *source_ptr = reinterpret_cast<Array<cutlass::half_t, 2> const *>(&source);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = convert_vector_(source_ptr[i]);
     }
 
@@ -1125,7 +1125,7 @@ struct NumericArrayConverter<cutlass::bfloat16_t, float, 2, FloatRoundStyle::rou
 
 /// Partial specialization for Array<cutlass::bfloat16_t> <= Array<float>
 template <
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<cutlass::bfloat16_t, float, N, Round> {
@@ -1146,7 +1146,7 @@ struct NumericArrayConverter<cutlass::bfloat16_t, float, N, Round> {
     Array<float, 2> const *source_ptr = reinterpret_cast<Array<float, 2> const *>(&source);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = convert_vector_(source_ptr[i]);
     }
 
@@ -1172,19 +1172,19 @@ struct NumericArrayConverter<cutlass::bfloat16_t, float, N, Round> {
     ((__CUDACC_VER_MAJOR__ > 10) ||                     \
      ((__CUDACC_VER_MAJOR__ >= 10) && (__CUDACC_VER_MINOR__ >= 2)))
 
-/// Partial specialization for Array<int8_t, 1> <= Array<int, 1>
+/// Partial specialization for Array<int8_t, 1> <= Array<int32_t, 1>
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<int8_t, int, 1, Round> {
+struct NumericArrayConverter<int8_t, int32_t, 1, Round> {
 
   using result_type = Array<int8_t, 1>;
-  using source_type = Array<int, 1>;
+  using source_type = Array<int32_t, 1>;
   static constexpr FloatRoundStyle round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
-    NumericConverter<int8_t, int, Round> convert_element_;
+    NumericConverter<int8_t, int32_t, Round> convert_element_;
 
     result_type result;
 
@@ -1199,14 +1199,14 @@ struct NumericArrayConverter<int8_t, int, 1, Round> {
   }
 };
 
-/// Partial specialization for Array<int8_t, 2> <= Array<int, 2>
+/// Partial specialization for Array<int8_t, 2> <= Array<int32_t, 2>
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<int8_t, int, 2, Round> {
+struct NumericArrayConverter<int8_t, int32_t, 2, Round> {
 
   using result_type = Array<int8_t, 2>;
-  using source_type = Array<int, 2>;
+  using source_type = Array<int32_t, 2>;
   static constexpr FloatRoundStyle round_style = Round;
 
   CUTLASS_HOST_DEVICE
@@ -1228,14 +1228,14 @@ struct NumericArrayConverter<int8_t, int, 2, Round> {
   }
 };
 
-/// Partial specialization for Array<int8_t, 4> <= Array<int, 4>
+/// Partial specialization for Array<int8_t, 4> <= Array<int32_t, 4>
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<int8_t, int, 4, Round> {
+struct NumericArrayConverter<int8_t, int32_t, 4, Round> {
 
   using result_type = Array<int8_t, 4>;
-  using source_type = Array<int, 4>;
+  using source_type = Array<int32_t, 4>;
   static constexpr FloatRoundStyle round_style = Round;
 
   CUTLASS_HOST_DEVICE
@@ -1259,30 +1259,30 @@ struct NumericArrayConverter<int8_t, int, 4, Round> {
   }
 };
 
-/// Partial specialization for Array<int8_t> <= Array<int>
+/// Partial specialization for Array<int8_t> <= Array<int32_t>
 template <
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<int8_t, int, N, Round> {
+struct NumericArrayConverter<int8_t, int32_t, N, Round> {
   static_assert(!(N % 4), "N must be multiple of 4.");
 
   using result_type = Array<int8_t, N>;
-  using source_type = Array<int, N>;
+  using source_type = Array<int32_t, N>;
   static constexpr FloatRoundStyle round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
 
-    NumericArrayConverter<int8_t, int, 4, Round> convert_vector_;
+    NumericArrayConverter<int8_t, int32_t, 4, Round> convert_vector_;
 
     result_type result;
 
     Array<int8_t, 4> *result_ptr = reinterpret_cast<Array<int8_t, 4> *>(&result);
-    Array<int, 4> const *source_ptr = reinterpret_cast<Array<int, 4> const *>(&source);
+    Array<int32_t, 4> const *source_ptr = reinterpret_cast<Array<int32_t, 4> const *>(&source);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 4; ++i) {
+    for (int32_t i = 0; i < N / 4; ++i) {
       result_ptr[i] = convert_vector_(source_ptr[i]);
     }
 
@@ -1295,19 +1295,19 @@ struct NumericArrayConverter<int8_t, int, N, Round> {
   }
 };
 
-/// Partial specialization for Array<uint8_t, 1> <= Array<int, 1>
+/// Partial specialization for Array<uint8_t, 1> <= Array<int32_t, 1>
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<uint8_t, int, 1, Round> {
+struct NumericArrayConverter<uint8_t, int32_t, 1, Round> {
 
   using result_type = Array<uint8_t, 1>;
-  using source_type = Array<int, 1>;
+  using source_type = Array<int32_t, 1>;
   static constexpr FloatRoundStyle round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
-    NumericConverter<uint8_t, int, Round> convert_element_;
+    NumericConverter<uint8_t, int32_t, Round> convert_element_;
 
     result_type result;
 
@@ -1322,14 +1322,14 @@ struct NumericArrayConverter<uint8_t, int, 1, Round> {
   }
 };
 
-/// Partial specialization for Array<uint8_t, 2> <= Array<int, 2>
+/// Partial specialization for Array<uint8_t, 2> <= Array<int32_t, 2>
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<uint8_t, int, 2, Round> {
+struct NumericArrayConverter<uint8_t, int32_t, 2, Round> {
 
   using result_type = Array<uint8_t, 2>;
-  using source_type = Array<int, 2>;
+  using source_type = Array<int32_t, 2>;
   static constexpr FloatRoundStyle round_style = Round;
 
   CUTLASS_HOST_DEVICE
@@ -1351,14 +1351,14 @@ struct NumericArrayConverter<uint8_t, int, 2, Round> {
   }
 };
 
-/// Partial specialization for Array<uint8_t, 4> <= Array<int, 4>
+/// Partial specialization for Array<uint8_t, 4> <= Array<int32_t, 4>
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<uint8_t, int, 4, Round> {
+struct NumericArrayConverter<uint8_t, int32_t, 4, Round> {
 
   using result_type = Array<uint8_t, 4>;
-  using source_type = Array<int, 4>;
+  using source_type = Array<int32_t, 4>;
   static constexpr FloatRoundStyle round_style = Round;
 
   CUTLASS_HOST_DEVICE
@@ -1382,30 +1382,30 @@ struct NumericArrayConverter<uint8_t, int, 4, Round> {
   }
 };
 
-/// Partial specialization for Array<int8_t> <= Array<int>
+/// Partial specialization for Array<int8_t> <= Array<int32_t>
 template <
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<uint8_t, int, N, Round> {
+struct NumericArrayConverter<uint8_t, int32_t, N, Round> {
   static_assert(!(N % 4), "N must be multiple of 4.");
 
   using result_type = Array<uint8_t, N>;
-  using source_type = Array<int, N>;
+  using source_type = Array<int32_t, N>;
   static constexpr FloatRoundStyle round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
 
-    NumericArrayConverter<uint8_t, int, 4, Round> convert_vector_;
+    NumericArrayConverter<uint8_t, int32_t, 4, Round> convert_vector_;
 
     result_type result;
 
     Array<uint8_t, 4> *result_ptr = reinterpret_cast<Array<uint8_t, 4> *>(&result);
-    Array<int, 4> const *source_ptr = reinterpret_cast<Array<int, 4> const *>(&source);
+    Array<int32_t, 4> const *source_ptr = reinterpret_cast<Array<int32_t, 4> const *>(&source);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 4; ++i) {
+    for (int32_t i = 0; i < N / 4; ++i) {
       result_ptr[i] = convert_vector_(source_ptr[i]);
     }
 
@@ -1461,7 +1461,7 @@ struct NumericArrayConverter<float, cutlass::float_e4m3_t, 2, Round> {
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 2; ++i) {
+    for (int32_t i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -1505,7 +1505,7 @@ struct NumericArrayConverter<float_e4m3_t, float, 2, Round> {
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 2; ++i) {
+    for (int32_t i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -1554,7 +1554,7 @@ struct NumericArrayConverter<float, cutlass::float_e5m2_t, 2, Round> {
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 2; ++i) {
+    for (int32_t i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -1598,7 +1598,7 @@ struct NumericArrayConverter<float_e5m2_t, float, 2, Round> {
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 2; ++i) {
+    for (int32_t i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -1649,7 +1649,7 @@ struct NumericArrayConverter<cutlass::half_t, cutlass::float_e4m3_t, 2, Round> {
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 2; ++i) {
+    for (int32_t i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -1693,7 +1693,7 @@ struct NumericArrayConverter<float_e4m3_t, cutlass::half_t, 2, Round> {
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 2; ++i) {
+    for (int32_t i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -1738,7 +1738,7 @@ struct NumericArrayConverter<cutlass::half_t, cutlass::float_e5m2_t, 2, Round> {
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 2; ++i) {
+    for (int32_t i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -1782,7 +1782,7 @@ struct NumericArrayConverter<float_e5m2_t, cutlass::half_t, 2, Round> {
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 2; ++i) {
+    for (int32_t i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -1833,7 +1833,7 @@ struct NumericArrayConverter<cutlass::bfloat16_t, cutlass::float_e4m3_t, 2, Roun
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 2; ++i) {
+    for (int32_t i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -1879,7 +1879,7 @@ struct NumericArrayConverter<float_e4m3_t, cutlass::bfloat16_t, 2, Round> {
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 2; ++i) {
+    for (int32_t i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -1924,7 +1924,7 @@ struct NumericArrayConverter<cutlass::bfloat16_t, cutlass::float_e5m2_t, 2, Roun
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 2; ++i) {
+    for (int32_t i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -1970,7 +1970,7 @@ struct NumericArrayConverter<float_e5m2_t, cutlass::bfloat16_t, 2, Round> {
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 2; ++i) {
+    for (int32_t i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -2009,7 +2009,7 @@ struct NumericArrayConverterPacked4Element {
     result_type result;
     NumericConverter<T, S, Round> convert_;
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 4; ++i) {
+    for (int32_t i = 0; i < 4; ++i) {
       if (platform::is_same<Transform, cutlass::transform::thread::UnaryTransform::Identity>::value) {
         result[i] = convert_(s[i]);
       }
@@ -2068,7 +2068,7 @@ struct NumericArrayConverterPacked4Element<float, cutlass::float_e4m3_t, Round> 
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 4; ++i) {
+    for (int32_t i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -2116,7 +2116,7 @@ struct NumericArrayConverterPacked4Element<float_e4m3_t, float, Round> {
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 4; ++i) {
+    for (int32_t i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -2172,7 +2172,7 @@ struct NumericArrayConverterPacked4Element<float, float_ue4m3_t, Round> {
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 4; ++i) {
+    for (int32_t i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -2220,7 +2220,7 @@ struct NumericArrayConverterPacked4Element<float_ue4m3_t, float, Round> {
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 4; ++i) {
+    for (int32_t i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -2282,7 +2282,7 @@ struct NumericArrayConverterPacked4Element<float, float_ue8m0_t, Round> {
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 4; ++i) {
+    for (int32_t i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -2328,7 +2328,7 @@ struct NumericArrayConverterPacked4Element<float_ue8m0_t, float, FloatRoundStyle
     NumericConverter<result_element, source_element, FloatRoundStyle::round_toward_infinity> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 4; ++i) {
+    for (int32_t i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
     return result;
@@ -2372,7 +2372,7 @@ struct NumericArrayConverterPacked4Element<float_ue8m0_t, float, FloatRoundStyle
     NumericConverter<result_element, source_element, FloatRoundStyle::round_toward_zero> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 4; ++i) {
+    for (int32_t i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -2450,7 +2450,7 @@ struct NumericArrayConverterPacked4Element<cutlass::detail::float_e2m3_unpack8bi
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 4; ++i) {
+    for (int32_t i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -2505,7 +2505,7 @@ struct NumericArrayConverterPacked4Element<float, cutlass::detail::float_e2m3_un
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 4; ++i) {
+    for (int32_t i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -2559,7 +2559,7 @@ struct NumericArrayConverterPacked4Element<cutlass::detail::float_e3m2_unpack8bi
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 4; ++i) {
+    for (int32_t i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -2615,7 +2615,7 @@ struct NumericArrayConverterPacked4Element<float, cutlass::detail::float_e3m2_un
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 4; ++i) {
+    for (int32_t i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -2677,7 +2677,7 @@ struct NumericArrayConverterPacked4Element<float, cutlass::float_e5m2_t, Round> 
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 4; ++i) {
+    for (int32_t i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -2725,7 +2725,7 @@ struct NumericArrayConverterPacked4Element<float_e5m2_t, float, Round> {
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 4; ++i) {
+    for (int32_t i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -2776,7 +2776,7 @@ struct NumericArrayConverterPacked4Element<cutlass::half_t, cutlass::float_e4m3_
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 4; ++i) {
+    for (int32_t i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -2825,7 +2825,7 @@ struct NumericArrayConverterPacked4Element<float_e4m3_t, cutlass::half_t, Round>
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 4; ++i) {
+    for (int32_t i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -2876,7 +2876,7 @@ struct NumericArrayConverterPacked4Element<cutlass::half_t, cutlass::float_e5m2_
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 4; ++i) {
+    for (int32_t i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -2925,7 +2925,7 @@ struct NumericArrayConverterPacked4Element<float_e5m2_t, cutlass::half_t, Round>
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 4; ++i) {
+    for (int32_t i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -2979,7 +2979,7 @@ struct NumericArrayConverterPacked4Element<cutlass::bfloat16_t, cutlass::float_e
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 4; ++i) {
+    for (int32_t i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -3025,7 +3025,7 @@ struct NumericArrayConverterPacked4Element<float_e4m3_t, cutlass::bfloat16_t, Ro
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 4; ++i) {
+    for (int32_t i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -3079,7 +3079,7 @@ struct NumericArrayConverterPacked4Element<cutlass::bfloat16_t, cutlass::float_e
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 4; ++i) {
+    for (int32_t i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -3125,7 +3125,7 @@ struct NumericArrayConverterPacked4Element<float_e5m2_t, cutlass::bfloat16_t, Ro
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 4; ++i) {
+    for (int32_t i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -3163,7 +3163,7 @@ struct NumericArrayConverterPacked4Element<float_e4m3_t, cutlass::float_e5m2_t, 
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 4; ++i) {
+    for (int32_t i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -3194,7 +3194,7 @@ struct NumericArrayConverterPacked4Element<float_e5m2_t, cutlass::float_e4m3_t, 
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 4; ++i) {
+    for (int32_t i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -3221,7 +3221,7 @@ struct NumericArrayConverterPacked4Element<float_e5m2_t, cutlass::float_e4m3_t, 
 template <
   typename T,
   typename S,
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct PackedNumericArrayConverter {
@@ -3247,15 +3247,15 @@ public:
     detail::NumericArrayConverterPacked4Element<result_element, source_element, Round> packed_converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 4; ++i) {
+    for (int32_t i = 0; i < N / 4; ++i) {
       packed_result[i] = packed_converter(packed_source[i]);
     }
 
     // Handle leftovers
     NumericConverter<result_element, source_element, Round> converter;
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N % 4; ++i) {
-      int idx = ((N / 4) * 4) + i;
+    for (int32_t i = 0; i < N % 4; ++i) {
+      int32_t idx = ((N / 4) * 4) + i;
       result[idx] = converter(source[idx]);
     }
 
@@ -3271,7 +3271,7 @@ public:
 /// Partial specialization for Array<T, N> <= Array<float_e4m3_t, N>
 template <
   typename T,
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<T, cutlass::float_e4m3_t, N, Round> :
@@ -3280,7 +3280,7 @@ struct NumericArrayConverter<T, cutlass::float_e4m3_t, N, Round> :
 /// Partial specialization for Array<T, N> <= Array<float_e5m2_t, N>
 template <
   typename T,
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<T, cutlass::float_e5m2_t, N, Round> :
@@ -3289,7 +3289,7 @@ struct NumericArrayConverter<T, cutlass::float_e5m2_t, N, Round> :
 /// Partial specialization for Array<float_e4m3_t, N> <= Array<S, N>
 template <
   typename S,
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<float_e4m3_t, S, N, Round> :
@@ -3298,7 +3298,7 @@ struct NumericArrayConverter<float_e4m3_t, S, N, Round> :
 /// Partial specialization for Array<float_e5m2_t, N> <= Array<S, N>
 template <
   typename S,
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<float_e5m2_t, S, N, Round> :
@@ -3306,7 +3306,7 @@ struct NumericArrayConverter<float_e5m2_t, S, N, Round> :
 
 /// Partial specialization for Array<float_e4m3_t, N> <= Array<float_e5m2_t, N>
 template <
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<float_e4m3_t, cutlass::float_e5m2_t, N, Round> :
@@ -3314,7 +3314,7 @@ struct NumericArrayConverter<float_e4m3_t, cutlass::float_e5m2_t, N, Round> :
 
 /// Partial specialization for Array<float_e5m2_t, N> <= Array<float_e4m3_t, N>
 template <
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<float_e5m2_t, cutlass::float_e4m3_t, N, Round> :
@@ -3322,7 +3322,7 @@ struct NumericArrayConverter<float_e5m2_t, cutlass::float_e4m3_t, N, Round> :
 
 /// Partial specialization for Array<float_e4m3_t, N> <= Array<float_e4m3_t, N>
 template <
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<float_e4m3_t, cutlass::float_e4m3_t, N, Round> :
@@ -3330,7 +3330,7 @@ struct NumericArrayConverter<float_e4m3_t, cutlass::float_e4m3_t, N, Round> :
 
 /// Partial specialization for Array<float_e5m2_t, N> <= Array<float_e5m2_t, N>
 template <
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<float_e5m2_t, cutlass::float_e5m2_t, N, Round> :
@@ -3373,7 +3373,7 @@ struct NumericArrayConverter<float, float_ue8m0_t, 2, Round> {
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 2; ++i) {
+    for (int32_t i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -3414,7 +3414,7 @@ struct NumericArrayConverter<float_ue8m0_t, float, 2, FloatRoundStyle::round_tow
     NumericConverter<result_element, source_element, FloatRoundStyle::round_toward_infinity> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 2; ++i) {
+    for (int32_t i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -3455,7 +3455,7 @@ struct NumericArrayConverter<float_ue8m0_t, float, 2, FloatRoundStyle::round_tow
     NumericConverter<result_element, source_element, FloatRoundStyle::round_toward_zero> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 2; ++i) {
+    for (int32_t i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -3494,7 +3494,7 @@ struct NumericArrayConverter<float_ue8m0_t, float, 2, Round> {
 /// Partial specialization for Array<T, N> <= Array<float_ue8m0_t, N>
 template <
   typename T,
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<T, float_ue8m0_t, N, Round> :
@@ -3540,7 +3540,7 @@ struct NumericArrayConverter<float, float_ue4m3_t, 2, Round> {
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 2; ++i) {
+    for (int32_t i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -3584,7 +3584,7 @@ struct NumericArrayConverter<float_ue4m3_t, float, 2, Round> {
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 2; ++i) {
+    for (int32_t i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -3601,7 +3601,7 @@ struct NumericArrayConverter<float_ue4m3_t, float, 2, Round> {
 /// Partial specialization for Array<float_ue8m0_t, N> <= Array<S, N>
 template <
   typename S,
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<float_ue8m0_t, S, N, Round> :
@@ -3609,7 +3609,7 @@ struct NumericArrayConverter<float_ue8m0_t, S, N, Round> :
 /// Partial specialization for Array<T, N> <= Array<float_ue4m3_t, N>
 template <
   typename T,
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<T, cutlass::float_ue4m3_t, N, Round> :
@@ -3618,7 +3618,7 @@ struct NumericArrayConverter<T, cutlass::float_ue4m3_t, N, Round> :
 // Partial specialization for Array<float_ue4m3_t, N> <= Array<S, N>
 template <
   typename S,
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<cutlass::float_ue4m3_t, S, N, Round> :
@@ -3628,7 +3628,7 @@ struct NumericArrayConverter<cutlass::float_ue4m3_t, S, N, Round> :
 /// Partial specialization for Array<T, N> <= Array<float_e2m3_unpack8bits_t, N>
 template <
   typename T,
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<T, cutlass::detail::float_e2m3_unpack8bits_t, N, Round> :
@@ -3638,7 +3638,7 @@ struct NumericArrayConverter<T, cutlass::detail::float_e2m3_unpack8bits_t, N, Ro
 /// Partial specialization for Array<float_e2m3_unpack8bits_t, N> <= Array<S, N>
 template <
   typename S,
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<cutlass::detail::float_e2m3_unpack8bits_t, S, N, Round> :
@@ -3646,7 +3646,7 @@ struct NumericArrayConverter<cutlass::detail::float_e2m3_unpack8bits_t, S, N, Ro
 
 /// Partial specialization for Array<float_e2m3_unpack8bits_t, N> <= Array<float_e2m3_unpack8bits_t, N>
 template <
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<cutlass::detail::float_e2m3_unpack8bits_t, cutlass::detail::float_e2m3_unpack8bits_t, N, Round> :
@@ -3655,7 +3655,7 @@ struct NumericArrayConverter<cutlass::detail::float_e2m3_unpack8bits_t, cutlass:
 /// Partial specialization for Array<T, N> <= Array<float_e3m2_unpack8bits_t, N>
 template <
   typename T,
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<T, cutlass::detail::float_e3m2_unpack8bits_t, N, Round> :
@@ -3664,7 +3664,7 @@ struct NumericArrayConverter<T, cutlass::detail::float_e3m2_unpack8bits_t, N, Ro
 /// Partial specialization for Array<float_e3m2_unpack8bits_t, N> <= Array<S, N>
 template <
   typename S,
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<cutlass::detail::float_e3m2_unpack8bits_t, S, N, Round> :
@@ -3672,7 +3672,7 @@ struct NumericArrayConverter<cutlass::detail::float_e3m2_unpack8bits_t, S, N, Ro
 
 /// Partial specialization for Array<float_e3m2_unpack8bits_t, N> <= Array<float_e3m2_unpack8bits_t, N>
 template <
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<cutlass::detail::float_e3m2_unpack8bits_t, cutlass::detail::float_e3m2_unpack8bits_t, N, Round> :
@@ -3733,7 +3733,7 @@ struct NumericArrayConverter<float, cutlass::float_e2m1_t, 8, Round> {
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 8; ++i) {
+    for (int32_t i = 0; i < 8; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -3749,7 +3749,7 @@ struct NumericArrayConverter<float, cutlass::float_e2m1_t, 8, Round> {
 
 /// Partial specialization for Array<float> <= Array<float_e2m1_t>
 template <
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<float, cutlass::float_e2m1_t, N, Round> {
@@ -3770,7 +3770,7 @@ struct NumericArrayConverter<float, cutlass::float_e2m1_t, N, Round> {
     Array<float_e2m1_t, 8> const *source_ptr = reinterpret_cast<Array<float_e2m1_t, 8> const *>(&source);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 8; ++i) {
+    for (int32_t i = 0; i < N / 8; ++i) {
       result_ptr[i] = convert_vector_(source_ptr[i]);
     }
 
@@ -3819,7 +3819,7 @@ struct NumericArrayConverter<float_e2m1_t, float, 2, Round> {
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 2; ++i) {
+    for (int32_t i = 0; i < 2; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -3871,7 +3871,7 @@ struct NumericArrayConverter<float_e2m1_t, float, 8, Round> {
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 8; ++i) {
+    for (int32_t i = 0; i < 8; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -3918,7 +3918,7 @@ struct NumericArrayConverter<float_e2m1_t, float, 4, Round> {
     NumericConverter<result_element, source_element, Round> converter;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 4; ++i) {
+    for (int32_t i = 0; i < 4; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -3934,7 +3934,7 @@ struct NumericArrayConverter<float_e2m1_t, float, 4, Round> {
 
 /// Partial specialization for Array<float_e2m1_t> <= Array<float>
 template <
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<float_e2m1_t, float, N, Round> {
@@ -3955,7 +3955,7 @@ struct NumericArrayConverter<float_e2m1_t, float, N, Round> {
     Array<float, 8> const *source_ptr = reinterpret_cast<Array<float, 8> const *>(&source);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 8; ++i) {
+    for (int32_t i = 0; i < N / 8; ++i) {
       result_ptr[i] = convert_vector_(source_ptr[i]);
     }
 
@@ -4022,7 +4022,7 @@ struct NumericArrayConverter<uint8_t, float, 1, Round> {
 // To convert a FP32 to Int that has less than 32 bits, we need to convert it to int32 first.
 template <
   typename T,
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayFP32ToIntConverter {
@@ -4031,17 +4031,17 @@ struct NumericArrayFP32ToIntConverter {
   using source_type = Array<float, N>;
   static constexpr FloatRoundStyle round_style = Round;
 
-  static_assert(cutlass::platform::numeric_limits<T>::is_integer, "the dest type has to be int.");
+  static_assert(cutlass::platform::numeric_limits<T>::is_integer, "the dest type has to be int32_t.");
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
-    // Convert float to int
+    // Convert float to int32_t
     Array<int32_t, N> temporary;
 
     NumericArrayConverter<int32_t, float, N, Round> compute_converter;
     temporary = compute_converter(source);
 
-    // Convert to int to int8_t
+    // Convert to int32_t to int8_t
     NumericArrayConverter<T, int32_t, N, Round> destination_converter;
     return destination_converter(temporary);
   }
@@ -4054,7 +4054,7 @@ struct NumericArrayFP32ToIntConverter {
 
 
 template <
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<int8_t, float, N, Round> {
@@ -4075,7 +4075,7 @@ struct NumericArrayConverter<int8_t, float, N, Round> {
 };
 
 template <
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<uint8_t, float, N, Round> {
@@ -4096,7 +4096,7 @@ struct NumericArrayConverter<uint8_t, float, N, Round> {
 };
 
 template <
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<int4b_t, float, N, Round> {
@@ -4117,7 +4117,7 @@ struct NumericArrayConverter<int4b_t, float, N, Round> {
 };
 
 template <
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<uint4b_t, float, N, Round> {
@@ -4143,14 +4143,14 @@ struct NumericArrayConverter<uint4b_t, float, N, Round> {
     ((__CUDACC_VER_MAJOR__ > 10) ||                     \
      ((__CUDACC_VER_MAJOR__ >= 10) && (__CUDACC_VER_MINOR__ >= 2)))
 
-/// Partial specialization for Array<int4b_t, 8> <= Array<int, 8>
+/// Partial specialization for Array<int4b_t, 8> <= Array<int32_t, 8>
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<int4b_t, int, 8, Round> {
+struct NumericArrayConverter<int4b_t, int32_t, 8, Round> {
 
   using result_type = Array<int4b_t, 8>;
-  using source_type = Array<int, 8>;
+  using source_type = Array<int32_t, 8>;
   static constexpr FloatRoundStyle round_style = Round;
 
   CUTLASS_HOST_DEVICE
@@ -4178,30 +4178,30 @@ struct NumericArrayConverter<int4b_t, int, 8, Round> {
   }
 };
 
-/// Partial specialization for Array<int4b_t> <= Array<int>
+/// Partial specialization for Array<int4b_t> <= Array<int32_t>
 template <
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<int4b_t, int, N, Round> {
+struct NumericArrayConverter<int4b_t, int32_t, N, Round> {
   static_assert(!(N % 8), "N must be multiple of 8.");
 
   using result_type = Array<int4b_t, N>;
-  using source_type = Array<int, N>;
+  using source_type = Array<int32_t, N>;
   static constexpr FloatRoundStyle round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
 
-    NumericArrayConverter<int4b_t, int, 8, Round> convert_vector_;
+    NumericArrayConverter<int4b_t, int32_t, 8, Round> convert_vector_;
 
     result_type result;
 
     Array<int4b_t, 8> *result_ptr = reinterpret_cast<Array<int4b_t, 8> *>(&result);
-    Array<int, 8> const *source_ptr = reinterpret_cast<Array<int, 8> const *>(&source);
+    Array<int32_t, 8> const *source_ptr = reinterpret_cast<Array<int32_t, 8> const *>(&source);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 8; ++i) {
+    for (int32_t i = 0; i < N / 8; ++i) {
       result_ptr[i] = convert_vector_(source_ptr[i]);
     }
 
@@ -4214,14 +4214,14 @@ struct NumericArrayConverter<int4b_t, int, N, Round> {
   }
 };
 
-/// Partial specialization for Array<uint4b_t, 8> <= Array<int, 8>
+/// Partial specialization for Array<uint4b_t, 8> <= Array<int32_t, 8>
 template <
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<uint4b_t, int, 8, Round> {
+struct NumericArrayConverter<uint4b_t, int32_t, 8, Round> {
 
   using result_type = Array<uint4b_t, 8>;
-  using source_type = Array<int, 8>;
+  using source_type = Array<int32_t, 8>;
   static constexpr FloatRoundStyle round_style = Round;
 
   CUTLASS_HOST_DEVICE
@@ -4249,30 +4249,30 @@ struct NumericArrayConverter<uint4b_t, int, 8, Round> {
   }
 };
 
-/// Partial specialization for Array<int4b_t> <= Array<int>
+/// Partial specialization for Array<int4b_t> <= Array<int32_t>
 template <
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
-struct NumericArrayConverter<uint4b_t, int, N, Round> {
+struct NumericArrayConverter<uint4b_t, int32_t, N, Round> {
   static_assert(!(N % 8), "N must be multiple of 8.");
 
   using result_type = Array<uint4b_t, N>;
-  using source_type = Array<int, N>;
+  using source_type = Array<int32_t, N>;
   static constexpr FloatRoundStyle round_style = Round;
 
   CUTLASS_HOST_DEVICE
   static result_type convert(source_type const & source) {
 
-    NumericArrayConverter<uint4b_t, int, 8, Round> convert_vector_;
+    NumericArrayConverter<uint4b_t, int32_t, 8, Round> convert_vector_;
 
     result_type result;
 
     Array<uint4b_t, 8> *result_ptr = reinterpret_cast<Array<uint4b_t, 8> *>(&result);
-    Array<int, 8> const *source_ptr = reinterpret_cast<Array<int, 8> const *>(&source);
+    Array<int32_t, 8> const *source_ptr = reinterpret_cast<Array<int32_t, 8> const *>(&source);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 8; ++i) {
+    for (int32_t i = 0; i < N / 8; ++i) {
       result_ptr[i] = convert_vector_(source_ptr[i]);
     }
 
@@ -4299,7 +4299,7 @@ namespace detail {
   class VectorizedConverter {
   private:
     // Base case to handle remainder elements as scalars.
-    template <int Offset, size_t ParentWidth, typename ArrayConverter>
+    template <int32_t Offset, size_t ParentWidth, typename ArrayConverter>
     CUTLASS_DEVICE
     static void convert_helper(
       typename ArrayConverter::result_type& result,
@@ -4308,18 +4308,18 @@ namespace detail {
       using ElementRes = typename ArrayConverter::result_type::Element;
       using ElementSrc = typename ArrayConverter::source_type::Element;
       // If no more converters, handle the remaining elements as scalars.
-      constexpr int total_elements = ArrayConverter::result_type::kElements;
-      constexpr int remainder = total_elements - Offset;
+      constexpr int32_t total_elements = ArrayConverter::result_type::kElements;
+      constexpr int32_t remainder = total_elements - Offset;
       static_assert(remainder == (total_elements % ParentWidth), "Unexpected remainder.");
 
       typename ArrayConverter::ScalarConverter scalar_converter;
       CUTLASS_PRAGMA_UNROLL
-      for (int i = Offset; i < ArrayConverter::result_type::kElements; ++i) {
+      for (int32_t i = Offset; i < ArrayConverter::result_type::kElements; ++i) {
         result[i] = scalar_converter(ElementSrc(source[i]));
       }
     }
 
-    template <int Offset, size_t ParentWidth, typename ArrayConverter, typename ResultVectorArray, typename SourceVectorArray, typename... OtherVectorArrays>
+    template <int32_t Offset, size_t ParentWidth, typename ArrayConverter, typename ResultVectorArray, typename SourceVectorArray, typename... OtherVectorArrays>
     CUTLASS_DEVICE
     static void convert_helper(typename ArrayConverter::result_type& result, typename ArrayConverter::source_type const& source) {
       static_assert(sizeof...(OtherVectorArrays) % 2 == 0, "Vector converters must come in {dst, src} pairs");
@@ -4332,31 +4332,31 @@ namespace detail {
 
       static_assert(ParentWidth == 0 || ParentWidth > ResultVectorArray::kElements, "Vector arrays must be given in decreasing order of width");
 
-      constexpr int vector_width = ResultVectorArray::kElements;
+      constexpr int32_t vector_width = ResultVectorArray::kElements;
       static_assert(ispow2(vector_width), "Vector width must be a power of 2");
 
       using ElementRes = typename ArrayConverter::result_type::Element;
       using ElementSrc = typename ArrayConverter::source_type::Element;
 
-      constexpr int vector_bits_res = vector_width * cutlass::sizeof_bits<ElementRes>::value;
-      constexpr int vector_bits_src = vector_width * cutlass::sizeof_bits<ElementSrc>::value;
+      constexpr int32_t vector_bits_res = vector_width * cutlass::sizeof_bits<ElementRes>::value;
+      constexpr int32_t vector_bits_src = vector_width * cutlass::sizeof_bits<ElementSrc>::value;
 
       static_assert(vector_bits_res % 8 == 0, "Result vector type must be byte addressed.");
       static_assert(vector_bits_src % 8 == 0, "Source vector type must be byte addressed.");
 
-      constexpr int vector_offset = Offset / vector_width;
+      constexpr int32_t vector_offset = Offset / vector_width;
       ResultVectorArray* packed_result_vec = reinterpret_cast<ResultVectorArray*>(&result) + vector_offset;
       SourceVectorArray const* packed_source_vec = reinterpret_cast<SourceVectorArray const*>(&source) + vector_offset;
 
       // Convert the remaining elements as vectors.
-      constexpr int total_elements = ArrayConverter::result_type::kElements;
-      constexpr int groups_of_vec = (total_elements - Offset) / vector_width;
+      constexpr int32_t total_elements = ArrayConverter::result_type::kElements;
+      constexpr int32_t groups_of_vec = (total_elements - Offset) / vector_width;
       CUTLASS_PRAGMA_UNROLL
-      for (int i = 0; i < groups_of_vec; ++i) {
+      for (int32_t i = 0; i < groups_of_vec; ++i) {
         packed_result_vec[i] = ArrayConverter::template packed_convert<ResultVectorArray, SourceVectorArray>(packed_source_vec[i]);
       }
 
-      constexpr int new_offset = Offset + vector_width * groups_of_vec;
+      constexpr int32_t new_offset = Offset + vector_width * groups_of_vec;
       // Recurse to handle other vector converters, or the scalar base case.
       convert_helper<new_offset, ResultVectorArray::kElements, ArrayConverter, OtherVectorArrays...>(result, source);
     }
@@ -4379,7 +4379,7 @@ namespace detail {
 /// Partial specialization for Array<half_t, N> <= Array<float_e2m1_t, N>
 template <
   FloatRoundStyle Round,
-  int N
+  int32_t N
 >
 struct NumericArrayConverter<cutlass::half_t, cutlass::float_e2m1_t, N, Round> {
   using result_element = cutlass::half_t;
@@ -4463,9 +4463,9 @@ private:
     PackedResultType result;
     NumericConverter<result_element, source_element, Round> converter;
 
-    const int k_packed = PackedResultType::kElements;
+    const int32_t k_packed = PackedResultType::kElements;
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < k_packed; ++i) {
+    for (int32_t i = 0; i < k_packed; ++i) {
       result[i] = converter(source[i]);
     }
 
@@ -4495,7 +4495,7 @@ public:
 };
 
 /// Partial specialization for Array<cutlass::float_e4m3_t, N> <= Array<cutlass::int2b_t, N>
-template <FloatRoundStyle Round, int N>
+template <FloatRoundStyle Round, int32_t N>
 struct NumericArrayConverter<cutlass::float_e4m3_t, cutlass::int2b_t, N, Round> {
   using result_type = Array<cutlass::float_e4m3_t, N>;
   using source_type = Array<cutlass::int2b_t, N>;
@@ -4545,9 +4545,9 @@ private:
     // [0, 1, -2, -1] encoded as FP8
     static constexpr uint32_t E4M3_LUT = 0xB8C03800;
 
-    const int iters = PackedSrcType::kElements / 4;
+    const int32_t iters = PackedSrcType::kElements / 4;
     #pragma unroll
-    for (int ii = 0; ii < iters; ii += 2, src_reg >>= 16, src_reg_shifted >>= 16) {
+    for (int32_t ii = 0; ii < iters; ii += 2, src_reg >>= 16, src_reg_shifted >>= 16) {
       // This uses a look up table to convert packed int2s to packed fp8s, using the int4 value
       // as the index to prmt.
       // It first select both the positive and negative candidates, then uses the sign bit to
@@ -4588,7 +4588,7 @@ public:
 };
 
 /// Partial specialization for Array<cutlass::float_e4m3_t, N> <= Array<cutlass::uint2b_t, N>
-template <FloatRoundStyle Round, int N>
+template <FloatRoundStyle Round, int32_t N>
 struct NumericArrayConverter<cutlass::float_e4m3_t, cutlass::uint2b_t, N, Round> {
   using result_type = Array<cutlass::float_e4m3_t, N>;
   using source_type = Array<cutlass::uint2b_t, N>;
@@ -4638,9 +4638,9 @@ private:
     // [0, 1, 2, 3] encoded as FP8
     static constexpr uint32_t E4M3_LUT = 0x44403800;
 
-    const int iters = PackedSrcType::kElements / 4;
+    const int32_t iters = PackedSrcType::kElements / 4;
     #pragma unroll
-    for (int ii = 0; ii < iters; ii += 2, src_reg >>= 16, src_reg_shifted >>= 16) {
+    for (int32_t ii = 0; ii < iters; ii += 2, src_reg >>= 16, src_reg_shifted >>= 16) {
       // This uses a look up table to convert packed uint2s to packed fp8s, using the int4 value
       // as the index to prmt.
       // It first select both the positive and negative candidates, then uses the sign bit to
@@ -4681,7 +4681,7 @@ public:
 };
 
 /// Partial specialization for Array<cutlass::float_e5m2_t, N> <= Array<cutlass::int2b_t, N>
-template <FloatRoundStyle Round, int N>
+template <FloatRoundStyle Round, int32_t N>
 struct NumericArrayConverter<cutlass::float_e5m2_t, cutlass::int2b_t, N, Round> {
   using result_type = Array<cutlass::float_e5m2_t, N>;
   using source_type = Array<cutlass::int2b_t, N>;
@@ -4731,9 +4731,9 @@ private:
     // [0, 1, -2, -1] encoded as FP8
     static constexpr uint32_t E4M3_LUT = 0xBCC03C00;
 
-    const int iters = PackedSrcType::kElements / 4;
+    const int32_t iters = PackedSrcType::kElements / 4;
     #pragma unroll
-    for (int ii = 0; ii < iters; ii += 2, src_reg >>= 16, src_reg_shifted >>= 16) {
+    for (int32_t ii = 0; ii < iters; ii += 2, src_reg >>= 16, src_reg_shifted >>= 16) {
       // This uses a look up table to convert packed int2s to packed fp8s, using the int4 value
       // as the index to prmt.
       // It first select both the positive and negative candidates, then uses the sign bit to
@@ -4774,7 +4774,7 @@ public:
 };
 
 /// Partial specialization for Array<cutlass::float_e5m2_t, N> <= Array<cutlass::uint2b_t, N>
-template <FloatRoundStyle Round, int N>
+template <FloatRoundStyle Round, int32_t N>
 struct NumericArrayConverter<cutlass::float_e5m2_t, cutlass::uint2b_t, N, Round> {
   using result_type = Array<cutlass::float_e5m2_t, N>;
   using source_type = Array<cutlass::uint2b_t, N>;
@@ -4824,9 +4824,9 @@ private:
     // [0, 1, 2, 3] encoded as FP8
     static constexpr uint32_t E4M3_LUT = 0x42403C00;
 
-    const int iters = PackedSrcType::kElements / 4;
+    const int32_t iters = PackedSrcType::kElements / 4;
     #pragma unroll
-    for (int ii = 0; ii < iters; ii += 2, src_reg >>= 16, src_reg_shifted >>= 16) {
+    for (int32_t ii = 0; ii < iters; ii += 2, src_reg >>= 16, src_reg_shifted >>= 16) {
       // This uses a look up table to convert packed uint2s to packed fp8s, using the int4 value
       // as the index to prmt.
       // It first select both the positive and negative candidates, then uses the sign bit to
@@ -4868,7 +4868,7 @@ public:
 
 /// Partial specialization for Array<int8_t> <= Array<int4b_t>
 template <
-  int N,
+  int32_t N,
   FloatRoundStyle Round
 >
 struct NumericArrayConverter<int8_t, int4b_t, N, Round> {
@@ -4921,7 +4921,7 @@ struct NumericArrayConverter<int8_t, int4b_t, N, Round> {
       Array<int4b_t, 8> const *source_ptr = reinterpret_cast<Array<int4b_t, 8> const *>(&source);
       
       CUTLASS_PRAGMA_UNROLL
-      for (int i = 0; i < N / 8; ++i) {
+      for (int32_t i = 0; i < N / 8; ++i) {
         result_ptr[i] = convert_vector_(source_ptr[i]);
       }
       
@@ -4934,7 +4934,7 @@ struct NumericArrayConverter<int8_t, int4b_t, N, Round> {
     NumericConverter<int8_t, int4b_t, Round> convert_;
     
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = convert_(source[i]);
     }
     
@@ -4950,7 +4950,7 @@ struct NumericArrayConverter<int8_t, int4b_t, N, Round> {
 };
 
 /// Partial specialization for Array<cutlass::float_e4m3_t, N> <= Array<cutlass::int4b_t, N>
-template <FloatRoundStyle Round, int N>
+template <FloatRoundStyle Round, int32_t N>
 struct NumericArrayConverter<cutlass::float_e4m3_t, cutlass::int4b_t, N, Round> {
   using result_type = Array<cutlass::float_e4m3_t, N>;
   using source_type = Array<cutlass::int4b_t, N>;
@@ -5012,9 +5012,9 @@ private:
     static constexpr uint32_t NEG_E4M3s_REG2 = 0xB8C0C4C8;
 
 
-    const int iters = PackedSrcType::kElements / 4;
+    const int32_t iters = PackedSrcType::kElements / 4;
     #pragma unroll
-    for (int ii = 0; ii < iters; ++ii, lut_idx >>=16, sign >>=16) {
+    for (int32_t ii = 0; ii < iters; ++ii, lut_idx >>=16, sign >>=16) {
       uint32_t final_prmt_idx = final_prmt_base | sign;
 
       // This uses a look up table to convert packed int4s to packed fp8s, using the int4 value
@@ -5057,7 +5057,7 @@ public:
 };
 
 /// Partial specialization for Array<cutlass::float_e5m2_t, N> <= Array<cutlass::int4b_t, N>
-template <FloatRoundStyle Round, int N>
+template <FloatRoundStyle Round, int32_t N>
 struct NumericArrayConverter<cutlass::float_e5m2_t, cutlass::int4b_t, N, Round> {
   using result_type = Array<cutlass::float_e5m2_t, N>;
   using source_type = Array<cutlass::int4b_t, N>;
@@ -5119,9 +5119,9 @@ private:
     static constexpr uint32_t NEG_E5M2s_REG2 = 0xBCC0C2C4;
 
 
-    const int iters = PackedSrcType::kElements / 4;
+    const int32_t iters = PackedSrcType::kElements / 4;
     #pragma unroll
-    for (int ii = 0; ii < iters; ++ii, lut_idx >>=16, sign >>=16) {
+    for (int32_t ii = 0; ii < iters; ++ii, lut_idx >>=16, sign >>=16) {
       uint32_t final_prmt_idx = final_prmt_base | sign;
 
       // This uses a look up table to convert packed int4s to packed fp8s, using the int4 value
@@ -5164,7 +5164,7 @@ public:
 };
 
 /// Partial specialization for Array<cutlass::float_e4m3_t, N> <= Array<cutlass::uint4b_t, N>
-template <FloatRoundStyle Round, int N>
+template <FloatRoundStyle Round, int32_t N>
 struct NumericArrayConverter<cutlass::float_e4m3_t, cutlass::uint4b_t, N, Round> {
   using result_type = Array<cutlass::float_e4m3_t, N>;
   using source_type = Array<cutlass::uint4b_t, N>;
@@ -5226,9 +5226,9 @@ private:
     static constexpr uint32_t E4M3s_REG4 = 0x57565554;
 
 
-    const int iters = PackedSrcType::kElements / 4;
+    const int32_t iters = PackedSrcType::kElements / 4;
     #pragma unroll
-    for (int ii = 0; ii < iters; ++ii, lut_idx >>=16, sign >>=16) {
+    for (int32_t ii = 0; ii < iters; ++ii, lut_idx >>=16, sign >>=16) {
       uint32_t final_prmt_idx = final_prmt_base | sign;
 
       // This uses a look up table to convert packed int4s to packed fp8s, using the int4 value
@@ -5271,7 +5271,7 @@ public:
 };
 
 /// Partial specialization for Array<float, N> <= Array<cutlass::int4b_t, N>
-template <FloatRoundStyle Round, int N>
+template <FloatRoundStyle Round, int32_t N>
 struct NumericArrayConverter<float, cutlass::int4b_t, N, Round> {
   using result_type = Array<float, N>;
   using source_type = Array<cutlass::int4b_t, N>;
@@ -5305,7 +5305,7 @@ private:
     return reinterpret_cast<const uint32_t&>(source);
   }
 
-  template <int offset, int elements_to_convert, typename PackedResultType>
+  template <int32_t offset, int32_t elements_to_convert, typename PackedResultType>
   CUTLASS_DEVICE
   static void packed_convert_vec(PackedResultType& result, uint32_t src_reg) {
     static_assert(offset == 0 || offset == 4, "Invalid offset");
@@ -5327,7 +5327,7 @@ private:
     // For each operand, computes:
     // r[i] = (r[i] & and_mask) ^ xor_mask
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < elements_to_convert; ++ii) {
+    for (int32_t ii = 0; ii < elements_to_convert; ++ii) {
       asm volatile(
           "{\n"
           "  lop3.b32 %0, %1, %2, %3, %4;\n"
@@ -5358,7 +5358,7 @@ private:
 
     // View the input as reg
     uint32_t src_reg = to_reg(source);
-    constexpr int total_elements = PackedResultType::kElements == 8 ? 4 : PackedResultType::kElements;
+    constexpr int32_t total_elements = PackedResultType::kElements == 8 ? 4 : PackedResultType::kElements;
     packed_convert_vec<0, total_elements>(r, src_reg);
 
 
@@ -5391,7 +5391,7 @@ public:
 };
 
 /// Partial specialization for Array<float, N> <= Array<int8_t, N>
-template <FloatRoundStyle Round, int N>
+template <FloatRoundStyle Round, int32_t N>
 struct NumericArrayConverter<float, int8_t, N, Round> {
   using result_type = Array<float, N>;
   using source_type = Array<int8_t, N>;
@@ -5440,17 +5440,17 @@ private:
   #if defined __CUDA_ARCH__ && __CUDA_ARCH__ <= 800
     // View the input as reg
     uint32_t src_reg = to_reg(source);
-    static constexpr int fp32_base = 0x4B400000;
+    static constexpr int32_t fp32_base = 0x4B400000;
     uint32_t const prmt_indices[4] = {0x8880, 0x9991, 0xAAA2, 0xBBB3};
 
-    int* result_as_int = reinterpret_cast<int*>(&r);
+    int32_t* result_as_int = reinterpret_cast<int32_t*>(&r);
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < PackedResultType::kElements; ++ii) {
+    for (int32_t ii = 0; ii < PackedResultType::kElements; ++ii) {
       asm volatile("prmt.b32 %0,%1,%1,%2;\n" : "=r"(result_as_int[ii]) : "r"(src_reg), "r"(prmt_indices[ii]));
     }
 
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < PackedResultType::kElements; ++ii)
+    for (int32_t ii = 0; ii < PackedResultType::kElements; ++ii)
     {
       result_as_int[ii] += fp32_base;
       r[ii] -= reinterpret_cast<const float&>(fp32_base);
@@ -5461,7 +5461,7 @@ private:
     constexpr int32_t mask[4] = {0x00000001, 0x00000100, 0x00010000, 0x01000000};
 
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < PackedResultType::kElements; ++ii) {
+    for (int32_t ii = 0; ii < PackedResultType::kElements; ++ii) {
       t[ii] = __dp4a(x, mask[ii], 0);
       r[ii] = static_cast<float>(t[ii]);
     }
@@ -5492,7 +5492,7 @@ public:
 };
 
 /// Partial specialization for Array<float, N> <= Array<uint8_t, N>
-template <FloatRoundStyle Round, int N>
+template <FloatRoundStyle Round, int32_t N>
 struct NumericArrayConverter<float, uint8_t, N, Round> {
   using result_type = Array<float, N>;
   using source_type = Array<uint8_t, N>;
@@ -5535,7 +5535,7 @@ private:
     // the result in r (without introducing extra cvt.u32.u8 instruction)
     uint32_t const prmt_indices[4] = {0x7650, 0x7651, 0x7652, 0x7653};
     uint32_t* result_as_int = reinterpret_cast<uint32_t*>(&r);
-    for (int ii = 0; ii < PackedResultType::kElements; ++ii) {
+    for (int32_t ii = 0; ii < PackedResultType::kElements; ++ii) {
       result_as_int[ii] = __byte_perm(src_reg, 0x4B000000, prmt_indices[ii]);
       // Subtract the magic number 0x4B000000 from tmp in floating-point arithmetic to obtain final result
       r[ii] -= 8388608.f;
@@ -5566,7 +5566,7 @@ public:
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 /// Partial specialization for Array<cutlass::half_t, N> <= Array<cutlass::int2b_t, N>
-template <FloatRoundStyle Round, int N>
+template <FloatRoundStyle Round, int32_t N>
 struct NumericArrayConverter<cutlass::half_t, cutlass::int2b_t, N, Round> {
   using result_type = Array<cutlass::half_t, N>;
   using source_type = Array<cutlass::int2b_t, N>;
@@ -5634,7 +5634,7 @@ private:
     uint32_t prmt_indices[4] = {0x4040, 0x4141, 0x4242, 0x4343};
     static_assert(RegArray::kElements <= 8, "Too many inputs for I2 -> FP16 vector converter");
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < RegArray::kElements; ii += 2) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ii += 2) {
       asm volatile(
           "{ prmt.b32 %0, %1, %2, %3; }\n"
           : "=r"(r[ii])
@@ -5659,7 +5659,7 @@ private:
     // For each operand, computes:
     // r[i] = (r[i] & and_mask[i / 2]) ^ xor_mask[i / 2]
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < RegArray::kElements; ++ii) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ++ii) {
       asm volatile(
           "{ lop3.b32 %0, %0, %1, %2, %3; }\n"
           : "+r"(r[ii])
@@ -5673,7 +5673,7 @@ private:
 
     // Scale and subtract the FP16s to get the original int4 number as FP16.
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < RegArray::kElements; ++ii) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ++ii) {
       half2& fp16x2_val = reinterpret_cast<__half2&>(r[ii]);
       fp16x2_val = __hfma2(fp16x2_val,
                            reinterpret_cast<const half2&>(hfma_scale_rep),
@@ -5704,7 +5704,7 @@ public:
 };
 
 /// Partial specialization for Array<cutlass::half_t, N> <= Array<cutlass::uint2b_t, N>
-template <FloatRoundStyle Round, int N>
+template <FloatRoundStyle Round, int32_t N>
 struct NumericArrayConverter<cutlass::half_t, cutlass::uint2b_t, N, Round> {
   using result_type = Array<cutlass::half_t, N>;
   using source_type = Array<cutlass::uint2b_t, N>;
@@ -5772,7 +5772,7 @@ private:
     uint32_t prmt_indices[4] = {0x4040, 0x4141, 0x4242, 0x4343};
     static_assert(RegArray::kElements <= 8, "Too many inputs for I2 -> FP16 vector converter");
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < RegArray::kElements; ii += 2) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ii += 2) {
       asm volatile(
           "{ prmt.b32 %0, %1, %2, %3; }\n"
           : "=r"(r[ii])
@@ -5795,7 +5795,7 @@ private:
     // For each operand, computes:
     // r[i] = (r[i] & and_mask[i / 2]) ^ xor_mask[i / 2]
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < RegArray::kElements; ++ii) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ++ii) {
       asm volatile(
           "{ lop3.b32 %0, %0, %1, %2, %3; }\n"
           : "+r"(r[ii])
@@ -5809,7 +5809,7 @@ private:
 
     // Scale and subtract the FP16s to get the original int4 number as FP16.
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < RegArray::kElements; ++ii) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ++ii) {
       half2& fp16x2_val = reinterpret_cast<__half2&>(r[ii]);
       fp16x2_val = __hfma2(fp16x2_val,
                            reinterpret_cast<const half2&>(hfma_scale_rep),
@@ -5840,7 +5840,7 @@ public:
 };
 
 /// Partial specialization for Array<cutlass::half_t, N> <= Array<cutlass::int4b_t, N>
-template <FloatRoundStyle Round, int N>
+template <FloatRoundStyle Round, int32_t N>
 struct NumericArrayConverter<cutlass::half_t, cutlass::int4b_t, N, Round> {
   using result_type = Array<cutlass::half_t, N>;
   using source_type = Array<cutlass::int4b_t, N>;
@@ -5905,7 +5905,7 @@ private:
     uint32_t prmt_indices[4] = {0x4040, 0x4141, 0x4242, 0x4343};
     static_assert(RegArray::kElements <= 4, "Too many inputs for I4 ->F16 vector converter");
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < RegArray::kElements; ++ii) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ++ii) {
       asm volatile(
           "{ prmt.b32 %0, %1, %2, %3; }\n"
           : "=r"(r[ii])
@@ -5926,7 +5926,7 @@ private:
     // For each operand, computes:
     // r[i] = (r[i] & and_mask) ^ xor_mask
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < RegArray::kElements; ++ii) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ++ii) {
       asm volatile(
           "{\n"
           "  lop3.b32 %0, %0, %1, %2, %3;\n"
@@ -5955,7 +5955,7 @@ private:
     const half2& hfma_scale = reinterpret_cast<const half2&>(hfma_scale_rep);
     // Scale and subtract the FP16s to get the original int4 number as FP16.
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < RegArray::kElements; ++ii) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ++ii) {
       half2& fp16x2_val = reinterpret_cast<__half2&>(r[ii]);
       fp16x2_val = __hfma2(hfma_scale, fp16x2_val, hfma_bias);
     }
@@ -5983,7 +5983,7 @@ public:
 };
 
 /// Partial specialization for Array<cutlass::half_t, N> <= Array<cutlass::uint4b_t, N>
-template <FloatRoundStyle Round, int N>
+template <FloatRoundStyle Round, int32_t N>
 struct NumericArrayConverter<cutlass::half_t, cutlass::uint4b_t, N, Round> {
   using result_type = Array<cutlass::half_t, N>;
   using source_type = Array<cutlass::uint4b_t, N>;
@@ -6045,7 +6045,7 @@ private:
     uint32_t prmt_indices[4] = {0x4040, 0x4141, 0x4242, 0x4343};
     static_assert(RegArray::kElements <= 4, "Too many inputs for u4 -> f16 vector converter");
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < RegArray::kElements; ++ii) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ++ii) {
       asm volatile(
           "{ prmt.b32 %0, %1, %2, %3; }\n"
           : "=r"(r[ii])
@@ -6062,7 +6062,7 @@ private:
     // For each operand, computes:
     // r[i] = (r[i] & and_mask) | or_mask
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < RegArray::kElements; ++ii) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ++ii) {
       asm volatile(
           "{\n"
           "  lop3.b32 %0, %0, %1, %2, %3;\n"
@@ -6111,7 +6111,7 @@ public:
 };
 
 /// Partial specialization for Array<cutlass::half_t, N> <= Array<int8_t, N>
-template <FloatRoundStyle Round, int N>
+template <FloatRoundStyle Round, int32_t N>
 struct NumericArrayConverter<cutlass::half_t, int8_t, N, Round> {
   using result_type = Array<cutlass::half_t, N>;
   using source_type = Array<int8_t, N>;
@@ -6155,7 +6155,7 @@ private:
     #if 0 // Scalar conversion (Please keep this code for reference for vectorized version below)
     auto result = reinterpret_cast<PackedResultType&>(r);
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < PackedResultType::kElements; ++i) {
+    for (int32_t i = 0; i < PackedResultType::kElements; ++i) {
       int16_t tmp = source[i] + 26112 /* 0x6600 */;
       result[i] = reinterpret_cast<cutlass::half_t const &>(tmp) - 1536.0_hf;
     }
@@ -6171,7 +6171,7 @@ private:
     // into result_ptr[0] and result_ptr[1]'s 08-15 and 24-31 bits, respectively.
     // Note that `__byte_perm(source_ptr[0], source_ptr[0], 0x9180);` won't achieve the same result and doesn't sign-extend the sign bit.
     // Thus, we use inline ptx `prmt.b32` instruction for the desired sign extend from s8x2 to s16x2.
-    for (int ii = 0; ii < RegArray::kElements; ++ii) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ++ii) {
       asm volatile("prmt.b32 %0,%1,%1,%2;\n" : "=r"(r[ii]) : "r"(src_reg), "r"(prmt_indices[ii]));
     }
 
@@ -6187,7 +6187,7 @@ private:
     // If we want F = ((a & b) ^ c) then set kImmLut = (0xF0 & 0xCC) ^ 0xAA
     static constexpr uint32_t kImmLut = (0xF0 & 0xCC) ^ 0xAA;
 
-    for (int ii = 0; ii < RegArray::kElements; ++ii) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ++ii) {
       // The bit-wise operation executed below is `r[ii] = (r[ii] & 0x03FF03FF) ^ 0x66006600;`
       asm volatile("lop3.b32 %0, %1, %2, %3, %4;\n" :
                                 "=r"(r[ii]) : "r"(r[ii]), "n"(0x03FF03FF), "n"(0x66006600), "n"(kImmLut));
@@ -6196,7 +6196,7 @@ private:
     static constexpr uint32_t bias_rep = 0x66006600;
     const half2& bias = reinterpret_cast<const half2&>(bias_rep);
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < RegArray::kElements; ++ii) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ++ii) {
       half2& fp16x2_val = reinterpret_cast<__half2&>(r[ii]);
       fp16x2_val = __hsub2(fp16x2_val, bias);
     }
@@ -6224,7 +6224,7 @@ public:
 };
 
 /// Partial specialization for Array<cutlass::half_t, N> <= Array<uint8_t, N>
-template <FloatRoundStyle Round, int N>
+template <FloatRoundStyle Round, int32_t N>
 struct NumericArrayConverter<cutlass::half_t, uint8_t, N, Round> {
   using result_type = Array<cutlass::half_t, N>;
   using source_type = Array<uint8_t, N>;
@@ -6268,14 +6268,14 @@ private:
     uint32_t const prmt_indices[2] = {0x5150, 0x5352};
     static constexpr uint32_t start_byte_for_fp16 = 0x64646464;
 
-    for (int ii = 0; ii < RegArray::kElements; ++ii) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ++ii) {
       asm volatile("prmt.b32 %0,%1,%2,%3;\n" : "=r"(r[ii]) : "r"(src_reg), "n"(start_byte_for_fp16), "r"(prmt_indices[ii]));
     }
 
     static constexpr uint32_t bias_rep = 0x64006400;
     const half2& bias = reinterpret_cast<const half2&>(bias_rep);
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < RegArray::kElements; ++ii) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ++ii) {
       half2& fp16x2_val = reinterpret_cast<__half2&>(r[ii]);
       fp16x2_val = __hsub2(fp16x2_val, bias);
     }
@@ -6307,7 +6307,7 @@ public:
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
 /////////////////////////////////////////////////////////////////////////////////////////////////
 /// Partial specialization for Array<cutlass::bfloat16_t, N> <= Array<cutlass::int2b_t, N>
-template <FloatRoundStyle Round, int N>
+template <FloatRoundStyle Round, int32_t N>
 struct NumericArrayConverter<cutlass::bfloat16_t, cutlass::int2b_t, N, Round> {
   using result_type = Array<cutlass::bfloat16_t, N>;
   using source_type = Array<cutlass::int2b_t, N>;
@@ -6369,7 +6369,7 @@ private:
 
     // First pass: extract and sign extend the 2-bit values
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < RegArray::kElements; ii += 2) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ii += 2) {
       asm volatile(
           "{ prmt.b32 %0, %1, %2, %3; }\n"
           : "=r"(r[ii])
@@ -6396,7 +6396,7 @@ private:
     static constexpr uint32_t immLut = (0xf0 & 0xcc) ^ 0xaa;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < RegArray::kElements; ++ii) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ++ii) {
       asm volatile(
           "{\n"
           "  lop3.b32 %0, %0, %1, %2, %3;\n"
@@ -6411,7 +6411,7 @@ private:
     const __nv_bfloat162& bias = reinterpret_cast<const __nv_bfloat162&>(bias_rep);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < RegArray::kElements; ++ii) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ++ii) {
       __nv_bfloat162& bf16x2_val = reinterpret_cast<__nv_bfloat162&>(r[ii]);
       bf16x2_val = __hsub2(bf16x2_val, bias);
     }
@@ -6441,7 +6441,7 @@ public:
 };
 
 /// Partial specialization for Array<cutlass::bfloat16_t, N> <= Array<cutlass::uint2b_t, N>
-template <FloatRoundStyle Round, int N>
+template <FloatRoundStyle Round, int32_t N>
 struct NumericArrayConverter<cutlass::bfloat16_t, cutlass::uint2b_t, N, Round> {
   using result_type = Array<cutlass::bfloat16_t, N>;
   using source_type = Array<cutlass::uint2b_t, N>;
@@ -6503,7 +6503,7 @@ private:
 
     // First pass: extract and sign extend the 2-bit values
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < RegArray::kElements; ii += 2) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ii += 2) {
       asm volatile(
           "{ prmt.b32 %0, %1, %2, %3; }\n"
           : "=r"(r[ii])
@@ -6520,7 +6520,7 @@ private:
     static constexpr uint32_t immLut = (0xf0 & 0xcc) ^ 0xaa;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < RegArray::kElements; ++ii) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ++ii) {
       asm volatile(
           "{ lop3.b32 %0, %0, %1, %2, %3; }"
           : "+r"(r[ii])
@@ -6531,7 +6531,7 @@ private:
     const __nv_bfloat162& bias = reinterpret_cast<const __nv_bfloat162&>(bias_rep);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < RegArray::kElements; ++ii) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ++ii) {
       __nv_bfloat162& bf16x2_val = reinterpret_cast<__nv_bfloat162&>(r[ii]);
       bf16x2_val = __hsub2(bf16x2_val, bias);
     }
@@ -6561,7 +6561,7 @@ public:
 };
 
 /// Partial specialization for Array<cutlass::bfloat16_t, N> <= Array<cutlass::int4b_t, N>
-template <FloatRoundStyle Round, int N>
+template <FloatRoundStyle Round, int32_t N>
 struct NumericArrayConverter<cutlass::bfloat16_t, cutlass::int4b_t, N, Round> {
   using result_type = Array<cutlass::bfloat16_t, N>;
   using source_type = Array<cutlass::int4b_t, N>;
@@ -6621,7 +6621,7 @@ private:
     uint32_t const prmt_indices[4] = {0xF4F0, 0xF5F1, 0xF6F2, 0xF7F3};
     static_assert(RegArray::kElements <= 4, "Too many inputs for BF16 -> I4 vector converter");
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < RegArray::kElements; ++ii) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ++ii) {
       asm volatile(
           "{ prmt.b32 %0, %1, %2, %3; }\n"
           : "=r"(r[ii])
@@ -6638,7 +6638,7 @@ private:
     // For each operand, computes:
     // r[i] = (r[i] & and_mask) ^ xor_mask
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < RegArray::kElements; ++ii) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ++ii) {
       asm volatile(
           "{ lop3.b32 %0, %0, %1, %2, %3; }\n"
           : "+r"(r[ii])
@@ -6654,7 +6654,7 @@ private:
     const __nv_bfloat162& bias = reinterpret_cast<const __nv_bfloat162&>(bias_rep);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < RegArray::kElements; ++ii) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ++ii) {
       __nv_bfloat162& bf16x2_val = reinterpret_cast<__nv_bfloat162&>(r[ii]);
       bf16x2_val = __hsub2(bf16x2_val, bias);
     }
@@ -6685,7 +6685,7 @@ public:
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 /// Partial specialization for Array<cutlass::bfloat16_t, N> <= Array<cutlass::uint4b_t, N>
-template <FloatRoundStyle Round, int N>
+template <FloatRoundStyle Round, int32_t N>
 struct NumericArrayConverter<cutlass::bfloat16_t, cutlass::uint4b_t, N, Round> {
   using result_type = Array<cutlass::bfloat16_t, N>;
   using source_type = Array<cutlass::uint4b_t, N>;
@@ -6749,7 +6749,7 @@ private:
     static constexpr uint32_t prmt_indices[4] = {0xF4F0, 0xF5F1, 0xF6F2, 0xF7F3};
     static_assert(RegArray::kElements <= 4, "Too many inputs for BF16 -> I4 vector converter");
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < RegArray::kElements; ++ii) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ++ii) {
       asm volatile(
           "{\n"
           "  prmt.b32 %0, %1, %2, %3;\n"
@@ -6765,7 +6765,7 @@ private:
     // For each operand, computes:
     // r[i] = (r[i] & and_mask) ^ xor_mask
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < RegArray::kElements; ++ii) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ++ii) {
       asm volatile(
           "{\n"
           "  lop3.b32 %0, %0, %1, %2, %3;\n"
@@ -6782,7 +6782,7 @@ private:
     static constexpr uint32_t bias = xor_mask;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int ii = 0; ii < RegArray::kElements; ++ii) {
+    for (int32_t ii = 0; ii < RegArray::kElements; ++ii) {
       __nv_bfloat162& bf16x2_val = reinterpret_cast<__nv_bfloat162&>(r[ii]);
       bf16x2_val = __hsub2(bf16x2_val, reinterpret_cast<const __nv_bfloat162&>(bias));
     }
@@ -6812,7 +6812,7 @@ public:
 };
 
 /// Partial specialization for Array<cutlass::bfloat16_t, N> <= Array<int8_t, N>
-template <FloatRoundStyle Round, int N>
+template <FloatRoundStyle Round, int32_t N>
 struct NumericArrayConverter<cutlass::bfloat16_t, int8_t, N, Round> {
   using result_type = Array<cutlass::bfloat16_t, N>;
   using source_type = Array<int8_t, N>;
@@ -6875,7 +6875,7 @@ public:
 };
 
 /// Partial specialization for Array<cutlass::bfloat16_t, N> <= Array<uint8_t, N>
-template <FloatRoundStyle Round, int N>
+template <FloatRoundStyle Round, int32_t N>
 struct NumericArrayConverter<cutlass::bfloat16_t, uint8_t, N, Round> {
   using result_type = Array<cutlass::bfloat16_t, N>;
   using source_type = Array<uint8_t, N>;
@@ -6943,7 +6943,7 @@ public:
 /// FastNumericArrayConverter only works when the source is within center range.
 /// Conversion operator for Array.  See the comments before
 /// FastLinearCombinationClamp.
-template <typename T, typename S, int N,
+template <typename T, typename S, int32_t N,
           FloatRoundStyle Round = FloatRoundStyle::round_to_nearest,
           typename Enable = void>
 struct FastNumericArrayConverter {
@@ -6962,11 +6962,11 @@ struct FastNumericArrayConverter {
   result_type operator()(source_type const &s) const { return convert(s); }
 };
 
-/// Partial specialization for Array<float> <= Array<int>
-template <int N, FloatRoundStyle Round>
-struct FastNumericArrayConverter<float, int, N, Round> {
+/// Partial specialization for Array<float> <= Array<int32_t>
+template <int32_t N, FloatRoundStyle Round>
+struct FastNumericArrayConverter<float, int32_t, N, Round> {
   using result_type = Array<float, N>;
-  using source_type = Array<int, N>;
+  using source_type = Array<int32_t, N>;
   static constexpr FloatRoundStyle round_style = Round;
 
   CUTLASS_DEVICE
@@ -6974,8 +6974,8 @@ struct FastNumericArrayConverter<float, int, N, Round> {
     result_type result;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
-      int tmp = source[i] + 1262485504 /*0x4B400000*/;
+    for (int32_t i = 0; i < N; ++i) {
+      int32_t tmp = source[i] + 1262485504 /*0x4B400000*/;
       result[i] = reinterpret_cast<float const &>(tmp) - 12582912.0f;
     }
 
@@ -6998,7 +6998,7 @@ struct FastNumericArrayConverter<int8_t, float, 4, Round> {
     Array<int32_t, 4> result;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < 4; ++i) {
+    for (int32_t i = 0; i < 4; ++i) {
       float tmp = source[i] + 12582912.0f;
       result[i] = reinterpret_cast<int32_t const &>(tmp);
     }
@@ -7015,7 +7015,7 @@ struct FastNumericArrayConverter<int8_t, float, 4, Round> {
 };
 
 /// Partial specialization for Array<int8_t> <= Array<float>
-template <int N, FloatRoundStyle Round>
+template <int32_t N, FloatRoundStyle Round>
 struct FastNumericArrayConverter<int8_t, float, N, Round> {
   static_assert(!(N % 4), "N must be multiple of 4.");
 
@@ -7035,7 +7035,7 @@ struct FastNumericArrayConverter<int8_t, float, N, Round> {
         reinterpret_cast<Array<float, 4> const *>(&source);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 4; ++i) {
+    for (int32_t i = 0; i < N / 4; ++i) {
       result_ptr[i] = convert_vector_(source_ptr[i]);
     }
 
@@ -7065,7 +7065,7 @@ struct PreferredRoundingMode<cutlass::tfloat32_t, float> {
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Packs predicates into an array.
-template <int N>
+template <int32_t N>
 struct PackPredicates {
   using result_type = Array<uint1b_t, N>;
 
@@ -7077,13 +7077,13 @@ struct PackPredicates {
     result_type packed;
     packed.clear();
 
-    int const kWordSize = 8;
+    int32_t const kWordSize = 8;
     uint8_t *bytes = reinterpret_cast<uint8_t *>(packed.data());
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
-      int word_idx = (i / kWordSize);
-      int bit_idx = (i % kWordSize);
+    for (int32_t i = 0; i < N; ++i) {
+      int32_t word_idx = (i / kWordSize);
+      int32_t bit_idx = (i % kWordSize);
 
       uint8_t mask = static_cast<uint8_t>((predicates[i] ? 1u : 0u) << bit_idx);
       bytes[word_idx] = (bytes[word_idx] | mask);
@@ -7093,7 +7093,7 @@ struct PackPredicates {
 };
 
 /// Packs predicates into an array
-template <int N>
+template <int32_t N>
 struct UnpackPredicates {
   using result_type = Array<uint1b_t, N>;
 
@@ -7102,13 +7102,13 @@ struct UnpackPredicates {
   CUTLASS_HOST_DEVICE
   void operator()(bool predicates[], result_type const &packed) {
 
-    int const kWordSize = 8;
+    int32_t const kWordSize = 8;
     uint8_t const *bytes = reinterpret_cast<uint8_t const *>(packed.data());
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
-      int word_idx = (i / kWordSize);
-      int bit_idx = (i % kWordSize);
+    for (int32_t i = 0; i < N; ++i) {
+      int32_t word_idx = (i / kWordSize);
+      int32_t bit_idx = (i % kWordSize);
 
       predicates[i] = bool((bytes[word_idx] >> bit_idx) & 0x1);
     }

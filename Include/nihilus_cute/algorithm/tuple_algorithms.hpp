@@ -67,7 +67,7 @@ namespace nihilus_cute
 
 namespace detail {
 
-template <class T, class F, int... I>
+template <class T, class F, int32_t... I>
 CUTE_HOST_DEVICE constexpr
 auto
 apply(T&& t, F&& f, seq<I...>)
@@ -92,7 +92,7 @@ apply(T&& t, F&& f)
 
 namespace detail {
 
-template <class T, class F, class G, int... I>
+template <class T, class F, class G, int32_t... I>
 CUTE_HOST_DEVICE constexpr
 auto
 tapply(T&& t, F&& f, G&& g, seq<I...>)
@@ -100,7 +100,7 @@ tapply(T&& t, F&& f, G&& g, seq<I...>)
   return g(f(get<I>(static_cast<T&&>(t)))...);
 }
 
-template <class T0, class T1, class F, class G, int... I>
+template <class T0, class T1, class F, class G, int32_t... I>
 CUTE_HOST_DEVICE constexpr
 auto
 tapply(T0&& t0, T1&& t1, F&& f, G&& g, seq<I...>)
@@ -109,7 +109,7 @@ tapply(T0&& t0, T1&& t1, F&& f, G&& g, seq<I...>)
              get<I>(static_cast<T1&&>(t1)))...);
 }
 
-template <class T0, class T1, class T2, class F, class G, int... I>
+template <class T0, class T1, class T2, class F, class G, int32_t... I>
 CUTE_HOST_DEVICE constexpr
 auto
 tapply(T0&& t0, T1&& t1, T2&& t2, F&& f, G&& g, seq<I...>)
@@ -383,7 +383,7 @@ struct FoldAdaptor {
   Val val_;
 };
 
-template <class T, class V, class F, int... Is>
+template <class T, class V, class F, int32_t... Is>
 CUTE_HOST_DEVICE constexpr
 auto
 fold(T&& t, V const& v, F&& f, seq<Is...>)
@@ -447,7 +447,7 @@ decltype(auto)
 back(T&& t)
 {
   if constexpr (is_tuple<remove_cvref_t<T>>::value) {
-    constexpr int N = tuple_size<remove_cvref_t<T>>::value;
+    constexpr int32_t N = tuple_size<remove_cvref_t<T>>::value;
 
     // MSVC needs a bit of extra help here deducing return types.
     // We help it by peeling off the nonrecursive case a level "early."
@@ -464,7 +464,7 @@ back(T&& t)
 }
 
 // Takes the elements in the range [B,E)
-template <int B, int E, class T>
+template <int32_t B, int32_t E, class T>
 CUTE_HOST_DEVICE constexpr
 auto
 take(T const& t)
@@ -486,7 +486,7 @@ take(T const& t)
 }
 
 // Select tuple elements with given indices.
-template <int... I, class T>
+template <int32_t... I, class T>
 CUTE_HOST_DEVICE constexpr
 auto
 select(T const& t)
@@ -622,7 +622,7 @@ unflatten(FlatTuple const& flat_tuple, TargetProfile const& target_profile)
 namespace detail {
 
 // Shortcut around nihilus_cute::tuple_cat for common insert/remove/repeat cases
-template <class T, class X, int... I, int... J, int... K>
+template <class T, class X, int32_t... I, int32_t... J, int32_t... K>
 CUTE_HOST_DEVICE constexpr
 auto
 construct(T const& t, X const& x, seq<I...>, seq<J...>, seq<K...>)
@@ -633,7 +633,7 @@ construct(T const& t, X const& x, seq<I...>, seq<J...>, seq<K...>)
 } // end namespace detail
 
 // Insert x into the Nth position of the tuple
-template <int N, class T, class X>
+template <int32_t N, class T, class X>
 CUTE_HOST_DEVICE constexpr
 auto
 insert(T const& t, X const& x)
@@ -642,7 +642,7 @@ insert(T const& t, X const& x)
 }
 
 // Remove the Nth element of the tuple
-template <int N, class T>
+template <int32_t N, class T>
 CUTE_HOST_DEVICE constexpr
 auto
 remove(T const& t)
@@ -651,7 +651,7 @@ remove(T const& t)
 }
 
 // Replace the Nth element of the tuple with x
-template <int N, class T, class X>
+template <int32_t N, class T, class X>
 CUTE_HOST_DEVICE constexpr
 auto
 replace(T const& t, X const& x)
@@ -700,7 +700,7 @@ replace_back(T const& t, X const& x)
 // Make a tuple of Xs of tuple_size N
 //
 
-template <int N, class X>
+template <int32_t N, class X>
 CUTE_HOST_DEVICE constexpr
 auto
 tuple_repeat(X const& x)
@@ -712,7 +712,7 @@ tuple_repeat(X const& x)
 // Make repeated Xs of rank N
 //
 
-template <int N, class X>
+template <int32_t N, class X>
 CUTE_HOST_DEVICE constexpr
 auto
 repeat(X const& x)
@@ -747,7 +747,7 @@ repeat_like(T const& t, X const& x)
 // Group the elements [B,E) of a T into a single element
 // e.g. group<2,4>(T<_1,_2,_3,_4,_5,_6>{})
 //              => T<_1,_2,T<_3,_4>,_5,_6>{}
-template <int B, int E, class T>
+template <int32_t B, int32_t E, class T>
 CUTE_HOST_DEVICE constexpr
 auto
 group(T const& t)
@@ -775,7 +775,7 @@ group(T const& t)
 // Extend a T to rank N by appending/prepending an element
 //
 
-template <int N, class T, class X>
+template <int32_t N, class T, class X>
 CUTE_HOST_DEVICE constexpr
 auto
 append(T const& a, X const& x)
@@ -812,7 +812,7 @@ append(T const& a, X const& x)
   CUTE_GCC_UNREACHABLE;
 }
 
-template <int N, class T, class X>
+template <int32_t N, class T, class X>
 CUTE_HOST_DEVICE constexpr
 auto
 prepend(T const& a, X const& x)
@@ -856,7 +856,7 @@ prepend(T const& a, X const& x)
 
 namespace detail {
 
-template <class T, class V, class F, int I, int... Is>
+template <class T, class V, class F, int32_t I, int32_t... Is>
 CUTE_HOST_DEVICE constexpr
 auto
 iscan(T const& t, V const& v, F&& f, seq<I,Is...>)
@@ -899,7 +899,7 @@ iscan(T const& t, V const& v, F&& f)
 
 namespace detail {
 
-template <class T, class V, class F, int I, int... Is>
+template <class T, class V, class F, int32_t I, int32_t... Is>
 CUTE_HOST_DEVICE constexpr
 auto
 escan(T const& t, V const& v, F&& f, seq<I,Is...>)
@@ -947,7 +947,7 @@ escan(T const& t, V const& v, F&& f)
 
 namespace detail {
 
-template <int J, class... Ts>
+template <int32_t J, class... Ts>
 CUTE_HOST_DEVICE constexpr
 auto
 zip_(Ts const&... ts)
@@ -955,7 +955,7 @@ zip_(Ts const&... ts)
   return nihilus_cute::make_tuple(get<J>(ts)...);
 }
 
-template <class T, int... Is, int... Js>
+template <class T, int32_t... Is, int32_t... Js>
 CUTE_HOST_DEVICE constexpr
 auto
 zip(T const& t, seq<Is...>, seq<Js...>)
@@ -1002,7 +1002,7 @@ zip(T0 const& t0, T1 const& t1, Ts const&... ts)
 
 namespace detail {
 
-template <class T, class TG, int... Is, int... Js>
+template <class T, class TG, int32_t... Is, int32_t... Js>
 CUTE_HOST_DEVICE constexpr
 auto
 zip2_by(T const& t, TG const& guide, seq<Is...>, seq<Js...>)
@@ -1023,8 +1023,8 @@ auto
 zip2_by(T const& t, TG const& guide)
 {
   if constexpr (is_tuple<TG>::value) {
-    constexpr int TR = tuple_size<T>::value;
-    constexpr int GR = tuple_size<TG>::value;
+    constexpr int32_t TR = tuple_size<T>::value;
+    constexpr int32_t GR = tuple_size<TG>::value;
     static_assert(TR >= GR, "Mismatched ranks");
     return detail::zip2_by(t, guide,
                            make_range< 0, GR>{},

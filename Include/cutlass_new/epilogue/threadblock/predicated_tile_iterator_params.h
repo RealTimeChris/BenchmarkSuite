@@ -51,11 +51,11 @@ namespace threadblock {
 
 struct OutputTileShapeDesc {
 
-  int column;
-  int row;
-  int group;
-  int cluster;
-  int tile;
+  int32_t column;
+  int32_t row;
+  int32_t group;
+  int32_t cluster;
+  int32_t tile;
 
   //
   // Methods
@@ -68,11 +68,11 @@ struct OutputTileShapeDesc {
   /// Ctor
   CUTLASS_HOST_DEVICE
   OutputTileShapeDesc(
-    int column_,
-    int row_,
-    int group_,
-    int cluster_,
-    int tile_
+    int32_t column_,
+    int32_t row_,
+    int32_t group_,
+    int32_t cluster_,
+    int32_t tile_
   ):
     column(column_),
     row(row_),
@@ -82,7 +82,7 @@ struct OutputTileShapeDesc {
 
   /// Total number of points in the 5D space
   CUTLASS_HOST_DEVICE
-  int count() const {
+  int32_t count() const {
     return column * row * group * cluster * tile;
   }
 
@@ -112,8 +112,8 @@ OutputTileShapeDesc make_OutputTileShapeDesc() {
 /// Thread map description
 struct OutputTileThreadMapDesc {
 
-  int threads;
-  int elements_per_access;
+  int32_t threads;
+  int32_t elements_per_access;
   OutputTileShapeDesc shape;
   OutputTileShapeDesc iterations;
   OutputTileShapeDesc delta;
@@ -128,8 +128,8 @@ struct OutputTileThreadMapDesc {
 
   CUTLASS_HOST_DEVICE
   OutputTileThreadMapDesc(
-    int threads_,
-    int elements_per_access_,
+    int32_t threads_,
+    int32_t elements_per_access_,
     OutputTileShapeDesc shape_,
     OutputTileShapeDesc iterations_,
     OutputTileShapeDesc delta_,
@@ -267,9 +267,9 @@ struct PredicatedTileIteratorDirect2dConvParams{
   LongIndex stride_n;
   LongIndex stride_p;
 
-  int N;
-  int P;
-  int Q;
+  int32_t N;
+  int32_t P;
+  int32_t Q;
 
   //
   // Methods
@@ -295,13 +295,13 @@ struct PredicatedTileIteratorDirect2dConvParams{
       CUTLASS_ASSERT(threadblock_output_shape.row() != 0);
       const auto row_denom = threadblock_output_shape.row() != 0 ?
         threadblock_output_shape.row() : cutlass::MatrixCoord::Index(1);
-      int tiles_p =
+      int32_t tiles_p =
           (problem_size.P + (threadblock_output_shape.row() - 1)) / row_denom;
 
       CUTLASS_ASSERT(threadblock_output_shape.column() != 0);
       const auto col_denom = threadblock_output_shape.column() != 0 ?
         threadblock_output_shape.column() : cutlass::MatrixCoord::Index(1);
-      int tiles_q = (problem_size.Q + (threadblock_output_shape.column() - 1)) /
+      int32_t tiles_q = (problem_size.Q + (threadblock_output_shape.column() - 1)) /
                     col_denom;
 
       pq_divmod = FastDivmod(tiles_p * tiles_q);
@@ -345,9 +345,9 @@ struct PredicatedTileIteratorDirect2dConvParams{
 /// Predicated tile access iterator descriptor object containing template dependent state
 struct InterleavedPredicatedTileIteratorDesc {
 
-  int element_size_bits;
-  int elements_per_access;
-  int threadmap_warp_size;
+  int32_t element_size_bits;
+  int32_t elements_per_access;
+  int32_t threadmap_warp_size;
   layout::PitchLinearCoord threadmap_iterations;
   layout::PitchLinearCoord threadmap_delta;
 
@@ -360,9 +360,9 @@ struct InterleavedPredicatedTileIteratorDesc {
 
   CUTLASS_HOST_DEVICE
   InterleavedPredicatedTileIteratorDesc(
-    int element_size_bits_,
-    int elements_per_access_,
-    int threadmap_warp_size_,
+    int32_t element_size_bits_,
+    int32_t elements_per_access_,
+    int32_t threadmap_warp_size_,
     layout::PitchLinearCoord threadmap_iterations_,
     layout::PitchLinearCoord threadmap_delta_
   ):
@@ -464,7 +464,7 @@ struct MakePredicatedTileIteratorDesc <
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Specialization of PredicatedTileAccessIterator for layout::ColumnMajorInterleaved<InterleavedN> output data.
-template <typename Element, typename ThreadMap, int InterleavedN>
+template <typename Element, typename ThreadMap, int32_t InterleavedN>
 struct MakePredicatedTileIteratorDesc <
     Element, layout::ColumnMajorInterleaved<InterleavedN>, ThreadMap> {
 

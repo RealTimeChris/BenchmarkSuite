@@ -281,15 +281,6 @@ template<uint64_t M, uint64_t K> struct reference_mul_mat_q8_0 {
 	}
 };
 
-#include <ggml.h>
-#include <ggml-backend.h>
-#include <ggml-cuda.h>
-#include <ggml-cpu.h>
-#include <ggml-alloc.h>
-#include <vector>
-#include <iostream>
-#include <memory>
-
 template<typename block_type>
 	requires(std::is_same_v<block_q8_0, block_type>)
 BNCH_SWT_INLINE constexpr size_t get_byte_size_from_element_count(size_t element_count) {
@@ -302,6 +293,15 @@ template<typename block_type>
 BNCH_SWT_INLINE constexpr size_t get_byte_size_from_element_count(size_t element_count) {
 	return element_count * sizeof(block_type);
 }
+/*
+#include <ggml.h>
+#include <ggml-backend.h>
+#include <ggml-cuda.h>
+#include <ggml-cpu.h>
+#include <ggml-alloc.h>
+#include <vector>
+#include <iostream>
+#include <memory>
 
 static ggml_backend_t get_ggml_backend() {
 	static ggml_backend_t backend = nullptr;
@@ -418,7 +418,7 @@ template<uint64_t M, uint64_t K, typename input_type_01, typename input_type_02,
 		return 0;
 	}
 };
-
+*/
 template<typename value_type> using base_type = std::remove_cvref_t<value_type>;
 
 template<typename value_type> using x_type = decltype(base_type<value_type>::x);
@@ -1185,7 +1185,7 @@ template<typename blocks_type> __global__ void cutlass_dequantize_blocks(const b
 		output[i]					 = scale * static_cast<float>(block.quants[elem_in_block]);
 	}
 }
-
+/*
 #include <cutlass_base/gemm/device/gemm.h>
 
 template<typename blocks_type> __global__ void dequantize_block(const blocks_type& input_blocks, float* output, uint64_t total_elements) {
@@ -1331,7 +1331,7 @@ template<uint64_t M, uint64_t K, typename input_type_01, typename input_type_02,
 		return 0;
 	}
 };
-
+*/
 #include <cutlass_new/gemm/device/gemm.h>
 
 template<uint64_t M, uint64_t K> __global__ void nihilus_custom_cuda_kernel(const float* input_A, const float* input_B, float* output, uint64_t N) {
@@ -1403,19 +1403,19 @@ template<uint64_t M, uint64_t K, typename input_type_01, typename input_type_02,
 		offset			   = round_up_to_multiple<64>(offset + inputs_b_size);
 		output_type* C_ptr = reinterpret_cast<output_type*>(static_cast<uint8_t*>(buffer.data()) + offset);
 
-		using index_type		= cutlass::gemm::GemmCoord::Index;
-		using nihilus_gemm_type = cutlass::gemm::device::Gemm<element_a, layout_a, element_b, layout_b, element_c, layout_c>;
-		nihilus_gemm_type op;
+		using index_type = cutlass::gemm::GemmCoord::Index;
+
 
 		if constexpr (std::is_same_v<input_type_01, float>) {
 			offset			   = 0;
 			const float* A_ptr = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
 			offset			   = round_up_to_multiple<64>(offset + inputs_a_size);
 
-			const float* B_ptr = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-
-			cutlass::Status status = op({ { static_cast<index_type>(M), static_cast<index_type>(N), static_cast<index_type>(K) }, { A_ptr, static_cast<index_type>(K) },
-				{ B_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
+			const float* B_ptr		= reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+			using nihilus_gemm_type = cutlass::gemm::device::Gemm<M, K, element_a, layout_a, element_b, layout_b, element_c, layout_c>;
+			nihilus_gemm_type op;
+			cutlass::Status status = op({ static_cast<index_type>(N), { A_ptr, static_cast<index_type>(K) }, { B_ptr, static_cast<index_type>(N) },
+				{ C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
 
 			if (status != cutlass::Status::kSuccess) {
 				std::cerr << "Nihilus float32 Gemm failed: " << cutlass::cutlassGetStatusString(status) << std::endl;
@@ -1436,9 +1436,10 @@ template<uint64_t M, uint64_t K, typename input_type_01, typename input_type_02,
 
 			dequantize_blocks<<<(total_elements + 255) / 256, 256>>>(A_quant_ptr, A_dequant_ptr, total_elements);
 
-			cutlass::Status status =
-				op({ { static_cast<index_type>(M), static_cast<index_type>(N), static_cast<index_type>(K) }, { A_dequant_ptr, static_cast<index_type>(K) },
-					{ B_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
+			using nihilus_gemm_type = cutlass::gemm::device::Gemm<M, K, element_a, layout_a, element_b, layout_b, element_c, layout_c>;
+			nihilus_gemm_type op;
+			cutlass::Status status = op({ static_cast<index_type>(N), { A_dequant_ptr, static_cast<index_type>(K) }, { B_ptr, static_cast<index_type>(N) },
+				{ C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
 
 			if (status != cutlass::Status::kSuccess) {
 				std::cerr << "Nihilus Q8_0 Gemm failed: " << cutlass::cutlassGetStatusString(status) << std::endl;
@@ -1625,8 +1626,8 @@ template<typename input_type_01, uint64_t M, uint64_t K, uint64_t mat_b_dim_00, 
 	buffer.init(total_buffer_size);
 	uint64_t current_index{};
 
-	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrepAndPost<"cutlass_base_mul_mat_q8_0",
-		cutlass_base_mul_mat<M, K, block_q8_0, float, float>>(buffer, current_index, inputs_a, inputs_b, outputs01, N);
+	//bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrepAndPost<"cutlass_base_mul_mat_q8_0",
+		//cutlass_base_mul_mat<M, K, block_q8_0, float, float>>(buffer, current_index, inputs_a, inputs_b, outputs01, N);
 
 	current_index = 0;
 	//bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrepAndPost<"ggml_cuda_mul_mat_q8_0",
@@ -1679,8 +1680,8 @@ template<typename input_type_01, uint64_t M, uint64_t K, uint64_t mat_b_dim_00, 
 	buffer.init(total_buffer_size);
 
 	uint64_t current_index{};
-	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrepAndPost<"cutlass_base_mul_mat_float",
-		cutlass_base_mul_mat<M, K, float, float, float>>(buffer, current_index, inputs_a, inputs_b, outputs01, N);
+	//bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrepAndPost<"cutlass_base_mul_mat_float",
+		//cutlass_base_mul_mat<M, K, float, float, float>>(buffer, current_index, inputs_a, inputs_b, outputs01, N);
 
 	current_index = 0;
 	//bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrepAndPost<"ggml_cuda_mul_mat_float",
@@ -1699,17 +1700,29 @@ int32_t main() {
 	/*
 	test_function<float, 4096, 4096, 4096, 1>();
 	test_function<float, 4096, 4096, 4096, 2>();
+	test_function<float, 4096, 4096, 4096, 3>();
 	test_function<float, 4096, 4096, 4096, 4>();
+	test_function<float, 4096, 4096, 4096, 5>();
 	test_function<float, 4096, 4096, 4096, 8>();
+	test_function<float, 4096, 4096, 4096, 13>();
 	test_function<float, 4096, 4096, 4096, 16>();
+	test_function<float, 4096, 4096, 4096, 25>();
 	test_function<float, 4096, 4096, 4096, 32>();
+	test_function<float, 4096, 4096, 4096, 49>();
 	test_function<float, 4096, 4096, 4096, 64>();
+	test_function<float, 4096, 4096, 4096, 97>();
 	test_function<float, 4096, 4096, 4096, 128>();
+	test_function<float, 4096, 4096, 4096, 193>();
 	test_function<float, 4096, 4096, 4096, 256>();
+	test_function<float, 4096, 4096, 4096, 385>();
 	test_function<float, 4096, 4096, 4096, 512>();
+	test_function<float, 4096, 4096, 4096, 769>();
 	test_function<float, 4096, 4096, 4096, 1024>();
+	test_function<float, 4096, 4096, 4096, 1537>();
 	test_function<float, 4096, 4096, 4096, 2048>();
+	test_function<float, 4096, 4096, 4096, 3073>();
 	test_function<float, 4096, 4096, 4096, 4096>();
+	test_function<float, 4096, 4096, 4096, 6145>();
 	test_function<float, 4096, 4096, 4096, 8192>();
 	test_function<float, 4096, 4096, 4096, 16384>();
 	test_function<float, 14336, 4096, 4096, 1>();
@@ -1751,7 +1764,8 @@ int32_t main() {
 	test_function<block_q8_0, 14336, 4096, 4096, 64>();
 	test_function<block_q8_0, 14336, 4096, 4096, 128>();
 	*/
-	test_function<block_q8_0, 14336, 4096, 4096, 256>();
+	test_function<float, 4096, 4096, 4096, 32>();
+	test_function<block_q8_0, 4096, 4096, 4096, 32>();
 	/*
 	test_function<block_q8_0, 14336, 4096, 4096, 512>();
 	test_function<block_q8_0, 14336, 4096, 4096, 1024>();

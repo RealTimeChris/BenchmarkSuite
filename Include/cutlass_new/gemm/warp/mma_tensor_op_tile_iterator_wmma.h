@@ -73,9 +73,9 @@ template <
     /// Layout of operand
     typename Layout_,
     /// Delta between *MMA operations (in units of *WMMA operations, concept:MatrixShape)
-    int OpDelta_,
+    int32_t OpDelta_,
     /// Number of threads participating in one matrix operation
-    int Threads,
+    int32_t Threads,
     /// Shape of the warp in units of thread (concept: MmaTensorOpPolicy)
     typename Policy_>
 class MmaTensorOpWmmaMultiplicandTileIterator;
@@ -97,7 +97,7 @@ template <
     /// Layout of operand
     typename Layout_,
     /// Interval between adjacent *WMMA instructions (in units of WMMA instructions)
-    int OpDelta_,    
+    int32_t OpDelta_,    
     /// Shape of the warp in units of thread (concept: MmaTensorOpPolicy)
     typename Policy_>
 class MmaTensorOpWmmaMultiplicandTileIterator<
@@ -118,7 +118,7 @@ class MmaTensorOpWmmaMultiplicandTileIterator<
   using Layout = Layout_;
 
   /// Delta between *WMMA operations
-  static constexpr int kOpDelta = OpDelta_;
+  static constexpr int32_t kOpDelta = OpDelta_;
 
   /// Wmma Operator information and operation delta
   using Policy = Policy_;
@@ -204,7 +204,7 @@ public:
   CUTLASS_DEVICE
   MmaTensorOpWmmaMultiplicandTileIterator(
     TensorRef const &ref, 
-    int lane_id
+    int32_t lane_id
   ): pointer_(reinterpret_cast<char const*>(ref.data())), byte_offset_(0), stride_(ref.stride(0)), layout_(ref.stride(0)) { 
   
   }
@@ -268,9 +268,9 @@ public:
   void load_with_byte_offset(Fragment &frag, Index byte_offset) const {
 
     CUTLASS_PRAGMA_UNROLL
-    for (int k = 0; k < Iterations::kColumn; ++k) {
+    for (int32_t k = 0; k < Iterations::kColumn; ++k) {
       CUTLASS_PRAGMA_UNROLL
-      for (int m = 0; m < Iterations::kRow; ++m) {
+      for (int32_t m = 0; m < Iterations::kRow; ++m) {
 
         Index load_byte_offset = layout_({m * WmmaShape::kRow, k * WmmaShape::kColumn}) * sizeof_bits<Element>::value / 8;
 
@@ -292,9 +292,9 @@ public:
   void store_with_byte_offset(Fragment const &frag, Index byte_offset) const {
     
     CUTLASS_PRAGMA_UNROLL
-    for (int k = 0; k < Iterations::kColumn; ++k) {
+    for (int32_t k = 0; k < Iterations::kColumn; ++k) {
       CUTLASS_PRAGMA_UNROLL
-      for (int m = 0; m < Iterations::kRow; ++m) {
+      for (int32_t m = 0; m < Iterations::kRow; ++m) {
 
         Index store_byte_offset = layout_({m * WmmaShape::kRow, k * WmmaShape::kColumn}) * sizeof_bits<Element>::value / 8;
 
@@ -320,7 +320,7 @@ public:
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
     // no operation here
   }
 };
@@ -344,7 +344,7 @@ template <
     /// Layout of operand
     typename Layout_,
     /// Interval between adjacent *WMMA instructions (in units of WMMA instructions)
-    int OpDelta_,    
+    int32_t OpDelta_,    
     /// Shape of the warp in units of thread (concept: MmaTensorOpPolicy)
     typename Policy_>
 class MmaTensorOpWmmaMultiplicandTileIterator<
@@ -365,7 +365,7 @@ class MmaTensorOpWmmaMultiplicandTileIterator<
   using Layout = Layout_;
 
   /// Delta between *WMMA operations
-  static constexpr int kOpDelta = OpDelta_;
+  static constexpr int32_t kOpDelta = OpDelta_;
 
   /// Wmma Operator information and operation delta
   using Policy = Policy_;
@@ -452,7 +452,7 @@ public:
   CUTLASS_DEVICE
   MmaTensorOpWmmaMultiplicandTileIterator(
     TensorRef const &ref, 
-    int lane_id
+    int32_t lane_id
   ): pointer_(reinterpret_cast<char const*>(ref.data())), byte_offset_(0), stride_(ref.stride(0)), layout_(ref.stride(0)) {
   }
 
@@ -516,9 +516,9 @@ public:
   void load_with_byte_offset(Fragment &frag, Index byte_offset) const {
 
     CUTLASS_PRAGMA_UNROLL
-    for (int k = 0; k < Iterations::kRow; ++k) {
+    for (int32_t k = 0; k < Iterations::kRow; ++k) {
       CUTLASS_PRAGMA_UNROLL
-      for (int n = 0; n < Iterations::kColumn; ++n) {
+      for (int32_t n = 0; n < Iterations::kColumn; ++n) {
         
         Index load_byte_offset = layout_({k * WmmaShape::kRow, n * WmmaShape::kColumn}) * sizeof_bits<Element>::value / 8;
 
@@ -539,9 +539,9 @@ public:
   void store_with_byte_offset(Fragment const &frag, Index byte_offset) const {
     
     CUTLASS_PRAGMA_UNROLL
-    for (int k = 0; k < Iterations::kRow; ++k) {
+    for (int32_t k = 0; k < Iterations::kRow; ++k) {
       CUTLASS_PRAGMA_UNROLL
-      for (int n = 0; n < Iterations::kColumn; ++n) {
+      for (int32_t n = 0; n < Iterations::kColumn; ++n) {
 
         Index store_byte_offset = layout_({k * WmmaShape::kRow, n * WmmaShape::kColumn}) * sizeof_bits<Element>::value / 8;
 
@@ -566,7 +566,7 @@ public:
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
     // no operation here
   }
 };
@@ -624,7 +624,7 @@ class MmaTensorOpWmmaAccumulatorTileIterator
   using OpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int kThreads = 32;
+  static constexpr int32_t kThreads = 32;
 
   /// Wmma Operator information and operation delta
   using Policy = Policy_;
@@ -690,7 +690,7 @@ public:
   CUTLASS_DEVICE
   MmaTensorOpWmmaAccumulatorTileIterator(
     TensorRef const &ref, 
-    int lane_id
+    int32_t lane_id
   ): ref_(ref) { }
 
   /// Adds a pointer offset to internal pointer(s) to advance through memory
@@ -740,9 +740,9 @@ public:
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
     
     CUTLASS_PRAGMA_UNROLL
-    for (int m = 0; m < Iterations::kRow; ++m) {
+    for (int32_t m = 0; m < Iterations::kRow; ++m) {
       CUTLASS_PRAGMA_UNROLL
-      for (int n = 0; n < Iterations::kColumn; ++n) {
+      for (int32_t n = 0; n < Iterations::kColumn; ++n) {
 
         const WmmaDataType * ptr = reinterpret_cast<const WmmaDataType*> (ref_.data() + ref_.offset({m * WmmaShape::kRow, n * WmmaShape::kColumn}) + pointer_offset);
         
@@ -762,9 +762,9 @@ public:
   void store_with_pointer_offset(Fragment const &frag, Index pointer_offset) const {
     
     CUTLASS_PRAGMA_UNROLL
-    for (int m = 0; m < Iterations::kRow; ++m) {
+    for (int32_t m = 0; m < Iterations::kRow; ++m) {
       CUTLASS_PRAGMA_UNROLL
-      for (int n = 0; n < Iterations::kColumn; ++n) {
+      for (int32_t n = 0; n < Iterations::kColumn; ++n) {
 
         WmmaDataType * ptr = reinterpret_cast<WmmaDataType*> (ref_.data() + ref_.offset({m * WmmaShape::kRow, n * WmmaShape::kColumn}) + pointer_offset);
 
@@ -787,7 +787,7 @@ public:
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
     // no operation here
   }
 };

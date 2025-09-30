@@ -120,10 +120,10 @@ print_type(T&&...) {
 
 CUTE_HOST_DEVICE
 bool
-block([[maybe_unused]] int bid)
+block([[maybe_unused]] int32_t bid)
 {
 #if defined(__CUDA_ARCH__)
-  return blockIdx.x + blockIdx.y*gridDim.x + blockIdx.z*gridDim.x*gridDim.y == static_cast<unsigned int>(bid);
+  return blockIdx.x + blockIdx.y*gridDim.x + blockIdx.z*gridDim.x*gridDim.y == static_cast<uint32_t>(bid);
 #else
   return true;
 #endif
@@ -131,10 +131,10 @@ block([[maybe_unused]] int bid)
 
 CUTE_HOST_DEVICE
 bool
-thread([[maybe_unused]] int tid, [[maybe_unused]] int bid)
+thread([[maybe_unused]] int32_t tid, [[maybe_unused]] int32_t bid)
 {
 #if defined(__CUDA_ARCH__)
-  return (threadIdx.x + threadIdx.y*blockDim.x + threadIdx.z*blockDim.x*blockDim.y == static_cast<unsigned int>(tid)) && block(bid);
+  return (threadIdx.x + threadIdx.y*blockDim.x + threadIdx.z*blockDim.x*blockDim.y == static_cast<uint32_t>(tid)) && block(bid);
 #else
   return true;
 #endif
@@ -142,7 +142,7 @@ thread([[maybe_unused]] int tid, [[maybe_unused]] int bid)
 
 CUTE_HOST_DEVICE
 bool
-thread(int tid)
+thread(int32_t tid)
 {
   return thread(tid,0);
 }

@@ -154,7 +154,7 @@ public:
 
   /// Integer conversion - round toward nearest
   CUTLASS_HOST_DEVICE
-  explicit bfloat16_t(int x) : bfloat16_t(from_32_bit_integer, x) {}
+  explicit bfloat16_t(int32_t x) : bfloat16_t(from_32_bit_integer, x) {}
 
   CUTLASS_HOST_DEVICE
   explicit bfloat16_t(uint32_t x) : bfloat16_t(from_32_bit_integer, x) {}
@@ -178,10 +178,10 @@ public:
     return double(float(*this));
   }
 
-  /// Converts to int
+  /// Converts to int32_t
   CUTLASS_HOST_DEVICE
-  explicit operator int() const {
-    return int(float(*this));
+  explicit operator int32_t() const {
+    return int32_t(float(*this));
   }
 
   /// Casts to bool
@@ -209,20 +209,20 @@ public:
 
   /// Returns the biased exponent
   CUTLASS_HOST_DEVICE
-  int exponent_biased() const {
-    return int((raw() >> 7) & 0x0ff);
+  int32_t exponent_biased() const {
+    return int32_t((raw() >> 7) & 0x0ff);
   }
 
   /// Returns the unbiased exponent
   CUTLASS_HOST_DEVICE
-  int exponent() const {
+  int32_t exponent() const {
     return exponent_biased() - 127;
   }
 
   /// Returns the mantissa
   CUTLASS_HOST_DEVICE
-  int mantissa() const {
-    return int(raw() & 0x7f);
+  int32_t mantissa() const {
+    return int32_t(raw() & 0x7f);
   }
 };
 
@@ -265,9 +265,9 @@ bool isnormal(cutlass::bfloat16_t const& h) {
 }
 
 CUTLASS_HOST_DEVICE
-int fpclassify(cutlass::bfloat16_t const& h) {
-  int exp = h.exponent_biased();
-  int mantissa = h.mantissa();
+int32_t fpclassify(cutlass::bfloat16_t const& h) {
+  int32_t exp = h.exponent_biased();
+  int32_t mantissa = h.mantissa();
   if (exp == 0x0ff) {
     if (mantissa) {
       return FP_NAN;
@@ -346,7 +346,7 @@ struct numeric_limits<cutlass::bfloat16_t> {
   static constexpr bool is_iec559 = false;
   static constexpr bool is_bounded = true;
   static constexpr bool is_modulo = false;
-  static constexpr int digits = 7;
+  static constexpr int32_t digits = 7;
 
   /// Least positive value
   CUTLASS_HOST_DEVICE
@@ -414,7 +414,7 @@ struct numeric_limits<cutlass::bfloat16_t> {
   static constexpr bool is_iec559 = false;
   static constexpr bool is_bounded = true;
   static constexpr bool is_modulo = false;
-  static constexpr int digits = 7;
+  static constexpr int32_t digits = 7;
 
   /// Least positive value
   CUTLASS_HOST_DEVICE
@@ -629,7 +629,7 @@ bfloat16_t& operator--(bfloat16_t & lhs) {
 }
 
 CUTLASS_HOST_DEVICE
-bfloat16_t operator++(bfloat16_t & lhs, int) {
+bfloat16_t operator++(bfloat16_t & lhs, int32_t) {
   bfloat16_t ret(lhs);
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
   lhs = bfloat16_t(__hadd(lhs.to_nv_bfloat16(), bfloat16_t(1.0f).to_nv_bfloat16()));
@@ -642,7 +642,7 @@ bfloat16_t operator++(bfloat16_t & lhs, int) {
 }
 
 CUTLASS_HOST_DEVICE
-bfloat16_t operator--(bfloat16_t & lhs, int) {
+bfloat16_t operator--(bfloat16_t & lhs, int32_t) {
   bfloat16_t ret(lhs);
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
   lhs = bfloat16_t(__hsub(lhs.to_nv_bfloat16(), bfloat16_t(1.0f).to_nv_bfloat16()));
@@ -671,7 +671,7 @@ cutlass::bfloat16_t operator "" _bf16(long double x) {
 
 CUTLASS_HOST_DEVICE
 cutlass::bfloat16_t operator "" _bf16(unsigned long long int x) {
-  return cutlass::bfloat16_t(int(x));
+  return cutlass::bfloat16_t(int32_t(x));
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

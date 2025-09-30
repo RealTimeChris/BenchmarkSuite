@@ -72,7 +72,7 @@ struct integral_constant : C<v> {
 // Traits
 //
 
-// Use nihilus_cute::is_std_integral<T> to match built-in integral types (int, int64_t, unsigned, etc)
+// Use nihilus_cute::is_std_integral<T> to match built-in integral types (int32_t, int64_t, unsigned, etc)
 // Use nihilus_cute::is_integral<T> to match both built-in integral types AND static integral types.
 template <class T>
 struct is_integral : bool_constant<is_std_integral<T>::value> {};
@@ -123,7 +123,7 @@ constexpr bool is_constant_v = is_constant<n,T>::value;
 // Specializations
 //
 
-template <int v>
+template <int32_t v>
 using Int = C<v>;
 
 using _m32    = Int<-32>;
@@ -495,9 +495,9 @@ CUTE_HOST std::ostream& operator<<(std::ostream& os, C<t> const&) {
 
 namespace detail {
 
-// parse_int_digits takes a variadic number of digits and converts them into an int
+// parse_int_digits takes a variadic number of digits and converts them into an int32_t
 template <class... Ts>
-constexpr uint64_t parse_int_digits(uint64_t result, int digit, Ts... digits)
+constexpr uint64_t parse_int_digits(uint64_t result, int32_t digit, Ts... digits)
 {
   if constexpr (sizeof...(Ts) == 0) {
     return 10 * result + digit;
@@ -513,10 +513,10 @@ constexpr uint64_t parse_int_digits(uint64_t result, int digit, Ts... digits)
 //
 //    auto var = 32_c;
 //
-//  var has type nihilus_cute::constant<int,32>.
+//  var has type nihilus_cute::constant<int32_t,32>.
 //
 template <char... digits>
-constexpr nihilus_cute::constant<int,detail::parse_int_digits(0, (digits - '0')...)> operator "" _c()
+constexpr nihilus_cute::constant<int32_t,detail::parse_int_digits(0, (digits - '0')...)> operator "" _c()
 {
   static_assert((('0' <= digits && digits <= '9') && ...),
                 "Expected 0 <= digit <= 9 for each digit of the integer.");

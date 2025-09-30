@@ -61,10 +61,10 @@ template <
   typename WarpShape_,            ///< shape of warp-level GEMM (concept: GemmShape)
   typename OperatorShape_,        ///< matrix multiply operation shape (concept: gemm::GemmShape)
   typename Element_,              ///< data type of accumulator element
-  int ElementSizeBits,            ///< Size of accumulator element in bits
-  int OutputSizeBits,             ///< Size of output element in bits
-  int OutputElementCount,         ///< number of elements in output vector
-  int ContiguousLanes,            ///< Number of consecutive lanes writing to contiguous memory
+  int32_t ElementSizeBits,            ///< Size of accumulator element in bits
+  int32_t OutputSizeBits,             ///< Size of output element in bits
+  int32_t OutputElementCount,         ///< number of elements in output vector
+  int32_t ContiguousLanes,            ///< Number of consecutive lanes writing to contiguous memory
   bool EightBitsOutputOrLess = (OutputSizeBits <= 8)
 >
 class TileIteratorTensorOpMixed {
@@ -74,7 +74,7 @@ public:
   using OperatorShape = OperatorShape_;
   using Element = Element_;
   using Layout = layout::RowMajor;
-  static constexpr int kOutputElementCount = OutputElementCount;
+  static constexpr int32_t kOutputElementCount = OutputElementCount;
 
   using TensorRef = TensorRef<Element, Layout>;         ///< Tensor Reference object
   using TensorCoord = MatrixCoord;                      ///< Logical coordinate in referenced tensor
@@ -98,18 +98,18 @@ public:
   //using AccumulatorTile = typename Operator::FragmentC;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static constexpr int32_t kIterations = Policy::kIterations;
 
   // Internal constants
   struct Detail {
-    static constexpr int kLanesInQuad = 4;
+    static constexpr int32_t kLanesInQuad = 4;
 
     /// Number of pointers needed to write accumulators
-    static constexpr int kPointerCount = 
+    static constexpr int32_t kPointerCount = 
       (OutputElementCount * sizeof_bits<Element>::value) / (const_min(128, OutputElementCount * sizeof_bits<Element>::value));
 
     // Currently support max 4 ptr
-    static constexpr int kMaxPointerCount{4};
+    static constexpr int32_t kMaxPointerCount{4};
 
     static_assert(kPointerCount <= kMaxPointerCount, "Can only accommodate four pointers at present.");
     static_assert(sizeof(Element) == 4, "This can only be used with 32b accumulator data types (f32, s32).");
@@ -133,10 +133,10 @@ private:
   AccessType *pointers_[Detail::kPointerCount] = {nullptr};
 
   /// Stride in units of AccessType
-  int stride_{0};
+  int32_t stride_{0};
 
   /// Logical column in which warp tile is aligned
-  int warp_column_{0};
+  int32_t warp_column_{0};
 
 public:
 
@@ -152,13 +152,13 @@ public:
     stride_(ref.stride()[0] / Policy::kElementsPerAccess),
     warp_column_(0) { 
 
-    int quad_id = (lane_id / Detail::kLanesInQuad); 
-    int lane_in_quad = (lane_id % Detail::kLanesInQuad);
+    int32_t quad_id = (lane_id / Detail::kLanesInQuad); 
+    int32_t lane_in_quad = (lane_id % Detail::kLanesInQuad);
 
     CUTLASS_PRAGMA_UNROLL
     for (int64_t i = 0; i < Detail::kPointerCount; ++i) {
       AccessType *ptr = reinterpret_cast<AccessType *>(ref.data()) + quad_id * stride_;
-      int column_idx = (lane_in_quad % 2) + (((lane_in_quad / 2) + i) % Detail::kPointerCount) * 2;
+      int32_t column_idx = (lane_in_quad % 2) + (((lane_in_quad / 2) + i) % Detail::kPointerCount) * 2;
 
       ptr += column_idx;
 
@@ -213,7 +213,7 @@ public:
     bool kN32_optimization = (WarpShape::kN * Detail::kLanesInQuad * Policy::kElementsPerAccess * sizeof_bits<Element>::value) % 1024 == 0;
     if (kN32_optimization) {
       
-      int ptr_idx = ((warp_column_ * sizeof_bits<Element>::value) / 1024) % Detail::kPointerCount;
+      int32_t ptr_idx = ((warp_column_ * sizeof_bits<Element>::value) / 1024) % Detail::kPointerCount;
       
       if (ptr_idx == 0) {
         ptr = pointers_[0];
@@ -249,8 +249,8 @@ public:
 #endif
       {
         // This is the reference implementation
-        int column_idx = warp_column_ + n * Detail::kLanesInQuad * Policy::kElementsPerAccess;
-        int ptr_idx = ((column_idx * sizeof_bits<Element>::value) / 1024) % Detail::kPointerCount;
+        int32_t column_idx = warp_column_ + n * Detail::kLanesInQuad * Policy::kElementsPerAccess;
+        int32_t ptr_idx = ((column_idx * sizeof_bits<Element>::value) / 1024) % Detail::kPointerCount;
   
         if (ptr_idx == 0) {
           ptr = pointers_[0 % Detail::kPointerCount];
@@ -266,7 +266,7 @@ public:
         }
       }
 
-      int offset = n * Detail::kLanesInQuad + pointer_offset / Policy::kElementsPerAccess;
+      int32_t offset = n * Detail::kLanesInQuad + pointer_offset / Policy::kElementsPerAccess;
       ptr[offset] = frag_ptr[n];
     }
   }
@@ -286,8 +286,8 @@ public:
     CUTLASS_PRAGMA_UNROLL
     for (int64_t n = 0; n < Policy::OperatorCount::kColumn; ++n) {
 
-      int column_idx = warp_column_ + n * Detail::kLanesInQuad * Policy::kElementsPerAccess;
-      int ptr_idx = ((column_idx * sizeof_bits<Element>::value) / 1024) % Detail::kPointerCount;
+      int32_t column_idx = warp_column_ + n * Detail::kLanesInQuad * Policy::kElementsPerAccess;
+      int32_t ptr_idx = ((column_idx * sizeof_bits<Element>::value) / 1024) % Detail::kPointerCount;
 
       AccessType const *smem_ptr = pointers_[ptr_idx];
       frag_ptr[n] = smem_ptr[n * Detail::kLanesInQuad + pointer_offset / Policy::kElementsPerAccess];
@@ -312,7 +312,7 @@ public:
 template <
   typename WarpShape_,            ///< shape of warp-level GEMM (concept: GemmShape)
   typename OperatorShape_,        ///< matrix multiply operation shape (concept: gemm::GemmShape),
-  int OutputSizeBits              ///< Size of output element in bits
+  int32_t OutputSizeBits              ///< Size of output element in bits
 >
 class TileIteratorTensorOpMixed<WarpShape_, OperatorShape_, int32_t, 32, OutputSizeBits, 16, 8, true> {
 public:
@@ -321,7 +321,7 @@ public:
   using OperatorShape = OperatorShape_;
   using Element = int32_t;
   using Layout = layout::RowMajor;
-  static constexpr int kOutputElementCount = 16;
+  static constexpr int32_t kOutputElementCount = 16;
 
   using TensorRef = TensorRef<Element, Layout>;         ///< Tensor Reference object
   using TensorCoord = MatrixCoord;                      ///< Logical coordinate in referenced tensor
@@ -345,17 +345,17 @@ public:
   //using AccumulatorTile = typename Operator::FragmentC;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static constexpr int32_t kIterations = Policy::kIterations;
 
   // Internal constants
   struct Detail {
-    static constexpr int kLanesInQuad = 4;
+    static constexpr int32_t kLanesInQuad = 4;
 
     /// Number of pointers needed to write accumulators
-    static constexpr int kPointerCount = 2;
+    static constexpr int32_t kPointerCount = 2;
 
     /// Offsets added 
-    static constexpr int kOffsetCount = 4;
+    static constexpr int32_t kOffsetCount = 4;
 
     static_assert(sizeof(Element) == 4, "This can only be used with 32b accumulator data types (f32, s32).");
   };
@@ -376,10 +376,10 @@ private:
   AccessType *pointers_[Detail::kPointerCount] = {nullptr};
 
   /// Stride in units of AccessType
-  int stride_{0};
+  int32_t stride_{0};
 
   /// Uniform offset in bytes added to warp tile iterator
-  int uniform_offset_[Detail::kOffsetCount] = {0};
+  int32_t uniform_offset_[Detail::kOffsetCount] = {0};
 
 public:
 
@@ -394,13 +394,13 @@ public:
   ):
     stride_(ref.stride()[0] / AccessType::kElements) { 
 
-    int quad_id = (lane_id / Detail::kLanesInQuad); 
-    int lane_in_quad = (lane_id % Detail::kLanesInQuad);
+    int32_t quad_id = (lane_id / Detail::kLanesInQuad); 
+    int32_t lane_in_quad = (lane_id % Detail::kLanesInQuad);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < Detail::kPointerCount; ++i) {
+    for (int32_t i = 0; i < Detail::kPointerCount; ++i) {
       AccessType *ptr = reinterpret_cast<AccessType *>(ref.data()) + quad_id * stride_;
-      int column_idx = lane_in_quad ^ (i * 2);
+      int32_t column_idx = lane_in_quad ^ (i * 2);
 
       ptr += column_idx;
     
@@ -413,7 +413,7 @@ public:
     }
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < Detail::kOffsetCount; ++i) {
+    for (int32_t i = 0; i < Detail::kOffsetCount; ++i) {
       uniform_offset_[i] = (i ^ 0) * 4 * sizeof(AccessType);
     }
   }
@@ -434,14 +434,14 @@ public:
   CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & add_tile_offset(TensorCoord const &tile_offset) {
     
-    int ptr_offset = tile_offset.row() * Shape::kRow * stride_ + 
+    int32_t ptr_offset = tile_offset.row() * Shape::kRow * stride_ + 
       tile_offset.column() * Shape::kColumn / AccessType::kElements;
 
     pointers_[0] += ptr_offset;
     pointers_[1] += ptr_offset;
     
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < Detail::kOffsetCount; ++i) {
+    for (int32_t i = 0; i < Detail::kOffsetCount; ++i) {
       uniform_offset_[i] = (i ^ tile_offset.column()) * 4 * sizeof(AccessType);
     }
 
@@ -461,10 +461,10 @@ public:
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int n = 0; n < Policy::OperatorCount::kColumn; ++n) {
+    for (int32_t n = 0; n < Policy::OperatorCount::kColumn; ++n) {
 
-      int ptr_idx = (n / 4);
-      int offset_idx = (n % 4);
+      int32_t ptr_idx = (n / 4);
+      int32_t offset_idx = (n % 4);
 
       AccessType *ptr;
       if (ptr_idx == 0) {
@@ -474,7 +474,7 @@ public:
         ptr = pointers_[1];
       }
 
-      int offset = (n / 4) * 16 + pointer_offset / AccessType::kElements;
+      int32_t offset = (n / 4) * 16 + pointer_offset / AccessType::kElements;
 
 #if 0
       //
@@ -513,7 +513,7 @@ public:
 template <
   typename WarpShape_,            ///< shape of warp-level GEMM (concept: GemmShape)
   typename OperatorShape_,        ///< matrix multiply operation shape (concept: gemm::GemmShape)
-  int OutputSizeBits              ///< Size of output element in bits
+  int32_t OutputSizeBits              ///< Size of output element in bits
 >
 class TileIteratorTensorOpMixed<WarpShape_, OperatorShape_, int32_t, 32, OutputSizeBits, 8, 8, true> {
 public:
@@ -522,7 +522,7 @@ public:
   using OperatorShape = OperatorShape_;
   using Element = int32_t;
   using Layout = layout::RowMajor;
-  static constexpr int kOutputElementCount = 8;
+  static constexpr int32_t kOutputElementCount = 8;
 
   using TensorRef = TensorRef<Element, Layout>;         ///< Tensor Reference object
   using TensorCoord = MatrixCoord;                      ///< Logical coordinate in referenced tensor
@@ -546,14 +546,14 @@ public:
   //using AccumulatorTile = typename Operator::FragmentC;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static constexpr int32_t kIterations = Policy::kIterations;
 
   // Internal constants
   struct Detail {
-    static constexpr int kLanesInQuad = 4;
+    static constexpr int32_t kLanesInQuad = 4;
 
     /// Number of pointers needed to write accumulators
-    static constexpr int kPointerCount = 2;
+    static constexpr int32_t kPointerCount = 2;
 
     static_assert(sizeof(Element) == 4, "This can only be used with 32b accumulator data types (f32, s32).");
   };
@@ -574,7 +574,7 @@ private:
   AccessType *pointers_[Detail::kPointerCount] = {nullptr};
 
   /// Stride in units of AccessType
-  int stride_{0};
+  int32_t stride_{0};
 
 public:
 
@@ -589,13 +589,13 @@ public:
   ):
     stride_(ref.stride()[0] / AccessType::kElements) { 
 
-    int quad_id = (lane_id / Detail::kLanesInQuad); 
-    int lane_in_quad = (lane_id % Detail::kLanesInQuad);
+    int32_t quad_id = (lane_id / Detail::kLanesInQuad); 
+    int32_t lane_in_quad = (lane_id % Detail::kLanesInQuad);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < Detail::kPointerCount; ++i) {
+    for (int32_t i = 0; i < Detail::kPointerCount; ++i) {
       AccessType *ptr = reinterpret_cast<AccessType *>(ref.data()) + quad_id * stride_;
-      int column_idx = lane_in_quad ^ (i * 2);
+      int32_t column_idx = lane_in_quad ^ (i * 2);
 
       ptr += column_idx;
     
@@ -624,7 +624,7 @@ public:
   CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & add_tile_offset(TensorCoord const &tile_offset) {
     
-    int ptr_offset = tile_offset.row() * Shape::kRow * stride_ + 
+    int32_t ptr_offset = tile_offset.row() * Shape::kRow * stride_ + 
       tile_offset.column() * Shape::kColumn / AccessType::kElements;
 
     pointers_[0] += ptr_offset;
@@ -652,9 +652,9 @@ public:
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int n = 0; n < Policy::OperatorCount::kColumn; ++n) {
+    for (int32_t n = 0; n < Policy::OperatorCount::kColumn; ++n) {
 
-      int ptr_idx = (n / 4);
+      int32_t ptr_idx = (n / 4);
 
       AccessType *ptr;
       if (ptr_idx == 0) {
@@ -664,7 +664,7 @@ public:
         ptr = pointers_[1];
       }
 
-      int offset = (n / 4) * 16 + pointer_offset / AccessType::kElements + (n % 4) * 4;
+      int32_t offset = (n / 4) * 16 + pointer_offset / AccessType::kElements + (n % 4) * 4;
 
 #if 0
       //
@@ -711,7 +711,7 @@ public:
   using OperatorShape = OperatorShape_;
   using Element = float;
   using Layout = layout::RowMajor;
-  static constexpr int kOutputElementCount = 16;
+  static constexpr int32_t kOutputElementCount = 16;
 
   using TensorRef = TensorRef<Element, Layout>;         ///< Tensor Reference object
   using TensorCoord = MatrixCoord;                      ///< Logical coordinate in referenced tensor
@@ -735,17 +735,17 @@ public:
   //using AccumulatorTile = typename Operator::FragmentC;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static constexpr int32_t kIterations = Policy::kIterations;
 
   // Internal constants
   struct Detail {
-    static constexpr int kLanesInQuad = 4;
+    static constexpr int32_t kLanesInQuad = 4;
 
     /// Number of pointers needed to write accumulators
-    static constexpr int kPointerCount = 2;
+    static constexpr int32_t kPointerCount = 2;
 
     /// Offsets added
-    static constexpr int kOffsetCount = 4;
+    static constexpr int32_t kOffsetCount = 4;
 
     static_assert(sizeof(Element) == 4, "This can only be used with 32b accumulator data types (f32, s32).");
   };
@@ -766,10 +766,10 @@ private:
   AccessType *pointers_[Detail::kPointerCount] = {nullptr};
 
   /// Stride in units of AccessType
-  int stride_{0};
+  int32_t stride_{0};
 
   /// Uniform offset in bytes added to warp tile iterator
-  int uniform_offset_[Detail::kOffsetCount] = {0};
+  int32_t uniform_offset_[Detail::kOffsetCount] = {0};
 
 public:
 
@@ -784,13 +784,13 @@ public:
   ):
     stride_(ref.stride()[0] / AccessType::kElements) {
 
-    int quad_id = (lane_id / Detail::kLanesInQuad);
-    int lane_in_quad = (lane_id % Detail::kLanesInQuad);
+    int32_t quad_id = (lane_id / Detail::kLanesInQuad);
+    int32_t lane_in_quad = (lane_id % Detail::kLanesInQuad);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < Detail::kPointerCount; ++i) {
+    for (int32_t i = 0; i < Detail::kPointerCount; ++i) {
       AccessType *ptr = reinterpret_cast<AccessType *>(ref.data()) + quad_id * stride_;
-      int column_idx = lane_in_quad ^ (i * 2);
+      int32_t column_idx = lane_in_quad ^ (i * 2);
 
       ptr += column_idx;
 
@@ -803,7 +803,7 @@ public:
     }
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < Detail::kOffsetCount; ++i) {
+    for (int32_t i = 0; i < Detail::kOffsetCount; ++i) {
       uniform_offset_[i] = (i ^ 0) * 4 * sizeof(AccessType);
     }
   }
@@ -824,14 +824,14 @@ public:
   CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & add_tile_offset(TensorCoord const &tile_offset) {
 
-    int ptr_offset = tile_offset.row() * Shape::kRow * stride_ +
+    int32_t ptr_offset = tile_offset.row() * Shape::kRow * stride_ +
       tile_offset.column() * Shape::kColumn / AccessType::kElements;
 
     pointers_[0] += ptr_offset;
     pointers_[1] += ptr_offset;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < Detail::kOffsetCount; ++i) {
+    for (int32_t i = 0; i < Detail::kOffsetCount; ++i) {
       uniform_offset_[i] = (i ^ tile_offset.column()) * 4 * sizeof(AccessType);
     }
 
@@ -851,10 +851,10 @@ public:
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int n = 0; n < Policy::OperatorCount::kColumn; ++n) {
+    for (int32_t n = 0; n < Policy::OperatorCount::kColumn; ++n) {
 
-      int ptr_idx = (n / 4);
-      int offset_idx = (n % 4);
+      int32_t ptr_idx = (n / 4);
+      int32_t offset_idx = (n % 4);
 
       AccessType *ptr;
       if (ptr_idx == 0) {
@@ -864,7 +864,7 @@ public:
         ptr = pointers_[1];
       }
 
-      int offset = (n / 4) * 16 + pointer_offset / AccessType::kElements;
+      int32_t offset = (n / 4) * 16 + pointer_offset / AccessType::kElements;
 
 #if 0
       //
@@ -906,7 +906,7 @@ public:
   using OperatorShape = OperatorShape_;
   using Element = float;
   using Layout = layout::RowMajor;
-  static constexpr int kOutputElementCount = 8;
+  static constexpr int32_t kOutputElementCount = 8;
 
   using TensorRef = TensorRef<Element, Layout>;         ///< Tensor Reference object
   using TensorCoord = MatrixCoord;                      ///< Logical coordinate in referenced tensor
@@ -930,14 +930,14 @@ public:
   //using AccumulatorTile = typename Operator::FragmentC;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static constexpr int32_t kIterations = Policy::kIterations;
 
   // Internal constants
   struct Detail {
-    static constexpr int kLanesInQuad = 4;
+    static constexpr int32_t kLanesInQuad = 4;
 
     /// Number of pointers needed to write accumulators
-    static constexpr int kPointerCount = 2;
+    static constexpr int32_t kPointerCount = 2;
 
     static_assert(sizeof(Element) == 4, "This can only be used with 32b accumulator data types (f32, s32).");
   };
@@ -958,7 +958,7 @@ private:
   AccessType *pointers_[Detail::kPointerCount] = {nullptr};
 
   /// Stride in units of AccessType
-  int stride_{0};
+  int32_t stride_{0};
 
 public:
 
@@ -973,13 +973,13 @@ public:
   ):
     stride_(ref.stride()[0] / AccessType::kElements) {
 
-    int quad_id = (lane_id / Detail::kLanesInQuad);
-    int lane_in_quad = (lane_id % Detail::kLanesInQuad);
+    int32_t quad_id = (lane_id / Detail::kLanesInQuad);
+    int32_t lane_in_quad = (lane_id % Detail::kLanesInQuad);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < Detail::kPointerCount; ++i) {
+    for (int32_t i = 0; i < Detail::kPointerCount; ++i) {
       AccessType *ptr = reinterpret_cast<AccessType *>(ref.data()) + quad_id * stride_;
-      int column_idx = lane_in_quad ^ (i * 2);
+      int32_t column_idx = lane_in_quad ^ (i * 2);
 
       ptr += column_idx;
 
@@ -1008,7 +1008,7 @@ public:
   CUTLASS_HOST_DEVICE
   TileIteratorTensorOpMixed & add_tile_offset(TensorCoord const &tile_offset) {
 
-    int ptr_offset = tile_offset.row() * Shape::kRow * stride_ +
+    int32_t ptr_offset = tile_offset.row() * Shape::kRow * stride_ +
       tile_offset.column() * Shape::kColumn / AccessType::kElements;
 
     pointers_[0] += ptr_offset;
@@ -1036,9 +1036,9 @@ public:
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int n = 0; n < Policy::OperatorCount::kColumn; ++n) {
+    for (int32_t n = 0; n < Policy::OperatorCount::kColumn; ++n) {
 
-      int ptr_idx = (n / 4);
+      int32_t ptr_idx = (n / 4);
 
       AccessType *ptr;
       if (ptr_idx == 0) {
@@ -1048,7 +1048,7 @@ public:
         ptr = pointers_[1];
       }
 
-      int offset = (n / 4) * 16 + pointer_offset / AccessType::kElements + (n % 4) * 4;
+      int32_t offset = (n / 4) * 16 + pointer_offset / AccessType::kElements + (n % 4) * 4;
 
 #if 0
       //

@@ -73,7 +73,7 @@ template <
   /// Shape of the warp in units of thread (concept: MmaSimtPolicy)
   typename Policy_,
   /// Number of partitions along K dimension
-  int PartitionsK = 1,
+  int32_t PartitionsK = 1,
   /// Complex transformation on operand A
   ComplexTransform TransformA = ComplexTransform::kNone,
   /// Complex transformation on operand B
@@ -230,7 +230,7 @@ public:
     FragmentC &d, 
     FragmentA a, 
     FragmentB b, 
-    FragmentC const &c, int group_idx = 0) const {
+    FragmentC const &c, int32_t group_idx = 0) const {
 
     ThreadMma mma;
 

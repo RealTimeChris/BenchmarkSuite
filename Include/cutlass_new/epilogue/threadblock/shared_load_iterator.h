@@ -62,7 +62,7 @@ namespace threadblock {
 template <
   typename ThreadMap_,       ///< Thread map (conept: OutputTileThreadMap)
   typename Element_,         ///< Element data type
-  int MaxAlignment = ThreadMap_::kElementsPerAccess * sizeof_bits<Element_>::value / 8
+  int32_t MaxAlignment = ThreadMap_::kElementsPerAccess * sizeof_bits<Element_>::value / 8
 >
 class SharedLoadIterator {
 public:
@@ -79,13 +79,13 @@ public:
   using LongIndex = typename Layout::LongIndex;
   using TensorCoord = MatrixCoord;
 
-  static constexpr int kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static constexpr int32_t kElementsPerAccess = ThreadMap::kElementsPerAccess;
 
-  static constexpr int kMinAlignment = ThreadMap_::kElementsPerAccess * sizeof_bits<Element_>::value / 8;
+  static constexpr int32_t kMinAlignment = ThreadMap_::kElementsPerAccess * sizeof_bits<Element_>::value / 8;
 
-  static constexpr int kAlignment = (MaxAlignment < kMinAlignment ? MaxAlignment : kMinAlignment);
+  static constexpr int32_t kAlignment = (MaxAlignment < kMinAlignment ? MaxAlignment : kMinAlignment);
 
-  static constexpr int kThreads = ThreadMap::kThreads;
+  static constexpr int32_t kThreads = ThreadMap::kThreads;
 
   /// Fragment object
   using Fragment = Array<
@@ -109,7 +109,7 @@ public:
     const_min(16, kAlignment)
   >;
 
-  static constexpr int kLoadsPerAccess = AccessType::kElements / LoadType::kElements;
+  static constexpr int32_t kLoadsPerAccess = AccessType::kElements / LoadType::kElements;
 
 private:
 
@@ -121,7 +121,7 @@ private:
   uint8_t *byte_pointer_;
 
   /// Stride along adjacent rows
-  int stride_;
+  int32_t stride_;
 
 public:
 
@@ -133,7 +133,7 @@ public:
   CUTLASS_DEVICE
   SharedLoadIterator(
     TensorRef ref,
-    int thread_idx
+    int32_t thread_idx
   ):
     byte_pointer_(reinterpret_cast<uint8_t *>(ref.data())),
     stride_((ref.stride(0) * sizeof_bits<Element>::value) / 8) {
@@ -165,13 +165,13 @@ public:
 
 
     CUTLASS_PRAGMA_UNROLL
-    for (int cluster = 0; cluster < ThreadMap::Iterations::kCluster; ++cluster) {
+    for (int32_t cluster = 0; cluster < ThreadMap::Iterations::kCluster; ++cluster) {
 
       CUTLASS_PRAGMA_UNROLL
-      for (int group = 0; group < ThreadMap::Iterations::kGroup; ++group) {
+      for (int32_t group = 0; group < ThreadMap::Iterations::kGroup; ++group) {
 
         CUTLASS_PRAGMA_UNROLL
-        for (int row = 0; row < ThreadMap::Iterations::kRow; ++row) {
+        for (int32_t row = 0; row < ThreadMap::Iterations::kRow; ++row) {
 
           uint8_t const *byte_pointer = byte_pointer_ + 
             row * ThreadMap::Delta::kRow * stride_ + 
@@ -179,19 +179,19 @@ public:
             cluster * ThreadMap::Delta::kCluster * stride_ +
             pointer_offset * sizeof_bits<Element>::value / 8;
 
-          int frag_row_idx = 
+          int32_t frag_row_idx = 
             (row + ThreadMap::Iterations::kRow * (group + ThreadMap::Iterations::kGroup * cluster));
 
           LoadType *frag_ptr = reinterpret_cast<LoadType *>(&frag);
           LoadType const *memory_pointer = reinterpret_cast<LoadType const *>(byte_pointer);
 
           CUTLASS_PRAGMA_UNROLL
-          for (int column = 0; column < ThreadMap::Iterations::kColumn; ++column) {
+          for (int32_t column = 0; column < ThreadMap::Iterations::kColumn; ++column) {
             
-            int frag_idx = frag_row_idx * ThreadMap::Iterations::kColumn + column;
+            int32_t frag_idx = frag_row_idx * ThreadMap::Iterations::kColumn + column;
 
             CUTLASS_PRAGMA_UNROLL
-            for (int v = 0; v < kLoadsPerAccess; ++v) {
+            for (int32_t v = 0; v < kLoadsPerAccess; ++v) {
               frag_ptr[frag_idx * kLoadsPerAccess + v] = 
                 memory_pointer[(column * ThreadMap::Delta::kColumn / kElementsPerAccess) * kLoadsPerAccess + v];
             }

@@ -64,7 +64,7 @@ struct Reduce< plus<T>, T > {
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Partial specialization of Reduce for Array<T, N>
-template <typename T, int N>
+template <typename T, int32_t N>
 struct Reduce < plus<T>, Array<T, N>> {
   
   CUTLASS_HOST_DEVICE
@@ -86,7 +86,7 @@ struct Reduce < plus<T>, Array<T, N>> {
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Partial specializations of Reduce for Array<half_t, N>
-template <int N>
+template <int32_t N>
 struct Reduce < plus<half_t>, Array<half_t, N> > {
   
   CUTLASS_HOST_DEVICE
@@ -112,7 +112,7 @@ struct Reduce < plus<half_t>, Array<half_t, N> > {
         __half2 tmp_result = x_in_half2[0];
 
         CUTLASS_PRAGMA_UNROLL
-        for (int i = 1; i < N/2; ++i) {
+        for (int32_t i = 1; i < N/2; ++i) {
 
           tmp_result = __hadd2(x_in_half2[i], tmp_result);
 
@@ -160,7 +160,7 @@ struct Reduce < plus<half_t>, Array<half_t, N> > {
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Partial specializations of Reduce for AlignedArray<half_t, N>
-template <int N>
+template <int32_t N>
 struct Reduce < plus<half_t>, AlignedArray<half_t, N> > {
   
   CUTLASS_HOST_DEVICE
@@ -186,7 +186,7 @@ struct Reduce < plus<half_t>, AlignedArray<half_t, N> > {
         __half2 tmp_result = x_in_half2[0];
 
         CUTLASS_PRAGMA_UNROLL
-        for (int i = 1; i < N/2; ++i) {
+        for (int32_t i = 1; i < N/2; ++i) {
 
           tmp_result = __hadd2(x_in_half2[i], tmp_result);
 

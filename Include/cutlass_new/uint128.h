@@ -66,7 +66,7 @@ namespace cutlass {
 struct alignas(16) uint128_t
 {
   /// Size of one part of the uint's storage in bits
-  static constexpr int storage_bits_ = 64;
+  static constexpr int32_t storage_bits_ = 64;
 
   struct hilo
   {
@@ -227,7 +227,7 @@ struct alignas(16) uint128_t
 
   /// Left-shifts a 128b unsigned integer
   CUTLASS_HOST_DEVICE
-  uint128_t operator<<(int sh) const
+  uint128_t operator<<(int32_t sh) const
   {
     if (sh == 0) {
       return *this;
@@ -245,7 +245,7 @@ struct alignas(16) uint128_t
 
   /// Right-shifts a 128b unsigned integer
   CUTLASS_HOST_DEVICE
-  uint128_t operator>>(int sh) const
+  uint128_t operator>>(int32_t sh) const
   {
     if (sh == 0) {
       return *this;

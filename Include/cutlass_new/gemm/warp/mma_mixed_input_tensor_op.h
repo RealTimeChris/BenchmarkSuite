@@ -74,11 +74,11 @@ template <
   /// Element type for the operand in shared memory for ldmatrix
   typename ElementLoad_,
   /// Number of mma.sync operations performed along rows or columns         
-  int NumMmaInstructions,
+  int32_t NumMmaInstructions,
   /// Number of elements in warp fragment
-  int NumElementsInWarpFragment,
+  int32_t NumElementsInWarpFragment,
   /// Number of elements in mma fragment
-  int NumElementsInMmaFragment,
+  int32_t NumElementsInMmaFragment,
   /// Identifies A or B multiplicand
   Operand Operand_,
   ///
@@ -88,9 +88,9 @@ struct FragmentShuffler {
   using ElementMma = ElementMma_;
   using ElementLoad = ElementLoad_;
 
-  static constexpr int kNumMmaInstructions = NumMmaInstructions;
-  static constexpr int kNumElementsInWarpFragment = NumElementsInWarpFragment;
-  static constexpr int kNumElementsInMmaFragment = NumElementsInMmaFragment;
+  static constexpr int32_t kNumMmaInstructions = NumMmaInstructions;
+  static constexpr int32_t kNumElementsInWarpFragment = NumElementsInWarpFragment;
+  static constexpr int32_t kNumElementsInMmaFragment = NumElementsInMmaFragment;
   static constexpr Operand kOperand = Operand_;
 
   using WarpFragment = Array<ElementLoad, kNumElementsInWarpFragment>;
@@ -112,11 +112,11 @@ template <
   /// Element type for the operand in shared memory for ldmatrix
   typename ElementLoad_,
   /// Number of mma.sync operations performed along rows or columns         
-  int NumMmaInstructions,
+  int32_t NumMmaInstructions,
   /// Number of elements in warp fragment
-  int NumElementsInWarpFragment,
+  int32_t NumElementsInWarpFragment,
   /// Number of elements in mma fragment
-  int NumElementsInMmaFragment
+  int32_t NumElementsInMmaFragment
 > 
 struct FragmentShuffler <ElementMma_, ElementLoad_,
                          NumMmaInstructions, 
@@ -129,9 +129,9 @@ public:
   using ElementMma = ElementMma_;
   using ElementLoad = ElementLoad_;
 
-  static constexpr int kNumMmaInstructions = NumMmaInstructions;
-  static constexpr int kNumElementsInWarpFragment = NumElementsInWarpFragment;
-  static constexpr int kNumElementsInMmaFragment = NumElementsInMmaFragment;
+  static constexpr int32_t kNumMmaInstructions = NumMmaInstructions;
+  static constexpr int32_t kNumElementsInWarpFragment = NumElementsInWarpFragment;
+  static constexpr int32_t kNumElementsInMmaFragment = NumElementsInMmaFragment;
   static constexpr Operand kOperand = Operand::kA;
 
   using WarpFragment = Array<ElementLoad, kNumElementsInWarpFragment>;
@@ -141,18 +141,18 @@ public:
   static constexpr uint32_t kSelectBytesOddThread = 0x7632;
 
 private:
-  int delta_up_;
-  int delta_down_;
-  int odd_even_lane_id_;
+  int32_t delta_up_;
+  int32_t delta_down_;
+  int32_t odd_even_lane_id_;
   uint32_t byte_selector_;
 
 public:
   CUTLASS_DEVICE
   FragmentShuffler() {
-    int lane_id = cutlass::arch::LaneId();
+    int32_t lane_id = cutlass::arch::LaneId();
     delta_up_ = (lane_id & 1) + ((lane_id & 2) >> 1);
     delta_down_ = 2 - delta_up_;
-    odd_even_lane_id_ = static_cast<int>(lane_id & 1);
+    odd_even_lane_id_ = static_cast<int32_t>(lane_id & 1);
     byte_selector_ = odd_even_lane_id_ * kSelectBytesOddThread +
                     (1 - odd_even_lane_id_) * kSelectBytesEvenThread;
   }
@@ -165,7 +165,7 @@ public:
     MmaFragment* mma_frag_dst_ptr = reinterpret_cast<MmaFragment*>(&result);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int n = 0; n < kNumMmaInstructions; n++) {
+    for (int32_t n = 0; n < kNumMmaInstructions; n++) {
 
         uint32_t const* src_ptr = reinterpret_cast<uint32_t const *>(&mma_frag_src_ptr[n]);
         uint32_t *dst_ptr = reinterpret_cast<uint32_t *>(&mma_frag_dst_ptr[n]);
@@ -196,11 +196,11 @@ template <
   /// Element type for the operand in shared memory for ldmatrix
   typename ElementLoad_,
   /// Number of mma.sync operations performed along rows or columns         
-  int NumMmaInstructions,
+  int32_t NumMmaInstructions,
   /// Number of elements in warp fragment
-  int NumElementsInWarpFragment,
+  int32_t NumElementsInWarpFragment,
   /// Number of elements in mma fragment
-  int NumElementsInMmaFragment
+  int32_t NumElementsInMmaFragment
 > 
 struct FragmentShuffler <ElementMma_, ElementLoad_,
                          NumMmaInstructions, 
@@ -213,9 +213,9 @@ public:
   using ElementMma = ElementMma_;
   using ElementLoad = ElementLoad_;
 
-  static constexpr int kNumMmaInstructions = NumMmaInstructions;
-  static constexpr int kNumElementsInWarpFragment = NumElementsInWarpFragment;
-  static constexpr int kNumElementsInMmaFragment = NumElementsInMmaFragment;
+  static constexpr int32_t kNumMmaInstructions = NumMmaInstructions;
+  static constexpr int32_t kNumElementsInWarpFragment = NumElementsInWarpFragment;
+  static constexpr int32_t kNumElementsInMmaFragment = NumElementsInMmaFragment;
   static constexpr Operand kOperand = Operand::kB;
 
   using WarpFragment = Array<ElementLoad, kNumElementsInWarpFragment>;
@@ -225,18 +225,18 @@ public:
   static constexpr uint32_t kSelectBytesOddThread = 0x7632;
 
 private:
-  int delta_up_;
-  int delta_down_;
-  int odd_even_lane_id_;
+  int32_t delta_up_;
+  int32_t delta_down_;
+  int32_t odd_even_lane_id_;
   uint32_t byte_selector_;
 
 public:
   CUTLASS_DEVICE
   FragmentShuffler() {
-    int lane_id = cutlass::arch::LaneId();
+    int32_t lane_id = cutlass::arch::LaneId();
     delta_up_ = (lane_id & 1) + ((lane_id & 2) >> 1);
     delta_down_ = 2 - delta_up_;
-    odd_even_lane_id_ = static_cast<int>(lane_id & 1);
+    odd_even_lane_id_ = static_cast<int32_t>(lane_id & 1);
     byte_selector_ = odd_even_lane_id_ * kSelectBytesOddThread +
                     (1 - odd_even_lane_id_) * kSelectBytesEvenThread;
   }
@@ -250,7 +250,7 @@ public:
     MmaFragment* mma_frag_dst_ptr = reinterpret_cast<MmaFragment *>(&result);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int n = 0; n < kNumMmaInstructions; n++) {
+    for (int32_t n = 0; n < kNumMmaInstructions; n++) {
 
         uint32_t const* src_ptr = reinterpret_cast<uint32_t const*>(&mma_frag_src_ptr[n]);
         uint32_t* dst_ptr = reinterpret_cast<uint32_t*>(&mma_frag_dst_ptr[n]);
@@ -277,7 +277,7 @@ template <
   /// Source type
   typename ElementSrc_,
   /// Number of elements
-  int N,
+  int32_t N,
   ///
   typename Enable = void> 
 struct FragmentConverter {
@@ -304,7 +304,7 @@ template <
   /// Data type
   typename Element,
   /// Number of elements
-  int N,
+  int32_t N,
   /// 
   typename Enable>
 struct FragmentConverter<Element, Element, N, Enable> {
@@ -339,7 +339,7 @@ template <
   /// Policy describing warp-level MmaTensorOp (concept: MmaTensorOp policy)
   typename Policy_,
   /// Number of partitions along K dimension
-  int PartitionsK_ = 1,
+  int32_t PartitionsK_ = 1,
   /// Store the accumulators in row major or column major.  Row major is used
   /// when output layout is interleaved.
   bool AccumulatorsInRowMajor = false,
@@ -403,13 +403,13 @@ public:
   static constexpr ComplexTransform kTransformB = ComplexTransform::kNone;
 
   /// Number of threads participating in warp-level matrix product
-  static constexpr int kThreadCount = 32;
+  static constexpr int32_t kThreadCount = 32;
 
   /// Number of partitions along K dimension
-  static constexpr int kPartitionsK = PartitionsK_;
+  static constexpr int32_t kPartitionsK = PartitionsK_;
 
   /// 
-  // static constexpr int kLoadShapeK = InstructionShape::kK * 
+  // static constexpr int32_t kLoadShapeK = InstructionShape::kK * 
   //  (sizeof_bits<ElementAMma>::value / sizeof_bits<ElementB>::value);
 
 public:
@@ -495,12 +495,12 @@ public:
     MmaOperandC *ptr_D = reinterpret_cast<MmaOperandC *>(&D);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int m = 0; m < MmaIterations::kRow; ++m) {
+    for (int32_t m = 0; m < MmaIterations::kRow; ++m) {
 
       CUTLASS_PRAGMA_UNROLL
-      for (int n = 0; n < MmaIterations::kColumn; ++n) {
+      for (int32_t n = 0; n < MmaIterations::kColumn; ++n) {
 
-        int n_serpentine = ((m % 2) ? (MmaIterations::kColumn - 1 - n) : n);
+        int32_t n_serpentine = ((m % 2) ? (MmaIterations::kColumn - 1 - n) : n);
 
         if (AccumulatorsInRowMajor) {  // matrix B is reordered
           mma(

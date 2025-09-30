@@ -51,7 +51,7 @@ namespace cutlass {
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Primary template with partial specializations to follow
-template <typename Element, int Rows, int Columns> struct Matrix;
+template <typename Element, int32_t Rows, int32_t Columns> struct Matrix;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -67,16 +67,16 @@ struct Matrix<Element_, 1, 2> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int kRows = 1;
+  static constexpr int32_t kRows = 1;
 
   /// Number of columns in matrix
-  static constexpr int kColumns = 2;
+  static constexpr int32_t kColumns = 2;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int kCount = 2;
+  static constexpr int32_t kCount = 2;
 
   //
   // Data members
@@ -146,13 +146,13 @@ struct Matrix<Element_, 1, 2> {
     
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element at(int i, int j) const {
+  Element at(int32_t i, int32_t j) const {
     return data[i * 1 + j];
   }
 
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element & at(int i, int j) {
+  Element & at(int32_t i, int32_t j) {
     return data[i * 1 + j];
   }
 
@@ -170,13 +170,13 @@ struct Matrix<Element_, 1, 2> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element &at(int offset) {
+  Element &at(int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element at(int offset) const {
+  Element at(int32_t offset) const {
     return data[offset];
   }
 
@@ -194,19 +194,19 @@ struct Matrix<Element_, 1, 2> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element & operator[](int offset) {
+  Element & operator[](int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element operator[](int offset) const {
+  Element operator[](int32_t offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 2> slice_1x2(int i = 0, int j = 0) const {
+  Matrix<Element, 1, 2> slice_1x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 1, 2> m;
     
     m.data[0] = data[i * 2 + j + 0];
@@ -217,7 +217,7 @@ struct Matrix<Element_, 1, 2> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
     data[i * 2 + j + 1] = m.data[1];
@@ -226,12 +226,12 @@ struct Matrix<Element_, 1, 2> {
   }
     
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 2> row(int i) const {
+  Matrix<Element, 1, 2> row(int32_t i) const {
     return slice_1x2(i, 0);
   }
 
   CUTLASS_HOST_DEVICE
-  Matrix &set_row(Matrix<Element, 1, 2> const &v, int i = 0) {
+  Matrix &set_row(Matrix<Element, 1, 2> const &v, int32_t i = 0) {
     return set_slice_1x2(v, i, 0);
   }
     
@@ -624,16 +624,16 @@ struct Matrix<Element_, 1, 3> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int kRows = 1;
+  static constexpr int32_t kRows = 1;
 
   /// Number of columns in matrix
-  static constexpr int kColumns = 3;
+  static constexpr int32_t kColumns = 3;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int kCount = 3;
+  static constexpr int32_t kCount = 3;
 
   //
   // Data members
@@ -705,13 +705,13 @@ struct Matrix<Element_, 1, 3> {
     
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element at(int i, int j) const {
+  Element at(int32_t i, int32_t j) const {
     return data[i * 1 + j];
   }
 
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element & at(int i, int j) {
+  Element & at(int32_t i, int32_t j) {
     return data[i * 1 + j];
   }
 
@@ -729,13 +729,13 @@ struct Matrix<Element_, 1, 3> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element &at(int offset) {
+  Element &at(int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element at(int offset) const {
+  Element at(int32_t offset) const {
     return data[offset];
   }
 
@@ -753,19 +753,19 @@ struct Matrix<Element_, 1, 3> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element & operator[](int offset) {
+  Element & operator[](int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element operator[](int offset) const {
+  Element operator[](int32_t offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 2> slice_1x2(int i = 0, int j = 0) const {
+  Matrix<Element, 1, 2> slice_1x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 1, 2> m;
     
     m.data[0] = data[i * 3 + j + 0];
@@ -776,7 +776,7 @@ struct Matrix<Element_, 1, 3> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
     data[i * 3 + j + 1] = m.data[1];
@@ -786,7 +786,7 @@ struct Matrix<Element_, 1, 3> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 3> slice_1x3(int i = 0, int j = 0) const {
+  Matrix<Element, 1, 3> slice_1x3(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 1, 3> m;
     
     m.data[0] = data[i * 3 + j + 0];
@@ -798,7 +798,7 @@ struct Matrix<Element_, 1, 3> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_1x3(Matrix<Element, 1, 3> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_1x3(Matrix<Element, 1, 3> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
     data[i * 3 + j + 1] = m.data[1];
@@ -808,12 +808,12 @@ struct Matrix<Element_, 1, 3> {
   }
     
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 3> row(int i) const {
+  Matrix<Element, 1, 3> row(int32_t i) const {
     return slice_1x3(i, 0);
   }
 
   CUTLASS_HOST_DEVICE
-  Matrix &set_row(Matrix<Element, 1, 3> const &v, int i = 0) {
+  Matrix &set_row(Matrix<Element, 1, 3> const &v, int32_t i = 0) {
     return set_slice_1x3(v, i, 0);
   }
     
@@ -1251,16 +1251,16 @@ struct Matrix<Element_, 1, 4> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int kRows = 1;
+  static constexpr int32_t kRows = 1;
 
   /// Number of columns in matrix
-  static constexpr int kColumns = 4;
+  static constexpr int32_t kColumns = 4;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int kCount = 4;
+  static constexpr int32_t kCount = 4;
 
   //
   // Data members
@@ -1334,13 +1334,13 @@ struct Matrix<Element_, 1, 4> {
     
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element at(int i, int j) const {
+  Element at(int32_t i, int32_t j) const {
     return data[i * 1 + j];
   }
 
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element & at(int i, int j) {
+  Element & at(int32_t i, int32_t j) {
     return data[i * 1 + j];
   }
 
@@ -1358,13 +1358,13 @@ struct Matrix<Element_, 1, 4> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element &at(int offset) {
+  Element &at(int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element at(int offset) const {
+  Element at(int32_t offset) const {
     return data[offset];
   }
 
@@ -1382,19 +1382,19 @@ struct Matrix<Element_, 1, 4> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element & operator[](int offset) {
+  Element & operator[](int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element operator[](int offset) const {
+  Element operator[](int32_t offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 2> slice_1x2(int i = 0, int j = 0) const {
+  Matrix<Element, 1, 2> slice_1x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 1, 2> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -1405,7 +1405,7 @@ struct Matrix<Element_, 1, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -1415,7 +1415,7 @@ struct Matrix<Element_, 1, 4> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 3> slice_1x3(int i = 0, int j = 0) const {
+  Matrix<Element, 1, 3> slice_1x3(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 1, 3> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -1427,7 +1427,7 @@ struct Matrix<Element_, 1, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_1x3(Matrix<Element, 1, 3> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_1x3(Matrix<Element, 1, 3> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -1438,7 +1438,7 @@ struct Matrix<Element_, 1, 4> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 4> slice_1x4(int i = 0, int j = 0) const {
+  Matrix<Element, 1, 4> slice_1x4(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 1, 4> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -1451,7 +1451,7 @@ struct Matrix<Element_, 1, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_1x4(Matrix<Element, 1, 4> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_1x4(Matrix<Element, 1, 4> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -1462,12 +1462,12 @@ struct Matrix<Element_, 1, 4> {
   }
     
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 4> row(int i) const {
+  Matrix<Element, 1, 4> row(int32_t i) const {
     return slice_1x4(i, 0);
   }
 
   CUTLASS_HOST_DEVICE
-  Matrix &set_row(Matrix<Element, 1, 4> const &v, int i = 0) {
+  Matrix &set_row(Matrix<Element, 1, 4> const &v, int32_t i = 0) {
     return set_slice_1x4(v, i, 0);
   }
     
@@ -1930,16 +1930,16 @@ struct Matrix<Element_, 2, 1> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int kRows = 2;
+  static constexpr int32_t kRows = 2;
 
   /// Number of columns in matrix
-  static constexpr int kColumns = 1;
+  static constexpr int32_t kColumns = 1;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int kCount = 2;
+  static constexpr int32_t kCount = 2;
 
   //
   // Data members
@@ -2011,13 +2011,13 @@ struct Matrix<Element_, 2, 1> {
     
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element at(int i, int j) const {
+  Element at(int32_t i, int32_t j) const {
     return data[i * 2 + j];
   }
 
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element & at(int i, int j) {
+  Element & at(int32_t i, int32_t j) {
     return data[i * 2 + j];
   }
 
@@ -2035,13 +2035,13 @@ struct Matrix<Element_, 2, 1> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element &at(int offset) {
+  Element &at(int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element at(int offset) const {
+  Element at(int32_t offset) const {
     return data[offset];
   }
 
@@ -2059,19 +2059,19 @@ struct Matrix<Element_, 2, 1> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element & operator[](int offset) {
+  Element & operator[](int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element operator[](int offset) const {
+  Element operator[](int32_t offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 1> slice_2x1(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 1> slice_2x1(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 1> m;
     
     m.data[0] = data[i * 1 + j + 0];
@@ -2082,7 +2082,7 @@ struct Matrix<Element_, 2, 1> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 1 + j + 0] = m.data[0];
     data[i * 1 + j + 1] = m.data[1];
@@ -2091,12 +2091,12 @@ struct Matrix<Element_, 2, 1> {
   }
     
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 1> column(int j) const {
+  Matrix<Element, 2, 1> column(int32_t j) const {
     return slice_2x1(0, j);
   }
 
   CUTLASS_HOST_DEVICE
-  Matrix &set_column(Matrix<Element, 2, 1> const &v, int j =0) {
+  Matrix &set_column(Matrix<Element, 2, 1> const &v, int32_t j =0) {
     return set_slice_2x1(v, 0, j);
   }
     
@@ -2498,16 +2498,16 @@ struct Matrix<Element_, 2, 2> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int kRows = 2;
+  static constexpr int32_t kRows = 2;
 
   /// Number of columns in matrix
-  static constexpr int kColumns = 2;
+  static constexpr int32_t kColumns = 2;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int kCount = 4;
+  static constexpr int32_t kCount = 4;
 
   //
   // Data members
@@ -2654,13 +2654,13 @@ struct Matrix<Element_, 2, 2> {
     
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element at(int i, int j) const {
+  Element at(int32_t i, int32_t j) const {
     return data[i * 2 + j];
   }
 
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element & at(int i, int j) {
+  Element & at(int32_t i, int32_t j) {
     return data[i * 2 + j];
   }
 
@@ -2678,13 +2678,13 @@ struct Matrix<Element_, 2, 2> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element &at(int offset) {
+  Element &at(int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element at(int offset) const {
+  Element at(int32_t offset) const {
     return data[offset];
   }
 
@@ -2702,19 +2702,19 @@ struct Matrix<Element_, 2, 2> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element & operator[](int offset) {
+  Element & operator[](int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element operator[](int offset) const {
+  Element operator[](int32_t offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 2> slice_1x2(int i = 0, int j = 0) const {
+  Matrix<Element, 1, 2> slice_1x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 1, 2> m;
     
     m.data[0] = data[i * 2 + j + 0];
@@ -2725,7 +2725,7 @@ struct Matrix<Element_, 2, 2> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
     data[i * 2 + j + 1] = m.data[1];
@@ -2734,18 +2734,18 @@ struct Matrix<Element_, 2, 2> {
   }
     
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 2> row(int i) const {
+  Matrix<Element, 1, 2> row(int32_t i) const {
     return slice_1x2(i, 0);
   }
 
   CUTLASS_HOST_DEVICE
-  Matrix &set_row(Matrix<Element, 1, 2> const &v, int i = 0) {
+  Matrix &set_row(Matrix<Element, 1, 2> const &v, int32_t i = 0) {
     return set_slice_1x2(v, i, 0);
   }
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 1> slice_2x1(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 1> slice_2x1(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 1> m;
     
     m.data[0] = data[i * 2 + j + 0];
@@ -2756,7 +2756,7 @@ struct Matrix<Element_, 2, 2> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
     data[i * 2 + j + 2] = m.data[1];
@@ -2765,18 +2765,18 @@ struct Matrix<Element_, 2, 2> {
   }
     
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 1> column(int j) const {
+  Matrix<Element, 2, 1> column(int32_t j) const {
     return slice_2x1(0, j);
   }
 
   CUTLASS_HOST_DEVICE
-  Matrix &set_column(Matrix<Element, 2, 1> const &v, int j =0) {
+  Matrix &set_column(Matrix<Element, 2, 1> const &v, int32_t j =0) {
     return set_slice_2x1(v, 0, j);
   }
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 2> slice_2x2(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 2> slice_2x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 2> m;
     
     m.data[0] = data[i * 2 + j + 0];
@@ -2789,7 +2789,7 @@ struct Matrix<Element_, 2, 2> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
     data[i * 2 + j + 1] = m.data[1];
@@ -3285,16 +3285,16 @@ struct Matrix<Element_, 2, 3> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int kRows = 2;
+  static constexpr int32_t kRows = 2;
 
   /// Number of columns in matrix
-  static constexpr int kColumns = 3;
+  static constexpr int32_t kColumns = 3;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int kCount = 6;
+  static constexpr int32_t kCount = 6;
 
   //
   // Data members
@@ -3439,13 +3439,13 @@ struct Matrix<Element_, 2, 3> {
     
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element at(int i, int j) const {
+  Element at(int32_t i, int32_t j) const {
     return data[i * 2 + j];
   }
 
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element & at(int i, int j) {
+  Element & at(int32_t i, int32_t j) {
     return data[i * 2 + j];
   }
 
@@ -3463,13 +3463,13 @@ struct Matrix<Element_, 2, 3> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element &at(int offset) {
+  Element &at(int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element at(int offset) const {
+  Element at(int32_t offset) const {
     return data[offset];
   }
 
@@ -3487,19 +3487,19 @@ struct Matrix<Element_, 2, 3> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element & operator[](int offset) {
+  Element & operator[](int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element operator[](int offset) const {
+  Element operator[](int32_t offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 2> slice_1x2(int i = 0, int j = 0) const {
+  Matrix<Element, 1, 2> slice_1x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 1, 2> m;
     
     m.data[0] = data[i * 3 + j + 0];
@@ -3510,7 +3510,7 @@ struct Matrix<Element_, 2, 3> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
     data[i * 3 + j + 1] = m.data[1];
@@ -3520,7 +3520,7 @@ struct Matrix<Element_, 2, 3> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 3> slice_1x3(int i = 0, int j = 0) const {
+  Matrix<Element, 1, 3> slice_1x3(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 1, 3> m;
     
     m.data[0] = data[i * 3 + j + 0];
@@ -3532,7 +3532,7 @@ struct Matrix<Element_, 2, 3> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_1x3(Matrix<Element, 1, 3> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_1x3(Matrix<Element, 1, 3> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
     data[i * 3 + j + 1] = m.data[1];
@@ -3542,18 +3542,18 @@ struct Matrix<Element_, 2, 3> {
   }
     
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 3> row(int i) const {
+  Matrix<Element, 1, 3> row(int32_t i) const {
     return slice_1x3(i, 0);
   }
 
   CUTLASS_HOST_DEVICE
-  Matrix &set_row(Matrix<Element, 1, 3> const &v, int i = 0) {
+  Matrix &set_row(Matrix<Element, 1, 3> const &v, int32_t i = 0) {
     return set_slice_1x3(v, i, 0);
   }
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 1> slice_2x1(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 1> slice_2x1(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 1> m;
     
     m.data[0] = data[i * 3 + j + 0];
@@ -3564,7 +3564,7 @@ struct Matrix<Element_, 2, 3> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
     data[i * 3 + j + 3] = m.data[1];
@@ -3573,18 +3573,18 @@ struct Matrix<Element_, 2, 3> {
   }
     
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 1> column(int j) const {
+  Matrix<Element, 2, 1> column(int32_t j) const {
     return slice_2x1(0, j);
   }
 
   CUTLASS_HOST_DEVICE
-  Matrix &set_column(Matrix<Element, 2, 1> const &v, int j =0) {
+  Matrix &set_column(Matrix<Element, 2, 1> const &v, int32_t j =0) {
     return set_slice_2x1(v, 0, j);
   }
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 2> slice_2x2(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 2> slice_2x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 2> m;
     
     m.data[0] = data[i * 3 + j + 0];
@@ -3597,7 +3597,7 @@ struct Matrix<Element_, 2, 3> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
     data[i * 3 + j + 1] = m.data[1];
@@ -3609,7 +3609,7 @@ struct Matrix<Element_, 2, 3> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 3> slice_2x3(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 3> slice_2x3(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 3> m;
     
     m.data[0] = data[i * 3 + j + 0];
@@ -3624,7 +3624,7 @@ struct Matrix<Element_, 2, 3> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x3(Matrix<Element, 2, 3> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x3(Matrix<Element, 2, 3> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
     data[i * 3 + j + 1] = m.data[1];
@@ -4155,16 +4155,16 @@ struct Matrix<Element_, 2, 4> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int kRows = 2;
+  static constexpr int32_t kRows = 2;
 
   /// Number of columns in matrix
-  static constexpr int kColumns = 4;
+  static constexpr int32_t kColumns = 4;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int kCount = 8;
+  static constexpr int32_t kCount = 8;
 
   //
   // Data members
@@ -4318,13 +4318,13 @@ struct Matrix<Element_, 2, 4> {
     
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element at(int i, int j) const {
+  Element at(int32_t i, int32_t j) const {
     return data[i * 2 + j];
   }
 
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element & at(int i, int j) {
+  Element & at(int32_t i, int32_t j) {
     return data[i * 2 + j];
   }
 
@@ -4342,13 +4342,13 @@ struct Matrix<Element_, 2, 4> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element &at(int offset) {
+  Element &at(int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element at(int offset) const {
+  Element at(int32_t offset) const {
     return data[offset];
   }
 
@@ -4366,19 +4366,19 @@ struct Matrix<Element_, 2, 4> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element & operator[](int offset) {
+  Element & operator[](int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element operator[](int offset) const {
+  Element operator[](int32_t offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 2> slice_1x2(int i = 0, int j = 0) const {
+  Matrix<Element, 1, 2> slice_1x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 1, 2> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -4389,7 +4389,7 @@ struct Matrix<Element_, 2, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -4399,7 +4399,7 @@ struct Matrix<Element_, 2, 4> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 3> slice_1x3(int i = 0, int j = 0) const {
+  Matrix<Element, 1, 3> slice_1x3(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 1, 3> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -4411,7 +4411,7 @@ struct Matrix<Element_, 2, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_1x3(Matrix<Element, 1, 3> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_1x3(Matrix<Element, 1, 3> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -4422,7 +4422,7 @@ struct Matrix<Element_, 2, 4> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 4> slice_1x4(int i = 0, int j = 0) const {
+  Matrix<Element, 1, 4> slice_1x4(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 1, 4> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -4435,7 +4435,7 @@ struct Matrix<Element_, 2, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_1x4(Matrix<Element, 1, 4> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_1x4(Matrix<Element, 1, 4> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -4446,18 +4446,18 @@ struct Matrix<Element_, 2, 4> {
   }
     
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 4> row(int i) const {
+  Matrix<Element, 1, 4> row(int32_t i) const {
     return slice_1x4(i, 0);
   }
 
   CUTLASS_HOST_DEVICE
-  Matrix &set_row(Matrix<Element, 1, 4> const &v, int i = 0) {
+  Matrix &set_row(Matrix<Element, 1, 4> const &v, int32_t i = 0) {
     return set_slice_1x4(v, i, 0);
   }
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 1> slice_2x1(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 1> slice_2x1(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 1> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -4468,7 +4468,7 @@ struct Matrix<Element_, 2, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 4] = m.data[1];
@@ -4477,18 +4477,18 @@ struct Matrix<Element_, 2, 4> {
   }
     
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 1> column(int j) const {
+  Matrix<Element, 2, 1> column(int32_t j) const {
     return slice_2x1(0, j);
   }
 
   CUTLASS_HOST_DEVICE
-  Matrix &set_column(Matrix<Element, 2, 1> const &v, int j =0) {
+  Matrix &set_column(Matrix<Element, 2, 1> const &v, int32_t j =0) {
     return set_slice_2x1(v, 0, j);
   }
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 2> slice_2x2(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 2> slice_2x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 2> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -4501,7 +4501,7 @@ struct Matrix<Element_, 2, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -4513,7 +4513,7 @@ struct Matrix<Element_, 2, 4> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 3> slice_2x3(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 3> slice_2x3(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 3> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -4528,7 +4528,7 @@ struct Matrix<Element_, 2, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x3(Matrix<Element, 2, 3> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x3(Matrix<Element, 2, 3> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -4542,7 +4542,7 @@ struct Matrix<Element_, 2, 4> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 4> slice_2x4(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 4> slice_2x4(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 4> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -4559,7 +4559,7 @@ struct Matrix<Element_, 2, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x4(Matrix<Element, 2, 4> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x4(Matrix<Element, 2, 4> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -5161,16 +5161,16 @@ struct Matrix<Element_, 3, 1> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int kRows = 3;
+  static constexpr int32_t kRows = 3;
 
   /// Number of columns in matrix
-  static constexpr int kColumns = 1;
+  static constexpr int32_t kColumns = 1;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int kCount = 3;
+  static constexpr int32_t kCount = 3;
 
   //
   // Data members
@@ -5246,13 +5246,13 @@ struct Matrix<Element_, 3, 1> {
     
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element at(int i, int j) const {
+  Element at(int32_t i, int32_t j) const {
     return data[i * 3 + j];
   }
 
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element & at(int i, int j) {
+  Element & at(int32_t i, int32_t j) {
     return data[i * 3 + j];
   }
 
@@ -5270,13 +5270,13 @@ struct Matrix<Element_, 3, 1> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element &at(int offset) {
+  Element &at(int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element at(int offset) const {
+  Element at(int32_t offset) const {
     return data[offset];
   }
 
@@ -5294,19 +5294,19 @@ struct Matrix<Element_, 3, 1> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element & operator[](int offset) {
+  Element & operator[](int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element operator[](int offset) const {
+  Element operator[](int32_t offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 1> slice_2x1(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 1> slice_2x1(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 1> m;
     
     m.data[0] = data[i * 1 + j + 0];
@@ -5317,7 +5317,7 @@ struct Matrix<Element_, 3, 1> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 1 + j + 0] = m.data[0];
     data[i * 1 + j + 1] = m.data[1];
@@ -5327,7 +5327,7 @@ struct Matrix<Element_, 3, 1> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 3, 1> slice_3x1(int i = 0, int j = 0) const {
+  Matrix<Element, 3, 1> slice_3x1(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 3, 1> m;
     
     m.data[0] = data[i * 1 + j + 0];
@@ -5339,7 +5339,7 @@ struct Matrix<Element_, 3, 1> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_3x1(Matrix<Element, 3, 1> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_3x1(Matrix<Element, 3, 1> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 1 + j + 0] = m.data[0];
     data[i * 1 + j + 1] = m.data[1];
@@ -5349,12 +5349,12 @@ struct Matrix<Element_, 3, 1> {
   }
     
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 3, 1> column(int j) const {
+  Matrix<Element, 3, 1> column(int32_t j) const {
     return slice_3x1(0, j);
   }
 
   CUTLASS_HOST_DEVICE
-  Matrix &set_column(Matrix<Element, 3, 1> const &v, int j =0) {
+  Matrix &set_column(Matrix<Element, 3, 1> const &v, int32_t j =0) {
     return set_slice_3x1(v, 0, j);
   }
     
@@ -5809,16 +5809,16 @@ struct Matrix<Element_, 3, 2> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int kRows = 3;
+  static constexpr int32_t kRows = 3;
 
   /// Number of columns in matrix
-  static constexpr int kColumns = 2;
+  static constexpr int32_t kColumns = 2;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int kCount = 6;
+  static constexpr int32_t kCount = 6;
 
   //
   // Data members
@@ -5968,13 +5968,13 @@ struct Matrix<Element_, 3, 2> {
     
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element at(int i, int j) const {
+  Element at(int32_t i, int32_t j) const {
     return data[i * 3 + j];
   }
 
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element & at(int i, int j) {
+  Element & at(int32_t i, int32_t j) {
     return data[i * 3 + j];
   }
 
@@ -5992,13 +5992,13 @@ struct Matrix<Element_, 3, 2> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element &at(int offset) {
+  Element &at(int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element at(int offset) const {
+  Element at(int32_t offset) const {
     return data[offset];
   }
 
@@ -6016,19 +6016,19 @@ struct Matrix<Element_, 3, 2> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element & operator[](int offset) {
+  Element & operator[](int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element operator[](int offset) const {
+  Element operator[](int32_t offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 2> slice_1x2(int i = 0, int j = 0) const {
+  Matrix<Element, 1, 2> slice_1x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 1, 2> m;
     
     m.data[0] = data[i * 2 + j + 0];
@@ -6039,7 +6039,7 @@ struct Matrix<Element_, 3, 2> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
     data[i * 2 + j + 1] = m.data[1];
@@ -6048,18 +6048,18 @@ struct Matrix<Element_, 3, 2> {
   }
     
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 2> row(int i) const {
+  Matrix<Element, 1, 2> row(int32_t i) const {
     return slice_1x2(i, 0);
   }
 
   CUTLASS_HOST_DEVICE
-  Matrix &set_row(Matrix<Element, 1, 2> const &v, int i = 0) {
+  Matrix &set_row(Matrix<Element, 1, 2> const &v, int32_t i = 0) {
     return set_slice_1x2(v, i, 0);
   }
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 1> slice_2x1(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 1> slice_2x1(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 1> m;
     
     m.data[0] = data[i * 2 + j + 0];
@@ -6070,7 +6070,7 @@ struct Matrix<Element_, 3, 2> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
     data[i * 2 + j + 2] = m.data[1];
@@ -6080,7 +6080,7 @@ struct Matrix<Element_, 3, 2> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 2> slice_2x2(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 2> slice_2x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 2> m;
     
     m.data[0] = data[i * 2 + j + 0];
@@ -6093,7 +6093,7 @@ struct Matrix<Element_, 3, 2> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
     data[i * 2 + j + 1] = m.data[1];
@@ -6105,7 +6105,7 @@ struct Matrix<Element_, 3, 2> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 3, 1> slice_3x1(int i = 0, int j = 0) const {
+  Matrix<Element, 3, 1> slice_3x1(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 3, 1> m;
     
     m.data[0] = data[i * 2 + j + 0];
@@ -6117,7 +6117,7 @@ struct Matrix<Element_, 3, 2> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_3x1(Matrix<Element, 3, 1> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_3x1(Matrix<Element, 3, 1> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
     data[i * 2 + j + 2] = m.data[1];
@@ -6127,18 +6127,18 @@ struct Matrix<Element_, 3, 2> {
   }
     
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 3, 1> column(int j) const {
+  Matrix<Element, 3, 1> column(int32_t j) const {
     return slice_3x1(0, j);
   }
 
   CUTLASS_HOST_DEVICE
-  Matrix &set_column(Matrix<Element, 3, 1> const &v, int j =0) {
+  Matrix &set_column(Matrix<Element, 3, 1> const &v, int32_t j =0) {
     return set_slice_3x1(v, 0, j);
   }
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 3, 2> slice_3x2(int i = 0, int j = 0) const {
+  Matrix<Element, 3, 2> slice_3x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 3, 2> m;
     
     m.data[0] = data[i * 2 + j + 0];
@@ -6153,7 +6153,7 @@ struct Matrix<Element_, 3, 2> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_3x2(Matrix<Element, 3, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_3x2(Matrix<Element, 3, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
     data[i * 2 + j + 1] = m.data[1];
@@ -6694,16 +6694,16 @@ struct Matrix<Element_, 3, 3> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int kRows = 3;
+  static constexpr int32_t kRows = 3;
 
   /// Number of columns in matrix
-  static constexpr int kColumns = 3;
+  static constexpr int32_t kColumns = 3;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int kCount = 9;
+  static constexpr int32_t kCount = 9;
 
   //
   // Data members
@@ -6878,13 +6878,13 @@ struct Matrix<Element_, 3, 3> {
     
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element at(int i, int j) const {
+  Element at(int32_t i, int32_t j) const {
     return data[i * 3 + j];
   }
 
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element & at(int i, int j) {
+  Element & at(int32_t i, int32_t j) {
     return data[i * 3 + j];
   }
 
@@ -6902,13 +6902,13 @@ struct Matrix<Element_, 3, 3> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element &at(int offset) {
+  Element &at(int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element at(int offset) const {
+  Element at(int32_t offset) const {
     return data[offset];
   }
 
@@ -6926,19 +6926,19 @@ struct Matrix<Element_, 3, 3> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element & operator[](int offset) {
+  Element & operator[](int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element operator[](int offset) const {
+  Element operator[](int32_t offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 2> slice_1x2(int i = 0, int j = 0) const {
+  Matrix<Element, 1, 2> slice_1x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 1, 2> m;
     
     m.data[0] = data[i * 3 + j + 0];
@@ -6949,7 +6949,7 @@ struct Matrix<Element_, 3, 3> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
     data[i * 3 + j + 1] = m.data[1];
@@ -6959,7 +6959,7 @@ struct Matrix<Element_, 3, 3> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 3> slice_1x3(int i = 0, int j = 0) const {
+  Matrix<Element, 1, 3> slice_1x3(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 1, 3> m;
     
     m.data[0] = data[i * 3 + j + 0];
@@ -6971,7 +6971,7 @@ struct Matrix<Element_, 3, 3> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_1x3(Matrix<Element, 1, 3> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_1x3(Matrix<Element, 1, 3> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
     data[i * 3 + j + 1] = m.data[1];
@@ -6981,18 +6981,18 @@ struct Matrix<Element_, 3, 3> {
   }
     
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 3> row(int i) const {
+  Matrix<Element, 1, 3> row(int32_t i) const {
     return slice_1x3(i, 0);
   }
 
   CUTLASS_HOST_DEVICE
-  Matrix &set_row(Matrix<Element, 1, 3> const &v, int i = 0) {
+  Matrix &set_row(Matrix<Element, 1, 3> const &v, int32_t i = 0) {
     return set_slice_1x3(v, i, 0);
   }
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 1> slice_2x1(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 1> slice_2x1(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 1> m;
     
     m.data[0] = data[i * 3 + j + 0];
@@ -7003,7 +7003,7 @@ struct Matrix<Element_, 3, 3> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
     data[i * 3 + j + 3] = m.data[1];
@@ -7013,7 +7013,7 @@ struct Matrix<Element_, 3, 3> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 2> slice_2x2(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 2> slice_2x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 2> m;
     
     m.data[0] = data[i * 3 + j + 0];
@@ -7026,7 +7026,7 @@ struct Matrix<Element_, 3, 3> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
     data[i * 3 + j + 1] = m.data[1];
@@ -7038,7 +7038,7 @@ struct Matrix<Element_, 3, 3> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 3> slice_2x3(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 3> slice_2x3(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 3> m;
     
     m.data[0] = data[i * 3 + j + 0];
@@ -7053,7 +7053,7 @@ struct Matrix<Element_, 3, 3> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x3(Matrix<Element, 2, 3> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x3(Matrix<Element, 2, 3> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
     data[i * 3 + j + 1] = m.data[1];
@@ -7067,7 +7067,7 @@ struct Matrix<Element_, 3, 3> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 3, 1> slice_3x1(int i = 0, int j = 0) const {
+  Matrix<Element, 3, 1> slice_3x1(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 3, 1> m;
     
     m.data[0] = data[i * 3 + j + 0];
@@ -7079,7 +7079,7 @@ struct Matrix<Element_, 3, 3> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_3x1(Matrix<Element, 3, 1> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_3x1(Matrix<Element, 3, 1> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
     data[i * 3 + j + 3] = m.data[1];
@@ -7089,18 +7089,18 @@ struct Matrix<Element_, 3, 3> {
   }
     
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 3, 1> column(int j) const {
+  Matrix<Element, 3, 1> column(int32_t j) const {
     return slice_3x1(0, j);
   }
 
   CUTLASS_HOST_DEVICE
-  Matrix &set_column(Matrix<Element, 3, 1> const &v, int j =0) {
+  Matrix &set_column(Matrix<Element, 3, 1> const &v, int32_t j =0) {
     return set_slice_3x1(v, 0, j);
   }
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 3, 2> slice_3x2(int i = 0, int j = 0) const {
+  Matrix<Element, 3, 2> slice_3x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 3, 2> m;
     
     m.data[0] = data[i * 3 + j + 0];
@@ -7115,7 +7115,7 @@ struct Matrix<Element_, 3, 3> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_3x2(Matrix<Element, 3, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_3x2(Matrix<Element, 3, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
     data[i * 3 + j + 1] = m.data[1];
@@ -7129,7 +7129,7 @@ struct Matrix<Element_, 3, 3> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 3, 3> slice_3x3(int i = 0, int j = 0) const {
+  Matrix<Element, 3, 3> slice_3x3(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 3, 3> m;
     
     m.data[0] = data[i * 3 + j + 0];
@@ -7147,7 +7147,7 @@ struct Matrix<Element_, 3, 3> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_3x3(Matrix<Element, 3, 3> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_3x3(Matrix<Element, 3, 3> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
     data[i * 3 + j + 1] = m.data[1];
@@ -7925,16 +7925,16 @@ struct Matrix<Element_, 3, 4> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int kRows = 3;
+  static constexpr int32_t kRows = 3;
 
   /// Number of columns in matrix
-  static constexpr int kColumns = 4;
+  static constexpr int32_t kColumns = 4;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int kCount = 12;
+  static constexpr int32_t kCount = 12;
 
   //
   // Data members
@@ -8110,13 +8110,13 @@ struct Matrix<Element_, 3, 4> {
     
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element at(int i, int j) const {
+  Element at(int32_t i, int32_t j) const {
     return data[i * 3 + j];
   }
 
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element & at(int i, int j) {
+  Element & at(int32_t i, int32_t j) {
     return data[i * 3 + j];
   }
 
@@ -8134,13 +8134,13 @@ struct Matrix<Element_, 3, 4> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element &at(int offset) {
+  Element &at(int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element at(int offset) const {
+  Element at(int32_t offset) const {
     return data[offset];
   }
 
@@ -8158,19 +8158,19 @@ struct Matrix<Element_, 3, 4> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element & operator[](int offset) {
+  Element & operator[](int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element operator[](int offset) const {
+  Element operator[](int32_t offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 2> slice_1x2(int i = 0, int j = 0) const {
+  Matrix<Element, 1, 2> slice_1x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 1, 2> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -8181,7 +8181,7 @@ struct Matrix<Element_, 3, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -8191,7 +8191,7 @@ struct Matrix<Element_, 3, 4> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 3> slice_1x3(int i = 0, int j = 0) const {
+  Matrix<Element, 1, 3> slice_1x3(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 1, 3> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -8203,7 +8203,7 @@ struct Matrix<Element_, 3, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_1x3(Matrix<Element, 1, 3> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_1x3(Matrix<Element, 1, 3> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -8214,7 +8214,7 @@ struct Matrix<Element_, 3, 4> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 4> slice_1x4(int i = 0, int j = 0) const {
+  Matrix<Element, 1, 4> slice_1x4(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 1, 4> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -8227,7 +8227,7 @@ struct Matrix<Element_, 3, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_1x4(Matrix<Element, 1, 4> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_1x4(Matrix<Element, 1, 4> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -8238,18 +8238,18 @@ struct Matrix<Element_, 3, 4> {
   }
     
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 4> row(int i) const {
+  Matrix<Element, 1, 4> row(int32_t i) const {
     return slice_1x4(i, 0);
   }
 
   CUTLASS_HOST_DEVICE
-  Matrix &set_row(Matrix<Element, 1, 4> const &v, int i = 0) {
+  Matrix &set_row(Matrix<Element, 1, 4> const &v, int32_t i = 0) {
     return set_slice_1x4(v, i, 0);
   }
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 1> slice_2x1(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 1> slice_2x1(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 1> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -8260,7 +8260,7 @@ struct Matrix<Element_, 3, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 4] = m.data[1];
@@ -8270,7 +8270,7 @@ struct Matrix<Element_, 3, 4> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 2> slice_2x2(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 2> slice_2x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 2> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -8283,7 +8283,7 @@ struct Matrix<Element_, 3, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -8295,7 +8295,7 @@ struct Matrix<Element_, 3, 4> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 3> slice_2x3(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 3> slice_2x3(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 3> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -8310,7 +8310,7 @@ struct Matrix<Element_, 3, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x3(Matrix<Element, 2, 3> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x3(Matrix<Element, 2, 3> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -8324,7 +8324,7 @@ struct Matrix<Element_, 3, 4> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 4> slice_2x4(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 4> slice_2x4(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 4> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -8341,7 +8341,7 @@ struct Matrix<Element_, 3, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x4(Matrix<Element, 2, 4> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x4(Matrix<Element, 2, 4> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -8357,7 +8357,7 @@ struct Matrix<Element_, 3, 4> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 3, 1> slice_3x1(int i = 0, int j = 0) const {
+  Matrix<Element, 3, 1> slice_3x1(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 3, 1> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -8369,7 +8369,7 @@ struct Matrix<Element_, 3, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_3x1(Matrix<Element, 3, 1> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_3x1(Matrix<Element, 3, 1> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 4] = m.data[1];
@@ -8379,18 +8379,18 @@ struct Matrix<Element_, 3, 4> {
   }
     
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 3, 1> column(int j) const {
+  Matrix<Element, 3, 1> column(int32_t j) const {
     return slice_3x1(0, j);
   }
 
   CUTLASS_HOST_DEVICE
-  Matrix &set_column(Matrix<Element, 3, 1> const &v, int j =0) {
+  Matrix &set_column(Matrix<Element, 3, 1> const &v, int32_t j =0) {
     return set_slice_3x1(v, 0, j);
   }
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 3, 2> slice_3x2(int i = 0, int j = 0) const {
+  Matrix<Element, 3, 2> slice_3x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 3, 2> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -8405,7 +8405,7 @@ struct Matrix<Element_, 3, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_3x2(Matrix<Element, 3, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_3x2(Matrix<Element, 3, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -8419,7 +8419,7 @@ struct Matrix<Element_, 3, 4> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 3, 3> slice_3x3(int i = 0, int j = 0) const {
+  Matrix<Element, 3, 3> slice_3x3(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 3, 3> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -8437,7 +8437,7 @@ struct Matrix<Element_, 3, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_3x3(Matrix<Element, 3, 3> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_3x3(Matrix<Element, 3, 3> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -8454,7 +8454,7 @@ struct Matrix<Element_, 3, 4> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 3, 4> slice_3x4(int i = 0, int j = 0) const {
+  Matrix<Element, 3, 4> slice_3x4(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 3, 4> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -8475,7 +8475,7 @@ struct Matrix<Element_, 3, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_3x4(Matrix<Element, 3, 4> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_3x4(Matrix<Element, 3, 4> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -9237,16 +9237,16 @@ struct Matrix<Element_, 4, 1> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int kRows = 4;
+  static constexpr int32_t kRows = 4;
 
   /// Number of columns in matrix
-  static constexpr int kColumns = 1;
+  static constexpr int32_t kColumns = 1;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int kCount = 4;
+  static constexpr int32_t kCount = 4;
 
   //
   // Data members
@@ -9326,13 +9326,13 @@ struct Matrix<Element_, 4, 1> {
     
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element at(int i, int j) const {
+  Element at(int32_t i, int32_t j) const {
     return data[i * 4 + j];
   }
 
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element & at(int i, int j) {
+  Element & at(int32_t i, int32_t j) {
     return data[i * 4 + j];
   }
 
@@ -9350,13 +9350,13 @@ struct Matrix<Element_, 4, 1> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element &at(int offset) {
+  Element &at(int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element at(int offset) const {
+  Element at(int32_t offset) const {
     return data[offset];
   }
 
@@ -9374,19 +9374,19 @@ struct Matrix<Element_, 4, 1> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element & operator[](int offset) {
+  Element & operator[](int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element operator[](int offset) const {
+  Element operator[](int32_t offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 1> slice_2x1(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 1> slice_2x1(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 1> m;
     
     m.data[0] = data[i * 1 + j + 0];
@@ -9397,7 +9397,7 @@ struct Matrix<Element_, 4, 1> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 1 + j + 0] = m.data[0];
     data[i * 1 + j + 1] = m.data[1];
@@ -9407,7 +9407,7 @@ struct Matrix<Element_, 4, 1> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 3, 1> slice_3x1(int i = 0, int j = 0) const {
+  Matrix<Element, 3, 1> slice_3x1(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 3, 1> m;
     
     m.data[0] = data[i * 1 + j + 0];
@@ -9419,7 +9419,7 @@ struct Matrix<Element_, 4, 1> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_3x1(Matrix<Element, 3, 1> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_3x1(Matrix<Element, 3, 1> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 1 + j + 0] = m.data[0];
     data[i * 1 + j + 1] = m.data[1];
@@ -9430,7 +9430,7 @@ struct Matrix<Element_, 4, 1> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 4, 1> slice_4x1(int i = 0, int j = 0) const {
+  Matrix<Element, 4, 1> slice_4x1(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 4, 1> m;
     
     m.data[0] = data[i * 1 + j + 0];
@@ -9443,7 +9443,7 @@ struct Matrix<Element_, 4, 1> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_4x1(Matrix<Element, 4, 1> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_4x1(Matrix<Element, 4, 1> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 1 + j + 0] = m.data[0];
     data[i * 1 + j + 1] = m.data[1];
@@ -9454,12 +9454,12 @@ struct Matrix<Element_, 4, 1> {
   }
     
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 4, 1> column(int j) const {
+  Matrix<Element, 4, 1> column(int32_t j) const {
     return slice_4x1(0, j);
   }
 
   CUTLASS_HOST_DEVICE
-  Matrix &set_column(Matrix<Element, 4, 1> const &v, int j =0) {
+  Matrix &set_column(Matrix<Element, 4, 1> const &v, int32_t j =0) {
     return set_slice_4x1(v, 0, j);
   }
     
@@ -9949,16 +9949,16 @@ struct Matrix<Element_, 4, 2> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int kRows = 4;
+  static constexpr int32_t kRows = 4;
 
   /// Number of columns in matrix
-  static constexpr int kColumns = 2;
+  static constexpr int32_t kColumns = 2;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int kCount = 8;
+  static constexpr int32_t kCount = 8;
 
   //
   // Data members
@@ -10122,13 +10122,13 @@ struct Matrix<Element_, 4, 2> {
     
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element at(int i, int j) const {
+  Element at(int32_t i, int32_t j) const {
     return data[i * 4 + j];
   }
 
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element & at(int i, int j) {
+  Element & at(int32_t i, int32_t j) {
     return data[i * 4 + j];
   }
 
@@ -10146,13 +10146,13 @@ struct Matrix<Element_, 4, 2> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element &at(int offset) {
+  Element &at(int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element at(int offset) const {
+  Element at(int32_t offset) const {
     return data[offset];
   }
 
@@ -10170,19 +10170,19 @@ struct Matrix<Element_, 4, 2> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element & operator[](int offset) {
+  Element & operator[](int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element operator[](int offset) const {
+  Element operator[](int32_t offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 2> slice_1x2(int i = 0, int j = 0) const {
+  Matrix<Element, 1, 2> slice_1x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 1, 2> m;
     
     m.data[0] = data[i * 2 + j + 0];
@@ -10193,7 +10193,7 @@ struct Matrix<Element_, 4, 2> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
     data[i * 2 + j + 1] = m.data[1];
@@ -10202,18 +10202,18 @@ struct Matrix<Element_, 4, 2> {
   }
     
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 2> row(int i) const {
+  Matrix<Element, 1, 2> row(int32_t i) const {
     return slice_1x2(i, 0);
   }
 
   CUTLASS_HOST_DEVICE
-  Matrix &set_row(Matrix<Element, 1, 2> const &v, int i = 0) {
+  Matrix &set_row(Matrix<Element, 1, 2> const &v, int32_t i = 0) {
     return set_slice_1x2(v, i, 0);
   }
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 1> slice_2x1(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 1> slice_2x1(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 1> m;
     
     m.data[0] = data[i * 2 + j + 0];
@@ -10224,7 +10224,7 @@ struct Matrix<Element_, 4, 2> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
     data[i * 2 + j + 2] = m.data[1];
@@ -10234,7 +10234,7 @@ struct Matrix<Element_, 4, 2> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 2> slice_2x2(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 2> slice_2x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 2> m;
     
     m.data[0] = data[i * 2 + j + 0];
@@ -10247,7 +10247,7 @@ struct Matrix<Element_, 4, 2> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
     data[i * 2 + j + 1] = m.data[1];
@@ -10259,7 +10259,7 @@ struct Matrix<Element_, 4, 2> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 3, 1> slice_3x1(int i = 0, int j = 0) const {
+  Matrix<Element, 3, 1> slice_3x1(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 3, 1> m;
     
     m.data[0] = data[i * 2 + j + 0];
@@ -10271,7 +10271,7 @@ struct Matrix<Element_, 4, 2> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_3x1(Matrix<Element, 3, 1> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_3x1(Matrix<Element, 3, 1> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
     data[i * 2 + j + 2] = m.data[1];
@@ -10282,7 +10282,7 @@ struct Matrix<Element_, 4, 2> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 3, 2> slice_3x2(int i = 0, int j = 0) const {
+  Matrix<Element, 3, 2> slice_3x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 3, 2> m;
     
     m.data[0] = data[i * 2 + j + 0];
@@ -10297,7 +10297,7 @@ struct Matrix<Element_, 4, 2> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_3x2(Matrix<Element, 3, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_3x2(Matrix<Element, 3, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
     data[i * 2 + j + 1] = m.data[1];
@@ -10311,7 +10311,7 @@ struct Matrix<Element_, 4, 2> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 4, 1> slice_4x1(int i = 0, int j = 0) const {
+  Matrix<Element, 4, 1> slice_4x1(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 4, 1> m;
     
     m.data[0] = data[i * 2 + j + 0];
@@ -10324,7 +10324,7 @@ struct Matrix<Element_, 4, 2> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_4x1(Matrix<Element, 4, 1> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_4x1(Matrix<Element, 4, 1> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
     data[i * 2 + j + 2] = m.data[1];
@@ -10335,18 +10335,18 @@ struct Matrix<Element_, 4, 2> {
   }
     
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 4, 1> column(int j) const {
+  Matrix<Element, 4, 1> column(int32_t j) const {
     return slice_4x1(0, j);
   }
 
   CUTLASS_HOST_DEVICE
-  Matrix &set_column(Matrix<Element, 4, 1> const &v, int j =0) {
+  Matrix &set_column(Matrix<Element, 4, 1> const &v, int32_t j =0) {
     return set_slice_4x1(v, 0, j);
   }
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 4, 2> slice_4x2(int i = 0, int j = 0) const {
+  Matrix<Element, 4, 2> slice_4x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 4, 2> m;
     
     m.data[0] = data[i * 2 + j + 0];
@@ -10363,7 +10363,7 @@ struct Matrix<Element_, 4, 2> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_4x2(Matrix<Element, 4, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_4x2(Matrix<Element, 4, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 2 + j + 0] = m.data[0];
     data[i * 2 + j + 1] = m.data[1];
@@ -10989,16 +10989,16 @@ struct Matrix<Element_, 4, 3> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int kRows = 4;
+  static constexpr int32_t kRows = 4;
 
   /// Number of columns in matrix
-  static constexpr int kColumns = 3;
+  static constexpr int32_t kColumns = 3;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int kCount = 12;
+  static constexpr int32_t kCount = 12;
 
   //
   // Data members
@@ -11179,13 +11179,13 @@ struct Matrix<Element_, 4, 3> {
     
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element at(int i, int j) const {
+  Element at(int32_t i, int32_t j) const {
     return data[i * 4 + j];
   }
 
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element & at(int i, int j) {
+  Element & at(int32_t i, int32_t j) {
     return data[i * 4 + j];
   }
 
@@ -11203,13 +11203,13 @@ struct Matrix<Element_, 4, 3> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element &at(int offset) {
+  Element &at(int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element at(int offset) const {
+  Element at(int32_t offset) const {
     return data[offset];
   }
 
@@ -11227,19 +11227,19 @@ struct Matrix<Element_, 4, 3> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element & operator[](int offset) {
+  Element & operator[](int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element operator[](int offset) const {
+  Element operator[](int32_t offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 2> slice_1x2(int i = 0, int j = 0) const {
+  Matrix<Element, 1, 2> slice_1x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 1, 2> m;
     
     m.data[0] = data[i * 3 + j + 0];
@@ -11250,7 +11250,7 @@ struct Matrix<Element_, 4, 3> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
     data[i * 3 + j + 1] = m.data[1];
@@ -11260,7 +11260,7 @@ struct Matrix<Element_, 4, 3> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 3> slice_1x3(int i = 0, int j = 0) const {
+  Matrix<Element, 1, 3> slice_1x3(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 1, 3> m;
     
     m.data[0] = data[i * 3 + j + 0];
@@ -11272,7 +11272,7 @@ struct Matrix<Element_, 4, 3> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_1x3(Matrix<Element, 1, 3> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_1x3(Matrix<Element, 1, 3> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
     data[i * 3 + j + 1] = m.data[1];
@@ -11282,18 +11282,18 @@ struct Matrix<Element_, 4, 3> {
   }
     
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 3> row(int i) const {
+  Matrix<Element, 1, 3> row(int32_t i) const {
     return slice_1x3(i, 0);
   }
 
   CUTLASS_HOST_DEVICE
-  Matrix &set_row(Matrix<Element, 1, 3> const &v, int i = 0) {
+  Matrix &set_row(Matrix<Element, 1, 3> const &v, int32_t i = 0) {
     return set_slice_1x3(v, i, 0);
   }
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 1> slice_2x1(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 1> slice_2x1(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 1> m;
     
     m.data[0] = data[i * 3 + j + 0];
@@ -11304,7 +11304,7 @@ struct Matrix<Element_, 4, 3> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
     data[i * 3 + j + 3] = m.data[1];
@@ -11314,7 +11314,7 @@ struct Matrix<Element_, 4, 3> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 2> slice_2x2(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 2> slice_2x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 2> m;
     
     m.data[0] = data[i * 3 + j + 0];
@@ -11327,7 +11327,7 @@ struct Matrix<Element_, 4, 3> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
     data[i * 3 + j + 1] = m.data[1];
@@ -11339,7 +11339,7 @@ struct Matrix<Element_, 4, 3> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 3> slice_2x3(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 3> slice_2x3(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 3> m;
     
     m.data[0] = data[i * 3 + j + 0];
@@ -11354,7 +11354,7 @@ struct Matrix<Element_, 4, 3> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x3(Matrix<Element, 2, 3> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x3(Matrix<Element, 2, 3> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
     data[i * 3 + j + 1] = m.data[1];
@@ -11368,7 +11368,7 @@ struct Matrix<Element_, 4, 3> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 3, 1> slice_3x1(int i = 0, int j = 0) const {
+  Matrix<Element, 3, 1> slice_3x1(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 3, 1> m;
     
     m.data[0] = data[i * 3 + j + 0];
@@ -11380,7 +11380,7 @@ struct Matrix<Element_, 4, 3> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_3x1(Matrix<Element, 3, 1> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_3x1(Matrix<Element, 3, 1> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
     data[i * 3 + j + 3] = m.data[1];
@@ -11391,7 +11391,7 @@ struct Matrix<Element_, 4, 3> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 3, 2> slice_3x2(int i = 0, int j = 0) const {
+  Matrix<Element, 3, 2> slice_3x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 3, 2> m;
     
     m.data[0] = data[i * 3 + j + 0];
@@ -11406,7 +11406,7 @@ struct Matrix<Element_, 4, 3> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_3x2(Matrix<Element, 3, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_3x2(Matrix<Element, 3, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
     data[i * 3 + j + 1] = m.data[1];
@@ -11420,7 +11420,7 @@ struct Matrix<Element_, 4, 3> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 3, 3> slice_3x3(int i = 0, int j = 0) const {
+  Matrix<Element, 3, 3> slice_3x3(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 3, 3> m;
     
     m.data[0] = data[i * 3 + j + 0];
@@ -11438,7 +11438,7 @@ struct Matrix<Element_, 4, 3> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_3x3(Matrix<Element, 3, 3> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_3x3(Matrix<Element, 3, 3> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
     data[i * 3 + j + 1] = m.data[1];
@@ -11455,7 +11455,7 @@ struct Matrix<Element_, 4, 3> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 4, 1> slice_4x1(int i = 0, int j = 0) const {
+  Matrix<Element, 4, 1> slice_4x1(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 4, 1> m;
     
     m.data[0] = data[i * 3 + j + 0];
@@ -11468,7 +11468,7 @@ struct Matrix<Element_, 4, 3> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_4x1(Matrix<Element, 4, 1> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_4x1(Matrix<Element, 4, 1> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
     data[i * 3 + j + 3] = m.data[1];
@@ -11479,18 +11479,18 @@ struct Matrix<Element_, 4, 3> {
   }
     
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 4, 1> column(int j) const {
+  Matrix<Element, 4, 1> column(int32_t j) const {
     return slice_4x1(0, j);
   }
 
   CUTLASS_HOST_DEVICE
-  Matrix &set_column(Matrix<Element, 4, 1> const &v, int j =0) {
+  Matrix &set_column(Matrix<Element, 4, 1> const &v, int32_t j =0) {
     return set_slice_4x1(v, 0, j);
   }
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 4, 2> slice_4x2(int i = 0, int j = 0) const {
+  Matrix<Element, 4, 2> slice_4x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 4, 2> m;
     
     m.data[0] = data[i * 3 + j + 0];
@@ -11507,7 +11507,7 @@ struct Matrix<Element_, 4, 3> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_4x2(Matrix<Element, 4, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_4x2(Matrix<Element, 4, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
     data[i * 3 + j + 1] = m.data[1];
@@ -11523,7 +11523,7 @@ struct Matrix<Element_, 4, 3> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 4, 3> slice_4x3(int i = 0, int j = 0) const {
+  Matrix<Element, 4, 3> slice_4x3(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 4, 3> m;
     
     m.data[0] = data[i * 3 + j + 0];
@@ -11544,7 +11544,7 @@ struct Matrix<Element_, 4, 3> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_4x3(Matrix<Element, 4, 3> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_4x3(Matrix<Element, 4, 3> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 3 + j + 0] = m.data[0];
     data[i * 3 + j + 1] = m.data[1];
@@ -12322,16 +12322,16 @@ struct Matrix<Element_, 4, 4> {
   using Element = Element_;
 
   /// Number of rows in matrix
-  static constexpr int kRows = 4;
+  static constexpr int32_t kRows = 4;
 
   /// Number of columns in matrix
-  static constexpr int kColumns = 4;
+  static constexpr int32_t kColumns = 4;
 
   /// Layout of matrix in underlying array
   using Layout = layout::RowMajor;
 
   /// Number of elements in matrix
-  static constexpr int kCount = 16;
+  static constexpr int32_t kCount = 16;
 
   //
   // Data members
@@ -12542,13 +12542,13 @@ struct Matrix<Element_, 4, 4> {
     
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element at(int i, int j) const {
+  Element at(int32_t i, int32_t j) const {
     return data[i * 4 + j];
   }
 
   /// Accesses an element by coordinate
   CUTLASS_HOST_DEVICE
-  Element & at(int i, int j) {
+  Element & at(int32_t i, int32_t j) {
     return data[i * 4 + j];
   }
 
@@ -12566,13 +12566,13 @@ struct Matrix<Element_, 4, 4> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element &at(int offset) {
+  Element &at(int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element at(int offset) const {
+  Element at(int32_t offset) const {
     return data[offset];
   }
 
@@ -12590,19 +12590,19 @@ struct Matrix<Element_, 4, 4> {
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element & operator[](int offset) {
+  Element & operator[](int32_t offset) {
     return data[offset];
   }
 
   /// Accesses an element by offset
   CUTLASS_HOST_DEVICE
-  Element operator[](int offset) const {
+  Element operator[](int32_t offset) const {
     return data[offset];
   }
   
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 2> slice_1x2(int i = 0, int j = 0) const {
+  Matrix<Element, 1, 2> slice_1x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 1, 2> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -12613,7 +12613,7 @@ struct Matrix<Element_, 4, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_1x2(Matrix<Element, 1, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -12623,7 +12623,7 @@ struct Matrix<Element_, 4, 4> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 3> slice_1x3(int i = 0, int j = 0) const {
+  Matrix<Element, 1, 3> slice_1x3(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 1, 3> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -12635,7 +12635,7 @@ struct Matrix<Element_, 4, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_1x3(Matrix<Element, 1, 3> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_1x3(Matrix<Element, 1, 3> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -12646,7 +12646,7 @@ struct Matrix<Element_, 4, 4> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 4> slice_1x4(int i = 0, int j = 0) const {
+  Matrix<Element, 1, 4> slice_1x4(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 1, 4> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -12659,7 +12659,7 @@ struct Matrix<Element_, 4, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_1x4(Matrix<Element, 1, 4> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_1x4(Matrix<Element, 1, 4> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -12670,18 +12670,18 @@ struct Matrix<Element_, 4, 4> {
   }
     
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 1, 4> row(int i) const {
+  Matrix<Element, 1, 4> row(int32_t i) const {
     return slice_1x4(i, 0);
   }
 
   CUTLASS_HOST_DEVICE
-  Matrix &set_row(Matrix<Element, 1, 4> const &v, int i = 0) {
+  Matrix &set_row(Matrix<Element, 1, 4> const &v, int32_t i = 0) {
     return set_slice_1x4(v, i, 0);
   }
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 1> slice_2x1(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 1> slice_2x1(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 1> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -12692,7 +12692,7 @@ struct Matrix<Element_, 4, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x1(Matrix<Element, 2, 1> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 4] = m.data[1];
@@ -12702,7 +12702,7 @@ struct Matrix<Element_, 4, 4> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 2> slice_2x2(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 2> slice_2x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 2> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -12715,7 +12715,7 @@ struct Matrix<Element_, 4, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x2(Matrix<Element, 2, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -12727,7 +12727,7 @@ struct Matrix<Element_, 4, 4> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 3> slice_2x3(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 3> slice_2x3(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 3> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -12742,7 +12742,7 @@ struct Matrix<Element_, 4, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x3(Matrix<Element, 2, 3> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x3(Matrix<Element, 2, 3> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -12756,7 +12756,7 @@ struct Matrix<Element_, 4, 4> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 2, 4> slice_2x4(int i = 0, int j = 0) const {
+  Matrix<Element, 2, 4> slice_2x4(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 2, 4> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -12773,7 +12773,7 @@ struct Matrix<Element_, 4, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_2x4(Matrix<Element, 2, 4> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_2x4(Matrix<Element, 2, 4> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -12789,7 +12789,7 @@ struct Matrix<Element_, 4, 4> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 3, 1> slice_3x1(int i = 0, int j = 0) const {
+  Matrix<Element, 3, 1> slice_3x1(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 3, 1> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -12801,7 +12801,7 @@ struct Matrix<Element_, 4, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_3x1(Matrix<Element, 3, 1> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_3x1(Matrix<Element, 3, 1> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 4] = m.data[1];
@@ -12812,7 +12812,7 @@ struct Matrix<Element_, 4, 4> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 3, 2> slice_3x2(int i = 0, int j = 0) const {
+  Matrix<Element, 3, 2> slice_3x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 3, 2> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -12827,7 +12827,7 @@ struct Matrix<Element_, 4, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_3x2(Matrix<Element, 3, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_3x2(Matrix<Element, 3, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -12841,7 +12841,7 @@ struct Matrix<Element_, 4, 4> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 3, 3> slice_3x3(int i = 0, int j = 0) const {
+  Matrix<Element, 3, 3> slice_3x3(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 3, 3> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -12859,7 +12859,7 @@ struct Matrix<Element_, 4, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_3x3(Matrix<Element, 3, 3> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_3x3(Matrix<Element, 3, 3> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -12876,7 +12876,7 @@ struct Matrix<Element_, 4, 4> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 3, 4> slice_3x4(int i = 0, int j = 0) const {
+  Matrix<Element, 3, 4> slice_3x4(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 3, 4> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -12897,7 +12897,7 @@ struct Matrix<Element_, 4, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_3x4(Matrix<Element, 3, 4> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_3x4(Matrix<Element, 3, 4> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -12917,7 +12917,7 @@ struct Matrix<Element_, 4, 4> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 4, 1> slice_4x1(int i = 0, int j = 0) const {
+  Matrix<Element, 4, 1> slice_4x1(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 4, 1> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -12930,7 +12930,7 @@ struct Matrix<Element_, 4, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_4x1(Matrix<Element, 4, 1> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_4x1(Matrix<Element, 4, 1> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 4] = m.data[1];
@@ -12941,18 +12941,18 @@ struct Matrix<Element_, 4, 4> {
   }
     
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 4, 1> column(int j) const {
+  Matrix<Element, 4, 1> column(int32_t j) const {
     return slice_4x1(0, j);
   }
 
   CUTLASS_HOST_DEVICE
-  Matrix &set_column(Matrix<Element, 4, 1> const &v, int j =0) {
+  Matrix &set_column(Matrix<Element, 4, 1> const &v, int32_t j =0) {
     return set_slice_4x1(v, 0, j);
   }
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 4, 2> slice_4x2(int i = 0, int j = 0) const {
+  Matrix<Element, 4, 2> slice_4x2(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 4, 2> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -12969,7 +12969,7 @@ struct Matrix<Element_, 4, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_4x2(Matrix<Element, 4, 2> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_4x2(Matrix<Element, 4, 2> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -12985,7 +12985,7 @@ struct Matrix<Element_, 4, 4> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 4, 3> slice_4x3(int i = 0, int j = 0) const {
+  Matrix<Element, 4, 3> slice_4x3(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 4, 3> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -13006,7 +13006,7 @@ struct Matrix<Element_, 4, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_4x3(Matrix<Element, 4, 3> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_4x3(Matrix<Element, 4, 3> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -13026,7 +13026,7 @@ struct Matrix<Element_, 4, 4> {
     
   /// Gets a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix<Element, 4, 4> slice_4x4(int i = 0, int j = 0) const {
+  Matrix<Element, 4, 4> slice_4x4(int32_t i = 0, int32_t j = 0) const {
     Matrix<Element, 4, 4> m;
     
     m.data[0] = data[i * 4 + j + 0];
@@ -13051,7 +13051,7 @@ struct Matrix<Element_, 4, 4> {
 
   /// Overwrites a submatrix with optional offset
   CUTLASS_HOST_DEVICE
-  Matrix & set_slice_4x4(Matrix<Element, 4, 4> const &m, int i = 0, int j = 0) {
+  Matrix & set_slice_4x4(Matrix<Element, 4, 4> const &m, int32_t i = 0, int32_t j = 0) {
     
     data[i * 4 + j + 0] = m.data[0];
     data[i * 4 + j + 1] = m.data[1];
@@ -14116,7 +14116,7 @@ CUTLASS_HOST_DEVICE Matrix4x4<Element> make_Matrix4x4(
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Elementwise scalar multiplication
-template <typename Element, int Rows, int Columns>
+template <typename Element, int32_t Rows, int32_t Columns>
 CUTLASS_HOST_DEVICE
 Matrix<Element, Rows, Columns> operator*(Element s, Matrix<Element, Rows, Columns> const &rhs) {
   return rhs.multiply(s);

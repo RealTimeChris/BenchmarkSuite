@@ -91,7 +91,7 @@ struct float_e2m1_t : public float_exmy_base<cutlass::detail::FpEncoding::E2M1, 
   }
 
   CUTLASS_HOST_DEVICE
-  explicit float_e2m1_t(int x) : Base(x) {
+  explicit float_e2m1_t(int32_t x) : Base(x) {
   }
 
   CUTLASS_HOST_DEVICE
@@ -121,7 +121,7 @@ struct float_e2m1_unpacksmem_t : public float_exmy_base<cutlass::detail::FpEncod
   }
 
   CUTLASS_HOST_DEVICE
-  explicit float_e2m1_unpacksmem_t(int x) : Base(x) {
+  explicit float_e2m1_unpacksmem_t(int32_t x) : Base(x) {
   }
 
   CUTLASS_HOST_DEVICE
@@ -134,12 +134,12 @@ struct float_e2m1_unpacksmem_t : public float_exmy_base<cutlass::detail::FpEncod
 /// Defines the size of an element in bits - specialized for float_e2m1_t
 template <>
 struct sizeof_bits<float_e2m1_t> {
-  static constexpr int value = 4;
+  static constexpr int32_t value = 4;
 };
 
 template <>
 struct sizeof_bits<detail::float_e2m1_unpacksmem_t> {
-  static constexpr int value = 4;
+  static constexpr int32_t value = 4;
 };
 
 CUTLASS_HOST_DEVICE
@@ -172,7 +172,7 @@ struct float_e2m3_t : public float_exmy_base<cutlass::detail::FpEncoding::E2M3, 
   }
 
   CUTLASS_HOST_DEVICE
-  explicit float_e2m3_t(int x) : Base(x) {
+  explicit float_e2m3_t(int32_t x) : Base(x) {
   }
 
   CUTLASS_HOST_DEVICE
@@ -200,7 +200,7 @@ struct float_e2m3_unpack8bits_t: public float_exmy_base<cutlass::detail::FpEncod
   }
 
   CUTLASS_HOST_DEVICE
-  explicit float_e2m3_unpack8bits_t(int x) : Base(x) {
+  explicit float_e2m3_unpack8bits_t(int32_t x) : Base(x) {
   }
 
   CUTLASS_HOST_DEVICE
@@ -228,7 +228,7 @@ struct float_e2m3_unpacksmem_t : public float_exmy_base<cutlass::detail::FpEncod
   }
 
   CUTLASS_HOST_DEVICE
-  explicit float_e2m3_unpacksmem_t(int x) : Base(x) {
+  explicit float_e2m3_unpacksmem_t(int32_t x) : Base(x) {
   }
 
   CUTLASS_HOST_DEVICE
@@ -241,13 +241,13 @@ struct float_e2m3_unpacksmem_t : public float_exmy_base<cutlass::detail::FpEncod
 /// Defines the size of an element in bits - specialized for float_e2m3_t
 template <>
 struct sizeof_bits<float_e2m3_t> {
-  static constexpr int value = 6;
+  static constexpr int32_t value = 6;
 };
 
 /// Defines the size of an element in bits - specialized for float_e2m3_unpacksmem_t
 template <>
 struct sizeof_bits<detail::float_e2m3_unpacksmem_t> {
-  static constexpr int value = 6;
+  static constexpr int32_t value = 6;
 };
 
 CUTLASS_HOST_DEVICE
@@ -279,7 +279,7 @@ struct float_e3m2_t : public float_exmy_base<cutlass::detail::FpEncoding::E3M2, 
   }
 
   CUTLASS_HOST_DEVICE
-  explicit float_e3m2_t(int x) : Base(x) {
+  explicit float_e3m2_t(int32_t x) : Base(x) {
   }
 
   CUTLASS_HOST_DEVICE
@@ -307,7 +307,7 @@ struct float_e3m2_unpack8bits_t : public float_exmy_base<cutlass::detail::FpEnco
   }
 
   CUTLASS_HOST_DEVICE
-  explicit float_e3m2_unpack8bits_t(int x) : Base(x) {
+  explicit float_e3m2_unpack8bits_t(int32_t x) : Base(x) {
   }
 
   CUTLASS_HOST_DEVICE
@@ -335,7 +335,7 @@ struct float_e3m2_unpacksmem_t : public float_exmy_base<cutlass::detail::FpEncod
   }
 
   CUTLASS_HOST_DEVICE
-  explicit float_e3m2_unpacksmem_t(int x) : Base(x) {
+  explicit float_e3m2_unpacksmem_t(int32_t x) : Base(x) {
   }
 
   CUTLASS_HOST_DEVICE
@@ -348,13 +348,13 @@ struct float_e3m2_unpacksmem_t : public float_exmy_base<cutlass::detail::FpEncod
 /// Defines the size of an element in bits - specialized for float_e3m2_t
 template <>
 struct sizeof_bits<float_e3m2_t> {
-  static constexpr int value = 6;
+  static constexpr int32_t value = 6;
 };
 
 /// Defines the size of an element in bits - specialized for float_e3m2_unpacksmem_t
 template <>
 struct sizeof_bits<detail::float_e3m2_unpacksmem_t> {
-  static constexpr int value = 6;
+  static constexpr int32_t value = 6;
 };
 
 CUTLASS_HOST_DEVICE
@@ -366,13 +366,13 @@ float_e3m2_t abs(float_e3m2_t const& val) {
 /// Defines the size of an element in bits - specialized for float_e3m2_unpack8bits_t
 template <>
 struct sizeof_bits<detail::float_e3m2_unpack8bits_t> {
-  static constexpr int value = 8;
+  static constexpr int32_t value = 8;
 };
 
 /// Defines the size of an element in bits - specialized for float_e2m3_unpack8bits_t
 template <>
 struct sizeof_bits<detail::float_e2m3_unpack8bits_t> {
-  static constexpr int value = 8;
+  static constexpr int32_t value = 8;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -444,7 +444,7 @@ union type_erased_dynamic_float6_t {
 
 template <>
 struct sizeof_bits<type_erased_dynamic_float6_t> {
-  static constexpr int value = 6;
+  static constexpr int32_t value = 6;
 };
 
 ///////////////////////////////////////////////////////////////
@@ -468,7 +468,7 @@ union type_erased_dynamic_float4_t {
 
 template <>
 struct sizeof_bits<type_erased_dynamic_float4_t> {
-  static constexpr int value = 4;
+  static constexpr int32_t value = 4;
 };
 
 
@@ -545,13 +545,13 @@ union type_erased_dynamic_float4_unpacksmem_t {
 
 template <>
 struct sizeof_bits<detail::type_erased_dynamic_float6_unpacksmem_t> {
-  static constexpr int value = 6;
+  static constexpr int32_t value = 6;
 };
 
 
 template <>
 struct sizeof_bits<detail::type_erased_dynamic_float4_unpacksmem_t> {
-  static constexpr int value = 4;
+  static constexpr int32_t value = 4;
 };
 
 } // namespace cutlass
@@ -583,7 +583,7 @@ public:
   static constexpr bool is_iec559 = false;
   static constexpr bool is_bounded = true;
   static constexpr bool is_modulo = false;
-  static constexpr int digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
+  static constexpr int32_t digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
   static constexpr bool has_infinity = false;
 
   /// Least positive value
@@ -666,7 +666,7 @@ public:
   static constexpr bool is_iec559 = false;
   static constexpr bool is_bounded = true;
   static constexpr bool is_modulo = false;
-  static constexpr int digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
+  static constexpr int32_t digits = type::Base::BitRepresentation::NUM_MANTISSA_BITS;
   static constexpr bool has_infinity = false;
 
   /// Least positive value
@@ -768,7 +768,7 @@ cutlass::float_e2m1_t operator"" _fe2m1(long double x)
 CUTLASS_HOST_DEVICE
 cutlass::float_e2m1_t operator"" _fe2m1(unsigned long long int x)
 {
-  return cutlass::float_e2m1_t(int(x));
+  return cutlass::float_e2m1_t(int32_t(x));
 }
 CUTLASS_HOST_DEVICE
 cutlass::float_e2m3_t operator"" _fe2m3(long double x)
@@ -779,7 +779,7 @@ cutlass::float_e2m3_t operator"" _fe2m3(long double x)
 CUTLASS_HOST_DEVICE
 cutlass::float_e2m3_t operator"" _fe2m3(unsigned long long int x)
 {
-  return cutlass::float_e2m3_t(int(x));
+  return cutlass::float_e2m3_t(int32_t(x));
 }
 
 CUTLASS_HOST_DEVICE
@@ -791,7 +791,7 @@ cutlass::float_e3m2_t operator"" _fe3m2(long double x)
 CUTLASS_HOST_DEVICE
 cutlass::float_e3m2_t operator"" _fe3m2(unsigned long long int x)
 {
-  return cutlass::float_e3m2_t(int(x));
+  return cutlass::float_e3m2_t(int32_t(x));
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

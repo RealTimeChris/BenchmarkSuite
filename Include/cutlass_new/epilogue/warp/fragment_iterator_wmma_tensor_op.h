@@ -109,7 +109,7 @@ private:
   AccessType const *accumulators_;
 
   /// Internal index
-  int index_;
+  int32_t index_;
 
 public:
 
@@ -136,13 +136,13 @@ public:
 
   /// Loads a fragment from the referenced part of the accumulator tile
   CUTLASS_HOST_DEVICE
-  void load(Fragment &frag, int index_offset = 0) const {
+  void load(Fragment &frag, int32_t index_offset = 0) const {
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for(int n=0; n < Policy::OperatorCount::kColumn; n++) {
+    for(int32_t n=0; n < Policy::OperatorCount::kColumn; n++) {
       
-      int accumulator_access_offset = index_ * Policy::OperatorCount::kColumn + n;
+      int32_t accumulator_access_offset = index_ * Policy::OperatorCount::kColumn + n;
 
       frag_ptr[n] = accumulators_[accumulator_access_offset];
     }

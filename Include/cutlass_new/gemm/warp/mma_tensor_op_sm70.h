@@ -128,7 +128,7 @@ public:
   static constexpr ComplexTransform kTransformB = ComplexTransform::kNone;
 
   /// Number of threads participating in warp-level matrix product
-  static constexpr int kThreadCount = 32;
+  static constexpr int32_t kThreadCount = 32;
 
   /// interleaved 32x32 tiles
   using InterleavedTileShape = GemmShape<32, 32, 4>;
@@ -238,26 +238,26 @@ public:
     MmaOperandC *ptr_D = reinterpret_cast<MmaOperandC *>(&D);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int outer_col = 0; outer_col < TileIterations::kColumn; ++outer_col) {
+    for (int32_t outer_col = 0; outer_col < TileIterations::kColumn; ++outer_col) {
       CUTLASS_PRAGMA_UNROLL
-      for (int inner_col = 0; inner_col < MmaIterations::kColumn; ++inner_col) {
+      for (int32_t inner_col = 0; inner_col < MmaIterations::kColumn; ++inner_col) {
         CUTLASS_PRAGMA_UNROLL
-        for (int outer_row = 0; outer_row < TileIterations::kRow; ++outer_row) {
+        for (int32_t outer_row = 0; outer_row < TileIterations::kRow; ++outer_row) {
           CUTLASS_PRAGMA_UNROLL
 
-          for (int inner_row = 0; inner_row < MmaIterations::kRow; ++inner_row) {
+          for (int32_t inner_row = 0; inner_row < MmaIterations::kRow; ++inner_row) {
       
-            int op_col = inner_col + MmaIterations::kColumn * outer_col;
+            int32_t op_col = inner_col + MmaIterations::kColumn * outer_col;
 
             // Column-major serpentine sequence to maximize reuse of A operand.
-            int inner_row_serp = inner_row;
-            int outer_row_serp = outer_row;
+            int32_t inner_row_serp = inner_row;
+            int32_t outer_row_serp = outer_row;
             if (op_col & 1) {
               inner_row_serp = MmaIterations::kRow - inner_row - 1;
               outer_row_serp = TileIterations::kRow - outer_row - 1;
             }
-            int op_row = inner_row_serp + MmaIterations::kRow * outer_row_serp;
-            int op_idx = inner_row_serp + MmaIterations::kRow * 
+            int32_t op_row = inner_row_serp + MmaIterations::kRow * outer_row_serp;
+            int32_t op_idx = inner_row_serp + MmaIterations::kRow * 
                          (inner_col + MmaIterations::kColumn * 
                           (outer_row_serp + TileIterations::kRow * outer_col));
             mma(

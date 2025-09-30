@@ -42,8 +42,8 @@ namespace nihilus_cute
 {
 
 CUTE_HOST_DEVICE
-int
-num_digits(int x)
+int32_t
+num_digits(int32_t x)
 {
   return (x < 10 ? 1 :
           (x < 100 ? 2 :
@@ -70,13 +70,13 @@ print(char c) {
 CUTE_HOST_DEVICE
 void
 print(signed char a) {
-  printf("%d", static_cast<int>(a));
+  printf("%d", static_cast<int32_t>(a));
 }
 
 CUTE_HOST_DEVICE
 void
 print(unsigned char a) {
-  printf("%u", static_cast<unsigned int>(a));
+  printf("%u", static_cast<uint32_t>(a));
 }
 
 CUTE_HOST_DEVICE
@@ -93,49 +93,49 @@ print(unsigned short a) {
 
 CUTE_HOST_DEVICE
 void
-print(int a) {
+print(int32_t a) {
   printf("%d", a);
 }
 
 CUTE_HOST_DEVICE
 void
 print(uint1b_t a) {
-  printf("%d", int(a));
+  printf("%d", int32_t(a));
 }
 
 CUTE_HOST_DEVICE
 void
 print(int2b_t a) {
-  printf("%d", int(a));
+  printf("%d", int32_t(a));
 }
 
 CUTE_HOST_DEVICE
 void
 print(uint2b_t a) {
-  printf("%d", int(a));
+  printf("%d", int32_t(a));
 }
 
 CUTE_HOST_DEVICE
 void
 print(int4b_t a) {
-  printf("%d", int(a));
+  printf("%d", int32_t(a));
 }
 
 CUTE_HOST_DEVICE
 void
 print(uint4b_t a) {
-  printf("%d", int(a));
+  printf("%d", int32_t(a));
 }
 
 CUTE_HOST_DEVICE
 void
 print(bin1_t a) {
-  printf("%d", int(a));
+  printf("%d", int32_t(a));
 }
 
 CUTE_HOST_DEVICE
 void
-print(unsigned int a) {
+print(uint32_t a) {
   printf("%u", a);
 }
 
@@ -194,32 +194,32 @@ print(char const* format) {
 
 CUTE_HOST_DEVICE void
 pretty_print(uint1b_t a) {
-  printf("%*d", 3, int(a));
+  printf("%*d", 3, int32_t(a));
 }
 
 CUTE_HOST_DEVICE void
 pretty_print(int2b_t a) {
-  printf("%*d", 5, int(a));
+  printf("%*d", 5, int32_t(a));
 }
 
 CUTE_HOST_DEVICE void
 pretty_print(uint2b_t a) {
-  printf("%*d", 5, int(a));
+  printf("%*d", 5, int32_t(a));
 }
 
 CUTE_HOST_DEVICE void
 pretty_print(int4b_t a) {
-  printf("%*d", 5, int(a));
+  printf("%*d", 5, int32_t(a));
 }
 
 CUTE_HOST_DEVICE void
 pretty_print(uint4b_t a) {
-  printf("%*d", 5, int(a));
+  printf("%*d", 5, int32_t(a));
 }
 
 CUTE_HOST_DEVICE void
 pretty_print(bool v) {
-  printf("%*d", 3, int(v));
+  printf("%*d", 3, int32_t(v));
 }
 
 CUTE_HOST_DEVICE void

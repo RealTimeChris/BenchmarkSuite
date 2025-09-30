@@ -545,7 +545,7 @@ struct Mma<
   layout::RowMajor,
   int8_t,
   layout::ColumnMajor,
-  int,
+  int32_t,
   layout::RowMajor,
   OpMultiplyAddSaturate> {
 
@@ -559,9 +559,9 @@ struct Mma<
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<int8_t, 4>;
 
-  using ElementC = int;
+  using ElementC = int32_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<int, 4>;
+  using FragmentC = Array<int32_t, 4>;
 
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
@@ -580,8 +580,8 @@ struct Mma<
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const &B = reinterpret_cast<uint32_t const &>(b);
 
-    int const *C = reinterpret_cast<int const *>(&c);
-    int *D = reinterpret_cast<int *>(&d);
+    int32_t const *C = reinterpret_cast<int32_t const *>(&c);
+    int32_t *D = reinterpret_cast<int32_t *>(&d);
 
     asm volatile(
         "mma.sync.aligned.m16n8k16.row.col.s32.s8.s8.s32.satfinite {%0,%1,%2,%3}, {%4,%5}, "
@@ -605,7 +605,7 @@ struct Mma<
   layout::RowMajor,
   int8_t,
   layout::ColumnMajor,
-  int,
+  int32_t,
   layout::RowMajor,
   OpMultiplyAddSaturate> {
 
@@ -619,9 +619,9 @@ struct Mma<
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<int8_t, 4>;
 
-  using ElementC = int;
+  using ElementC = int32_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<int, 4>;
+  using FragmentC = Array<int32_t, 4>;
 
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
@@ -640,8 +640,8 @@ struct Mma<
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const &B = reinterpret_cast<uint32_t const &>(b);
 
-    int const *C = reinterpret_cast<int const *>(&c);
-    int *D = reinterpret_cast<int *>(&d);
+    int32_t const *C = reinterpret_cast<int32_t const *>(&c);
+    int32_t *D = reinterpret_cast<int32_t *>(&d);
 
     asm volatile(
         "mma.sync.aligned.m16n8k16.row.col.s32.u8.s8.s32.satfinite {%0,%1,%2,%3}, {%4,%5}, "
@@ -665,7 +665,7 @@ struct Mma<
   layout::RowMajor,
   uint8_t,
   layout::ColumnMajor,
-  int,
+  int32_t,
   layout::RowMajor,
   OpMultiplyAddSaturate> {
 
@@ -679,9 +679,9 @@ struct Mma<
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<uint8_t, 4>;
 
-  using ElementC = int;
+  using ElementC = int32_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<int, 4>;
+  using FragmentC = Array<int32_t, 4>;
 
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
@@ -700,8 +700,8 @@ struct Mma<
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const &B = reinterpret_cast<uint32_t const &>(b);
 
-    int const *C = reinterpret_cast<int const *>(&c);
-    int *D = reinterpret_cast<int *>(&d);
+    int32_t const *C = reinterpret_cast<int32_t const *>(&c);
+    int32_t *D = reinterpret_cast<int32_t *>(&d);
 
     asm volatile(
         "mma.sync.aligned.m16n8k16.row.col.s32.s8.u8.s32.satfinite {%0,%1,%2,%3}, {%4,%5}, "
@@ -725,7 +725,7 @@ struct Mma<
   layout::RowMajor,
   uint8_t,
   layout::ColumnMajor,
-  int,
+  int32_t,
   layout::RowMajor,
   OpMultiplyAddSaturate> {
 
@@ -739,9 +739,9 @@ struct Mma<
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<uint8_t, 4>;
 
-  using ElementC = int;
+  using ElementC = int32_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<int, 4>;
+  using FragmentC = Array<int32_t, 4>;
 
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
@@ -760,8 +760,8 @@ struct Mma<
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const &B = reinterpret_cast<uint32_t const &>(b);
 
-    int const *C = reinterpret_cast<int const *>(&c);
-    int *D = reinterpret_cast<int *>(&d);
+    int32_t const *C = reinterpret_cast<int32_t const *>(&c);
+    int32_t *D = reinterpret_cast<int32_t *>(&d);
 
     asm volatile(
         "mma.sync.aligned.m16n8k16.row.col.s32.u8.u8.s32.satfinite {%0,%1,%2,%3}, {%4,%5}, "
@@ -791,7 +791,7 @@ struct Mma<
   layout::RowMajor,
   int8_t,
   layout::ColumnMajor,
-  int,
+  int32_t,
   layout::RowMajor,
   OpMultiplyAddSaturate> {
 
@@ -805,9 +805,9 @@ struct Mma<
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<int8_t, 8>;
 
-  using ElementC = int;
+  using ElementC = int32_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<int, 4>;
+  using FragmentC = Array<int32_t, 4>;
 
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
@@ -826,8 +826,8 @@ struct Mma<
   uint32_t const * A = reinterpret_cast<uint32_t const *>(&a);
   uint32_t const * B = reinterpret_cast<uint32_t const *>(&b);
 
-  int const *C = reinterpret_cast<int const *>(&c);
-  int *D = reinterpret_cast<int *>(&d);
+  int32_t const *C = reinterpret_cast<int32_t const *>(&c);
+  int32_t *D = reinterpret_cast<int32_t *>(&d);
 
   asm volatile(
       "mma.sync.aligned.m16n8k32.row.col.s32.s8.s8.s32.satfinite {%0,%1,%2,%3}, "
@@ -851,7 +851,7 @@ struct Mma<
   layout::RowMajor,
   int8_t,
   layout::ColumnMajor,
-  int,
+  int32_t,
   layout::RowMajor,
   OpMultiplyAddSaturate> {
 
@@ -865,9 +865,9 @@ struct Mma<
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<int8_t, 8>;
 
-  using ElementC = int;
+  using ElementC = int32_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<int, 4>;
+  using FragmentC = Array<int32_t, 4>;
 
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
@@ -886,8 +886,8 @@ struct Mma<
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
 
-    int const *C = reinterpret_cast<int const *>(&c);
-    int *D = reinterpret_cast<int *>(&d);
+    int32_t const *C = reinterpret_cast<int32_t const *>(&c);
+    int32_t *D = reinterpret_cast<int32_t *>(&d);
 
     asm volatile(
         "mma.sync.aligned.m16n8k32.row.col.s32.u8.s8.s32.satfinite {%0,%1,%2,%3}, "
@@ -911,7 +911,7 @@ struct Mma<
   layout::RowMajor,
   uint8_t,
   layout::ColumnMajor,
-  int,
+  int32_t,
   layout::RowMajor,
   OpMultiplyAddSaturate> {
 
@@ -925,9 +925,9 @@ struct Mma<
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<uint8_t, 8>;
 
-  using ElementC = int;
+  using ElementC = int32_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<int, 4>;
+  using FragmentC = Array<int32_t, 4>;
 
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
@@ -946,8 +946,8 @@ struct Mma<
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
 
-    int const *C = reinterpret_cast<int const *>(&c);
-    int *D = reinterpret_cast<int *>(&d);
+    int32_t const *C = reinterpret_cast<int32_t const *>(&c);
+    int32_t *D = reinterpret_cast<int32_t *>(&d);
 
     asm volatile(
         "mma.sync.aligned.m16n8k32.row.col.s32.s8.u8.s32.satfinite {%0,%1,%2,%3}, "
@@ -971,7 +971,7 @@ struct Mma<
   layout::RowMajor,
   uint8_t,
   layout::ColumnMajor,
-  int,
+  int32_t,
   layout::RowMajor,
   OpMultiplyAddSaturate> {
 
@@ -985,9 +985,9 @@ struct Mma<
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<uint8_t, 8>;
 
-  using ElementC = int;
+  using ElementC = int32_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<int, 4>;
+  using FragmentC = Array<int32_t, 4>;
 
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
@@ -1006,8 +1006,8 @@ struct Mma<
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
 
-    int const *C = reinterpret_cast<int const *>(&c);
-    int *D = reinterpret_cast<int *>(&d);
+    int32_t const *C = reinterpret_cast<int32_t const *>(&c);
+    int32_t *D = reinterpret_cast<int32_t *>(&d);
 
     asm volatile(
         "mma.sync.aligned.m16n8k32.row.col.s32.u8.u8.s32.satfinite {%0,%1,%2,%3}, "
@@ -1037,7 +1037,7 @@ struct Mma<
   layout::RowMajor,
   cutlass::int4b_t,
   layout::ColumnMajor,
-  int,
+  int32_t,
   layout::RowMajor,
   OpMultiplyAddSaturate> {
 
@@ -1051,9 +1051,9 @@ struct Mma<
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<cutlass::int4b_t, 16>;
 
-  using ElementC = int;
+  using ElementC = int32_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<int, 4>;
+  using FragmentC = Array<int32_t, 4>;
 
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
@@ -1072,8 +1072,8 @@ struct Mma<
   uint32_t const * A = reinterpret_cast<uint32_t const *>(&a);
   uint32_t const * B = reinterpret_cast<uint32_t const *>(&b);
 
-  int const *C = reinterpret_cast<int const *>(&c);
-  int *D = reinterpret_cast<int *>(&d);
+  int32_t const *C = reinterpret_cast<int32_t const *>(&c);
+  int32_t *D = reinterpret_cast<int32_t *>(&d);
 
   asm volatile(
       "mma.sync.aligned.m16n8k64.row.col.s32.s4.s4.s32.satfinite {%0,%1,%2,%3}, "
@@ -1101,7 +1101,7 @@ struct Mma<
   layout::RowMajor,
   cutlass::int4b_t,
   layout::ColumnMajor,
-  int,
+  int32_t,
   layout::RowMajor,
   OpMultiplyAddSaturate> {
 
@@ -1115,9 +1115,9 @@ struct Mma<
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<cutlass::int4b_t, 16>;
 
-  using ElementC = int;
+  using ElementC = int32_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<int, 4>;
+  using FragmentC = Array<int32_t, 4>;
 
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
@@ -1136,8 +1136,8 @@ struct Mma<
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
 
-    int const *C = reinterpret_cast<int const *>(&c);
-    int *D = reinterpret_cast<int *>(&d);
+    int32_t const *C = reinterpret_cast<int32_t const *>(&c);
+    int32_t *D = reinterpret_cast<int32_t *>(&d);
 
     asm volatile(
         "mma.sync.aligned.m16n8k64.row.col.s32.u4.s4.s32.satfinite {%0,%1,%2,%3}, "
@@ -1165,7 +1165,7 @@ struct Mma<
   layout::RowMajor,
   cutlass::uint4b_t,
   layout::ColumnMajor,
-  int,
+  int32_t,
   layout::RowMajor,
   OpMultiplyAddSaturate> {
 
@@ -1179,9 +1179,9 @@ struct Mma<
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<cutlass::uint4b_t, 16>;
 
-  using ElementC = int;
+  using ElementC = int32_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<int, 4>;
+  using FragmentC = Array<int32_t, 4>;
 
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
@@ -1200,8 +1200,8 @@ struct Mma<
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
 
-    int const *C = reinterpret_cast<int const *>(&c);
-    int *D = reinterpret_cast<int *>(&d);
+    int32_t const *C = reinterpret_cast<int32_t const *>(&c);
+    int32_t *D = reinterpret_cast<int32_t *>(&d);
 
     asm volatile(
         "mma.sync.aligned.m16n8k64.row.col.s32.s4.u4.s32.satfinite {%0,%1,%2,%3}, "
@@ -1229,7 +1229,7 @@ struct Mma<
   layout::RowMajor,
   cutlass::uint4b_t,
   layout::ColumnMajor,
-  int,
+  int32_t,
   layout::RowMajor,
   OpMultiplyAddSaturate> {
 
@@ -1243,9 +1243,9 @@ struct Mma<
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<cutlass::uint4b_t, 16>;
 
-  using ElementC = int;
+  using ElementC = int32_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<int, 4>;
+  using FragmentC = Array<int32_t, 4>;
 
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
@@ -1264,8 +1264,8 @@ struct Mma<
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
 
-    int const *C = reinterpret_cast<int const *>(&c);
-    int *D = reinterpret_cast<int *>(&d);
+    int32_t const *C = reinterpret_cast<int32_t const *>(&c);
+    int32_t *D = reinterpret_cast<int32_t *>(&d);
 
     asm volatile(
         "mma.sync.aligned.m16n8k64.row.col.s32.u4.u4.s32.satfinite {%0,%1,%2,%3}, "
@@ -1334,8 +1334,8 @@ struct Mma<
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
 
-    int const *C = reinterpret_cast<int const *>(&c);
-    int *D = reinterpret_cast<int *>(&d);
+    int32_t const *C = reinterpret_cast<int32_t const *>(&c);
+    int32_t *D = reinterpret_cast<int32_t *>(&d);
 
     asm volatile(
         "mma.sync.aligned.m16n8k256.row.col.s32.b1.b1.s32.and.popc {%0,%1,%2,%3}, "
@@ -1364,7 +1364,7 @@ struct Mma<
   layout::RowMajor,
   cutlass::uint1b_t,
   layout::ColumnMajor,
-  int,
+  int32_t,
   layout::RowMajor,
   OpMultiplyAdd> {
 
@@ -1399,8 +1399,8 @@ struct Mma<
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
 
-    int const *C = reinterpret_cast<int const *>(&c);
-    int *D = reinterpret_cast<int *>(&d);
+    int32_t const *C = reinterpret_cast<int32_t const *>(&c);
+    int32_t *D = reinterpret_cast<int32_t *>(&d);
 
     asm volatile(
         "mma.sync.aligned.m16n8k256.row.col.s32.b1.b1.s32.and.popc {%0,%1,%2,%3}, "
@@ -1435,7 +1435,7 @@ struct Mma<
   layout::RowMajor,
   cutlass::uint1b_t,
   layout::ColumnMajor,
-  int,
+  int32_t,
   layout::RowMajor,
   OpXorPopc> {
 
@@ -1449,9 +1449,9 @@ struct Mma<
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<cutlass::uint1b_t, 64>;
 
-  using ElementC = int;
+  using ElementC = int32_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<int, 4>;
+  using FragmentC = Array<int32_t, 4>;
 
   using Operator = OpXorPopc;
   using ArchTag = arch::Sm80;
@@ -1470,8 +1470,8 @@ struct Mma<
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
 
-    int const *C = reinterpret_cast<int const *>(&c);
-    int *D = reinterpret_cast<int *>(&d);
+    int32_t const *C = reinterpret_cast<int32_t const *>(&c);
+    int32_t *D = reinterpret_cast<int32_t *>(&d);
 
     asm volatile(
         "mma.sync.aligned.m16n8k256.row.col.s32.b1.b1.s32.xor.popc {%0,%1,%2,%3}, "

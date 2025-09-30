@@ -50,9 +50,9 @@ namespace threadblock {
 template <
   typename ThreadblockShape,
   typename WarpShape,
-  int PartitionsK,
+  int32_t PartitionsK,
   typename ElementOutput,
-  int ElementsPerAccess,
+  int32_t ElementsPerAccess,
   typename ElementAccumulator
 >
 struct DefaultThreadMapVoltaTensorOp;
@@ -63,9 +63,9 @@ struct DefaultThreadMapVoltaTensorOp;
 template <
   typename ThreadblockShape_,
   typename WarpShape_,
-  int PartitionsK,
+  int32_t PartitionsK,
   typename ElementOutput_,
-  int ElementsPerAccess
+  int32_t ElementsPerAccess
 >
 struct DefaultThreadMapVoltaTensorOp<
   ThreadblockShape_, 
@@ -77,9 +77,9 @@ struct DefaultThreadMapVoltaTensorOp<
 
   using ThreadblockShape = ThreadblockShape_;
   using WarpShape = WarpShape_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static constexpr int32_t kPartitionsK = PartitionsK;
   using ElementOutput = ElementOutput_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
+  static constexpr int32_t kElementsPerAccess = ElementsPerAccess;
   using ElementAccumulator = half_t;
 
   //
@@ -88,9 +88,9 @@ struct DefaultThreadMapVoltaTensorOp<
 
   struct Detail {
 
-    static constexpr int kTensorOpRows = 16;
-    static constexpr int kWarpSize = 32;
-    static constexpr int kInterleavedTilesM = WarpShape::kM / 32;
+    static constexpr int32_t kTensorOpRows = 16;
+    static constexpr int32_t kWarpSize = 32;
+    static constexpr int32_t kInterleavedTilesM = WarpShape::kM / 32;
 
     static_assert(
       !(ThreadblockShape::kM % WarpShape::kM) &&
@@ -104,7 +104,7 @@ struct DefaultThreadMapVoltaTensorOp<
     >;
 
     /// Number of participating threads
-    static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+    static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
     using Shape = cutlass::epilogue::threadblock::OutputTileShape<
       ThreadblockShape::kN,   // column
@@ -144,9 +144,9 @@ struct DefaultThreadMapVoltaTensorOp<
 template <
   typename ThreadblockShape_,
   typename WarpShape_,
-  int PartitionsK,
+  int32_t PartitionsK,
   typename ElementOutput_,
-  int ElementsPerAccess
+  int32_t ElementsPerAccess
 >
 struct DefaultThreadMapVoltaTensorOp<
   ThreadblockShape_,
@@ -158,9 +158,9 @@ struct DefaultThreadMapVoltaTensorOp<
 
   using ThreadblockShape = ThreadblockShape_;
   using WarpShape = WarpShape_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static constexpr int32_t kPartitionsK = PartitionsK;
   using ElementOutput = ElementOutput_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
+  static constexpr int32_t kElementsPerAccess = ElementsPerAccess;
   using ElementAccumulator = float;
 
   //
@@ -169,9 +169,9 @@ struct DefaultThreadMapVoltaTensorOp<
 
   struct Detail {
 
-    static constexpr int kTensorOpRows = 16;
-    static constexpr int kWarpSize = 32;
-    static constexpr int kInterleavedTilesM = WarpShape::kM / 32;
+    static constexpr int32_t kTensorOpRows = 16;
+    static constexpr int32_t kWarpSize = 32;
+    static constexpr int32_t kInterleavedTilesM = WarpShape::kM / 32;
 
     static_assert(
       !(ThreadblockShape::kM % WarpShape::kM) &&
@@ -185,7 +185,7 @@ struct DefaultThreadMapVoltaTensorOp<
     >;
 
     /// Number of participating threads
-    static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+    static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
     using Shape = cutlass::epilogue::threadblock::OutputTileShape<
       ThreadblockShape::kN,   // column

@@ -101,7 +101,7 @@ public:
     Policy::kAccumulatorElementCount>;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static constexpr int32_t kIterations = Policy::kIterations;
 
   /// Padding quantity
   using Padding = MatrixShape<
@@ -159,7 +159,7 @@ public:
 
     pointer_ += layout_({
       lane_offset.row(),
-      lane_offset.column() * Policy::kElementsPerAccess / int(AccessType::kElements)
+      lane_offset.column() * Policy::kElementsPerAccess / int32_t(AccessType::kElements)
     });
   }
 
@@ -176,7 +176,7 @@ public:
 
     pointer_ += layout_({
       tile_offset.row() * Shape::kRow, 
-      (tile_offset.column() * Shape::kColumn / int(AccessType::kElements))
+      (tile_offset.column() * Shape::kColumn / int32_t(AccessType::kElements))
     });
 
     return *this;
@@ -201,9 +201,9 @@ public:
       ScalarAccessType *scalarPointer = reinterpret_cast<ScalarAccessType *>(pointer_) + pointer_offset;
 
       CUTLASS_PRAGMA_UNROLL
-      for (int n = 0; n < Policy::kAccessesPerIteration; ++n) {
+      for (int32_t n = 0; n < Policy::kAccessesPerIteration; ++n) {
         CUTLASS_PRAGMA_UNROLL
-        for (int s = 0; s < Policy::kElementsPerAccess; s++) {
+        for (int32_t s = 0; s < Policy::kElementsPerAccess; s++) {
           scalarPointer[n * Policy::MmaSimtPolicy::WarpShape::kColumn * Policy::kElementsPerAccess + s] = scalarFragPtr[n * Policy::kElementsPerAccess + s];
         }
       }
@@ -211,8 +211,8 @@ public:
     // original vector stores
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
     CUTLASS_PRAGMA_UNROLL
-    for (int n = 0; n < Policy::kAccessesPerIteration; ++n) {
-      pointer_[n * Policy::MmaSimtPolicy::WarpShape::kColumn + pointer_offset / int(AccessType::kElements)] = frag_ptr[n];
+    for (int32_t n = 0; n < Policy::kAccessesPerIteration; ++n) {
+      pointer_[n * Policy::MmaSimtPolicy::WarpShape::kColumn + pointer_offset / int32_t(AccessType::kElements)] = frag_ptr[n];
     }
 #endif
   }
@@ -230,8 +230,8 @@ public:
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int n = 0; n < Policy::kAccessesPerIteration; ++n) {
-      frag_ptr[n] = pointer_[n * Policy::MmaSimtPolicy::WarpShape::kColumn + pointer_offset / int(AccessType::kElements)];
+    for (int32_t n = 0; n < Policy::kAccessesPerIteration; ++n) {
+      frag_ptr[n] = pointer_[n * Policy::MmaSimtPolicy::WarpShape::kColumn + pointer_offset / int32_t(AccessType::kElements)];
     }
   }
 
@@ -283,7 +283,7 @@ class TileIteratorSimtDirectConv {
   using AccumulatorTile = Array<typename Operator::ElementC, Policy::kAccumulatorElementCount>;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static constexpr int32_t kIterations = Policy::kIterations;
 
   /// Padding quantity
   using Padding = MatrixShape<0,
@@ -329,7 +329,7 @@ private:
 
     pointer_ += layout_({
       lane_offset.row(),
-      lane_offset.column() * Policy::kElementsPerAccess / int(AccessType::kElements)
+      lane_offset.column() * Policy::kElementsPerAccess / int32_t(AccessType::kElements)
     });
   }
 
@@ -346,7 +346,7 @@ private:
 
     pointer_ += layout_({
       tile_offset.row() * Shape::kRow, 
-      (tile_offset.column() * Shape::kColumn / int(AccessType::kElements))
+      (tile_offset.column() * Shape::kColumn / int32_t(AccessType::kElements))
     });
 
     return *this;
@@ -369,8 +369,8 @@ private:
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
     AccessType * load_pointer_ = reinterpret_cast<AccessType *>(reinterpret_cast<uint8_t *>(pointer_) + base_smem_address_);
     CUTLASS_PRAGMA_UNROLL
-    for (int n = 0; n < Policy::kAccessesPerIteration; ++n) {
-      load_pointer_[n * Policy::MmaSimtPolicy::WarpShape::kColumn + pointer_offset / int(AccessType::kElements)] = frag_ptr[n];
+    for (int32_t n = 0; n < Policy::kAccessesPerIteration; ++n) {
+      load_pointer_[n * Policy::MmaSimtPolicy::WarpShape::kColumn + pointer_offset / int32_t(AccessType::kElements)] = frag_ptr[n];
     }
   }
 
@@ -387,8 +387,8 @@ private:
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int n = 0; n < Policy::kAccessesPerIteration; ++n) {
-      frag_ptr[n] = pointer_[n * Policy::MmaSimtPolicy::WarpShape::kColumn + pointer_offset / int(AccessType::kElements)];
+    for (int32_t n = 0; n < Policy::kAccessesPerIteration; ++n) {
+      frag_ptr[n] = pointer_[n * Policy::MmaSimtPolicy::WarpShape::kColumn + pointer_offset / int32_t(AccessType::kElements)];
     }
   }
 
@@ -484,15 +484,15 @@ class TileIteratorSimtDirect2dConv {
     MatrixCoord lane_offset = lane_layout.inverse(lane_id);
 
     // Get base HW offset of current threads
-    const int threadgroup = thread_id / (ThreadBlockOutputShape::kC / ThreadOutputShape::kC);
-    const int base_p = (threadgroup / (ThreadTileCount::kColumn)) * ThreadOutputShape::kH;
-    const int base_q = (threadgroup % (ThreadTileCount::kColumn)) * ThreadOutputShape::kW;
+    const int32_t threadgroup = thread_id / (ThreadBlockOutputShape::kC / ThreadOutputShape::kC);
+    const int32_t base_p = (threadgroup / (ThreadTileCount::kColumn)) * ThreadOutputShape::kH;
+    const int32_t base_q = (threadgroup % (ThreadTileCount::kColumn)) * ThreadOutputShape::kW;
 
-    const int row_offset = base_p * ThreadBlockOutputShape::kW + base_q;
+    const int32_t row_offset = base_p * ThreadBlockOutputShape::kW + base_q;
 
     pointer_ += layout_(
         {row_offset,
-         lane_offset.column() * MmaSimtPolicy::LaneMmaShape::kN / int(AccessType::kElements)});
+         lane_offset.column() * MmaSimtPolicy::LaneMmaShape::kN / int32_t(AccessType::kElements)});
   }
 
   /// Adds a pointer offset
@@ -510,15 +510,15 @@ class TileIteratorSimtDirect2dConv {
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int h = 0; h < ThreadOutputShape::kH; ++h) {
+    for (int32_t h = 0; h < ThreadOutputShape::kH; ++h) {
       CUTLASS_PRAGMA_UNROLL
-      for (int w = 0; w < ThreadOutputShape::kW; ++w) {
+      for (int32_t w = 0; w < ThreadOutputShape::kW; ++w) {
         CUTLASS_PRAGMA_UNROLL
-        for (int col = 0; col < Iterations::kColumn; ++col) {
-          int offset = (w + h * ThreadBlockOutputShape::kW) *
+        for (int32_t col = 0; col < Iterations::kColumn; ++col) {
+          int32_t offset = (w + h * ThreadBlockOutputShape::kW) *
                            (ThreadBlockOutputShape::kC / AccessType::kElements) +
                        col;
-          storer_pointer_[offset + pointer_offset / int(AccessType::kElements)] =
+          storer_pointer_[offset + pointer_offset / int32_t(AccessType::kElements)] =
               frag_ptr[w + h * ThreadOutputShape::kW + col];
         }
       }
@@ -575,7 +575,7 @@ public:
     Policy::kAccumulatorElementCount>;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static constexpr int32_t kIterations = Policy::kIterations;
 
   /// Padding quantity
   using Padding = MatrixShape<
@@ -637,7 +637,7 @@ public:
 
     pointer_ += layout_({
       lane_offset.row() * Shape::kRow,
-      lane_offset.column() * Policy::kElementsPerAccess / int(AccessType::kElements)
+      lane_offset.column() * Policy::kElementsPerAccess / int32_t(AccessType::kElements)
     });
   }
 
@@ -663,7 +663,7 @@ public:
 
     pointer_ += layout_({
       lane_offset.row() * Shape::kRow,
-      lane_offset.column() * Policy::kElementsPerAccess / int(AccessType::kElements)
+      lane_offset.column() * Policy::kElementsPerAccess / int32_t(AccessType::kElements)
     });
   }
 
@@ -712,14 +712,14 @@ public:
     ScalarAccessType *scalarPointer = reinterpret_cast<ScalarAccessType *>(pointer_) + pointer_offset;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int n = 0; n < Policy::kAccessesPerIteration; ++n) {
+    for (int32_t n = 0; n < Policy::kAccessesPerIteration; ++n) {
       CUTLASS_PRAGMA_UNROLL
-      for (int s = 0; s < Policy::kElementsPerAccess; s++) {
+      for (int32_t s = 0; s < Policy::kElementsPerAccess; s++) {
         
-        int ptr_idx = n * Policy::MmaSimtPolicy::WarpShape::kColumn * Policy::kElementsPerAccess + s;
-        int frag_idx = n * Policy::kElementsPerAccess + s;
+        int32_t ptr_idx = n * Policy::MmaSimtPolicy::WarpShape::kColumn * Policy::kElementsPerAccess + s;
+        int32_t frag_idx = n * Policy::kElementsPerAccess + s;
         
-        int col = thread_offset_.column() + ptr_idx;
+        int32_t col = thread_offset_.column() + ptr_idx;
 
         if (divisible_ || (thread_offset_.row() < extent_.row() && col < extent_.column())) {
           scalarPointer[ptr_idx] = scalarFragPtr[frag_idx];
@@ -744,14 +744,14 @@ public:
       ScalarAccessType const *scalarPointer = reinterpret_cast<ScalarAccessType const*>(pointer_) + pointer_offset;
 
       CUTLASS_PRAGMA_UNROLL
-      for (int n = 0; n < Policy::kAccessesPerIteration; ++n) {
+      for (int32_t n = 0; n < Policy::kAccessesPerIteration; ++n) {
         CUTLASS_PRAGMA_UNROLL
-        for (int s = 0; s < Policy::kElementsPerAccess; s++) {
+        for (int32_t s = 0; s < Policy::kElementsPerAccess; s++) {
           
-          int ptr_idx = n * Policy::MmaSimtPolicy::WarpShape::kColumn * Policy::kElementsPerAccess + s;
-          int frag_idx = n * Policy::kElementsPerAccess + s;
+          int32_t ptr_idx = n * Policy::MmaSimtPolicy::WarpShape::kColumn * Policy::kElementsPerAccess + s;
+          int32_t frag_idx = n * Policy::kElementsPerAccess + s;
           
-          int col = thread_offset_.column() + ptr_idx;
+          int32_t col = thread_offset_.column() + ptr_idx;
 
           if (divisible_ || (thread_offset_.row() < extent_.row() && col < extent_.column())) {
             scalarFragPtr[frag_idx] = scalarPointer[ptr_idx];

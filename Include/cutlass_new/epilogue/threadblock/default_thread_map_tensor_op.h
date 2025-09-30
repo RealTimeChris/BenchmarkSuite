@@ -51,17 +51,17 @@ namespace threadblock {
 template <
   typename ThreadblockShape_,
   typename WarpShape_,
-  int PartitionsK,
+  int32_t PartitionsK,
   typename Element_,
-  int ElementsPerAccess
+  int32_t ElementsPerAccess
 >
 struct DefaultThreadMapTensorOp {
 
   using ThreadblockShape = ThreadblockShape_;
   using WarpShape = WarpShape_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static constexpr int32_t kPartitionsK = PartitionsK;
   using Element = Element_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
+  static constexpr int32_t kElementsPerAccess = ElementsPerAccess;
 
   //
   // Definitions
@@ -70,8 +70,8 @@ struct DefaultThreadMapTensorOp {
   struct Detail {
 
     /// Tensor Operations fundamentally perform operations on 8 rows
-    static constexpr int kTensorOpRows = 8;
-    static constexpr int kWarpSize = 32;
+    static constexpr int32_t kTensorOpRows = 8;
+    static constexpr int32_t kWarpSize = 32;
 
     static_assert(
       !(ThreadblockShape::kM % WarpShape::kM) &&
@@ -85,7 +85,7 @@ struct DefaultThreadMapTensorOp {
     >;
 
     /// Number of participating threads
-    static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+    static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
   };
 
   //
@@ -105,15 +105,15 @@ struct DefaultThreadMapTensorOp {
 ////////////////////////////////////////////////////////////////////////////////
 
 /// Defines the optimal thread map for TensorOp accumulator layouts
-template <typename ThreadblockShape_, typename WarpShape_, int PartitionsK,
-          typename Element_, int ElementsPerAccess, int InterleavedK>
+template <typename ThreadblockShape_, typename WarpShape_, int32_t PartitionsK,
+          typename Element_, int32_t ElementsPerAccess, int32_t InterleavedK>
 struct DefaultInterleavedThreadMapTensorOp {
   using ThreadblockShape = ThreadblockShape_;
   using WarpShape = WarpShape_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static constexpr int32_t kPartitionsK = PartitionsK;
   using Element = Element_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
-  static constexpr int kInterleavedK = InterleavedK;
+  static constexpr int32_t kElementsPerAccess = ElementsPerAccess;
+  static constexpr int32_t kInterleavedK = InterleavedK;
 
   //
   // Definitions
@@ -121,8 +121,8 @@ struct DefaultInterleavedThreadMapTensorOp {
 
   struct Detail {
     /// Tensor Operations fundamentally perform operations on 8 rows
-    static constexpr int kTensorOpRows = 8;
-    static constexpr int kWarpSize = 32;
+    static constexpr int32_t kTensorOpRows = 8;
+    static constexpr int32_t kWarpSize = 32;
 
     static_assert(!(ThreadblockShape::kM % WarpShape::kM) &&
                       !(ThreadblockShape::kN % WarpShape::kN),
@@ -134,7 +134,7 @@ struct DefaultInterleavedThreadMapTensorOp {
                         ThreadblockShape::kN / WarpShape::kN, kPartitionsK>;
 
     /// Number of participating threads
-    static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+    static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
   };
 
   //
@@ -154,15 +154,15 @@ struct DefaultInterleavedThreadMapTensorOp {
 ////////////////////////////////////////////////////////////////////////////////
 
 /// Defines the optimal thread map for TensorOp accumulator layouts
-template <typename ThreadblockShape_, typename WarpShape_, int PartitionsK,
-          typename Element_, int ElementsPerAccess, int InterleavedK>
+template <typename ThreadblockShape_, typename WarpShape_, int32_t PartitionsK,
+          typename Element_, int32_t ElementsPerAccess, int32_t InterleavedK>
 struct DefaultInterleavedConvThreadMapTensorOp {
   using ThreadblockShape = ThreadblockShape_;
   using WarpShape = WarpShape_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static constexpr int32_t kPartitionsK = PartitionsK;
   using Element = Element_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
-  static constexpr int kInterleavedK = InterleavedK;
+  static constexpr int32_t kElementsPerAccess = ElementsPerAccess;
+  static constexpr int32_t kInterleavedK = InterleavedK;
 
   //
   // Definitions
@@ -170,8 +170,8 @@ struct DefaultInterleavedConvThreadMapTensorOp {
 
   struct Detail {
     /// Tensor Operations fundamentally perform operations on 8 rows
-    static constexpr int kTensorOpRows = 8;
-    static constexpr int kWarpSize = 32;
+    static constexpr int32_t kTensorOpRows = 8;
+    static constexpr int32_t kWarpSize = 32;
 
     static_assert(!(ThreadblockShape::kM % WarpShape::kM) &&
                       !(ThreadblockShape::kN % WarpShape::kN),
@@ -183,7 +183,7 @@ struct DefaultInterleavedConvThreadMapTensorOp {
                         ThreadblockShape::kN / WarpShape::kN, kPartitionsK>;
 
     /// Number of participating threads
-    static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+    static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
   };
 
   //

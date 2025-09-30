@@ -145,17 +145,17 @@ struct MmaGeneric {
 
     // Compute matrix product
     CUTLASS_PRAGMA_UNROLL
-    for (int k = 0; k < Shape::kK; ++k) {
+    for (int32_t k = 0; k < Shape::kK; ++k) {
       #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 860)
       if constexpr (kMultipleOf2 && kAllFp32) {
         //2x2 zigzag - m and n loops to increment by 2. Inner loop to process 4 multiply-adds in a 2x2 tile.
         CUTLASS_PRAGMA_UNROLL
-        for (int n = 0; n < Shape::kN; n+=2) {
+        for (int32_t n = 0; n < Shape::kN; n+=2) {
   
           CUTLASS_PRAGMA_UNROLL
-          for (int m = 0; m < Shape::kM; m+=2) {
+          for (int32_t m = 0; m < Shape::kM; m+=2) {
   
-            int m_serpentine = (n % 4) ? (Shape::kM - 2 - m) : m;
+            int32_t m_serpentine = (n % 4) ? (Shape::kM - 2 - m) : m;
 
             //top-left element in 2x2 tile
             {
@@ -222,12 +222,12 @@ struct MmaGeneric {
       #endif
       {
         CUTLASS_PRAGMA_UNROLL
-        for (int n = 0; n < Shape::kN; ++n) {
+        for (int32_t n = 0; n < Shape::kN; ++n) {
   
           CUTLASS_PRAGMA_UNROLL
-          for (int m = 0; m < Shape::kM; ++m) {
+          for (int32_t m = 0; m < Shape::kM; ++m) {
   
-            int m_serpentine = (n % 2) ? (Shape::kM - 1 - m) : m;
+            int32_t m_serpentine = (n % 2) ? (Shape::kM - 1 - m) : m;
   
             MatrixCoord mn(m_serpentine, n);
             MatrixCoord mk(m_serpentine, k);
@@ -394,16 +394,16 @@ struct MmaGeneric<
 
     // Compute matrix product
     CUTLASS_PRAGMA_UNROLL
-    for (int k = 0; k < Shape::kK; ++k) {
+    for (int32_t k = 0; k < Shape::kK; ++k) {
 
       {
         CUTLASS_PRAGMA_UNROLL
-        for (int n = 0; n < Shape::kN; ++n) {
+        for (int32_t n = 0; n < Shape::kN; ++n) {
 
           CUTLASS_PRAGMA_UNROLL
-          for (int m = 0; m < Shape::kM; ++m) {
+          for (int32_t m = 0; m < Shape::kM; ++m) {
 
-            int m_serpentine = (n % 2) ? (Shape::kM - 1 - m) : m;
+            int32_t m_serpentine = (n % 2) ? (Shape::kM - 1 - m) : m;
 
             MatrixCoord mn(m_serpentine, n);
             MatrixCoord mk(m_serpentine, k);

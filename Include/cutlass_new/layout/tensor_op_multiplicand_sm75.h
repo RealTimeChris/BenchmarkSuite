@@ -50,13 +50,13 @@ namespace layout {
 /// memory and Crosswise size (in elements).
 /// This one is the base class of all Ampere/Turing fp16/bf16/int8/int4/int1
 /// tensor core kernels.  tf32 TN uses this too.
-template <int ElementSize, int Crosswise>
+template <int32_t ElementSize, int32_t Crosswise>
 struct TensorOpMultiplicand {
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static constexpr int32_t kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static constexpr int32_t kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -75,18 +75,18 @@ struct TensorOpMultiplicand {
   //
 
   /// This layout is optimized for 128b accesses
-  static constexpr int kAccessSize = 128;
+  static constexpr int32_t kAccessSize = 128;
 
-  static constexpr int kElementSize = ElementSize;
-  static constexpr int kElementsPerAccess = kAccessSize / kElementSize;
-  static constexpr int kCrosswise = Crosswise;
+  static constexpr int32_t kElementSize = ElementSize;
+  static constexpr int32_t kElementsPerAccess = kAccessSize / kElementSize;
+  static constexpr int32_t kCrosswise = Crosswise;
 
   /// Contiguous dimension of the tile shape matches one shared memory cache
   /// line - 128B.  For 128bit access size, it equals to 8 accesses.
-  static constexpr int kTileShapeContiguous = 128 / (kAccessSize / 8);
+  static constexpr int32_t kTileShapeContiguous = 128 / (kAccessSize / 8);
 
   /// Number of kblocks to store PartitionShape::kContiguous Elements
-  static constexpr int kFactor =
+  static constexpr int32_t kFactor =
       kTileShapeContiguous * kElementsPerAccess / kCrosswise;
 
   static_assert(
@@ -97,7 +97,7 @@ struct TensorOpMultiplicand {
   /// kTileShapeContiguous) for a warp to access.  To ensure conflict free
   /// access, it also needs to be at least (kTileShapeContiguous / kFactor).
   /// See comments below
-  static constexpr int kTileShapeStride =
+  static constexpr int32_t kTileShapeStride =
       ((kTileShapeContiguous / kFactor) > (32 / kTileShapeContiguous))
           ? (kTileShapeContiguous / kFactor)
           : (32 / kTileShapeContiguous);
@@ -154,51 +154,51 @@ struct TensorOpMultiplicand {
     // accesses)
     //
 
-    int vec_contiguous_idx = coord.contiguous() / kElementsPerAccess;
-    int vec_strided_idx = coord.strided() / kFactor;
+    int32_t vec_contiguous_idx = coord.contiguous() / kElementsPerAccess;
+    int32_t vec_strided_idx = coord.strided() / kFactor;
 
     // Compute the fundamental tile being accessed
-    int tile_contiguous_idx =
+    int32_t tile_contiguous_idx =
         vec_contiguous_idx / (TileShape::kContiguous / kFactor);
 
-    int tile_contiguous_residual =
+    int32_t tile_contiguous_residual =
         vec_contiguous_idx % (TileShape::kContiguous / kFactor) +
         ((coord.strided() % kFactor) * (TileShape::kContiguous / kFactor));
-    int tile_strided_residual = vec_strided_idx % TileShape::kStrided;
+    int32_t tile_strided_residual = vec_strided_idx % TileShape::kStrided;
 
     // Compute the 'partition' within the fundamental tile
-    int partition_contiguous_idx =
+    int32_t partition_contiguous_idx =
         tile_contiguous_residual / PartitionShape::kContiguous;
-    int partition_strided_idx =
+    int32_t partition_strided_idx =
         tile_strided_residual / PartitionShape::kStrided;
 
-    int partition_contiguous_residual =
+    int32_t partition_contiguous_residual =
         tile_contiguous_residual % PartitionShape::kContiguous;
-    int partition_strided_residual =
+    int32_t partition_strided_residual =
         tile_strided_residual % PartitionShape::kStrided;
 
     //
     // Then swizzle
     //
 
-    int permuted_vec_contiguous_within_partition =
+    int32_t permuted_vec_contiguous_within_partition =
         partition_contiguous_residual ^ (partition_strided_residual % 4);
 
-    int permuted_partition_contiguous_within_tile =
+    int32_t permuted_partition_contiguous_within_tile =
         partition_contiguous_idx ^ (partition_strided_idx % 2);
 
     //
     // Compute final element location
     //
 
-    int element_contiguous = (tile_contiguous_idx * TileShape::kContiguous +
+    int32_t element_contiguous = (tile_contiguous_idx * TileShape::kContiguous +
                               permuted_partition_contiguous_within_tile *
                                   PartitionShape::kContiguous +
                               permuted_vec_contiguous_within_partition) *
                                  kElementsPerAccess +
                              (coord.contiguous() % kElementsPerAccess);
 
-    int element_strided = vec_strided_idx;
+    int32_t element_strided = vec_strided_idx;
 
     return element_contiguous + element_strided * stride_[0] * kFactor;
   }
@@ -223,13 +223,13 @@ struct TensorOpMultiplicand {
 
 /// Template based on element size (in bits) - defined in terms of pitch-linear
 /// memory and Crosswise size (in elements).
-template <int ElementSize, int Crosswise>
+template <int32_t ElementSize, int32_t Crosswise>
 struct TensorOpMultiplicandCongruous {
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static constexpr int32_t kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static constexpr int32_t kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -250,7 +250,7 @@ struct TensorOpMultiplicandCongruous {
   using Base = TensorOpMultiplicand<ElementSize, Crosswise>;
 
   /// This layout is optimized for 128b accesses
-  static constexpr int kAccessSize = Base::kAccessSize;
+  static constexpr int32_t kAccessSize = Base::kAccessSize;
   using TileShape = typename Base::TileShape;
   using PartitionShape = typename Base::PartitionShape;
 
@@ -258,10 +258,10 @@ struct TensorOpMultiplicandCongruous {
   // Static constants
   //
 
-  static constexpr int kElementSize = Base::kElementSize;
-  static constexpr int kElementsPerAccess = Base::kElementsPerAccess;
-  static constexpr int kCrosswise = Base::kCrosswise;
-  static constexpr int kFactor = Base::kFactor;
+  static constexpr int32_t kElementSize = Base::kElementSize;
+  static constexpr int32_t kElementsPerAccess = Base::kElementsPerAccess;
+  static constexpr int32_t kCrosswise = Base::kCrosswise;
+  static constexpr int32_t kFactor = Base::kFactor;
   using PartitionCount =  typename Base::PartitionCount;
   using AccessCount = typename Base::AccessCount;
 
@@ -326,13 +326,13 @@ struct TensorOpMultiplicandCongruous {
 /// Template based on element size (in bits) - defined in terms of pitch-linear
 /// memory and Crosswise size (in elements).
 /// This one is just for TF32 NT kernel.
-template <int Crosswise>
+template <int32_t Crosswise>
 struct TensorOpMultiplicandCongruous<32, Crosswise> {
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static constexpr int32_t kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static constexpr int32_t kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -351,7 +351,7 @@ struct TensorOpMultiplicandCongruous<32, Crosswise> {
   //
 
   /// This layout is optimized for 128b accesses
-  static constexpr int kAccessSize = 128;
+  static constexpr int32_t kAccessSize = 128;
 
   /// Fundamental tile shape in units of vectors
   using TileShape = PitchLinearShape<8, 4>;
@@ -369,10 +369,10 @@ struct TensorOpMultiplicandCongruous<32, Crosswise> {
   //
   // Static constants
   //
-  static constexpr int kElementSize = 32;
-  static constexpr int kElementsPerAccess = kAccessSize / kElementSize;
-  static constexpr int kCrosswise = Crosswise;
-  static constexpr int kFactor = 1;
+  static constexpr int32_t kElementSize = 32;
+  static constexpr int32_t kElementsPerAccess = kAccessSize / kElementSize;
+  static constexpr int32_t kCrosswise = Crosswise;
+  static constexpr int32_t kFactor = 1;
 
  private:
   //
@@ -405,11 +405,11 @@ struct TensorOpMultiplicandCongruous<32, Crosswise> {
   /// Assumes coordinate has convention (contiguous, strided)
   CUTLASS_HOST_DEVICE
   LongIndex operator()(TensorCoord const &coord) const {
-    int tc = coord.contiguous() / 32;
-    int ts = coord.strided() / 4;
+    int32_t tc = coord.contiguous() / 32;
+    int32_t ts = coord.strided() / 4;
 
-    int c = (coord.contiguous() % 32) / kElementsPerAccess;
-    int s = coord.strided() % 4;
+    int32_t c = (coord.contiguous() % 32) / kElementsPerAccess;
+    int32_t s = coord.strided() % 4;
 
     LongIndex offset = (c ^ (2 * s)) * kElementsPerAccess + s * stride_[0] +
                        tc * 32 + ts * stride_[0] * 4 + coord.contiguous() % 4;
@@ -437,14 +437,14 @@ struct TensorOpMultiplicandCongruous<32, Crosswise> {
 
 /// Template mapping a column-major view of pitch-linear memory to
 /// TensorOpMultiplicand
-template <int ElementSize, int Crosswise>
+template <int32_t ElementSize, int32_t Crosswise>
 struct ColumnMajorTensorOpMultiplicandCongruous {
 
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static constexpr int32_t kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static constexpr int32_t kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -465,7 +465,7 @@ struct ColumnMajorTensorOpMultiplicandCongruous {
   using Base = TensorOpMultiplicandCongruous<ElementSize, Crosswise>;
 
   /// This layout is optimized for 128b accesses
-  static constexpr int kAccessSize = Base::kAccessSize;
+  static constexpr int32_t kAccessSize = Base::kAccessSize;
   using TileShape = typename Base::TileShape;
   using PartitionShape = typename Base::PartitionShape;
 
@@ -473,10 +473,10 @@ struct ColumnMajorTensorOpMultiplicandCongruous {
   // Static constants
   //
 
-  static constexpr int kElementSize = Base::kElementSize;
-  static constexpr int kElementsPerAccess = Base::kElementsPerAccess;
-  static constexpr int kCrosswise = Base::kCrosswise;
-  static constexpr int kFactor = Base::kFactor;
+  static constexpr int32_t kElementSize = Base::kElementSize;
+  static constexpr int32_t kElementsPerAccess = Base::kElementsPerAccess;
+  static constexpr int32_t kCrosswise = Base::kCrosswise;
+  static constexpr int32_t kFactor = Base::kFactor;
   using PartitionCount =  typename Base::PartitionCount;
   using AccessCount = typename Base::AccessCount;
 
@@ -544,14 +544,14 @@ public:
 
 /// Template mapping a row-major view of pitch-linear memory to
 /// TensorOpMultiplicand
-template <int ElementSize, int Crosswise>
+template <int32_t ElementSize, int32_t Crosswise>
 struct RowMajorTensorOpMultiplicandCongruous {
 
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static constexpr int32_t kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static constexpr int32_t kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -572,7 +572,7 @@ struct RowMajorTensorOpMultiplicandCongruous {
   using Base = TensorOpMultiplicandCongruous<ElementSize, Crosswise>;
 
   /// This layout is optimized for 128b accesses
-  static constexpr int kAccessSize = Base::kAccessSize;
+  static constexpr int32_t kAccessSize = Base::kAccessSize;
   using TileShape = typename Base::TileShape;
   using PartitionShape = typename Base::PartitionShape;
 
@@ -580,10 +580,10 @@ struct RowMajorTensorOpMultiplicandCongruous {
   // Static constants
   //
 
-  static constexpr int kElementSize = Base::kElementSize;
-  static constexpr int kElementsPerAccess = Base::kElementsPerAccess;
-  static constexpr int kCrosswise = Base::kCrosswise;
-  static constexpr int kFactor = Base::kFactor;
+  static constexpr int32_t kElementSize = Base::kElementSize;
+  static constexpr int32_t kElementsPerAccess = Base::kElementsPerAccess;
+  static constexpr int32_t kCrosswise = Base::kCrosswise;
+  static constexpr int32_t kFactor = Base::kFactor;
   using PartitionCount =  typename Base::PartitionCount;
   using AccessCount = typename Base::AccessCount;
 
@@ -651,13 +651,13 @@ public:
 
 /// Template based on element size (in bits) - defined in terms of pitch-linear
 /// memory and Crosswise size (in elements).
-template <int ElementSize, int Crosswise>
+template <int32_t ElementSize, int32_t Crosswise>
 struct TensorOpMultiplicandCrosswise {
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static constexpr int32_t kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static constexpr int32_t kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -678,7 +678,7 @@ struct TensorOpMultiplicandCrosswise {
   using Base = TensorOpMultiplicand<ElementSize, Crosswise>;
 
   /// This layout is optimized for 128b accesses
-  static constexpr int kAccessSize = Base::kAccessSize;
+  static constexpr int32_t kAccessSize = Base::kAccessSize;
   using TileShape = typename Base::TileShape;
   using PartitionShape = typename Base::PartitionShape;
 
@@ -686,10 +686,10 @@ struct TensorOpMultiplicandCrosswise {
   // Static constants
   //
 
-  static constexpr int kElementSize = Base::kElementSize;
-  static constexpr int kElementsPerAccess = Base::kElementsPerAccess;
-  static constexpr int kCrosswise = Base::kCrosswise;
-  static constexpr int kFactor = Base::kFactor;
+  static constexpr int32_t kElementSize = Base::kElementSize;
+  static constexpr int32_t kElementsPerAccess = Base::kElementsPerAccess;
+  static constexpr int32_t kCrosswise = Base::kCrosswise;
+  static constexpr int32_t kFactor = Base::kFactor;
   using PartitionCount =  typename Base::PartitionCount;
   using AccessCount = typename Base::AccessCount;
 
@@ -753,13 +753,13 @@ struct TensorOpMultiplicandCrosswise {
 
 /// Template mapping a column-major view of pitch-linear memory to
 /// TensorOpMultiplicandCrosswise
-template <int ElementSize, int Crosswise>
+template <int32_t ElementSize, int32_t Crosswise>
 struct ColumnMajorTensorOpMultiplicandCrosswise {
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static constexpr int32_t kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static constexpr int32_t kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -780,7 +780,7 @@ struct ColumnMajorTensorOpMultiplicandCrosswise {
   using Base = TensorOpMultiplicandCrosswise<ElementSize, Crosswise>;
 
   /// This layout is optimized for 128b accesses
-  static constexpr int kAccessSize = Base::kAccessSize;
+  static constexpr int32_t kAccessSize = Base::kAccessSize;
   using TileShape = typename Base::TileShape;
   using PartitionShape = typename Base::PartitionShape;
 
@@ -788,8 +788,8 @@ struct ColumnMajorTensorOpMultiplicandCrosswise {
   // Static constants
   //
 
-  static constexpr int kElementSize = Base::kElementSize;
-  static constexpr int kElementsPerAccess = Base::kElementsPerAccess;
+  static constexpr int32_t kElementSize = Base::kElementSize;
+  static constexpr int32_t kElementsPerAccess = Base::kElementsPerAccess;
   using PartitionCount = typename Base::PartitionCount;
   using AccessCount = typename Base::AccessCount;
 
@@ -854,13 +854,13 @@ struct ColumnMajorTensorOpMultiplicandCrosswise {
 
 /// Template mapping a row-major view of pitch-linear memory to
 /// TensorOpMultiplicandCrosswise
-template <int ElementSize, int Crosswise>
+template <int32_t ElementSize, int32_t Crosswise>
 struct RowMajorTensorOpMultiplicandCrosswise {
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static constexpr int32_t kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static constexpr int32_t kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -881,7 +881,7 @@ struct RowMajorTensorOpMultiplicandCrosswise {
   using Base = TensorOpMultiplicandCrosswise<ElementSize, Crosswise>;
 
   /// This layout is optimized for 128b accesses
-  static constexpr int kAccessSize = Base::kAccessSize;
+  static constexpr int32_t kAccessSize = Base::kAccessSize;
   using TileShape = typename Base::TileShape;
   using PartitionShape = typename Base::PartitionShape;
 
@@ -889,8 +889,8 @@ struct RowMajorTensorOpMultiplicandCrosswise {
   // Static constants
   //
 
-  static constexpr int kElementSize = Base::kElementSize;
-  static constexpr int kElementsPerAccess = Base::kElementsPerAccess;
+  static constexpr int32_t kElementSize = Base::kElementSize;
+  static constexpr int32_t kElementsPerAccess = Base::kElementsPerAccess;
   using PartitionCount = typename Base::PartitionCount;
   using AccessCount = typename Base::AccessCount;
 
@@ -954,14 +954,14 @@ struct RowMajorTensorOpMultiplicandCrosswise {
 ////////////////////////////////////////////////////////////////////////////////
 
 /// Template based on element size (in bits) - defined in terms of pitch-linear memory.
-template <int ElementSize, int InterleavedK>
+template <int32_t ElementSize, int32_t InterleavedK>
 struct TensorOpMultiplicandColumnMajorInterleaved {
 
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static constexpr int32_t kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static constexpr int32_t kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -980,17 +980,17 @@ struct TensorOpMultiplicandColumnMajorInterleaved {
   //
 
   /// This layout is optimized for 128b accesses
-  static constexpr int kAccessSize = 128;
+  static constexpr int32_t kAccessSize = 128;
 
   //
   // Static constants
   //
 
-  static constexpr int kElementSize = ElementSize;
-  static constexpr int kElementsPerAccess = kAccessSize / kElementSize;
+  static constexpr int32_t kElementSize = ElementSize;
+  static constexpr int32_t kElementsPerAccess = kAccessSize / kElementSize;
 
-  //static constexpr int kThreadBlockStrided = ThreadBlockStrided;
-  static constexpr int kInterleavedK = InterleavedK;
+  //static constexpr int32_t kThreadBlockStrided = ThreadBlockStrided;
+  static constexpr int32_t kInterleavedK = InterleavedK;
   
 private:
 
@@ -1024,15 +1024,15 @@ public:
   /// Assumes coordinate has convention (contiguous, strided)
   CUTLASS_HOST_DEVICE
   LongIndex operator()(TensorCoord const &coord) const {
-    int const rows_per_smem_cache_line = 128 / kInterleavedK;
+    int32_t const rows_per_smem_cache_line = 128 / kInterleavedK;
 
-    int row_id = coord.strided() / rows_per_smem_cache_line;
-    int col_id = (coord.strided() % rows_per_smem_cache_line) * kInterleavedK + coord.contiguous();
+    int32_t row_id = coord.strided() / rows_per_smem_cache_line;
+    int32_t col_id = (coord.strided() % rows_per_smem_cache_line) * kInterleavedK + coord.contiguous();
 
-    int access_block_id = col_id >> 4;
-    int swizzle_access_block_id = access_block_id ^ (row_id & 1);
+    int32_t access_block_id = col_id >> 4;
+    int32_t swizzle_access_block_id = access_block_id ^ (row_id & 1);
 
-    int swizzle_col_id = swizzle_access_block_id << 4;
+    int32_t swizzle_col_id = swizzle_access_block_id << 4;
 
     return row_id * 128 + swizzle_col_id;
   }
@@ -1059,14 +1059,14 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 
 /// Template based on element size (in bits) - defined in terms of pitch-linear memory.
-template <int ElementSize, int InterleavedK>
+template <int32_t ElementSize, int32_t InterleavedK>
 struct TensorOpMultiplicandRowMajorInterleaved {
 
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static constexpr int32_t kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static constexpr int32_t kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -1085,17 +1085,17 @@ struct TensorOpMultiplicandRowMajorInterleaved {
   //
 
   /// This layout is optimized for 128b accesses
-  static constexpr int kAccessSize = 128;
+  static constexpr int32_t kAccessSize = 128;
 
   //
   // Static constants
   //
 
-  static constexpr int kElementSize = ElementSize;
-  static constexpr int kElementsPerAccess = kAccessSize / kElementSize;
+  static constexpr int32_t kElementSize = ElementSize;
+  static constexpr int32_t kElementsPerAccess = kAccessSize / kElementSize;
 
-  //static constexpr int kThreadBlockStrided = ThreadBlockStrided;
-  static constexpr int kInterleavedK = InterleavedK;
+  //static constexpr int32_t kThreadBlockStrided = ThreadBlockStrided;
+  static constexpr int32_t kInterleavedK = InterleavedK;
   
 private:
 
@@ -1129,15 +1129,15 @@ public:
   /// Assumes coordinate has convention (contiguous, strided)
   CUTLASS_HOST_DEVICE
   LongIndex operator()(TensorCoord const &coord) const {
-    int const rows_per_smem_cache_line = 128 / kInterleavedK;
+    int32_t const rows_per_smem_cache_line = 128 / kInterleavedK;
 
-    int row_id = coord.strided() / rows_per_smem_cache_line;
-    int col_id = (coord.strided() % rows_per_smem_cache_line) * kInterleavedK + coord.contiguous();
+    int32_t row_id = coord.strided() / rows_per_smem_cache_line;
+    int32_t col_id = (coord.strided() % rows_per_smem_cache_line) * kInterleavedK + coord.contiguous();
 
-    int access_block_id = col_id >> 4;
-    int swizzle_access_block_id = access_block_id ^ (row_id & 1);
+    int32_t access_block_id = col_id >> 4;
+    int32_t swizzle_access_block_id = access_block_id ^ (row_id & 1);
 
-    int swizzle_col_id = swizzle_access_block_id << 4;
+    int32_t swizzle_col_id = swizzle_access_block_id << 4;
 
     return row_id * 128 + swizzle_col_id;
   }

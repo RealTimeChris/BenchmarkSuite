@@ -47,7 +47,6 @@
 #include "cutlass_new/gemm/gemm.h"
 
 #include "cutlass_new/epilogue/thread/linear_combination.h"
-#include "cutlass_new/epilogue/thread/linear_combination_clamp.h"
 #include "cutlass_new/epilogue/thread/linear_combination_relu.h"
 #include "cutlass_new/epilogue/thread/linear_combination_relu0.h"
 #include "cutlass_new/epilogue/thread/linear_combination_gelu.h"
@@ -90,7 +89,7 @@ namespace detail {
 template <
   typename ElementOutput,
   typename ElementAccumulator,
-  int ElementsPerAccess,
+  int32_t ElementsPerAccess,
   typename ThreadblockShape,
   typename WarpShape,
   typename InstructionShape,
@@ -110,7 +109,7 @@ struct DefaultIteratorsTensorOp {
     ElementAccumulator
   >;
 
-  static constexpr int kFragmentsPerIteration = 1;
+  static constexpr int32_t kFragmentsPerIteration = 1;
 };
 
 /// Partial specialization for float <= float x 4
@@ -134,12 +133,12 @@ struct DefaultIteratorsTensorOp<float, float, 4, ThreadblockShape, WarpShape, In
     float
   >;
 
-  static constexpr int kFragmentsPerIteration = 2;
+  static constexpr int32_t kFragmentsPerIteration = 2;
 };
 
 /// Partial specialization for int32_t <= int32_t
 template <
-  int ElementsPerAccess,
+  int32_t ElementsPerAccess,
   typename ThreadblockShape,
   typename WarpShape,
   typename InstructionShape,
@@ -159,12 +158,12 @@ struct DefaultIteratorsTensorOp<int32_t, int32_t, ElementsPerAccess, Threadblock
     int32_t
   >;
 
-  static constexpr int kFragmentsPerIteration = 1;
+  static constexpr int32_t kFragmentsPerIteration = 1;
 };
 
 /// Partial specialization for float <= int32_t
 template <
-  int ElementsPerAccess,
+  int32_t ElementsPerAccess,
   typename ThreadblockShape,
   typename WarpShape,
   typename InstructionShape,
@@ -184,7 +183,7 @@ struct DefaultIteratorsTensorOp<float, int32_t, ElementsPerAccess, ThreadblockSh
     int32_t
   >;
 
-  static constexpr int kFragmentsPerIteration = 1;
+  static constexpr int32_t kFragmentsPerIteration = 1;
 };
 
 /// Partial specialization for half <= float x 8 epilogues avoids shared memory bank conflicts.
@@ -222,7 +221,7 @@ struct DefaultIteratorsTensorOp<
     8
   >;
 
-  static constexpr int kFragmentsPerIteration = 2;
+  static constexpr int32_t kFragmentsPerIteration = 2;
 };
 
 /// Partial specialization for half <= int32_t x 8 epilogues avoids shared memory bank conflicts.
@@ -260,7 +259,7 @@ struct DefaultIteratorsTensorOp<
     8
   >;
 
-  static constexpr int kFragmentsPerIteration = 2;
+  static constexpr int32_t kFragmentsPerIteration = 2;
 };
 
 /// Partial specialization for half <= int32_t x 8 epilogues avoids shared memory bank conflicts.
@@ -298,14 +297,14 @@ struct DefaultIteratorsTensorOp<
     8
   >;
 
-  static constexpr int kFragmentsPerIteration = 2;
+  static constexpr int32_t kFragmentsPerIteration = 2;
 };
 
 /// Partial specialization for int8/int4b_t <= int32 x 16/8 epilogues avoids shared memory bank conflicts.
 /// Threadblock::kN = 256 still has bank conflicts.
 template <
   typename ElementOutput,
-  int ElementsPerAccess,
+  int32_t ElementsPerAccess,
   typename ThreadblockShape,
   typename WarpShape,
   typename InstructionShape,
@@ -324,7 +323,7 @@ struct DefaultIteratorsTensorOp<
                 platform::is_same<ElementOutput, cutlass::uint4b_t>::value ||
                 platform::is_same<ElementOutput, int8_t>::value ||
                 platform::is_same<ElementOutput, uint8_t>::value,
-                "ElementOutput needs to be 4 or 8 bit (unsigned) int.");
+                "ElementOutput needs to be 4 or 8 bit (unsigned) int32_t.");
 
    static_assert((ElementsPerAccess == 16 || ElementsPerAccess == 8 || ElementsPerAccess == 4),
                 "ElementsPerAccess needs to be 16 or 8.");
@@ -370,13 +369,13 @@ struct DefaultIteratorsTensorOp<
                              SharedLoadIteratorNotMixed,
                              SharedLoadIteratorMixed>::type;
 
-  static constexpr int kFragmentsPerIteration = 1;
+  static constexpr int32_t kFragmentsPerIteration = 1;
 };
 
 /// Partial specialization for float_e4m3_t <= float x 16/8 epilogues avoids shared memory bank conflicts.
 /// Threadblock::kN = 256 still has bank conflicts.
 template <
-  int ElementsPerAccess,
+  int32_t ElementsPerAccess,
   typename ThreadblockShape,
   typename WarpShape,
   typename InstructionShape,
@@ -437,13 +436,13 @@ struct DefaultIteratorsTensorOp<
                              SharedLoadIteratorNotMixed,
                              SharedLoadIteratorMixed>::type;
 
-  static constexpr int kFragmentsPerIteration = 1;
+  static constexpr int32_t kFragmentsPerIteration = 1;
 };
 
 /// Partial specialization for float_e5m2_t <= float x 16/8 epilogues avoids shared memory bank conflicts.
 /// Threadblock::kN = 256 still has bank conflicts.
 template <
-  int ElementsPerAccess,
+  int32_t ElementsPerAccess,
   typename ThreadblockShape,
   typename WarpShape,
   typename InstructionShape,
@@ -504,7 +503,7 @@ struct DefaultIteratorsTensorOp<
                              SharedLoadIteratorNotMixed,
                              SharedLoadIteratorMixed>::type;
 
-  static constexpr int kFragmentsPerIteration = 1;
+  static constexpr int32_t kFragmentsPerIteration = 1;
 };
 
 } // namespace detail
@@ -515,27 +514,27 @@ struct DefaultIteratorsTensorOp<
 template <
   typename Shape_,
   typename WarpMmaTensorOp_,
-  int PartitionsK,
+  int32_t PartitionsK,
   typename OutputOp_,
-  int ElementsPerAccess,
+  int32_t ElementsPerAccess,
   bool ScatterD = false,
   typename PermuteDLayout = layout::NoPermute,
   conv::StrideSupport StrideSupport = conv::StrideSupport::kUnity,
-  int Rank = 4
+  int32_t Rank = 4
 >
 struct DefaultEpilogueTensorOp {
 
   using Shape = Shape_;
   using WarpMmaTensorOp = WarpMmaTensorOp_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static constexpr int32_t kPartitionsK = PartitionsK;
   using OutputOp = OutputOp_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
+  static constexpr int32_t kElementsPerAccess = ElementsPerAccess;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using LayoutC = typename WarpMmaTensorOp::LayoutC;
   using ElementAccumulator = typename WarpMmaTensorOp::ElementC;
   static conv::StrideSupport const kStrideSupport = StrideSupport;
-  static constexpr int kRank = Rank;
+  static constexpr int32_t kRank = Rank;
 
   //
   // Thread map
@@ -603,7 +602,7 @@ struct DefaultEpilogueTensorOp {
   /// Hard-coded padding elements added 
   using Padding = cutlass::MatrixShape<0, 64 / sizeof_bits<ElementAccumulator>::value * 4>;
 
-  static constexpr int kFragmentsPerIteration = (kPartitionsK == 1 ? DefaultIterators::kFragmentsPerIteration : 1);
+  static constexpr int32_t kFragmentsPerIteration = (kPartitionsK == 1 ? DefaultIterators::kFragmentsPerIteration : 1);
 
   //
   // Define the epilogue
@@ -628,17 +627,17 @@ struct DefaultEpilogueTensorOp {
 template <
   typename Shape_,
   typename WarpMmaTensorOp_,
-  int PartitionsK,
+  int32_t PartitionsK,
   typename OutputOp_,
-  int ElementsPerAccess
+  int32_t ElementsPerAccess
 >
 struct DefaultEpilogueTensorOpStridedDgrad {
 
   using Shape = Shape_;
   using WarpMmaTensorOp = WarpMmaTensorOp_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static constexpr int32_t kPartitionsK = PartitionsK;
   using OutputOp = OutputOp_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
+  static constexpr int32_t kElementsPerAccess = ElementsPerAccess;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using LayoutC = typename WarpMmaTensorOp::LayoutC;
@@ -692,7 +691,7 @@ struct DefaultEpilogueTensorOpStridedDgrad {
   /// Hard-coded padding elements added 
   using Padding = cutlass::MatrixShape<0, 64 / sizeof_bits<ElementAccumulator>::value * 4>;
 
-  static constexpr int kFragmentsPerIteration = (kPartitionsK == 1 ? DefaultIterators::kFragmentsPerIteration : 1);
+  static constexpr int32_t kFragmentsPerIteration = (kPartitionsK == 1 ? DefaultIterators::kFragmentsPerIteration : 1);
 
   //
   // Define the epilogue
@@ -716,20 +715,20 @@ struct DefaultEpilogueTensorOpStridedDgrad {
 
 /// Defines sensible defaults for epilogues for TensorOps.
 template <
-  int Rank,
+  int32_t Rank,
   typename Shape_,
   typename WarpMmaTensorOp_,
-  int PartitionsK,
+  int32_t PartitionsK,
   typename OutputOp_,
-  int ElementsPerAccess
+  int32_t ElementsPerAccess
 >
 struct DefaultEpilogueTensorOpAffineRankN {
 
   using Shape = Shape_;
   using WarpMmaTensorOp = WarpMmaTensorOp_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static constexpr int32_t kPartitionsK = PartitionsK;
   using OutputOp = OutputOp_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
+  static constexpr int32_t kElementsPerAccess = ElementsPerAccess;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using LayoutC = typename WarpMmaTensorOp::LayoutC;
@@ -785,7 +784,7 @@ struct DefaultEpilogueTensorOpAffineRankN {
   /// Hard-coded padding elements added 
   using Padding = cutlass::MatrixShape<0, 64 / sizeof_bits<ElementAccumulator>::value * 4>;
 
-  static constexpr int kFragmentsPerIteration = (kPartitionsK == 1 ? DefaultIterators::kFragmentsPerIteration : 1);
+  static constexpr int32_t kFragmentsPerIteration = (kPartitionsK == 1 ? DefaultIterators::kFragmentsPerIteration : 1);
 
   //
   // Define the epilogue
@@ -807,15 +806,15 @@ struct DefaultEpilogueTensorOpAffineRankN {
 ////////////////////////////////////////////////////////////////////////////////
 /// Defines sensible defaults for epilogues for TensorOps which uses
 /// intereleaved output layout. For this case, shared memory is not needed.
-template <typename Shape_, typename WarpMmaTensorOp_, int PartitionsK,
-          typename OutputOp_, int ElementsPerAccess, int InterleavedK,
+template <typename Shape_, typename WarpMmaTensorOp_, int32_t PartitionsK,
+          typename OutputOp_, int32_t ElementsPerAccess, int32_t InterleavedK,
           bool isSplitK = false>
 struct DefaultInterleavedEpilogueTensorOp {
   using Shape = Shape_;
   using WarpMmaTensorOp = WarpMmaTensorOp_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static constexpr int32_t kPartitionsK = PartitionsK;
   using OutputOp = OutputOp_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
+  static constexpr int32_t kElementsPerAccess = ElementsPerAccess;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using LayoutC = typename WarpMmaTensorOp::LayoutC;
@@ -853,15 +852,15 @@ struct DefaultInterleavedEpilogueTensorOp {
 
 /// Defines sensible defaults for epilogues for TensorOps which uses
 /// intereleaved output layout. For this case, shared memory is not needed.
-template <typename Shape_, typename WarpMmaTensorOp_, int PartitionsK,
-          typename OutputOp_, int ElementsPerAccess, int InterleavedK,
+template <typename Shape_, typename WarpMmaTensorOp_, int32_t PartitionsK,
+          typename OutputOp_, int32_t ElementsPerAccess, int32_t InterleavedK,
           bool isSplitK = false>
 struct DefaultInterleavedConvEpilogue {
   using Shape = Shape_;
   using WarpMmaTensorOp = WarpMmaTensorOp_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static constexpr int32_t kPartitionsK = PartitionsK;
   using OutputOp = OutputOp_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
+  static constexpr int32_t kElementsPerAccess = ElementsPerAccess;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using ElementAccumulator = typename WarpMmaTensorOp::ElementC;

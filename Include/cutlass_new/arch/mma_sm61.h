@@ -52,20 +52,20 @@ struct Mma<
   LayoutA,
   int8_t,
   LayoutB,
-  int,
+  int32_t,
   LayoutC,
   OpMultiplyAdd> {
 
   using Shape = gemm::GemmShape<1, 1, 4>;
   using Operator = OpMultiplyAdd;
-  using ElementC = int;
+  using ElementC = int32_t;
 
   CUTLASS_HOST_DEVICE
   void operator()(
-    Array<int, 1> &d,
+    Array<int32_t, 1> &d,
     Array<int8_t, 4> const &a,
     Array<int8_t, 4> const &b,
-    Array<int, 1> const &c
+    Array<int32_t, 1> const &c
   ) {
 
 #if (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 610))
@@ -82,7 +82,7 @@ struct Mma<
     d[tag<0>{}] = c[tag<0>{}];
 
     CUTLASS_PRAGMA_UNROLL
-    for (int k = 0; k < 4; ++k) {
+    for (int32_t k = 0; k < 4; ++k) {
       d[tag<0>{}] += a[k] * b[k];
     }
 
@@ -101,20 +101,20 @@ struct Mma<
   layout::RowMajor,
   int16_t,
   layout::ColumnMajor,
-  int,
+  int32_t,
   LayoutC,
   OpMultiplyAdd> {
 
   using Shape = gemm::GemmShape<1, 1, 2>;
   using Operator = OpMultiplyAdd;
-  using ElementC = int;
+  using ElementC = int32_t;
 
   CUTLASS_HOST_DEVICE
   void operator()(
-    Array<int, 1> &d,
+    Array<int32_t, 1> &d,
     Array<int16_t, 2> const &a,
     Array<int16_t, 2> const &b,
-    Array<int, 1> const &c
+    Array<int32_t, 1> const &c
   ) {
 
 #if (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 610))
@@ -129,7 +129,7 @@ struct Mma<
     d[tag<0>{}] = c[tag<0>{}];
 
     CUTLASS_PRAGMA_UNROLL
-    for (int k = 0; k < 2; ++k) {
+    for (int32_t k = 0; k < 2; ++k) {
       d[tag<0>{}] += a[k] * b[k];
     }
 #endif

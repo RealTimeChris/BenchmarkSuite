@@ -51,22 +51,22 @@ namespace nihilus_cute
  * the result is
  * 0bxxxxxxxxxxxxxxxxYYxxxxxxxxxAAxxx where AA = ZZ xor YY
  */
-template <int BBits, int MBase, int SShift = BBits>
+template <int32_t BBits, int32_t MBase, int32_t SShift = BBits>
 struct Swizzle
 {
-  static constexpr int num_bits = BBits;
-  static constexpr int num_base = MBase;
-  static constexpr int num_shft = SShift;
+  static constexpr int32_t num_bits = BBits;
+  static constexpr int32_t num_base = MBase;
+  static constexpr int32_t num_shft = SShift;
 
   static_assert(num_base >= 0,             "MBase must be positive.");
   static_assert(num_bits >= 0,             "BBits must be positive.");
   static_assert(abs(num_shft) >= num_bits, "abs(SShift) must be more than BBits.");
 
-  // using 'int' type here to avoid unintentially casting to unsigned... unsure.
-  using bit_msk = nihilus_cute::constant<int, (1 << num_bits) - 1>;
-  using yyy_msk = nihilus_cute::constant<int, bit_msk{} << (num_base + max(0,num_shft))>;
-  using zzz_msk = nihilus_cute::constant<int, bit_msk{} << (num_base - min(0,num_shft))>;
-  using msk_sft = nihilus_cute::constant<int, num_shft>;
+  // using 'int32_t' type here to avoid unintentially casting to unsigned... unsure.
+  using bit_msk = nihilus_cute::constant<int32_t, (1 << num_bits) - 1>;
+  using yyy_msk = nihilus_cute::constant<int32_t, bit_msk{} << (num_base + max(0,num_shft))>;
+  using zzz_msk = nihilus_cute::constant<int32_t, bit_msk{} << (num_base - min(0,num_shft))>;
+  using msk_sft = nihilus_cute::constant<int32_t, num_shft>;
 
   static constexpr uint32_t swizzle_code = uint32_t(yyy_msk::value | zzz_msk::value);
 
@@ -86,7 +86,7 @@ struct Swizzle
     return apply(offset);
   }
 
-  template <int B, int M, int S>
+  template <int32_t B, int32_t M, int32_t S>
   CUTE_HOST_DEVICE constexpr
   auto
   operator==(Swizzle<B,M,S> const&) const
@@ -116,8 +116,8 @@ make_swizzle()
   return Swizzle<BZ,M,S>{};
 }
 
-template <int B0, int M0, int S0,
-          int B1, int M1, int S1>
+template <int32_t B0, int32_t M0, int32_t S0,
+          int32_t B1, int32_t M1, int32_t S1>
 CUTE_HOST_DEVICE constexpr
 auto
 composition(Swizzle<B0,M0,S0>, Swizzle<B1,M1,S1>)
@@ -169,7 +169,7 @@ make_mixed_bits(C<s>, DynamicType const& d, C<f>)
   static_assert(is_integral<DynamicType>::value);
   constexpr uint32_t new_f = uint32_t(f) & ~uint32_t(s);        // StaticBits take precedence, M<0,f>{d} | C<s>{}
   if constexpr (new_f == 0 || is_static<DynamicType>::value) {
-    return C<s>{} | (d & C<new_f>{});                           // Just return a static int
+    return C<s>{} | (d & C<new_f>{});                           // Just return a static int32_t
   } else {
     return MixedBits<s, new_f>{uint32_t(d) & new_f};            // MixedBits
   }
@@ -460,7 +460,7 @@ to_mixed_bits(Layout const& layout, Coord const& coord)
 // Display utilities
 //
 
-template <int B, int M, int S>
+template <int32_t B, int32_t M, int32_t S>
 CUTE_HOST_DEVICE void print(Swizzle<B,M,S> const&)
 {
   printf("Sw<%d,%d,%d>", B, M, S);
@@ -473,7 +473,7 @@ CUTE_HOST_DEVICE void print(MixedBits<S,F> const& m)
 }
 
 #if !defined(__CUDACC_RTC__)
-template <int B, int M, int S>
+template <int32_t B, int32_t M, int32_t S>
 CUTE_HOST std::ostream& operator<<(std::ostream& os, Swizzle<B,M,S> const&)
 {
   return os << "Sw<" << B << "," << M << "," << S << ">";

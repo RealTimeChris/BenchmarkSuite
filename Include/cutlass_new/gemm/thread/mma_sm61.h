@@ -135,13 +135,13 @@ struct Mma<
 
     // Compute matrix product
     CUTLASS_PRAGMA_UNROLL
-    for (int k = 0; k < Shape::kK / ArchMmaOperator::Shape::kK; ++k) {
+    for (int32_t k = 0; k < Shape::kK / ArchMmaOperator::Shape::kK; ++k) {
 
       CUTLASS_PRAGMA_UNROLL
-      for (int n = 0; n < Shape::kN; ++n) {
+      for (int32_t n = 0; n < Shape::kN; ++n) {
 
         CUTLASS_PRAGMA_UNROLL
-        for (int m = 0; m < Shape::kM; ++m) {
+        for (int32_t m = 0; m < Shape::kM; ++m) {
           MatrixCoord mn(m, n);
 
           Array<int8_t, 4> const *ptr_A = reinterpret_cast<Array<int8_t, 4> const *>(&A);
@@ -253,13 +253,13 @@ struct Mma<
 
     // Compute matrix product
     CUTLASS_PRAGMA_UNROLL
-    for (int k = 0; k < Shape::kK / ArchMmaOperator::Shape::kK; ++k) {
+    for (int32_t k = 0; k < Shape::kK / ArchMmaOperator::Shape::kK; ++k) {
 
       CUTLASS_PRAGMA_UNROLL
-      for (int n = 0; n < Shape::kN; ++n) {
+      for (int32_t n = 0; n < Shape::kN; ++n) {
 
         CUTLASS_PRAGMA_UNROLL
-        for (int m = 0; m < Shape::kM; ++m) {
+        for (int32_t m = 0; m < Shape::kM; ++m) {
           MatrixCoord mn(m, n);
 
           Array<int32_t, 1> tmp = reinterpret_cast<Array<int32_t, 1> &>(d.at(mn));

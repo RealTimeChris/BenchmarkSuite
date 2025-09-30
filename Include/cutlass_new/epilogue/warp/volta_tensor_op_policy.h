@@ -86,21 +86,21 @@ struct VoltaTensorOpPolicy<WarpShape_, gemm::GemmShape<32, 32, 4>, half_t, layou
   >;
 
   /// Number of accumulator elements owned by each thread per Mma
-  static constexpr int kElementsPerMma = 8;
-  static constexpr int kRowsPerIteration = 16;
+  static constexpr int32_t kElementsPerMma = 8;
+  static constexpr int32_t kRowsPerIteration = 16;
 
   //
   // Hard-coded constants regarding Tensor Operations
   //
 
   /// Number of accumulator elements stored per memory instruction to shared memory
-  static constexpr int kElementsPerAccess = 4;
+  static constexpr int32_t kElementsPerAccess = 4;
   
   /// Number of accesses performed per interleaved tile
-  static constexpr int kAccessesPerInterleavedTile = 4;
+  static constexpr int32_t kAccessesPerInterleavedTile = 4;
 
   /// Total number of iterations needed to cover the entire tile
-  static constexpr int kIterations = TileIterations::kRow * 2;
+  static constexpr int32_t kIterations = TileIterations::kRow * 2;
 
   //
   // Derived types
@@ -149,24 +149,24 @@ struct VoltaTensorOpPolicy<WarpShape_, gemm::GemmShape<32, 32, 4>, float, layout
   >;
 
   /// Number of accumulator elements owned by each thread per Mma
-  static constexpr int kElementsPerMma = 8;
-  static constexpr int kRowsPerIteration = 16;
+  static constexpr int32_t kElementsPerMma = 8;
+  static constexpr int32_t kRowsPerIteration = 16;
 
   //
   // Hard-coded constants regarding Tensor Operations
   //
 
   /// Number of accumulator elements stored per memory instruction to shared memory
-  static constexpr int kElementsPerAccess = 2;
+  static constexpr int32_t kElementsPerAccess = 2;
   
   /// Number of accesses performed per interleaved tile
-  static constexpr int kAccessesPerInterleavedTile = 8;
+  static constexpr int32_t kAccessesPerInterleavedTile = 8;
 
   /// Number of rows per interleaved tile
-  static constexpr int kRowsPerMmaTile = 2;
+  static constexpr int32_t kRowsPerMmaTile = 2;
 
   /// Total number of iterations needed to cover the entire tile
-  static constexpr int kIterations = TileIterations::kRow * MmaIterations::kRow;
+  static constexpr int32_t kIterations = TileIterations::kRow * MmaIterations::kRow;
 
   //
   // Derived types

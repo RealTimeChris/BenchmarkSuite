@@ -280,16 +280,16 @@ inline void synclog_setup() {
     fprintf(stderr, "synclog_setup() failed\n");
     std::terminate();
   };
-  int orig_device = 0;
+  int32_t orig_device = 0;
   if (cudaGetDevice(&orig_device) != cudaSuccess) {
     fail();
   }
-  int device_count = 0;
+  int32_t device_count = 0;
   if (cudaGetDeviceCount(&device_count) != cudaSuccess) {
     fail();
   }
   if (synclog_buf_list.size() == 0) {
-    for (int device = 0; device < device_count; device++) {
+    for (int32_t device = 0; device < device_count; device++) {
       uint32_t* buf = 0;
       if (cudaSetDevice(device) != cudaSuccess ||
         cudaMalloc(&buf, synclog_cap * sizeof(uint32_t)) != cudaSuccess) {
@@ -298,7 +298,7 @@ inline void synclog_setup() {
       synclog_buf_list.push_back(buf);
     }
   }
-  for (int device = 0; device < device_count; device++) {
+  for (int32_t device = 0; device < device_count; device++) {
     uint32_t* buf = synclog_buf_list.at(device);
     if (cudaSetDevice(device) != cudaSuccess ||
       cudaMemset(buf, 0, synclog_cap * sizeof(uint32_t)) != cudaSuccess ||

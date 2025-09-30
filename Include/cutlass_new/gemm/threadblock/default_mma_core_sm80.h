@@ -92,7 +92,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
@@ -112,7 +112,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
   using LayoutB = layout::ColumnMajor;
   using ElementC = double;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
   static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
@@ -130,13 +130,13 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int kAccessSizeInBits = 64;
+  static constexpr int32_t kAccessSizeInBits = 64;
 
   /// Default Operator
   using Operator = Operator_;
@@ -211,7 +211,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
@@ -231,7 +231,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
   using LayoutB = layout::RowMajor;
   using ElementC = double;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
   static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
@@ -249,13 +249,13 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int kAccessSizeInBits = 64;
+  static constexpr int32_t kAccessSizeInBits = 64;
 
   /// Default Operator
   using Operator = Operator_;
@@ -329,7 +329,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
@@ -349,7 +349,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
   using LayoutB = layout::ColumnMajor;
   using ElementC = double;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
   static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
@@ -364,13 +364,13 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
       "Threadblock-scoped GEMM should be divisible by warp-scoped GEMM size.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int kAccessSizeInBits = 64;
+  static constexpr int32_t kAccessSizeInBits = 64;
 
   /// Default Operator
   using Operator = Operator_;
@@ -443,7 +443,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
@@ -463,7 +463,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
   using LayoutB = layout::RowMajor;
   using ElementC = double;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
   static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
@@ -481,13 +481,13 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int kAccessSizeInBits = 64;
+  static constexpr int32_t kAccessSizeInBits = 64;
 
   /// Default Operator
   using Operator = Operator_;
@@ -561,7 +561,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
@@ -581,7 +581,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
   using LayoutB = layout::AffineRank2ColumnMajor;
   using ElementC = double;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
   static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
@@ -653,7 +653,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
@@ -673,7 +673,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
   using LayoutB = layout::AffineRank2RowMajor;
   using ElementC = double;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
   static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
@@ -747,7 +747,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
@@ -767,7 +767,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
   using LayoutB = layout::AffineRank2ColumnMajor;
   using ElementC = double;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
   static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
@@ -841,7 +841,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
@@ -861,7 +861,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, double,
   using LayoutB = layout::AffineRank2RowMajor;
   using ElementC = double;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
   static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
@@ -938,7 +938,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
@@ -972,7 +972,7 @@ struct DefaultMmaCore<
   using LayoutB = LayoutB_;
   using ElementC = complex<float>;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
   static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
   static constexpr ComplexTransform TransformA = TransformA_;
@@ -992,13 +992,13 @@ struct DefaultMmaCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int kAccessSizeInBits = 128;
+  static constexpr int32_t kAccessSizeInBits = 128;
 
   /// Default Operator
   using Operator = Operator_;
@@ -1088,7 +1088,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
@@ -1122,7 +1122,7 @@ struct DefaultMmaCore<
   using LayoutB = LayoutB_;
   using ElementC = complex<double>;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
   static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
   static constexpr ComplexTransform TransformA = TransformA_;
@@ -1142,13 +1142,13 @@ struct DefaultMmaCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int kAccessSizeInBits = 64;
+  static constexpr int32_t kAccessSizeInBits = 64;
 
   /// Default Operator
   using Operator = Operator_;
@@ -1239,7 +1239,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
@@ -1259,7 +1259,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using LayoutB = layout::RowMajor;
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static cutlass::arch::CacheOperation::Kind const kCacheOpA = CacheOpA;
   static cutlass::arch::CacheOperation::Kind const kCacheOpB = CacheOpB;
 
@@ -1274,40 +1274,40 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
       "Threadblock-scoped GEMM should be divisible by warp-scoped GEMM size.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int kAccessSizeInBits = 128;
+  static constexpr int32_t kAccessSizeInBits = 128;
 
   /// Default Operator
   using Operator = Operator_;
 
   // Warp thread arrangement
-  static constexpr int kWarpThreadArrangementContiguousA =
+  static constexpr int32_t kWarpThreadArrangementContiguousA =
       platform::min(Shape::kM / (kAccessSizeInBits / sizeof_bits<ElementA>::value), 8);
 
-  static constexpr int kWarpThreadArrangementStridedA =
+  static constexpr int32_t kWarpThreadArrangementStridedA =
       kWarpSize / kWarpThreadArrangementContiguousA;
 
-  static constexpr int kWarpThreadArrangementContiguousB =
+  static constexpr int32_t kWarpThreadArrangementContiguousB =
       platform::min(Shape::kN / (kAccessSizeInBits / sizeof_bits<ElementB>::value), 8);
 
-  static constexpr int kWarpThreadArrangementStridedB =
+  static constexpr int32_t kWarpThreadArrangementStridedB =
       kWarpSize / kWarpThreadArrangementContiguousB;
 
   //
   // Shared memory layouts
   //
-  static constexpr int Crosswise_A = platform::min(int(128 / sizeof(ElementA)),
+  static constexpr int32_t Crosswise_A = platform::min(int32_t(128 / sizeof(ElementA)),
                                                Shape::kM);
   using SmemLayoutA = layout::ColumnMajorTensorOpMultiplicandCongruous<
       sizeof_bits<ElementA>::value, Crosswise_A>;
 
   // Shared memory layout
-  static constexpr int Crosswise_B = platform::min(int(128 / sizeof(ElementB)),
+  static constexpr int32_t Crosswise_B = platform::min(int32_t(128 / sizeof(ElementB)),
                                                Shape::kN);
   using SmemLayoutB = layout::RowMajorTensorOpMultiplicandCongruous<
       sizeof_bits<ElementB>::value, Crosswise_B>;
@@ -1380,7 +1380,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
@@ -1400,7 +1400,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using LayoutB = layout::ColumnMajor;
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static cutlass::arch::CacheOperation::Kind const kCacheOpA = CacheOpA;
   static cutlass::arch::CacheOperation::Kind const kCacheOpB = CacheOpB;
 
@@ -1415,28 +1415,28 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
       "Threadblock-scoped GEMM should be divisible by warp-scoped GEMM size.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int kAccessSizeInBits = 128;
+  static constexpr int32_t kAccessSizeInBits = 128;
 
   /// Default Operator
   using Operator = Operator_;
 
   // Warp thread arrangement
-  static constexpr int kWarpThreadArrangementContiguousA =
+  static constexpr int32_t kWarpThreadArrangementContiguousA =
       Shape::kK / (kAccessSizeInBits / sizeof_bits<ElementA>::value);
 
-  static constexpr int kWarpThreadArrangementStridedA =
+  static constexpr int32_t kWarpThreadArrangementStridedA =
       kWarpSize / kWarpThreadArrangementContiguousA;
 
-  static constexpr int kWarpThreadArrangementContiguousB =
+  static constexpr int32_t kWarpThreadArrangementContiguousB =
       Shape::kK / (kAccessSizeInBits / sizeof_bits<ElementB>::value);
 
-  static constexpr int kWarpThreadArrangementStridedB =
+  static constexpr int32_t kWarpThreadArrangementStridedB =
       kWarpSize / kWarpThreadArrangementContiguousB;
 
   //
@@ -1518,7 +1518,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
@@ -1540,7 +1540,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
 
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static cutlass::arch::CacheOperation::Kind const kCacheOpA = CacheOpA;
   static cutlass::arch::CacheOperation::Kind const kCacheOpB = CacheOpB;
 
@@ -1555,34 +1555,34 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
       "Threadblock-scoped GEMM should be divisible by warp-scoped GEMM size.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int kAccessSizeInBits = 128;
+  static constexpr int32_t kAccessSizeInBits = 128;
 
   /// Default Operator
   using Operator = Operator_;
 
   // Warp thread arrangement
-  static constexpr int kWarpThreadArrangementContiguousA =
+  static constexpr int32_t kWarpThreadArrangementContiguousA =
       platform::min(Shape::kM / (kAccessSizeInBits / sizeof_bits<ElementA>::value), 8);
 
-  static constexpr int kWarpThreadArrangementStridedA =
+  static constexpr int32_t kWarpThreadArrangementStridedA =
       kWarpSize / kWarpThreadArrangementContiguousA;
 
-  static constexpr int kWarpThreadArrangementContiguousB =
+  static constexpr int32_t kWarpThreadArrangementContiguousB =
       Shape::kK / (kAccessSizeInBits / sizeof_bits<ElementA>::value);
 
-  static constexpr int kWarpThreadArrangementStridedB =
+  static constexpr int32_t kWarpThreadArrangementStridedB =
       kWarpSize / kWarpThreadArrangementContiguousB;
 
   //
   // Shared memory layouts
   //
-  static constexpr int Crosswise_A = platform::min(int(128 / sizeof(ElementA)),
+  static constexpr int32_t Crosswise_A = platform::min(int32_t(128 / sizeof(ElementA)),
                                                Shape::kM);
   using SmemLayoutA = layout::ColumnMajorTensorOpMultiplicandCongruous<
       sizeof_bits<ElementA>::value, Crosswise_A>;
@@ -1659,7 +1659,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Operation performed by MMA
     typename Operator_,
     /// Cache operation of operand A
@@ -1679,7 +1679,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using LayoutB = layout::RowMajor;
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static cutlass::arch::CacheOperation::Kind const kCacheOpA = CacheOpA;
   static cutlass::arch::CacheOperation::Kind const kCacheOpB = CacheOpB;
 
@@ -1694,28 +1694,28 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
       "Threadblock-scoped GEMM should be divisible by warp-scoped GEMM size.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int kAccessSizeInBits = 128;
+  static constexpr int32_t kAccessSizeInBits = 128;
 
   /// Default Operator
   using Operator = Operator_;
 
   // Warp thread arrangement
-  static constexpr int kWarpThreadArrangementContiguousA =
+  static constexpr int32_t kWarpThreadArrangementContiguousA =
       Shape::kK / (kAccessSizeInBits / sizeof_bits<ElementA>::value);
 
-  static constexpr int kWarpThreadArrangementStridedA =
+  static constexpr int32_t kWarpThreadArrangementStridedA =
       kWarpSize / kWarpThreadArrangementContiguousA;
 
-  static constexpr int kWarpThreadArrangementContiguousB =
+  static constexpr int32_t kWarpThreadArrangementContiguousB =
       platform::min(Shape::kN / (kAccessSizeInBits / sizeof_bits<ElementB>::value), 8);
 
-  static constexpr int kWarpThreadArrangementStridedB =
+  static constexpr int32_t kWarpThreadArrangementStridedB =
       kWarpSize / kWarpThreadArrangementContiguousB;
 
   //
@@ -1726,7 +1726,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
       sizeof_bits<ElementA>::value, Shape::kK>;
 
   // Shared memory layout
-  static constexpr int Crosswise_B = platform::min(int(128 / sizeof(ElementB)),
+  static constexpr int32_t Crosswise_B = platform::min(int32_t(128 / sizeof(ElementB)),
                                                Shape::kN);
   using SmemLayoutB = layout::RowMajorTensorOpMultiplicandCongruous<
       sizeof_bits<ElementB>::value, Crosswise_B>;
@@ -1806,7 +1806,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Operation performed by MMA
     typename Operator_,
     /// Store the accumulators in row major or column major.  Row major is used
@@ -1817,7 +1817,7 @@ template <
     /// Cache operation of operand B
     cutlass::arch::CacheOperation::Kind CacheOpB,
     /// Number of interleaved K
-    int InterleavedK>
+    int32_t InterleavedK>
 struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
                       layout::ColumnMajorInterleaved<InterleavedK>, ElementB_,
                       layout::RowMajorInterleaved<InterleavedK>, ElementC_,
@@ -1832,10 +1832,10 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using LayoutB = layout::RowMajorInterleaved<InterleavedK>;
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static cutlass::arch::CacheOperation::Kind const kCacheOpA = CacheOpA;
   static cutlass::arch::CacheOperation::Kind const kCacheOpB = CacheOpB;
-  static constexpr int kInterleavedK = InterleavedK;
+  static constexpr int32_t kInterleavedK = InterleavedK;
 
   /// Number of warps present
   using WarpCount = GemmShape<Shape::kM / WarpShape::kM,
@@ -1848,25 +1848,25 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
       "Threadblock-scoped GEMM should be divisible by warp-scoped GEMM size.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped access
-  static constexpr int kAccessSizeInBits = 128;
+  static constexpr int32_t kAccessSizeInBits = 128;
 
   /// Default Operator
   using Operator = Operator_;
 
   // Warp thread arrangement
-  static constexpr int kElementsPerAccess =
+  static constexpr int32_t kElementsPerAccess =
       kAccessSizeInBits / sizeof_bits<ElementA>::value;
 
-  static constexpr int kWarpThreadArrangementContiguous =
+  static constexpr int32_t kWarpThreadArrangementContiguous =
       kInterleavedK / kElementsPerAccess;
 
-  static constexpr int kWarpThreadArrangementStrided =
+  static constexpr int32_t kWarpThreadArrangementStrided =
       kWarpSize / kWarpThreadArrangementContiguous;
 
   //
@@ -1956,7 +1956,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Operation performed by Simt
     typename Operator_,
     /// Cache operation of operand A
@@ -1976,7 +1976,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using LayoutB = layout::ColumnMajor;
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
   static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
@@ -1991,16 +1991,16 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
       "Threadblock-scoped GEMM should be divisible by warp-scoped GEMM size.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Default Operator
   using Operator = Operator_;
 
   // Warp thread arrangement
-  static constexpr int kElementsPerAccess = 1;
+  static constexpr int32_t kElementsPerAccess = 1;
 
   //
   // Shared memory layouts
@@ -2048,17 +2048,17 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   //
 
   // Define the warp-level op
-  static constexpr int WarpNumThreadsM = 4;
-  static constexpr int WarpNumThreadsN = 8;
+  static constexpr int32_t WarpNumThreadsM = 4;
+  static constexpr int32_t WarpNumThreadsN = 8;
   static_assert(!(WarpShape::kM % WarpNumThreadsM) && !(WarpShape::kN % WarpNumThreadsN),
       "WarpShape must be divisible by ThreadTile shape.");
-  static constexpr int ThreadTileM = WarpShape::kM / WarpNumThreadsM;
-  static constexpr int ThreadTileN = WarpShape::kN / WarpNumThreadsN;
-  static constexpr int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
-  static constexpr int numElementsA = 128 / sizeof_bits<ElementA>::value;
-  static constexpr int numElementsB = 128 / sizeof_bits<ElementB>::value;
-  static constexpr int LaneM = cutlass::const_min(numElementsA, ThreadTileM);
-  static constexpr int LaneN = cutlass::const_min(numElementsB, ThreadTileN);
+  static constexpr int32_t ThreadTileM = WarpShape::kM / WarpNumThreadsM;
+  static constexpr int32_t ThreadTileN = WarpShape::kN / WarpNumThreadsN;
+  static constexpr int32_t LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
+  static constexpr int32_t numElementsA = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int32_t numElementsB = 128 / sizeof_bits<ElementB>::value;
+  static constexpr int32_t LaneM = cutlass::const_min(numElementsA, ThreadTileM);
+  static constexpr int32_t LaneN = cutlass::const_min(numElementsB, ThreadTileN);
 
   static_assert(!((Shape::kK / 32) % LaneN),
                 "Padding must be divisible by Lane");
@@ -2114,7 +2114,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Operation performed by Simt
     typename Operator_,
     /// Cache operation of operand A
@@ -2134,7 +2134,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using LayoutB = layout::RowMajor;
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
   static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
@@ -2149,16 +2149,16 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
       "Threadblock-scoped GEMM should be divisible by warp-scoped GEMM size.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Default Operator
   using Operator = Operator_;
 
   // Warp thread arrangement
-  static constexpr int kElementsPerAccess = 1;
+  static constexpr int32_t kElementsPerAccess = 1;
 
   //
   // Shared memory layouts
@@ -2203,17 +2203,17 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   //
 
   // Define the warp-level op
-  static constexpr int WarpNumThreadsM = 4;
-  static constexpr int WarpNumThreadsN = 8;
+  static constexpr int32_t WarpNumThreadsM = 4;
+  static constexpr int32_t WarpNumThreadsN = 8;
   static_assert(!(WarpShape::kM % WarpNumThreadsM) && !(WarpShape::kN % WarpNumThreadsN),
       "WarpShape must be divisible by ThreadTile shape.");
-  static constexpr int ThreadTileM = WarpShape::kM / WarpNumThreadsM;
-  static constexpr int ThreadTileN = WarpShape::kN / WarpNumThreadsN;
-  static constexpr int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
-  static constexpr int numElementsA = 128 / sizeof_bits<ElementA>::value;
-  static constexpr int numElementsB = 128 / sizeof_bits<ElementB>::value;
-  static constexpr int LaneM = cutlass::const_min(numElementsA, ThreadTileM);
-  static constexpr int LaneN = cutlass::const_min(numElementsB, ThreadTileN);
+  static constexpr int32_t ThreadTileM = WarpShape::kM / WarpNumThreadsM;
+  static constexpr int32_t ThreadTileN = WarpShape::kN / WarpNumThreadsN;
+  static constexpr int32_t LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
+  static constexpr int32_t numElementsA = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int32_t numElementsB = 128 / sizeof_bits<ElementB>::value;
+  static constexpr int32_t LaneM = cutlass::const_min(numElementsA, ThreadTileM);
+  static constexpr int32_t LaneN = cutlass::const_min(numElementsB, ThreadTileN);
   // these should have max of thread tile also
   using LaneMmaShape = cutlass::gemm::GemmShape<
       LaneM,
@@ -2265,7 +2265,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Operation performed by Simt
     typename Operator_,
     /// Cache operation of operand A
@@ -2285,7 +2285,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using LayoutB = layout::ColumnMajor;
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
   static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
@@ -2300,16 +2300,16 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
       "Threadblock-scoped GEMM should be divisible by warp-scoped GEMM size.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Default Operator
   using Operator = Operator_;
 
   // Warp thread arrangement
-  static constexpr int kElementsPerAccess = 1;
+  static constexpr int32_t kElementsPerAccess = 1;
 
   //
   // Shared memory layouts
@@ -2360,17 +2360,17 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   //
 
   // Define the warp-level op
-  static constexpr int WarpNumThreadsM = 4;
-  static constexpr int WarpNumThreadsN = 8;
+  static constexpr int32_t WarpNumThreadsM = 4;
+  static constexpr int32_t WarpNumThreadsN = 8;
   static_assert(!(WarpShape::kM % WarpNumThreadsM) && !(WarpShape::kN % WarpNumThreadsN),
       "WarpShape must be divisible by ThreadTile shape.");
-  static constexpr int ThreadTileM = WarpShape::kM / WarpNumThreadsM;
-  static constexpr int ThreadTileN = WarpShape::kN / WarpNumThreadsN;
-  static constexpr int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
-  static constexpr int numElementsA = 128 / sizeof_bits<ElementA>::value;
-  static constexpr int numElementsB = 128 / sizeof_bits<ElementB>::value;
-  static constexpr int LaneM = cutlass::const_min(numElementsA, ThreadTileM);
-  static constexpr int LaneN = cutlass::const_min(numElementsB, ThreadTileN);
+  static constexpr int32_t ThreadTileM = WarpShape::kM / WarpNumThreadsM;
+  static constexpr int32_t ThreadTileN = WarpShape::kN / WarpNumThreadsN;
+  static constexpr int32_t LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
+  static constexpr int32_t numElementsA = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int32_t numElementsB = 128 / sizeof_bits<ElementB>::value;
+  static constexpr int32_t LaneM = cutlass::const_min(numElementsA, ThreadTileM);
+  static constexpr int32_t LaneN = cutlass::const_min(numElementsB, ThreadTileN);
 
   static_assert(!((Shape::kK / 32) % LaneM) && !((Shape::kK / 32) % LaneN),
                 "Padding must be divisible by Lane");
@@ -2426,7 +2426,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Operation performed by Simt
     typename Operator_,
     /// Cache operation of operand A
@@ -2446,7 +2446,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using LayoutB = layout::RowMajor;
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
   static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
@@ -2461,16 +2461,16 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
       "Threadblock-scoped GEMM should be divisible by warp-scoped GEMM size.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Default Operator
   using Operator = Operator_;
 
   // Warp thread arrangement
-  static constexpr int kElementsPerAccess = 1;
+  static constexpr int32_t kElementsPerAccess = 1;
 
   //
   // Shared memory layouts
@@ -2517,17 +2517,17 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   //
 
   // Define the warp-level op
-  static constexpr int WarpNumThreadsM = 4;
-  static constexpr int WarpNumThreadsN = 8;
+  static constexpr int32_t WarpNumThreadsM = 4;
+  static constexpr int32_t WarpNumThreadsN = 8;
   static_assert(!(WarpShape::kM % WarpNumThreadsM) && !(WarpShape::kN % WarpNumThreadsN),
       "WarpShape must be divisible by ThreadTile shape.");
-  static constexpr int ThreadTileM = WarpShape::kM / WarpNumThreadsM;
-  static constexpr int ThreadTileN = WarpShape::kN / WarpNumThreadsN;
-  static constexpr int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
-  static constexpr int numElementsA = 128 / sizeof_bits<ElementA>::value;
-  static constexpr int numElementsB = 128 / sizeof_bits<ElementB>::value;
-  static constexpr int LaneM = cutlass::const_min(numElementsA, ThreadTileM);
-  static constexpr int LaneN = cutlass::const_min(numElementsB, ThreadTileN);
+  static constexpr int32_t ThreadTileM = WarpShape::kM / WarpNumThreadsM;
+  static constexpr int32_t ThreadTileN = WarpShape::kN / WarpNumThreadsN;
+  static constexpr int32_t LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
+  static constexpr int32_t numElementsA = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int32_t numElementsB = 128 / sizeof_bits<ElementB>::value;
+  static constexpr int32_t LaneM = cutlass::const_min(numElementsA, ThreadTileM);
+  static constexpr int32_t LaneN = cutlass::const_min(numElementsB, ThreadTileN);
 
   static_assert(!((Shape::kK / 32) % LaneM),
                 "Padding must be divisible by Lane");
@@ -2583,7 +2583,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Operation performed by Simt
     typename Operator_,
     /// Cache operation of operand A
@@ -2603,7 +2603,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using LayoutB = layout::AffineRank2RowMajor;
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
   static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
@@ -2678,7 +2678,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Operation performed by Simt
     typename Operator_,
     /// Cache operation of operand A
@@ -2698,7 +2698,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using LayoutB = layout::AffineRank2ColumnMajor;
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
   static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
@@ -2773,7 +2773,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Operation performed by Simt
     typename Operator_,
     /// Cache operation of operand A
@@ -2793,7 +2793,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using LayoutB = layout::AffineRank2ColumnMajor;
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
   static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 
@@ -2869,7 +2869,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Operation performed by Simt
     typename Operator_,
     /// Cache operation of operand A
@@ -2889,7 +2889,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, InstructionShape_, ElementA_,
   using LayoutB = layout::AffineRank2RowMajor;
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static cutlass::arch::CacheOperation::Kind const kCacheOpA = cutlass::arch::CacheOperation::Always;
   static cutlass::arch::CacheOperation::Kind const kCacheOpB = cutlass::arch::CacheOperation::Always;
 

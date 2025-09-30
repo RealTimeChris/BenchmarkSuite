@@ -78,9 +78,9 @@ template <
     typename InstructionShape_,
     /// Interval between adjacent *MMA instructions (in units of MMA
     /// instructions)
-    int OpDelta_,
+    int32_t OpDelta_,
     /// Number of partitions along K dimension
-    int PartitionsK_>
+    int32_t PartitionsK_>
 class MmaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
     cutlass::layout::TensorOpMultiplicandCongruous64b,
@@ -110,13 +110,13 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static constexpr int kOpDelta = OpDelta_;
+  static constexpr int32_t kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int kThreads = 32;
+  static constexpr int32_t kThreads = 32;
 
   /// Number of partitions along K dimension
-  static constexpr int kPartitionsK = PartitionsK_;
+  static constexpr int32_t kPartitionsK = PartitionsK_;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -134,7 +134,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using TensorCoord = typename TensorRef::TensorCoord;
 
   /// Load two elements per access
-  static constexpr int kElementsPerAccess = 2;
+  static constexpr int32_t kElementsPerAccess = 2;
 
   /// Policy defining internal details of tile iterator
   struct Policy {
@@ -160,7 +160,7 @@ private:
   using AccessType = AlignedArray<Element, kElementsPerAccess, 16>;
 
   /// Internal counter used to jump to next K partition
-  int k_group_idx_;
+  int32_t k_group_idx_;
 
 public:
 
@@ -193,13 +193,13 @@ public:
   CUTLASS_DEVICE
   MmaTensorOpMultiplicandTileIterator(
     TensorRef const &ref, 
-    int lane_id
+    int32_t lane_id
   ):
     stride_(ref.stride(0) / kElementsPerAccess), byte_offset_(0),
     k_group_idx_(0) {
 
-    int access_strided = lane_id / Policy::Delta::kContiguous;
-    int access_contiguous = (lane_id  % Policy::Delta::kContiguous) ^ access_strided;
+    int32_t access_strided = lane_id / Policy::Delta::kContiguous;
+    int32_t access_contiguous = (lane_id  % Policy::Delta::kContiguous) ^ access_strided;
 
     pointer_= reinterpret_cast<AccessType const *>(ref.data()) +
       access_contiguous + access_strided * stride_;
@@ -218,7 +218,7 @@ public:
   CUTLASS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_tile_offset(TensorCoord const &tile_offset) {
 
-    int offset = 
+    int32_t offset = 
       (tile_offset.strided() * InstructionShape::kStrided) * stride_ * kElementsPerAccess + 
       tile_offset.contiguous() * Shape::kContiguous;
 
@@ -277,12 +277,12 @@ public:
     AccessType *fetch_ptr = reinterpret_cast<AccessType *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int s = 0; s < Policy::Iterations::kStrided; ++s) {
+    for (int32_t s = 0; s < Policy::Iterations::kStrided; ++s) {
 
       CUTLASS_PRAGMA_UNROLL
-      for (int c = 0; c < Policy::Iterations::kContiguous; ++c) {
+      for (int32_t c = 0; c < Policy::Iterations::kContiguous; ++c) {
 
-        int access_idx = c + s * Policy::Iterations::kContiguous;
+        int32_t access_idx = c + s * Policy::Iterations::kContiguous;
 
         AccessType const *source_ptr = pointer_ +
             Policy::Delta::kContiguous * c +
@@ -359,7 +359,7 @@ public:
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
 
   }
 };
@@ -381,9 +381,9 @@ template <
     typename InstructionShape_,
     /// Interval between adjacent *MMA instructions (in units of MMA
     /// instructions)
-    int OpDelta_,
+    int32_t OpDelta_,
     /// Number of partitions along K dimension
-    int PartitionsK_>
+    int32_t PartitionsK_>
 class MmaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
     cutlass::layout::RowMajorTensorOpMultiplicandCongruous64b,
@@ -409,10 +409,10 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static constexpr int kOpDelta = OpDelta_;
+  static constexpr int32_t kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int kThreads = 32;
+  static constexpr int32_t kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -458,7 +458,7 @@ public:
   CUTLASS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator(
     TensorRef const &ref, 
-    int lane_id
+    int32_t lane_id
   ): iterator_({ref.data(), ref.stride()}, lane_id) {
   }
 
@@ -583,7 +583,7 @@ public:
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
     iterator_.set_kgroup_index(k_group);
   }
 };
@@ -607,9 +607,9 @@ template <
     typename InstructionShape_,
     /// Interval between adjacent *MMA instructions (in units of MMA
     /// instructions)
-    int OpDelta_,
+    int32_t OpDelta_,
     /// Number of partitions along K dimension
-    int PartitionsK_>
+    int32_t PartitionsK_>
 class MmaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
     cutlass::layout::ColumnMajorTensorOpMultiplicandCongruous64b,
@@ -635,10 +635,10 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static constexpr int kOpDelta = OpDelta_;
+  static constexpr int32_t kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int kThreads = 32;
+  static constexpr int32_t kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -684,7 +684,7 @@ public:
   CUTLASS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator(
     TensorRef const &ref, 
-    int lane_id
+    int32_t lane_id
   ): iterator_({ref.data(), ref.stride()}, lane_id) {
   }
 
@@ -809,7 +809,7 @@ public:
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
     iterator_.set_kgroup_index(k_group);
   }
 };
@@ -833,9 +833,9 @@ template <
     typename InstructionShape_,
     /// Interval between adjacent *MMA instructions (in units of MMA
     /// instructions)
-    int OpDelta_,
+    int32_t OpDelta_,
     /// Number of partitions along K dimension
-    int PartitionsK_>
+    int32_t PartitionsK_>
 class MmaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
     cutlass::layout::TensorOpMultiplicand64bCrosswise,
@@ -865,13 +865,13 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static constexpr int kOpDelta = OpDelta_;
+  static constexpr int32_t kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int kThreads = 32;
+  static constexpr int32_t kThreads = 32;
 
   /// Number of partitions along K dimension
-  static constexpr int kPartitionsK = PartitionsK_;
+  static constexpr int32_t kPartitionsK = PartitionsK_;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -889,7 +889,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using TensorCoord = typename TensorRef::TensorCoord;
 
   /// Load two elements per access
-  static constexpr int kElementsPerAccess = 2;
+  static constexpr int32_t kElementsPerAccess = 2;
 
   /// Policy defining internal details of tile iterator
   struct Policy {
@@ -948,13 +948,13 @@ public:
   CUTLASS_DEVICE
   MmaTensorOpMultiplicandTileIterator(
     TensorRef const &ref, 
-    int lane_id
+    int32_t lane_id
   ):
     stride_(ref.stride(0) / kElementsPerAccess), byte_offset_(0),
     k_group_idx_(0) {
 
-    int access_strided = lane_id / 8;
-    int access_contiguous = (lane_id  % 8);
+    int32_t access_strided = lane_id / 8;
+    int32_t access_contiguous = (lane_id  % 8);
 
     byte_offset_ = (access_contiguous + access_strided * stride_) * sizeof(AccessType);
 
@@ -973,13 +973,13 @@ public:
   /// Advances an iterator along logical dimensions of matrix in units of whole tiles
   CUTLASS_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_tile_offset(TensorCoord const &tile_offset) {
-    int offset = (tile_offset.contiguous() * InstructionShape::kContiguous) *
+    int32_t offset = (tile_offset.contiguous() * InstructionShape::kContiguous) *
                      stride_ * kElementsPerAccess +
                  tile_offset.strided() * Shape::kStrided;
 
     add_pointer_offset(offset);
     
-    int old_k_group_idx = k_group_idx_;
+    int32_t old_k_group_idx = k_group_idx_;
 
     k_group_idx_ += tile_offset.contiguous();
 
@@ -1041,12 +1041,12 @@ public:
     AccessType *fetch_ptr = reinterpret_cast<AccessType *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int c = 0; c < Policy::Iterations::kContiguous; ++c) {
+    for (int32_t c = 0; c < Policy::Iterations::kContiguous; ++c) {
 
       CUTLASS_PRAGMA_UNROLL
-      for (int s = 0; s < Policy::Iterations::kStrided; ++s) {
+      for (int32_t s = 0; s < Policy::Iterations::kStrided; ++s) {
 
-        int access_idx = c + s * Policy::Iterations::kContiguous;
+        int32_t access_idx = c + s * Policy::Iterations::kContiguous;
 
         AccessType const *source_ptr = pointer_ +
             Policy::Delta::kContiguous * c * stride_ +
@@ -1065,7 +1065,7 @@ public:
     if (k_group_idx_ & 1) {
       // exchange on 64b granularity
       CUTLASS_PRAGMA_UNROLL
-      for (int i = 0; i < Fragment::kElements; i += 2) {
+      for (int32_t i = 0; i < Fragment::kElements; i += 2) {
         Element tmp = exchange_ptr[i];
         exchange_ptr[i] = exchange_ptr[i + 1];
         exchange_ptr[i + 1] = tmp;
@@ -1135,7 +1135,7 @@ public:
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
     k_group_idx_ = k_group;
   }
 };
@@ -1156,9 +1156,9 @@ template <
     typename InstructionShape_,
     /// Interval between adjacent *MMA instructions (in units of MMA
     /// instructions)
-    int OpDelta_,
+    int32_t OpDelta_,
     /// Number of partitions along K dimension
-    int PartitionsK_>
+    int32_t PartitionsK_>
 class MmaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
     cutlass::layout::RowMajorTensorOpMultiplicand64bCrosswise,
@@ -1184,10 +1184,10 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static constexpr int kOpDelta = OpDelta_;
+  static constexpr int32_t kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int kThreads = 32;
+  static constexpr int32_t kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -1233,7 +1233,7 @@ public:
   CUTLASS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator(
     TensorRef const &ref, 
-    int lane_id
+    int32_t lane_id
   ): iterator_({ref.data(), ref.stride()}, lane_id) {
   }
 
@@ -1366,7 +1366,7 @@ public:
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
     iterator_.set_kgroup_index(k_group);
   }
 };
@@ -1387,9 +1387,9 @@ template <
     typename InstructionShape_,
     /// Interval between adjacent *MMA instructions (in units of MMA
     /// instructions)
-    int OpDelta_,
+    int32_t OpDelta_,
     /// Number of partitions along K dimension
-    int PartitionsK_>
+    int32_t PartitionsK_>
 class MmaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
     cutlass::layout::ColumnMajorTensorOpMultiplicand64bCrosswise,
@@ -1415,10 +1415,10 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static constexpr int kOpDelta = OpDelta_;
+  static constexpr int32_t kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int kThreads = 32;
+  static constexpr int32_t kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -1464,7 +1464,7 @@ public:
   CUTLASS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator(
     TensorRef const &ref, 
-    int lane_id
+    int32_t lane_id
   ): iterator_({ref.data(), ref.stride()}, lane_id) {
   }
 
@@ -1597,7 +1597,7 @@ public:
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
     iterator_.set_kgroup_index(k_group);
   }
 };
@@ -1619,11 +1619,11 @@ template <
     typename InstructionShape_,
     /// Delta between *MMA operations (in units of *MMA operations, concept:
     /// MatrixShape)
-    int OpDelta_,
+    int32_t OpDelta_,
     /// Number of threads participating in one matrix operation
-    int Threads = 32,
+    int32_t Threads = 32,
     /// Number of partitions along K dimension
-    int PartitionsK_ = 1>
+    int32_t PartitionsK_ = 1>
 class MmaTensorOpMultiplicandTileIteratorCanonical {
  public:
 
@@ -1647,10 +1647,10 @@ class MmaTensorOpMultiplicandTileIteratorCanonical {
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static constexpr int kOpDelta = OpDelta_;
+  static constexpr int32_t kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int kThreads = 32;
+  static constexpr int32_t kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -1665,15 +1665,15 @@ class MmaTensorOpMultiplicandTileIteratorCanonical {
   using TensorCoord = typename TensorRef::TensorCoord;
 
   /// Number of elements accessed per Shared Memory load
-  static constexpr int kElementsPerAccess = 
+  static constexpr int32_t kElementsPerAccess = 
     (sizeof_bits<Element>::value >= 32 ? 1 : 32 / sizeof_bits<Element>::value);
 
 private:
 
-  static constexpr int kWarpShapeOuter = 
+  static constexpr int32_t kWarpShapeOuter = 
     (kOperand == Operand::kA ? Shape::kRow : Shape::kColumn);
 
-  static constexpr int kWarpShapeInner =
+  static constexpr int32_t kWarpShapeInner =
     (kOperand == Operand::kA ? Shape::kColumn : Shape::kRow);
 
   
@@ -1728,7 +1728,7 @@ public:
   CUTLASS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIteratorCanonical(
     TensorRef const &ref, 
-    int lane_id
+    int32_t lane_id
   ): ref_(ref), extent_(Shape::kRow, Shape::kColumn), divisible_(true) {
   
     if (kOperand == Operand::kA) {
@@ -1746,7 +1746,7 @@ public:
   MmaTensorOpMultiplicandTileIteratorCanonical(
     TensorRef const &ref, 
     TensorCoord extent,
-    int lane_id
+    int32_t lane_id
   ): ref_(ref), extent_(extent), divisible_(false) {
   
     if (kOperand == Operand::kA) {
@@ -1837,26 +1837,26 @@ public:
       /// loads a tile with a linear offset
       Index pointer_offset) const {
 
-    int const kWarpShapeDivisibleInner =
+    int32_t const kWarpShapeDivisibleInner =
       (kOperand == Operand::kA ? WarpShapeDivisible::kColumn : WarpShapeDivisible::kRow);
 
     // Take advantage of Tensor Op's 8 x 4T access pattern
-    int const kAccessesInner = (kWarpShapeDivisibleInner / kElementsPerAccess) / 4;
+    int32_t const kAccessesInner = (kWarpShapeDivisibleInner / kElementsPerAccess) / 4;
 
     AccessType *access_ptr = reinterpret_cast<AccessType *>(&frag);
 
     if (kOperand == Operand::kA) {
-      int const kTilesPerInstruction = InstructionShape::kRow / 8;
+      int32_t const kTilesPerInstruction = InstructionShape::kRow / 8;
 
       CUTLASS_PRAGMA_UNROLL
-      for (int inst_m_idx = 0; inst_m_idx < InstructionCount::kRow; ++inst_m_idx) {
+      for (int32_t inst_m_idx = 0; inst_m_idx < InstructionCount::kRow; ++inst_m_idx) {
 
         CUTLASS_PRAGMA_UNROLL
-        for (int inner_idx = 0; inner_idx < kAccessesInner; ++inner_idx) {
+        for (int32_t inner_idx = 0; inner_idx < kAccessesInner; ++inner_idx) {
 
           CUTLASS_PRAGMA_UNROLL
-          for (int access_m_idx = 0; access_m_idx < kTilesPerInstruction; ++access_m_idx) {
-            int access_idx = 
+          for (int32_t access_m_idx = 0; access_m_idx < kTilesPerInstruction; ++access_m_idx) {
+            int32_t access_idx = 
               access_m_idx + kTilesPerInstruction * (inner_idx + kAccessesInner * inst_m_idx);
             
             MatrixCoord offset(
@@ -1882,11 +1882,11 @@ public:
     }
     else {
       CUTLASS_PRAGMA_UNROLL
-      for (int inst_n_idx = 0; inst_n_idx < InstructionCount::kColumn; ++inst_n_idx) {
+      for (int32_t inst_n_idx = 0; inst_n_idx < InstructionCount::kColumn; ++inst_n_idx) {
 
         CUTLASS_PRAGMA_UNROLL
-        for (int inner_idx = 0; inner_idx < kAccessesInner; ++inner_idx) {
-          int access_idx = inner_idx + kAccessesInner * inst_n_idx;
+        for (int32_t inner_idx = 0; inner_idx < kAccessesInner; ++inner_idx) {
+          int32_t access_idx = inner_idx + kAccessesInner * inst_n_idx;
 
           MatrixCoord offset(
             inner_idx * 4 * kElementsPerAccess,
@@ -1972,7 +1972,7 @@ public:
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
     // no operation
   }
 };
@@ -1989,9 +1989,9 @@ template <
     typename InstructionShape_,
     /// Interval between adjacent *MMA instructions (in units of MMA
     /// instructions)
-    int OpDelta_,
+    int32_t OpDelta_,
     /// Number of partitions along K dimension
-    int PartitionsK_>
+    int32_t PartitionsK_>
 class MmaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
     cutlass::layout::ColumnMajor,
@@ -2017,10 +2017,10 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static constexpr int kOpDelta = OpDelta_;
+  static constexpr int32_t kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int kThreads = 32;
+  static constexpr int32_t kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -2065,7 +2065,7 @@ public:
   CUTLASS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator(
     TensorRef const &ref, 
-    int lane_id
+    int32_t lane_id
   ): iterator_({ref.data(), ref.stride()}, lane_id) {
   }
   
@@ -2074,7 +2074,7 @@ public:
   MmaTensorOpMultiplicandTileIterator(
     TensorRef const &ref, 
     TensorCoord const & extent,
-    int lane_id
+    int32_t lane_id
   ): iterator_({ref.data(), ref.stride()}, extent, lane_id) {
   }
 
@@ -2198,7 +2198,7 @@ public:
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
     iterator_.set_kgroup_index(k_group);
   }
 };
@@ -2216,9 +2216,9 @@ template <
     typename InstructionShape_,
     /// Interval between adjacent *MMA instructions (in units of MMA
     /// instructions)
-    int OpDelta_,
+    int32_t OpDelta_,
     /// Number of partitions along K dimension
-    int PartitionsK_>
+    int32_t PartitionsK_>
 class MmaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
     cutlass::layout::RowMajor,
@@ -2244,10 +2244,10 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static constexpr int kOpDelta = OpDelta_;
+  static constexpr int32_t kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int kThreads = 32;
+  static constexpr int32_t kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -2292,7 +2292,7 @@ public:
   CUTLASS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator(
     TensorRef const &ref, 
-    int lane_id
+    int32_t lane_id
   ): iterator_({ref.data(), ref.stride()}, lane_id) {
   }
 
@@ -2301,7 +2301,7 @@ public:
   MmaTensorOpMultiplicandTileIterator(
     TensorRef const &ref, 
     TensorCoord const &extent,
-    int lane_id
+    int32_t lane_id
   ): iterator_({ref.data(), ref.stride()}, extent, lane_id) {
   }
 
@@ -2425,7 +2425,7 @@ public:
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
     iterator_.set_kgroup_index(k_group);
   }
 };

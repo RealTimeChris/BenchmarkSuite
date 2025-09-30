@@ -69,10 +69,10 @@ struct Conv3dProblemSize : public Conv2dProblemSize {
   //
 
   // Conv3d strictly problem size parameters
-  int D, T, Z;    // input depth, filter depth, output depth
-  int pad_d;      // padding in depth dimension
-  int stride_d;   // stride in depth dimension
-  int dilation_d; // dilation in depth dimension
+  int32_t D, T, Z;    // input depth, filter depth, output depth
+  int32_t pad_d;      // padding in depth dimension
+  int32_t stride_d;   // stride in depth dimension
+  int32_t dilation_d; // dilation in depth dimension
 
   //
   // Methods
@@ -89,18 +89,18 @@ public:
   /// Constructor for default padding, stride, dilation, and split-K
   CUTLASS_HOST_DEVICE
   Conv3dProblemSize(
-    int N,
-    int D,
-    int H,
-    int W,
-    int C,
-    int Z,
-    int P,
-    int Q,
-    int K,
-    int T,
-    int R,
-    int S,
+    int32_t N,
+    int32_t D,
+    int32_t H,
+    int32_t W,
+    int32_t C,
+    int32_t Z,
+    int32_t P,
+    int32_t Q,
+    int32_t K,
+    int32_t T,
+    int32_t R,
+    int32_t S,
     Mode mode
   ):
     Conv2dProblemSize(N, H, W, C, P, Q, K, R, S, mode),
@@ -110,30 +110,30 @@ public:
   /// Constructor
   CUTLASS_HOST_DEVICE
   Conv3dProblemSize(
-    int N,
-    int D,
-    int H,
-    int W,
-    int C,
-    int K,
-    int T,
-    int R,
-    int S,
-    int Z,
-    int P,
-    int Q,
-    int pad_d,
-    int pad_h,
-    int pad_w,
-    int stride_d,
-    int stride_h,
-    int stride_w,
-    int dilation_d,
-    int dilation_h,
-    int dilation_w,
+    int32_t N,
+    int32_t D,
+    int32_t H,
+    int32_t W,
+    int32_t C,
+    int32_t K,
+    int32_t T,
+    int32_t R,
+    int32_t S,
+    int32_t Z,
+    int32_t P,
+    int32_t Q,
+    int32_t pad_d,
+    int32_t pad_h,
+    int32_t pad_w,
+    int32_t stride_d,
+    int32_t stride_h,
+    int32_t stride_w,
+    int32_t dilation_d,
+    int32_t dilation_h,
+    int32_t dilation_w,
     Mode mode,
-    int split_k_slices = 1,
-    int groups = 1
+    int32_t split_k_slices = 1,
+    int32_t groups = 1
   ):
     Conv2dProblemSize(
     N, H, W, C, K, R, S, P, Q, 
@@ -155,8 +155,8 @@ public:
     Coord3D dilation,                     // dilation_d, dilation_h, dilation_w
     cutlass::Tensor5DCoord output_size,   // NZPQK
     cutlass::conv::Mode mode = cutlass::conv::Mode::kCrossCorrelation,
-    int split_k_slices = 1,
-    int groups = 1
+    int32_t split_k_slices = 1,
+    int32_t groups = 1
   ):
     Conv2dProblemSize(
       {input_size.n(), input_size.h(), input_size.w(), input_size.c()},
@@ -179,8 +179,8 @@ public:
     Coord3D stride,                       // stride_d, stride_h, stride_w
     Coord3D dilation,                     // dilation_d, dilation_h, dilation_w
     cutlass::conv::Mode mode = cutlass::conv::Mode::kCrossCorrelation,
-    int split_k_slices = 1,
-    int groups = 1
+    int32_t split_k_slices = 1,
+    int32_t groups = 1
   ):
     Conv2dProblemSize(
       {input_size.n(), input_size.h(), input_size.w(), input_size.c()},
@@ -206,8 +206,8 @@ public:
     Coord3D stride,                       // stride_d, stride_h, stride_w
     Coord3D dilation,                     // dilation_d, dilation_h, dilation_w
     cutlass::conv::Mode mode = cutlass::conv::Mode::kCrossCorrelation,
-    int split_k_slices = 1,
-    int groups = 1
+    int32_t split_k_slices = 1,
+    int32_t groups = 1
   ):
     Conv2dProblemSize(
       {input_size.n(), input_size.h(), input_size.w(), input_size.c()},
@@ -253,7 +253,7 @@ public:
 
   // Reset covolution mode in the problem
   CUTLASS_HOST_DEVICE
-  Conv3dProblemSize reset_split_k_slices(int split_k_slices_) {
+  Conv3dProblemSize reset_split_k_slices(int32_t split_k_slices_) {
     Conv3dProblemSize tmp(*this);
     tmp.split_k_slices = split_k_slices_; 
     return tmp; 
@@ -370,16 +370,16 @@ cutlass::gemm::GemmCoord implicit_gemm_problem_size(
 
 // Determine the number of gemm_k iterations for conv2d problem using implicit gemm algorithm
 CUTLASS_HOST_DEVICE
-int implicit_gemm_k_iterations(
+int32_t implicit_gemm_k_iterations(
   Operator conv_operator, 
-  int threadblock_K, 
+  int32_t threadblock_K, 
   Conv3dProblemSize const &problem_size,
   IteratorAlgorithm algorithm = IteratorAlgorithm::kAnalytic,
   GroupMode group_mode = GroupMode::kNone,
-  int threadblock_N = 0) {
+  int32_t threadblock_N = 0) {
 
-  int iterations = 0;
-  int elements_per_split_k_slice = 0;
+  int32_t iterations = 0;
+  int32_t elements_per_split_k_slice = 0;
   if (group_mode == GroupMode::kNone) {
     switch (conv_operator) {
       case Operator::kFprop:
@@ -402,7 +402,7 @@ int implicit_gemm_k_iterations(
         break;
     }
   } else if (group_mode == GroupMode::kDepthwise) {
-    int channels_per_cta = threadblock_N;
+    int32_t channels_per_cta = threadblock_N;
 
     if (algorithm == IteratorAlgorithm::kAnalytic) {
       switch (conv_operator) {

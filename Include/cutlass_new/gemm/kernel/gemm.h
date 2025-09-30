@@ -64,13 +64,13 @@ namespace cutlass {
 
 				/// Warp count (concept: GemmShape)
 				using WarpCount					  = typename Mma::WarpCount;
-				static constexpr int kThreadCount = 32 * WarpCount::kCount;
+				static constexpr int32_t kThreadCount = 32 * WarpCount::kCount;
 
 				/// Parameters structure
 				struct Params {
 					cutlass::gemm::GemmCoord problem_size;
 					cutlass::gemm::GemmCoord grid_tiled_shape;
-					int swizzle_log_tile;
+					int32_t swizzle_log_tile;
 					typename Mma::IteratorA::Params params_A;
 					typename Mma::IteratorA::TensorRef ref_A;
 					typename Mma::IteratorB::Params params_B;
@@ -80,12 +80,12 @@ namespace cutlass {
 					typename Epilogue::OutputTileIterator::Params params_D;
 					typename Epilogue::OutputTileIterator::TensorRef ref_D;
 					typename OutputOp::Params output_op;
-					int* semaphore;
-					int gemm_k_size;
+					int32_t* semaphore;
+					int32_t gemm_k_size;
 					// For gather+scatter operations
-					int const* gather_A_indices;
-					int const* gather_B_indices;
-					int const* scatter_D_indices;
+					int32_t const* gather_A_indices;
+					int32_t const* gather_B_indices;
+					int32_t const* scatter_D_indices;
 
 					//
 					// Methods
@@ -98,13 +98,13 @@ namespace cutlass {
 					CUTLASS_HOST_DEVICE
 					Params(cutlass::gemm::GemmCoord const& problem_size, cutlass::gemm::GemmCoord const& grid_tiled_shape, typename Mma::IteratorA::TensorRef ref_A,
 						typename Mma::IteratorB::TensorRef ref_B, typename Epilogue::OutputTileIterator::TensorRef ref_C, typename Epilogue::OutputTileIterator::TensorRef ref_D,
-						typename OutputOp::Params output_op = typename OutputOp::Params(), int* workspace = nullptr, int const* gather_A_indices = nullptr,
-						int const* gather_B_indices = nullptr, int const* scatter_D_indices = nullptr)
+						typename OutputOp::Params output_op = typename OutputOp::Params(), int32_t* workspace = nullptr, int32_t const* gather_A_indices = nullptr,
+						int32_t const* gather_B_indices = nullptr, int32_t const* scatter_D_indices = nullptr)
 						: problem_size(problem_size), grid_tiled_shape(grid_tiled_shape), swizzle_log_tile(ThreadblockSwizzle().get_log_tile(grid_tiled_shape)),
 						  params_A(ref_A.layout()), ref_A(ref_A), params_B(ref_B.layout()), ref_B(ref_B), params_C(ref_C.layout()), ref_C(ref_C), params_D(ref_D.layout()),
 						  ref_D(ref_D), output_op(output_op), gather_A_indices(gather_A_indices), gather_B_indices(gather_B_indices), scatter_D_indices(scatter_D_indices) {
-						int total_gemm_k_iterations = (problem_size.k() + Mma::Shape::kK - 1) / Mma::Shape::kK;
-						int gemm_k_iterations		= (total_gemm_k_iterations + grid_tiled_shape.k() - 1) / grid_tiled_shape.k();
+						int32_t total_gemm_k_iterations = (problem_size.k() + Mma::Shape::kK - 1) / Mma::Shape::kK;
+						int32_t gemm_k_iterations		= (total_gemm_k_iterations + grid_tiled_shape.k() - 1) / grid_tiled_shape.k();
 
 						gemm_k_size = gemm_k_iterations * Mma::Shape::kK;
 
@@ -130,13 +130,13 @@ namespace cutlass {
 				CUTLASS_HOST_DEVICE
 				static Status can_implement(cutlass::gemm::GemmCoord const& problem_size, typename Mma::IteratorA::TensorRef ref_A, typename Mma::IteratorB::TensorRef ref_B,
 					typename Epilogue::OutputTileIterator::TensorRef ref_C, typename Epilogue::OutputTileIterator::TensorRef ref_D) {
-					static constexpr int kAlignmentA = (platform::is_same<typename Mma::IteratorA::Layout, layout::ColumnMajorInterleaved<32>>::value) ? 32
+					static constexpr int32_t kAlignmentA = (platform::is_same<typename Mma::IteratorA::Layout, layout::ColumnMajorInterleaved<32>>::value) ? 32
 						: (platform::is_same<typename Mma::IteratorA::Layout, layout::ColumnMajorInterleaved<64>>::value)							   ? 64
 																														  : Mma::IteratorA::AccessType::kElements;
-					static constexpr int kAlignmentB = (platform::is_same<typename Mma::IteratorB::Layout, layout::RowMajorInterleaved<32>>::value) ? 32
+					static constexpr int32_t kAlignmentB = (platform::is_same<typename Mma::IteratorB::Layout, layout::RowMajorInterleaved<32>>::value) ? 32
 						: (platform::is_same<typename Mma::IteratorB::Layout, layout::RowMajorInterleaved<64>>::value)								? 64
 																													   : Mma::IteratorB::AccessType::kElements;
-					static constexpr int kAlignmentC = (platform::is_same<typename Epilogue::OutputTileIterator::Layout, layout::ColumnMajorInterleaved<32>>::value) ? 32
+					static constexpr int32_t kAlignmentC = (platform::is_same<typename Epilogue::OutputTileIterator::Layout, layout::ColumnMajorInterleaved<32>>::value) ? 32
 						: (platform::is_same<typename Epilogue::OutputTileIterator::Layout, layout::ColumnMajorInterleaved<64>>::value)
 						? 64
 						: Epilogue::OutputTileIterator::kElementsPerAccess;
@@ -177,13 +177,13 @@ namespace cutlass {
 					cutlass::MatrixCoord tb_offset_B{ threadblock_tile_offset.k() * params.gemm_k_size, threadblock_tile_offset.n() * Mma::Shape::kN };
 
 					// Problem size is a function of threadblock index in the K dimension
-					int problem_size_k = min(params.problem_size.k(), (threadblock_tile_offset.k() + 1) * params.gemm_k_size);
+					int32_t problem_size_k = min(params.problem_size.k(), (threadblock_tile_offset.k() + 1) * params.gemm_k_size);
 
 					// Compute threadblock-scoped matrix multiply-add
-					int gemm_k_iterations = (problem_size_k - tb_offset_A.column() + Mma::Shape::kK - 1) / Mma::Shape::kK;
+					int32_t gemm_k_iterations = (problem_size_k - tb_offset_A.column() + Mma::Shape::kK - 1) / Mma::Shape::kK;
 
 					// Compute position within threadblock
-					int thread_idx = threadIdx.x;
+					int32_t thread_idx = threadIdx.x;
 
 					// Construct iterators to A and B operands
 					typename Mma::IteratorA iterator_A(params.params_A, params.ref_A.data(), { params.problem_size.m(), problem_size_k }, thread_idx, tb_offset_A,
@@ -194,8 +194,8 @@ namespace cutlass {
 
 					// Broadcast the warp_id computed by lane 0 to ensure dependent code
 					// is compiled as warp-uniform.
-					int warp_idx = canonical_warp_idx_sync();
-					int lane_idx = threadIdx.x % 32;
+					int32_t warp_idx = canonical_warp_idx_sync();
+					int32_t lane_idx = threadIdx.x % 32;
 
 					//
 					// Main loop
@@ -228,7 +228,7 @@ namespace cutlass {
 					//assume identity swizzle
 					MatrixCoord threadblock_offset(threadblock_tile_offset.m() * Mma::Shape::kM, threadblock_tile_offset.n() * Mma::Shape::kN);
 
-					int block_idx = threadblock_tile_offset.m() + threadblock_tile_offset.n() * params.grid_tiled_shape.m();
+					int32_t block_idx = threadblock_tile_offset.m() + threadblock_tile_offset.n() * params.grid_tiled_shape.m();
 
 					// If performing a reduction via split-K, fetch the initial synchronization
 					if (kSplitKSerial && params.grid_tiled_shape.k() > 1) {
@@ -262,7 +262,7 @@ namespace cutlass {
 					//
 
 					if (kSplitKSerial && params.grid_tiled_shape.k() > 1) {
-						int lock = 0;
+						int32_t lock = 0;
 						if (params.grid_tiled_shape.k() == threadblock_tile_offset.k() + 1) {
 							// The final threadblock resets the semaphore for subsequent grids.
 							lock = 0;

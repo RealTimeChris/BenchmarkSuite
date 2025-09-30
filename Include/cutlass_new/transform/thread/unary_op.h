@@ -62,13 +62,13 @@ class UnaryOp
             if (platform::is_same<Transform, UnaryTransform::Identity>::value )
             {
                 CUTLASS_PRAGMA_UNROLL
-                for (int i=0; i < FragmentIn::kElements; ++i){
+                for (int32_t i=0; i < FragmentIn::kElements; ++i){
                    out[i] = static_cast<typename FragmentOut::Element>(in[i]);
                 }
             }
             else if (platform::is_same<Transform, UnaryTransform::Conjugate>::value )
             {
-                for (int i=0; i < FragmentIn::kElements; ++i){
+                for (int32_t i=0; i < FragmentIn::kElements; ++i){
                    out[i] = conj(static_cast<typename FragmentOut::Element>(in[i]));
                 }
             }
@@ -93,7 +93,7 @@ class UnaryOp<FragmentIn, FragmentIn, Transform>
             }
             else if (platform::is_same<Transform, UnaryTransform::Conjugate>::value )
             {
-                for(int i=0; i < FragmentIn::kElements; ++i){
+                for(int32_t i=0; i < FragmentIn::kElements; ++i){
                    in[i] = conj(in[i]);
                 }
             }

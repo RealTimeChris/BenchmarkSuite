@@ -47,8 +47,8 @@
 // 4. It is always an empty type if all of its template arguments are empty types.
 //
 // Semiregular types are default constructible and copyable.
-// They include "value types" like int or float,
-// but do _not_ include references like int& or float&.
+// They include "value types" like int32_t or float,
+// but do _not_ include references like int32_t& or float&.
 // (See std::tie for an example of a tuple of references.)
 //
 // Standard-layout types preserve ABI across host-device boundaries. They are safe to use as device kernel parameters.

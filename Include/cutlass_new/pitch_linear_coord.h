@@ -42,23 +42,23 @@ namespace cutlass {
 
 /// Template defining a shape used by pitch-linear operators
 template <
-  int Contiguous,
-  int Strided
+  int32_t Contiguous,
+  int32_t Strided
 >
 struct PitchLinearShape {
-  static constexpr int kContiguous = Contiguous;
-  static constexpr int kStrided = Strided;
-  static constexpr int kCount = Contiguous * Strided;
+  static constexpr int32_t kContiguous = Contiguous;
+  static constexpr int32_t kStrided = Strided;
+  static constexpr int32_t kCount = Contiguous * Strided;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Coordinate in pitch-linear space
-struct PitchLinearCoord : public Coord<2, int> {
+struct PitchLinearCoord : public Coord<2, int32_t> {
 public:
 
   /// Integer-valued index
-  using Index = int;
+  using Index = int32_t;
 
   /// Base type is a Coord of rank=2
   using Base = Coord<2, Index>;
@@ -69,10 +69,10 @@ public:
 private:
 
   /// Rows dimension
-  static constexpr int kContiguous = 0;
+  static constexpr int32_t kContiguous = 0;
 
   /// Columns dimension
-  static constexpr int kStrided = 1;
+  static constexpr int32_t kStrided = 1;
 
 public:
 

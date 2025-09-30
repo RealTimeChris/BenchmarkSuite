@@ -59,8 +59,8 @@ namespace threadblock {
 ///            ReadableContiguousTileIteratorConcept |
 ///            WriteableContiguousTileIteratorConcept
 ///
-template <typename Shape_, typename Element_, int AdvanceRank,
-          typename ThreadMap_, int Alignment, int Crosswise>
+template <typename Shape_, typename Element_, int32_t AdvanceRank,
+          typename ThreadMap_, int32_t Alignment, int32_t Crosswise>
 class RegularTileAccessIterator<
     Shape_, Element_,
     layout::TensorOpMultiplicandCongruous<sizeof_bits<Element_>::value,
@@ -77,9 +77,9 @@ class RegularTileAccessIterator<
   using Layout =
       layout::TensorOpMultiplicandCongruous<sizeof_bits<Element_>::value,
                                             Crosswise>;
-  static constexpr int kAdvanceRank = AdvanceRank;
-  static constexpr int kAlignment = Alignment;
-  static constexpr int kCrosswise = Crosswise;
+  static constexpr int32_t kAdvanceRank = AdvanceRank;
+  static constexpr int32_t kAlignment = Alignment;
+  static constexpr int32_t kCrosswise = Crosswise;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -94,7 +94,7 @@ class RegularTileAccessIterator<
   struct Detail {
     /// This iterator is specialized for an access size that is 128 bits in
     /// length.
-    static constexpr int kAccessSizeInBits = 128;
+    static constexpr int32_t kAccessSizeInBits = 128;
 
     static_assert(sizeof_bits<Element_>::value *
                           ThreadMap::kElementsPerAccess ==
@@ -102,7 +102,7 @@ class RegularTileAccessIterator<
                   "This iterator requires a policy whose access size is 128bs");
 
     ///< Number of pointers
-    static constexpr int kPointerCount =
+    static constexpr int32_t kPointerCount =
         (ThreadMap::Iterations::kStrided > 1 ? 2 : 1);
   };
 
@@ -124,16 +124,16 @@ class RegularTileAccessIterator<
   Index byte_offset_;
 
   /// Iteration in the contiguous dimension
-  int iteration_contiguous_;
+  int32_t iteration_contiguous_;
 
   /// Iteration in the strided dimension
-  int iteration_strided_;
+  int32_t iteration_strided_;
 
  public:
   /// Construct a TileIterator with zero threadblock offset
   CUTLASS_HOST_DEVICE
   RegularTileAccessIterator(TensorRef ref,  ///< Pointer to start of tensor
-                            int thread_id   ///< ID of each participating thread
+                            int32_t thread_id   ///< ID of each participating thread
                             )
       : stride_(ref.stride(0) * Layout::kFactor / Layout::kElementsPerAccess),
         byte_offset_(0) {
@@ -141,7 +141,7 @@ class RegularTileAccessIterator<
         ThreadMap::initial_offset(thread_id);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < Detail::kPointerCount; ++i) {
+    for (int32_t i = 0; i < Detail::kPointerCount; ++i) {
       // This is the offset of a thread within a threadblock tile for a specific
       // pointer (units of elements)
       layout::PitchLinearCoord thread_offset_in_threadblock_tile =
@@ -159,7 +159,7 @@ class RegularTileAccessIterator<
 
   /// Overrides the internal iteration index
   CUTLASS_HOST_DEVICE
-  void set_iteration_index(int index) {
+  void set_iteration_index(int32_t index) {
     iteration_contiguous_ = index % ThreadMap::Iterations::kContiguous;
     iteration_strided_ = index / ThreadMap::Iterations::kContiguous;
   }
@@ -174,9 +174,9 @@ class RegularTileAccessIterator<
   CUTLASS_HOST_DEVICE
   AccessType *get() const {
     AccessType *access_ptr = pointer_[iteration_strided_ & 1];
-    int stride_idx = (iteration_strided_ & ~1);
+    int32_t stride_idx = (iteration_strided_ & ~1);
 
-    int access_offset = stride_idx * ThreadMap::Delta::kStrided * stride_ / Layout::kFactor +
+    int32_t access_offset = stride_idx * ThreadMap::Delta::kStrided * stride_ / Layout::kFactor +
                         iteration_contiguous_ * ThreadMap::Delta::kContiguous /
                             ThreadMap::kElementsPerAccess;
 
@@ -211,7 +211,7 @@ class RegularTileAccessIterator<
 
   /// Advances to the next tile in memory.
   CUTLASS_HOST_DEVICE
-  RegularTileAccessIterator operator++(int) {
+  RegularTileAccessIterator operator++(int32_t) {
     RegularTileAccessIterator prev(*this);
     this->operator++();
 
@@ -236,8 +236,8 @@ class RegularTileAccessIterator<
 ///            ReadableContiguousTileIteratorConcept |
 ///            WriteableContiguousTileIteratorConcept
 ///
-template <typename Shape_, typename Element_, int AdvanceRank,
-          typename ThreadMap_, int Alignment, int Crosswise>
+template <typename Shape_, typename Element_, int32_t AdvanceRank,
+          typename ThreadMap_, int32_t Alignment, int32_t Crosswise>
 class RegularTileAccessIterator<
     Shape_, Element_,
     layout::ColumnMajorTensorOpMultiplicandCongruous<
@@ -253,8 +253,8 @@ class RegularTileAccessIterator<
   using Element = Element_;
   using Layout = layout::ColumnMajorTensorOpMultiplicandCongruous<
       sizeof_bits<Element_>::value, Crosswise>;
-  static constexpr int kAdvanceRank = AdvanceRank;
-  static constexpr int kAlignment = Alignment;
+  static constexpr int32_t kAdvanceRank = AdvanceRank;
+  static constexpr int32_t kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -281,13 +281,13 @@ class RegularTileAccessIterator<
   /// Construct a TileIterator with zero threadblock offset
   CUTLASS_HOST_DEVICE
   RegularTileAccessIterator(TensorRef ref,  ///< Pointer to start of tensor
-                            int thread_id   ///< ID of each participating thread
+                            int32_t thread_id   ///< ID of each participating thread
                             )
       : iterator_({ref.data(), ref.stride()}, thread_id) {}
 
   /// Overrides the internal iteration index
   CUTLASS_HOST_DEVICE
-  void set_iteration_index(int index) { iterator_.set_iteration_index(index); }
+  void set_iteration_index(int32_t index) { iterator_.set_iteration_index(index); }
 
   /// Adds a pointer offset in units of Element
   CUTLASS_HOST_DEVICE
@@ -316,7 +316,7 @@ class RegularTileAccessIterator<
 
   /// Advances to the next tile in memory.
   CUTLASS_HOST_DEVICE
-  RegularTileAccessIterator operator++(int) {
+  RegularTileAccessIterator operator++(int32_t) {
     RegularTileAccessIterator prev(*this);
     ++iterator_;
 
@@ -333,8 +333,8 @@ class RegularTileAccessIterator<
 ///            ReadableContiguousTileIteratorConcept |
 ///            WriteableContiguousTileIteratorConcept
 ///
-template <typename Shape_, typename Element_, int AdvanceRank,
-          typename ThreadMap_, int Alignment, int Crosswise>
+template <typename Shape_, typename Element_, int32_t AdvanceRank,
+          typename ThreadMap_, int32_t Alignment, int32_t Crosswise>
 class RegularTileAccessIterator<
     Shape_, Element_,
     layout::RowMajorTensorOpMultiplicandCongruous<sizeof_bits<Element_>::value,
@@ -350,8 +350,8 @@ class RegularTileAccessIterator<
   using Element = Element_;
   using Layout = layout::RowMajorTensorOpMultiplicandCongruous<
       sizeof_bits<Element_>::value, Crosswise>;
-  static constexpr int kAdvanceRank = AdvanceRank;
-  static constexpr int kAlignment = Alignment;
+  static constexpr int32_t kAdvanceRank = AdvanceRank;
+  static constexpr int32_t kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -378,13 +378,13 @@ class RegularTileAccessIterator<
   /// Construct a TileIterator with zero threadblock offset
   CUTLASS_HOST_DEVICE
   RegularTileAccessIterator(TensorRef ref,  ///< Pointer to start of tensor
-                            int thread_id   ///< ID of each participating thread
+                            int32_t thread_id   ///< ID of each participating thread
                             )
       : iterator_({ref.data(), ref.stride()}, thread_id) {}
 
   /// Overrides the internal iteration index
   CUTLASS_HOST_DEVICE
-  void set_iteration_index(int index) { iterator_.set_iteration_index(index); }
+  void set_iteration_index(int32_t index) { iterator_.set_iteration_index(index); }
 
   /// Adds a pointer offset in units of Element
   CUTLASS_HOST_DEVICE
@@ -413,7 +413,7 @@ class RegularTileAccessIterator<
 
   /// Advances to the next tile in memory.
   CUTLASS_HOST_DEVICE
-  RegularTileAccessIterator operator++(int) {
+  RegularTileAccessIterator operator++(int32_t) {
     RegularTileAccessIterator prev(*this);
     ++iterator_;
 
@@ -430,8 +430,8 @@ class RegularTileAccessIterator<
 ///            ReadableContiguousTileIteratorConcept |
 ///            WriteableContiguousTileIteratorConcept
 ///
-template <typename Shape_, typename Element_, int AdvanceRank,
-          typename ThreadMap_, int Alignment, int Crosswise>
+template <typename Shape_, typename Element_, int32_t AdvanceRank,
+          typename ThreadMap_, int32_t Alignment, int32_t Crosswise>
 class RegularTileAccessIterator<Shape_, Element_,
                                 layout::TensorOpMultiplicandCrosswise<
                                     sizeof_bits<Element_>::value, Crosswise>,
@@ -447,9 +447,9 @@ class RegularTileAccessIterator<Shape_, Element_,
   using Layout =
       layout::TensorOpMultiplicandCrosswise<sizeof_bits<Element_>::value,
                                             Crosswise>;
-  static constexpr int kAdvanceRank = AdvanceRank;
-  static constexpr int kAlignment = Alignment;
-  static constexpr int kCrosswise = Crosswise;
+  static constexpr int32_t kAdvanceRank = AdvanceRank;
+  static constexpr int32_t kAlignment = Alignment;
+  static constexpr int32_t kCrosswise = Crosswise;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -468,7 +468,7 @@ class RegularTileAccessIterator<Shape_, Element_,
   struct Detail {
     /// This iterator is specialized for an access size that is 128 bits in
     /// length.
-    static constexpr int kAccessSizeInBits = 128;
+    static constexpr int32_t kAccessSizeInBits = 128;
 
     static_assert(sizeof_bits<Element_>::value *
                           ThreadMap::kElementsPerAccess ==
@@ -479,7 +479,7 @@ class RegularTileAccessIterator<Shape_, Element_,
     ///
     /// Note:TN kblock32 layouts only needs 1 pointer, but strangely
     /// reducing pointer count hurts perfomrnace
-    static constexpr int kPointerCount =
+    static constexpr int32_t kPointerCount =
         (ThreadMap::Iterations::kStrided > 1 ? 2 : 1);
   };
 
@@ -495,10 +495,10 @@ class RegularTileAccessIterator<Shape_, Element_,
   /// can store one tile.  Stage is divided into sections.  Interleaved layout
   /// can have multiple sections in a stage.  The rest layout only has one section
   /// in a stage.
-  int sections_;
+  int32_t sections_;
 
   /// Sections that a stage has
-  int sections_per_stage_;
+  int32_t sections_per_stage_;
 
   /// Stride value
   StrideIndex stride_;
@@ -510,16 +510,16 @@ class RegularTileAccessIterator<Shape_, Element_,
   Index byte_offset_;
 
   /// Iteration in the contiguous dimension
-  int iteration_contiguous_;
+  int32_t iteration_contiguous_;
 
   /// Iteration in the strided dimension
-  int iteration_strided_;
+  int32_t iteration_strided_;
 
  public:
   /// Construct a TileIterator with zero threadblock offset
   CUTLASS_HOST_DEVICE
   RegularTileAccessIterator(TensorRef ref,  ///< Pointer to start of tensor
-                            int thread_id   ///< ID of each participating thread
+                            int32_t thread_id   ///< ID of each participating thread
                             )
       : sections_(ref.stride(0) / kCrosswise),
         sections_per_stage_(Shape::kContiguous / kCrosswise),
@@ -530,7 +530,7 @@ class RegularTileAccessIterator<Shape_, Element_,
         ThreadMap::initial_offset(thread_id);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < Detail::kPointerCount; ++i) {
+    for (int32_t i = 0; i < Detail::kPointerCount; ++i) {
       // This is the offset of a thread within a threadblock tile for a specific
       // pointer (units of elements)
       layout::PitchLinearCoord thread_offset_in_threadblock_tile =
@@ -548,7 +548,7 @@ class RegularTileAccessIterator<Shape_, Element_,
 
   /// Overrides the internal iteration index
   CUTLASS_HOST_DEVICE
-  void set_iteration_index(int index) {
+  void set_iteration_index(int32_t index) {
     iteration_contiguous_ = index % ThreadMap::Iterations::kContiguous;
     iteration_strided_ = index / ThreadMap::Iterations::kContiguous;
   }
@@ -563,9 +563,9 @@ class RegularTileAccessIterator<Shape_, Element_,
   CUTLASS_HOST_DEVICE
   AccessType *get() const {
     AccessType *access_ptr = pointer_[iteration_strided_ & 1];
-    int stride_idx = (iteration_strided_ & ~1);
+    int32_t stride_idx = (iteration_strided_ & ~1);
 
-    int access_offset =
+    int32_t access_offset =
         stride_idx * ThreadMap::Delta::kStrided * stride_ / Layout::kFactor +
         // kCrosswise elements in the contiguous dimension would span to a
         // shared memory cache line.
@@ -602,7 +602,7 @@ class RegularTileAccessIterator<Shape_, Element_,
 
   /// Advances to the next tile in memory.
   CUTLASS_HOST_DEVICE
-  RegularTileAccessIterator operator++(int) {
+  RegularTileAccessIterator operator++(int32_t) {
     RegularTileAccessIterator prev(*this);
     this->operator++();
 
@@ -628,8 +628,8 @@ class RegularTileAccessIterator<Shape_, Element_,
 ///            ReadableContiguousTileIteratorConcept |
 ///            WriteableContiguousTileIteratorConcept
 ///
-template <typename Shape_, typename Element_, int AdvanceRank,
-          typename ThreadMap_, int Alignment, int Crosswise>
+template <typename Shape_, typename Element_, int32_t AdvanceRank,
+          typename ThreadMap_, int32_t Alignment, int32_t Crosswise>
 class RegularTileAccessIterator<
     Shape_, Element_,
     layout::ColumnMajorTensorOpMultiplicandCrosswise<
@@ -645,8 +645,8 @@ class RegularTileAccessIterator<
   using Element = Element_;
   using Layout = layout::ColumnMajorTensorOpMultiplicandCrosswise<
       sizeof_bits<Element_>::value, Crosswise>;
-  static constexpr int kAdvanceRank = AdvanceRank;
-  static constexpr int kAlignment = Alignment;
+  static constexpr int32_t kAdvanceRank = AdvanceRank;
+  static constexpr int32_t kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -673,13 +673,13 @@ class RegularTileAccessIterator<
   /// Construct a TileIterator with zero threadblock offset
   CUTLASS_HOST_DEVICE
   RegularTileAccessIterator(TensorRef ref,  ///< Pointer to start of tensor
-                            int thread_id   ///< ID of each participating thread
+                            int32_t thread_id   ///< ID of each participating thread
                             )
       : iterator_({ref.data(), ref.stride()}, thread_id) {}
 
   /// Overrides the internal iteration index
   CUTLASS_HOST_DEVICE
-  void set_iteration_index(int index) { iterator_.set_iteration_index(index); }
+  void set_iteration_index(int32_t index) { iterator_.set_iteration_index(index); }
 
   /// Adds a pointer offset in units of Element
   CUTLASS_HOST_DEVICE
@@ -708,7 +708,7 @@ class RegularTileAccessIterator<
 
   /// Advances to the next tile in memory.
   CUTLASS_HOST_DEVICE
-  RegularTileAccessIterator operator++(int) {
+  RegularTileAccessIterator operator++(int32_t) {
     RegularTileAccessIterator prev(*this);
     ++iterator_;
 
@@ -725,8 +725,8 @@ class RegularTileAccessIterator<
 ///            ReadableContiguousTileIteratorConcept |
 ///            WriteableContiguousTileIteratorConcept
 ///
-template <typename Shape_, typename Element_, int AdvanceRank,
-          typename ThreadMap_, int Alignment, int Crosswise>
+template <typename Shape_, typename Element_, int32_t AdvanceRank,
+          typename ThreadMap_, int32_t Alignment, int32_t Crosswise>
 class RegularTileAccessIterator<Shape_, Element_,
                                 layout::RowMajorTensorOpMultiplicandCrosswise<
                                     sizeof_bits<Element_>::value, Crosswise>,
@@ -741,8 +741,8 @@ class RegularTileAccessIterator<Shape_, Element_,
   using Element = Element_;
   using Layout = layout::RowMajorTensorOpMultiplicandCrosswise<
       sizeof_bits<Element_>::value, Crosswise>;
-  static constexpr int kAdvanceRank = AdvanceRank;
-  static constexpr int kAlignment = Alignment;
+  static constexpr int32_t kAdvanceRank = AdvanceRank;
+  static constexpr int32_t kAlignment = Alignment;
 
   using Index = typename Layout::Index;
   using LongIndex = typename Layout::LongIndex;
@@ -769,13 +769,13 @@ class RegularTileAccessIterator<Shape_, Element_,
   /// Construct a TileIterator with zero threadblock offset
   CUTLASS_HOST_DEVICE
   RegularTileAccessIterator(TensorRef ref,  ///< Pointer to start of tensor
-                            int thread_id   ///< ID of each participating thread
+                            int32_t thread_id   ///< ID of each participating thread
                             )
       : iterator_({ref.data(), ref.stride()}, thread_id) {}
 
   /// Overrides the internal iteration index
   CUTLASS_HOST_DEVICE
-  void set_iteration_index(int index) { iterator_.set_iteration_index(index); }
+  void set_iteration_index(int32_t index) { iterator_.set_iteration_index(index); }
 
   /// Adds a pointer offset in units of Element
   CUTLASS_HOST_DEVICE
@@ -804,7 +804,7 @@ class RegularTileAccessIterator<Shape_, Element_,
 
   /// Advances to the next tile in memory.
   CUTLASS_HOST_DEVICE
-  RegularTileAccessIterator operator++(int) {
+  RegularTileAccessIterator operator++(int32_t) {
     RegularTileAccessIterator prev(*this);
     ++iterator_;
 

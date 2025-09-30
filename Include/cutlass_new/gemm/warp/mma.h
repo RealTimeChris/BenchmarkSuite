@@ -47,7 +47,7 @@ namespace warp {
 /// Query the number of threads per warp
 template <typename OperatorClass>
 struct WarpSize {
-  static constexpr int value = 32;
+  static constexpr int32_t value = 32;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

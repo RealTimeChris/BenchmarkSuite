@@ -71,15 +71,15 @@ namespace threadblock {
 template <
   typename Shape_,                          ///< Shape of threadblock tile (concept: GemmShape)
   typename WarpMmaOperator_,                ///< Warp-level MMA operator (concept: gemm::warp::MmaTensorOp)
-  int PartitionsK,                          ///< Number of partitions of the K dimension
+  int32_t PartitionsK,                          ///< Number of partitions of the K dimension
   typename OutputTileIterator_,             ///< Tile iterator reading and writing output tensors
   typename AccumulatorFragmentIterator_,    ///< Fragment iterator selecting accumulators
   typename WarpTileIterator_,               ///< Warp-scoped tile iterator writing accumulators to SMEM
   typename SharedLoadIterator_,             ///< Threadblock-scoped tile iterator loading from SMEM
   typename OutputOp_,                       ///< Output operator
   typename Padding_,                        ///< Padding added to SMEM allocation to avoid bank conflicts (concept: MatrixShape)
-  int FragmentsPerPartition = 1,            ///< Used to coarsten the epilogue granularity
-  int IterationsUnroll =                    ///< Used to reduce binary size when epilogue op is large
+  int32_t FragmentsPerPartition = 1,            ///< Used to coarsten the epilogue granularity
+  int32_t IterationsUnroll =                    ///< Used to reduce binary size when epilogue op is large
     (!IsEpilogueFunctorHeavy<OutputOp_>::value)
 >
 class Epilogue :
@@ -117,7 +117,7 @@ public:
 
   using Shape = Shape_;
   using WarpMmaOperator = WarpMmaOperator_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static constexpr int32_t kPartitionsK = PartitionsK;
   using OutputTileIterator = OutputTileIterator_;
   using AccumulatorFragmentIterator = AccumulatorFragmentIterator_;
   using WarpTileIterator = WarpTileIterator_;
@@ -131,7 +131,7 @@ public:
   using WarpCount = typename Base::WarpCount;
 
   /// Number of threads per block
-  static constexpr int kBlockThreads = 32 * WarpCount::kCount;
+  static constexpr int32_t kBlockThreads = 32 * WarpCount::kCount;
 
   /// Per-thread accumulator tile type
   using AccumulatorTile = typename Base::AccumulatorTile;
@@ -146,13 +146,13 @@ public:
   using ElementOutput = typename OutputTileIterator::Element;
 
   /// Output access size
-  static constexpr int kElementsPerAccess = OutputTileIterator::kElementsPerAccess;
+  static constexpr int32_t kElementsPerAccess = OutputTileIterator::kElementsPerAccess;
 
   /// Tensor reference to destination tensor
   using TensorRef = typename OutputTileIterator::TensorRef;
 
   /// Tensor reference to sync tensor
-  using SyncTensorRef = typename cutlass::TensorRef<int, cutlass::layout::PackedVectorLayout>;
+  using SyncTensorRef = typename cutlass::TensorRef<int32_t, cutlass::layout::PackedVectorLayout>;
 
   /// Const tensor reference to source tensor
   using ConstTensorRef = typename OutputTileIterator::ConstTensorRef;
@@ -164,9 +164,9 @@ public:
   /// Vector type used by the shared output iterator
   using AccumulatorAccessType = Array<typename WarpTileIterator::Element, OutputTileIterator::kElementsPerAccess>;
 
-  static int constexpr kSmemTiles = Base::kFragmentsPerIteration > 1 ? Base::kFragmentsPerIteration : kPartitionsK;
+  static int32_t constexpr kSmemTiles = Base::kFragmentsPerIteration > 1 ? Base::kFragmentsPerIteration : kPartitionsK;
 
-  static int constexpr kSmemPointerOffset = Base::SharedStorage::StorageShape::kCount / kSmemTiles;
+  static int32_t constexpr kSmemPointerOffset = Base::SharedStorage::StorageShape::kCount / kSmemTiles;
 
 
 public:
@@ -209,11 +209,11 @@ public:
       AccumulatorAccessType const *compute_frag_ptr =
         reinterpret_cast<AccumulatorAccessType const *>(&aligned_accum_fragment);
 
-      int const kOutputOpIterations =
+      int32_t const kOutputOpIterations =
         OutputTileIterator::Fragment::kElements / OutputTileIterator::kElementsPerAccess;
 
       CUTLASS_PRAGMA_UNROLL
-      for (int i = 0; i < kOutputOpIterations; ++i)
+      for (int32_t i = 0; i < kOutputOpIterations; ++i)
       {
         // Call the output operator
         output_frag_ptr[i] = output_op(compute_frag_ptr[i]);
@@ -246,11 +246,11 @@ public:
       OutputAccessType const *source_frag_ptr =
         reinterpret_cast<OutputAccessType const *>(&source_fragment);
 
-      int const kOutputOpIterations =
+      int32_t const kOutputOpIterations =
         OutputTileIterator::Fragment::kElements / OutputTileIterator::kElementsPerAccess;
 
       CUTLASS_PRAGMA_UNROLL
-      for (int i = 0; i < kOutputOpIterations; ++i)
+      for (int32_t i = 0; i < kOutputOpIterations; ++i)
       {
         // Call the output operator
         output_frag_ptr[i] = output_op(compute_frag_ptr[i], source_frag_ptr[i]);
@@ -290,10 +290,10 @@ private:
   SharedLoadIterator shared_load_iterator_;
 
   /// Thread index in the threadblock
-  int thread_idx;
+  int32_t thread_idx;
 
   /// Warp index in the threadblock
-  int warp_idx;
+  int32_t warp_idx;
 
 public:
 
@@ -301,9 +301,9 @@ public:
   CUTLASS_DEVICE
   Epilogue(
       typename Base::SharedStorage &shared_storage,   ///< Shared storage object
-      int thread_idx,                                 ///< ID of a thread within the threadblock
-      int warp_idx,                                   ///< ID of warp within threadblock
-      int lane_idx)                                   ///< Id of thread within warp
+      int32_t thread_idx,                                 ///< ID of a thread within the threadblock
+      int32_t warp_idx,                                   ///< ID of warp within threadblock
+      int32_t lane_idx)                                   ///< Id of thread within warp
   :
       Base(shared_storage, thread_idx, warp_idx, lane_idx),
       BaseStreamK(thread_idx),
@@ -317,9 +317,9 @@ public:
   /// performing epilogue computations, writing to output
   CUTLASS_DEVICE
   void reduce(
-      int peer_idx_begin,
-      int peer_idx_end,
-      int reduce_fragment_idx,
+      int32_t peer_idx_begin,
+      int32_t peer_idx_end,
+      int32_t reduce_fragment_idx,
       void *element_workspace,
       OutputOp const &output_op,                      ///< Output operator
       OutputTileIterator destination_iterator,        ///< Tile iterator for destination
@@ -354,7 +354,7 @@ public:
       plus <typename SharedLoadIterator::Fragment> add_fragments;
 
       CUTLASS_PRAGMA_UNROLL
-      for ( int i = 1; i < kPartitionsK; ++i) {
+      for ( int32_t i = 1; i < kPartitionsK; ++i) {
         typename SharedLoadIterator::Fragment aligned_addend_fragment;
         shared_load_iterator_.add_pointer_offset(kSmemPointerOffset);
         shared_load_iterator_.load(aligned_addend_fragment);
@@ -432,12 +432,12 @@ public:
 
   template <size_t... Seq>
   struct acc2smem<cutlass::index_sequence<Seq...>> {
-    template<int Advance>
+    template<int32_t Advance>
     CUTLASS_DEVICE
     static void helper(AccumulatorFragmentIterator accum_fragment_iterator,
                       WarpTileIterator &warp_tile_iterator) {
       CUTLASS_PRAGMA_UNROLL
-      for (int i = 0; i < Advance; i++) {
+      for (int32_t i = 0; i < Advance; i++) {
         ++accum_fragment_iterator;
       }
 
@@ -452,7 +452,7 @@ public:
     static void push(size_t pos,
                     AccumulatorFragmentIterator const &iterator_begin,
                     WarpTileIterator &warp_tile_iterator) {
-      int dummy[] = {(pos == Seq) && (helper<Seq>(iterator_begin, warp_tile_iterator), 0)...};
+      int32_t dummy[] = {(pos == Seq) && (helper<Seq>(iterator_begin, warp_tile_iterator), 0)...};
     }
   };
 
@@ -480,7 +480,7 @@ public:
     #endif
 
     #pragma unroll(IterationsUnroll ? OutputTileIterator::kIterations : 1)
-    for (int iter = 0; iter < OutputTileIterator::kIterations; ++iter)
+    for (int32_t iter = 0; iter < OutputTileIterator::kIterations; ++iter)
     {
       //
       // Load the source
@@ -509,7 +509,7 @@ public:
         plus <typename SharedLoadIterator::Fragment> add_fragments;
 
         CUTLASS_PRAGMA_UNROLL
-        for ( int i = 1; i < kPartitionsK; ++i) {
+        for ( int32_t i = 1; i < kPartitionsK; ++i) {
           shared_load_iterator_.add_pointer_offset(kSmemPointerOffset);
           shared_load_iterator_.load(aligned_accum_fragment[i]);
           aligned_accum_fragment[0] = add_fragments(aligned_accum_fragment[0], aligned_accum_fragment[i]);

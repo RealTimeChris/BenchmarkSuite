@@ -62,7 +62,7 @@ struct has_elem<Elem, Elem> : true_type {};
 template <class Tuple, class Elem>
 struct has_elem<Tuple, Elem, enable_if_t<is_tuple<Tuple>::value> >
     : has_elem<Tuple, Elem, tuple_seq<Tuple> > {};
-template <class Tuple, class Elem, int... Is>
+template <class Tuple, class Elem, int32_t... Is>
 struct has_elem<Tuple, Elem, seq<Is...>>
     : disjunction<has_elem<tuple_element_t<Is, Tuple>, Elem>...> {};
 
@@ -74,7 +74,7 @@ struct all_elem<Elem, Elem> : true_type {};
 template <class Tuple, class Elem>
 struct all_elem<Tuple, Elem, enable_if_t<is_tuple<Tuple>::value> >
     : all_elem<Tuple, Elem, tuple_seq<Tuple> > {};
-template <class Tuple, class Elem, int... Is>
+template <class Tuple, class Elem, int32_t... Is>
 struct all_elem<Tuple, Elem, seq<Is...>>
     : conjunction<all_elem<tuple_element_t<Is, Tuple>, Elem>...> {};
 

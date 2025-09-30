@@ -73,11 +73,11 @@ template <
     typename InstructionShape_,
     /// Delta between *MMA operations (in units of *MMA operations, concept:
     /// MatrixShape)
-    int OpDelta_,
+    int32_t OpDelta_,
     /// Number of threads participating in one matrix operation
-    int Threads,
+    int32_t Threads,
     /// Number of partitions along K dimension
-    int PartitionsK_ = 1>
+    int32_t PartitionsK_ = 1>
 class MmaTensorOpMultiplicandTileIterator;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -99,9 +99,9 @@ template <
     typename InstructionShape_,
     /// Interval between adjacent *MMA instructions (in units of MMA
     /// instructions)
-    int OpDelta_,
+    int32_t OpDelta_,
     /// Number of partitions along K dimension
-    int PartitionsK_>
+    int32_t PartitionsK_>
 class MmaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
     cutlass::layout::TensorOpMultiplicandCongruous<sizeof_bits<Element_>::value,
@@ -129,13 +129,13 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static constexpr int kOpDelta = OpDelta_;
+  static constexpr int32_t kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int kThreads = 32;
+  static constexpr int32_t kThreads = 32;
 
   /// Number of partitions along K dimension
-  static constexpr int kPartitionsK = PartitionsK_;
+  static constexpr int32_t kPartitionsK = PartitionsK_;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -159,8 +159,8 @@ class MmaTensorOpMultiplicandTileIterator<
         "Shape of warp-level Mma must be divisible by operator shape.");
 
     // Determine number of elements along outer dimension per individual LDSM op
-    static constexpr int kLdsmOpOuter = Layout::kElementsPerAccess;
-    static constexpr int kLdsmOpInner = 8;
+    static constexpr int32_t kLdsmOpOuter = Layout::kElementsPerAccess;
+    static constexpr int32_t kLdsmOpInner = 8;
 
     static_assert(!(Shape::kContiguous % kLdsmOpOuter),
       "Shape of warp-level mma must be divisible by LDSM's fundamental tile size.");
@@ -169,9 +169,9 @@ class MmaTensorOpMultiplicandTileIterator<
       "Shape of warp-level mma must be divisible by LDSM's fundamental tile size.");
 
     /// Shape of one individual LDSM instruction
-    static constexpr int LdsmShapeStrided =
+    static constexpr int32_t LdsmShapeStrided =
         InstructionShape::kStrided / kLdsmOpInner;
-    static constexpr int LdsmShapeContiguous = 4 / LdsmShapeStrided;
+    static constexpr int32_t LdsmShapeContiguous = 4 / LdsmShapeStrided;
     using LdsmShape =
         layout::PitchLinearShape<LdsmShapeContiguous, LdsmShapeStrided>;
 
@@ -181,7 +181,7 @@ class MmaTensorOpMultiplicandTileIterator<
         1>;
 
     /// Number of groups for each tile
-    static constexpr int kGroupsPerTile =
+    static constexpr int32_t kGroupsPerTile =
         Shape::kStrided / InstructionShape::kStrided;
   };
 
@@ -192,14 +192,14 @@ private:
     "Alternative arrangements not supported at present.");
 
   /// Number of internal pointers needed to reference shared memory
-  static constexpr int kPointerCount =
+  static constexpr int32_t kPointerCount =
       Layout::TileShape::kContiguous / Policy::LdsmShape::kContiguous;
 
   /// Pointer type used for accesses
   using AccessType = Array<Element, Layout::kElementsPerAccess>;
 
   /// Internal counter used to jump to next K partition
-  int k_group_idx_;
+  int32_t k_group_idx_;
 
 public:
 
@@ -232,23 +232,23 @@ public:
   CUTLASS_DEVICE
   MmaTensorOpMultiplicandTileIterator(
     TensorRef const &ref, 
-    int lane_id
+    int32_t lane_id
   ):
     stride_(ref.stride(0) / Layout::kElementsPerAccess),
     byte_offset_(0),
     k_group_idx_(0) {
       
-    int quad_pair = (lane_id >> 3);
-    int quad_quad = (lane_id >> 4);
-    int lane_in_quad = (lane_id & 3);
-    int lane_in_quad_pair = (lane_id & 7);
-    int lane_in_quad_quad = (lane_id & 15);
+    int32_t quad_pair = (lane_id >> 3);
+    int32_t quad_quad = (lane_id >> 4);
+    int32_t lane_in_quad = (lane_id & 3);
+    int32_t lane_in_quad_pair = (lane_id & 7);
+    int32_t lane_in_quad_quad = (lane_id & 15);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < kPointerCount; ++i) {
-      int partition_contiguous_idx = -1;
-      int access_contiguous_idx = -1;
-      int access_strided_idx = -1;
+    for (int32_t i = 0; i < kPointerCount; ++i) {
+      int32_t partition_contiguous_idx = -1;
+      int32_t access_contiguous_idx = -1;
+      int32_t access_strided_idx = -1;
 
       if (Policy::LdsmShape::kContiguous == 4) {
         // Matrix multiply 1688 A/B
@@ -285,11 +285,11 @@ public:
         access_strided_idx = lane_id;
       }
 
-      int access_contiguous =
+      int32_t access_contiguous =
           partition_contiguous_idx * Layout::PartitionShape::kContiguous +
           access_contiguous_idx;
 
-      int access_strided = access_strided_idx;
+      int32_t access_strided = access_strided_idx;
 
       pointer_[i] = reinterpret_cast<AccessType const *>(ref.data()) +
                     access_contiguous + access_strided * stride_;
@@ -309,12 +309,12 @@ public:
   CUTLASS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_tile_offset(TensorCoord const &tile_offset) {
 
-    int contiguous_offset = tile_offset.contiguous();
+    int32_t contiguous_offset = tile_offset.contiguous();
     if (Shape::kContiguous ==
         Layout::PartitionShape::kContiguous * Layout::kElementsPerAccess) {
       if (tile_offset.contiguous() % 2) {
         CUTLASS_PRAGMA_UNROLL
-        for (int i = 0; i < kPointerCount / 2; ++i) {
+        for (int32_t i = 0; i < kPointerCount / 2; ++i) {
           AccessType const *tmp_pointer = pointer_[i];
           pointer_[i] = pointer_[i + kPointerCount / 2];
           pointer_[i + kPointerCount / 2] = tmp_pointer;
@@ -323,7 +323,7 @@ public:
       contiguous_offset = (tile_offset.contiguous() >> 1) << 1;
     }
 
-    int offset = (tile_offset.strided() * InstructionShape::kStrided) *
+    int32_t offset = (tile_offset.strided() * InstructionShape::kStrided) *
                      stride_ * Layout::kElementsPerAccess +
                  contiguous_offset * Shape::kContiguous;
 
@@ -393,12 +393,12 @@ public:
       reinterpret_cast<Array<unsigned, Policy::LdsmShape::kCount> *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int s = 0; s < Policy::LdsmIterations::kStrided; ++s) {
+    for (int32_t s = 0; s < Policy::LdsmIterations::kStrided; ++s) {
 
       CUTLASS_PRAGMA_UNROLL
-      for (int c = 0; c < Policy::LdsmIterations::kContiguous; ++c) {
+      for (int32_t c = 0; c < Policy::LdsmIterations::kContiguous; ++c) {
 
-        int access_idx = c + s * Policy::LdsmIterations::kContiguous;
+        int32_t access_idx = c + s * Policy::LdsmIterations::kContiguous;
 
         AccessType const *source_ptr =
             pointer_[c % kPointerCount] +
@@ -473,7 +473,7 @@ public:
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
     // no op
   }
 };
@@ -498,9 +498,9 @@ template <
     typename InstructionShape_,
     /// Interval between adjacent *MMA instructions (in units of MMA
     /// instructions)
-    int OpDelta_,
+    int32_t OpDelta_,
     /// Number of partitions along K dimension
-    int PartitionsK_>
+    int32_t PartitionsK_>
 class MmaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
     cutlass::layout::TensorOpMultiplicandCongruous<32, 32>, InstructionShape_,
@@ -527,13 +527,13 @@ class MmaTensorOpMultiplicandTileIterator<
 
   /// Delta between *MMA operations (in units of *MMA operations, concept:
   /// MatrixShape)
-  static constexpr int kOpDelta = OpDelta_;
+  static constexpr int32_t kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int kThreads = 32;
+  static constexpr int32_t kThreads = 32;
 
   /// Number of partitions along K dimension
-  static constexpr int kPartitionsK = PartitionsK_;
+  static constexpr int32_t kPartitionsK = PartitionsK_;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -559,8 +559,8 @@ class MmaTensorOpMultiplicandTileIterator<
     // Determine number of elements along outer dimension per individual 32bit
     // shared memory load op.  Every one warp of 32bit shared memory load loads
     // 8x4 elements
-    static constexpr int kLdsOpInner = Layout::TileShape::kStrided;
-    static constexpr int kLdsOpOuter = kThreads / kLdsOpInner;
+    static constexpr int32_t kLdsOpInner = Layout::TileShape::kStrided;
+    static constexpr int32_t kLdsOpOuter = kThreads / kLdsOpInner;
 
     static_assert(!(Shape::kContiguous % kLdsOpOuter),
                   "Shape of warp-level mma must be divisible by 32bit "
@@ -574,9 +574,9 @@ class MmaTensorOpMultiplicandTileIterator<
     /// 1688  A 2x2
     /// 1688  B 1x2
     /// 16816 B 1x4
-    static constexpr int LdsShapeContiguous =
+    static constexpr int32_t LdsShapeContiguous =
         InstructionShape::kContiguous / kLdsOpOuter;
-    static constexpr int LdsShapeStrided = InstructionShape::kStrided / kLdsOpInner;
+    static constexpr int32_t LdsShapeStrided = InstructionShape::kStrided / kLdsOpInner;
     using LdsShape =
         layout::PitchLinearShape<LdsShapeContiguous, LdsShapeStrided>;
 
@@ -585,7 +585,7 @@ class MmaTensorOpMultiplicandTileIterator<
         Shape::kContiguous / LdsShapeContiguous / kLdsOpOuter, 1>;
 
     /// Number of groups for each tile
-    static constexpr int kGroupsPerTile =
+    static constexpr int32_t kGroupsPerTile =
         Shape::kStrided / InstructionShape::kStrided;
   };
 
@@ -595,18 +595,18 @@ class MmaTensorOpMultiplicandTileIterator<
                 "Alternative arrangements not supported at present.");
 
   /// Number of internal pointers needed to reference shared memory
-  static constexpr int kPointerCount = Layout::TileShape::kContiguous *
+  static constexpr int32_t kPointerCount = Layout::TileShape::kContiguous *
                                    Layout::kElementsPerAccess /
                                    Policy::kLdsOpOuter;
 
   /// Vectorized access is not used
-  static constexpr int kElementsPerAccess = 1;
+  static constexpr int32_t kElementsPerAccess = 1;
 
   /// Pointer type used for accesses
   using AccessType = Element;
 
   /// Internal counter used to jump to next K partition
-  int k_group_idx_;
+  int32_t k_group_idx_;
 
  public:
   //
@@ -634,12 +634,12 @@ class MmaTensorOpMultiplicandTileIterator<
 
   /// Constructor from TensorRef
   CUTLASS_DEVICE
-  MmaTensorOpMultiplicandTileIterator(TensorRef const &ref, int lane_id)
+  MmaTensorOpMultiplicandTileIterator(TensorRef const &ref, int32_t lane_id)
       : stride_(ref.stride(0)), byte_offset_(0), k_group_idx_(0) {
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < kPointerCount; ++i) {
-      int access_strided = lane_id % Policy::kLdsOpInner;
-      int access_contiguous = (lane_id / Policy::kLdsOpInner) +
+    for (int32_t i = 0; i < kPointerCount; ++i) {
+      int32_t access_strided = lane_id % Policy::kLdsOpInner;
+      int32_t access_contiguous = (lane_id / Policy::kLdsOpInner) +
                               (access_strided ^ i) * Policy::kLdsOpOuter;
 
       pointer_[i] = reinterpret_cast<AccessType const *>(ref.data()) +
@@ -660,14 +660,14 @@ class MmaTensorOpMultiplicandTileIterator<
   CUTLASS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_tile_offset(
       TensorCoord const &tile_offset) {
-    int contiguous_offset = tile_offset.contiguous();
+    int32_t contiguous_offset = tile_offset.contiguous();
     if (Shape::kContiguous ==
         Layout::TileShape::kContiguous * Layout::kElementsPerAccess / 2) {
       if (tile_offset.contiguous() % 2) {
         // Matrix multiply 1688 pointer_[0] <=> pointer_[4] pointer_[1] <=> pointer_[5]
         //           pointer_[2] <=> pointer_[6] pointer_[3] <=> pointer_[7]
         CUTLASS_PRAGMA_UNROLL
-        for (int i = 0; i < kPointerCount / 2; ++i) {
+        for (int32_t i = 0; i < kPointerCount / 2; ++i) {
           AccessType const *tmp_pointer = pointer_[i];
           pointer_[i] = pointer_[i + kPointerCount / 2];
           pointer_[i + kPointerCount / 2] = tmp_pointer;
@@ -676,7 +676,7 @@ class MmaTensorOpMultiplicandTileIterator<
       contiguous_offset = (tile_offset.contiguous() >> 1) << 1;
     }
 
-    int offset = (tile_offset.strided() * InstructionShape::kStrided) * stride_ +
+    int32_t offset = (tile_offset.strided() * InstructionShape::kStrided) * stride_ +
                  contiguous_offset * Shape::kContiguous;
 
     add_pointer_offset(offset);
@@ -743,19 +743,19 @@ class MmaTensorOpMultiplicandTileIterator<
     Element *fetch_ptr = reinterpret_cast<Element *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int s = 0; s < Policy::LdsIterations::kStrided; ++s) {
+    for (int32_t s = 0; s < Policy::LdsIterations::kStrided; ++s) {
       CUTLASS_PRAGMA_UNROLL
-      for (int c = 0; c < Policy::LdsIterations::kContiguous; ++c) {
+      for (int32_t c = 0; c < Policy::LdsIterations::kContiguous; ++c) {
         CUTLASS_PRAGMA_UNROLL
-        for (int ss = 0; ss < Policy::LdsShape::kStrided; ++ss) {
+        for (int32_t ss = 0; ss < Policy::LdsShape::kStrided; ++ss) {
           CUTLASS_PRAGMA_UNROLL
-          for (int cc = 0; cc < Policy::LdsShape::kContiguous; ++cc) {
-            int access_idx =
+          for (int32_t cc = 0; cc < Policy::LdsShape::kContiguous; ++cc) {
+            int32_t access_idx =
                 cc + (ss + (c + s * Policy::LdsIterations::kContiguous) *
                                Policy::LdsShape::kStrided) *
                          Policy::LdsShape::kContiguous;
-            int access_idx_contiguous = cc + c * Policy::LdsShape::kContiguous;
-            int access_idx_strided =
+            int32_t access_idx_contiguous = cc + c * Policy::LdsShape::kContiguous;
+            int32_t access_idx_strided =
                 (ss + s * Policy::LdsShape::kStrided) * Policy::kLdsOpInner;
 
             AccessType const *source_ptr =
@@ -835,7 +835,7 @@ class MmaTensorOpMultiplicandTileIterator<
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
     // no op
   }
 };
@@ -863,9 +863,9 @@ template <
     typename InstructionShape_,
     /// Interval between adjacent *MMA instructions (in units of MMA
     /// instructions)
-    int OpDelta_,
+    int32_t OpDelta_,
     /// Number of partitions along K dimension
-    int PartitionsK_>
+    int32_t PartitionsK_>
 class MmaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
     cutlass::layout::TensorOpMultiplicandCongruous<16, 32>,
@@ -885,7 +885,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// Element number when the layout crosses
-  static constexpr int kCrosswise = 32;
+  static constexpr int32_t kCrosswise = 32;
 
   /// Layout of source tile
   using Layout = cutlass::layout::TensorOpMultiplicandCongruous<
@@ -895,13 +895,13 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static constexpr int kOpDelta = OpDelta_;
+  static constexpr int32_t kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int kThreads = 32;
+  static constexpr int32_t kThreads = 32;
 
   /// Number of partitions along K dimension
-  static constexpr int kPartitionsK = PartitionsK_;
+  static constexpr int32_t kPartitionsK = PartitionsK_;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -925,8 +925,8 @@ class MmaTensorOpMultiplicandTileIterator<
         "Shape of warp-level Mma must be divisible by operator shape.");
 
     // Determine number of elements along outer dimension per individual LDSM op
-    static constexpr int kLdsmOpOuter = Layout::kElementsPerAccess;
-    static constexpr int kLdsmOpInner = 8;
+    static constexpr int32_t kLdsmOpOuter = Layout::kElementsPerAccess;
+    static constexpr int32_t kLdsmOpInner = 8;
 
     static_assert(!(Shape::kContiguous % kLdsmOpOuter),
       "Shape of warp-level mma must be divisible by LDSM's fundamental tile size.");
@@ -935,9 +935,9 @@ class MmaTensorOpMultiplicandTileIterator<
       "Shape of warp-level mma must be divisible by LDSM's fundamental tile size.");
 
     /// Shape of one individual LDSM instruction
-    static constexpr int LdsmShapeStrided =
+    static constexpr int32_t LdsmShapeStrided =
         InstructionShape::kStrided / kLdsmOpInner;
-    static constexpr int LdsmShapeContiguous = 4 / LdsmShapeStrided;
+    static constexpr int32_t LdsmShapeContiguous = 4 / LdsmShapeStrided;
     using LdsmShape =
         layout::PitchLinearShape<LdsmShapeContiguous, LdsmShapeStrided>;
 
@@ -947,7 +947,7 @@ class MmaTensorOpMultiplicandTileIterator<
         1>;
 
     /// Number of groups for each tile
-    static constexpr int kGroupsPerTile =
+    static constexpr int32_t kGroupsPerTile =
         Shape::kStrided / InstructionShape::kStrided;
   };
 
@@ -958,14 +958,14 @@ private:
     "Alternative arrangements not supported at present.");
 
   /// Number of internal pointers needed to reference shared memory
-  static constexpr int kPointerCount =
+  static constexpr int32_t kPointerCount =
       Layout::TileShape::kContiguous / Policy::LdsmShape::kContiguous / Layout::kFactor;
 
   /// Pointer type used for accesses
   using AccessType = Array<Element, Layout::kElementsPerAccess>;
 
   /// Internal counter used to jump to next K partition
-  int k_group_idx_;
+  int32_t k_group_idx_;
 
 public:
 
@@ -998,23 +998,23 @@ public:
   CUTLASS_DEVICE
   MmaTensorOpMultiplicandTileIterator(
     TensorRef const &ref, 
-    int lane_id
+    int32_t lane_id
   ):
     stride_(ref.stride(0) * Layout::kFactor / Layout::kElementsPerAccess),
     byte_offset_(0),
     k_group_idx_(0) {
       
-    int quad_pair = (lane_id >> 3);
-    int quad_quad = (lane_id >> 4);
-    //int lane_in_quad = (lane_id & 3);
-    int lane_in_quad_pair = (lane_id & 7);
-    int lane_in_quad_quad = (lane_id & 15);
+    int32_t quad_pair = (lane_id >> 3);
+    int32_t quad_quad = (lane_id >> 4);
+    //int32_t lane_in_quad = (lane_id & 3);
+    int32_t lane_in_quad_pair = (lane_id & 7);
+    int32_t lane_in_quad_quad = (lane_id & 15);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < kPointerCount; ++i) {
-      int partition_contiguous_idx = -1;
-      int access_contiguous_idx = -1;
-      int access_strided_idx = -1;
+    for (int32_t i = 0; i < kPointerCount; ++i) {
+      int32_t partition_contiguous_idx = -1;
+      int32_t access_contiguous_idx = -1;
+      int32_t access_strided_idx = -1;
 
       if (Policy::LdsmShape::kContiguous == 4) {
         // Matrix multiply 1688 A/B
@@ -1051,11 +1051,11 @@ public:
         access_strided_idx = lane_id / Layout::kFactor;
       }
 
-      int access_contiguous =
+      int32_t access_contiguous =
           partition_contiguous_idx * Layout::PartitionShape::kContiguous +
           access_contiguous_idx;
 
-      int access_strided = access_strided_idx;
+      int32_t access_strided = access_strided_idx;
 
       pointer_[i] = reinterpret_cast<AccessType const *>(ref.data()) +
                     access_contiguous + access_strided * stride_;
@@ -1075,12 +1075,12 @@ public:
   CUTLASS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_tile_offset(TensorCoord const &tile_offset) {
 
-    int contiguous_offset = tile_offset.contiguous();
+    int32_t contiguous_offset = tile_offset.contiguous();
     if (Shape::kContiguous ==
         Layout::PartitionShape::kContiguous * Layout::kElementsPerAccess) {
       if (tile_offset.contiguous() % 2) {
         CUTLASS_PRAGMA_UNROLL
-        for (int i = 0; i < kPointerCount / 2; ++i) {
+        for (int32_t i = 0; i < kPointerCount / 2; ++i) {
           AccessType const *tmp_pointer = pointer_[i];
           pointer_[i] = pointer_[i + kPointerCount / 2];
           pointer_[i + kPointerCount / 2] = tmp_pointer;
@@ -1089,7 +1089,7 @@ public:
       contiguous_offset = (tile_offset.contiguous() >> 1) << 1;
     }
 
-    int offset = (tile_offset.strided() * InstructionShape::kStrided) *
+    int32_t offset = (tile_offset.strided() * InstructionShape::kStrided) *
                      stride_ * Layout::kElementsPerAccess / Layout::kFactor +
                  contiguous_offset * Shape::kContiguous;
 
@@ -1159,12 +1159,12 @@ public:
       reinterpret_cast<Array<unsigned, Policy::LdsmShape::kCount> *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int s = 0; s < Policy::LdsmIterations::kStrided; ++s) {
+    for (int32_t s = 0; s < Policy::LdsmIterations::kStrided; ++s) {
 
       CUTLASS_PRAGMA_UNROLL
-      for (int c = 0; c < Policy::LdsmIterations::kContiguous; ++c) {
+      for (int32_t c = 0; c < Policy::LdsmIterations::kContiguous; ++c) {
 
-        int access_idx = c + s * Policy::LdsmIterations::kContiguous;
+        int32_t access_idx = c + s * Policy::LdsmIterations::kContiguous;
 
         AccessType const *source_ptr =
             pointer_[c % kPointerCount] +
@@ -1239,7 +1239,7 @@ public:
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
     // no op
   }
 };
@@ -1267,9 +1267,9 @@ template <
     typename InstructionShape_,
     /// Interval between adjacent *MMA instructions (in units of MMA
     /// instructions)
-    int OpDelta_,
+    int32_t OpDelta_,
     /// Number of partitions along K dimension
-    int PartitionsK_>
+    int32_t PartitionsK_>
 class MmaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
     cutlass::layout::TensorOpMultiplicandCongruous<16, 16>,
@@ -1289,7 +1289,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// Element number when the layout crosses
-  static constexpr int kCrosswise = 16;
+  static constexpr int32_t kCrosswise = 16;
 
   /// Layout of source tile
   using Layout = cutlass::layout::TensorOpMultiplicandCongruous<
@@ -1299,13 +1299,13 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static constexpr int kOpDelta = OpDelta_;
+  static constexpr int32_t kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int kThreads = 32;
+  static constexpr int32_t kThreads = 32;
 
   /// Number of partitions along K dimension
-  static constexpr int kPartitionsK = PartitionsK_;
+  static constexpr int32_t kPartitionsK = PartitionsK_;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -1329,8 +1329,8 @@ class MmaTensorOpMultiplicandTileIterator<
         "Shape of warp-level Mma must be divisible by operator shape.");
 
     // Determine number of elements along outer dimension per individual LDSM op
-    static constexpr int kLdsmOpOuter = Layout::kElementsPerAccess;
-    static constexpr int kLdsmOpInner = 8;
+    static constexpr int32_t kLdsmOpOuter = Layout::kElementsPerAccess;
+    static constexpr int32_t kLdsmOpInner = 8;
 
     static_assert(!(Shape::kContiguous % kLdsmOpOuter),
       "Shape of warp-level mma must be divisible by LDSM's fundamental tile size.");
@@ -1339,9 +1339,9 @@ class MmaTensorOpMultiplicandTileIterator<
       "Shape of warp-level mma must be divisible by LDSM's fundamental tile size.");
 
     /// Shape of one individual LDSM instruction
-    static constexpr int LdsmShapeStrided =
+    static constexpr int32_t LdsmShapeStrided =
         InstructionShape::kStrided / kLdsmOpInner;
-    static constexpr int LdsmShapeContiguous = 4 / LdsmShapeStrided;
+    static constexpr int32_t LdsmShapeContiguous = 4 / LdsmShapeStrided;
     using LdsmShape =
         layout::PitchLinearShape<LdsmShapeContiguous, LdsmShapeStrided>;
 
@@ -1351,7 +1351,7 @@ class MmaTensorOpMultiplicandTileIterator<
         1>;
 
     /// Number of groups for each tile
-    static constexpr int kGroupsPerTile =
+    static constexpr int32_t kGroupsPerTile =
         Shape::kStrided / InstructionShape::kStrided;
   };
 
@@ -1362,14 +1362,14 @@ private:
     "Alternative arrangements not supported at present.");
 
   /// Number of internal pointers needed to reference shared memory
-  static constexpr int kPointerCount =
+  static constexpr int32_t kPointerCount =
       Layout::TileShape::kContiguous / Policy::LdsmShape::kContiguous / Layout::kFactor;
 
   /// Pointer type used for accesses
   using AccessType = Array<Element, Layout::kElementsPerAccess>;
 
   /// Internal counter used to jump to next K partition
-  int k_group_idx_;
+  int32_t k_group_idx_;
 
 public:
 
@@ -1402,24 +1402,24 @@ public:
   CUTLASS_DEVICE
   MmaTensorOpMultiplicandTileIterator(
     TensorRef const &ref,
-    int lane_id
+    int32_t lane_id
   ):
     stride_(ref.stride(0) * Layout::kFactor / Layout::kElementsPerAccess),
     byte_offset_(0),
     k_group_idx_(0) {
 
-    //int quad_pair = (lane_id >> 3);
-    int quad_quad = (lane_id >> 4);
-    int lane_in_pair = (lane_id & 1);
-    int lane_in_quad = (lane_id & 3);
-    int lane_in_quad_pair = (lane_id & 7);
-    int lane_in_quad_quad = (lane_id & 15);
+    //int32_t quad_pair = (lane_id >> 3);
+    int32_t quad_quad = (lane_id >> 4);
+    int32_t lane_in_pair = (lane_id & 1);
+    int32_t lane_in_quad = (lane_id & 3);
+    int32_t lane_in_quad_pair = (lane_id & 7);
+    int32_t lane_in_quad_quad = (lane_id & 15);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < kPointerCount; ++i) {
-      int partition_contiguous_idx = -1;
-      int access_contiguous_idx = -1;
-      int access_strided_idx = -1;
+    for (int32_t i = 0; i < kPointerCount; ++i) {
+      int32_t partition_contiguous_idx = -1;
+      int32_t access_contiguous_idx = -1;
+      int32_t access_strided_idx = -1;
 
       if (Policy::LdsmShape::kContiguous == 2 &&
           kOperand == Operand::kA) {
@@ -1447,7 +1447,7 @@ public:
         // Q1
         // Q2
         // Q3
-        int factor_in_partition =
+        int32_t factor_in_partition =
             (Layout::PartitionShape::kContiguous * Layout::kFactor /
              Layout::TileShape::kContiguous);
 
@@ -1457,11 +1457,11 @@ public:
         access_strided_idx = lane_id / Layout::kFactor;
       } 
 
-      int access_contiguous =
+      int32_t access_contiguous =
           partition_contiguous_idx * Layout::PartitionShape::kContiguous +
           access_contiguous_idx;
 
-      int access_strided = access_strided_idx;
+      int32_t access_strided = access_strided_idx;
 
       pointer_[i] = reinterpret_cast<AccessType const *>(ref.data()) +
                     access_contiguous + access_strided * stride_;
@@ -1481,12 +1481,12 @@ public:
   CUTLASS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_tile_offset(TensorCoord const &tile_offset) {
 
-    int contiguous_offset = tile_offset.contiguous();
+    int32_t contiguous_offset = tile_offset.contiguous();
     if (Shape::kContiguous ==
         Layout::PartitionShape::kContiguous * Layout::kElementsPerAccess) {
       if (tile_offset.contiguous() % 2) {
         CUTLASS_PRAGMA_UNROLL
-        for (int i = 0; i < kPointerCount / 2; ++i) {
+        for (int32_t i = 0; i < kPointerCount / 2; ++i) {
           AccessType const *tmp_pointer = pointer_[i];
           pointer_[i] = pointer_[i + kPointerCount / 2];
           pointer_[i + kPointerCount / 2] = tmp_pointer;
@@ -1495,7 +1495,7 @@ public:
       contiguous_offset = (tile_offset.contiguous() >> 1) << 1;
     }
 
-    int offset = (tile_offset.strided() * InstructionShape::kStrided) *
+    int32_t offset = (tile_offset.strided() * InstructionShape::kStrided) *
                      stride_ * Layout::kElementsPerAccess / Layout::kFactor +
                  contiguous_offset * Shape::kContiguous;
 
@@ -1565,12 +1565,12 @@ public:
       reinterpret_cast<Array<unsigned, Policy::LdsmShape::kCount> *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int s = 0; s < Policy::LdsmIterations::kStrided; ++s) {
+    for (int32_t s = 0; s < Policy::LdsmIterations::kStrided; ++s) {
 
       CUTLASS_PRAGMA_UNROLL
-      for (int c = 0; c < Policy::LdsmIterations::kContiguous; ++c) {
+      for (int32_t c = 0; c < Policy::LdsmIterations::kContiguous; ++c) {
 
-        int access_idx = c + s * Policy::LdsmIterations::kContiguous;
+        int32_t access_idx = c + s * Policy::LdsmIterations::kContiguous;
 
         AccessType const *source_ptr =
             pointer_[c % kPointerCount] +
@@ -1645,7 +1645,7 @@ public:
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
     // no op
   }
 };
@@ -1669,11 +1669,11 @@ template <
     typename InstructionShape_,
     /// Interval between adjacent *MMA instructions (in units of MMA
     /// instructions)
-    int OpDelta_,
+    int32_t OpDelta_,
     /// Element number when the layout crosses (in units of elements)
-    int Crosswise,
+    int32_t Crosswise,
     /// Number of partitions along K dimension
-    int PartitionsK_>
+    int32_t PartitionsK_>
 class MmaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
     cutlass::layout::ColumnMajorTensorOpMultiplicandCongruous<
@@ -1695,7 +1695,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// MBlock or NBlock size
-  static constexpr int kCrosswise = Crosswise;
+  static constexpr int32_t kCrosswise = Crosswise;
 
   /// Layout of source tile
   using Layout = cutlass::layout::ColumnMajorTensorOpMultiplicandCongruous<
@@ -1705,10 +1705,10 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static constexpr int kOpDelta = OpDelta_;
+  static constexpr int32_t kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int kThreads = 32;
+  static constexpr int32_t kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -1758,7 +1758,7 @@ public:
   CUTLASS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator(
     TensorRef const &ref, 
-    int lane_id
+    int32_t lane_id
   ): iterator_({ref.data(), ref.stride()}, lane_id) {
   }
 
@@ -1882,7 +1882,7 @@ public:
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
     iterator_.set_kgroup_index(k_group); 
   }
 };
@@ -1906,11 +1906,11 @@ template <
     typename InstructionShape_,
     /// Interval between adjacent *MMA instructions (in units of MMA
     /// instructions)
-    int OpDelta_,
+    int32_t OpDelta_,
     /// Element number when the layout crosses (in units of elements)
-    int Crosswise,
+    int32_t Crosswise,
     /// Number of partitions along K dimension
-    int PartitionsK_>
+    int32_t PartitionsK_>
 class MmaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
     cutlass::layout::RowMajorTensorOpMultiplicandCongruous<
@@ -1932,7 +1932,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// Element number when the layout crosses
-  static constexpr int kCrosswise = Crosswise;
+  static constexpr int32_t kCrosswise = Crosswise;
 
   /// Layout of source tile
   using Layout = cutlass::layout::RowMajorTensorOpMultiplicandCongruous<
@@ -1942,10 +1942,10 @@ class MmaTensorOpMultiplicandTileIterator<
   using InstructionShape = InstructionShape_;
 
   /// Delta between *MMA operations (in units of *MMA operations, concept: MatrixShape)
-  static constexpr int kOpDelta = OpDelta_;
+  static constexpr int32_t kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int kThreads = 32;
+  static constexpr int32_t kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -1992,7 +1992,7 @@ public:
   CUTLASS_HOST_DEVICE
   MmaTensorOpMultiplicandTileIterator(
     TensorRef const &ref, 
-    int lane_id
+    int32_t lane_id
   ): iterator_({ref.data(), ref.stride()}, lane_id) {
   }
 
@@ -2116,7 +2116,7 @@ public:
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
     iterator_.set_kgroup_index(k_group); 
   }
 };
@@ -2141,11 +2141,11 @@ template <
     typename InstructionShape_,
     /// Interval between adjacent *MMA instructions (in units of MMA
     /// instructions)
-    int OpDelta_,
+    int32_t OpDelta_,
     /// Element number when the layout crosses (in units of elements)
-    int Crosswise,
+    int32_t Crosswise,
     /// Number of partitions along K dimension
-    int PartitionsK_>
+    int32_t PartitionsK_>
 class MmaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
     cutlass::layout::TensorOpMultiplicandCrosswise<sizeof_bits<Element_>::value,
@@ -2166,7 +2166,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// Element number when the layout crosses
-  static constexpr int kCrosswise = Crosswise;
+  static constexpr int32_t kCrosswise = Crosswise;
 
   /// Layout of source tile
   using Layout = cutlass::layout::TensorOpMultiplicandCrosswise<
@@ -2177,13 +2177,13 @@ class MmaTensorOpMultiplicandTileIterator<
 
   /// Delta between *MMA operations (in units of *MMA operations, concept:
   /// MatrixShape)
-  static constexpr int kOpDelta = OpDelta_;
+  static constexpr int32_t kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int kThreads = 32;
+  static constexpr int32_t kThreads = 32;
 
   /// Number of partitions along K dimension
-  static constexpr int kPartitionsK = PartitionsK_;
+  static constexpr int32_t kPartitionsK = PartitionsK_;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -2207,8 +2207,8 @@ class MmaTensorOpMultiplicandTileIterator<
         "Shape of warp-level Mma must be divisible by operator shape.");
 
     // Determine number of elements along outer dimension per individual LDSM op
-    static constexpr int kLdsmOpOuter = Layout::kElementsPerAccess;
-    static constexpr int kLdsmOpInner = 8;
+    static constexpr int32_t kLdsmOpOuter = Layout::kElementsPerAccess;
+    static constexpr int32_t kLdsmOpInner = 8;
 
     static_assert(!(Shape::kContiguous % kLdsmOpOuter),
                   "Shape of warp-level mma must be divisible by LDSM's "
@@ -2219,9 +2219,9 @@ class MmaTensorOpMultiplicandTileIterator<
                   "fundamental tile size.");
 
     /// Shape of one individual LDSM instruction
-    static constexpr int LdsmShapeContiguous =
+    static constexpr int32_t LdsmShapeContiguous =
         InstructionShape::kContiguous / kLdsmOpOuter;
-    static constexpr int LdsmShapeStrided =
+    static constexpr int32_t LdsmShapeStrided =
         ((4 / LdsmShapeContiguous * kLdsmOpInner) > Shape::kStrided)
             ? (Shape::kStrided / kLdsmOpInner)
             : (4 / LdsmShapeContiguous);
@@ -2234,7 +2234,7 @@ class MmaTensorOpMultiplicandTileIterator<
                                         LdsmShape::kStrided>;
 
     ///
-    static constexpr int kGroupsPerTile = Layout::TileShape::kContiguous /
+    static constexpr int32_t kGroupsPerTile = Layout::TileShape::kContiguous /
                                       Layout::kFactor / LdsmShape::kContiguous;
   };
 
@@ -2261,7 +2261,7 @@ class MmaTensorOpMultiplicandTileIterator<
   /// can store one tile.  Stage is divided into sections.  Interleaved layout
   /// can have multiple sections in a stage.  The rest layout only has one section
   /// in a stage.
-  int sections_;
+  int32_t sections_;
 
   /// Layout object storing stride values
   StrideIndex stride_;
@@ -2274,7 +2274,7 @@ class MmaTensorOpMultiplicandTileIterator<
 
   /// Internal counter used to determine when to increment byte offset and when
   /// to XOR it
-  int k_group_idx_;
+  int32_t k_group_idx_;
 
  public:
   /// Default ctor constructs null iterator
@@ -2288,7 +2288,7 @@ class MmaTensorOpMultiplicandTileIterator<
 
   /// Constructor from TensorRef
   CUTLASS_DEVICE
-  MmaTensorOpMultiplicandTileIterator(TensorRef const &ref, int lane_id)
+  MmaTensorOpMultiplicandTileIterator(TensorRef const &ref, int32_t lane_id)
       : pointer_(reinterpret_cast<AccessType const *>(ref.data())),
         sections_(ref.stride(0) / kCrosswise),
         // stride_ = kCrosswise x sections_ x kFactor
@@ -2304,19 +2304,19 @@ class MmaTensorOpMultiplicandTileIterator<
     lane_id = lane_id % (Policy::LdsmShape::kCount * Policy::kLdsmOpInner);
 #endif
 
-    int quad_quad = (lane_id >> 4);
-    int quad_pair = (lane_id >> 3);
-    int lane_in_pair = (lane_id & 1);
-    int lane_in_quad = (lane_id & 3);
-    int lane_in_quad_pair = (lane_id & 7);
-    int lane_in_quad_quad = (lane_id & 15);
+    int32_t quad_quad = (lane_id >> 4);
+    int32_t quad_pair = (lane_id >> 3);
+    int32_t lane_in_pair = (lane_id & 1);
+    int32_t lane_in_quad = (lane_id & 3);
+    int32_t lane_in_quad_pair = (lane_id & 7);
+    int32_t lane_in_quad_quad = (lane_id & 15);
 
-    int partition_contiguous_idx = -1;
-    int access_contiguous_idx = -1;
-    int access_strided_idx = -1;
+    int32_t partition_contiguous_idx = -1;
+    int32_t access_contiguous_idx = -1;
+    int32_t access_strided_idx = -1;
 
     if (Layout::kFactor == 8) {
-      int factor_in_partition =
+      int32_t factor_in_partition =
           (Layout::PartitionShape::kContiguous * Layout::kFactor /
            Layout::TileShape::kContiguous);
 
@@ -2328,7 +2328,7 @@ class MmaTensorOpMultiplicandTileIterator<
     } else if (Layout::kFactor == 4) {
       // Super Integer matrix multiply Interleaved-32
 
-      int factor_in_partition =
+      int32_t factor_in_partition =
           (Layout::PartitionShape::kContiguous * Layout::kFactor /
            Layout::TileShape::kContiguous);
 
@@ -2441,11 +2441,11 @@ class MmaTensorOpMultiplicandTileIterator<
       }
     }
 
-    int access_contiguous =
+    int32_t access_contiguous =
         partition_contiguous_idx * Layout::PartitionShape::kContiguous +
         access_contiguous_idx;
 
-    int access_strided = access_strided_idx;
+    int32_t access_strided = access_strided_idx;
 
     byte_offset_ = (access_contiguous + access_strided * stride_) *
                    sizeof_bits<Element>::value * Layout::kElementsPerAccess / 8;
@@ -2464,8 +2464,8 @@ class MmaTensorOpMultiplicandTileIterator<
   CUTLASS_DEVICE
   MmaTensorOpMultiplicandTileIterator &add_tile_offset(
       TensorCoord const &tile_offset) {
-    int whole_tiles = tile_offset.contiguous() / Policy::kGroupsPerTile;
-    int k_groups_delta = tile_offset.contiguous() % Policy::kGroupsPerTile;
+    int32_t whole_tiles = tile_offset.contiguous() / Policy::kGroupsPerTile;
+    int32_t k_groups_delta = tile_offset.contiguous() % Policy::kGroupsPerTile;
 
     byte_offset_ ^= k_groups_delta * sizeof_bits<Element>::value *
                     Layout::kElementsPerAccess *
@@ -2482,8 +2482,8 @@ class MmaTensorOpMultiplicandTileIterator<
   MmaTensorOpMultiplicandTileIterator &add_tile_offset_negative(
       TensorCoord const &tile_offset) {
 
-    int whole_tiles = tile_offset.contiguous() / Policy::kGroupsPerTile;
-    int k_groups_delta = tile_offset.contiguous() % Policy::kGroupsPerTile;
+    int32_t whole_tiles = tile_offset.contiguous() / Policy::kGroupsPerTile;
+    int32_t k_groups_delta = tile_offset.contiguous() % Policy::kGroupsPerTile;
     if (k_groups_delta < 0) {
         whole_tiles -= 1;
         k_groups_delta += Policy::kGroupsPerTile;
@@ -2539,7 +2539,7 @@ class MmaTensorOpMultiplicandTileIterator<
     //   ^2 ^6 ^2 ^6
 
     if ((Policy::kGroupsPerTile / kPartitionsK) > 1) {
-      int mask = ((Policy::kGroupsPerTile / kPartitionsK) == 8)
+      int32_t mask = ((Policy::kGroupsPerTile / kPartitionsK) == 8)
                      ? 3
                      : (((Policy::kGroupsPerTile / kPartitionsK) == 4) ? 1 : 0);
 
@@ -2604,10 +2604,10 @@ class MmaTensorOpMultiplicandTileIterator<
         reinterpret_cast<Array<unsigned, Policy::LdsmShape::kCount> *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int s = 0; s < Policy::LdsmIterations::kStrided; ++s) {
+    for (int32_t s = 0; s < Policy::LdsmIterations::kStrided; ++s) {
       CUTLASS_PRAGMA_UNROLL
-      for (int c = 0; c < Policy::LdsmIterations::kContiguous; ++c) {
-        int access_idx = c + s * Policy::LdsmIterations::kContiguous;
+      for (int32_t c = 0; c < Policy::LdsmIterations::kContiguous; ++c) {
+        int32_t access_idx = c + s * Policy::LdsmIterations::kContiguous;
 
         AccessType const *source_ptr =
             pointer_ + Policy::LdsmShape::kContiguous * c +
@@ -2683,7 +2683,7 @@ class MmaTensorOpMultiplicandTileIterator<
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
     k_group_idx_ = k_group % (Policy::kGroupsPerTile / kPartitionsK);
   }
 };
@@ -2708,11 +2708,11 @@ template <
     typename InstructionShape_,
     /// Interval between adjacent *MMA instructions (in units of MMA
     /// instructions)
-    int OpDelta_,
+    int32_t OpDelta_,
     /// Element number when the layout crosses (in units of elements)
-    int Crosswise,
+    int32_t Crosswise,
     /// Number of partitions along K dimension
-    int PartitionsK_>
+    int32_t PartitionsK_>
 class MmaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
     cutlass::layout::ColumnMajorTensorOpMultiplicandCrosswise<
@@ -2733,7 +2733,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// KBlock size
-  static constexpr int kCrosswise = Crosswise;
+  static constexpr int32_t kCrosswise = Crosswise;
 
   /// Layout of source tile
   using Layout = cutlass::layout::ColumnMajorTensorOpMultiplicandCrosswise<
@@ -2744,10 +2744,10 @@ class MmaTensorOpMultiplicandTileIterator<
 
   /// Delta between *MMA operations (in units of *MMA operations, concept:
   /// MatrixShape)
-  static constexpr int kOpDelta = OpDelta_;
+  static constexpr int32_t kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int kThreads = 32;
+  static constexpr int32_t kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -2789,7 +2789,7 @@ class MmaTensorOpMultiplicandTileIterator<
 
   /// Constructor from TensorRef
   CUTLASS_HOST_DEVICE
-  MmaTensorOpMultiplicandTileIterator(TensorRef const &ref, int lane_id)
+  MmaTensorOpMultiplicandTileIterator(TensorRef const &ref, int32_t lane_id)
       : iterator_({ref.data(), ref.stride()}, lane_id) {}
 
   /// Adds a pointer offset to internal pointer(s) to advance through memory
@@ -2921,7 +2921,7 @@ class MmaTensorOpMultiplicandTileIterator<
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
     iterator_.set_kgroup_index(k_group); 
   }
 };
@@ -2946,11 +2946,11 @@ template <
     typename InstructionShape_,
     /// Interval between adjacent *MMA instructions (in units of MMA
     /// instructions)
-    int OpDelta_,
+    int32_t OpDelta_,
     /// Element number when the layout crosses (in units of elements)
-    int Crosswise,
+    int32_t Crosswise,
     /// Number of partitions along K dimension
-    int PartitionsK_>
+    int32_t PartitionsK_>
 class MmaTensorOpMultiplicandTileIterator<
     Shape_, Operand_, Element_,
     cutlass::layout::RowMajorTensorOpMultiplicandCrosswise<
@@ -2971,7 +2971,7 @@ class MmaTensorOpMultiplicandTileIterator<
   using Element = Element_;
 
   /// Element number when the layout crosses
-  static constexpr int kCrosswise = Crosswise;
+  static constexpr int32_t kCrosswise = Crosswise;
 
   /// Layout of source tile
   using Layout = cutlass::layout::RowMajorTensorOpMultiplicandCrosswise<
@@ -2982,10 +2982,10 @@ class MmaTensorOpMultiplicandTileIterator<
 
   /// Delta between *MMA operations (in units of *MMA operations, concept:
   /// MatrixShape)
-  static constexpr int kOpDelta = OpDelta_;
+  static constexpr int32_t kOpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int kThreads = 32;
+  static constexpr int32_t kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -3027,7 +3027,7 @@ class MmaTensorOpMultiplicandTileIterator<
 
   /// Constructor from TensorRef
   CUTLASS_HOST_DEVICE
-  MmaTensorOpMultiplicandTileIterator(TensorRef const &ref, int lane_id)
+  MmaTensorOpMultiplicandTileIterator(TensorRef const &ref, int32_t lane_id)
       : iterator_({ref.data(), ref.stride()}, lane_id) {}
 
   /// Adds a pointer offset to internal pointer(s) to advance through memory
@@ -3159,7 +3159,7 @@ class MmaTensorOpMultiplicandTileIterator<
   ///
   /// This is used by some nontrivial permuted layouts.
   CUTLASS_DEVICE
-  void set_kgroup_index(int k_group) {
+  void set_kgroup_index(int32_t k_group) {
     iterator_.set_kgroup_index(k_group); 
   }
 };
@@ -3223,7 +3223,7 @@ class MmaTensorOpAccumulatorTileIterator<
   using OpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int kThreads = 32;
+  static constexpr int32_t kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -3258,9 +3258,9 @@ private:
   // Assume accumulator tile is an arrangement of 8-by-8 tiles replicated over the entire
   // shape, with each quad mapped to one row and each thread mapped to 1/4 of the elements
   // of that row. The accumulators within one row are assumed to be consecutive.
- static constexpr int kElementsPerAccess = InstructionShape::kN / 4;
- static constexpr int kRowsPerTile = 8;
- static constexpr int kAccumulatorRows = InstructionShape::kM / kRowsPerTile;
+ static constexpr int32_t kElementsPerAccess = InstructionShape::kN / 4;
+ static constexpr int32_t kRowsPerTile = 8;
+ static constexpr int32_t kAccumulatorRows = InstructionShape::kM / kRowsPerTile;
 
 public:
 
@@ -3288,12 +3288,12 @@ public:
   CUTLASS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator(
     TensorRef const &ref, 
-    int lane_id
+    int32_t lane_id
   ):
     ref_(ref) {
 
-    int quad = (lane_id >> 2);
-    int lane_in_quad = (lane_id & 3);
+    int32_t quad = (lane_id >> 2);
+    int32_t lane_in_quad = (lane_id & 3);
 
     MatrixCoord lane_offset(quad, lane_in_quad * kElementsPerAccess);
 
@@ -3360,20 +3360,20 @@ public:
     offset_ref.add_pointer_offset(pointer_offset);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
+    for (int32_t mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
       CUTLASS_PRAGMA_UNROLL
-      for (int mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
+      for (int32_t mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
         
-        int mma_accum_start = kAccumulatorRows * kElementsPerAccess * 
+        int32_t mma_accum_start = kAccumulatorRows * kElementsPerAccess * 
           (mma_n * Policy::MmaIterations::kRow + mma_m);
 
         CUTLASS_PRAGMA_UNROLL
-        for (int row = 0; row < kAccumulatorRows; ++row) {
+        for (int32_t row = 0; row < kAccumulatorRows; ++row) {
           CUTLASS_PRAGMA_UNROLL
-          for (int col = 0; col < kElementsPerAccess; ++col) {
-            int accum_m = mma_m * InstructionShape::kM * OpDelta::kRow +
+          for (int32_t col = 0; col < kElementsPerAccess; ++col) {
+            int32_t accum_m = mma_m * InstructionShape::kM * OpDelta::kRow +
                           row * kRowsPerTile;
-            int accum_n = mma_n * InstructionShape::kN * OpDelta::kColumn + col;
+            int32_t accum_n = mma_n * InstructionShape::kN * OpDelta::kColumn + col;
 
             frag[mma_accum_start + row * kElementsPerAccess + col] = offset_ref.at({accum_m, accum_n});
           }
@@ -3426,21 +3426,21 @@ public:
     offset_ref.add_pointer_offset(pointer_offset);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
+    for (int32_t mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
       CUTLASS_PRAGMA_UNROLL
-      for (int mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
+      for (int32_t mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
         
-        int mma_accum_start = kAccumulatorRows * kElementsPerAccess * 
+        int32_t mma_accum_start = kAccumulatorRows * kElementsPerAccess * 
           (mma_n * Policy::MmaIterations::kRow + mma_m);
 
         CUTLASS_PRAGMA_UNROLL
-        for (int row = 0; row < kAccumulatorRows; ++row) {
+        for (int32_t row = 0; row < kAccumulatorRows; ++row) {
           CUTLASS_PRAGMA_UNROLL
-          for (int col = 0; col < kElementsPerAccess; ++col) {
-            int accum_m = mma_m * InstructionShape::kM * OpDelta::kRow +
+          for (int32_t col = 0; col < kElementsPerAccess; ++col) {
+            int32_t accum_m = mma_m * InstructionShape::kM * OpDelta::kRow +
                           row * kRowsPerTile;
-            int accum_n = mma_n * InstructionShape::kN * OpDelta::kColumn + col;
-            int idx = mma_accum_start + row * kElementsPerAccess + col;
+            int32_t accum_n = mma_n * InstructionShape::kN * OpDelta::kColumn + col;
+            int32_t idx = mma_accum_start + row * kElementsPerAccess + col;
 
             offset_ref.at({accum_m, accum_n}) = frag[idx];
           }
@@ -3524,7 +3524,7 @@ class MmaTensorOpAccumulatorTileIterator<
   using OpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int kThreads = 32;
+  static constexpr int32_t kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -3559,9 +3559,9 @@ private:
   // Assume accumulator tile is an arrangement of 8-by-8 tiles replicated over the entire
   // shape, with each quad mapped to one row and each thread mapped to 1/4 of the elements
   // of that row. The accumulators within one row are assumed to be consecutive.
- static constexpr int kElementsPerAccess = InstructionShape::kN / 4;
- static constexpr int kRowsPerTile = 8;
- static constexpr int kAccumulatorRows = InstructionShape::kM / kRowsPerTile;
+ static constexpr int32_t kElementsPerAccess = InstructionShape::kN / 4;
+ static constexpr int32_t kRowsPerTile = 8;
+ static constexpr int32_t kAccumulatorRows = InstructionShape::kM / kRowsPerTile;
 
 public:
 
@@ -3589,12 +3589,12 @@ public:
   CUTLASS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator(
     TensorRef const &ref, 
-    int lane_id
+    int32_t lane_id
   ):
     ref_(ref) {
 
-    int quad = (lane_id >> 2);
-    int lane_in_quad = (lane_id & 3);
+    int32_t quad = (lane_id >> 2);
+    int32_t lane_in_quad = (lane_id & 3);
 
     MatrixCoord lane_offset(quad, lane_in_quad * kElementsPerAccess);
 
@@ -3661,20 +3661,20 @@ public:
     offset_ref.add_pointer_offset(pointer_offset);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
+    for (int32_t mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
       CUTLASS_PRAGMA_UNROLL
-      for (int mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
+      for (int32_t mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
         
-        int mma_accum_start = kAccumulatorRows * kElementsPerAccess * 
+        int32_t mma_accum_start = kAccumulatorRows * kElementsPerAccess * 
           (mma_n * Policy::MmaIterations::kRow + mma_m);
 
         CUTLASS_PRAGMA_UNROLL
-        for (int row = 0; row < kAccumulatorRows; ++row) {
+        for (int32_t row = 0; row < kAccumulatorRows; ++row) {
           CUTLASS_PRAGMA_UNROLL
-          for (int col = 0; col < kElementsPerAccess; ++col) {
-            int accum_m = mma_m * InstructionShape::kM * OpDelta::kRow +
+          for (int32_t col = 0; col < kElementsPerAccess; ++col) {
+            int32_t accum_m = mma_m * InstructionShape::kM * OpDelta::kRow +
                           row * kRowsPerTile;
-            int accum_n = mma_n * InstructionShape::kN * OpDelta::kColumn + col;
+            int32_t accum_n = mma_n * InstructionShape::kN * OpDelta::kColumn + col;
 
             frag[mma_accum_start + row * kElementsPerAccess + col] = offset_ref.at({accum_m, accum_n});
           }
@@ -3727,21 +3727,21 @@ public:
     offset_ref.add_pointer_offset(pointer_offset);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
+    for (int32_t mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
       CUTLASS_PRAGMA_UNROLL
-      for (int mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
+      for (int32_t mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
         
-        int mma_accum_start = kAccumulatorRows * kElementsPerAccess * 
+        int32_t mma_accum_start = kAccumulatorRows * kElementsPerAccess * 
           (mma_n * Policy::MmaIterations::kRow + mma_m);
 
         CUTLASS_PRAGMA_UNROLL
-        for (int row = 0; row < kAccumulatorRows; ++row) {
+        for (int32_t row = 0; row < kAccumulatorRows; ++row) {
           CUTLASS_PRAGMA_UNROLL
-          for (int col = 0; col < kElementsPerAccess; ++col) {
-            int accum_m = mma_m * InstructionShape::kM * OpDelta::kRow +
+          for (int32_t col = 0; col < kElementsPerAccess; ++col) {
+            int32_t accum_m = mma_m * InstructionShape::kM * OpDelta::kRow +
                           row * kRowsPerTile;
-            int accum_n = mma_n * InstructionShape::kN * OpDelta::kColumn + col;
-            int idx = mma_accum_start + row * kElementsPerAccess + col;
+            int32_t accum_n = mma_n * InstructionShape::kN * OpDelta::kColumn + col;
+            int32_t idx = mma_accum_start + row * kElementsPerAccess + col;
 
             offset_ref.at({accum_m, accum_n}) = frag[idx];
           }
@@ -3825,7 +3825,7 @@ class MmaTensorOpAccumulatorTileIterator<Shape_, Element_,
   using OpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int kThreads = 32;
+  static constexpr int32_t kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -3860,9 +3860,9 @@ private:
   // Assume accumulator tile is an arrangement of 8-by-8 tiles replicated over the entire
   // shape, with each quad mapped to one row and each thread mapped to 1/4 of the elements
   // of that row. The accumulators within one row are assumed to be consecutive.
- static constexpr int kElementsPerAccess = InstructionShape::kN / 4;
- static constexpr int kRowsPerTile = 8;
- static constexpr int kAccumulatorRows = InstructionShape::kM / kRowsPerTile;
+ static constexpr int32_t kElementsPerAccess = InstructionShape::kN / 4;
+ static constexpr int32_t kRowsPerTile = 8;
+ static constexpr int32_t kAccumulatorRows = InstructionShape::kM / kRowsPerTile;
 
 public:
 
@@ -3889,12 +3889,12 @@ public:
   CUTLASS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator(
     TensorRef const &ref, 
-    int lane_id
+    int32_t lane_id
   ):
     ref_(ref) {
 
-    int quad = (lane_id >> 2);
-    int lane_in_quad = (lane_id & 3);
+    int32_t quad = (lane_id >> 2);
+    int32_t lane_in_quad = (lane_id & 3);
 
     MatrixCoord lane_offset(quad, lane_in_quad * kElementsPerAccess);
 
@@ -3961,21 +3961,21 @@ public:
     offset_ref.add_pointer_offset(pointer_offset);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
+    for (int32_t mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
       CUTLASS_PRAGMA_UNROLL
-      for (int mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
+      for (int32_t mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
         
-        int mma_accum_start = kAccumulatorRows * kElementsPerAccess * 
+        int32_t mma_accum_start = kAccumulatorRows * kElementsPerAccess * 
           (mma_n * Policy::MmaIterations::kRow + mma_m);
 
         CUTLASS_PRAGMA_UNROLL
-        for (int row = 0; row < kAccumulatorRows; ++row) {
+        for (int32_t row = 0; row < kAccumulatorRows; ++row) {
           CUTLASS_PRAGMA_UNROLL
-          for (int col = 0; col < kElementsPerAccess; ++col) {
-            int accum_m = mma_m * InstructionShape::kM * OpDelta::kRow +
+          for (int32_t col = 0; col < kElementsPerAccess; ++col) {
+            int32_t accum_m = mma_m * InstructionShape::kM * OpDelta::kRow +
                           row * kRowsPerTile;
-            int accum_n = mma_n * InstructionShape::kN * OpDelta::kColumn + col;
-            int idx = mma_accum_start + row * kElementsPerAccess + col;
+            int32_t accum_n = mma_n * InstructionShape::kN * OpDelta::kColumn + col;
+            int32_t idx = mma_accum_start + row * kElementsPerAccess + col;
 
             frag[idx] = offset_ref.at({accum_m, accum_n});
           }
@@ -4028,21 +4028,21 @@ public:
     offset_ref.add_pointer_offset(pointer_offset);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
+    for (int32_t mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
       CUTLASS_PRAGMA_UNROLL
-      for (int mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
+      for (int32_t mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
         
-        int mma_accum_start = kAccumulatorRows * kElementsPerAccess * 
+        int32_t mma_accum_start = kAccumulatorRows * kElementsPerAccess * 
           (mma_n * Policy::MmaIterations::kRow + mma_m);
 
         CUTLASS_PRAGMA_UNROLL
-        for (int row = 0; row < kAccumulatorRows; ++row) {
+        for (int32_t row = 0; row < kAccumulatorRows; ++row) {
           CUTLASS_PRAGMA_UNROLL
-          for (int col = 0; col < kElementsPerAccess; ++col) {
-            int accum_m = mma_m * InstructionShape::kM * OpDelta::kRow +
+          for (int32_t col = 0; col < kElementsPerAccess; ++col) {
+            int32_t accum_m = mma_m * InstructionShape::kM * OpDelta::kRow +
                           row * kRowsPerTile;
-            int accum_n = mma_n * InstructionShape::kN * OpDelta::kColumn + col;
-            int idx = mma_accum_start + row * kElementsPerAccess + col;
+            int32_t accum_n = mma_n * InstructionShape::kN * OpDelta::kColumn + col;
+            int32_t idx = mma_accum_start + row * kElementsPerAccess + col;
             
             offset_ref.at({accum_m, accum_n}) = frag[idx];
           }
@@ -4104,7 +4104,7 @@ template <
     /// instructions, concept: MatrixShape)
     typename OpDelta_,
     /// Interleaved N
-    int InterleavedN>
+    int32_t InterleavedN>
 class MmaTensorOpAccumulatorTileIterator<
     Shape_, Element_, cutlass::layout::ColumnMajorInterleaved<InterleavedN>,
     InstructionShape_, OpDelta_> {
@@ -4129,7 +4129,7 @@ class MmaTensorOpAccumulatorTileIterator<
   using OpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int kThreads = 32;
+  static constexpr int32_t kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -4160,7 +4160,7 @@ class MmaTensorOpAccumulatorTileIterator<
 
 private:
 
-  static constexpr int kElementsPerAccess = 2;
+  static constexpr int32_t kElementsPerAccess = 2;
 
 public:
 
@@ -4188,12 +4188,12 @@ public:
   CUTLASS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator(
     TensorRef const &ref, 
-    int lane_id
+    int32_t lane_id
   ):
     ref_(ref) {
 
-    int quad = (lane_id >> 2);
-    int lane_in_quad = (lane_id & 3);
+    int32_t quad = (lane_id >> 2);
+    int32_t lane_in_quad = (lane_id & 3);
 
     MatrixCoord lane_offset(quad, lane_in_quad * kElementsPerAccess);
 
@@ -4262,13 +4262,13 @@ public:
     AccessType* frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
+    for (int32_t mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
       CUTLASS_PRAGMA_UNROLL
-      for (int mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
-        int accum_m = mma_m * InstructionShape::kM;
-        int accum_n = mma_n * InstructionShape::kN;
+      for (int32_t mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
+        int32_t accum_m = mma_m * InstructionShape::kM;
+        int32_t accum_n = mma_n * InstructionShape::kN;
 
-        int idx = mma_m + mma_n * Policy::MmaIterations::kRow;
+        int32_t idx = mma_m + mma_n * Policy::MmaIterations::kRow;
 
         AccessType* access_ptr = reinterpret_cast<AccessType *>(offset_ref.data() +
           offset_ref.offset(TensorCoord(accum_m, accum_n)));
@@ -4324,13 +4324,13 @@ public:
     AccessType const *frag_ptr = reinterpret_cast<AccessType const*>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
+    for (int32_t mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
       CUTLASS_PRAGMA_UNROLL
-      for (int mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
-        int accum_m = mma_m * InstructionShape::kM;
-        int accum_n = mma_n * InstructionShape::kN;
+      for (int32_t mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
+        int32_t accum_m = mma_m * InstructionShape::kM;
+        int32_t accum_n = mma_n * InstructionShape::kN;
 
-        int idx = mma_m + mma_n * Policy::MmaIterations::kRow;
+        int32_t idx = mma_m + mma_n * Policy::MmaIterations::kRow;
 
         AccessType* access_ptr = reinterpret_cast<AccessType *>(offset_ref.data() +
                                  offset_ref.offset(TensorCoord(accum_m, accum_n)));
@@ -4393,7 +4393,7 @@ template <
     /// instructions, concept: MatrixShape)
     typename OpDelta_,
     /// Interleaved N
-    int InterleavedN>
+    int32_t InterleavedN>
 class MmaTensorOpAccumulatorTileIterator<
     Shape_, Element_, cutlass::layout::TensorNCxHWx<InterleavedN>,
     InstructionShape_, OpDelta_> {
@@ -4418,7 +4418,7 @@ class MmaTensorOpAccumulatorTileIterator<
   using OpDelta = OpDelta_;
 
   /// Number of participating threads
-  static constexpr int kThreads = 32;
+  static constexpr int32_t kThreads = 32;
 
   /// TensorRef type for loading element from a tensor
   using TensorRef = TensorRef<Element, Layout>;
@@ -4443,10 +4443,10 @@ class MmaTensorOpAccumulatorTileIterator<
         "Shape of warp-level Mma must be divisible by operator shape.");
 
     /// Number of elements in strided dimension that each STG writes
-    static constexpr int kStridedPerSTG = 8;
+    static constexpr int32_t kStridedPerSTG = 8;
 
     /// Factor to calculate reorder index to pack accumulator.
-    static constexpr int kPackedFactor = Shape::kColumn / 32;
+    static constexpr int32_t kPackedFactor = Shape::kColumn / 32;
 
     /// Number of mma operations performed
     using MmaIterations = MatrixShape<Shape::kRow / kStridedPerSTG,
@@ -4455,7 +4455,7 @@ class MmaTensorOpAccumulatorTileIterator<
 
 private:
 
-  static constexpr int kElementsPerAccess = InterleavedN / 4;
+  static constexpr int32_t kElementsPerAccess = InterleavedN / 4;
 
 public:
 
@@ -4500,7 +4500,7 @@ public:
   CUTLASS_HOST_DEVICE
   MmaTensorOpAccumulatorTileIterator(
     TensorRef const &ref,
-    int const lane_id,
+    int32_t const lane_id,
     TensorCoord extent,
     float alpha = 1.0f,
     float beta = 0.0f
@@ -4510,8 +4510,8 @@ public:
     alpha_(alpha),
     beta_(beta) {
 
-    int quad = (lane_id >> 2);
-    int lane_in_quad = (lane_id & 3);
+    int32_t quad = (lane_id >> 2);
+    int32_t lane_in_quad = (lane_id & 3);
 
     global_offset_row_ = quad;
 
@@ -4582,13 +4582,13 @@ public:
     AccessType* frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int mma_n = 0; mma_n < Policy::MmaIterations::kN; ++mma_n) {
+    for (int32_t mma_n = 0; mma_n < Policy::MmaIterations::kN; ++mma_n) {
       CUTLASS_PRAGMA_UNROLL
-      for (int mma_m = 0; mma_m < Policy::MmaIterations::kM; ++mma_m) {
-        int accum_m = mma_m * InstructionShape::kM;
-        int accum_n = mma_n * InstructionShape::kN;
+      for (int32_t mma_m = 0; mma_m < Policy::MmaIterations::kM; ++mma_m) {
+        int32_t accum_m = mma_m * InstructionShape::kM;
+        int32_t accum_n = mma_n * InstructionShape::kN;
 
-        int idx = mma_m + mma_n * Policy::MmaIterations::kM;
+        int32_t idx = mma_m + mma_n * Policy::MmaIterations::kM;
 
         AccessType* access_ptr = reinterpret_cast<AccessType *>(offset_ref.data() +
                                  accum_m * offset_ref.stride(0) + accum_n);
@@ -4659,24 +4659,24 @@ public:
     Index n;
     LongIndex pq_rem;
 
-    unsigned int pq_mul, pq_shr;
+    uint32_t pq_mul, pq_shr;
     find_divisor(pq_mul, pq_shr, pq);
 
     if(beta_ == 0.0f) {
       CUTLASS_PRAGMA_UNROLL
-      for(int i = 0; i < int(frag.size()); ++i) {
+      for(int32_t i = 0; i < int32_t(frag.size()); ++i) {
         output_frag_f[i] = frag[i];
       }
 
       if(InstructionShape::kM == Policy::kStridedPerSTG) {
         CUTLASS_PRAGMA_UNROLL
-        for(int i = 0; i < int(frag.size()); ++i) {
+        for(int32_t i = 0; i < int32_t(frag.size()); ++i) {
           output_frag[i] = (Element)(output_frag_f[i] * alpha_);
         }
       } else {
         CUTLASS_PRAGMA_UNROLL
-        for(int i = 0; i < int(frag.size()); ++i) {
-          int map_i = (i / (16 * Policy::kPackedFactor)) * (16 * Policy::kPackedFactor)
+        for(int32_t i = 0; i < int32_t(frag.size()); ++i) {
+          int32_t map_i = (i / (16 * Policy::kPackedFactor)) * (16 * Policy::kPackedFactor)
                     + (i % (8 * Policy::kPackedFactor)) / 2 * 4
                     + (i % (8 * Policy::kPackedFactor)) % 2
                     + (i / (8 * Policy::kPackedFactor)) % 2 * 2;
@@ -4687,18 +4687,18 @@ public:
       AccessType const *frag_ptr = reinterpret_cast<AccessType const*>(&output_frag);
 
       CUTLASS_PRAGMA_UNROLL
-      for (int mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
-        int accum_m = mma_m * Policy::kStridedPerSTG;
+      for (int32_t mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
+        int32_t accum_m = mma_m * Policy::kStridedPerSTG;
 
         fast_divmod(n, pq_rem, global_offset_row_ + accum_m, pq, pq_mul, pq_shr);
         LongIndex offset_m = n * stride_n + k_offset + pq_rem * InterleavedN;
 
         CUTLASS_PRAGMA_UNROLL
-        for (int mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
+        for (int32_t mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
        
-          int accum_n = mma_n * InterleavedN;
+          int32_t accum_n = mma_n * InterleavedN;
 
-          int idx = mma_n + mma_m * Policy::MmaIterations::kColumn;
+          int32_t idx = mma_n + mma_m * Policy::MmaIterations::kColumn;
          
           if((global_offset_row_ + accum_m < extent_row) && (global_offset_col_ + accum_n < extent_col)) {
             AccessType* access_ptr = reinterpret_cast<AccessType *>(offset_ref.data() +
@@ -4711,13 +4711,13 @@ public:
     } else {
       if(InstructionShape::kM == Policy::kStridedPerSTG) {
         CUTLASS_PRAGMA_UNROLL
-        for(int i = 0; i < int(frag.size()); ++i) {
+        for(int32_t i = 0; i < int32_t(frag.size()); ++i) {
           output_frag_f[i] = frag[i];
         }
       } else {
         CUTLASS_PRAGMA_UNROLL
-        for(int i = 0; i < int(frag.size()); ++i) {
-          int map_i = (i / (16 * Policy::kPackedFactor)) * (16 * Policy::kPackedFactor)
+        for(int32_t i = 0; i < int32_t(frag.size()); ++i) {
+          int32_t map_i = (i / (16 * Policy::kPackedFactor)) * (16 * Policy::kPackedFactor)
                     + (i % (8 * Policy::kPackedFactor)) / 2 * 4
                     + (i % (8 * Policy::kPackedFactor)) % 2
                     + (i / (8 * Policy::kPackedFactor)) % 2 * 2;
@@ -4731,18 +4731,18 @@ public:
       AccessType *ref_frag_ptr = reinterpret_cast<AccessType *>(&ref_frag);
 
       CUTLASS_PRAGMA_UNROLL
-      for (int mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
-        int accum_m = mma_m * Policy::kStridedPerSTG;
+      for (int32_t mma_m = 0; mma_m < Policy::MmaIterations::kRow; ++mma_m) {
+        int32_t accum_m = mma_m * Policy::kStridedPerSTG;
 
         fast_divmod(n, pq_rem, global_offset_row_ + accum_m, pq, pq_mul, pq_shr);
         LongIndex offset_m = n * stride_n + k_offset + pq_rem * InterleavedN;
 
         CUTLASS_PRAGMA_UNROLL
-        for (int mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
+        for (int32_t mma_n = 0; mma_n < Policy::MmaIterations::kColumn; ++mma_n) {
        
-          int accum_n = mma_n * InterleavedN;
+          int32_t accum_n = mma_n * InterleavedN;
 
-          int idx = mma_n + mma_m * Policy::MmaIterations::kColumn;
+          int32_t idx = mma_n + mma_m * Policy::MmaIterations::kColumn;
          
           if((global_offset_row_ + accum_m < extent_row) && (global_offset_col_ + accum_n < extent_col)) {
             AccessType* access_ptr = reinterpret_cast<AccessType *>(offset_ref.data() +
@@ -4751,7 +4751,7 @@ public:
             ref_frag_ptr[0] = access_ptr[0];
 
             CUTLASS_PRAGMA_UNROLL
-            for(int i = 0; i < kElementsPerAccess; ++i) {
+            for(int32_t i = 0; i < kElementsPerAccess; ++i) {
               output_frag[idx * kElementsPerAccess + i] = Element(alpha_ * output_frag_f[idx * kElementsPerAccess + i]
                                                                 + beta_ * ref_frag[i]);
             }

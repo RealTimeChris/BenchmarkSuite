@@ -49,9 +49,9 @@ template <
   typename Shape,
   typename Element,
   typename Layout,
-  int AdvanceRank,
+  int32_t AdvanceRank,
   typename ThreadMap,
-  int Alignment = sizeof_bits<Element>::value * ThreadMap::kElementsPerAccess / 8
+  int32_t Alignment = sizeof_bits<Element>::value * ThreadMap::kElementsPerAccess / 8
 >
 class RegularTileIterator;
 

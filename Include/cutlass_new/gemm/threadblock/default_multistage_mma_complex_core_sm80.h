@@ -86,7 +86,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Complex transformation on operand A
     ComplexTransform TransformA,
     /// Complex transformation on operand B
@@ -117,7 +117,7 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::RowMajor;
   using ElementC = complex<double>;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static constexpr ComplexTransform kTransformA = TransformA;
   static constexpr ComplexTransform kTransformB = TransformB;
   using Operator = Operator_;
@@ -138,13 +138,13 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped 128
-  static constexpr int kAccessSizeInBits = 128;
+  static constexpr int32_t kAccessSizeInBits = 128;
 
   //
   // Shared memory layouts
@@ -217,7 +217,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Complex transformation on operand A
     ComplexTransform TransformA,
     /// Complex transformation on operand B
@@ -248,7 +248,7 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::ColumnMajor;
   using ElementC = complex<double>;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   using Operator = Operator_;
   static constexpr ComplexTransform kTransformA = TransformA;
   static constexpr ComplexTransform kTransformB = TransformB;
@@ -269,13 +269,13 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped 128
-  static constexpr int kAccessSizeInBits = 128;
+  static constexpr int32_t kAccessSizeInBits = 128;
 
   //
   // Shared memory layouts
@@ -348,7 +348,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Complex transformation on operand A
     ComplexTransform TransformA,
     /// Complex transformation on operand B
@@ -379,7 +379,7 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::ColumnMajor;
   using ElementC = complex<double>;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static constexpr ComplexTransform kTransformA = TransformA;
   static constexpr ComplexTransform kTransformB = TransformB;
   using Operator = Operator_;
@@ -401,13 +401,13 @@ struct DefaultMultistageMmaComplexCore<
 
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped 128
-  static constexpr int kAccessSizeInBits = 128;
+  static constexpr int32_t kAccessSizeInBits = 128;
 
 
   //
@@ -480,7 +480,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Complex transformation on operand A
     ComplexTransform TransformA,
     /// Complex transformation on operand B
@@ -511,7 +511,7 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::RowMajor;
   using ElementC = complex<double>;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static constexpr ComplexTransform kTransformA = TransformA;
   static constexpr ComplexTransform kTransformB = TransformB;
   using Operator = Operator_;
@@ -533,13 +533,13 @@ struct DefaultMultistageMmaComplexCore<
 
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped 128
-  static constexpr int kAccessSizeInBits = 128;
+  static constexpr int32_t kAccessSizeInBits = 128;
 
 
   //
@@ -612,7 +612,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Complex transformation on operand A
     ComplexTransform TransformA,
     /// Complex transformation on operand B
@@ -643,7 +643,7 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::ColumnMajor;
   using ElementC = complex<float>;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static constexpr ComplexTransform kTransformA = TransformA;
   static constexpr ComplexTransform kTransformB = TransformB;
   using Operator = Operator_;
@@ -664,13 +664,13 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped
-  static constexpr int kAccessSizeInBits = 64;
+  static constexpr int32_t kAccessSizeInBits = 64;
 
   //
   // Shared memory layouts
@@ -742,7 +742,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Complex transformation on operand A
     ComplexTransform TransformA,
     /// Complex transformation on operand B
@@ -773,7 +773,7 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::RowMajor;
   using ElementC = complex<float>;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static constexpr ComplexTransform kTransformA = TransformA;
   static constexpr ComplexTransform kTransformB = TransformB;
   using Operator = Operator_;
@@ -794,13 +794,13 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped
-  static constexpr int kAccessSizeInBits = 64;
+  static constexpr int32_t kAccessSizeInBits = 64;
 
   //
   // Shared memory layouts
@@ -873,7 +873,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Complex transformation on operand A
     ComplexTransform TransformA,
     /// Complex transformation on operand B
@@ -904,7 +904,7 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::ColumnMajor;
   using ElementC = complex<float>;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static constexpr ComplexTransform kTransformA = TransformA;
   static constexpr ComplexTransform kTransformB = TransformB;
   using Operator = Operator_;
@@ -925,13 +925,13 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped
-  static constexpr int kAccessSizeInBits = 64;
+  static constexpr int32_t kAccessSizeInBits = 64;
 
   //
   // Shared memory layouts
@@ -1004,7 +1004,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Complex transformation on operand A
     ComplexTransform TransformA,
     /// Complex transformation on operand B
@@ -1035,7 +1035,7 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::RowMajor;
   using ElementC = complex<float>;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static constexpr ComplexTransform kTransformA = TransformA;
   static constexpr ComplexTransform kTransformB = TransformB;
   using Operator = Operator_;
@@ -1056,13 +1056,13 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of a threadblock-scoped
-  static constexpr int kAccessSizeInBits = 64;
+  static constexpr int32_t kAccessSizeInBits = 64;
 
   //
   // Shared memory layouts
@@ -1137,7 +1137,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Complex transformation on operand A
     ComplexTransform TransformA,
     /// Complex transformation on operand B
@@ -1168,7 +1168,7 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::ColumnMajor;
   using ElementC = complex<RealC>;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static constexpr ComplexTransform kTransformA = TransformA;
   static constexpr ComplexTransform kTransformB = TransformB;
   using Operator = Operator_;
@@ -1189,16 +1189,16 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of access
-  static constexpr int kAccessSizeInBits = sizeof_bits<ElementA>::value;
+  static constexpr int32_t kAccessSizeInBits = sizeof_bits<ElementA>::value;
 
   /// No vectorized accesses
-  static constexpr int kElementsPerAccess = 1;
+  static constexpr int32_t kElementsPerAccess = 1;
 
   //
   // Shared memory layouts
@@ -1244,17 +1244,17 @@ struct DefaultMultistageMmaComplexCore<
   //
 
   // Define the warp-level op
-  static constexpr int WarpNumThreadsM = 4;
-  static constexpr int WarpNumThreadsN = 8;
+  static constexpr int32_t WarpNumThreadsM = 4;
+  static constexpr int32_t WarpNumThreadsN = 8;
   static_assert(!(WarpShape::kM % WarpNumThreadsM) && !(WarpShape::kN % WarpNumThreadsN),
       "WarpShape must be divisible by ThreadTile shape.");
-  static constexpr int ThreadTileM = WarpShape::kM / WarpNumThreadsM;
-  static constexpr int ThreadTileN = WarpShape::kN / WarpNumThreadsN;
-  static constexpr int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
-  static constexpr int numElementsA = 128 / sizeof_bits<ElementA>::value;
-  static constexpr int numElementsB = 128 / sizeof_bits<ElementB>::value;
-  static constexpr int LaneM = cutlass::const_min(numElementsA, ThreadTileM);
-  static constexpr int LaneN = cutlass::const_min(numElementsB, ThreadTileN);
+  static constexpr int32_t ThreadTileM = WarpShape::kM / WarpNumThreadsM;
+  static constexpr int32_t ThreadTileN = WarpShape::kN / WarpNumThreadsN;
+  static constexpr int32_t LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
+  static constexpr int32_t numElementsA = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int32_t numElementsB = 128 / sizeof_bits<ElementB>::value;
+  static constexpr int32_t LaneM = cutlass::const_min(numElementsA, ThreadTileM);
+  static constexpr int32_t LaneN = cutlass::const_min(numElementsB, ThreadTileN);
   // these should have max of thread tile also
   using LaneMmaShape = cutlass::gemm::GemmShape<
       LaneM,
@@ -1307,7 +1307,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Complex transformation on operand A
     ComplexTransform TransformA,
     /// Complex transformation on operand B
@@ -1338,7 +1338,7 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::RowMajor;
   using ElementC = complex<RealC>;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static constexpr ComplexTransform kTransformA = TransformA;
   static constexpr ComplexTransform kTransformB = TransformB;
   using Operator = Operator_;
@@ -1359,16 +1359,16 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of access
-  static constexpr int kAccessSizeInBits = sizeof_bits<ElementA>::value;
+  static constexpr int32_t kAccessSizeInBits = sizeof_bits<ElementA>::value;
 
   /// No vectorized accesses
-  static constexpr int kElementsPerAccess = 1;
+  static constexpr int32_t kElementsPerAccess = 1;
 
   //
   // Shared memory layouts
@@ -1411,17 +1411,17 @@ struct DefaultMultistageMmaComplexCore<
   //
 
   // Define the warp-level op
-  static constexpr int WarpNumThreadsM = 4;
-  static constexpr int WarpNumThreadsN = 8;
+  static constexpr int32_t WarpNumThreadsM = 4;
+  static constexpr int32_t WarpNumThreadsN = 8;
   static_assert(!(WarpShape::kM % WarpNumThreadsM) && !(WarpShape::kN % WarpNumThreadsN),
       "WarpShape must be divisible by ThreadTile shape.");
-  static constexpr int ThreadTileM = WarpShape::kM / WarpNumThreadsM;
-  static constexpr int ThreadTileN = WarpShape::kN / WarpNumThreadsN;
-  static constexpr int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
-  static constexpr int numElementsA = 128 / sizeof_bits<ElementA>::value;
-  static constexpr int numElementsB = 128 / sizeof_bits<ElementB>::value;
-  static constexpr int LaneM = cutlass::const_min(numElementsA, ThreadTileM);
-  static constexpr int LaneN = cutlass::const_min(numElementsB, ThreadTileN);
+  static constexpr int32_t ThreadTileM = WarpShape::kM / WarpNumThreadsM;
+  static constexpr int32_t ThreadTileN = WarpShape::kN / WarpNumThreadsN;
+  static constexpr int32_t LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
+  static constexpr int32_t numElementsA = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int32_t numElementsB = 128 / sizeof_bits<ElementB>::value;
+  static constexpr int32_t LaneM = cutlass::const_min(numElementsA, ThreadTileM);
+  static constexpr int32_t LaneN = cutlass::const_min(numElementsB, ThreadTileN);
   // these should have max of thread tile also
   using LaneMmaShape = cutlass::gemm::GemmShape<
       LaneM,
@@ -1474,7 +1474,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Complex transformation on operand A
     ComplexTransform TransformA,
     /// Complex transformation on operand B
@@ -1505,7 +1505,7 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::ColumnMajor;
   using ElementC = complex<RealC>;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static constexpr ComplexTransform kTransformA = TransformA;
   static constexpr ComplexTransform kTransformB = TransformB;
   using Operator = Operator_;
@@ -1526,16 +1526,16 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of access
-  static constexpr int kAccessSizeInBits = sizeof_bits<ElementA>::value;
+  static constexpr int32_t kAccessSizeInBits = sizeof_bits<ElementA>::value;
 
   /// No vectorized accesses
-  static constexpr int kElementsPerAccess = 1;
+  static constexpr int32_t kElementsPerAccess = 1;
 
   //
   // Shared memory layouts
@@ -1584,17 +1584,17 @@ struct DefaultMultistageMmaComplexCore<
   //
 
   // Define the warp-level op
-  static constexpr int WarpNumThreadsM = 4;
-  static constexpr int WarpNumThreadsN = 8;
+  static constexpr int32_t WarpNumThreadsM = 4;
+  static constexpr int32_t WarpNumThreadsN = 8;
   static_assert(!(WarpShape::kM % WarpNumThreadsM) && !(WarpShape::kN % WarpNumThreadsN),
       "WarpShape must be divisible by ThreadTile shape.");
-  static constexpr int ThreadTileM = WarpShape::kM / WarpNumThreadsM;
-  static constexpr int ThreadTileN = WarpShape::kN / WarpNumThreadsN;
-  static constexpr int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
-  static constexpr int numElementsA = 128 / sizeof_bits<ElementA>::value;
-  static constexpr int numElementsB = 128 / sizeof_bits<ElementB>::value;
-  static constexpr int LaneM = cutlass::const_min(numElementsA, ThreadTileM);
-  static constexpr int LaneN = cutlass::const_min(numElementsB, ThreadTileN);
+  static constexpr int32_t ThreadTileM = WarpShape::kM / WarpNumThreadsM;
+  static constexpr int32_t ThreadTileN = WarpShape::kN / WarpNumThreadsN;
+  static constexpr int32_t LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
+  static constexpr int32_t numElementsA = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int32_t numElementsB = 128 / sizeof_bits<ElementB>::value;
+  static constexpr int32_t LaneM = cutlass::const_min(numElementsA, ThreadTileM);
+  static constexpr int32_t LaneN = cutlass::const_min(numElementsB, ThreadTileN);
   // these should have max of thread tile also
   using LaneMmaShape = cutlass::gemm::GemmShape<
       LaneM,
@@ -1647,7 +1647,7 @@ template <
     /// Layout of accumulator
     typename LayoutC_,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Complex transformation on operand A
     ComplexTransform TransformA,
     /// Complex transformation on operand B
@@ -1678,7 +1678,7 @@ struct DefaultMultistageMmaComplexCore<
   using LayoutB = layout::RowMajor;
   using ElementC = complex<RealC>;
   using LayoutC = LayoutC_;
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
   static constexpr ComplexTransform kTransformA = TransformA;
   static constexpr ComplexTransform kTransformB = TransformB;
   using Operator = Operator_;
@@ -1699,16 +1699,16 @@ struct DefaultMultistageMmaComplexCore<
     "This specialization requires at least two warps.");
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassTensorOp>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   /// Size of access
-  static constexpr int kAccessSizeInBits = sizeof_bits<ElementA>::value;
+  static constexpr int32_t kAccessSizeInBits = sizeof_bits<ElementA>::value;
 
   /// No vectorized accesses
-  static constexpr int kElementsPerAccess = 1;
+  static constexpr int32_t kElementsPerAccess = 1;
 
   //
   // Shared memory layouts
@@ -1754,17 +1754,17 @@ struct DefaultMultistageMmaComplexCore<
   //
 
   // Define the warp-level op
-  static constexpr int WarpNumThreadsM = 4;
-  static constexpr int WarpNumThreadsN = 8;
+  static constexpr int32_t WarpNumThreadsM = 4;
+  static constexpr int32_t WarpNumThreadsN = 8;
   static_assert(!(WarpShape::kM % WarpNumThreadsM) && !(WarpShape::kN % WarpNumThreadsN),
       "WarpShape must be divisible by ThreadTile shape.");
-  static constexpr int ThreadTileM = WarpShape::kM / WarpNumThreadsM;
-  static constexpr int ThreadTileN = WarpShape::kN / WarpNumThreadsN;
-  static constexpr int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
-  static constexpr int numElementsA = 128 / sizeof_bits<ElementA>::value;
-  static constexpr int numElementsB = 128 / sizeof_bits<ElementB>::value;
-  static constexpr int LaneM = cutlass::const_min(numElementsA, ThreadTileM);
-  static constexpr int LaneN = cutlass::const_min(numElementsB, ThreadTileN);
+  static constexpr int32_t ThreadTileM = WarpShape::kM / WarpNumThreadsM;
+  static constexpr int32_t ThreadTileN = WarpShape::kN / WarpNumThreadsN;
+  static constexpr int32_t LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
+  static constexpr int32_t numElementsA = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int32_t numElementsB = 128 / sizeof_bits<ElementB>::value;
+  static constexpr int32_t LaneM = cutlass::const_min(numElementsA, ThreadTileM);
+  static constexpr int32_t LaneN = cutlass::const_min(numElementsB, ThreadTileN);
   // these should have max of thread tile also
   using LaneMmaShape = cutlass::gemm::GemmShape<
       LaneM,

@@ -99,9 +99,9 @@ public:
   using OutputAccumulatorTile = AccumulatorTile;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static constexpr int32_t kIterations = Policy::kIterations;
   using TileIterations = typename Policy::TileIterations;
-  static constexpr int kIterationsPerTile = kIterations / TileIterations::kCount;
+  static constexpr int32_t kIterationsPerTile = kIterations / TileIterations::kCount;
 
 private:
 
@@ -118,7 +118,7 @@ private:
   AccessType const *accumulators_;
 
   /// Internal index
-  int index_;
+  int32_t index_;
 
 public:
 
@@ -145,16 +145,16 @@ public:
 
   /// Loads a fragment from the referenced part of the accumulator tile
   CUTLASS_HOST_DEVICE
-  void load(Fragment &frag, int index_offset = 0) const {
+  void load(Fragment &frag, int32_t index_offset = 0) const {
 
-    int index = index_ + index_offset;
+    int32_t index = index_ + index_offset;
 
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int n = 0; n < Policy::OperatorCount::kColumn; ++n) {
+    for (int32_t n = 0; n < Policy::OperatorCount::kColumn; ++n) {
 
-      int accumulator_access_offset = 
+      int32_t accumulator_access_offset = 
         index + n * Policy::kAccumulatorColumnStride / Policy::kElementsPerAccess;
 
       frag_ptr[n] = accumulators_[accumulator_access_offset];
@@ -196,9 +196,9 @@ public:
   using OutputAccumulatorTile = AccumulatorTile;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static constexpr int32_t kIterations = Policy::kIterations;
   using TileIterations = typename Policy::TileIterations;
-  static constexpr int kIterationsPerTile = kIterations / TileIterations::kCount;
+  static constexpr int32_t kIterationsPerTile = kIterations / TileIterations::kCount;
 
 private:
 
@@ -215,7 +215,7 @@ private:
   AccessType const *accumulators_;
 
   /// Internal index
-  int index_;
+  int32_t index_;
 
 public:
 
@@ -242,19 +242,19 @@ public:
 
   /// Loads a fragment from the referenced part of the accumulator tile
   CUTLASS_HOST_DEVICE
-  void load(Fragment &frag, int index_offset = 0) const {
+  void load(Fragment &frag, int32_t index_offset = 0) const {
 
-    int index = index_ + index_offset;
+    int32_t index = index_ + index_offset;
 
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < Policy::kAccumulatorRowStride; ++i) {
+    for (int32_t i = 0; i < Policy::kAccumulatorRowStride; ++i) {
 
       CUTLASS_PRAGMA_UNROLL
-      for (int m = 0; m < (Policy::OperatorCount::kRow * 2); ++m) {
+      for (int32_t m = 0; m < (Policy::OperatorCount::kRow * 2); ++m) {
 
-        int accumulator_access_offset = 
+        int32_t accumulator_access_offset = 
           index * Policy::kAccumulatorColumnStride + m * Policy::kAccumulatorRowStride / Policy::kElementsPerAccess + i;
 
         frag_ptr[m + i * Policy::OperatorCount::kRow * 2] = accumulators_[accumulator_access_offset];
@@ -276,7 +276,7 @@ template <
     /// matrix multiply operator fragment (concept: Array)
     typename OperatorFragmentC_,
     /// number of interleaved k
-    int InterleavedK>
+    int32_t InterleavedK>
 class FragmentIteratorTensorOp<WarpShape_, OperatorShape_, OperatorElementC_, OperatorFragmentC_,
                                layout::ColumnMajorInterleaved<InterleavedK>> {
  public:
@@ -284,7 +284,7 @@ class FragmentIteratorTensorOp<WarpShape_, OperatorShape_, OperatorElementC_, Op
   using OperatorShape = OperatorShape_;
   using OperatorElementC = OperatorElementC_;
   using OperatorFragmentC = OperatorFragmentC_;
-  static constexpr int kInterleavedK = InterleavedK;
+  static constexpr int32_t kInterleavedK = InterleavedK;
   using Layout = layout::ColumnMajorInterleaved<kInterleavedK>;
 
   using Policy = TensorOpPolicy<WarpShape, OperatorShape, Layout>;
@@ -301,9 +301,9 @@ class FragmentIteratorTensorOp<WarpShape_, OperatorShape_, OperatorElementC_, Op
                                   Policy::OperatorCount::kColumn>;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static constexpr int32_t kIterations = Policy::kIterations;
   using TileIterations = typename Policy::TileIterations;
-  static constexpr int kIterationsPerTile = kIterations / TileIterations::kCount;
+  static constexpr int32_t kIterationsPerTile = kIterations / TileIterations::kCount;
 
  private:
   /// Internal access type
@@ -319,7 +319,7 @@ class FragmentIteratorTensorOp<WarpShape_, OperatorShape_, OperatorElementC_, Op
   AccessType const *accumulators_;
 
   /// Internal index
-  int index_;
+  int32_t index_;
 
  public:
   /// Constructs an iterator
@@ -344,18 +344,18 @@ class FragmentIteratorTensorOp<WarpShape_, OperatorShape_, OperatorElementC_, Op
 
   /// Loads a fragment from the referenced part of the accumulator tile
   CUTLASS_HOST_DEVICE
-  void load(Fragment &frag, int index_offset = 0) const {
-    int index = index_ + index_offset;
+  void load(Fragment &frag, int32_t index_offset = 0) const {
+    int32_t index = index_ + index_offset;
 
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int n = 0; n < (InterleavedK / OperatorShape::kN); ++n) {
-      int index_m = index % (Policy::OperatorCount::kRow *
+    for (int32_t n = 0; n < (InterleavedK / OperatorShape::kN); ++n) {
+      int32_t index_m = index % (Policy::OperatorCount::kRow *
                              Policy::kIterationsPerInstruction);
-      int index_n = index / (Policy::OperatorCount::kRow *
+      int32_t index_n = index / (Policy::OperatorCount::kRow *
                              Policy::kIterationsPerInstruction);
-      int accumulator_access_offset =
+      int32_t accumulator_access_offset =
           (index_m / Policy::kIterationsPerInstruction) *
               (Policy::OperatorCount::kColumn *
                Policy::kIterationsPerInstruction) +

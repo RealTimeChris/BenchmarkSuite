@@ -93,7 +93,7 @@ extern __inline float _cvtsh_ss (unsigned short __S) {
   return flt;
 }
 
-__inline unsigned short _cvtss_sh (float __F, const int) {
+__inline unsigned short _cvtss_sh (float __F, const int32_t) {
   __m128 packed;
   std::memcpy(&packed, &__F, sizeof(__F));
 
@@ -126,14 +126,14 @@ class CpuId {
   CpuId() {
   #if defined(__i386__) || defined(__x86_64__)
     #if defined(_MSC_VER)
-      int exx[4];
+      int32_t exx[4];
 
       __cpuid (exx, 1); 
       f16c_enabled = exx[2] & 0x20000000;
 
     #else 
     // GCC / Clang
-       int eax, ebx, ecx, edx;
+       int32_t eax, ebx, ecx, edx;
 
       __cpuid (1 , eax, ebx, ecx, edx); 
       f16c_enabled = ecx & 0x20000000;
@@ -215,7 +215,7 @@ struct alignas(2) half_t {
 
     uint16_t sign = uint16_t((s >> 16) & 0x8000);
     int16_t exp = uint16_t(((s >> 23) & 0xff) - 127);
-    int mantissa = s & 0x7fffff;
+    int32_t mantissa = s & 0x7fffff;
     uint16_t u = 0;
 
     if ((s & 0x7fffffff) == 0) {
@@ -234,7 +234,7 @@ struct alignas(2) half_t {
       return bitcast(u);
     }
 
-    int sticky_bit = 0;
+    int32_t sticky_bit = 0;
 
     if (exp >= -14) {
       // normal fp32 to normal fp16
@@ -243,7 +243,7 @@ struct alignas(2) half_t {
       u = uint16_t(u | (mantissa >> 13));
     } else {
       // normal single-precision to subnormal half_t-precision representation
-      int rshift = (-14 - exp);
+      int32_t rshift = (-14 - exp);
       if (rshift < 32) {
         mantissa |= (1 << 23);
 
@@ -258,7 +258,7 @@ struct alignas(2) half_t {
     }
 
     // round to nearest even
-    int round_bit = ((mantissa >> 12) & 1);
+    int32_t round_bit = ((mantissa >> 12) & 1);
     sticky_bit |= ((mantissa & ((1 << 12) - 1)) != 0);
 
     if ((round_bit && sticky_bit) || (round_bit && (u & 1))) {
@@ -273,7 +273,7 @@ struct alignas(2) half_t {
 
   /// FP32 -> FP16 conversion - rounds to nearest even
   CUTLASS_HOST_DEVICE
-  static half_t convert(int const& n) {
+  static half_t convert(int32_t const& n) {
   #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 530)
     return half_t(__int2half_rn(n));
   #else
@@ -395,7 +395,7 @@ struct alignas(2) half_t {
 
   /// Integer conversion - round to nearest even
   CUTLASS_HOST_DEVICE
-  explicit half_t(int x) {
+  explicit half_t(int32_t x) {
     storage = convert(x).storage;
   }
 
@@ -431,8 +431,8 @@ struct alignas(2) half_t {
 
   /// Converts to float
   CUTLASS_HOST_DEVICE
-  explicit operator int() const {
-    return int(convert(*this));
+  explicit operator int32_t() const {
+    return int32_t(convert(*this));
   }
 
   /// Casts to bool
@@ -473,20 +473,20 @@ struct alignas(2) half_t {
 
   /// Returns the biased exponent
   CUTLASS_HOST_DEVICE
-  int exponent_biased() const {
-    return int((storage >> 10) & 0x1f);
+  int32_t exponent_biased() const {
+    return int32_t((storage >> 10) & 0x1f);
   }
 
   /// Returns the unbiased exponent
   CUTLASS_HOST_DEVICE
-  int exponent() const {
+  int32_t exponent() const {
     return exponent_biased() - 15;
   }
 
   /// Returns the mantissa
   CUTLASS_HOST_DEVICE
-  int mantissa() const {
-    return int(storage & 0x3ff);
+  int32_t mantissa() const {
+    return int32_t(storage & 0x3ff);
   }
 };
 
@@ -529,9 +529,9 @@ bool isnormal(cutlass::half_t const& h) {
 }
 
 CUTLASS_HOST_DEVICE
-int fpclassify(cutlass::half_t const& h) {
-  int exp = h.exponent_biased();
-  int mantissa = h.mantissa();
+int32_t fpclassify(cutlass::half_t const& h) {
+  int32_t exp = h.exponent_biased();
+  int32_t mantissa = h.mantissa();
   if (exp == 0x1f) {
     if (mantissa) {
       return FP_NAN;
@@ -599,7 +599,7 @@ struct numeric_limits<cutlass::half_t> {
   static constexpr bool is_iec559 = true;
   static constexpr bool is_bounded = true;
   static constexpr bool is_modulo = false;
-  static constexpr int digits = 10;
+  static constexpr int32_t digits = 10;
 
   /// Least positive value
   CUTLASS_HOST_DEVICE
@@ -667,7 +667,7 @@ struct numeric_limits<cutlass::half_t> {
   static constexpr bool is_iec559 = true;
   static constexpr bool is_bounded = true;
   static constexpr bool is_modulo = false;
-  static constexpr int digits = 10;
+  static constexpr int32_t digits = 10;
 
   /// Least positive value
   CUTLASS_HOST_DEVICE
@@ -882,7 +882,7 @@ half_t& operator--(half_t & lhs) {
 }
 
 CUTLASS_HOST_DEVICE
-half_t operator++(half_t & lhs, int) {
+half_t operator++(half_t & lhs, int32_t) {
   half_t ret(lhs);
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 530)
   lhs = half_t(__hadd(lhs.to_half(), half_t(1.0f).to_half()));
@@ -895,7 +895,7 @@ half_t operator++(half_t & lhs, int) {
 }
 
 CUTLASS_HOST_DEVICE
-half_t operator--(half_t & lhs, int) {
+half_t operator--(half_t & lhs, int32_t) {
   half_t ret(lhs);
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 530)
   lhs = half_t(__hsub(lhs.to_half(), half_t(1.0f).to_half()));
@@ -924,7 +924,7 @@ cutlass::half_t operator "" _hf(long double x) {
 
 CUTLASS_HOST_DEVICE
 cutlass::half_t operator "" _hf(unsigned long long int x) {
-  return cutlass::half_t(int(x));
+  return cutlass::half_t(int32_t(x));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

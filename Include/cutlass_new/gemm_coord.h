@@ -41,23 +41,23 @@ namespace gemm {
 /// Shape of a matrix multiply-add operation
 template <
   /// Rows of matrix product
-  int M = 1,
+  int32_t M = 1,
   /// Columns of matrix product
-  int N = 1,
+  int32_t N = 1,
   /// Inner dimension of matrix product
-  int K = 1
+  int32_t K = 1
 >
 struct GemmShape {
-  static constexpr int kM = M;
-  static constexpr int kN = N;
-  static constexpr int kK = K;
+  static constexpr int32_t kM = M;
+  static constexpr int32_t kN = N;
+  static constexpr int32_t kK = K;
 
-  static constexpr int kMN = M * N;
-  static constexpr int kMK = M * K;
-  static constexpr int kKN = N * K;
-  static constexpr int kMNK = M * N * K;
+  static constexpr int32_t kMN = M * N;
+  static constexpr int32_t kMK = M * K;
+  static constexpr int32_t kKN = N * K;
+  static constexpr int32_t kMNK = M * N * K;
 
-  static constexpr int kCount = kMNK;
+  static constexpr int32_t kCount = kMNK;
 
   //
   // Static member functions
@@ -83,22 +83,22 @@ using GemmShapeTranspose = GemmShape<Shape::kN, Shape::kM, Shape::kK>;
 
 /// GemmCoord is a structure derived from Coord<3> that specifies a location within the
 /// coordinate space of a GEMM problem.
-struct GemmCoord : public Coord<3, int> {
+struct GemmCoord : public Coord<3, int32_t> {
 
   /// Integer-valued index
-  typedef int Index;
+  typedef int32_t Index;
 
   /// Base type is a Coord of rank=3
   typedef Coord<3, Index> Base;
 
   /// GEMM M dimension - rows of the output C matrix
-  static constexpr int kM = 0;
+  static constexpr int32_t kM = 0;
 
   /// GEMM N dimension - columns of the output C matrix
-  static constexpr int kN = 1;
+  static constexpr int32_t kN = 1;
 
   /// GEMM K dimension - inner dimension of the GEMM problem
-  static constexpr int kK = 2;
+  static constexpr int32_t kK = 2;
 
   //
   // Methods
@@ -249,25 +249,25 @@ struct GemmCoord : public Coord<3, int> {
 
 /// BatchedGemmCoord is a structure derived from Coord<4> that specifies a location within the
 /// coordinate space of a batched GEMM problem.
-struct BatchedGemmCoord : public Coord<4, int> {
+struct BatchedGemmCoord : public Coord<4, int32_t> {
 
   /// Integer-valued index
-  typedef int Index;
+  typedef int32_t Index;
 
   /// Base type is a Coord of rank=4
   typedef Coord<4, Index> Base;
 
   /// GEMM M dimension - rows of the output C matrix
-  static constexpr int kM = 0;
+  static constexpr int32_t kM = 0;
 
   /// GEMM N dimension - columns of the output C matrix
-  static constexpr int kN = 1;
+  static constexpr int32_t kN = 1;
 
   /// GEMM K dimension - inner dimension of the GEMM problem
-  static constexpr int kK = 2;
+  static constexpr int32_t kK = 2;
 
   /// GEMM Batch dimension - inner dimension of the GEMM problem
-  static constexpr int kBatch = 3;
+  static constexpr int32_t kBatch = 3;
 
   //
   // Methods

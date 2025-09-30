@@ -41,16 +41,16 @@ namespace thread {
 
 /// Transforms a fragment by doing a transpose
 template <
-  int ElementCount, 
+  int32_t ElementCount, 
   typename TransposeShape, 
   typename Element
 > struct Transpose;
 
 /// Specialization for int8_t 4x4 transpose
-template <int ElementCount_>
+template <int32_t ElementCount_>
 struct Transpose<ElementCount_, layout::PitchLinearShape<4,4> , int8_t> {
 
-    static constexpr int kElementCount = ElementCount_;
+    static constexpr int32_t kElementCount = ElementCount_;
     using TransposeShape = layout::PitchLinearShape<4,4>;
     using Element = int8_t;
     using Fragment = cutlass::Array<Element, kElementCount>;
@@ -60,24 +60,24 @@ struct Transpose<ElementCount_, layout::PitchLinearShape<4,4> , int8_t> {
     CUTLASS_DEVICE 
     void transform(Fragment& dst, Fragment& src) {
 
-    // Expose src/dst as int arrays.
-    int* src_int = reinterpret_cast<int*>(&src);
-    int* dst_int = reinterpret_cast<int*>(&dst);
+    // Expose src/dst as int32_t arrays.
+    int32_t* src_int = reinterpret_cast<int32_t*>(&src);
+    int32_t* dst_int = reinterpret_cast<int32_t*>(&dst);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < kElementCount / TransposeShape::kCount; i++){
+    for (int32_t i = 0; i < kElementCount / TransposeShape::kCount; i++){
   
-      int const i0 = 4 * i + 0;
-      int const i1 = 4 * i + 1;
-      int const i2 = 4 * i + 2;
-      int const i3 = 4 * i + 3;
+      int32_t const i0 = 4 * i + 0;
+      int32_t const i1 = 4 * i + 1;
+      int32_t const i2 = 4 * i + 2;
+      int32_t const i3 = 4 * i + 3;
 
-      int a0 = src_int[i0];
-      int a1 = src_int[i1];
-      int a2 = src_int[i2];
-      int a3 = src_int[i3];
+      int32_t a0 = src_int[i0];
+      int32_t a1 = src_int[i1];
+      int32_t a2 = src_int[i2];
+      int32_t a3 = src_int[i3];
 
-      int b0, b1, b2, b3, c0;
+      int32_t b0, b1, b2, b3, c0;
       b0 = __byte_perm(a0, a1, 0x0040);
       c0 = __byte_perm(a2, a3, 0x0040);
       b0 = __byte_perm(b0, c0, 0x5410);

@@ -164,7 +164,7 @@ struct CallCOPY {
 //
 
 template <class Fn,
-          class PtrA, int... I>
+          class PtrA, int32_t... I>
 CUTE_HOST_DEVICE constexpr
 void
 explode(Fn fn,
@@ -174,8 +174,8 @@ explode(Fn fn,
 }
 
 template <class Fn,
-          class PtrS, int... Is,
-          class PtrD, int... Id>
+          class PtrS, int32_t... Is,
+          class PtrD, int32_t... Id>
 CUTE_HOST_DEVICE constexpr
 void
 explode(Fn fn,
@@ -186,9 +186,9 @@ explode(Fn fn,
 }
 
 template <class Fn,
-          class PtrA, int... Ia,
-          class PtrB, int... Ib,
-          class PtrC, int... Ic>
+          class PtrA, int32_t... Ia,
+          class PtrB, int32_t... Ib,
+          class PtrC, int32_t... Ic>
 CUTE_HOST_DEVICE constexpr
 void
 explode(Fn fn,
@@ -200,10 +200,10 @@ explode(Fn fn,
 }
 
 template <class Fn,
-          class PtrD, int... Id,
-          class PtrA, int... Ia,
-          class PtrB, int... Ib,
-          class PtrC, int... Ic>
+          class PtrD, int32_t... Id,
+          class PtrA, int32_t... Ia,
+          class PtrB, int32_t... Ib,
+          class PtrC, int32_t... Ic>
 CUTE_HOST_DEVICE constexpr
 void
 explode(Fn fn,
@@ -216,11 +216,11 @@ explode(Fn fn,
 }
 
 template <class Fn,
-          class PtrD, int... Id,
-          class PtrA, int... Ia,
-          class PtrB, int... Ib,
-          class PtrC, int... Ic,
-          class PtrE, int... Ie>
+          class PtrD, int32_t... Id,
+          class PtrA, int32_t... Ia,
+          class PtrB, int32_t... Ib,
+          class PtrC, int32_t... Ic,
+          class PtrE, int32_t... Ie>
 CUTE_HOST_DEVICE constexpr
 void
 explode(Fn fn,
@@ -234,12 +234,12 @@ explode(Fn fn,
 }
 
 template <class Fn,
-          class PtrD, int... Id,
-          class PtrA, int... Ia,
-          class PtrB, int... Ib,
-          class PtrC, int... Ic,
-          class PtrE, int... Ie,
-          class PtrF, int... If>
+          class PtrD, int32_t... Id,
+          class PtrA, int32_t... Ia,
+          class PtrB, int32_t... Ib,
+          class PtrC, int32_t... Ic,
+          class PtrE, int32_t... Ie,
+          class PtrF, int32_t... If>
 CUTE_HOST_DEVICE constexpr
 void
 explode(Fn fn,
@@ -254,13 +254,13 @@ explode(Fn fn,
 }
 
 template <class Fn,
-          class PtrD, int... Id,
-          class PtrA, int... Ia,
-          class PtrB, int... Ib,
-          class PtrC, int... Ic,
-          class PtrE, int... Ie,
-          class PtrF, int... If,
-          class PtrG, int... Ig>
+          class PtrD, int32_t... Id,
+          class PtrA, int32_t... Ia,
+          class PtrB, int32_t... Ib,
+          class PtrC, int32_t... Ic,
+          class PtrE, int32_t... Ie,
+          class PtrF, int32_t... If,
+          class PtrG, int32_t... Ig>
 CUTE_HOST_DEVICE constexpr
 void
 explode(Fn fn,
@@ -280,7 +280,7 @@ explode(Fn fn,
 //
 
 template <class Fn,
-          class TupleA, int... I>
+          class TupleA, int32_t... I>
 CUTE_HOST_DEVICE constexpr
 void
 explode_tuple(Fn fn,
@@ -290,8 +290,8 @@ explode_tuple(Fn fn,
 }
 
 template <class Fn,
-          class TupleA, int... Ia,
-          class TupleB, int... Ib>
+          class TupleA, int32_t... Ia,
+          class TupleB, int32_t... Ib>
 CUTE_HOST_DEVICE constexpr
 void
 explode_tuple(Fn fn,
@@ -302,9 +302,9 @@ explode_tuple(Fn fn,
 }
 
 template <class Fn,
-          class TupleA, int... Ia,
-          class TupleB, int... Ib,
-          class TupleC, int... Ic>
+          class TupleA, int32_t... Ia,
+          class TupleB, int32_t... Ib,
+          class TupleC, int32_t... Ic>
 CUTE_HOST_DEVICE constexpr
 void
 explode_tuple(Fn fn,

@@ -53,16 +53,16 @@ struct Tensor4DCoord : public Coord<4> {
   using LongIndex = typename Base::LongIndex;
 
   /// Batch dimension
-  static constexpr int kN = 0;
+  static constexpr int32_t kN = 0;
 
   /// Height dimension
-  static constexpr int kH = 1;
+  static constexpr int32_t kH = 1;
 
   /// Width dimension
-  static constexpr int kW = 2;
+  static constexpr int32_t kW = 2;
 
   /// Channels dimension
-  static constexpr int kC = 3;
+  static constexpr int32_t kC = 3;
 
   //
   // Methods
@@ -189,19 +189,19 @@ struct Tensor5DCoord : public Coord<5> {
   using LongIndex = typename Base::LongIndex;
 
   /// Batch dimension
-  static constexpr int kN = 0;
+  static constexpr int32_t kN = 0;
 
   /// Depth dimension
-  static constexpr int kD = 1;
+  static constexpr int32_t kD = 1;
 
   /// Height dimension
-  static constexpr int kH = 2;
+  static constexpr int32_t kH = 2;
 
   /// Width dimension
-  static constexpr int kW = 3;
+  static constexpr int32_t kW = 3;
 
   /// Channels dimension
-  static constexpr int kC = 4;
+  static constexpr int32_t kC = 4;
 
   //
   // Methods

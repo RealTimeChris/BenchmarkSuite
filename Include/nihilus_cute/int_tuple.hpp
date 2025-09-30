@@ -70,7 +70,7 @@ get(T&& t) noexcept
 // rank
 //
 
-template <int... Is, class IntTuple>
+template <int32_t... Is, class IntTuple>
 CUTE_HOST_DEVICE constexpr
 auto
 rank(IntTuple const& t)
@@ -112,7 +112,7 @@ shape(IntTuple const& s)
   CUTE_GCC_UNREACHABLE;
 }
 
-template <int I, int... Is, class IntTuple>
+template <int32_t I, int32_t... Is, class IntTuple>
 CUTE_HOST_DEVICE constexpr
 auto
 shape(IntTuple const& s)
@@ -190,7 +190,7 @@ gcd(T0 const& t0, Ts const&... ts)
 // depth
 //
 
-template <int... Is, class IntTuple>
+template <int32_t... Is, class IntTuple>
 CUTE_HOST_DEVICE constexpr
 auto
 depth(IntTuple const& t)
@@ -261,7 +261,7 @@ product_like(Tuple const& tuple, TupleG const& guide)
 }
 
 // Return the product of elements in a mode
-template <int... Is, class IntTuple>
+template <int32_t... Is, class IntTuple>
 CUTE_HOST_DEVICE constexpr
 auto
 size(IntTuple const& a)
@@ -328,9 +328,9 @@ ceil_div(IntTupleA const& a, IntTupleB const& b)
   if constexpr (is_tuple<IntTupleA>::value) {
     if constexpr (is_tuple<IntTupleB>::value) {  // tuple tuple
       static_assert(tuple_size<IntTupleA>::value >= tuple_size<IntTupleB>::value, "Mismatched ranks");
-      constexpr int R = tuple_size<IntTupleA>::value;        // Missing ranks in TupleB are implicitly 1
+      constexpr int32_t R = tuple_size<IntTupleA>::value;        // Missing ranks in TupleB are implicitly 1
       return transform(a, append<R>(b,Int<1>{}), [](auto const& x, auto const& y) { return ceil_div(x,y); });
-    } else {                                     // tuple int
+    } else {                                     // tuple int32_t
       auto [result, rest] = fold(a, nihilus_cute::make_tuple(nihilus_cute::make_tuple(), b),
         [] (auto const& init, auto const& ai) {
           return nihilus_cute::make_tuple(append(get<0>(init), ceil_div(ai, get<1>(init))), ceil_div(get<1>(init), ai));
@@ -338,7 +338,7 @@ ceil_div(IntTupleA const& a, IntTupleB const& b)
       return result;
     }
   } else
-  if constexpr (is_tuple<IntTupleB>::value) {    // int tuple
+  if constexpr (is_tuple<IntTupleB>::value) {    // int32_t tuple
     return ceil_div(a, product(b));
   } else {
     return (a + b - Int<1>{}) / b;
@@ -359,7 +359,7 @@ round_up(IntTupleA const& a, IntTupleB const& b)
 {
   if constexpr (is_tuple<IntTupleA>::value && is_tuple<IntTupleB>::value) {
     static_assert(tuple_size<IntTupleA>::value >= tuple_size<IntTupleB>::value, "Mismatched ranks");
-    constexpr int R = tuple_size<IntTupleA>::value;        // Missing ranks in TupleB are implicitly 1
+    constexpr int32_t R = tuple_size<IntTupleA>::value;        // Missing ranks in TupleB are implicitly 1
     return transform(a, append<R>(b,Int<1>{}), [](auto const& x, auto const& y) { return round_up(x,y); });
   } else {
     return ((a + b - Int<1>{}) / b) * b;
@@ -389,7 +389,7 @@ shape_div(IntTupleA const& a, IntTupleB const& b)
     if constexpr (is_tuple<IntTupleB>::value) {  // tuple tuple
       static_assert(tuple_size<IntTupleA>::value == tuple_size<IntTupleB>::value, "Mismatched ranks");
       return transform(a, b, [](auto const& x, auto const& y) { return shape_div(x,y); });
-    } else {                                     // tuple int
+    } else {                                     // tuple int32_t
       auto [result, rest] = fold(a, nihilus_cute::make_tuple(nihilus_cute::make_tuple(), b),
         [] (auto const& init, auto const& ai) {
           return nihilus_cute::make_tuple(append(get<0>(init), shape_div(ai, get<1>(init))), shape_div(get<1>(init), ai));
@@ -397,7 +397,7 @@ shape_div(IntTupleA const& a, IntTupleB const& b)
       return result;
     }
   } else
-  if constexpr (is_tuple<IntTupleB>::value) {    // int tuple
+  if constexpr (is_tuple<IntTupleB>::value) {    // int32_t tuple
     return shape_div(a, product(b));
   } else {
     // Strong divisibility condition
@@ -567,10 +567,10 @@ namespace detail {
 
 // Some compilers fail to constexpr evaluate quick_sort
 // template <class T, size_t N>
-// constexpr nihilus_cute::array<T,N> quick_sort(nihilus_cute::array<T,N> a, int lo = 0, int hi = N-1) {
+// constexpr nihilus_cute::array<T,N> quick_sort(nihilus_cute::array<T,N> a, int32_t lo = 0, int32_t hi = N-1) {
 //   if (hi <= lo) return;
-//   int p = lo;
-//   for (int i = lo; i < hi; ++i) {
+//   int32_t p = lo;
+//   for (int32_t i = lo; i < hi; ++i) {
 //     if (a[i] < a[hi]) {
 //       T tmp = a[p]; a[p] = a[i]; a[i] = tmp;
 //       ++p;
@@ -597,23 +597,23 @@ constexpr nihilus_cute::array<T,N> exchange_sort(nihilus_cute::array<T,N> a) {
 template <class V, class I = nihilus_cute::make_int_sequence<nihilus_cute::tuple_size_v<V>>>
 struct Sort : Sort<to_seq_t<V>, to_seq_t<I>> {};
 
-template <int... Vs, int... Is>
+template <int32_t... Vs, int32_t... Is>
 struct Sort<seq<Vs...>, seq<Is...>> {
   static_assert(sizeof...(Vs) == sizeof...(Is));
-  static constexpr nihilus_cute::array<int,sizeof...(Is)> orig_array = {Vs...};
-  static constexpr nihilus_cute::array<int,sizeof...(Is)> sort_array = exchange_sort(orig_array);
+  static constexpr nihilus_cute::array<int32_t,sizeof...(Is)> orig_array = {Vs...};
+  static constexpr nihilus_cute::array<int32_t,sizeof...(Is)> sort_array = exchange_sort(orig_array);
   using type = seq<sort_array[Is]...>;
 };
 
 struct kvpair {
-  int key, val;
+  int32_t key, val;
   constexpr bool operator<(kvpair const& o) const { return key < o.key; };
 };
 
 template <class K, class V, class I = nihilus_cute::make_int_sequence<nihilus_cute::tuple_size_v<K>>>
 struct SortByKey : SortByKey<to_seq_t<K>, to_seq_t<V>, to_seq_t<I>> {};
 
-template <int... Ks, int... Vs, int... Is>
+template <int32_t... Ks, int32_t... Vs, int32_t... Is>
 struct SortByKey<seq<Ks...>, seq<Vs...>, seq<Is...>> {
   static_assert(sizeof...(Ks) == sizeof...(Vs));
   static_assert(sizeof...(Ks) == sizeof...(Is));
@@ -633,14 +633,14 @@ struct SortByKey<seq<Ks...>, seq<Vs...>, seq<Is...>> {
  * Access elements up to a dynamic index n, then use init (requires compatible types)
  * Consider nihilus_cute::take<B,E> if all indexing is known to be valid
  * \code
- *   std::vector<int> a = {6,3,4};
+ *   std::vector<int32_t> a = {6,3,4};
  *   auto tup = make_int_tuple<5>(a, a.size(), 0)            // (6,3,4,0,0)
  * \endcode
  */
-template <int N, class Indexable, class T>
+template <int32_t N, class Indexable, class T>
 CUTE_HOST_DEVICE constexpr
 auto
-make_int_tuple(Indexable const& t, int n, T const& init)
+make_int_tuple(Indexable const& t, int32_t n, T const& init)
 {
   static_assert(N > 0);
   if constexpr (N == 1) {
@@ -655,7 +655,7 @@ make_int_tuple(Indexable const& t, int n, T const& init)
 /** Fill the dynamic values of a Tuple with values from another Tuple
  * \code
  *   auto params = make_tuple(6,3,4);
- *   nihilus_cute::tuple<Int<1>, nihilus_cute::tuple<int, int, Int<3>>, int, Int<2>> result;
+ *   nihilus_cute::tuple<Int<1>, nihilus_cute::tuple<int32_t, int32_t, Int<3>>, int32_t, Int<2>> result;
  *   fill_int_tuple_from(result, params);                    // (_1,(6,3,_3),4,_2)
  * \endcode
  */
@@ -681,7 +681,7 @@ fill_int_tuple_from(Tuple& result, TupleV const& vals)
 
 /** Make a "Tuple" by filling in the dynamic values in order from the arguments
  * \code
- *   using result_t = nihilus_cute::tuple<Int<1>, nihilus_cute::tuple<int, int, Int<3>>, int, Int<2>>;
+ *   using result_t = nihilus_cute::tuple<Int<1>, nihilus_cute::tuple<int32_t, int32_t, Int<3>>, int32_t, Int<2>>;
  *   auto result = make_int_tuple_from<result_t>(6,3,4);     // (_1,(6,3,_3),4,_2)
  * \endcode
  */
@@ -707,7 +707,7 @@ auto
 to_array(IntTuple const& t)
 {
   auto flat_t = flatten_to_tuple(t);
-  constexpr int N = tuple_size<decltype(flat_t)>::value;
+  constexpr int32_t N = tuple_size<decltype(flat_t)>::value;
   nihilus_cute::array<T,N> result;
   for_each(make_seq<N>{}, [&] (auto i) { result[i] = get<i>(flat_t); });
   return result;

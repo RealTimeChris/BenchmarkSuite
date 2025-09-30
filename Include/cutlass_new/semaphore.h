@@ -53,15 +53,15 @@ namespace cutlass {
 class Semaphore { 
 public:
 
-  int *lock;
+  int32_t *lock;
   bool wait_thread;
-  int state;
+  int32_t state;
 
 public:
 
   /// Implements a semaphore to wait for a flag to reach a given value
   CUTLASS_HOST_DEVICE
-  Semaphore(int *lock_, int thread_id): 
+  Semaphore(int32_t *lock_, int32_t thread_id): 
     lock(lock_), 
     wait_thread(thread_id < 0 || thread_id == 0),
     state(-1) {
@@ -82,13 +82,13 @@ public:
 
   /// Gets the internal state
   CUTLASS_DEVICE
-  int get_state() const {
+  int32_t get_state() const {
     return state;
   }
 
   /// Waits until the semaphore is equal to the given value
   CUTLASS_DEVICE
-  void wait(int status = 0) {
+  void wait(int32_t status = 0) {
     while( __syncthreads_and(state != status) ) {
       fetch();
     }
@@ -98,7 +98,7 @@ public:
 
   /// Updates the lock with the given result
   CUTLASS_DEVICE
-  void release(int status = 0) {
+  void release(int32_t status = 0) {
     __syncthreads();
 
     if (wait_thread) {

@@ -108,9 +108,9 @@ CUTE_NAMED_UNARY_OP(conjugate, nihilus_cute::conj);
 #undef CUTE_RIGHT_UNARY_OP
 #undef CUTE_NAMED_UNARY_OP
 
-template <int Shift_>
+template <int32_t Shift_>
 struct shift_right_const {
-  static constexpr int Shift = Shift_;
+  static constexpr int32_t Shift = Shift_;
 
   template <class T>
   CUTE_HOST_DEVICE constexpr
@@ -119,9 +119,9 @@ struct shift_right_const {
   }
 };
 
-template <int Shift_>
+template <int32_t Shift_>
 struct shift_left_const {
-  static constexpr int Shift = Shift_;
+  static constexpr int32_t Shift = Shift_;
 
   template <class T>
   CUTE_HOST_DEVICE constexpr

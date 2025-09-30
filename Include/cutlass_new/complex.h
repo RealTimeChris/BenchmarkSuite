@@ -633,7 +633,7 @@ struct RealType< complex<T> >
   using Type = T;
 
   /// Number of elements
-  static constexpr int kExtent = 2;
+  static constexpr int32_t kExtent = 2;
 
   CUTLASS_HOST_DEVICE
   static complex<T> from_real(double x) {

@@ -82,7 +82,7 @@ template <
   ///< Policy describing warp-level Wmma operation (concept: MmaTensorOpPolicy)
   typename Policy_,
   ///< Number of partitions along K dimension
-  int PartitionsK_ = 1,
+  int32_t PartitionsK_ = 1,
   ///< Used for partial specialization
   typename Enable = bool
 >
@@ -134,10 +134,10 @@ public:
   using OperatorClass = arch::OpClassWmmaTensorOp;
 
   /// Number of threads participating in warp-level matrix product
-  static constexpr int kThreadCount = 32;
+  static constexpr int32_t kThreadCount = 32;
 
   /// Number of partitions along K dimension
-  static constexpr int kPartitionsK = PartitionsK_;
+  static constexpr int32_t kPartitionsK = PartitionsK_;
 
 public:
 
@@ -202,9 +202,9 @@ public:
     FragmentC const &C) const {
 
     CUTLASS_PRAGMA_UNROLL
-    for (int n = 0; n < WmmaIterations::kColumn; ++n) {
+    for (int32_t n = 0; n < WmmaIterations::kColumn; ++n) {
       CUTLASS_PRAGMA_UNROLL
-      for (int m = 0; m < WmmaIterations::kRow; ++m) {
+      for (int32_t m = 0; m < WmmaIterations::kRow; ++m) {
 
         // accumulate wmma mma
         wmma(D[m * WmmaIterations::kColumn + n], A[m], B[n], C[m * WmmaIterations::kColumn + n]);

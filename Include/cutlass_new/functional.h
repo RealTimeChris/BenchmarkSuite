@@ -971,8 +971,8 @@ struct atomic_maximum<float> {
     // any headers.
     //
     return ! ::signbit(value) ?
-      __int_as_float(atomicMax((int*)ptr, __float_as_int(value))) :
-      __uint_as_float(atomicMin((unsigned int*)ptr, __float_as_uint(value)));
+      __int_as_float(atomicMax((int32_t*)ptr, __float_as_int(value))) :
+      __uint_as_float(atomicMin((uint32_t*)ptr, __float_as_uint(value)));
 #else
     CUTLASS_UNUSED(ptr);
     CUTLASS_UNUSED(value);
@@ -1006,10 +1006,10 @@ struct redux_abs_max_nan_propagation_sync_warp <float>{
     return result;
 #elif defined(__CUDA_ARCH__)
     cutlass::maximum<float, /*PropagateNaN*/true> max_op;
-    int shuffle_width = 32;
+    int32_t shuffle_width = 32;
     float abs_max = cutlass::absolute_value_op<float>{}(lhs);
     CUTLASS_PRAGMA_UNROLL
-    for(int offset = shuffle_width / 2; offset > 0; offset /= 2) {
+    for(int32_t offset = shuffle_width / 2; offset > 0; offset /= 2) {
       float value = __shfl_down_sync(0xffffffff, abs_max, offset, shuffle_width);
       abs_max = max_op(abs_max,value);
     }
@@ -1032,7 +1032,7 @@ struct redux_abs_max_nan_propagation_sync_warp_t0t15_t16t31<float>{
   CUTLASS_DEVICE
   float operator()(float const &max) const {
 #if defined(CUTLASS_ARCH_CREDUX_ENABLED)
-    int half_warp_idx = threadIdx.x / (NumThreadsPerWarp / 2);
+    int32_t half_warp_idx = threadIdx.x / (NumThreadsPerWarp / 2);
     bool first_half_threads = (half_warp_idx % 2) == 0;
     float value0 =  first_half_threads ? max : 0;
     float v0 = cutlass::redux_abs_max_nan_propagation_sync_warp<float>{}(value0);
@@ -1044,9 +1044,9 @@ struct redux_abs_max_nan_propagation_sync_warp_t0t15_t16t31<float>{
 #elif defined(__CUDA_ARCH__)
     float abs_max = cutlass::absolute_value_op<float>{}(max);
     cutlass::maximum<float, /*PropagateNaN*/true> max_op;
-    constexpr int shuffle_width = 16;
+    constexpr int32_t shuffle_width = 16;
     CUTLASS_PRAGMA_UNROLL
-    for(int offset = shuffle_width/2; offset > 0; offset /= 2) {
+    for(int32_t offset = shuffle_width/2; offset > 0; offset /= 2) {
       float value = __shfl_down_sync(0xffffffff, abs_max, offset, shuffle_width);
         abs_max  = max_op(abs_max,value);
     }
@@ -1070,7 +1070,7 @@ struct redux_abs_max_nan_propagation_sync_warp_t0t15_t16t31<float>{
 
 #if defined(CUTLASS_ARCH_WMMA_ENABLED)
 
-template<typename Use, int m, int n, int k, typename T, typename Layout>
+template<typename Use, int32_t m, int32_t n, int32_t k, typename T, typename Layout>
 struct plus<nvcuda::wmma::fragment<Use, m, n, k, T, Layout>>
 {
   using Fragment = nvcuda::wmma::fragment<Use, m, n, k, T, Layout>;
@@ -1087,7 +1087,7 @@ struct plus<nvcuda::wmma::fragment<Use, m, n, k, T, Layout>>
     const ElementType *rhs_elts = reinterpret_cast<const ElementType*>(&rhs);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < Fragment::num_elements; i++) {
+    for (int32_t i = 0; i < Fragment::num_elements; i++) {
       result_elts[i] = scalar_op(lhs_elts[i], rhs_elts[i]);
     }
 

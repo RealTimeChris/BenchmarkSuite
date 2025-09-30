@@ -49,7 +49,7 @@ template <
   /// Layout of destination matrix (column-major implies transpose)
   typename Layout,
   /// .x1, .x2, or .x4
-  int MatrixCount
+  int32_t MatrixCount
 >
 CUTLASS_DEVICE void ldsm(Array<unsigned, MatrixCount> & D, void const* ptr);
 
@@ -80,9 +80,9 @@ CUTLASS_DEVICE void ldsm<layout::RowMajor, 1>(
 
     unsigned addr = cutlass_get_smem_pointer(ptr);
 
-    int x;
+    int32_t x;
     asm volatile ("ldmatrix.sync.aligned.x1.m8n8.shared.b16 {%0}, [%1];" : "=r"(x) : "r"(addr));
-    reinterpret_cast<int &>(D) = x;
+    reinterpret_cast<int32_t &>(D) = x;
 
   #else
 
@@ -104,7 +104,7 @@ CUTLASS_DEVICE void ldsm<layout::RowMajor, 2>(
 
     unsigned addr = cutlass_get_smem_pointer(ptr);
 
-    int x, y;
+    int32_t x, y;
     asm volatile ("ldmatrix.sync.aligned.x2.m8n8.shared.b16 {%0, %1}, [%2];" : "=r"(x), "=r"(y) : "r"(addr));
     reinterpret_cast<int2 &>(D) = make_int2(x, y);
 
@@ -128,7 +128,7 @@ CUTLASS_DEVICE void ldsm<layout::RowMajor, 4>(
 
     unsigned addr = cutlass_get_smem_pointer(ptr);
 
-    int x, y, z, w;
+    int32_t x, y, z, w;
     asm volatile ("ldmatrix.sync.aligned.x4.m8n8.shared.b16 {%0, %1, %2, %3}, [%4];" : "=r"(x), "=r"(y), "=r"(z), "=r"(w) : "r"(addr));
     reinterpret_cast<int4 &>(D) = make_int4(x, y, z, w);
 
@@ -156,9 +156,9 @@ CUTLASS_DEVICE void ldsm<layout::ColumnMajor, 1>(
 
     unsigned addr = cutlass_get_smem_pointer(ptr);
 
-    int x;
+    int32_t x;
     asm volatile ("ldmatrix.sync.aligned.x1.trans.m8n8.shared.b16 {%0}, [%1];" : "=r"(x) : "r"(addr));
-    reinterpret_cast<int &>(D) = x;
+    reinterpret_cast<int32_t &>(D) = x;
 
   #else
 
@@ -180,7 +180,7 @@ CUTLASS_DEVICE void ldsm<layout::ColumnMajor, 2>(
 
     unsigned addr = cutlass_get_smem_pointer(ptr);
 
-    int x, y;
+    int32_t x, y;
     asm volatile ("ldmatrix.sync.aligned.x2.trans.m8n8.shared.b16 {%0, %1}, [%2];" : "=r"(x), "=r"(y) : "r"(addr));
     reinterpret_cast<int2 &>(D) = make_int2(x, y);
 
@@ -204,7 +204,7 @@ CUTLASS_DEVICE void ldsm<layout::ColumnMajor, 4>(
 
     unsigned addr = cutlass_get_smem_pointer(ptr);
 
-    int x, y, z, w;
+    int32_t x, y, z, w;
     asm volatile ("ldmatrix.sync.aligned.x4.trans.m8n8.shared.b16 {%0, %1, %2, %3}, [%4];" : "=r"(x), "=r"(y), "=r"(z), "=r"(w) : "r"(addr));
     reinterpret_cast<int4 &>(D) = make_int4(x, y, z, w);
 
@@ -219,7 +219,7 @@ CUTLASS_DEVICE void ldsm<layout::ColumnMajor, 4>(
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename AccessType, int Bytes>
+template <typename AccessType, int32_t Bytes>
 struct shared_load_op {
   CUTLASS_DEVICE
   shared_load_op(AccessType &D, void const *ptr) {
@@ -229,7 +229,7 @@ struct shared_load_op {
 
 template <typename AccessType>
 CUTLASS_DEVICE void shared_load(AccessType &D, void const *ptr) {
-  shared_load_op<AccessType, int(sizeof(AccessType))>(D, ptr);
+  shared_load_op<AccessType, int32_t(sizeof(AccessType))>(D, ptr);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

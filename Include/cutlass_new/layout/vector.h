@@ -43,10 +43,10 @@ namespace layout {
 class PackedVectorLayout {
 public:
   /// Logical rank of tensor
-  static constexpr int kRank = 1;
+  static constexpr int32_t kRank = 1;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static constexpr int32_t kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;

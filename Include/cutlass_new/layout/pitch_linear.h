@@ -41,7 +41,7 @@
 namespace cutlass {
 namespace layout {
 
-template <int Contiguous, int Strided>
+template <int32_t Contiguous, int32_t Strided>
   using PitchLinearShape = cutlass::PitchLinearShape < Contiguous, Strided >;
   using PitchLinearCoord = PitchLinearCoord;
 
@@ -51,10 +51,10 @@ template <int Contiguous, int Strided>
 class PitchLinear {
 public:
   /// Logical rank of tensor
-  static constexpr int kRank = 2;
+  static constexpr int32_t kRank = 2;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
+  static constexpr int32_t kStrideRank = 1;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -125,13 +125,13 @@ public:
 
   /// Returns the stride of the layout
   CUTLASS_HOST_DEVICE
-  LongIndex stride(int rank) const {
+  LongIndex stride(int32_t rank) const {
     return stride_[rank];
   }
 
   /// Returns the stride of the layout
   CUTLASS_HOST_DEVICE
-  LongIndex & stride(int rank) {
+  LongIndex & stride(int32_t rank) {
     return stride_[rank];
   }
 

@@ -95,20 +95,20 @@ struct ThreadblockSwizzleStreamK {
   static float constexpr kDpEfficiencyThreshold = 0.92f;
 
   /// Minimum number of MAC-iterations per streamk block
-  static constexpr int kMinItersPerSkBlock = 2;
+  static constexpr int32_t kMinItersPerSkBlock = 2;
 
   /// Height in CTAs of a grid rasterization cohort
-  static constexpr int kCohortCtasM = 8;
+  static constexpr int32_t kCohortCtasM = 8;
 
   /// Width in CTAs of a grid rasterization cohort
-  static constexpr int kCohortCtasN = 4;
+  static constexpr int32_t kCohortCtasN = 4;
 
   /// Number of CTAs per cohort
-  static constexpr int kCtasPerCohort = kCohortCtasN * kCohortCtasM;
+  static constexpr int32_t kCtasPerCohort = kCohortCtasN * kCohortCtasM;
 
   /// Cost-equivalent number of SM-iterations for fixup I/O
-  static constexpr int kFixupStartupIterEquiv = 10;
-  static constexpr int kFixupPeerIterEquiv = 3;
+  static constexpr int32_t kFixupStartupIterEquiv = 10;
+  static constexpr int32_t kFixupPeerIterEquiv = 3;
 
 
   //
@@ -132,21 +132,21 @@ struct ThreadblockSwizzleStreamK {
   bool remap_block_indices;
 
   /// CTA occupancy per SM
-  int sm_occupancy;
+  int32_t sm_occupancy;
 
   /// Number of SMs for dispatch heuristics to load-balance using Stream-K CTAs (wave size)
-  int avail_sms;
+  int32_t avail_sms;
 
-  int dp_blocks;                            /// Number of data-parallel thread blocks in the grid
-  int dp_first_wave_tiles;                  /// Number of output tiles each CTA in the first DP wave will produce
+  int32_t dp_blocks;                            /// Number of data-parallel thread blocks in the grid
+  int32_t dp_first_wave_tiles;                  /// Number of output tiles each CTA in the first DP wave will produce
 
   /// Number of reduction blocks in the grid
-  int reduction_blocks;
+  int32_t reduction_blocks;
 
-  int sk_waves;
-  int sk_tiles;
-  int sk_big_blocks_per_region;
-  int sk_iters_per_region;
+  int32_t sk_waves;
+  int32_t sk_tiles;
+  int32_t sk_big_blocks_per_region;
+  int32_t sk_iters_per_region;
 
   /// Div/mod accelerators
   FastDivmod div_mod_sk_iters_per_normal_block;
@@ -156,7 +156,7 @@ struct ThreadblockSwizzleStreamK {
   FastDivmod div_mod_sk_blocks_per_region;            //!! used in block map
 
   /// The batch count
-  int batch_count;
+  int32_t batch_count;
 
 
   //
@@ -171,37 +171,37 @@ struct ThreadblockSwizzleStreamK {
   GemmCoord tiled_shape() const
   {
     return GemmCoord(
-        static_cast<int>(div_mod_tiled_shape_m),
-        static_cast<int>(div_mod_tiled_shape_n),
+        static_cast<int32_t>(div_mod_tiled_shape_m),
+        static_cast<int32_t>(div_mod_tiled_shape_n),
         batch_count);
   }
 
   /// Number of iterations per output tile
   CUTLASS_HOST_DEVICE
-  int iters_per_tile() const
+  int32_t iters_per_tile() const
   {
-    return static_cast<int>(div_mod_iters_per_tile);
+    return static_cast<int32_t>(div_mod_iters_per_tile);
   }
 
   /// Number of iterations for normal SK-blocks
   CUTLASS_HOST_DEVICE
-  int sk_iters_per_normal_block() const
+  int32_t sk_iters_per_normal_block() const
   {
-    return static_cast<int>(div_mod_sk_iters_per_normal_block);
+    return static_cast<int32_t>(div_mod_sk_iters_per_normal_block);
   }
 
   /// Number of SK regions
   CUTLASS_HOST_DEVICE
-  int sk_regions() const
+  int32_t sk_regions() const
   {
-    return static_cast<int>(div_mod_sk_regions);
+    return static_cast<int32_t>(div_mod_sk_regions);
   }
 
   /// Number of SK blocks per region (splitting factor)
   CUTLASS_HOST_DEVICE
-  int sk_blocks_per_region() const
+  int32_t sk_blocks_per_region() const
   {
-    return static_cast<int>(div_mod_sk_blocks_per_region);
+    return static_cast<int32_t>(div_mod_sk_blocks_per_region);
   }
 
 
@@ -242,12 +242,12 @@ struct ThreadblockSwizzleStreamK {
 
   // Compute sk_blocks to dispatch for a given number of sk_tiles
   static void get_sk_blocks(
-    int &sk_blocks,     /// [out]
-    int &savings_iters, /// [out]
-    int sk_tiles,
-    int iters_per_tile,
-    int avail_sms,
-    int max_sk_occupancy,
+    int32_t &sk_blocks,     /// [out]
+    int32_t &savings_iters, /// [out]
+    int32_t sk_tiles,
+    int32_t iters_per_tile,
+    int32_t avail_sms,
+    int32_t max_sk_occupancy,
     bool allow_partial_wave)
   {
     savings_iters = INT_MIN;
@@ -257,21 +257,21 @@ struct ThreadblockSwizzleStreamK {
       return;
     }
 
-    int sk_iters = sk_tiles * iters_per_tile;
+    int32_t sk_iters = sk_tiles * iters_per_tile;
 
-    int dp_equiv_waves = (sk_tiles + avail_sms - 1) / avail_sms;
-    int dp_equiv_iters = iters_per_tile * dp_equiv_waves;
+    int32_t dp_equiv_waves = (sk_tiles + avail_sms - 1) / avail_sms;
+    int32_t dp_equiv_iters = iters_per_tile * dp_equiv_waves;
 
-    int min_sk_blocks = (allow_partial_wave) ? fast_min(avail_sms, sk_tiles + 1) : avail_sms;
-    int max_sk_blocks = fast_min(avail_sms * max_sk_occupancy, sk_iters / kMinItersPerSkBlock);
+    int32_t min_sk_blocks = (allow_partial_wave) ? fast_min(avail_sms, sk_tiles + 1) : avail_sms;
+    int32_t max_sk_blocks = fast_min(avail_sms * max_sk_occupancy, sk_iters / kMinItersPerSkBlock);
 
-    for (int trial_sk_blocks = min_sk_blocks; trial_sk_blocks <= max_sk_blocks; ++trial_sk_blocks)
+    for (int32_t trial_sk_blocks = min_sk_blocks; trial_sk_blocks <= max_sk_blocks; ++trial_sk_blocks)
     {
-      int sk_waves = (trial_sk_blocks + avail_sms - 1) / avail_sms;
-      int max_sk_iters_per_block = (sk_iters + trial_sk_blocks - 1) / trial_sk_blocks;
-      int sk_iter_equiv = max_sk_iters_per_block * sk_waves;
+      int32_t sk_waves = (trial_sk_blocks + avail_sms - 1) / avail_sms;
+      int32_t max_sk_iters_per_block = (sk_iters + trial_sk_blocks - 1) / trial_sk_blocks;
+      int32_t sk_iter_equiv = max_sk_iters_per_block * sk_waves;
 
-      int num_peers = ((trial_sk_blocks + sk_tiles - 1) / sk_tiles) + 1;        // add one for alignment skew
+      int32_t num_peers = ((trial_sk_blocks + sk_tiles - 1) / sk_tiles) + 1;        // add one for alignment skew
 
       float iter_cost = 0.02f * float(num_peers) * float(sk_iter_equiv);
 
@@ -287,9 +287,9 @@ struct ThreadblockSwizzleStreamK {
 
       float base_cost = 2.0f * float(sk_waves);
 
-      int fixup_iter_equiv = int(base_cost + iter_cost + peer_cost);
+      int32_t fixup_iter_equiv = int32_t(base_cost + iter_cost + peer_cost);
 
-      int trial_savings_iters = dp_equiv_iters - sk_iter_equiv - fixup_iter_equiv;
+      int32_t trial_savings_iters = dp_equiv_iters - sk_iter_equiv - fixup_iter_equiv;
 
       if (trial_savings_iters >= savings_iters) {
           savings_iters = trial_savings_iters;
@@ -301,18 +301,18 @@ struct ThreadblockSwizzleStreamK {
 
   /// Determine the populations of DP and SK blocks to invoke for the given number of output tiles
   static void get_blocks(
-    int &dp_tiles,      /// [out]
-    int &sk_blocks,     /// [out]
-    int output_tiles,
-    int iters_per_tile,
-    int avail_sms,
-    int sm_occupancy)
+    int32_t &dp_tiles,      /// [out]
+    int32_t &sk_blocks,     /// [out]
+    int32_t output_tiles,
+    int32_t iters_per_tile,
+    int32_t avail_sms,
+    int32_t sm_occupancy)
   {
-    int full_waves = output_tiles / avail_sms;
-    int full_wave_tiles = full_waves * avail_sms;
-    int partial_wave_tiles = output_tiles - full_wave_tiles;
+    int32_t full_waves = output_tiles / avail_sms;
+    int32_t full_wave_tiles = full_waves * avail_sms;
+    int32_t partial_wave_tiles = output_tiles - full_wave_tiles;
 
-    int score = -1;
+    int32_t score = -1;
     dp_tiles = output_tiles;
     sk_blocks = 0;
 
@@ -327,7 +327,7 @@ struct ThreadblockSwizzleStreamK {
         // We're less than full GPU occupancy
 
         // Form the SK wave from the partial wave to get us up to full GPU occupancy
-        int max_sk_occupancy = sm_occupancy - full_waves;
+        int32_t max_sk_occupancy = sm_occupancy - full_waves;
 
         dp_tiles = full_wave_tiles;
 
@@ -355,7 +355,7 @@ struct ThreadblockSwizzleStreamK {
     {
         // If occupancy is more than one CTA per SM, form the SK wave from the partial
         // wave to get us to full GPU occupancy
-        int max_sk_occupancy = 1;
+        int32_t max_sk_occupancy = 1;
 
         dp_tiles = full_wave_tiles;
 
@@ -377,7 +377,7 @@ struct ThreadblockSwizzleStreamK {
     // We're less than full GPU occupancy
     dp_tiles = full_wave_tiles - avail_sms;
 
-    int max_sk_occupancy = sm_occupancy - ((full_waves - 1) % sm_occupancy);
+    int32_t max_sk_occupancy = sm_occupancy - ((full_waves - 1) % sm_occupancy);
 
     get_sk_blocks(
       sk_blocks,
@@ -401,14 +401,14 @@ struct ThreadblockSwizzleStreamK {
     GemmUniversalMode const mode_,
     GemmCoord const problem_size_,
     GemmCoord const tile_size_,
-    int const batch_split_,                        /// Either (mode == GemmUniversalMode::kBatched) the batch count, or (mode == GemmUniversalMode::kGemm) the tile-splitting factor (1 defaults to StreamK, >1 emulates Split-K)
-    int const sm_occupancy_,
-    int const device_sms_,
-    int const avail_sms_,                          /// The number of SMs that StreamK dispatch heuristics will attempt to load-balance across (-1 defaults to device width, 1 implies classic data-parallel scheduling)
+    int32_t const batch_split_,                        /// Either (mode == GemmUniversalMode::kBatched) the batch count, or (mode == GemmUniversalMode::kGemm) the tile-splitting factor (1 defaults to StreamK, >1 emulates Split-K)
+    int32_t const sm_occupancy_,
+    int32_t const device_sms_,
+    int32_t const avail_sms_,                          /// The number of SMs that StreamK dispatch heuristics will attempt to load-balance across (-1 defaults to device width, 1 implies classic data-parallel scheduling)
     size_t const element_A_bytes_,
     size_t const element_B_bytes_,
     size_t const element_C_bytes_,
-    int const epilogue_acc_fragments_)
+    int32_t const epilogue_acc_fragments_)
   :
     problem_size(problem_size_),
     batch_count((mode_ == GemmUniversalMode::kBatched || mode_ == GemmUniversalMode::kArray) ? batch_split_ : 1),
@@ -424,12 +424,12 @@ struct ThreadblockSwizzleStreamK {
     avail_sms(fast_max(1, avail_sms_)),
     cohort_raster(false)
   {
-    int gpu_occupancy = device_sms_ * sm_occupancy;
-    int iters_per_tile = (problem_size.k() + tile_size_.k() - 1) / tile_size_.k();
-    int sk_iters_per_normal_block = 0;
+    int32_t gpu_occupancy = device_sms_ * sm_occupancy;
+    int32_t iters_per_tile = (problem_size.k() + tile_size_.k() - 1) / tile_size_.k();
+    int32_t sk_iters_per_normal_block = 0;
 
-    int sk_regions = 1;              // Default: a single region of iteration space (across all SK tiles)
-    int sk_blocks_per_region = 0;
+    int32_t sk_regions = 1;              // Default: a single region of iteration space (across all SK tiles)
+    int32_t sk_blocks_per_region = 0;
 
     GemmCoord tiled_shape(
       (problem_size.m() + tile_size_.m() - 1) / tile_size_.m(),
@@ -445,8 +445,8 @@ struct ThreadblockSwizzleStreamK {
 
     [[maybe_unused]] float flops_per_byte = float(problem_flops) / float(problem_bytes);
 
-    int output_tiles = tiled_shape.m() * tiled_shape.n();
-    int waves = (output_tiles + avail_sms - 1) / avail_sms;
+    int32_t output_tiles = tiled_shape.m() * tiled_shape.n();
+    int32_t waves = (output_tiles + avail_sms - 1) / avail_sms;
     [[maybe_unused]] float dp_efficiency = float(output_tiles) / float(waves * avail_sms);
 
     //
@@ -454,13 +454,13 @@ struct ThreadblockSwizzleStreamK {
     //
 
     // Start with a DP-only configuration
-    int dp_tiles = output_tiles;    // Number of data-parallel tiles
-    int sk_blocks = 0;              // Number of thread blocks to produce the remaining SK tiles
+    int32_t dp_tiles = output_tiles;    // Number of data-parallel tiles
+    int32_t sk_blocks = 0;              // Number of thread blocks to produce the remaining SK tiles
 
     // Only kGemm mode allows for SK load balancing
     if (mode_ == GemmUniversalMode::kGemm)
     {
-      int split_factor = batch_split_;
+      int32_t split_factor = batch_split_;
       if (split_factor > 1)
       {
         // Split-K override
@@ -489,12 +489,12 @@ struct ThreadblockSwizzleStreamK {
     {
       sk_waves = (sk_blocks + avail_sms - 1) / avail_sms;
 
-      int sk_iters = sk_tiles * iters_per_tile;
+      int32_t sk_iters = sk_tiles * iters_per_tile;
       sk_blocks = fast_min(sk_blocks, sk_iters);
 
       sk_iters_per_normal_block = sk_iters / sk_blocks;
-      int extra_sk_iters = sk_iters - (sk_iters_per_normal_block * sk_blocks);
-      int sk_big_blocks = extra_sk_iters;
+      int32_t extra_sk_iters = sk_iters - (sk_iters_per_normal_block * sk_blocks);
+      int32_t sk_big_blocks = extra_sk_iters;
 
       if ((sk_blocks > sk_tiles) && (sk_blocks % sk_tiles == 0))
       {
@@ -550,17 +550,17 @@ struct ThreadblockSwizzleStreamK {
         (tiled_shape.m() + kCohortCtasM - 1) / kCohortCtasM,
         (tiled_shape.n() + kCohortCtasN - 1) / kCohortCtasN,
         tiled_shape.k());
-    int cohort_blocks = (tiled_cohort_shape.m() * tiled_cohort_shape.n()) * kCtasPerCohort;
+    int32_t cohort_blocks = (tiled_cohort_shape.m() * tiled_cohort_shape.n()) * kCtasPerCohort;
     float cohort_efficiency = float(dp_blocks) / float(cohort_blocks);
 
     // Check if the SK tiles would be in cohorts that are in-bounds
     bool sk_in_range = true;
     if (sk_tiles > 0)
     {
-      int last_sk_tile = sk_tiles - 1;
-      int cohort_tile_idx = last_sk_tile / kCtasPerCohort;
-      int cohort_grid_m = cohort_tile_idx / tiled_cohort_shape.n();
-      int cohort_grid_n = (cohort_grid_m > 0) ?
+      int32_t last_sk_tile = sk_tiles - 1;
+      int32_t cohort_tile_idx = last_sk_tile / kCtasPerCohort;
+      int32_t cohort_grid_m = cohort_tile_idx / tiled_cohort_shape.n();
+      int32_t cohort_grid_n = (cohort_grid_m > 0) ?
         tiled_cohort_shape.n() - 1 :
         cohort_tile_idx % tiled_cohort_shape.n();
 
@@ -584,9 +584,9 @@ struct ThreadblockSwizzleStreamK {
     {
       // Update semi-persistence of first DP wave to ensure full grid wavesets
       // (Only applies when there's an SK component and we're not doing blocked cohort rasterization)
-      int dp_tile_waves = (dp_tiles + avail_sms - 1) / avail_sms;
-      int full_dp_tile_waves = dp_tiles / avail_sms;
-      int waveset_excess = (sk_waves + dp_tile_waves) % sm_occupancy;
+      int32_t dp_tile_waves = (dp_tiles + avail_sms - 1) / avail_sms;
+      int32_t full_dp_tile_waves = dp_tiles / avail_sms;
+      int32_t waveset_excess = (sk_waves + dp_tile_waves) % sm_occupancy;
 
       if (dp_first_wave_tiles + waveset_excess <= full_dp_tile_waves)
       {
@@ -604,15 +604,15 @@ struct ThreadblockSwizzleStreamK {
   }
 
   /// Number of blocks performing useful work
-  int get_num_active_blocks() const
+  int32_t get_num_active_blocks() const
   {
     return (sk_waves * avail_sms) + dp_blocks + reduction_blocks;
   }
 
   /// Obtains number of threadblocks per GEMM
-  int get_num_blocks() const
+  int32_t get_num_blocks() const
   {
-    int active_blocks = get_num_active_blocks();
+    int32_t active_blocks = get_num_active_blocks();
     if (remap_block_indices)
     {
       // Add padding blocks if we are performing remapping in order to dispatch a grid of at least four waves
@@ -636,31 +636,31 @@ struct ThreadblockSwizzleStreamK {
 
   /// Obtains number of threadblocks per GEMM
   CUTLASS_DEVICE
-  int device_num_blocks() const
+  int32_t device_num_blocks() const
   {
     return gridDim.x;
   }
 
   /// Obtains tile index for the given sk iteration
   CUTLASS_DEVICE
-  int get_sk_tile_idx(int iter) const
+  int32_t get_sk_tile_idx(int32_t iter) const
   {
-    int tile_idx = div_mod_iters_per_tile.div(iter);
+    int32_t tile_idx = div_mod_iters_per_tile.div(iter);
     return tile_idx;
   }
 
   /// Obtains the batch index
   CUTLASS_DEVICE
-  int get_batch_idx() const
+  int32_t get_batch_idx() const
   {
     return RematerializeBlockIdxZ();
   }
 
   /// Obtains the calling threadblock's tiled coordinates for the given tile index
   CUTLASS_DEVICE
-  GemmCoord get_tile_offset(int tile_idx) const
+  GemmCoord get_tile_offset(int32_t tile_idx) const
   {
-    int m, n;
+    int32_t m, n;
 
     // row-major raster
     div_mod_tiled_shape_n(m, n, tile_idx);
@@ -674,13 +674,13 @@ struct ThreadblockSwizzleStreamK {
     if (cohort_raster)
     {
       // tiled cohort raster
-      int cohort_tile_idx = tile_idx / kCtasPerCohort;
-      int cohort_grid_m, cohort_grid_n;
+      int32_t cohort_tile_idx = tile_idx / kCtasPerCohort;
+      int32_t cohort_grid_m, cohort_grid_n;
       div_mod_tiled_cohort_shape_n(cohort_grid_m, cohort_grid_n, cohort_tile_idx);
 
-      int block_idx_cohort = tile_idx % kCtasPerCohort;
-      int block_cohort_m = block_idx_cohort / kCohortCtasN;
-      int block_cohort_n = block_idx_cohort % kCohortCtasN;
+      int32_t block_idx_cohort = tile_idx % kCtasPerCohort;
+      int32_t block_cohort_m = block_idx_cohort / kCohortCtasN;
+      int32_t block_cohort_n = block_idx_cohort % kCohortCtasN;
 
       m = (cohort_grid_m * kCohortCtasM) + block_cohort_m;
       n = (cohort_grid_n * kCohortCtasN) + block_cohort_n;
@@ -691,35 +691,35 @@ struct ThreadblockSwizzleStreamK {
 
   /// Obtains the calling threadblock's tiled coordinates for the given tile index (row-major rasterization)
   CUTLASS_DEVICE
-  GemmCoord get_tile_offset_row_major(int tile_idx) const
+  GemmCoord get_tile_offset_row_major(int32_t tile_idx) const
   {
     // row-major raster
-    int m, n;
+    int32_t m, n;
     div_mod_tiled_shape_n(m, n, tile_idx);
     return GemmCoord(m, n, get_batch_idx());
   }
 
   /// Obtains calling threadblock's linear threadblock index
   CUTLASS_DEVICE
-  int get_block_idx() const
+  int32_t get_block_idx() const
   {
-    int block_idx = RematerializeBlockIdxX();
+    int32_t block_idx = RematerializeBlockIdxX();
 
     // Remap the block indices for the first two waves of thread blocks if
     // we have multi-occupancy and the grid constitutes four or more waves
     if (remap_block_indices && (block_idx < avail_sms * 2))
     {
-      int dest_sm = block_idx / 2;
-      int dest_wave = block_idx % 2;
-      int remapped_block_idx = dest_sm + (dest_wave * avail_sms);
+      int32_t dest_sm = block_idx / 2;
+      int32_t dest_wave = block_idx % 2;
+      int32_t remapped_block_idx = dest_sm + (dest_wave * avail_sms);
       block_idx = remapped_block_idx;
     }
 
     // Remap block indices to interleave SK regions to limit intra-region waiting
     if (block_idx < sk_regions() * sk_blocks_per_region())
     {
-      int block_in_region;
-      int region;
+      int32_t block_in_region;
+      int32_t region;
       div_mod_sk_regions(block_in_region, region, block_idx);
       block_idx = (region * sk_blocks_per_region()) + block_in_region;
     }
@@ -730,23 +730,23 @@ struct ThreadblockSwizzleStreamK {
 
   /// Obtains calling linear threadblock index of the first block to work on the given tile
   CUTLASS_DEVICE
-  int get_sk_block_idx(int iter) const
+  int32_t get_sk_block_idx(int32_t iter) const
   {
-    int region_idx;
-    int iter_in_region;
+    int32_t region_idx;
+    int32_t iter_in_region;
     div_mod_sk_iters_per_region(region_idx, iter_in_region, iter);
 
-    int big_block_iters = (sk_big_blocks_per_region * sk_iters_per_normal_block()) + sk_big_blocks_per_region;   // number of iterations in the region's big blocks
-    int normal_block_iters = iter_in_region - big_block_iters;                                                 // number of iterations in the region's normal blocks
+    int32_t big_block_iters = (sk_big_blocks_per_region * sk_iters_per_normal_block()) + sk_big_blocks_per_region;   // number of iterations in the region's big blocks
+    int32_t normal_block_iters = iter_in_region - big_block_iters;                                                 // number of iterations in the region's normal blocks
 
-    int big_block_idx_in_region = div_mod_sk_iters_per_big_block.div(iter_in_region);
-    int normal_block_idx_in_region = sk_big_blocks_per_region + div_mod_sk_iters_per_normal_block.div(normal_block_iters);
+    int32_t big_block_idx_in_region = div_mod_sk_iters_per_big_block.div(iter_in_region);
+    int32_t normal_block_idx_in_region = sk_big_blocks_per_region + div_mod_sk_iters_per_normal_block.div(normal_block_iters);
 
-    int block_idx_in_region = (big_block_idx_in_region < sk_big_blocks_per_region) ?
+    int32_t block_idx_in_region = (big_block_idx_in_region < sk_big_blocks_per_region) ?
         big_block_idx_in_region :
         normal_block_idx_in_region;
 
-    int owning_block_idx = (sk_blocks_per_region() * region_idx) + block_idx_in_region;
+    int32_t owning_block_idx = (sk_blocks_per_region() * region_idx) + block_idx_in_region;
 
     return owning_block_idx;
   }
@@ -754,18 +754,18 @@ struct ThreadblockSwizzleStreamK {
   /// Obtains iteration extends for the given SK block index
   CUTLASS_DEVICE
   void get_iter_extents(
-      int sk_block_idx,
-      int &block_iter_begin,
-      int &block_iter_end) const
+      int32_t sk_block_idx,
+      int32_t &block_iter_begin,
+      int32_t &block_iter_end) const
   {
-    int region_idx;
-    int block_idx_in_region;
+    int32_t region_idx;
+    int32_t block_idx_in_region;
     div_mod_sk_blocks_per_region(region_idx, block_idx_in_region, sk_block_idx);
 
     block_iter_begin = (region_idx * sk_iters_per_region) + (block_idx_in_region * sk_iters_per_normal_block());
 
     // Adjust extents for the first "num_big_blocks" blocks that get one extra iteration
-    int block_iters = sk_iters_per_normal_block();
+    int32_t block_iters = sk_iters_per_normal_block();
     if (block_idx_in_region < sk_big_blocks_per_region) {
       // This is a +1 iteration block
       block_iter_begin += block_idx_in_region;
@@ -780,14 +780,14 @@ struct ThreadblockSwizzleStreamK {
 
   /// Obtains calling linear threadblock index of the first block to work on the given tile
   CUTLASS_DEVICE
-  int get_first_block_idx(int tile_idx, int block_idx) const
+  int32_t get_first_block_idx(int32_t tile_idx, int32_t block_idx) const
   {
     if (tile_idx >= sk_tiles) {
       // DP tile
       return block_idx;
     }
 
-    int iter = tile_idx * iters_per_tile();
+    int32_t iter = tile_idx * iters_per_tile();
     return get_sk_block_idx(iter);
   }
 

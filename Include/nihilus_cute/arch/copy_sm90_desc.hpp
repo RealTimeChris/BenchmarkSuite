@@ -62,7 +62,7 @@ namespace nihilus_cute
 CUTE_HOST_DEVICE
 void
 initialize_barrier(uint64_t& smem_barrier,                 // 64 bits user-manged barrier in smem
-                   int thread_count = 1)                   // Thread count expected to arrive/wait on this barrier
+                   int32_t thread_count = 1)                   // Thread count expected to arrive/wait on this barrier
 {
 #if defined(CUTE_ARCH_TMA_SM90_ENABLED)
   uint32_t smem_int_ptr = cast_smem_ptr_to_uint(&smem_barrier);
@@ -90,7 +90,7 @@ set_barrier_transaction_bytes(uint64_t& smem_barrier,      // 64 bits user-mange
 CUTE_HOST_DEVICE
 void
 wait_barrier(uint64_t& smem_barrier,                       // 64 bits user-manged barrier in smem
-             int phase_bit)                                // Current phase bit the barrier waiting to flip
+             int32_t phase_bit)                                // Current phase bit the barrier waiting to flip
 {
 #if defined(CUTE_ARCH_TMA_SM90_ENABLED)
   uint32_t smem_int_ptr = cast_smem_ptr_to_uint(&smem_barrier);

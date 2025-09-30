@@ -63,7 +63,7 @@ template <
     /// Operator describing the tensor operation
     typename Operator_ = arch::OpMultiplyAdd,
     /// Number of partitions along K dimension
-    int PartitionsK = 1,
+    int32_t PartitionsK = 1,
     /// Store the accumulators in row major or column major.  Row major is used
     /// when output layout is interleaved.
     bool AccumulatorsInRowMajor = false>
@@ -92,7 +92,7 @@ template <
     /// Operator describing the tensor operation
     typename Operator_,
     /// Number of partitions along K dimension
-    int PartitionsK,
+    int32_t PartitionsK,
     /// Store the accumulators in row major or column major.  Row major is used
     /// when output layout is interleaved.
     bool AccumulatorsInRowMajor>

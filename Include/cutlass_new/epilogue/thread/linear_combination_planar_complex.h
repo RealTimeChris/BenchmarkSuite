@@ -58,7 +58,7 @@ namespace thread {
 /// the underlying real data type.
 template <
   typename ElementOutput_,                             ///< Data type used to load and store tensors
-  int Count,                                           ///< Number of elements computed per operation
+  int32_t Count,                                           ///< Number of elements computed per operation
                                                        ///< Usually it is 128/sizeof_bits<ElementOutput_>,
                                                        ///< but we use 64 or 32 sometimes when there are not enough data to store
   typename ElementAccumulator_ = ElementOutput_,       ///< Accumulator data type
@@ -74,7 +74,7 @@ public:
   using ElementCompute = ElementCompute_;
   using ElementScalar = complex<ElementCompute>;
 
-  static constexpr int kCount = Count;
+  static constexpr int32_t kCount = Count;
   static const ScaleType::Kind kScale = Scale;
 
   using FragmentOutput = ArrayPlanarComplex<ElementOutput, kCount>;
@@ -140,7 +140,7 @@ public:
 
   /// Functionally required for serial reduction in the epilogue
   CUTLASS_HOST_DEVICE
-  void set_k_partition(int k_partition, int k_partition_count) {
+  void set_k_partition(int32_t k_partition, int32_t k_partition_count) {
     if (k_partition) {
       beta_ = ElementCompute(1);
     }

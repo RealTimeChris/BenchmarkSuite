@@ -46,10 +46,10 @@ namespace cutlass {
 /// Statically sized array for any data type
 template <
   typename T,
-  int N
+  int32_t N
 >
 struct Array<T, N, false> {
-  static constexpr int kSizeBits = sizeof_bits<T>::value * N;
+  static constexpr int32_t kSizeBits = sizeof_bits<T>::value * N;
 
   /// Storage type
   using Storage = typename platform::conditional<
@@ -66,7 +66,7 @@ struct Array<T, N, false> {
   using Element = T;
 
   /// Number of logical elements per stored object
-  static constexpr int kElementsPerStoredItem = int(sizeof(Storage) * 8) / sizeof_bits<T>::value;
+  static constexpr int32_t kElementsPerStoredItem = int32_t(sizeof(Storage) * 8) / sizeof_bits<T>::value;
 
   /// Number of storage elements
   static constexpr size_t kStorageElements = (N + kElementsPerStoredItem - 1) / kElementsPerStoredItem;
@@ -97,7 +97,7 @@ struct Array<T, N, false> {
     Storage *ptr_{nullptr};
 
     /// Index into elements packed into Storage object
-    int idx_{0};
+    int32_t idx_{0};
 
   public:
 
@@ -105,7 +105,7 @@ struct Array<T, N, false> {
 
     /// Ctor
     CUTLASS_HOST_DEVICE
-    reference(Storage *ptr, int idx = 0): ptr_(ptr), idx_(idx) { }
+    reference(Storage *ptr, int32_t idx = 0): ptr_(ptr), idx_(idx) { }
 
     /// Assignment
     CUTLASS_HOST_DEVICE
@@ -157,10 +157,10 @@ struct Array<T, N, false> {
       return get();
     }
 
-    /// Explicit cast to int
+    /// Explicit cast to int32_t
     CUTLASS_HOST_DEVICE
-    explicit operator int() const {
-      return int(get());
+    explicit operator int32_t() const {
+      return int32_t(get());
     }
 
     /// Explicit cast to float
@@ -177,7 +177,7 @@ struct Array<T, N, false> {
     Storage const *ptr_{nullptr};
 
     /// Index into elements packed into Storage object
-    int idx_{0};
+    int32_t idx_{0};
 
   public:
 
@@ -185,7 +185,7 @@ struct Array<T, N, false> {
 
     /// Ctor
     CUTLASS_HOST_DEVICE
-    const_reference(Storage const *ptr, int idx = 0): ptr_(ptr), idx_(idx) { }
+    const_reference(Storage const *ptr, int32_t idx = 0): ptr_(ptr), idx_(idx) { }
 
     CUTLASS_HOST_DEVICE
     const T get() const {
@@ -200,10 +200,10 @@ struct Array<T, N, false> {
       return reinterpret_cast<T const &>(item);
     }
 
-    /// Explicit cast to int
+    /// Explicit cast to int32_t
     CUTLASS_HOST_DEVICE
-    explicit operator int() const {
-      return int(get());
+    explicit operator int32_t() const {
+      return int32_t(get());
     }
 
     /// Explicit cast to float
@@ -224,14 +224,14 @@ struct Array<T, N, false> {
     Storage *ptr_{nullptr};
 
     /// Index into elements packed into Storage object
-    int idx_{0};
+    int32_t idx_{0};
 
   public:
 
     iterator() = default;
 
     CUTLASS_HOST_DEVICE
-    iterator(Storage *ptr, int idx = 0): ptr_(ptr), idx_(idx) { }
+    iterator(Storage *ptr, int32_t idx = 0): ptr_(ptr), idx_(idx) { }
 
     CUTLASS_HOST_DEVICE
     iterator &operator++() {
@@ -256,7 +256,7 @@ struct Array<T, N, false> {
     }
 
     CUTLASS_HOST_DEVICE
-    iterator operator++(int) {
+    iterator operator++(int32_t) {
       iterator ret(*this);
       ++idx_;
       if (idx_ == kElementsPerStoredItem) {
@@ -267,7 +267,7 @@ struct Array<T, N, false> {
     }
 
     CUTLASS_HOST_DEVICE
-    iterator operator--(int) {
+    iterator operator--(int32_t) {
       iterator ret(*this);
       if (!idx_) {
         --ptr_;
@@ -302,14 +302,14 @@ struct Array<T, N, false> {
     Storage const *ptr_{nullptr};
 
     /// Index into elements packed into Storage object
-    int idx_{0};
+    int32_t idx_{0};
 
   public:
 
     const_iterator() = default;
 
     CUTLASS_HOST_DEVICE
-    const_iterator(Storage const *ptr, int idx = 0): ptr_(ptr), idx_(idx) { }
+    const_iterator(Storage const *ptr, int32_t idx = 0): ptr_(ptr), idx_(idx) { }
 
     CUTLASS_HOST_DEVICE
     iterator &operator++() {
@@ -334,7 +334,7 @@ struct Array<T, N, false> {
     }
 
     CUTLASS_HOST_DEVICE
-    iterator operator++(int) {
+    iterator operator++(int32_t) {
       iterator ret(*this);
       ++idx_;
       if (idx_ == kElementsPerStoredItem) {
@@ -345,7 +345,7 @@ struct Array<T, N, false> {
     }
 
     CUTLASS_HOST_DEVICE
-    iterator operator--(int) {
+    iterator operator--(int32_t) {
       iterator ret(*this);
       if (!idx_) {
         --ptr_;
@@ -380,14 +380,14 @@ struct Array<T, N, false> {
     Storage *ptr_{nullptr};
 
     /// Index into elements packed into Storage object
-    int idx_{0};
+    int32_t idx_{0};
 
   public:
 
     reverse_iterator() = default;
 
     CUTLASS_HOST_DEVICE
-    reverse_iterator(Storage *ptr, int idx = 0): ptr_(ptr), idx_(idx) { }
+    reverse_iterator(Storage *ptr, int32_t idx = 0): ptr_(ptr), idx_(idx) { }
   };
 
   /// Bidirectional constant iterator over elements
@@ -397,14 +397,14 @@ struct Array<T, N, false> {
     Storage const *ptr_{nullptr};
 
     /// Index into elements packed into Storage object
-    int idx_{0};
+    int32_t idx_{0};
 
   public:
 
     const_reverse_iterator() = default;
 
     CUTLASS_HOST_DEVICE
-    const_reverse_iterator(Storage const *ptr, int idx = 0): ptr_(ptr), idx_(idx) { }
+    const_reverse_iterator(Storage const *ptr, int32_t idx = 0): ptr_(ptr), idx_(idx) { }
   };
 
   /// Efficient clear method
@@ -412,7 +412,7 @@ struct Array<T, N, false> {
   void clear() {
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < int(kStorageElements); ++i) {
+    for (int32_t i = 0; i < int32_t(kStorageElements); ++i) {
       storage[i] = Storage(0);
     }
   }
@@ -496,13 +496,13 @@ struct Array<T, N, false> {
   void fill(T const &value) {
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < kElementsPerStoredItem; ++i) {
+    for (int32_t i = 0; i < kElementsPerStoredItem; ++i) {
       reference ref(storage, i);
       ref = value;
     }
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 1; i < kStorageElements; ++i) {
+    for (int32_t i = 1; i < kStorageElements; ++i) {
       storage[i] = storage[0];
     }
   }

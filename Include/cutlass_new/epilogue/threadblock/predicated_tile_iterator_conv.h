@@ -75,7 +75,7 @@ template <
   bool ScatterD = false,     ///< Scatter D operand or not
   typename PermuteDLayout = layout::NoPermute, ///< Permute D operand or not
   bool UseCUDAStore = false,
-  int Rank = 4
+  int32_t Rank = 4
 >
 class PredicatedTileIteratorConv {
 public:
@@ -84,13 +84,13 @@ public:
 
   using Element = Element_;
 
-  static constexpr int kRank = Rank;
+  static constexpr int32_t kRank = Rank;
   using Layout = typename platform::conditional<kRank == 4,
                                        layout::TensorNHWC,
                                        layout::TensorNDHWC>::type;
 
   using Stride = typename Layout::Stride;
-  static constexpr int kStrideRank = Layout::kStrideRank;
+  static constexpr int32_t kStrideRank = Layout::kStrideRank;
 
   using TensorRef = TensorRef<Element, Layout>;
   using ConstTensorRef = typename TensorRef::ConstTensorRef;
@@ -100,9 +100,9 @@ public:
   using LongIndex = typename MappedLayout::LongIndex;
   using TensorCoord = typename MappedLayout::TensorCoord;
 
-  static constexpr int kElementsPerAccess = ThreadMap::kElementsPerAccess;
-  static constexpr int kThreads = ThreadMap::kThreads;
-  static constexpr int kIterations = ThreadMap::Count::kTile;
+  static constexpr int32_t kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static constexpr int32_t kThreads = ThreadMap::kThreads;
+  static constexpr int32_t kIterations = ThreadMap::Count::kTile;
 
   static bool constexpr PermuteD = !layout::is_trivial_permute<PermuteDLayout>;
 
@@ -140,14 +140,14 @@ public:
     CUTLASS_HOST_DEVICE
     Params(Layout const &layout, cutlass::Tensor4DCoord const &tensor_extent):
       PredicatedTileIteratorParams(
-        layout.stride()[0] * int(sizeof(AccessType)) / kElementsPerAccess,
+        layout.stride()[0] * int32_t(sizeof(AccessType)) / kElementsPerAccess,
         make_OutputTileThreadMapDesc<ThreadMap>()
       ) {
       divmod[0] = FastDivmod(tensor_extent[2] /* Q for Fprop & W for Deconv*/);
       divmod[1] = FastDivmod(tensor_extent[1] /* P for Fprop & H for Deconv*/);
 
       CUTLASS_PRAGMA_UNROLL
-      for (int i = 0; i < kStrideRank; ++i) {
+      for (int32_t i = 0; i < kStrideRank; ++i) {
         tensor_stride[i] = layout.stride()[i];
       }
     }
@@ -155,7 +155,7 @@ public:
     CUTLASS_HOST_DEVICE
     Params(Layout const &layout, cutlass::Tensor5DCoord const &tensor_extent):
       PredicatedTileIteratorParams(
-        layout.stride()[0] * int(sizeof(AccessType)) / kElementsPerAccess,
+        layout.stride()[0] * int32_t(sizeof(AccessType)) / kElementsPerAccess,
         make_OutputTileThreadMapDesc<ThreadMap>()
       ) {
       divmod[0] = FastDivmod(tensor_extent[3] /* Q for Fprop & W for Deconv*/);
@@ -163,7 +163,7 @@ public:
       divmod[2] = FastDivmod(tensor_extent[1] /* Z for Fprop & D for Deconv*/);
 
       CUTLASS_PRAGMA_UNROLL
-      for (int i = 0; i < kStrideRank; ++i) {
+      for (int32_t i = 0; i < kStrideRank; ++i) {
         tensor_stride[i] = layout.stride()[i];
       }
     }
@@ -176,7 +176,7 @@ public:
   /// Mask object
   struct Mask {
 
-    static constexpr int kCount = ThreadMap::Iterations::kColumn;
+    static constexpr int32_t kCount = ThreadMap::Iterations::kColumn;
 
     /// Predicate state
     bool predicates[kCount];
@@ -192,7 +192,7 @@ public:
     ///< Efficiently disables all accesses guarded by mask
     CUTLASS_HOST_DEVICE void clear() {
       CUTLASS_PRAGMA_UNROLL
-      for (int i = 0; i < kCount; ++i) {
+      for (int32_t i = 0; i < kCount; ++i) {
         predicates[i] = false;
       }
     }
@@ -200,7 +200,7 @@ public:
     ///< CUTLASS_HOST_DEVICE enables all accesses guarded by mask
     CUTLASS_DEVICE void enable() {
       CUTLASS_PRAGMA_UNROLL
-      for (int i = 0; i < kCount; ++i) {
+      for (int32_t i = 0; i < kCount; ++i) {
         predicates[i] = true;
       }
     }
@@ -234,7 +234,7 @@ private:
   Index thread_start_column_;
 
   /// Internal state counter
-  int state_[3];
+  int32_t state_[3];
 
   //
   // Static asserts about internal strides
@@ -262,7 +262,7 @@ public:
     Params const & params,
     Element *pointer,
     TensorCoord extent,
-    int thread_idx,
+    int32_t thread_idx,
     TensorCoord threadblock_offset = TensorCoord()
   ):
     params_(params)
@@ -278,7 +278,7 @@ public:
 
     // Initialize predicates
     CUTLASS_PRAGMA_UNROLL
-    for (int c = 0; c < ThreadMap::Iterations::kColumn; ++c) {
+    for (int32_t c = 0; c < ThreadMap::Iterations::kColumn; ++c) {
 
       mask_.predicates[c] = ((thread_offset.column()
         + ThreadMap::Delta::kColumn * c) < extent.column());
@@ -311,18 +311,18 @@ public:
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int cluster = 0; cluster < ThreadMap::Iterations::kCluster; ++cluster) {
+    for (int32_t cluster = 0; cluster < ThreadMap::Iterations::kCluster; ++cluster) {
 
       CUTLASS_PRAGMA_UNROLL
-      for (int group = 0; group < ThreadMap::Iterations::kGroup; ++group) {
+      for (int32_t group = 0; group < ThreadMap::Iterations::kGroup; ++group) {
 
         CUTLASS_PRAGMA_UNROLL
-        for (int row = 0; row < ThreadMap::Iterations::kRow; ++row) {
+        for (int32_t row = 0; row < ThreadMap::Iterations::kRow; ++row) {
 
-          int frag_row_idx =
+          int32_t frag_row_idx =
             (row + ThreadMap::Iterations::kRow * (group + ThreadMap::Iterations::kGroup * cluster));
 
-          int row_offset = row * ThreadMap::Delta::kRow
+          int32_t row_offset = row * ThreadMap::Delta::kRow
             + group * ThreadMap::Delta::kGroup
             + cluster * ThreadMap::Delta::kCluster;
 
@@ -335,7 +335,7 @@ public:
           LongIndex tensor_offset = dot(tensor_coord, params_.tensor_stride);
 
           CUTLASS_PRAGMA_UNROLL
-          for (int column = 0; column < ThreadMap::Iterations::kColumn; ++column) {
+          for (int32_t column = 0; column < ThreadMap::Iterations::kColumn; ++column) {
 
             bool guard = row_guard && mask_.predicates[column];
 
@@ -368,18 +368,18 @@ public:
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int cluster = 0; cluster < ThreadMap::Iterations::kCluster; ++cluster) {
+    for (int32_t cluster = 0; cluster < ThreadMap::Iterations::kCluster; ++cluster) {
 
       CUTLASS_PRAGMA_UNROLL
-      for (int group = 0; group < ThreadMap::Iterations::kGroup; ++group) {
+      for (int32_t group = 0; group < ThreadMap::Iterations::kGroup; ++group) {
 
         CUTLASS_PRAGMA_UNROLL
-        for (int row = 0; row < ThreadMap::Iterations::kRow; ++row) {
+        for (int32_t row = 0; row < ThreadMap::Iterations::kRow; ++row) {
 
-          int frag_row_idx =
+          int32_t frag_row_idx =
             (row + ThreadMap::Iterations::kRow * (group + ThreadMap::Iterations::kGroup * cluster));
 
-          int row_offset = row * ThreadMap::Delta::kRow
+          int32_t row_offset = row * ThreadMap::Delta::kRow
             + group * ThreadMap::Delta::kGroup
             + cluster * ThreadMap::Delta::kCluster;
 
@@ -392,7 +392,7 @@ public:
           AccessType *memory_pointer = reinterpret_cast<AccessType *>(byte_pointer + byte_offset);
 
           CUTLASS_PRAGMA_UNROLL
-          for (int column = 0; column < ThreadMap::Iterations::kColumn; ++column) {
+          for (int32_t column = 0; column < ThreadMap::Iterations::kColumn; ++column) {
 
             bool guard = row_guard && mask_.predicates[column];
 
@@ -489,18 +489,18 @@ public:
 
   /// Advances a number of positions to load or store
   CUTLASS_HOST_DEVICE
-  PredicatedTileIteratorConv &operator+=(int increment)
+  PredicatedTileIteratorConv &operator+=(int32_t increment)
   {
     // Row
     state_[0] += increment;
-    int increment_row = state_[0] / ThreadMap::Count::kRow;
+    int32_t increment_row = state_[0] / ThreadMap::Count::kRow;
     state_[0] = state_[0] % ThreadMap::Count::kRow;
 
     thread_start_row_ += (ThreadMap::Shape::kRow * increment);
 
     // Group
     state_[1] += increment_row;
-    int increment_group = state_[1] / ThreadMap::Count::kGroup;
+    int32_t increment_group = state_[1] / ThreadMap::Count::kGroup;
     state_[1] = state_[1] % ThreadMap::Count::kGroup;
 
     thread_start_row_ +=
@@ -511,7 +511,7 @@ public:
 
     // Cluster
     state_[2] += increment_group;
-    int increment_cluster = state_[2] / ThreadMap::Count::kCluster;
+    int32_t increment_cluster = state_[2] / ThreadMap::Count::kCluster;
     state_[2] = state_[2] % ThreadMap::Count::kCluster;
 
     thread_start_row_ +=

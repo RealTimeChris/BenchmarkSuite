@@ -94,18 +94,18 @@ template<class T> struct IsEpilogueFunctorHeavy<T, TypeSinkT< decltype( T::kIsHe
 template <
   typename Shape_,                          ///< Shape of threadblock tile (concept: GemmShape)
   typename WarpShape_,                      ///< Warp-level MMA operator (concept: gemm::warp::MmaTensorOp)
-  int PartitionsK,                          ///< Number of partitions of the K dimension
+  int32_t PartitionsK,                          ///< Number of partitions of the K dimension
   typename AccumulatorFragmentIterator_,    ///< Fragment iterator selecting accumulators
   typename WarpTileIterator_,               ///< Warp-scoped tile iterator writing accumulators to SMEM
   typename Padding_,                        ///< Padding added to SMEM allocation to avoid bank conflicts (concept: MatrixShape)
-  int FragmentsPerIteration = 1
+  int32_t FragmentsPerIteration = 1
 >
 class EpilogueBase {
 public:
 
   using Shape = Shape_;
   using WarpShape = WarpShape_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static constexpr int32_t kPartitionsK = PartitionsK;
   using AccumulatorFragmentIterator = AccumulatorFragmentIterator_;
   using WarpTileIterator = WarpTileIterator_;
   using Padding = Padding_;
@@ -127,7 +127,7 @@ public:
   >;
 
   /// Use this to control the granularity of one epilogue 'iteration'
-  static constexpr int kFragmentsPerIteration = FragmentsPerIteration;
+  static constexpr int32_t kFragmentsPerIteration = FragmentsPerIteration;
 
 public:
 
@@ -201,9 +201,9 @@ public:
   CUTLASS_DEVICE
   EpilogueBase(
     SharedStorage &shared_storage,    ///< Shared storage object    
-    int thread_idx,                   ///< ID of a thread within the threadblock
-    int warp_idx,                     ///< ID of warp within threadblock
-    int lane_idx                      ///< Id of thread within warp
+    int32_t thread_idx,                   ///< ID of a thread within the threadblock
+    int32_t warp_idx,                     ///< ID of warp within threadblock
+    int32_t lane_idx                      ///< Id of thread within warp
   ):
     shared_storage_(shared_storage),
     warp_tile_iterator_(shared_storage.reference(), lane_idx) {
@@ -214,10 +214,10 @@ public:
     //   _n: the warp's position within the threadblock along the N dimension
     //   _k: the warp's position within the threadblock along the K dimension
 
-    int warp_k = warp_idx / (WarpCount::kM * WarpCount::kN);
-    int warp_mn = warp_idx % (WarpCount::kM * WarpCount::kN);
-    int warp_m = warp_mn % WarpCount::kM;
-    int warp_n = warp_mn / WarpCount::kM;
+    int32_t warp_k = warp_idx / (WarpCount::kM * WarpCount::kN);
+    int32_t warp_mn = warp_idx % (WarpCount::kM * WarpCount::kN);
+    int32_t warp_m = warp_mn % WarpCount::kM;
+    int32_t warp_n = warp_mn / WarpCount::kM;
 
     MatrixCoord warp_offset{warp_k * WarpCount::kM + warp_m, warp_n};
 

@@ -42,13 +42,13 @@ namespace cutlass {
 
 /// Describes the size of a matrix tile
 template <
-  int Row_,     ///< rows of a matrix
-  int Column_      ///< columns of a matrix
+  int32_t Row_,     ///< rows of a matrix
+  int32_t Column_      ///< columns of a matrix
 >
 struct MatrixShape {
-  static constexpr int kRow = Row_;           ///< rows of a matrix
-  static constexpr int kColumn = Column_;           ///< columns of a matrix
-  static constexpr int kCount = Row_ * Column_;  ///< total number of elements in a matrix
+  static constexpr int32_t kRow = Row_;           ///< rows of a matrix
+  static constexpr int32_t kColumn = Column_;           ///< columns of a matrix
+  static constexpr int32_t kCount = Row_ * Column_;  ///< total number of elements in a matrix
 
   //
   // Static member functions

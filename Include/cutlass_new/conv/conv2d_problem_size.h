@@ -64,15 +64,15 @@ namespace conv {
 struct Conv2dProblemSize {
 
   // Conv2d strictly problem size parameters
-  int N, H, W, C, P, Q, K, R, S;
-  int pad_h, pad_w;
-  int stride_h, stride_w;
-  int dilation_h, dilation_w;
+  int32_t N, H, W, C, P, Q, K, R, S;
+  int32_t pad_h, pad_w;
+  int32_t stride_h, stride_w;
+  int32_t dilation_h, dilation_w;
   Mode mode;
 
   // Conv2d implementation-related parameters 
-  int split_k_slices;
-  int groups;
+  int32_t split_k_slices;
+  int32_t groups;
 
   //
   // Methods
@@ -88,15 +88,15 @@ public:
   /// Constructor for default padding, stride, dilation, and split-K
   CUTLASS_HOST_DEVICE
   Conv2dProblemSize(
-    int N,
-    int H,
-    int W,
-    int C,
-    int P,
-    int Q,
-    int K,
-    int R,
-    int S,
+    int32_t N,
+    int32_t H,
+    int32_t W,
+    int32_t C,
+    int32_t P,
+    int32_t Q,
+    int32_t K,
+    int32_t R,
+    int32_t S,
     Mode mode
   ): 
     N(N), H(H), W(W), C(C), P(P), Q(Q), K(K), R(R), S(S),
@@ -106,24 +106,24 @@ public:
   /// Constructor
   CUTLASS_HOST_DEVICE
   Conv2dProblemSize(
-    int N,
-    int H,
-    int W,
-    int C,
-    int K,
-    int R,
-    int S,
-    int P,
-    int Q,
-    int pad_h,
-    int pad_w,
-    int stride_h,
-    int stride_w,
-    int dilation_h,
-    int dilation_w,
+    int32_t N,
+    int32_t H,
+    int32_t W,
+    int32_t C,
+    int32_t K,
+    int32_t R,
+    int32_t S,
+    int32_t P,
+    int32_t Q,
+    int32_t pad_h,
+    int32_t pad_w,
+    int32_t stride_h,
+    int32_t stride_w,
+    int32_t dilation_h,
+    int32_t dilation_w,
     Mode mode,
-    int split_k_slices = 1,
-    int groups = 1
+    int32_t split_k_slices = 1,
+    int32_t groups = 1
   ):
     N(N), H(H), W(W), C(C), P(P), Q(Q), K(K), R(R), S(S),
     pad_h(pad_h), pad_w(pad_w), stride_h(stride_h), stride_w(stride_w),
@@ -141,8 +141,8 @@ public:
     cutlass::MatrixCoord dilation,        // dilation_h, dilation_w
     cutlass::Tensor4DCoord output_size,   // NPQK
     cutlass::conv::Mode mode = cutlass::conv::Mode::kCrossCorrelation,
-    int split_k_slices = 1,
-    int groups = 1
+    int32_t split_k_slices = 1,
+    int32_t groups = 1
   ):
     N(input_size.n()), H(input_size.h()), W(input_size.w()), C(input_size.c()),
     P(output_size.h()), Q(output_size.w()),
@@ -162,8 +162,8 @@ public:
     cutlass::MatrixCoord stride,         // stride_h, stride_w
     cutlass::MatrixCoord dilation,       // dilation_h, dilation_w
     cutlass::conv::Mode mode = cutlass::conv::Mode::kCrossCorrelation,
-    int split_k_slices = 1,
-    int groups = 1
+    int32_t split_k_slices = 1,
+    int32_t groups = 1
   ):
     N(input_size.n()), H(input_size.h()), W(input_size.w()), C(input_size.c()),
     K(filter_size.n()), R(filter_size.h()), S(filter_size.w()),
@@ -184,8 +184,8 @@ public:
     cutlass::Tensor4DCoord filter_size,   // KRSC
     cutlass::Tensor4DCoord output_size,   // NPQK
     cutlass::conv::Mode mode = cutlass::conv::Mode::kCrossCorrelation,
-    int split_k_slices = 1,
-    int groups = 1
+    int32_t split_k_slices = 1,
+    int32_t groups = 1
   ):
     N(input_size.n()), H(input_size.h()), W(input_size.w()), C(input_size.c()),
     P(output_size.h()), Q(output_size.w()),
@@ -204,7 +204,7 @@ public:
 
   // Reset covolution mode in the problem
   CUTLASS_HOST_DEVICE
-  Conv2dProblemSize reset_split_k_slices(int split_k_slices_) {
+  Conv2dProblemSize reset_split_k_slices(int32_t split_k_slices_) {
     Conv2dProblemSize tmp(*this);
     tmp.split_k_slices = split_k_slices_; 
     return tmp; 
@@ -302,19 +302,19 @@ public:
   /////////////////////////////////////////////////////////////////
   /// Number of filter r positions to accumulate in gemm-k dim
   CUTLASS_HOST_DEVICE
-  int num_gemm_k_filter_r(int r) const {
+  int32_t num_gemm_k_filter_r(int32_t r) const {
     return ((R - r + stride_h - 1) / stride_h);
   }
 
   /// Number of filter s positions to accumulate in gemm-k dim
   CUTLASS_HOST_DEVICE
-  int num_gemm_k_filter_s(int s) const {
+  int32_t num_gemm_k_filter_s(int32_t s) const {
     return ((S - s + stride_w - 1) / stride_w);
   }
 
   /// Number of filter positions to accumulate in gemm-k dim
   CUTLASS_HOST_DEVICE
-  int num_gemm_k_filter_positions(int r, int s) const {
+  int32_t num_gemm_k_filter_positions(int32_t r, int32_t s) const {
     return num_gemm_k_filter_r(r) * num_gemm_k_filter_s(s);
   }
 };
@@ -357,21 +357,21 @@ cutlass::gemm::GemmCoord implicit_gemm_problem_size(
 
 // Determine the number of gemm_k iterations for conv2d problem using implicit gemm algorithm
 CUTLASS_HOST_DEVICE
-int implicit_gemm_k_iterations(
+int32_t implicit_gemm_k_iterations(
   Operator conv_operator, 
-  int threadblock_K, 
+  int32_t threadblock_K, 
   Conv2dProblemSize const &problem_size,
   IteratorAlgorithm algorithm = IteratorAlgorithm::kAnalytic,
   GroupMode group_mode = GroupMode::kNone,
-  int threadblock_N = 0) {
+  int32_t threadblock_N = 0) {
 
-  int iterations = 0;
+  int32_t iterations = 0;
 
   if (group_mode == GroupMode::kNone) {
 
     if (algorithm == IteratorAlgorithm::kFixedChannels) {
 
-      int positions_per_iteration = threadblock_K / problem_size.C;
+      int32_t positions_per_iteration = threadblock_K / problem_size.C;
       switch (conv_operator) {
       case Operator::kFprop:
         iterations = (problem_size.R * problem_size.S + positions_per_iteration - 1 ) / positions_per_iteration;
@@ -393,7 +393,7 @@ int implicit_gemm_k_iterations(
       }
     }
     else {
-      int elements_per_split_k_slice = 0;
+      int32_t elements_per_split_k_slice = 0;
 
       switch (conv_operator) {
       case Operator::kFprop:
@@ -418,7 +418,7 @@ int implicit_gemm_k_iterations(
     }
 
   } else if (group_mode == GroupMode::kDepthwise) {
-    int channels_per_cta = threadblock_N;
+    int32_t channels_per_cta = threadblock_N;
 
     if (algorithm == IteratorAlgorithm::kAnalytic) {
       switch (conv_operator) {
@@ -433,8 +433,8 @@ int implicit_gemm_k_iterations(
     }
   } else {  // Group conv
 
-    int channels_per_group = problem_size.C / problem_size.groups;
-    int k_per_group = problem_size.K / problem_size.groups;
+    int32_t channels_per_group = problem_size.C / problem_size.groups;
+    int32_t k_per_group = problem_size.K / problem_size.groups;
 
     if (algorithm == IteratorAlgorithm::kAnalytic) {
       switch (conv_operator) {
@@ -471,32 +471,32 @@ int implicit_gemm_k_iterations(
 }
 
 
-template <int N = 1, int Output_P = 1, int Output_Q = 1>
+template <int32_t N = 1, int32_t Output_P = 1, int32_t Output_Q = 1>
 CUTLASS_HOST_DEVICE
-int depthwise_gemm_k_iterations(
+int32_t depthwise_gemm_k_iterations(
   Operator conv_operator, 
-  int threadblock_K, 
+  int32_t threadblock_K, 
   Conv2dProblemSize const &problem_size,
   IteratorAlgorithm algorithm = IteratorAlgorithm::kAnalytic,
   GroupMode group_mode = GroupMode::kNone,
-  int threadblock_N = 0) {
+  int32_t threadblock_N = 0) {
 
-    int n =  problem_size.N;
-    int p = (problem_size.P + Output_P - 1) /  Output_P;
-    int q = (problem_size.Q + Output_Q - 1) /  Output_Q;
+    int32_t n =  problem_size.N;
+    int32_t p = (problem_size.P + Output_P - 1) /  Output_P;
+    int32_t q = (problem_size.Q + Output_Q - 1) /  Output_Q;
 
-    int iterations = (n * p * q + problem_size.split_k_slices - 1) / problem_size.split_k_slices;
+    int32_t iterations = (n * p * q + problem_size.split_k_slices - 1) / problem_size.split_k_slices;
     return iterations;
 }
 
 
 CUTLASS_HOST_DEVICE
-int implicit_gemm_k_iterations_per_channel(
+int32_t implicit_gemm_k_iterations_per_channel(
     Operator conv_operator,
     Conv2dProblemSize const &problem_size,
     IteratorAlgorithm algorithm = IteratorAlgorithm::kAnalytic) {
 
-  int iterations = 0; //0 means not applicable
+  int32_t iterations = 0; //0 means not applicable
   if (algorithm == IteratorAlgorithm::kAnalytic || algorithm == IteratorAlgorithm::kOptimized) {
     switch (conv_operator) {
       case Operator::kFprop:
@@ -615,17 +615,17 @@ int64_t implicit_gemm_tensor_c_size(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Returns number of CTAs tile M to cover valid MMAs per starting filter postion
 CUTLASS_HOST_DEVICE
-int strided_dgrad_tile_m_per_filter(
+int32_t strided_dgrad_tile_m_per_filter(
   Conv2dProblemSize const &problem_size,
-  int tile_size_m) {
+  int32_t tile_size_m) {
 
   // Compute NHW rows in Dx output that needs MMA per starting filter position
-  int rows_h_per_filter = (problem_size.H + problem_size.stride_h - 1) / problem_size.stride_h;
-  int rows_w_per_filter = (problem_size.W + problem_size.stride_w - 1) / problem_size.stride_w;
-  int rows_nhw_per_filter = problem_size.N * rows_h_per_filter * rows_w_per_filter;
+  int32_t rows_h_per_filter = (problem_size.H + problem_size.stride_h - 1) / problem_size.stride_h;
+  int32_t rows_w_per_filter = (problem_size.W + problem_size.stride_w - 1) / problem_size.stride_w;
+  int32_t rows_nhw_per_filter = problem_size.N * rows_h_per_filter * rows_w_per_filter;
 
   // Number of CTAs tile M to cover valid MMAs per starting filter postion
-  int tile_m_per_filter = (rows_nhw_per_filter + tile_size_m - 1) / tile_size_m;
+  int32_t tile_m_per_filter = (rows_nhw_per_filter + tile_size_m - 1) / tile_size_m;
 
   return tile_m_per_filter;
 }
@@ -635,20 +635,20 @@ CUTLASS_HOST_DEVICE
 void strided_dgrad_starting_coords(
   Conv2dProblemSize const &problem_size,
   FastDivmod const &stride_h_divmod, FastDivmod const &stride_w_divmod,
-  int r, int s,
-  int &start_h, int &start_w) {
+  int32_t r, int32_t s,
+  int32_t &start_h, int32_t &start_w) {
 
   // function locals for remainder by fast divmod
-  int pad_h_rem_, pad_w_rem_;
+  int32_t pad_h_rem_, pad_w_rem_;
 
   // start_h  = std::abs(problem_size.stride_h - ((problem_size.pad_h % problem_size.stride_h) - r)) % problem_size.stride_h;
   stride_h_divmod.divmod(pad_h_rem_, problem_size.pad_h);
-  int r_ = absolute_value(problem_size.stride_h - (pad_h_rem_ - r));
+  int32_t r_ = absolute_value(problem_size.stride_h - (pad_h_rem_ - r));
   stride_h_divmod.divmod(start_h, r_);
 
   //start_w  = std::abs(problem_size.stride_w - ((problem_size.pad_w % problem_size.stride_w) - s)) % problem_size.stride_w;
   stride_w_divmod.divmod(pad_w_rem_, problem_size.pad_w);
-  int s_ = absolute_value(problem_size.stride_w - (pad_w_rem_ - s));
+  int32_t s_ = absolute_value(problem_size.stride_w - (pad_w_rem_ - s));
   stride_w_divmod.divmod(start_w, s_);
 }
 

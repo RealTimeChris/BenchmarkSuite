@@ -189,7 +189,7 @@ max_alignment(iter_adaptor<I,D> const& x) {
 // counting iterator -- quick and dirty
 //
 
-template <class T = int>
+template <class T = int32_t>
 struct counting_iterator
 {
   using index_type = T;
@@ -212,7 +212,7 @@ struct counting_iterator
   CUTE_HOST_DEVICE constexpr
   counting_iterator& operator++() { ++n_; return *this; }
   CUTE_HOST_DEVICE constexpr
-  counting_iterator operator++(int) { counting_iterator ret = *this; ++n_; return ret; }
+  counting_iterator operator++(int32_t) { counting_iterator ret = *this; ++n_; return ret; }
 
   CUTE_HOST_DEVICE constexpr
   friend bool operator==(counting_iterator const& x, counting_iterator const& y) { return x.n_ == y.n_; }

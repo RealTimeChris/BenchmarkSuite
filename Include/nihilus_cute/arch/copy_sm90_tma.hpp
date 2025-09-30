@@ -1243,7 +1243,7 @@ tma_desc_commit_group() {
 
 
 // Wait until at most Count committed TMA_STOREs are pending and all prior commits are complete
-template <int Count>
+template <int32_t Count>
 CUTE_HOST_DEVICE static void
 tma_store_wait() {
 #if defined(CUTE_ARCH_TMA_SM90_ENABLED)

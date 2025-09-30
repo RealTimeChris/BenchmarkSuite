@@ -54,20 +54,20 @@ namespace threadblock {
 
 /// Tuple defining point in output tile
 template <
-  int Column,
-  int Row,
-  int Group,
-  int Cluster,
-  int Tile
+  int32_t Column,
+  int32_t Row,
+  int32_t Group,
+  int32_t Cluster,
+  int32_t Tile
 >
 struct OutputTileShape {
-  static constexpr int kColumn = Column;
-  static constexpr int kRow = Row;
-  static constexpr int kGroup = Group;
-  static constexpr int kCluster = Cluster;
-  static constexpr int kTile = Tile;
+  static constexpr int32_t kColumn = Column;
+  static constexpr int32_t kRow = Row;
+  static constexpr int32_t kGroup = Group;
+  static constexpr int32_t kCluster = Cluster;
+  static constexpr int32_t kTile = Tile;
 
-  static constexpr int kCount = kColumn * kRow * kGroup * kCluster * kTile;
+  static constexpr int32_t kCount = kColumn * kRow * kGroup * kCluster * kTile;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -78,15 +78,15 @@ struct OutputTileThreadMapHelpers {
   /// Determines the iteration index of a vector access according to the thread map
   CUTLASS_HOST_DEVICE
   static void iteration_index(
-    int &column_idx,
-    int &row_idx,
-    int &group_idx,
-    int &cluster_idx,
-    int &tile_idx,
-    int iter_idx) {
+    int32_t &column_idx,
+    int32_t &row_idx,
+    int32_t &group_idx,
+    int32_t &cluster_idx,
+    int32_t &tile_idx,
+    int32_t iter_idx) {
 
     column_idx = iter_idx % Iterations::kColumn;
-    int residual   = iter_idx / Iterations::kColumn;
+    int32_t residual   = iter_idx / Iterations::kColumn;
 
     row_idx    = residual % Iterations::kRow;
     residual       = residual / Iterations::kRow;
@@ -100,13 +100,13 @@ struct OutputTileThreadMapHelpers {
 
   /// Computes the offset of a given vector access
   CUTLASS_HOST_DEVICE
-  static MatrixCoord iteration_offset(int iter_idx) {
+  static MatrixCoord iteration_offset(int32_t iter_idx) {
 
-    int column_idx;
-    int row_idx;
-    int group_idx;
-    int cluster_idx;
-    int tile_idx;
+    int32_t column_idx;
+    int32_t row_idx;
+    int32_t group_idx;
+    int32_t cluster_idx;
+    int32_t tile_idx;
 
     iteration_index(column_idx, row_idx, group_idx, cluster_idx, tile_idx, iter_idx);
 
@@ -137,10 +137,10 @@ struct OutputTileThreadMap : public OutputTileThreadMapHelpers<Iterations_, Delt
   using ThreadMap = ThreadMap_;
 
   /// Number of threads participating in the operation
-  static constexpr int kThreads = ThreadMap::kThreads;
+  static constexpr int32_t kThreads = ThreadMap::kThreads;
 
   /// Number of scalar elements per access
-  static constexpr int kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static constexpr int32_t kElementsPerAccess = ThreadMap::kElementsPerAccess;
 
   /// Shape of the tile
   using Shape = Shape_;
@@ -156,7 +156,7 @@ struct OutputTileThreadMap : public OutputTileThreadMapHelpers<Iterations_, Delt
 
   /// Initial offset function
   CUTLASS_HOST_DEVICE
-  static MatrixCoord initial_offset(int thread_idx) {
+  static MatrixCoord initial_offset(int32_t thread_idx) {
 
     using Index = typename layout::PitchLinearCoord::Index;
     
@@ -183,9 +183,9 @@ namespace detail {
 /// RowArrangement determines how one or more warps cover a region of consecutive rows.
 template <
   typename Shape,
-  int WarpsRemaining,
-  int ElementsPerAccess,
-  int ElementSize,
+  int32_t WarpsRemaining,
+  int32_t ElementsPerAccess,
+  int32_t ElementSize,
   bool Is2dTile
 >
 struct RowArrangement;
@@ -193,52 +193,52 @@ struct RowArrangement;
 /// RowArrangement in which each warp's access is a 1D tiled arrangement.
 template <
   typename Shape,
-  int WarpsRemaining,
-  int ElementsPerAccess,
-  int ElementSize
+  int32_t WarpsRemaining,
+  int32_t ElementsPerAccess,
+  int32_t ElementSize
 >
 struct RowArrangement<Shape, WarpsRemaining, ElementsPerAccess, ElementSize, false> {
-  static constexpr int kWarpSize = 32;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
-  static constexpr int kElementSize = ElementSize;
+  static constexpr int32_t kWarpSize = 32;
+  static constexpr int32_t kElementsPerAccess = ElementsPerAccess;
+  static constexpr int32_t kElementSize = ElementSize;
 
-  static constexpr int kIterationsRow = 1;
-  static constexpr int kDeltaRow = 1;
-  static constexpr int kIterationsColumn = Shape::kColumn / kElementsPerAccess / kWarpSize;
-  static constexpr int kDeltaColumn = kWarpSize * kElementsPerAccess;
+  static constexpr int32_t kIterationsRow = 1;
+  static constexpr int32_t kDeltaRow = 1;
+  static constexpr int32_t kIterationsColumn = Shape::kColumn / kElementsPerAccess / kWarpSize;
+  static constexpr int32_t kDeltaColumn = kWarpSize * kElementsPerAccess;
 
-  static constexpr int kAccessWidth = kWarpSize;
-  static constexpr int kAccessRows = 1;
-  static constexpr int kWarpPartitionsRow = 1;
-  static constexpr int kWarpPartitionsColumn = WarpsRemaining;
+  static constexpr int32_t kAccessWidth = kWarpSize;
+  static constexpr int32_t kAccessRows = 1;
+  static constexpr int32_t kWarpPartitionsRow = 1;
+  static constexpr int32_t kWarpPartitionsColumn = WarpsRemaining;
 };
 
 /// RowArrangement in which each warp's access is a 2D tiled arrangement.
 template <
   typename Shape,
-  int WarpsRemaining,
-  int ElementsPerAccess,
-  int ElementSize
+  int32_t WarpsRemaining,
+  int32_t ElementsPerAccess,
+  int32_t ElementSize
 >
 struct RowArrangement<Shape, WarpsRemaining, ElementsPerAccess, ElementSize, true> {
 
-  static constexpr int kMemoryAccessSize = 256; // Preferred access size
-  static constexpr int kWarpSize = 32;
+  static constexpr int32_t kMemoryAccessSize = 256; // Preferred access size
+  static constexpr int32_t kWarpSize = 32;
 
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
-  static constexpr int kElementSize = ElementSize;
+  static constexpr int32_t kElementsPerAccess = ElementsPerAccess;
+  static constexpr int32_t kElementSize = ElementSize;
 
   struct Detail {
-    static constexpr int kShapeRow = Shape::kRow / WarpsRemaining;
-    static constexpr int kShapeWidth = Shape::kColumn / kElementsPerAccess;
+    static constexpr int32_t kShapeRow = Shape::kRow / WarpsRemaining;
+    static constexpr int32_t kShapeWidth = Shape::kColumn / kElementsPerAccess;
 
-    static constexpr int kTargetMemoryAccessWidth = 
+    static constexpr int32_t kTargetMemoryAccessWidth = 
       kMemoryAccessSize / (kElementsPerAccess * kElementSize / 8);
 
-    static constexpr int kTargetAccessRows = kWarpSize / kTargetMemoryAccessWidth;
+    static constexpr int32_t kTargetAccessRows = kWarpSize / kTargetMemoryAccessWidth;
   };
 
-  static constexpr int kAccessWidth = 
+  static constexpr int32_t kAccessWidth = 
     (Detail::kTargetAccessRows > Detail::kShapeRow ?
       kWarpSize / Detail::kShapeRow
       : const_min(
@@ -246,23 +246,23 @@ struct RowArrangement<Shape, WarpsRemaining, ElementsPerAccess, ElementSize, tru
         const_min(kWarpSize, kMemoryAccessSize / (kElementsPerAccess * kElementSize / 8))
         ));
 
-  static constexpr int kAccessRows =
+  static constexpr int32_t kAccessRows =
     (Detail::kTargetAccessRows > Detail::kShapeRow ?
       Detail::kShapeRow
       : const_min(Shape::kRow, kWarpSize / kAccessWidth));
 
-  static constexpr int kIterationsRow = Detail::kShapeRow / kAccessRows;
-  static constexpr int kDeltaRow = kAccessRows;
+  static constexpr int32_t kIterationsRow = Detail::kShapeRow / kAccessRows;
+  static constexpr int32_t kDeltaRow = kAccessRows;
 
-  static constexpr int kIterationsColumn = Detail::kShapeWidth / kAccessWidth;
-  static constexpr int kDeltaColumn = kAccessWidth * kElementsPerAccess;
+  static constexpr int32_t kIterationsColumn = Detail::kShapeWidth / kAccessWidth;
+  static constexpr int32_t kDeltaColumn = kAccessWidth * kElementsPerAccess;
 
   static_assert( kAccessWidth * kElementsPerAccess <= Shape::kColumn, "Accessing too many elements per access");
   static_assert( kIterationsColumn > 0, "Iteration Count Column must be > 0" );
   static_assert( kIterationsRow > 0, "Iteration Count Row must be > 0" );
 
-  static constexpr int kWarpPartitionsRow = 1;
-  static constexpr int kWarpPartitionsColumn = 1;
+  static constexpr int32_t kWarpPartitionsRow = 1;
+  static constexpr int32_t kWarpPartitionsColumn = 1;
 };
 
 }
@@ -279,21 +279,21 @@ struct RowArrangement<Shape, WarpsRemaining, ElementsPerAccess, ElementSize, tru
 template <
   typename Shape_,
   typename Count_,
-  int Threads,
-  int ElementsPerAccess,
-  int ElementSize
+  int32_t Threads,
+  int32_t ElementsPerAccess,
+  int32_t ElementSize
 >
 struct OutputTileOptimalThreadMap {
 
   using Shape = Shape_;
   using Count = Count_;
 
-  static constexpr int kWarpSize = 32;
-  static constexpr int kThreads = Threads;
-  static constexpr int kWarpCount = kThreads / kWarpSize;
+  static constexpr int32_t kWarpSize = 32;
+  static constexpr int32_t kThreads = Threads;
+  static constexpr int32_t kWarpCount = kThreads / kWarpSize;
 
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
-  static constexpr int kElementSize = ElementSize;
+  static constexpr int32_t kElementsPerAccess = ElementsPerAccess;
+  static constexpr int32_t kElementSize = ElementSize;
 
   //
   // Metaprogram computation
@@ -302,51 +302,51 @@ struct OutputTileOptimalThreadMap {
   struct Detail {
 
     // Clusters
-    static constexpr int kIterationsCluster = 
+    static constexpr int32_t kIterationsCluster = 
       ((Shape::kCluster > kWarpCount) ?
         Shape::kCluster / kWarpCount
         : 1);
 
-    static constexpr int kDeltaCluster =
+    static constexpr int32_t kDeltaCluster =
       ((Shape::kCluster > kWarpCount) ?
         Shape::kRow * Count::kRow * Shape::kGroup * Count::kGroup * Shape::kCluster / kIterationsCluster
         : 1);
 
-    static constexpr int kCompactedDeltaCluster =
+    static constexpr int32_t kCompactedDeltaCluster =
       ((Shape::kCluster > kWarpCount) ?
         Shape::kRow * Shape::kGroup * Shape::kCluster / kIterationsCluster
         : 1);
 
-    static constexpr int kWarpPartitionsCluster =
+    static constexpr int32_t kWarpPartitionsCluster =
       ((Shape::kCluster > kWarpCount) ?
         kWarpCount
         : kWarpCount / Shape::kCluster);
 
-    static constexpr int kWarpsRemainingForGroups =
+    static constexpr int32_t kWarpsRemainingForGroups =
       ((Shape::kCluster > kWarpCount) ? 1 : kWarpCount / Shape::kCluster);
 
     // Groups
-    static constexpr int kIterationsGroup =
+    static constexpr int32_t kIterationsGroup =
       ((Shape::kGroup > kWarpsRemainingForGroups) ?
         Shape::kGroup / kWarpsRemainingForGroups
         : 1);
 
-    static constexpr int kDeltaGroup =
+    static constexpr int32_t kDeltaGroup =
       ((Shape::kGroup > kWarpsRemainingForGroups) ?
         Shape::kRow * Count::kRow * Shape::kGroup / kIterationsGroup
         : 1);
 
-    static constexpr int kCompactedDeltaGroup =
+    static constexpr int32_t kCompactedDeltaGroup =
       ((Shape::kGroup > kWarpsRemainingForGroups) ?
         Shape::kRow * Shape::kGroup / kIterationsGroup
         : 1);
 
-    static constexpr int kWarpPartitionsGroup =
+    static constexpr int32_t kWarpPartitionsGroup =
       ((Shape::kGroup > kWarpsRemainingForGroups) ?
         1
         : kWarpsRemainingForGroups / Shape::kGroup);
 
-    static constexpr int kWarpsRemainingForRows =
+    static constexpr int32_t kWarpsRemainingForRows =
       ((Shape::kGroup > kWarpsRemainingForGroups) ?
         1
         : kWarpsRemainingForGroups / Shape::kGroup);
@@ -368,8 +368,8 @@ struct OutputTileOptimalThreadMap {
       kWarpPartitionsCluster,
       1>;
 
-    static constexpr int kAccessWidth = RowArrangement::kAccessWidth;
-    static constexpr int kAccessRows = RowArrangement::kAccessRows;
+    static constexpr int32_t kAccessWidth = RowArrangement::kAccessWidth;
+    static constexpr int32_t kAccessRows = RowArrangement::kAccessRows;
   };
 
   //
@@ -392,31 +392,31 @@ struct OutputTileOptimalThreadMap {
 
   /// Initial offset function
   CUTLASS_HOST_DEVICE
-  static MatrixCoord initial_offset(int thread_idx) {
+  static MatrixCoord initial_offset(int32_t thread_idx) {
 
-//    int warp_idx = __shfl_sync(0xffffffff, thread_idx / kWarpSize, 0);
-    int warp_idx = thread_idx / kWarpSize;
-    int lane_idx = thread_idx % kWarpSize;
+//    int32_t warp_idx = __shfl_sync(0xffffffff, thread_idx / kWarpSize, 0);
+    int32_t warp_idx = thread_idx / kWarpSize;
+    int32_t lane_idx = thread_idx % kWarpSize;
 
     // Compute warp location
-    int cluster_idx = warp_idx / Detail::WarpPartitions::kCluster;
-    int residual_cluster = warp_idx % Detail::WarpPartitions::kCluster;
+    int32_t cluster_idx = warp_idx / Detail::WarpPartitions::kCluster;
+    int32_t residual_cluster = warp_idx % Detail::WarpPartitions::kCluster;
 
-    int group_idx = residual_cluster / Detail::WarpPartitions::kGroup;
-    int residual_group = residual_cluster % Detail::WarpPartitions::kGroup;
+    int32_t group_idx = residual_cluster / Detail::WarpPartitions::kGroup;
+    int32_t residual_group = residual_cluster % Detail::WarpPartitions::kGroup;
 
-    int row_idx = residual_group / Detail::WarpPartitions::kRow;
-    int col_idx = residual_group % Detail::WarpPartitions::kRow;
+    int32_t row_idx = residual_group / Detail::WarpPartitions::kRow;
+    int32_t col_idx = residual_group % Detail::WarpPartitions::kRow;
 
     // Compute per-lane offset
-    int lane_row_offset = lane_idx / Detail::kAccessWidth;
-    int lane_col_offset = lane_idx % Detail::kAccessWidth;
+    int32_t lane_row_offset = lane_idx / Detail::kAccessWidth;
+    int32_t lane_col_offset = lane_idx % Detail::kAccessWidth;
 
     // Compute coordinate in output space
-    int cluster_offset = cluster_idx * Shape::kRow * Count::kRow * Shape::kGroup * Count::kGroup;
-    int group_offset = group_idx * Shape::kRow * Count::kRow;
-    int row_offset = row_idx * Iterations::kRow * Detail::kAccessRows;
-    int column_offset = col_idx * Iterations::kColumn * Detail::kAccessWidth * kElementsPerAccess;
+    int32_t cluster_offset = cluster_idx * Shape::kRow * Count::kRow * Shape::kGroup * Count::kGroup;
+    int32_t group_offset = group_idx * Shape::kRow * Count::kRow;
+    int32_t row_offset = row_idx * Iterations::kRow * Detail::kAccessRows;
+    int32_t column_offset = col_idx * Iterations::kColumn * Detail::kAccessWidth * kElementsPerAccess;
 
     return MatrixCoord(
       cluster_offset + group_offset + row_offset + lane_row_offset,
@@ -426,7 +426,7 @@ struct OutputTileOptimalThreadMap {
 
   /// Computes the offset of a given vector access
   CUTLASS_HOST_DEVICE
-  static MatrixCoord iteration_offset(int iter_idx) {
+  static MatrixCoord iteration_offset(int32_t iter_idx) {
     return OutputTileThreadMapHelpers<Iterations, Delta>::iteration_offset(iter_idx);
   }
 
@@ -456,38 +456,38 @@ struct OutputTileOptimalThreadMap {
       1>;
 
     /// Number of elements within each vector access
-    static constexpr int kElementsPerAccess = ElementsPerAccess;
+    static constexpr int32_t kElementsPerAccess = ElementsPerAccess;
 
     /// Number  of threads
-    static constexpr int kThreads = Threads;
+    static constexpr int32_t kThreads = Threads;
 
     /// Function to compute each thread's initial offset
     CUTLASS_HOST_DEVICE
-    static MatrixCoord initial_offset(int thread_idx) {
+    static MatrixCoord initial_offset(int32_t thread_idx) {
 
-//      int warp_idx = __shfl_sync(0xffffffff, thread_idx / kWarpSize, 0);
-      int warp_idx = thread_idx / kWarpSize;
-      int lane_idx = thread_idx % kWarpSize;
+//      int32_t warp_idx = __shfl_sync(0xffffffff, thread_idx / kWarpSize, 0);
+      int32_t warp_idx = thread_idx / kWarpSize;
+      int32_t lane_idx = thread_idx % kWarpSize;
 
       // Compute warp location
-      int cluster_idx = warp_idx / Detail::WarpPartitions::kCluster;
-      int residual_cluster = warp_idx % Detail::WarpPartitions::kCluster;
+      int32_t cluster_idx = warp_idx / Detail::WarpPartitions::kCluster;
+      int32_t residual_cluster = warp_idx % Detail::WarpPartitions::kCluster;
 
-      int group_idx = residual_cluster / Detail::WarpPartitions::kGroup;
-      int residual_group = residual_cluster % Detail::WarpPartitions::kGroup;
+      int32_t group_idx = residual_cluster / Detail::WarpPartitions::kGroup;
+      int32_t residual_group = residual_cluster % Detail::WarpPartitions::kGroup;
 
-      int row_idx = residual_group / Detail::WarpPartitions::kRow;
-      int col_idx = residual_group % Detail::WarpPartitions::kRow;
+      int32_t row_idx = residual_group / Detail::WarpPartitions::kRow;
+      int32_t col_idx = residual_group % Detail::WarpPartitions::kRow;
 
       // Compute per-lane offset
-      int lane_row_offset = lane_idx / Detail::kAccessWidth;
-      int lane_col_offset = lane_idx % Detail::kAccessWidth;
+      int32_t lane_row_offset = lane_idx / Detail::kAccessWidth;
+      int32_t lane_col_offset = lane_idx % Detail::kAccessWidth;
 
       // Compute coordinate in output space
-      int cluster_offset = cluster_idx * Shape::kRow * Shape::kGroup;
-      int group_offset = group_idx * Shape::kRow;
-      int row_offset = row_idx * Iterations::kRow * Detail::kAccessRows;
-      int column_offset = col_idx * Iterations::kColumn * Detail::kAccessWidth * kElementsPerAccess;
+      int32_t cluster_offset = cluster_idx * Shape::kRow * Shape::kGroup;
+      int32_t group_offset = group_idx * Shape::kRow;
+      int32_t row_offset = row_idx * Iterations::kRow * Detail::kAccessRows;
+      int32_t column_offset = col_idx * Iterations::kColumn * Detail::kAccessWidth * kElementsPerAccess;
 
       MatrixCoord coord(
         cluster_offset + group_offset + row_offset + lane_row_offset,
@@ -508,17 +508,17 @@ struct OutputTileOptimalThreadMap {
 ///   - minimal address arithmetic
 ///   - minimal predicate calculations
 ///
-template <typename WarpCount_, typename Iterations_, int Threads,
-          int ElementsPerAccess, int ElementSize>
+template <typename WarpCount_, typename Iterations_, int32_t Threads,
+          int32_t ElementsPerAccess, int32_t ElementSize>
 struct InterleavedOutputTileThreadMap {
   using WarpCount = WarpCount_;
 
-  static constexpr int kWarpSize = 32;
-  static constexpr int kThreads = Threads;
-  static constexpr int kWarpCount = kThreads / kWarpSize;
+  static constexpr int32_t kWarpSize = 32;
+  static constexpr int32_t kThreads = Threads;
+  static constexpr int32_t kWarpCount = kThreads / kWarpSize;
 
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
-  static constexpr int kElementSize = ElementSize;
+  static constexpr int32_t kElementsPerAccess = ElementsPerAccess;
+  static constexpr int32_t kElementSize = ElementSize;
 
   //
   // Metaprogram computation
@@ -536,9 +536,9 @@ struct InterleavedOutputTileThreadMap {
 
   /// Initial offset function
   CUTLASS_HOST_DEVICE
-  static layout::PitchLinearCoord initial_offset(int thread_idx) {
-    int warp_idx = thread_idx / kWarpSize;
-    int lane_idx = thread_idx % kWarpSize;
+  static layout::PitchLinearCoord initial_offset(int32_t thread_idx) {
+    int32_t warp_idx = thread_idx / kWarpSize;
+    int32_t lane_idx = thread_idx % kWarpSize;
 
     // Compute warp location
     layout::PitchLinearCoord warp_footprint{
@@ -569,17 +569,17 @@ struct InterleavedOutputTileThreadMap {
 ///   - minimal address arithmetic
 ///   - minimal predicate calculations
 ///
-template <typename WarpCount_, typename Iterations_, int Threads,
-          int ElementsPerAccess, int ElementSize>
+template <typename WarpCount_, typename Iterations_, int32_t Threads,
+          int32_t ElementsPerAccess, int32_t ElementSize>
 struct InterleavedConvOutputTileThreadMap {
   using WarpCount = WarpCount_;
 
-  static constexpr int kWarpSize = 32;
-  static constexpr int kThreads = Threads;
-  static constexpr int kWarpCount = kThreads / kWarpSize;
+  static constexpr int32_t kWarpSize = 32;
+  static constexpr int32_t kThreads = Threads;
+  static constexpr int32_t kWarpCount = kThreads / kWarpSize;
 
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
-  static constexpr int kElementSize = ElementSize;
+  static constexpr int32_t kElementsPerAccess = ElementsPerAccess;
+  static constexpr int32_t kElementSize = ElementSize;
 
   //
   // Metaprogram computation
@@ -597,9 +597,9 @@ struct InterleavedConvOutputTileThreadMap {
 
   /// Initial offset function
   CUTLASS_HOST_DEVICE
-  static MatrixCoord initial_offset(int thread_idx) {
-    int warp_idx = thread_idx / kWarpSize;
-    int lane_idx = thread_idx % kWarpSize;
+  static MatrixCoord initial_offset(int32_t thread_idx) {
+    int32_t warp_idx = thread_idx / kWarpSize;
+    int32_t lane_idx = thread_idx % kWarpSize;
 
     // Compute warp location
     MatrixCoord warp_footprint{

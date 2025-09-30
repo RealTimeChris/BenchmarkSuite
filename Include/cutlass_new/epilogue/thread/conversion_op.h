@@ -52,7 +52,7 @@ namespace thread {
 ///
 template <
   typename ElementOutput_,                             ///< Data type used to load and store tensors
-  int Count,                                           ///< Number of elements computed per operation
+  int32_t Count,                                           ///< Number of elements computed per operation
   typename ElementAccumulator_ = ElementOutput_,       ///< Accumulator data type
   FloatRoundStyle Round = FloatRoundStyle::round_to_nearest
 >
@@ -64,7 +64,7 @@ public:
   using ElementCompute = ElementAccumulator_;
   using ElementD = ElementOutput;                     // for use with nihilus_cute::collective::DefaultEpilogue
 
-  static constexpr int kCount = Count;
+  static constexpr int32_t kCount = Count;
 
   using FragmentOutput = Array<ElementOutput, kCount>;
   using FragmentAccumulator = Array<ElementAccumulator, kCount>;
@@ -95,7 +95,7 @@ public:
 
   /// Functionally required for serial reduction in the epilogue
   CUTLASS_HOST_DEVICE
-  void set_k_partition(int k_partition, int k_partition_count) {
+  void set_k_partition(int32_t k_partition, int32_t k_partition_count) {
 
   }
 

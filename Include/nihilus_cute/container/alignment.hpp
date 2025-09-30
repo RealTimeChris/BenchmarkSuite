@@ -39,7 +39,7 @@ namespace nihilus_cute
 {
 
 // Test if a pointer is aligned to N bytes
-template <int N>
+template <int32_t N>
 CUTE_HOST_DEVICE constexpr
 bool
 is_byte_aligned(void const* const ptr)

@@ -61,7 +61,7 @@ template <
     /// Layout of C matrix (concept: MatrixLayout)
     typename LayoutC,
     /// Number of partitions along K dimension
-    int PartitionsK,
+    int32_t PartitionsK,
     /// Store the accumulators in row major or column major.  Row major is used
     /// when output layout is interleaved.
     bool AccumulatorsInRowMajor>
@@ -105,7 +105,7 @@ template <
     /// Layout of C matrix (concept: MatrixLayout)
     typename LayoutC,
     /// Number of partitions along K dimension
-    int PartitionsK,
+    int32_t PartitionsK,
     /// Store the accumulators in row major or column major.  Row major is used
     /// when output layout is interleaved.
     bool AccumulatorsInRowMajor>
@@ -151,7 +151,7 @@ template <
     /// Layout of C matrix (concept: MatrixLayout)
     typename LayoutC,
     /// Number of partitions along K dimension
-    int PartitionsK,
+    int32_t PartitionsK,
     /// Store the accumulators in row major or column major.  Row major is used
     /// when output layout is interleaved.
     bool AccumulatorsInRowMajor>
@@ -196,7 +196,7 @@ template <
     /// Layout of C matrix (concept: MatrixLayout)
     typename LayoutC,
     /// Number of partitions along K dimension
-    int PartitionsK,
+    int32_t PartitionsK,
     /// Store the accumulators in row major or column major.  Row major is used
     /// when output layout is interleaved.
     bool AccumulatorsInRowMajor>
@@ -246,7 +246,7 @@ template <
     /// Layout of C matrix (concept: MatrixLayout)
     typename LayoutC,
     /// Number of partitions along K dimension
-    int PartitionsK,
+    int32_t PartitionsK,
     /// Store the accumulators in row major or column major.  Row major is used
     /// when output layout is interleaved.
     bool AccumulatorsInRowMajor>
@@ -314,7 +314,7 @@ template <
     /// Layout of C matrix (concept: MatrixLayout)
     typename LayoutC,
     /// Number of partitions along K dimension
-    int PartitionsK,
+    int32_t PartitionsK,
     /// Store the accumulators in row major or column major.  Row major is used
     /// when output layout is interleaved.
     bool AccumulatorsInRowMajor>

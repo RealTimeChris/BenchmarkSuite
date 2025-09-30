@@ -286,7 +286,7 @@ union MaskAndShiftB
   };
 };
 
-template <typename ShapeType, int FLT_S, int CTA_M, int CTA_N>
+template <typename ShapeType, int32_t FLT_S, int32_t CTA_M, int32_t CTA_N>
 CUTE_HOST_DEVICE constexpr auto
 make_column_zero_mask(ShapeType conv_q, int32_t cta_coord_q, int32_t num_pixels_skip_left) {
 
@@ -295,22 +295,22 @@ make_column_zero_mask(ShapeType conv_q, int32_t cta_coord_q, int32_t num_pixels_
   nihilus_cute::array<MaskAndShiftB, FLT_S> column_zero_masks{};
 
   static_assert(FLT_S == 3, "Filter size not supported.");
-  constexpr int MAX_USE_SPAN_COUNT = 256;
-  constexpr int MAX_SKIP_SPAN_COUNT = 256;
+  constexpr int32_t MAX_USE_SPAN_COUNT = 256;
+  constexpr int32_t MAX_SKIP_SPAN_COUNT = 256;
 
   // conv_q_int used for non-divmod case (add/minus/..) 
   // conv_q used for divmod case (div/mod/...)
-  int32_t conv_q_int = int(conv_q);
+  int32_t conv_q_int = int32_t(conv_q);
   auto [_, cta_q] = divmod(cta_coord_q * CTA_N, conv_q);
 
-  int step_q =   CTA_M == 128 ? CTA_N / 1
+  int32_t step_q =   CTA_M == 128 ? CTA_N / 1
                : CTA_M == 64  ? CTA_N / 2
                : CTA_M == 32  ? CTA_N / 4
                               : 0;
 
-  for (int mask_iter = 0; mask_iter < int(CTA_N / step_q); ++mask_iter) {
+  for (int32_t mask_iter = 0; mask_iter < int32_t(CTA_N / step_q); ++mask_iter) {
 
-    for (int s_iter = 0; s_iter < FLT_S; s_iter += 1) {
+    for (int32_t s_iter = 0; s_iter < FLT_S; s_iter += 1) {
 
       int32_t skip_span{0}, use_span{0}, nzm{1}, first_span{0}, start_count{0}, shift{0};
 
@@ -468,7 +468,7 @@ union InstrDescriptorBlockScaled
 };
 
 template <class a_type, class b_type, class c_type,
-          int M, int N, UMMA::Major a_major, UMMA::Major b_major,
+          int32_t M, int32_t N, UMMA::Major a_major, UMMA::Major b_major,
           UMMA::ScaleIn a_neg = UMMA::ScaleIn::One, UMMA::ScaleIn b_neg = UMMA::ScaleIn::One,
           UMMA::Saturate c_sat = UMMA::Saturate::False,
           bool is_sparse = false,
@@ -502,7 +502,7 @@ make_instr_desc()
 }
 
 template <class a_type, class b_type, class c_type,
-          int M, int N, UMMA::Major a_major, UMMA::Major b_major,
+          int32_t M, int32_t N, UMMA::Major a_major, UMMA::Major b_major,
           UMMA::ScaleIn a_neg = UMMA::ScaleIn::One, UMMA::ScaleIn b_neg = UMMA::ScaleIn::One,
           UMMA::Saturate c_sat = UMMA::Saturate::False,
           bool is_sparse = false,
@@ -550,7 +550,7 @@ make_runtime_instr_desc(UMMA::InstrDescriptor desc_i, uint16_t sparse_id2 = 0u, 
 }
 
 template <class a_type, class b_type, class c_type, class sf_type,
-          int M, int N, UMMA::Major a_major, UMMA::Major b_major,
+          int32_t M, int32_t N, UMMA::Major a_major, UMMA::Major b_major,
           UMMA::ScaleIn a_neg = UMMA::ScaleIn::One, UMMA::ScaleIn b_neg = UMMA::ScaleIn::One,
           bool is_sparse = false
           >
@@ -586,7 +586,7 @@ make_instr_desc_block_scaled()
 }
 
 template <class a_type, class b_type, class c_type, class sf_type,
-          int M, int N, UMMA::Major a_major, UMMA::Major b_major,
+          int32_t M, int32_t N, UMMA::Major a_major, UMMA::Major b_major,
           UMMA::ScaleIn a_neg = UMMA::ScaleIn::One, UMMA::ScaleIn b_neg = UMMA::ScaleIn::One,
           bool is_sparse = false>
 CUTE_HOST_DEVICE

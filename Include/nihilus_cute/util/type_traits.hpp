@@ -266,7 +266,7 @@ namespace detail {
 
 template <class F, class... Args, class = decltype(declval<F&&>()(declval<Args&&>()...))>
 CUTE_HOST_DEVICE constexpr auto
-is_valid_impl(int) { return CUTE_STL_NAMESPACE::true_type{}; }
+is_valid_impl(int32_t) { return CUTE_STL_NAMESPACE::true_type{}; }
 
 template <class F, class... Args>
 CUTE_HOST_DEVICE constexpr auto
@@ -276,7 +276,7 @@ template <class F>
 struct is_valid_fn {
   template <class... Args>
   CUTE_HOST_DEVICE constexpr auto
-  operator()(Args&&...) const { return is_valid_impl<F, Args&&...>(int{}); }
+  operator()(Args&&...) const { return is_valid_impl<F, Args&&...>(int32_t{}); }
 };
 
 } // end namespace detail
@@ -290,7 +290,7 @@ is_valid(F&&) {
 template <class F, class... Args>
 CUTE_HOST_DEVICE constexpr auto
 is_valid(F&&, Args&&...) {
-  return detail::is_valid_impl<F&&, Args&&...>(int{});
+  return detail::is_valid_impl<F&&, Args&&...>(int32_t{});
 }
 
 template <bool B, template<class...> class True, template<class...> class False>

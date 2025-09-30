@@ -69,19 +69,19 @@ namespace cutlass {
 //                    stream operators for cutlass namespace                                     //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename Element, int Rank>
+template <typename Element, int32_t Rank>
 inline
 std::ostream& operator<<(std::ostream& out, Array<Element, Rank> const& v) {
-  for (int i = 0; i < Rank; ++i) {
+  for (int32_t i = 0; i < Rank; ++i) {
     out << (i ? ", " : "") << v[i];
   }
   return out;
 }
 
-template <int Rank>
+template <int32_t Rank>
 inline
 std::ostream& operator<<(std::ostream& out, Coord<Rank> const& coord) {
-  for (int i = 0; i < Rank; ++i) {
+  for (int32_t i = 0; i < Rank; ++i) {
     out << (i ? ", " : "") << coord[i];
   }
   return out;
@@ -179,7 +179,7 @@ inline std::ostream &operator<<(std::ostream &out, ScalarIO<T> const &scalar) {
 /// Printing to ostream of int8_t as integer rather than character
 template <>
 inline std::ostream &operator<<(std::ostream &out, ScalarIO<int8_t> const &scalar) {
-  return out << int(scalar.value);
+  return out << int32_t(scalar.value);
 }
 
 /// Printing to ostream of uint8_t as integer rather than character
@@ -190,7 +190,7 @@ inline std::ostream &operator<<(std::ostream &out, ScalarIO<uint8_t> const &scal
 
 
 /// Default printing to ostream for MatrixShape
-template <int Row, int Column>
+template <int32_t Row, int32_t Column>
 inline
 std::ostream & operator<<(std::ostream &out, MatrixShape<Row, Column> const &matrix_shape) {
   out << "cutlass::MatrixShape::(kRow, kColumn) {"
@@ -201,11 +201,11 @@ std::ostream & operator<<(std::ostream &out, MatrixShape<Row, Column> const &mat
 
 
 /// Prints matrix to ostream
-template <typename Element, int Rows, int Columns>
+template <typename Element, int32_t Rows, int32_t Columns>
 std::ostream & operator<<(std::ostream &out, Matrix<Element, Rows, Columns> const &rhs) {
 
-  for (int i = 0; i < Rows; ++i) {
-    for (int j = 0; j < Columns; ++j) {
+  for (int32_t i = 0; i < Rows; ++i) {
+    for (int32_t j = 0; j < Columns; ++j) {
       ScalarIO<Element> element(rhs.at(i, j));
       out << (j ? ", " : "") << element;
     }
@@ -244,7 +244,7 @@ std::ostream &operator<<(std::ostream &out, Quaternion<T> const &rhs) {
 namespace gemm {
 
 /// Default printing to ostream for GemmShape
-template <int M, int N, int K>
+template <int32_t M, int32_t N, int32_t K>
 inline
 std::ostream & operator<<(std::ostream &out, GemmShape<M,N,K> const &gemm_shape) {
   out << "cutlass::gemm::GemmShape::(kM, kN, kK) {"
@@ -273,7 +273,7 @@ std::ostream & operator<<(std::ostream &out, GemmCoord const &gemm_coord) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Default printing to ostream for PitchLinearShape
-template < int Contiguous, int Strided>
+template < int32_t Contiguous, int32_t Strided>
 inline
 std::ostream & operator<<(std::ostream &out, PitchLinearShape<Contiguous, Strided> const &pitch_linear_shape) {
   out << "cutlass::PitchLinearShape:(kContiguous, kStrided) {"

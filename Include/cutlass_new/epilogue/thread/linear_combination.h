@@ -56,7 +56,7 @@ namespace thread {
 ///
 template <
   typename ElementOutput_,                             ///< Data type used to load and store tensors
-  int Count,                                           ///< Number of elements computed per operation.
+  int32_t Count,                                           ///< Number of elements computed per operation.
                                                        ///< Usually it is 128/sizeof_bits<ElementOutput_>,
                                                        ///< but we use 64 or 32 sometimes when there are not enough data to store
   typename ElementAccumulator_ = ElementOutput_,       ///< Accumulator data type
@@ -76,7 +76,7 @@ public:
   using ElementC = ElementSource_;
   using ElementD = ElementOutput_;
 
-  static constexpr int kCount = Count;
+  static constexpr int32_t kCount = Count;
   static const ScaleType::Kind kScale = Scale;
   using FragmentOutput = Array<ElementOutput, kCount>;
   using FragmentSource = Array<ElementSource, kCount>;
@@ -169,7 +169,7 @@ public:
 
   /// Constructs the function object, possibly loading from pointers in host memory
   CUTLASS_HOST_DEVICE
-  explicit LinearCombination(Params const &params, int group_idx) {
+  explicit LinearCombination(Params const &params, int32_t group_idx) {
     if (params.alpha_ptr_array != nullptr && params.alpha_ptr_array[group_idx] != nullptr) {
       alpha_ = *(params.alpha_ptr_array[group_idx]);
     }
@@ -208,7 +208,7 @@ public:
 
   /// Functionally required for serial reduction in the epilogue
   CUTLASS_HOST_DEVICE
-  void set_k_partition(int k_partition, int k_partition_count) {
+  void set_k_partition(int32_t k_partition, int32_t k_partition_count) {
     if (k_partition) {
       beta_ = ElementCompute(1);
     }
@@ -334,7 +334,7 @@ public:
 ///
 template <
   typename ElementOutput_,            ///< Data type used to load and store tensors
-  int Count,                          ///< Number of elements computed per operation.
+  int32_t Count,                          ///< Number of elements computed per operation.
   typename ElementAccumulator_,       ///< Accumulator data type
   typename ElementCompute_,           ///< Data type used to compute linear combination
   FloatRoundStyle Round,
@@ -356,7 +356,7 @@ public:
   using ElementC = ElementSource_;
   using ElementD = ElementOutput_;
 
-  static constexpr int kCount = Count;
+  static constexpr int32_t kCount = Count;
   static const ScaleType::Kind kScale = ScaleType::PerChannelScaling;
   static constexpr bool IsPerChannelScalingSupported = true;
 

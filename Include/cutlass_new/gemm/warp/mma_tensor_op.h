@@ -65,7 +65,7 @@ namespace warp {
 
 namespace detail {
 
-template <typename T, typename S, int N, FloatRoundStyle Round>
+template <typename T, typename S, int32_t N, FloatRoundStyle Round>
 struct ConvertAndPack {
 
   using Converter = NumericArrayConverter<T, S, N, Round>;
@@ -78,7 +78,7 @@ struct ConvertAndPack {
   }
 };
 
-template <typename T, int N, FloatRoundStyle Round>
+template <typename T, int32_t N, FloatRoundStyle Round>
 struct ConvertAndPack<T, T, N, Round> {
 
   CUTLASS_HOST_DEVICE
@@ -87,7 +87,7 @@ struct ConvertAndPack<T, T, N, Round> {
   }
 };
 
-template <int N, FloatRoundStyle Round>
+template <int32_t N, FloatRoundStyle Round>
 struct ConvertAndPack<bfloat16_t, float, N, Round> {
 
   using Converter = NumericArrayConverter<bfloat16_t, float, N, Round>;
@@ -99,8 +99,8 @@ struct ConvertAndPack<bfloat16_t, float, N, Round> {
     Array<float, N> tmp;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
-      int idx = (((i << 1) & 2) | ((i >> 1) & 1) | (i & 0xfffffffc));
+    for (int32_t i = 0; i < N; ++i) {
+      int32_t idx = (((i << 1) & 2) | ((i >> 1) & 1) | (i & 0xfffffffc));
       tmp[i] = source[idx];
     }
 
@@ -108,7 +108,7 @@ struct ConvertAndPack<bfloat16_t, float, N, Round> {
   }
 };
 
-template <int N, FloatRoundStyle Round>
+template <int32_t N, FloatRoundStyle Round>
 struct ConvertAndPack<half_t, float, N, Round> {
 
   using Converter = NumericArrayConverter<half_t, float, N, Round>;
@@ -120,8 +120,8 @@ struct ConvertAndPack<half_t, float, N, Round> {
     Array<float, N> tmp;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
-      int idx = (((i << 1) & 2) | ((i >> 1) & 1) | (i & 0xfffffffc));
+    for (int32_t i = 0; i < N; ++i) {
+      int32_t idx = (((i << 1) & 2) | ((i >> 1) & 1) | (i & 0xfffffffc));
       tmp[i] = source[idx];
     }
 
@@ -157,7 +157,7 @@ template <
   /// Policy describing warp-level MmaTensorOp (concept: MmaTensorOp policy)
   typename Policy_,
   /// Number of partitions along K dimension
-  int PartitionsK_ = 1,
+  int32_t PartitionsK_ = 1,
   /// Store the accumulators in row major or column major.  Row major is used
   /// when output layout is interleaved.
   bool AccumulatorsInRowMajor = false,
@@ -212,17 +212,17 @@ public:
   static constexpr ComplexTransform kTransformB = ComplexTransform::kNone;
 
   /// Number of threads participating in warp-level matrix product
-  static constexpr int kThreadCount = 32;
+  static constexpr int32_t kThreadCount = 32;
 
   /// Number of partitions along K dimension
-  static constexpr int kPartitionsK = PartitionsK_;
+  static constexpr int32_t kPartitionsK = PartitionsK_;
 
   #if defined(__CUDA_ARCH__) && ((__CUDA_ARCH__ < 800) || (__CUDA_ARCH__ == 890)) 
-    static constexpr int kVerticalVisit = true;
+    static constexpr int32_t kVerticalVisit = true;
   #elif defined(__CUDA_ARCH__) && (__CUDA_ARCH__ == 1200) 
-    static constexpr int kVerticalVisit = true;
+    static constexpr int32_t kVerticalVisit = true;
   #else
-    static constexpr int kVerticalVisit = false;
+    static constexpr int32_t kVerticalVisit = false;
   #endif
 
 public:
@@ -304,12 +304,12 @@ public:
       
     if (kVerticalVisit) {
       CUTLASS_PRAGMA_UNROLL
-      for (int n = 0; n < MmaIterations::kColumn; ++n) {
+      for (int32_t n = 0; n < MmaIterations::kColumn; ++n) {
 
         CUTLASS_PRAGMA_UNROLL
-        for (int m = 0; m < MmaIterations::kRow; ++m) {
+        for (int32_t m = 0; m < MmaIterations::kRow; ++m) {
 
-          int m_serpentine = ((n % 2) ? (MmaIterations::kRow - 1 - m) : m);
+          int32_t m_serpentine = ((n % 2) ? (MmaIterations::kRow - 1 - m) : m);
 
           if (AccumulatorsInRowMajor) {  // matrix B is reordered
             mma(
@@ -328,12 +328,12 @@ public:
       }
     } else {
       CUTLASS_PRAGMA_UNROLL
-      for (int m = 0; m < MmaIterations::kRow; ++m) {
+      for (int32_t m = 0; m < MmaIterations::kRow; ++m) {
 
         CUTLASS_PRAGMA_UNROLL
-        for (int n = 0; n < MmaIterations::kColumn; ++n) {
+        for (int32_t n = 0; n < MmaIterations::kColumn; ++n) {
 
-          int n_serpentine = ((m % 2) ? (MmaIterations::kColumn - 1 - n) : n);
+          int32_t n_serpentine = ((m % 2) ? (MmaIterations::kColumn - 1 - n) : n);
 
           if (AccumulatorsInRowMajor) {  // matrix B is reordered
             mma(

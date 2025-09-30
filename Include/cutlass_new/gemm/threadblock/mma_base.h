@@ -60,7 +60,7 @@ template <
     /// Padding used for B operand in shared memory (concept: MatrixShape)
     typename SmemPaddingB_,
     /// Number of partitions of K dimension of GEMM
-    int PartitionsK = 1>
+    int32_t PartitionsK = 1>
 struct MmaPolicy {
   /// Warp-level GEMM operator (concept: gemm::warp::MmaTensorOp or gemm::warp::MmaSimt)
   using Operator = Operator_;
@@ -72,7 +72,7 @@ struct MmaPolicy {
   using SmemPaddingB = SmemPaddingB_;
 
   /// Number of partitions of K dimension
-  static constexpr int kPartitionsK = PartitionsK;
+  static constexpr int32_t kPartitionsK = PartitionsK;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -85,7 +85,7 @@ template <
     /// Policy describing tuning details (concept: MmaPolicy)
     typename Policy_,
     /// Number of stages,
-    int Stages,
+    int32_t Stages,
     /// Used for partial specialization
     typename Enable = bool>
 class MmaBase {
@@ -113,11 +113,11 @@ class MmaBase {
                               Shape::kK / WarpGemm::kK>;
 
   /// Number of warp-level GEMM oeprations
-  static constexpr int kWarpGemmIterations =
+  static constexpr int32_t kWarpGemmIterations =
       (WarpGemm::kK / Operator::Policy::MmaShape::kK);
 
   /// Number of stages
-  static constexpr int kStages = Stages;
+  static constexpr int32_t kStages = Stages;
 
   /// Tensor reference to the A operand
   using TensorRefA = TensorRef<typename Operator::ElementA, typename Operator::LayoutA>;
@@ -215,11 +215,11 @@ public:
       ///< Shared storage needed for internal use by threadblock-scoped GEMM
       SharedStorage &shared_storage,
       ///< ID within the threadblock
-      int thread_idx,
+      int32_t thread_idx,
       ///< ID of warp
-      int warp_idx,
+      int32_t warp_idx,
       ///< ID of each thread within a warp
-      int lane_idx
+      int32_t lane_idx
     ):
       warp_tile_iterator_A_(shared_storage.operand_A_ref(), lane_idx),
       warp_tile_iterator_B_(shared_storage.operand_B_ref(), lane_idx) {

@@ -47,7 +47,7 @@
 
 namespace cutlass {
 
-template <int Bits, bool Signed = true>
+template <int32_t Bits, bool Signed = true>
 struct integer_subbyte {
   using Storage = uint8_t;
 
@@ -55,7 +55,7 @@ struct integer_subbyte {
 
   // "External type"; the integer type for which
   // integer_subbyte has a conversion-to operator
-  using xint_t = typename cutlass::platform::conditional<Signed, int, unsigned>::type;
+  using xint_t = typename cutlass::platform::conditional<Signed, int32_t, unsigned>::type;
 
   // Bitmask for truncation from larger integers
   static constexpr Storage bits_mask_ = Storage(Storage(-1) >> (8 - Bits));
@@ -71,7 +71,7 @@ struct integer_subbyte {
   // Implicit conversion is DEPRECATED.
   // Please use one of the two explicit constructors below.
   template<class T,
-    class Enable = cutlass::platform::enable_if_t<cutlass::platform::is_convertible_v<T, int>>
+    class Enable = cutlass::platform::enable_if_t<cutlass::platform::is_convertible_v<T, int32_t>>
   >
 #if !defined(CUTLASS_EXTRA_WARNINGS)
   [[deprecated("Implicit conversion is deprecated; please use explicit construction instead")]]
@@ -88,34 +88,34 @@ struct integer_subbyte {
   // into integer_subbyte, so the class provides both explicit
   // conversions.
 
-  // Precondition: If the external type is unsigned int, then value
-  // fits in unsigned int (is nonnegative).
+  // Precondition: If the external type is uint32_t, then value
+  // fits in uint32_t (is nonnegative).
   CUTLASS_HOST_DEVICE explicit
-  integer_subbyte(int value)
+  integer_subbyte(int32_t value)
       : storage(reinterpret_cast<Storage const&>(value) & bits_mask_)
   {
     if constexpr (Signed) {
-      [[maybe_unused]] constexpr int lower_bound = -(1 << (Bits - 1));
-      [[maybe_unused]] constexpr int upper_bound = (1 << (Bits - 1)) - 1;
+      [[maybe_unused]] constexpr int32_t lower_bound = -(1 << (Bits - 1));
+      [[maybe_unused]] constexpr int32_t upper_bound = (1 << (Bits - 1)) - 1;
       assert(value >= lower_bound);
       assert(value <= upper_bound);
     }
     else {
       [[maybe_unused]] constexpr unsigned upper_bound = 1u << Bits;
       assert(value >= 0);
-      assert(value < static_cast<int>(upper_bound));
+      assert(value < static_cast<int32_t>(upper_bound));
     }
   }
 
-  // Precondition: If the external type is (signed) int, then value
-  // fits in int.
+  // Precondition: If the external type is (signed) int32_t, then value
+  // fits in int32_t.
   CUTLASS_HOST_DEVICE explicit
   integer_subbyte(unsigned value)
       : storage(reinterpret_cast<Storage const&>(value) & bits_mask_)
   {
     if constexpr (Signed) {
-      [[maybe_unused]] constexpr int lower_bound = -(1 << (Bits - 1));
-      [[maybe_unused]] constexpr int upper_bound = (1 << (Bits - 1)) - 1;
+      [[maybe_unused]] constexpr int32_t lower_bound = -(1 << (Bits - 1));
+      [[maybe_unused]] constexpr int32_t upper_bound = (1 << (Bits - 1)) - 1;
       assert(value >= lower_bound);
       assert(value <= upper_bound);
     }
@@ -129,7 +129,7 @@ struct integer_subbyte {
   integer_subbyte(uint8_t value)
     : integer_subbyte(static_cast<unsigned>(value)) {}
 
-  // Convert to the "external" integer type (int or unsigned)
+  // Convert to the "external" integer type (int32_t or unsigned)
   CUTLASS_HOST_DEVICE
   operator xint_t() const {
     if (sign_mask_ & storage) {  // Sign extend
@@ -225,15 +225,15 @@ using uint6b_t = integer_subbyte<6, false>;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <int Bits, bool Signed>
+template <int32_t Bits, bool Signed>
 struct sizeof_bits<integer_subbyte<Bits,Signed>> {
-  static constexpr int value = Bits;
+  static constexpr int32_t value = Bits;
 };
 
 /// Defines the size of an element in bits - specialized for bin1_t
 template <>
 struct sizeof_bits<bin1_t> {
-  static constexpr int value = 1;
+  static constexpr int32_t value = 1;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -245,7 +245,7 @@ template <class T>
 struct numeric_limits;
 
 // Specialization for signed integer_subbyte
-template<int NumBits>
+template<int32_t NumBits>
 struct numeric_limits<cutlass::integer_subbyte<NumBits, true>> {
 private:
   using value_type = cutlass::integer_subbyte<NumBits, true>;
@@ -273,7 +273,7 @@ public:
 };
 
 // Specialization for unsigned integer_subbyte
-template<int NumBits>
+template<int32_t NumBits>
 struct numeric_limits<cutlass::integer_subbyte<NumBits, false>> {
 private:
   using value_type = cutlass::integer_subbyte<NumBits, false>;

@@ -47,7 +47,7 @@ template <
     /// Fragment type to store loaded data
     typename AccessType,
     /// The bytes of loading
-    int LoadBytes,
+    int32_t LoadBytes,
     /// Cache operation
     CacheOperation::Kind cache_op = CacheOperation::Always
     >
@@ -104,7 +104,7 @@ struct global_load<AccessType,
         "}\n"
         : "=r"(data[0].x), "=r"(data[0].y), "=r"(data[0].z), "=r"(data[0].w),
           "=r"(data[1].x), "=r"(data[1].y), "=r"(data[1].z), "=r"(data[1].w)
-        : "l"(ptr), "r"((int)pred_guard), "r"(data[0].x), "r"(data[0].y),
+        : "l"(ptr), "r"((int32_t)pred_guard), "r"(data[0].x), "r"(data[0].y),
           "r"(data[0].z), "r"(data[0].w), "r"(data[1].x), "r"(data[1].y),
           "r"(data[1].z), "r"(data[1].w), "l"(((uint8_t *)ptr) + 16));
   }
@@ -136,7 +136,7 @@ struct global_load<AccessType,
         "}\n"
         : "=r"(data[0].x), "=r"(data[0].y), "=r"(data[0].z), "=r"(data[0].w),
           "=r"(data[1].x), "=r"(data[1].y), "=r"(data[1].z), "=r"(data[1].w)
-        : "l"(ptr), "r"((int)pred_guard), "r"(data[0].x), "r"(data[0].y),
+        : "l"(ptr), "r"((int32_t)pred_guard), "r"(data[0].x), "r"(data[0].y),
           "r"(data[0].z), "r"(data[0].w), "r"(data[1].x), "r"(data[1].y),
           "r"(data[1].z), "r"(data[1].w), "l"(((uint8_t *)ptr) + 16));
   }
@@ -165,7 +165,7 @@ struct global_load<AccessType,
 #endif
         "}\n"
         : "=r"(data.x), "=r"(data.y), "=r"(data.z), "=r"(data.w)
-        : "l"(ptr), "r"((int)pred_guard), "r"(data.x), "r"(data.y), "r"(data.z), "r"(data.w));
+        : "l"(ptr), "r"((int32_t)pred_guard), "r"(data.x), "r"(data.y), "r"(data.z), "r"(data.w));
   }
 };
 
@@ -188,7 +188,7 @@ struct global_load<AccessType,
         "  @p ld.global.lu.v4.u32 {%0, %1, %2, %3}, [%4];\n"
         "}\n"
         : "=r"(data.x), "=r"(data.y), "=r"(data.z), "=r"(data.w)
-        : "l"(ptr), "r"((int)pred_guard), "r"(data.x), "r"(data.y), "r"(data.z), "r"(data.w));
+        : "l"(ptr), "r"((int32_t)pred_guard), "r"(data.x), "r"(data.y), "r"(data.z), "r"(data.w));
   }
 };
 
@@ -214,7 +214,7 @@ struct global_load<AccessType,
 #endif
         "}\n"
         : "=r"(data.x), "=r"(data.y)
-        : "l"(ptr), "r"((int)pred_guard), "r"(data.x), "r"(data.y));
+        : "l"(ptr), "r"((int32_t)pred_guard), "r"(data.x), "r"(data.y));
   }
 };
 
@@ -236,7 +236,7 @@ struct global_load<AccessType,
         "  @p ld.global.lu.v2.u32 {%0, %1}, [%2];\n"
         "}\n"
         : "=r"(data.x), "=r"(data.y)
-        : "l"(ptr), "r"((int)pred_guard), "r"(data.x), "r"(data.y));
+        : "l"(ptr), "r"((int32_t)pred_guard), "r"(data.x), "r"(data.y));
   }
 };
 
@@ -261,7 +261,7 @@ struct global_load<AccessType,
 #endif
         "}\n"
         : "=r"(data)
-        : "l"(ptr), "r"((int)pred_guard), "r"(data));
+        : "l"(ptr), "r"((int32_t)pred_guard), "r"(data));
   }
 };
 
@@ -282,7 +282,7 @@ struct global_load<AccessType,
         "  @p ld.global.lu.u32 %0, [%1];\n"
         "}\n"
         : "=r"(data)
-        : "l"(ptr), "r"((int)pred_guard), "r"(data));
+        : "l"(ptr), "r"((int32_t)pred_guard), "r"(data));
   }
 };
 
@@ -307,7 +307,7 @@ struct global_load<AccessType,
 #endif
         "}\n"
         : "=h"(data)
-        : "l"(ptr), "r"((int)pred_guard), "h"(data));
+        : "l"(ptr), "r"((int32_t)pred_guard), "h"(data));
   }
 };
 
@@ -328,7 +328,7 @@ struct global_load<AccessType,
         "  @p ld.global.lu.u16 %0, [%1];\n"
         "}\n"
         : "=h"(data)
-        : "l"(ptr), "r"((int)pred_guard), "h"(data));
+        : "l"(ptr), "r"((int32_t)pred_guard), "h"(data));
   }
 };
 
@@ -349,7 +349,7 @@ template <
     /// Fragment type to store data
     typename AccessType,
     /// The bytes of storing
-    int StoreBytes
+    int32_t StoreBytes
     >
 struct global_store;
 
@@ -377,7 +377,7 @@ struct global_store<AccessType, 64> {
       "}\n"
       :
       : "l"(ptr), "r"(data[0].x), "r"(data[0].y), "r"(data[0].z),
-        "r"(data[0].w), "r"((int)pred_guard), "l"(((uint8_t *)ptr) + 16),
+        "r"(data[0].w), "r"((int32_t)pred_guard), "l"(((uint8_t *)ptr) + 16),
         "r"(data[1].x), "r"(data[1].y), "r"(data[1].z), "r"(data[1].w), 
         "l"(((uint8_t *)ptr) + 32),
         "r"(data[2].x), "r"(data[2].y), "r"(data[2].z), "r"(data[2].w),
@@ -402,7 +402,7 @@ struct global_store<AccessType, 32> {
       "}\n"
       :
       : "l"(ptr), "r"(data[0].x), "r"(data[0].y), "r"(data[0].z),
-        "r"(data[0].w), "r"((int)pred_guard), "l"(((uint8_t *)ptr) + 16),
+        "r"(data[0].w), "r"((int32_t)pred_guard), "l"(((uint8_t *)ptr) + 16),
         "r"(data[1].x), "r"(data[1].y), "r"(data[1].z), "r"(data[1].w));
   }
 };
@@ -419,7 +419,7 @@ struct global_store<AccessType, 16> {
       "  @p st.global.v4.u32 [%0], {%1, %2, %3, %4};\n"
       "}\n"
       :
-      : "l"(ptr), "r"(data.x), "r"(data.y), "r"(data.z), "r"(data.w), "r"((int)pred_guard));
+      : "l"(ptr), "r"(data.x), "r"(data.y), "r"(data.z), "r"(data.w), "r"((int32_t)pred_guard));
   }
 };
 
@@ -435,7 +435,7 @@ struct global_store<AccessType, 8> {
       "  @p st.global.v2.u32 [%0], {%1, %2};\n"
       "}\n"
       :
-      : "l"(ptr), "r"(data.x), "r"(data.y), "r"((int)pred_guard));
+      : "l"(ptr), "r"(data.x), "r"(data.y), "r"((int32_t)pred_guard));
   }
 };
 
@@ -451,7 +451,7 @@ struct global_store<AccessType, 4> {
       "  @p st.global.u32 [%0], %1;\n"
       "}\n"
       :
-      : "l"(ptr), "r"(data), "r"((int)pred_guard));
+      : "l"(ptr), "r"(data), "r"((int32_t)pred_guard));
   }
 };
 
@@ -467,7 +467,7 @@ struct global_store<AccessType, 2> {
       "  @p st.global.u16 [%0], %1;\n"
       "}\n"
       :
-      : "l"(ptr), "h"(data), "r"((int)pred_guard));
+      : "l"(ptr), "h"(data), "r"((int32_t)pred_guard));
   }
 };
 
@@ -483,7 +483,7 @@ struct global_store<AccessType, 1> {
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// ld.shared
-template <int Bytes>
+template <int32_t Bytes>
 CUTLASS_DEVICE
 void shared_load(void *dst, uint32_t ptr);
 
@@ -535,7 +535,7 @@ void shared_load<16>(void *dst, uint32_t ptr) {
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// st.shared
-template <int Bytes>
+template <int32_t Bytes>
 CUTLASS_DEVICE
 void shared_store(uint32_t ptr, void const *src);
 

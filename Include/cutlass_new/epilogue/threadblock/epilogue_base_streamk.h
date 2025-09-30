@@ -51,7 +51,7 @@ namespace threadblock {
 /// StreamK epilogue functionality for cross-block accumulator fragment reduction
 template <
   typename Shape,                          ///< Shape of threadblock tile (concept: GemmShape)
-  int PartitionsK,
+  int32_t PartitionsK,
   typename WarpMmaOperator,                ///< Warp-level MMA operator (concept: gemm::warp::MmaTensorOp)
   typename AccumulatorFragmentIterator>    ///< Iterator for enumerating fragments within the per-thread tile of raw accumulators
 class EpilogueBaseStreamK
@@ -69,7 +69,7 @@ protected:
                         PartitionsK>;
 
   /// Number of threads per block
-  static constexpr int kBlockThreads = 32 * WarpCount::kCount;
+  static constexpr int32_t kBlockThreads = 32 * WarpCount::kCount;
 
   /// Numerical accumulation element type
   using ElementAccumulator = typename WarpMmaOperator::ElementC;
@@ -80,18 +80,18 @@ protected:
 public:
 
   /// Number of AccumulatorTile fragments per thread
-  static constexpr int kAccumulatorFragments = AccumulatorFragmentIterator::Policy::kIterations;
+  static constexpr int32_t kAccumulatorFragments = AccumulatorFragmentIterator::Policy::kIterations;
 
 protected:
 
   /// Number of AccumulatorTile fragments per block output tile
-  static constexpr int kOutputTileFragments = kBlockThreads * kAccumulatorFragments;
+  static constexpr int32_t kOutputTileFragments = kBlockThreads * kAccumulatorFragments;
 
   /// Block-striped transfer utility for sharing AccumulatorFragment
   using BlockStripedT = BlockStriped<kBlockThreads, AccumulatorFragment>;
 
   /// AccumulatorFragment stride in the shared workspace between different peer blocks (each thread block can share accumulators for up to two block output tiles)
-  static constexpr int kPeerFragmentStride = kOutputTileFragments * 2;
+  static constexpr int32_t kPeerFragmentStride = kOutputTileFragments * 2;
 
 public:
 
@@ -101,14 +101,14 @@ public:
 public:
 
   /// Thread index in the threadblock
-  int thread_idx;
+  int32_t thread_idx;
 
 public:
 
   /// Constructor
   CUTLASS_DEVICE
   EpilogueBaseStreamK(
-      int thread_idx)                                       ///< ID of a thread within the threadblock
+      int32_t thread_idx)                                       ///< ID of a thread within the threadblock
   :
       thread_idx(thread_idx)
   {}
@@ -118,16 +118,16 @@ public:
   CUTLASS_DEVICE
   void reduce(
       AccumulatorFragment &accum_fragment,                  ///< [out] sum of all shared accumulator fragments for these peer partials
-      int peer_idx_begin,
-      int peer_idx_end,
-      int reduce_fragment_idx,
+      int32_t peer_idx_begin,
+      int32_t peer_idx_end,
+      int32_t reduce_fragment_idx,
       void *workspace_ptr)
   {
     plus<AccumulatorFragment> add_fragments;
 
     AccumulatorFragment *fragment_workspace = reinterpret_cast<AccumulatorFragment *>(workspace_ptr);
 
-    int fragment_offset = (peer_idx_begin * kPeerFragmentStride) + (reduce_fragment_idx * kBlockThreads);
+    int32_t fragment_offset = (peer_idx_begin * kPeerFragmentStride) + (reduce_fragment_idx * kBlockThreads);
 
     // Load first peer fragment
     BlockStripedT::load(accum_fragment, fragment_workspace + fragment_offset, this->thread_idx);
@@ -152,14 +152,14 @@ public:
   /// Shares the accumulator set with peers in the global workspace
   CUTLASS_DEVICE
   void share(
-      int peer_idx,
+      int32_t peer_idx,
       void *workspace_ptr,
       AccumulatorTile const &accumulators,
       bool started_tile)                      ///< Whether this thread block computed the first work volume for the current output tile
   {
     AccumulatorFragment *fragment_workspace = reinterpret_cast<AccumulatorFragment *>(workspace_ptr);
 
-    int fragment_offset = peer_idx * kPeerFragmentStride;
+    int32_t fragment_offset = peer_idx * kPeerFragmentStride;
 
     if (!started_tile) {
       // Move to the set of fragments for the "non-started" output tile
@@ -170,7 +170,7 @@ public:
 
     // Convert raw accumulator tile to fragments and store
     CUTLASS_PRAGMA_UNROLL
-    for (int iter = 0; iter < kAccumulatorFragments; ++iter)
+    for (int32_t iter = 0; iter < kAccumulatorFragments; ++iter)
     {
       // Acquire reordered accumulator fragment
       AccumulatorFragment accum_fragment;

@@ -75,7 +75,7 @@ struct alignas(4) tfloat32_t {
     }
 
   public:
-  /// Constructs from an unsigned int
+  /// Constructs from an uint32_t
   CUTLASS_HOST_DEVICE
   static tfloat32_t bitcast(uint32_t x) {
     tfloat32_t h;
@@ -113,7 +113,7 @@ struct alignas(4) tfloat32_t {
 
   /// Integer conversion - round toward zero
   CUTLASS_HOST_DEVICE
-  explicit tfloat32_t(int x) {
+  explicit tfloat32_t(int32_t x) {
     float flt = static_cast<float>(x);
     #if defined(__CUDA_ARCH__)
     storage = reinterpret_cast<uint32_t const &>(flt);
@@ -145,10 +145,10 @@ struct alignas(4) tfloat32_t {
     return double(float(*this));
   }
 
-  /// Converts to int
+  /// Converts to int32_t
   CUTLASS_HOST_DEVICE
-  explicit operator int() const {
-    return int(float(*this));
+  explicit operator int32_t() const {
+    return int32_t(float(*this));
   }
 
   /// Casts to bool
@@ -171,20 +171,20 @@ struct alignas(4) tfloat32_t {
 
   /// Returns the biased exponent
   CUTLASS_HOST_DEVICE
-  int exponent_biased() const {
-    return int((raw() >> 23) & 0x0ff);
+  int32_t exponent_biased() const {
+    return int32_t((raw() >> 23) & 0x0ff);
   }
 
   /// Returns the unbiased exponent
   CUTLASS_HOST_DEVICE
-  int exponent() const {
+  int32_t exponent() const {
     return exponent_biased() - 127;
   }
 
   /// Returns the mantissa
   CUTLASS_HOST_DEVICE
-  int mantissa() const {
-    return int(raw() & 0x7fffff);
+  int32_t mantissa() const {
+    return int32_t(raw() & 0x7fffff);
   }
 };
 
@@ -227,9 +227,9 @@ bool isnormal(cutlass::tfloat32_t const& h) {
 }
 
 CUTLASS_HOST_DEVICE
-int fpclassify(cutlass::tfloat32_t const& h) {
-  int exp = h.exponent_biased();
-  int mantissa = h.mantissa();
+int32_t fpclassify(cutlass::tfloat32_t const& h) {
+  int32_t exp = h.exponent_biased();
+  int32_t mantissa = h.mantissa();
   if (exp == 0x0ff) {
     if (mantissa) {
       return FP_NAN;
@@ -297,7 +297,7 @@ struct numeric_limits<cutlass::tfloat32_t> {
   static constexpr bool is_iec559 = false;
   static constexpr bool is_bounded = true;
   static constexpr bool is_modulo = false;
-  static constexpr int digits = 19;
+  static constexpr int32_t digits = 19;
 
   /// Least positive value
   static cutlass::tfloat32_t min() { return cutlass::tfloat32_t::bitcast(0x01); }
@@ -439,7 +439,7 @@ tfloat32_t& operator--(tfloat32_t & lhs) {
 }
 
 CUTLASS_HOST_DEVICE
-tfloat32_t operator++(tfloat32_t & lhs, int) {
+tfloat32_t operator++(tfloat32_t & lhs, int32_t) {
   tfloat32_t ret(lhs);
   float tmp(lhs);
   tmp++;
@@ -448,7 +448,7 @@ tfloat32_t operator++(tfloat32_t & lhs, int) {
 }
 
 CUTLASS_HOST_DEVICE
-tfloat32_t operator--(tfloat32_t & lhs, int) {
+tfloat32_t operator--(tfloat32_t & lhs, int32_t) {
   tfloat32_t ret(lhs);
   float tmp(lhs);
   tmp--;
@@ -473,7 +473,7 @@ cutlass::tfloat32_t operator "" _tf32(long double x) {
 
 CUTLASS_HOST_DEVICE
 cutlass::tfloat32_t operator "" _tf32(unsigned long long int x) {
-  return cutlass::tfloat32_t(int(x));
+  return cutlass::tfloat32_t(int32_t(x));
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

@@ -57,8 +57,8 @@ offering sequential access are provided.
 
 @par Predicate Vector
    A \ref predicate_vector_concept satisfies the following expressions
-  - <b>at(int idx)</b> - returns the value of the indexed predicate
-  - <b>set(int idx, bool value)</b> - sets the value of the indexed predicate
+  - <b>at(int32_t idx)</b> - returns the value of the indexed predicate
+  - <b>set(int32_t idx, bool value)</b> - sets the value of the indexed predicate
   - <b>begin()</b> - returns a \ref predicate_iterator_concept pointing to the first predicate
 
 @}
@@ -94,7 +94,7 @@ tile_traits_concept and a \ref predicate_vector_concept.
 
 @par Predicate Tile Adapter
   A \ref predicate_tile_adapter satisfies the following expressions
- - <b>at(int d, int h, int w, int c)</b> - returns the value of a predicate corresponding to the
+ - <b>at(int32_t d, int32_t h, int32_t w, int32_t c)</b> - returns the value of a predicate corresponding to the
    access (d, h, w, c) within the tile.
 
 @}
@@ -105,20 +105,20 @@ tile_traits_concept and a \ref predicate_vector_concept.
 /// Statically sized array of bits implementing @concept{predicate_vector_concept}.
 template <
     /// Number of predicates contained in predicate vector
-    int kPredicates_,
+    int32_t kPredicates_,
     /// Number of predicates contained in each byte of internal storage
-    int kPredicatesPerByte_ = 4,
+    int32_t kPredicatesPerByte_ = 4,
     /// Location of first predicate within byte of internal storage
-    int kPredicateStart_ = 0>
+    int32_t kPredicateStart_ = 0>
 struct PredicateVector {
   /// Number of bits stored by the PredicateVector
-  static constexpr int kPredicates = kPredicates_;
+  static constexpr int32_t kPredicates = kPredicates_;
 
   /// Number of bits stored within each byte of the predicate bit vector
-  static constexpr int kPredicatesPerByte = kPredicatesPerByte_;
+  static constexpr int32_t kPredicatesPerByte = kPredicatesPerByte_;
 
   /// First bit within each byte containing predicates
-  static constexpr int kPredicateStart = kPredicateStart_;
+  static constexpr int32_t kPredicateStart = kPredicateStart_;
 
   // Make sure no one tries to put more than 8 bits in a byte :)
   static_assert(kPredicatesPerByte <= 8, "kPredicatesPerByte must fit within an actual byte");
@@ -130,10 +130,10 @@ struct PredicateVector {
   typedef uint32_t Storage;
 
   /// Number of bytes needed
-  static constexpr int kBytes = (kPredicates + kPredicatesPerByte - 1) / kPredicatesPerByte;
+  static constexpr int32_t kBytes = (kPredicates + kPredicatesPerByte - 1) / kPredicatesPerByte;
 
   /// Number of storage elements needed
-  static constexpr int kWordCount = (kBytes + int(sizeof(Storage)) - 1) / int(sizeof(Storage));
+  static constexpr int32_t kWordCount = (kBytes + int32_t(sizeof(Storage)) - 1) / int32_t(sizeof(Storage));
 
   /// The byte mask corresponding to predicates
   static constexpr Storage kByteMask = (((1 << kPredicatesPerByte) - 1) << kPredicateStart);
@@ -151,14 +151,14 @@ struct PredicateVector {
   //
 
   /// Computes the word and bit corresponding to a logical predicate index
-  CUTLASS_HOST_DEVICE void computeStorageOffset(int &word, int &bit, int idx) const {
+  CUTLASS_HOST_DEVICE void computeStorageOffset(int32_t &word, int32_t &bit, int32_t idx) const {
     CUTLASS_ASSERT(idx < kPredicates);
 
-    int byte = (idx / kPredicatesPerByte);
-    int bit_offset = (idx % kPredicatesPerByte);
+    int32_t byte = (idx / kPredicatesPerByte);
+    int32_t bit_offset = (idx % kPredicatesPerByte);
 
     word = byte / sizeof(Storage);
-    int byte_offset = (byte % sizeof(Storage));
+    int32_t byte_offset = (byte % sizeof(Storage));
 
     bit = byte_offset * 8 + bit_offset + kPredicateStart;
   }
@@ -177,20 +177,20 @@ struct PredicateVector {
   CUTLASS_HOST_DEVICE static constexpr bool computeLastWordMask() {
     Storage mask(0);
     CUTLASS_PRAGMA_UNROLL
-    for (int byte = 0; byte < kBytes % sizeof(Storage); ++byte) {
+    for (int32_t byte = 0; byte < kBytes % sizeof(Storage); ++byte) {
       mask |= (kByteMask << (byte * 8));
     }
     return mask;
   }
 
   /// Accesses a given word with optional assertions
-  CUTLASS_HOST_DEVICE Storage &storage(int word) {
+  CUTLASS_HOST_DEVICE Storage &storage(int32_t word) {
     CUTLASS_ASSERT(word < kWordCount);
     return storageData[word];
   }
 
   /// Accesses a given word with optional assertions
-  CUTLASS_HOST_DEVICE Storage const &storage(int word) const {
+  CUTLASS_HOST_DEVICE Storage const &storage(int32_t word) const {
     CUTLASS_ASSERT(word < kWordCount);
     return storageData[word];
   }
@@ -210,7 +210,7 @@ struct PredicateVector {
     PredicateVector &vec_;
 
     /// Index into PredicateVector
-    int bit_;
+    int32_t bit_;
 
    public:
     /// Copy constructor
@@ -219,7 +219,7 @@ struct PredicateVector {
 
     /// Constructs an iterator from a PredicateVector
     CUTLASS_HOST_DEVICE
-    Iterator(PredicateVector &vec, int _start = 0) : vec_(vec), bit_(_start) {}
+    Iterator(PredicateVector &vec, int32_t _start = 0) : vec_(vec), bit_(_start) {}
 
     /// Pre-increment
     CUTLASS_HOST_DEVICE
@@ -230,7 +230,7 @@ struct PredicateVector {
 
     /// Increment
     CUTLASS_HOST_DEVICE
-    Iterator &operator+=(int offset) {
+    Iterator &operator+=(int32_t offset) {
       bit_ += offset;
       return *this;
     }
@@ -244,14 +244,14 @@ struct PredicateVector {
 
     /// Decrement
     CUTLASS_HOST_DEVICE
-    Iterator &operator-=(int offset) {
+    Iterator &operator-=(int32_t offset) {
       bit_ -= offset;
       return *this;
     }
 
     /// Post-increment
     CUTLASS_HOST_DEVICE
-    Iterator operator++(int) {
+    Iterator operator++(int32_t) {
       Iterator ret(*this);
       ret.bit_++;
       return ret;
@@ -259,7 +259,7 @@ struct PredicateVector {
 
     /// Post-decrement
     CUTLASS_HOST_DEVICE
-    Iterator operator--(int) {
+    Iterator operator--(int32_t) {
       Iterator ret(*this);
       ret.bit_--;
       return ret;
@@ -267,7 +267,7 @@ struct PredicateVector {
 
     /// Iterator advances by some amount
     CUTLASS_HOST_DEVICE
-    Iterator operator+(int offset) {
+    Iterator operator+(int32_t offset) {
       Iterator ret(*this);
       ret.bit_ += offset;
       return ret;
@@ -275,7 +275,7 @@ struct PredicateVector {
 
     /// Iterator recedes by some amount
     CUTLASS_HOST_DEVICE
-    Iterator operator-(int offset) {
+    Iterator operator-(int32_t offset) {
       ConstIterator ret(*this);
       ret.bit_ -= offset;
       return ret;
@@ -316,7 +316,7 @@ struct PredicateVector {
     PredicateVector const &vec_;
 
     /// Index into PredicateVector
-    int bit_;
+    int32_t bit_;
 
    public:
     /// Copy constructor
@@ -325,7 +325,7 @@ struct PredicateVector {
 
     /// Constructs an iterator from a PredicateVector
     CUTLASS_HOST_DEVICE
-    ConstIterator(PredicateVector const &vec, int _start = 0) : vec_(vec), bit_(_start) {}
+    ConstIterator(PredicateVector const &vec, int32_t _start = 0) : vec_(vec), bit_(_start) {}
 
     /// Pre-increment
     CUTLASS_HOST_DEVICE
@@ -336,7 +336,7 @@ struct PredicateVector {
 
     /// Increment
     CUTLASS_HOST_DEVICE
-    ConstIterator &operator+=(int offset) {
+    ConstIterator &operator+=(int32_t offset) {
       bit_ += offset;
       return *this;
     }
@@ -350,14 +350,14 @@ struct PredicateVector {
 
     /// Decrement
     CUTLASS_HOST_DEVICE
-    ConstIterator &operator-=(int offset) {
+    ConstIterator &operator-=(int32_t offset) {
       bit_ -= offset;
       return *this;
     }
 
     /// Post-increment
     CUTLASS_HOST_DEVICE
-    ConstIterator operator++(int) {
+    ConstIterator operator++(int32_t) {
       ConstIterator ret(*this);
       ret.bit_++;
       return ret;
@@ -365,7 +365,7 @@ struct PredicateVector {
 
     /// Post-decrement
     CUTLASS_HOST_DEVICE
-    ConstIterator operator--(int) {
+    ConstIterator operator--(int32_t) {
       ConstIterator ret(*this);
       ret.bit_--;
       return ret;
@@ -373,7 +373,7 @@ struct PredicateVector {
 
     /// Iterator advances by some amount
     CUTLASS_HOST_DEVICE
-    ConstIterator operator+(int offset) {
+    ConstIterator operator+(int32_t offset) {
       ConstIterator ret(*this);
       ret.bit_ += offset;
       return ret;
@@ -381,7 +381,7 @@ struct PredicateVector {
 
     /// Iterator recedes by some amount
     CUTLASS_HOST_DEVICE
-    ConstIterator operator-(int offset) {
+    ConstIterator operator-(int32_t offset) {
       ConstIterator ret(*this);
       ret.bit_ -= offset;
       return ret;
@@ -428,7 +428,7 @@ struct PredicateVector {
 
     /// Post-increment
     CUTLASS_HOST_DEVICE
-    TrivialIterator operator++(int) { return *this; }
+    TrivialIterator operator++(int32_t) { return *this; }
 
     /// Dereferences iterator
     CUTLASS_HOST_DEVICE
@@ -448,7 +448,7 @@ struct PredicateVector {
     Storage item = (value ? ~Storage(0) : Storage(0));
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < kWordCount; ++i) {
+    for (int32_t i = 0; i < kWordCount; ++i) {
       storage(i) = item;
     }
   }
@@ -456,7 +456,7 @@ struct PredicateVector {
   /// Clears all predicates
   CUTLASS_HOST_DEVICE void clear() {
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < kWordCount; ++i) {
+    for (int32_t i = 0; i < kWordCount; ++i) {
       storage(i) = 0;
     }
   }
@@ -464,25 +464,25 @@ struct PredicateVector {
   /// Sets all predicates to true
   CUTLASS_HOST_DEVICE void enable() {
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < kWordCount; ++i) {
+    for (int32_t i = 0; i < kWordCount; ++i) {
       storage(i) = ~Storage(0);
     }
   }
 
   /// Accesses a bit within the predicate vector.
-  CUTLASS_HOST_DEVICE bool operator[](int idx) const { return at(idx); }
+  CUTLASS_HOST_DEVICE bool operator[](int32_t idx) const { return at(idx); }
 
   /// Accesses a bit within the predicate vector.
-  CUTLASS_HOST_DEVICE bool at(int idx) const {
-    int bit, word;
+  CUTLASS_HOST_DEVICE bool at(int32_t idx) const {
+    int32_t bit, word;
     computeStorageOffset(word, bit, idx);
 
     return ((storage(word) >> bit) & 1);
   }
 
   /// Set a bit within the predicate vector.
-  CUTLASS_HOST_DEVICE void set(int idx, bool value = true) {
-    int bit, word;
+  CUTLASS_HOST_DEVICE void set(int32_t idx, bool value = true) {
+    int32_t bit, word;
     computeStorageOffset(word, bit, idx);
 
     Storage disable_mask = (~(Storage(1) << bit));
@@ -494,7 +494,7 @@ struct PredicateVector {
   /// Computes the intersection of two identical predicate vectors.
   CUTLASS_HOST_DEVICE PredicateVector &operator&=(PredicateVector const &predicates) {
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < kWordCount; ++i) {
+    for (int32_t i = 0; i < kWordCount; ++i) {
       storage(i) = (storage(i) & predicates.storage(i));
     }
     return *this;
@@ -503,7 +503,7 @@ struct PredicateVector {
   /// Computes the union of two identical predicate vectors.
   CUTLASS_HOST_DEVICE PredicateVector &operator|=(PredicateVector const &predicates) {
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < kWordCount; ++i) {
+    for (int32_t i = 0; i < kWordCount; ++i) {
       storage(i) = (storage(i) | predicates.storage(i));
     }
     return *this;
@@ -514,7 +514,7 @@ struct PredicateVector {
    constexpr Storage mask = computeWordMask();
     Storage result = 0;
     CUTLASS_PRAGMA_UNROLL
-    for (int word = 0; word < kWordCount - 1; ++word) {
+    for (int32_t word = 0; word < kWordCount - 1; ++word) {
       result |= (storage(word) & mask);
     }
     constexpr Storage last_word_mask = computeLastWordMask();

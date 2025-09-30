@@ -80,7 +80,7 @@ BNCH_SWT_INLINE void testFunction() {
     bnch_swt::benchmark_stage<"old-vs-new-i-to-str" + testName>::printResults(true, false);
 }
 
-int main() {
+int32_t main() {
     testFunction<512, uint64_t, "-uint64">();
     testFunction<512, int64_t, "-int64">();
     return 0;
@@ -113,7 +113,7 @@ Compile and run your program:
 
 ## Output and Results
 ```c
-Performance Metrics for: int-to-string-comparisons-1
+Performance Metrics for: int32_t-to-string-comparisons-1
 Metrics for: jsonifier::internal::toChars
 Total Iterations to Stabilize                               : 394
 Measured Iterations                                         : 20

@@ -95,7 +95,7 @@ public:
   using OutputAccumulatorTile = AccumulatorTile;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static constexpr int32_t kIterations = Policy::kIterations;
 
 private:
 
@@ -109,7 +109,7 @@ private:
   AccessType const *accumulators_;
 
   /// Internal index
-  int index_;
+  int32_t index_;
 
 public:
 
@@ -137,22 +137,22 @@ public:
 
   /// Loads a fragment from the referenced part of the accumulator tile
   CUTLASS_HOST_DEVICE
-  void load(Fragment &frag, int index_offset = 0) const {
+  void load(Fragment &frag, int32_t index_offset = 0) const {
 
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
-    static constexpr int kAccessesPerMma = Policy::kElementsPerMma / Policy::kElementsPerAccess;
+    static constexpr int32_t kAccessesPerMma = Policy::kElementsPerMma / Policy::kElementsPerAccess;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int tile_n = 0; tile_n < Policy::TileIterations::kColumn; ++tile_n) {
+    for (int32_t tile_n = 0; tile_n < Policy::TileIterations::kColumn; ++tile_n) {
       
-      int tile_access_idx = 
+      int32_t tile_access_idx = 
         (tile_n * Policy::TileIterations::kRow + (index_ & 2) / 2) * Policy::MmaIterations::kCount * kAccessesPerMma;
 
       CUTLASS_PRAGMA_UNROLL
-      for (int mma_n = 0; mma_n < Policy::MmaIterations::kColumn * kAccessesPerMma; ++mma_n) {
+      for (int32_t mma_n = 0; mma_n < Policy::MmaIterations::kColumn * kAccessesPerMma; ++mma_n) {
 
-        int mma_access_idx = ((mma_n & 1) * 2 + (index_ & 1)) * kAccessesPerMma + (mma_n & 2) / 2;
+        int32_t mma_access_idx = ((mma_n & 1) * 2 + (index_ & 1)) * kAccessesPerMma + (mma_n & 2) / 2;
 
         frag_ptr[tile_n * Policy::MmaIterations::kColumn * kAccessesPerMma +
           mma_n] = accumulators_[tile_access_idx + mma_access_idx];
@@ -188,7 +188,7 @@ public:
   using AccumulatorTile = typename Policy::AccumulatorTile;
 
   /// Number of times this iterator can be incremented
-  static constexpr int kIterations = Policy::kIterations;
+  static constexpr int32_t kIterations = Policy::kIterations;
 
 private:
 
@@ -202,7 +202,7 @@ private:
   AccessType const *accumulators_;
 
   /// Internal index
-  int index_;
+  int32_t index_;
 
 public:
 
@@ -229,26 +229,26 @@ public:
 
   /// Loads a fragment from the referenced part of the accumulator tile
   CUTLASS_HOST_DEVICE
-  void load(Fragment &frag, int index_offset = 0) const {
+  void load(Fragment &frag, int32_t index_offset = 0) const {
 
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
-    int const kRegsPerMmaRow = 2;
+    int32_t const kRegsPerMmaRow = 2;
       
     CUTLASS_PRAGMA_UNROLL
-    for (int reg_row = 0; reg_row < Policy::kRowsPerMmaTile; ++reg_row) {
+    for (int32_t reg_row = 0; reg_row < Policy::kRowsPerMmaTile; ++reg_row) {
 
       CUTLASS_PRAGMA_UNROLL
-      for (int tile_n = 0; tile_n < Policy::TileIterations::kColumn; ++tile_n) {
+      for (int32_t tile_n = 0; tile_n < Policy::TileIterations::kColumn; ++tile_n) {
     
         CUTLASS_PRAGMA_UNROLL
-        for (int mma_n = 0; mma_n < Policy::MmaIterations::kColumn * 2; ++mma_n) {
+        for (int32_t mma_n = 0; mma_n < Policy::MmaIterations::kColumn * 2; ++mma_n) {
 
-          int mma_idx = (index_ & 1) + (index_ & 2) * Policy::MmaIterations::kCount / 2 +
+          int32_t mma_idx = (index_ & 1) + (index_ & 2) * Policy::MmaIterations::kCount / 2 +
             (tile_n * Policy::TileIterations::kRow) * Policy::MmaIterations::kCount + (mma_n & 1) * 2;
 
-          int reg_offset = reg_row * kRegsPerMmaRow + (mma_n & 2) * 2;
-          int reg_idx = mma_idx * Policy::kElementsPerMma + reg_offset;
+          int32_t reg_offset = reg_row * kRegsPerMmaRow + (mma_n & 2) * 2;
+          int32_t reg_idx = mma_idx * Policy::kElementsPerMma + reg_offset;
 
           *frag_ptr = accumulators_[reg_idx / Policy::kElementsPerAccess];
           ++frag_ptr;

@@ -124,14 +124,14 @@ struct UnpackComplexConvertAndPackForMmaFastF32 <
 
   // Operand layout parameters
   using SourceFragmentLayout = layout::ColumnMajor;
-  static constexpr int kLdm = MmaIterations::kRow * MmaOperandShape::kRow;
+  static constexpr int32_t kLdm = MmaIterations::kRow * MmaOperandShape::kRow;
 
   // BigSmall Fragment holding two TF32 elements (big, small) for every float
   using BigSmallFragment = Array<MmaElement, 2>;
 
   /// Index in fargments for the big and small part
-  static constexpr int kBigIndex = 0;
-  static constexpr int kSmallIndex = 1;
+  static constexpr int32_t kBigIndex = 0;
+  static constexpr int32_t kSmallIndex = 1;
 
   /// Ctor
   CUTLASS_DEVICE
@@ -147,15 +147,15 @@ struct UnpackComplexConvertAndPackForMmaFastF32 <
     DestinationFragment *dest_small_ = reinterpret_cast<DestinationFragment*>(&dest[MmaIterations::kRow * 2]);
 
     CUTLASS_PRAGMA_UNROLL
-    for(int i=0; i<MmaIterations::kRow; i++) {
-      int pos = 0;
+    for(int32_t i=0; i<MmaIterations::kRow; i++) {
+      int32_t pos = 0;
       CUTLASS_PRAGMA_UNROLL
-      for(int c=0; c<MmaOperandShape::kColumn; c++) {
+      for(int32_t c=0; c<MmaOperandShape::kColumn; c++) {
         CUTLASS_PRAGMA_UNROLL
-        for(int r=0; r<MmaOperandShape::kRow; r++) {
+        for(int32_t r=0; r<MmaOperandShape::kRow; r++) {
           // Logical position of element in source fragment
-          int row = r + i * MmaOperandShape::kRow;
-          int col = c;
+          int32_t row = r + i * MmaOperandShape::kRow;
+          int32_t col = c;
 
           // Access complex<RealElement> and apply rounding on real and imag parts
           BigSmallFragment a = convert_op(source[layout(MatrixCoord{row,col})].real());
@@ -214,14 +214,14 @@ struct UnpackComplexConvertAndPackForMmaFastF32 <
 
   // Operand layout parameters
   using SourceFragmentLayout = layout::RowMajor;
-  static constexpr int kLdm = MmaIterations::kColumn * MmaOperandShape::kColumn;
+  static constexpr int32_t kLdm = MmaIterations::kColumn * MmaOperandShape::kColumn;
 
   // BigSmall Fragment holding two TF32 elements (big, small) for every float
   using BigSmallFragment = Array<MmaElement, 2>;
 
   /// Index in fargments for the big and small part
-  static constexpr int kBigIndex = 0;
-  static constexpr int kSmallIndex = 1;
+  static constexpr int32_t kBigIndex = 0;
+  static constexpr int32_t kSmallIndex = 1;
 
   /// Ctor
   CUTLASS_DEVICE
@@ -237,15 +237,15 @@ struct UnpackComplexConvertAndPackForMmaFastF32 <
     DestinationFragment *dest_small_ = reinterpret_cast<DestinationFragment*>(&dest[MmaIterations::kColumn * 2]);
 
     CUTLASS_PRAGMA_UNROLL
-    for(int i=0; i<MmaIterations::kColumn; i++) {
-      int pos = 0;
+    for(int32_t i=0; i<MmaIterations::kColumn; i++) {
+      int32_t pos = 0;
       CUTLASS_PRAGMA_UNROLL
-      for(int c=0; c<MmaOperandShape::kColumn; c++) {
+      for(int32_t c=0; c<MmaOperandShape::kColumn; c++) {
         CUTLASS_PRAGMA_UNROLL
-        for(int r=0; r<MmaOperandShape::kRow; r++) {
+        for(int32_t r=0; r<MmaOperandShape::kRow; r++) {
           // Logical position of element in source fragment
-          int row = r;
-          int col = c + i * MmaOperandShape::kColumn;
+          int32_t row = r;
+          int32_t col = c + i * MmaOperandShape::kColumn;
 
           // Access complex<RealElement> apply rounding on real and imag parts
           BigSmallFragment a = convert_op(source[layout(MatrixCoord{row,col})].real());
@@ -391,7 +391,7 @@ public:
   static constexpr ComplexTransform kTransformB = TransformB;
 
   /// Number of threads participating in warp-level matrix product
-  static constexpr int kThreadCount = 32;
+  static constexpr int32_t kThreadCount = 32;
 
 
   /// Tune F32 to TF32 big small conversion for complex<float> operation
@@ -407,8 +407,8 @@ public:
   >;
 
   /// Index in fargments for the big and small part
-  static constexpr int kBigIndex = 0;
-  static constexpr int kSmallIndex = 1;
+  static constexpr int32_t kBigIndex = 0;
+  static constexpr int32_t kSmallIndex = 1;
 
 public:
 
@@ -569,11 +569,11 @@ public:
 
 
     CUTLASS_PRAGMA_UNROLL
-    for (int m = 0; m < MmaIterations::kRow; ++m) {
+    for (int32_t m = 0; m < MmaIterations::kRow; ++m) {
 
       // mma(accum.real(), a.real(), b.real(), accum.real());
       CUTLASS_PRAGMA_UNROLL
-      for (int n = 0; n < MmaIterations::kColumn; ++n) {
+      for (int32_t n = 0; n < MmaIterations::kColumn; ++n) {
 
         // Real-valued accumulator part
         MmaOperandC *accum = reinterpret_cast<MmaOperandC *>(&D) + 
@@ -584,7 +584,7 @@ public:
 
       // mma(accum.imag(), a.real(), b.imag(), accum.imag()); 
       CUTLASS_PRAGMA_UNROLL
-      for (int n = MmaIterations::kColumn - 1; n >= 0; --n) {
+      for (int32_t n = MmaIterations::kColumn - 1; n >= 0; --n) {
 
         // Complex-valued accumulator part
         MmaOperandC *accum = reinterpret_cast<MmaOperandC *>(&D) + 
@@ -595,7 +595,7 @@ public:
 
       // mma(accum.real(), a.imag(), -b.imag(), accum.real())
       CUTLASS_PRAGMA_UNROLL
-      for (int n = 0; n < MmaIterations::kColumn; ++n) {
+      for (int32_t n = 0; n < MmaIterations::kColumn; ++n) {
 
         // negate OperandB to accumulate  -(a.imag()*b.imag())
         // negating OperandB emits less instructions than negating OperandA as OperandB has less elements
@@ -610,7 +610,7 @@ public:
 
       // mma(accum.imag(), a.imag(), b.real(), accum.imag())
       CUTLASS_PRAGMA_UNROLL
-      for (int n = MmaIterations::kColumn - 1; n >= 0; --n) {
+      for (int32_t n = MmaIterations::kColumn - 1; n >= 0; --n) {
 
         // Complex-valued accumulator part
         MmaOperandC *accum = reinterpret_cast<MmaOperandC *>(&D) + 

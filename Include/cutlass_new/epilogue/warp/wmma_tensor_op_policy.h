@@ -76,16 +76,16 @@ struct WmmaTensorOpPolicy<WarpShape, OperatorShape, layout::RowMajor> {
   //
   // Hard-coded constants regarding Tensor Operations
   //
-  static constexpr int kElementsPerAccess = 2;
-  static constexpr int kRowsPerIteration = OperatorShape::kM;
-  static constexpr int kWmmaFragmentsPerAccess = 1;
+  static constexpr int32_t kElementsPerAccess = 2;
+  static constexpr int32_t kRowsPerIteration = OperatorShape::kM;
+  static constexpr int32_t kWmmaFragmentsPerAccess = 1;
 
   //
   // Derived quantities
   //
 
   // Number of externally visible iterations
-  static constexpr int kIterations = OperatorCount::kRow;
+  static constexpr int32_t kIterations = OperatorCount::kRow;
 
 };
 

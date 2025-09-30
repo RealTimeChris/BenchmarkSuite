@@ -100,16 +100,16 @@ struct SparseMma<
   using Operator = OpMultiplyAdd;
   using ArchTag = arch::Sm80;
 
-  static constexpr int kSparse = 2;
+  static constexpr int32_t kSparse = 2;
 
-  static constexpr int kMetaSizeInBits = 2;
+  static constexpr int32_t kMetaSizeInBits = 2;
 
-  static constexpr int kMaxID2 = 2;
+  static constexpr int32_t kMaxID2 = 2;
 
   /// Computes multiply-add
   CUTLASS_HOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
-                  FragmentC const &c, uint32_t const &E, int const id2) const {
+                  FragmentC const &c, uint32_t const &E, int32_t const id2) const {
 
 #if defined(CUTLASS_ARCH_SPARSE_MMA_SM80_ENABLED)
 
@@ -206,16 +206,16 @@ struct SparseMma<
   using Operator = OpMultiplyAdd;
   using ArchTag = arch::Sm80;
 
-  static constexpr int kSparse = 2;
+  static constexpr int32_t kSparse = 2;
 
-  static constexpr int kMetaSizeInBits = 2;
+  static constexpr int32_t kMetaSizeInBits = 2;
 
-  static constexpr int kMaxID2 = 2;
+  static constexpr int32_t kMaxID2 = 2;
 
   /// Computes multiply-add
   CUTLASS_HOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
-                  FragmentC const &c, uint32_t const &E, int const id2) const {
+                  FragmentC const &c, uint32_t const &E, int32_t const id2) const {
 
 #if defined(CUTLASS_ARCH_SPARSE_MMA_SM80_ENABLED)
 
@@ -311,15 +311,15 @@ struct SparseMma<gemm::GemmShape<16, 8, 32>, 32, bfloat16_t, layout::RowMajor,
   using Operator = OpMultiplyAdd;
   using ArchTag = arch::Sm80;
 
-  static constexpr int kSparse = 2;
+  static constexpr int32_t kSparse = 2;
 
-  static constexpr int kMetaSizeInBits = 2;
+  static constexpr int32_t kMetaSizeInBits = 2;
 
-  static constexpr int kMaxID2 = 2;
+  static constexpr int32_t kMaxID2 = 2;
 
   CUTLASS_HOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
-                  FragmentC const &c, uint32_t const &E, int const id2) const {
+                  FragmentC const &c, uint32_t const &E, int32_t const id2) const {
 
 #if defined(CUTLASS_ARCH_SPARSE_MMA_SM80_ENABLED)
 
@@ -407,15 +407,15 @@ struct SparseMma<gemm::GemmShape<16, 8, 16>, 32, tfloat32_t, layout::RowMajor,
   using Operator = OpMultiplyAdd;
   using ArchTag = arch::Sm80;
 
-  static constexpr int kSparse = 2;
+  static constexpr int32_t kSparse = 2;
 
-  static constexpr int kMetaSizeInBits = 4;
+  static constexpr int32_t kMetaSizeInBits = 4;
 
-  static constexpr int kMaxID2 = 2;
+  static constexpr int32_t kMaxID2 = 2;
 
   CUTLASS_HOST_DEVICE
   void operator()(FragmentC &d, FragmentA const &a, FragmentB const &b,
-                  FragmentC const &c, uint32_t const &E, int const id2) const {
+                  FragmentC const &c, uint32_t const &E, int32_t const id2) const {
 
 #if defined(CUTLASS_ARCH_SPARSE_MMA_SM80_ENABLED)
 
@@ -488,7 +488,7 @@ struct SparseMma<
   layout::RowMajor,
   int8_t,
   layout::ColumnMajor,
-  int,
+  int32_t,
   layout::RowMajor,
   OpMultiplyAddSaturate,
   SPFormatType::Thread> {
@@ -503,20 +503,20 @@ struct SparseMma<
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<int8_t, 16>;
 
-  using ElementC = int;
+  using ElementC = int32_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<int, 4>;
+  using FragmentC = Array<int32_t, 4>;
 
   using FragmentE = uint32_t;
 
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
 
-  static constexpr int kSparse = 2;
+  static constexpr int32_t kSparse = 2;
 
-  static constexpr int kMetaSizeInBits = 2;
+  static constexpr int32_t kMetaSizeInBits = 2;
 
-  static constexpr int kMaxID2 = 1;
+  static constexpr int32_t kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_HOST_DEVICE
@@ -526,7 +526,7 @@ struct SparseMma<
     FragmentB const &b,
     FragmentC const &c,
     uint32_t const &E,
-    int const id2
+    int32_t const id2
   ) const {
 
 #if defined(CUTLASS_ARCH_SPARSE_MMA_SM80_ENABLED)
@@ -534,8 +534,8 @@ struct SparseMma<
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
 
-    int const *C = reinterpret_cast<int const *>(&c);
-    int *D = reinterpret_cast<int *>(&d);
+    int32_t const *C = reinterpret_cast<int32_t const *>(&c);
+    int32_t *D = reinterpret_cast<int32_t *>(&d);
 
 #if ((__CUDACC_VER_MAJOR__ > 12) || (__CUDACC_VER_MAJOR__ == 12 && __CUDACC_VER_MINOR__ >= 5))
     if (id2 == 0) {
@@ -580,7 +580,7 @@ struct SparseMma<
   layout::RowMajor,
   uint8_t,
   layout::ColumnMajor,
-  int,
+  int32_t,
   layout::RowMajor,
   OpMultiplyAddSaturate,
   SPFormatType::Thread> {
@@ -595,20 +595,20 @@ struct SparseMma<
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<uint8_t, 16>;
 
-  using ElementC = int;
+  using ElementC = int32_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<int, 4>;
+  using FragmentC = Array<int32_t, 4>;
 
   using FragmentE = uint32_t;
 
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
 
-  static constexpr int kSparse = 2;
+  static constexpr int32_t kSparse = 2;
 
-  static constexpr int kMetaSizeInBits = 2;
+  static constexpr int32_t kMetaSizeInBits = 2;
 
-  static constexpr int kMaxID2 = 1;
+  static constexpr int32_t kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_HOST_DEVICE
@@ -618,7 +618,7 @@ struct SparseMma<
     FragmentB const &b,
     FragmentC const &c,
     uint32_t const &E,
-    int const id2
+    int32_t const id2
   ) const {
 
 #if defined(CUTLASS_ARCH_SPARSE_MMA_SM80_ENABLED)
@@ -626,8 +626,8 @@ struct SparseMma<
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
 
-    int const *C = reinterpret_cast<int const *>(&c);
-    int *D = reinterpret_cast<int *>(&d);
+    int32_t const *C = reinterpret_cast<int32_t const *>(&c);
+    int32_t *D = reinterpret_cast<int32_t *>(&d);
 
 #if ((__CUDACC_VER_MAJOR__ > 12) || (__CUDACC_VER_MAJOR__ == 12 && __CUDACC_VER_MINOR__ >= 5))
     if (id2 == 0) {
@@ -673,7 +673,7 @@ struct SparseMma<
   layout::RowMajor,
   int8_t,
   layout::ColumnMajor,
-  int,
+  int32_t,
   layout::RowMajor,
   OpMultiplyAddSaturate,
   SPFormatType::Thread> {
@@ -688,20 +688,20 @@ struct SparseMma<
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<int8_t, 16>;
 
-  using ElementC = int;
+  using ElementC = int32_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<int, 4>;
+  using FragmentC = Array<int32_t, 4>;
 
   using FragmentE = uint32_t;
 
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
 
-  static constexpr int kSparse = 2;
+  static constexpr int32_t kSparse = 2;
 
-  static constexpr int kMetaSizeInBits = 2;
+  static constexpr int32_t kMetaSizeInBits = 2;
 
-  static constexpr int kMaxID2 = 1;
+  static constexpr int32_t kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_HOST_DEVICE
@@ -711,7 +711,7 @@ struct SparseMma<
     FragmentB const &b,
     FragmentC const &c,
     uint32_t const &E,
-    int const id2
+    int32_t const id2
   ) const {
 
 #if defined(CUTLASS_ARCH_SPARSE_MMA_SM80_ENABLED)
@@ -719,8 +719,8 @@ struct SparseMma<
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
 
-    int const *C = reinterpret_cast<int const *>(&c);
-    int *D = reinterpret_cast<int *>(&d);
+    int32_t const *C = reinterpret_cast<int32_t const *>(&c);
+    int32_t *D = reinterpret_cast<int32_t *>(&d);
 
 #if ((__CUDACC_VER_MAJOR__ > 12) || (__CUDACC_VER_MAJOR__ == 12 && __CUDACC_VER_MINOR__ >= 5))
     if (id2 == 0) {
@@ -765,7 +765,7 @@ struct SparseMma<
   layout::RowMajor,
   uint8_t,
   layout::ColumnMajor,
-  int,
+  int32_t,
   layout::RowMajor,
   OpMultiplyAddSaturate,
   SPFormatType::Thread> {
@@ -780,20 +780,20 @@ struct SparseMma<
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<uint8_t, 16>;
 
-  using ElementC = int;
+  using ElementC = int32_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<int, 4>;
+  using FragmentC = Array<int32_t, 4>;
 
   using FragmentE = uint32_t;
 
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
 
-  static constexpr int kSparse = 2;
+  static constexpr int32_t kSparse = 2;
 
-  static constexpr int kMetaSizeInBits = 2;
+  static constexpr int32_t kMetaSizeInBits = 2;
 
-  static constexpr int kMaxID2 = 1;
+  static constexpr int32_t kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_HOST_DEVICE
@@ -803,7 +803,7 @@ struct SparseMma<
     FragmentB const &b,
     FragmentC const &c,
     uint32_t const &E,
-    int const id2
+    int32_t const id2
   ) const {
 
 #if defined(CUTLASS_ARCH_SPARSE_MMA_SM80_ENABLED)
@@ -811,8 +811,8 @@ struct SparseMma<
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
 
-    int const *C = reinterpret_cast<int const *>(&c);
-    int *D = reinterpret_cast<int *>(&d);
+    int32_t const *C = reinterpret_cast<int32_t const *>(&c);
+    int32_t *D = reinterpret_cast<int32_t *>(&d);
 
 #if ((__CUDACC_VER_MAJOR__ > 12) || (__CUDACC_VER_MAJOR__ == 12 && __CUDACC_VER_MINOR__ >= 5))
     if (id2 == 0) {
@@ -863,7 +863,7 @@ struct SparseMma<
   layout::RowMajor,
   cutlass::int4b_t,
   layout::ColumnMajor,
-  int,
+  int32_t,
   layout::RowMajor,
   OpMultiplyAddSaturate,
   SPFormatType::Thread> {
@@ -878,20 +878,20 @@ struct SparseMma<
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<cutlass::int4b_t, 32>;
 
-  using ElementC = int;
+  using ElementC = int32_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<int, 4>;
+  using FragmentC = Array<int32_t, 4>;
 
   using FragmentE = uint32_t;
 
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
 
-  static constexpr int kSparse = 2;
+  static constexpr int32_t kSparse = 2;
 
-  static constexpr int kMetaSizeInBits = 2;
+  static constexpr int32_t kMetaSizeInBits = 2;
 
-  static constexpr int kMaxID2 = 1;
+  static constexpr int32_t kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_HOST_DEVICE
@@ -901,7 +901,7 @@ struct SparseMma<
     FragmentB const &b,
     FragmentC const &c,
     uint32_t const &E,
-    int const id2
+    int32_t const id2
   ) const {
 
 #if defined(CUTLASS_ARCH_SPARSE_MMA_SM80_ENABLED)
@@ -909,8 +909,8 @@ struct SparseMma<
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
 
-    int const *C = reinterpret_cast<int const *>(&c);
-    int *D = reinterpret_cast<int *>(&d);
+    int32_t const *C = reinterpret_cast<int32_t const *>(&c);
+    int32_t *D = reinterpret_cast<int32_t *>(&d);
 
 #if ((__CUDACC_VER_MAJOR__ > 12) || (__CUDACC_VER_MAJOR__ == 12 && __CUDACC_VER_MINOR__ >= 5))
     if (id2 == 0) {
@@ -956,7 +956,7 @@ struct SparseMma<
   layout::RowMajor,
   cutlass::uint4b_t,
   layout::ColumnMajor,
-  int,
+  int32_t,
   layout::RowMajor,
   OpMultiplyAddSaturate,
   SPFormatType::Thread> {
@@ -971,20 +971,20 @@ struct SparseMma<
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<cutlass::uint4b_t, 32>;
 
-  using ElementC = int;
+  using ElementC = int32_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<int, 4>;
+  using FragmentC = Array<int32_t, 4>;
 
   using FragmentE = uint32_t;
 
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
 
-  static constexpr int kSparse = 2;
+  static constexpr int32_t kSparse = 2;
 
-  static constexpr int kMetaSizeInBits = 2;
+  static constexpr int32_t kMetaSizeInBits = 2;
 
-  static constexpr int kMaxID2 = 1;
+  static constexpr int32_t kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_HOST_DEVICE
@@ -994,7 +994,7 @@ struct SparseMma<
     FragmentB const &b,
     FragmentC const &c,
     uint32_t const &E,
-    int const id2
+    int32_t const id2
   ) const {
 
 #if defined(CUTLASS_ARCH_SPARSE_MMA_SM80_ENABLED)
@@ -1002,8 +1002,8 @@ struct SparseMma<
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
 
-    int const *C = reinterpret_cast<int const *>(&c);
-    int *D = reinterpret_cast<int *>(&d);
+    int32_t const *C = reinterpret_cast<int32_t const *>(&c);
+    int32_t *D = reinterpret_cast<int32_t *>(&d);
 
 #if ((__CUDACC_VER_MAJOR__ > 12) || (__CUDACC_VER_MAJOR__ == 12 && __CUDACC_VER_MINOR__ >= 5))
     if (id2 == 0) {
@@ -1049,7 +1049,7 @@ struct SparseMma<
   layout::RowMajor,
   cutlass::int4b_t,
   layout::ColumnMajor,
-  int,
+  int32_t,
   layout::RowMajor,
   OpMultiplyAddSaturate,
   SPFormatType::Thread> {
@@ -1064,20 +1064,20 @@ struct SparseMma<
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<cutlass::int4b_t, 32>;
 
-  using ElementC = int;
+  using ElementC = int32_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<int, 4>;
+  using FragmentC = Array<int32_t, 4>;
 
   using FragmentE = uint32_t;
 
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
 
-  static constexpr int kSparse = 2;
+  static constexpr int32_t kSparse = 2;
 
-  static constexpr int kMetaSizeInBits = 2;
+  static constexpr int32_t kMetaSizeInBits = 2;
 
-  static constexpr int kMaxID2 = 1;
+  static constexpr int32_t kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_HOST_DEVICE
@@ -1087,7 +1087,7 @@ struct SparseMma<
     FragmentB const &b,
     FragmentC const &c,
     uint32_t const &E,
-    int const id2
+    int32_t const id2
   ) const {
 
 #if defined(CUTLASS_ARCH_SPARSE_MMA_SM80_ENABLED)
@@ -1095,8 +1095,8 @@ struct SparseMma<
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
 
-    int const *C = reinterpret_cast<int const *>(&c);
-    int *D = reinterpret_cast<int *>(&d);
+    int32_t const *C = reinterpret_cast<int32_t const *>(&c);
+    int32_t *D = reinterpret_cast<int32_t *>(&d);
 
 #if ((__CUDACC_VER_MAJOR__ > 12) || (__CUDACC_VER_MAJOR__ == 12 && __CUDACC_VER_MINOR__ >= 5))
     if (id2 == 0) {
@@ -1142,7 +1142,7 @@ struct SparseMma<
   layout::RowMajor,
   cutlass::uint4b_t,
   layout::ColumnMajor,
-  int,
+  int32_t,
   layout::RowMajor,
   OpMultiplyAddSaturate,
   SPFormatType::Thread> {
@@ -1157,20 +1157,20 @@ struct SparseMma<
   using LayoutB = layout::ColumnMajor;
   using FragmentB = Array<cutlass::uint4b_t, 32>;
 
-  using ElementC = int;
+  using ElementC = int32_t;
   using LayoutC = layout::RowMajor;
-  using FragmentC = Array<int, 4>;
+  using FragmentC = Array<int32_t, 4>;
 
   using FragmentE = uint32_t;
 
   using Operator = OpMultiplyAddSaturate;
   using ArchTag = arch::Sm80;
 
-  static constexpr int kSparse = 2;
+  static constexpr int32_t kSparse = 2;
 
-  static constexpr int kMetaSizeInBits = 2;
+  static constexpr int32_t kMetaSizeInBits = 2;
 
-  static constexpr int kMaxID2 = 1;
+  static constexpr int32_t kMaxID2 = 1;
 
   /// Computes multiply-add
   CUTLASS_HOST_DEVICE
@@ -1180,7 +1180,7 @@ struct SparseMma<
     FragmentB const &b,
     FragmentC const &c,
     uint32_t const &E,
-    int const id2
+    int32_t const id2
   ) const {
 
 #if defined(CUTLASS_ARCH_SPARSE_MMA_SM80_ENABLED)
@@ -1188,8 +1188,8 @@ struct SparseMma<
     uint32_t const *A = reinterpret_cast<uint32_t const *>(&a);
     uint32_t const *B = reinterpret_cast<uint32_t const *>(&b);
 
-    int const *C = reinterpret_cast<int const *>(&c);
-    int *D = reinterpret_cast<int *>(&d);
+    int32_t const *C = reinterpret_cast<int32_t const *>(&c);
+    int32_t *D = reinterpret_cast<int32_t *>(&d);
 
 #if ((__CUDACC_VER_MAJOR__ > 12) || (__CUDACC_VER_MAJOR__ == 12 && __CUDACC_VER_MINOR__ >= 5))
     if (id2 == 0) {

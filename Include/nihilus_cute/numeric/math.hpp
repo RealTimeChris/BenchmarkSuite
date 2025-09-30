@@ -78,7 +78,7 @@ abs(T const& t) {
 template <class T,
           __CUTE_REQUIRES(is_arithmetic<T>::value)>
 CUTE_HOST_DEVICE constexpr
-int
+int32_t
 signum(T const& x) {
   if constexpr (is_signed<T>::value) {
     return (T(0) < x) - (x < T(0));
@@ -143,15 +143,15 @@ has_single_bit(T x) {
 // bit_width( 0b0111 ) = 3
 template <class T>
 CUTE_HOST_DEVICE constexpr
-int
+int32_t
 bit_width(T x) {
   static_assert(is_unsigned<T>::value, "Only to be used for unsigned types.");
-  constexpr int N = (numeric_limits<T>::digits == 64 ? 6 :
+  constexpr int32_t N = (numeric_limits<T>::digits == 64 ? 6 :
                     (numeric_limits<T>::digits == 32 ? 5 :
                     (numeric_limits<T>::digits == 16 ? 4 :
                     (numeric_limits<T>::digits ==  8 ? 3 : (assert(false),0)))));
   T r = 0;
-  for (int i = N - 1; i >= 0; --i) {
+  for (int32_t i = N - 1; i >= 0; --i) {
     T shift = (x > ((T(1) << (T(1) << i))-1)) << i;
     x >>= shift;
     r  |= shift;
@@ -196,16 +196,16 @@ bit_floor(T x) {
 }
 
 template <class T>
-CUTE_HOST_DEVICE constexpr T rotl(T x, int s);
+CUTE_HOST_DEVICE constexpr T rotl(T x, int32_t s);
 template <class T>
-CUTE_HOST_DEVICE constexpr T rotr(T x, int s);
+CUTE_HOST_DEVICE constexpr T rotr(T x, int32_t s);
 
 // Computes the result of circular bitwise left-rotation
 template <class T>
 CUTE_HOST_DEVICE constexpr
 T
-rotl(T x, int s) {
-  constexpr int N = numeric_limits<T>::digits;
+rotl(T x, int32_t s) {
+  constexpr int32_t N = numeric_limits<T>::digits;
   return static_cast<T>(s == 0 ? x : s > 0 ? (x << s) | (x >> (N - s)) : rotr(x, -s));
 }
 
@@ -213,8 +213,8 @@ rotl(T x, int s) {
 template <class T>
 CUTE_HOST_DEVICE constexpr
 T
-rotr(T x, int s) {
-  constexpr int N = numeric_limits<T>::digits;
+rotr(T x, int32_t s) {
+  constexpr int32_t N = numeric_limits<T>::digits;
   return static_cast<T>(s == 0 ? x : s > 0 ? (x >> s) | (x << (N - s)) : rotl(x, -s));
 }
 
@@ -224,7 +224,7 @@ rotr(T x, int s) {
 // countl_zero( 0b00011100 ) = 3
 template <class T>
 CUTE_HOST_DEVICE constexpr
-int
+int32_t
 countl_zero(T x) {
   return numeric_limits<T>::digits - bit_width(x);
 }
@@ -235,7 +235,7 @@ countl_zero(T x) {
 // countl_one( 0b11100011 ) = 3
 template <class T>
 CUTE_HOST_DEVICE constexpr
-int
+int32_t
 countl_one(T x) {
   return countl_zero(~x);
 }
@@ -246,7 +246,7 @@ countl_one(T x) {
 // countr_zero( 0b00011100 ) = 2
 template <class T>
 CUTE_HOST_DEVICE constexpr
-int
+int32_t
 countr_zero(T x) {
   return x == 0 ? numeric_limits<T>::digits : bit_width(T(x & T(-x))) - 1;  // bit_width of the LSB
 }
@@ -257,7 +257,7 @@ countr_zero(T x) {
 // countr_one( 0b11100011 ) = 2
 template <class T>
 CUTE_HOST_DEVICE constexpr
-int
+int32_t
 countr_one(T x) {
   return countr_zero(~x);
 }
@@ -268,9 +268,9 @@ countr_one(T x) {
 // popcount( 0b00011101 ) = 4
 template <class T>
 CUTE_HOST_DEVICE constexpr
-int
+int32_t
 popcount(T x) {
-  int c = 0;
+  int32_t c = 0;
   while (x) {
     ++c;
     x &= x - 1; // clear the least significant bit set
@@ -286,7 +286,7 @@ popcount(T x) {
 template <class T>
 CUTE_HOST_DEVICE constexpr
 auto
-shiftl(T x, int s) {
+shiftl(T x, int32_t s) {
   return s >= 0 ? (x << s) : (x >> -s);
 }
 
@@ -294,7 +294,7 @@ shiftl(T x, int s) {
 template <class T>
 CUTE_HOST_DEVICE constexpr
 auto
-shiftr(T x, int s) {
+shiftr(T x, int32_t s) {
   return s >= 0 ? (x >> s) : (x << -s);
 }
 

@@ -45,8 +45,8 @@ namespace cutlass {
 /// Modifies semantics of cutlass::Array<> to provide guaranteed alignment. 
 template <
   typename T,
-  int N,
-  int Align = 16
+  int32_t N,
+  int32_t Align = 16
 >
 struct AlignedBuffer {
   
@@ -54,13 +54,13 @@ struct AlignedBuffer {
   using Storage = uint8_t;
 
   /// Number of logical elements held in buffer
-  static constexpr int kCount = N;
+  static constexpr int32_t kCount = N;
 
   /// Alignment requirement in bytes
-  static constexpr int kAlign = Align;
+  static constexpr int32_t kAlign = Align;
 
   /// Number of storage elements
-  static constexpr int kBytes = 
+  static constexpr int32_t kBytes = 
     (sizeof_bits<T>::value * N + 7) / 8;
 
 private:

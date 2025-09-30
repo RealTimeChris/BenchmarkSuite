@@ -55,7 +55,7 @@ using CUTE_STL_NAMESPACE::int16_t;
 using CUTE_STL_NAMESPACE::int32_t;
 using CUTE_STL_NAMESPACE::int64_t;
 
-template <int N> struct int_bit;
+template <int32_t N> struct int_bit;
 template <> struct int_bit<  2>  { using type = int2_t; };
 template <> struct int_bit<  4>  { using type = int4_t; };
 template <> struct int_bit<  8>  { using type = int8_t;  };
@@ -63,13 +63,13 @@ template <> struct int_bit< 16>  { using type = int16_t; };
 template <> struct int_bit< 32>  { using type = int32_t; };
 template <> struct int_bit< 64>  { using type = int64_t; };
 
-template <int N>
+template <int32_t N>
 using int_bit_t = typename int_bit<N>::type;
 
-template <int N>
+template <int32_t N>
 using int_byte = int_bit<8*N>;
 
-template <int N>
+template <int32_t N>
 using int_byte_t = typename int_byte<N>::type;
 
 //
@@ -87,7 +87,7 @@ using CUTE_STL_NAMESPACE::uint64_t;
 using cutlass::uint128_t;
 using cutlass::uint256_t;
 
-template <int N> struct uint_bit;
+template <int32_t N> struct uint_bit;
 template <> struct uint_bit<  1> { using type = uint1_t; };
 template <> struct uint_bit<  2> { using type = uint2_t; };
 template <> struct uint_bit<  4> { using type = uint4_t; };
@@ -99,13 +99,13 @@ template <> struct uint_bit< 64> { using type = uint64_t; };
 template <> struct uint_bit<128> { using type = cutlass::uint128_t; };
 template <> struct uint_bit<256> { using type = cutlass::uint256_t; };
 
-template <int N>
+template <int32_t N>
 using uint_bit_t = typename uint_bit<N>::type;
 
-template <int N>
+template <int32_t N>
 using uint_byte = uint_bit<8*N>;
 
-template <int N>
+template <int32_t N>
 using uint_byte_t = typename uint_byte<N>::type;
 
 } // namespace nihilus_cute

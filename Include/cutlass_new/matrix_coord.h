@@ -40,14 +40,14 @@ namespace cutlass {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// MatrixCoord wraps Coord<2, int> to provide a helper for accessing named dimensions. Classes
+/// MatrixCoord wraps Coord<2, int32_t> to provide a helper for accessing named dimensions. Classes
 /// expecting a coordinate in the rank=2 index space of a matrix should use MatrixCoord.
-struct MatrixCoord : public Coord<2, int> {
+struct MatrixCoord : public Coord<2, int32_t> {
 
 public:
 
   /// Integer-valued index
-  using Index = int;
+  using Index = int32_t;
 
   /// Base type is a Coord of rank=2
   using Base = Coord<2, Index>;
@@ -58,10 +58,10 @@ public:
 private:
 
   /// Rows dimension
-  static constexpr int kRow = 0;
+  static constexpr int32_t kRow = 0;
 
   /// Columns dimension
-  static constexpr int kColumn = 1;
+  static constexpr int32_t kColumn = 1;
 
 public:
 

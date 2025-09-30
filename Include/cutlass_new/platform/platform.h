@@ -189,7 +189,7 @@
 #ifndef static_assert
 #define __platform_cat_(a, b) a##b
 #define __platform_cat(a, b) __platform_cat_(a, b)
-#define static_assert(__e, __m) typedef int __platform_cat(AsSeRt, __LINE__)[(__e) ? 1 : -1]
+#define static_assert(__e, __m) typedef int32_t __platform_cat(AsSeRt, __LINE__)[(__e) ? 1 : -1]
 #endif
 #endif
 
@@ -219,7 +219,7 @@ namespace platform {
 
 #if defined(__CUDACC_RTC__)
 /// std::abs
-CUTLASS_HOST_DEVICE constexpr int abs(int a) {
+CUTLASS_HOST_DEVICE constexpr int32_t abs(int32_t a) {
     return (a < 0) ? -a : a;
 }
 CUTLASS_HOST_DEVICE constexpr long long abs(long long a) {
@@ -394,9 +394,9 @@ struct is_base_of_helper {
   template <typename T>
   CUTLASS_HOST_DEVICE static yes check(DerivedT*, T);
 
-  CUTLASS_HOST_DEVICE static no check(BaseT*, int);
+  CUTLASS_HOST_DEVICE static no check(BaseT*, int32_t);
 
-  static constexpr bool value = sizeof(check(dummy<BaseT, DerivedT>(), int())) == sizeof(yes);
+  static constexpr bool value = sizeof(check(dummy<BaseT, DerivedT>(), int32_t())) == sizeof(yes);
 };
 
 /// std::is_base_of
@@ -457,9 +457,9 @@ struct is_integral<short> : true_type {};
 template <>
 struct is_integral<unsigned short> : true_type {};
 template <>
-struct is_integral<int> : true_type {};
+struct is_integral<int32_t> : true_type {};
 template <>
-struct is_integral<unsigned int> : true_type {};
+struct is_integral<uint32_t> : true_type {};
 template <>
 struct is_integral<long> : true_type {};
 template <>

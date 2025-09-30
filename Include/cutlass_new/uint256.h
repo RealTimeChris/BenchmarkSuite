@@ -51,7 +51,7 @@ namespace cutlass {
 ///! Unsigned 256b integer type
 struct alignas(32) uint256_t {
   /// Size of one part of the uint's storage in bits
-  static constexpr int storage_bits_ = 128;
+  static constexpr int32_t storage_bits_ = 128;
 
   struct hilo {
     uint128_t lo;

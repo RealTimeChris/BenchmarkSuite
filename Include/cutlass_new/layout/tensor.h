@@ -73,10 +73,10 @@ class TensorCSRTK {};
 class TensorNHWC {
 public:
   /// Logical rank of tensor
-  static constexpr int kRank = 4;
+  static constexpr int32_t kRank = 4;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 3;
+  static constexpr int32_t kStrideRank = 3;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -157,31 +157,31 @@ public:
   CUTLASS_HOST_DEVICE
   TensorCoord inverse(LongIndex index) const {
 
-    int n = 0, h = 0, w = 0, c = 0;
+    int32_t n = 0, h = 0, w = 0, c = 0;
 
     #if defined(__CUDA_ARCH__)
-    int tmp = 0;
-    c = int(index % static_cast<int>(stride_[0]));
+    int32_t tmp = 0;
+    c = int32_t(index % static_cast<int32_t>(stride_[0]));
 
-    unsigned int hw_mul, hw_shr, w_mul, w_shr, c_mul, c_shr;
+    uint32_t hw_mul, hw_shr, w_mul, w_shr, c_mul, c_shr;
 
     find_divisor(hw_mul, hw_shr, stride_[2]);
     find_divisor(w_mul, w_shr, stride_[1]);
     find_divisor(c_mul, c_shr, stride_[0]);
 
-    fast_divmod(n, tmp, index, int(stride_[2]), hw_mul, hw_shr);
-    fast_divmod(h, w, tmp, int(stride_[1]), w_mul, w_shr);
-    fast_divmod(w, tmp, w, int(stride_[0]), c_mul, c_shr);
+    fast_divmod(n, tmp, index, int32_t(stride_[2]), hw_mul, hw_shr);
+    fast_divmod(h, w, tmp, int32_t(stride_[1]), w_mul, w_shr);
+    fast_divmod(w, tmp, w, int32_t(stride_[0]), c_mul, c_shr);
     #else
 
-    n = int(index / stride_[2]);
+    n = int32_t(index / stride_[2]);
     LongIndex residual = index % stride_[2];
 
-    h = int(residual / stride_[1]);
+    h = int32_t(residual / stride_[1]);
     residual = (residual % stride_[1]);
 
-    w = int(residual / stride_[0]);
-    c = int(residual % stride_[0]);
+    w = int32_t(residual / stride_[0]);
+    c = int32_t(residual % stride_[0]);
 
     #endif
     return TensorCoord(n, h, w, c);
@@ -220,10 +220,10 @@ public:
 class TensorNCHW {
 public:
   /// Logical rank of tensor
-  static constexpr int kRank = 4;
+  static constexpr int32_t kRank = 4;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 3;
+  static constexpr int32_t kStrideRank = 3;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -297,18 +297,18 @@ public:
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Mapping function for 4-D NC/xHWx tensors.
-template <int Interleave>
+template <int32_t Interleave>
 class TensorNCxHWx {
 public:
 
   /// Interleaving quantity
-  static constexpr int kInterleave = Interleave;
+  static constexpr int32_t kInterleave = Interleave;
 
   /// Logical rank of tensor
-  static constexpr int kRank = 4;
+  static constexpr int32_t kRank = 4;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 3;
+  static constexpr int32_t kStrideRank = 3;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -406,18 +406,18 @@ public:
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Mapping function for 4-D CxRSKx tensors.
-template <int Interleave>
+template <int32_t Interleave>
 class TensorCxRSKx {
 public:
 
   /// Interleaving quantity
-  static constexpr int kInterleave = Interleave;
+  static constexpr int32_t kInterleave = Interleave;
 
   /// Logical rank of tensor
-  static constexpr int kRank = 4;
+  static constexpr int32_t kRank = 4;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 3;
+  static constexpr int32_t kStrideRank = 3;
 
   /// Index type used for coordinates
   using Index = int32_t;
@@ -527,10 +527,10 @@ public:
 class TensorNDHWC {
 public:
   /// Logical rank of tensor
-  static constexpr int kRank = 5;
+  static constexpr int32_t kRank = 5;
 
   /// Rank of stride vector
-  static constexpr int kStrideRank = 4;
+  static constexpr int32_t kStrideRank = 4;
 
   /// Index type used for coordinates
   using Index = int32_t;

@@ -121,7 +121,7 @@ struct UnpackComplexConvertAndPackForMma <
 
   // Operand layout parameters
   using SourceFragmentLayout = layout::ColumnMajor;
-  static constexpr int kLdm = MmaIterations::kRow * MmaOperandShape::kRow;
+  static constexpr int32_t kLdm = MmaIterations::kRow * MmaOperandShape::kRow;
 
   /// Ctor
   CUTLASS_DEVICE
@@ -134,15 +134,15 @@ struct UnpackComplexConvertAndPackForMma <
     SourceFragmentLayout layout(kLdm);
 
     CUTLASS_PRAGMA_UNROLL
-    for(int i=0; i<MmaIterations::kRow; i++) {
-      int pos = 0;
+    for(int32_t i=0; i<MmaIterations::kRow; i++) {
+      int32_t pos = 0;
       CUTLASS_PRAGMA_UNROLL
-      for(int c=0; c<MmaOperandShape::kColumn; c++) {
+      for(int32_t c=0; c<MmaOperandShape::kColumn; c++) {
         CUTLASS_PRAGMA_UNROLL
-        for(int r=0; r<MmaOperandShape::kRow; r++) {
+        for(int32_t r=0; r<MmaOperandShape::kRow; r++) {
           // Logical position of element in source fragment
-          int row = r + i * MmaOperandShape::kRow;
-          int col = c;
+          int32_t row = r + i * MmaOperandShape::kRow;
+          int32_t col = c;
 
           // Access complex<RealElement> and apply rounding on real and imag parts
           MmaElement a = convert_op(source[layout(MatrixCoord{row,col})].real());
@@ -192,7 +192,7 @@ struct UnpackComplexConvertAndPackForMma <
 
   // Operand layout parameters
   using SourceFragmentLayout = layout::RowMajor;
-  static constexpr int kLdm = MmaIterations::kColumn * MmaOperandShape::kColumn;
+  static constexpr int32_t kLdm = MmaIterations::kColumn * MmaOperandShape::kColumn;
 
   /// Ctor
   CUTLASS_DEVICE
@@ -205,15 +205,15 @@ struct UnpackComplexConvertAndPackForMma <
     SourceFragmentLayout layout(kLdm);
 
     CUTLASS_PRAGMA_UNROLL
-    for(int i=0; i<MmaIterations::kColumn; i++) {
-      int pos = 0;
+    for(int32_t i=0; i<MmaIterations::kColumn; i++) {
+      int32_t pos = 0;
       CUTLASS_PRAGMA_UNROLL
-      for(int c=0; c<MmaOperandShape::kColumn; c++) {
+      for(int32_t c=0; c<MmaOperandShape::kColumn; c++) {
         CUTLASS_PRAGMA_UNROLL
-        for(int r=0; r<MmaOperandShape::kRow; r++) {
+        for(int32_t r=0; r<MmaOperandShape::kRow; r++) {
           // Logical position of element in source fragment
-          int row = r;
-          int col = c + i * MmaOperandShape::kColumn;
+          int32_t row = r;
+          int32_t col = c + i * MmaOperandShape::kColumn;
 
           // Access complex<RealElement> apply rounding on real and imag parts
           MmaElement a = convert_op(source[layout(MatrixCoord{row,col})].real());
@@ -342,7 +342,7 @@ public:
   static constexpr ComplexTransform kTransformB = TransformB;
 
   /// Number of threads participating in warp-level matrix product
-  static constexpr int kThreadCount = 32;
+  static constexpr int32_t kThreadCount = 32;
 
 public:
 
@@ -455,11 +455,11 @@ public:
     D = C;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int m = 0; m < MmaIterations::kRow; ++m) {
+    for (int32_t m = 0; m < MmaIterations::kRow; ++m) {
 
       // mma(accum.real(), a.real(), b.real(), accum.real());
       CUTLASS_PRAGMA_UNROLL
-      for (int n = 0; n < MmaIterations::kColumn; ++n) {
+      for (int32_t n = 0; n < MmaIterations::kColumn; ++n) {
 
         // Pack operands together. This may result in actual MOVs 
         MmaOperandA operand_A;
@@ -477,7 +477,7 @@ public:
 
       // mma(accum.imag(), a.real(), b.imag(), accum.imag()); 
       CUTLASS_PRAGMA_UNROLL
-      for (int n = MmaIterations::kColumn - 1; n >= 0; --n) {
+      for (int32_t n = MmaIterations::kColumn - 1; n >= 0; --n) {
 
         // Pack operands together. This may result in actual MOVs 
         MmaOperandA operand_A;
@@ -495,7 +495,7 @@ public:
 
       // mma(accum.real(), -a.imag(), b.imag(), accum.real())
       CUTLASS_PRAGMA_UNROLL
-      for (int n = 0; n < MmaIterations::kColumn; ++n) {
+      for (int32_t n = 0; n < MmaIterations::kColumn; ++n) {
 
         // Pack operands together. This may result in actual MOVs 
         MmaOperandA operand_A;
@@ -513,7 +513,7 @@ public:
       }
 
       CUTLASS_PRAGMA_UNROLL
-      for (int n = MmaIterations::kColumn - 1; n >= 0; --n) {
+      for (int32_t n = MmaIterations::kColumn - 1; n >= 0; --n) {
 
         // Pack operands together. This may result in actual MOVs 
         MmaOperandA operand_A;
@@ -632,7 +632,7 @@ public:
   static constexpr ComplexTransform kTransformB = TransformB;
 
   /// Number of threads participating in warp-level matrix product
-  static constexpr int kThreadCount = 32;
+  static constexpr int32_t kThreadCount = 32;
 
 public:
 
@@ -753,11 +753,11 @@ public:
     D = C;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int m = 0; m < MmaIterations::kRow; ++m) {
+    for (int32_t m = 0; m < MmaIterations::kRow; ++m) {
 
       // mma(accum.real(), a.real(), b.real(), accum.real());
       CUTLASS_PRAGMA_UNROLL
-      for (int n = 0; n < MmaIterations::kColumn; ++n) {
+      for (int32_t n = 0; n < MmaIterations::kColumn; ++n) {
 
         // Real-valued accumulator part
         MmaOperandC *accum = reinterpret_cast<MmaOperandC *>(&D) + 
@@ -768,7 +768,7 @@ public:
 
       // mma(accum.imag(), a.real(), b.imag(), accum.imag()); 
       CUTLASS_PRAGMA_UNROLL
-      for (int n = MmaIterations::kColumn - 1; n >= 0; --n) {
+      for (int32_t n = MmaIterations::kColumn - 1; n >= 0; --n) {
 
         // Complex-valued accumulator part
         MmaOperandC *accum = reinterpret_cast<MmaOperandC *>(&D) + 
@@ -779,7 +779,7 @@ public:
 
       // mma(accum.real(), a.imag(), -b.imag(), accum.real())
       CUTLASS_PRAGMA_UNROLL
-      for (int n = 0; n < MmaIterations::kColumn; ++n) {
+      for (int32_t n = 0; n < MmaIterations::kColumn; ++n) {
 
         // negate OperandB to accumulate  -(a.imag()*b.imag())
         // negating OperandB emits less instructions than negating OperandA as OperandB has less elements
@@ -794,7 +794,7 @@ public:
 
       // mma(accum.imag(), a.imag(), b.real(), accum.imag())
       CUTLASS_PRAGMA_UNROLL
-      for (int n = MmaIterations::kColumn - 1; n >= 0; --n) {
+      for (int32_t n = MmaIterations::kColumn - 1; n >= 0; --n) {
 
         // Complex-valued accumulator part
         MmaOperandC *accum = reinterpret_cast<MmaOperandC *>(&D) + 
@@ -942,7 +942,7 @@ public:
   static constexpr ComplexTransform kTransformB = TransformB;
 
   /// Number of threads participating in warp-level matrix product
-  static constexpr int kThreadCount = 32;
+  static constexpr int32_t kThreadCount = 32;
 
 public:
 
@@ -1047,22 +1047,22 @@ public:
     D = C;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int m = 0; m < MmaIterations::kRow; ++m) {
+    for (int32_t m = 0; m < MmaIterations::kRow; ++m) {
 
       // mma(accum.real(), a.real(), b.real(), accum.real());
       CUTLASS_PRAGMA_UNROLL
-      for (int n = 0; n < MmaIterations::kColumn; ++n) {
+      for (int32_t n = 0; n < MmaIterations::kColumn; ++n) {
 
         // Pack operands together. This may result in actual MOVs 
         MmaOperandA operand_A;
         MmaOperandB operand_B;
 
         CUTLASS_PRAGMA_UNROLL
-        for (int mk = 0; mk < MmaOperandA::kElements; ++mk)
+        for (int32_t mk = 0; mk < MmaOperandA::kElements; ++mk)
           operand_A[mk] = A[m*MmaOperandA::kElements + mk].real();
 
         CUTLASS_PRAGMA_UNROLL
-        for (int nk = 0; nk < MmaOperandB::kElements; ++nk)
+        for (int32_t nk = 0; nk < MmaOperandB::kElements; ++nk)
           operand_B[nk] = B[n*MmaOperandB::kElements + nk].real();
 
         // Real-valued accumulator part
@@ -1074,18 +1074,18 @@ public:
 
       // mma(accum.imag(), a.real(), b.imag(), accum.imag()); 
       CUTLASS_PRAGMA_UNROLL
-      for (int n = MmaIterations::kColumn - 1; n >= 0; --n) {
+      for (int32_t n = MmaIterations::kColumn - 1; n >= 0; --n) {
 
         // Pack operands together. This may result in actual MOVs 
         MmaOperandA operand_A;
         MmaOperandB operand_B;
 
         CUTLASS_PRAGMA_UNROLL
-        for (int mk = 0; mk < MmaOperandA::kElements; ++mk)
+        for (int32_t mk = 0; mk < MmaOperandA::kElements; ++mk)
           operand_A[mk] = A[m*MmaOperandA::kElements + mk].real();
 
         CUTLASS_PRAGMA_UNROLL
-        for (int nk = 0; nk < MmaOperandB::kElements; ++nk)
+        for (int32_t nk = 0; nk < MmaOperandB::kElements; ++nk)
           operand_B[nk] = (kTransformB == ComplexTransform::kConjugate ? 
                           -B[n*MmaOperandB::kElements + nk].imag() : B[n*MmaOperandB::kElements + nk].imag());
 
@@ -1098,7 +1098,7 @@ public:
 
       // mma(accum.real(), -a.imag(), b.imag(), accum.real())
       CUTLASS_PRAGMA_UNROLL
-      for (int n = 0; n < MmaIterations::kColumn; ++n) {
+      for (int32_t n = 0; n < MmaIterations::kColumn; ++n) {
 
         // Pack operands together. This may result in actual MOVs 
         MmaOperandA operand_A;
@@ -1106,12 +1106,12 @@ public:
 
         // A imaginary part is intentionally negated
         CUTLASS_PRAGMA_UNROLL
-        for (int mk = 0; mk < MmaOperandA::kElements; ++mk)
+        for (int32_t mk = 0; mk < MmaOperandA::kElements; ++mk)
           operand_A[mk] = (kTransformA == ComplexTransform::kConjugate ?
                           A[m*MmaOperandA::kElements + mk].imag() : -A[m*MmaOperandA::kElements + mk].imag());
 
         CUTLASS_PRAGMA_UNROLL
-        for (int nk = 0; nk < MmaOperandB::kElements; ++nk)
+        for (int32_t nk = 0; nk < MmaOperandB::kElements; ++nk)
             operand_B[nk] = (kTransformB == ComplexTransform::kConjugate ?
                             -B[n*MmaOperandB::kElements + nk].imag() : B[n*MmaOperandB::kElements + nk].imag());
 
@@ -1124,19 +1124,19 @@ public:
 
       // mma(accum.imag(), a.imag(), b.real(), accum.imag())
       CUTLASS_PRAGMA_UNROLL
-      for (int n = MmaIterations::kColumn - 1; n >= 0; --n) {
+      for (int32_t n = MmaIterations::kColumn - 1; n >= 0; --n) {
 
         // Pack operands together. This may result in actual MOVs 
         MmaOperandA operand_A;
         MmaOperandB operand_B;
 
         CUTLASS_PRAGMA_UNROLL
-        for (int mk = 0; mk < MmaOperandA::kElements; ++mk)
+        for (int32_t mk = 0; mk < MmaOperandA::kElements; ++mk)
           operand_A[mk] = (kTransformA == ComplexTransform::kConjugate ?
                           -A[m*MmaOperandA::kElements + mk].imag() : A[m*MmaOperandA::kElements + mk].imag());
 
         CUTLASS_PRAGMA_UNROLL
-        for (int nk = 0; nk < MmaOperandB::kElements; ++nk)
+        for (int32_t nk = 0; nk < MmaOperandB::kElements; ++nk)
           operand_B[nk] = B[n*MmaOperandB::kElements + nk].real();
 
         // Complex-valued accumulator part

@@ -102,10 +102,10 @@ struct CutlassToWmmaDataType<uint8_t> {
   using Type = unsigned char;
 };
 
-/// Statically maps int32_t => int
+/// Statically maps int32_t => int32_t
 template<>
 struct CutlassToWmmaDataType<int32_t> {
-  using Type = int;
+  using Type = int32_t;
 };
 
 #if defined(CUTLASS_SUBBYTE_INTEGER_MATRIX_MULTIPLY_ENABLED)

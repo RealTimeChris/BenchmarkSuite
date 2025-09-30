@@ -323,13 +323,13 @@ struct Mma_HFMA2 <
     Mma mma;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int k = 0; k < Shape::kK / Mma::Shape::kK; ++k) {
+    for (int32_t k = 0; k < Shape::kK / Mma::Shape::kK; ++k) {
 
         CUTLASS_PRAGMA_UNROLL
-        for (int m = 0; m < Shape::kM / Mma::Shape::kM; ++m) {
+        for (int32_t m = 0; m < Shape::kM / Mma::Shape::kM; ++m) {
 
           CUTLASS_PRAGMA_UNROLL
-          for (int n = 0; n < Shape::kN / Mma::Shape::kN; ++n) {
+          for (int32_t n = 0; n < Shape::kN / Mma::Shape::kN; ++n) {
 
           Array<half_t, 2> tmp { ptr_D[m + n * Shape::kM/2] };
 

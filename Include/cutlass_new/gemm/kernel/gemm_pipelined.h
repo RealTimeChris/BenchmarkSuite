@@ -72,7 +72,7 @@ CUTLASS_GLOBAL void GemmPipelined(
   // Compute threadblock location
   ThreadblockSwizzle threadblock_swizzle;
 
-  int swizzle_log_tile = ThreadblockSwizzle().get_log_tile(grid_tiled_shape);
+  int32_t swizzle_log_tile = ThreadblockSwizzle().get_log_tile(grid_tiled_shape);
 
   cutlass::gemm::GemmCoord tb_tile_offset = threadblock_swizzle.get_tile_offset(swizzle_log_tile);
 
@@ -94,7 +94,7 @@ CUTLASS_GLOBAL void GemmPipelined(
   };
 
   // Compute position within threadblock
-  int tb_thread_id = threadIdx.x;
+  int32_t tb_thread_id = threadIdx.x;
 
   // Construct iterators to A and B operands
   typename Mma::IteratorA iterator_A(
@@ -111,8 +111,8 @@ CUTLASS_GLOBAL void GemmPipelined(
     tb_thread_id,
     tb_offset_B);
 
-  int warp_id = canonical_warp_idx_sync();
-  int lane_id = threadIdx.x % 32;
+  int32_t warp_id = canonical_warp_idx_sync();
+  int32_t lane_id = threadIdx.x % 32;
 
   //
   // Main loop

@@ -193,14 +193,14 @@ using TagToStrideC_t = typename TagToStrideC<LayoutTag>::type;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // For 2.x compatibility APIs, provide stride->layout tag mappers
 
-template<int ModeIndex, class Stride>
+template<int32_t ModeIndex, class Stride>
 constexpr bool
 is_major(Stride = {}) {
   // Account for stride types with and without batch mode and batch modes with static zero stride
   return nihilus_cute::is_constant<1, decltype(nihilus_cute::front(nihilus_cute::get<ModeIndex>(nihilus_cute::remove_pointer_t<Stride>{})))>::value;
 }
 
-template<int ModeIndex, class Shape, class Stride>
+template<int32_t ModeIndex, class Shape, class Stride>
 constexpr bool
 is_major(nihilus_cute::Layout<Shape,Stride> = {}) {
   return is_major<ModeIndex>(Stride{});
@@ -326,7 +326,7 @@ struct RawDtype<X,nihilus_cute::void_t<typename X::raw_type>> { using type = typ
 
 // Inspects a TiledCopy and returns its alignment in terms of element count
 template <class GmemTiledCopy, class Element, class ElementMma = Element>
-constexpr int
+constexpr int32_t
 get_alignment_count_from_gmem_tiled_copy() {
 
   if constexpr (nihilus_cute::is_void_v<GmemTiledCopy>) {
@@ -368,7 +368,7 @@ template <
   class ElementType
   , bool IsF8F6F4SubBytes=false
 >
-constexpr int
+constexpr int32_t
 get_input_alignment_bits() {
   if constexpr (IsF8F6F4SubBytes && sizeof_bits<ElementType>::value == 4) {
     // 16U4 format: The inner tensor size dimension should be multiple of 64B.
@@ -384,7 +384,7 @@ get_input_alignment_bits() {
 
 // Return alignment bit requirements for the GEMM outputs.
 template <class ElementType>
-constexpr int
+constexpr int32_t
 get_output_alignment_bits() {
   if constexpr (sizeof_bits<ElementType>::value == 6) {
     // 16U6 format : The inner tensor size dimension must be a multiple of 96B.
@@ -395,7 +395,7 @@ get_output_alignment_bits() {
 }
 
 // Check if tensor layout satisfies a given major alignment
-template<int Alignment, class Shape, class Stride>
+template<int32_t Alignment, class Shape, class Stride>
 CUTLASS_HOST_DEVICE constexpr
 bool
 check_alignment(nihilus_cute::Layout<Shape,Stride> const& layout) {
@@ -407,14 +407,14 @@ check_alignment(nihilus_cute::Layout<Shape,Stride> const& layout) {
 }
 
 // Check if tensor layout satisfies a given major alignment
-template<int Alignment, class Shape, class Stride>
+template<int32_t Alignment, class Shape, class Stride>
 CUTLASS_HOST_DEVICE constexpr
 bool
 check_alignment(Shape const& shape, Stride const& stride) {
   return check_alignment<Alignment>(nihilus_cute::make_layout(shape, stride));
 }
 
-template<int B, int M, int S>
+template<int32_t B, int32_t M, int32_t S>
 CUTLASS_HOST_DEVICE constexpr
 size_t
 alignment_for_swizzle(nihilus_cute::Swizzle<B, M, S>) {

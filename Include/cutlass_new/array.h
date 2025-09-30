@@ -45,7 +45,7 @@ namespace cutlass {
 /// Statically sized array for any data type
 template <
   typename T,
-  int N,
+  int32_t N,
   bool RegisterSized = sizeof_bits<T>::value >= 32
 >
 struct Array;
@@ -57,7 +57,7 @@ struct is_Array : platform::false_type {};
 
 template <
   typename T,
-  int N,
+  int32_t N,
   bool RegisterSized
 >
 struct is_Array<Array<T, N, RegisterSized> > : platform::true_type {};
@@ -70,9 +70,9 @@ constexpr bool is_Array_v = is_Array<T>::value;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Defines the size of an Array<> in bits
-template <typename T, int N, bool RegisterSized>
+template <typename T, int32_t N, bool RegisterSized>
 struct sizeof_bits<Array<T, N, RegisterSized> > {
-  static constexpr int value = sizeof(Array<T, N, RegisterSized>) * 8;
+  static constexpr int32_t value = sizeof(Array<T, N, RegisterSized>) * 8;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -98,7 +98,7 @@ template<uint64_t index> struct tag : public std::integral_constant<uint64_t, in
 /// Statically sized array for any data type
 template <
   typename T,
-  int N
+  int32_t N
 >
 struct Array<T, N, true> {
 
@@ -158,14 +158,14 @@ struct Array<T, N, true> {
     }
 
     CUTLASS_HOST_DEVICE
-    iterator operator++(int) {
+    iterator operator++(int32_t) {
       iterator ret(*this);
       ++ptr_;
       return ret;
     }
 
     CUTLASS_HOST_DEVICE
-    iterator operator--(int) {
+    iterator operator--(int32_t) {
       iterator ret(*this);
       --ptr_;
       return ret;
@@ -214,14 +214,14 @@ struct Array<T, N, true> {
     }
 
     CUTLASS_HOST_DEVICE
-    const_iterator operator++(int) {
+    const_iterator operator++(int32_t) {
       const_iterator ret(*this);
       ++ptr_;
       return ret;
     }
 
     CUTLASS_HOST_DEVICE
-    const_iterator operator--(int) {
+    const_iterator operator--(int32_t) {
       const_iterator ret(*this);
       --ptr_;
       return ret;
@@ -270,14 +270,14 @@ struct Array<T, N, true> {
     }
 
     CUTLASS_HOST_DEVICE
-    reverse_iterator operator++(int) {
+    reverse_iterator operator++(int32_t) {
       iterator ret(*this);
       --ptr_;
       return ret;
     }
 
     CUTLASS_HOST_DEVICE
-    reverse_iterator operator--(int) {
+    reverse_iterator operator--(int32_t) {
       iterator ret(*this);
       ++ptr_;
       return ret;
@@ -326,14 +326,14 @@ struct Array<T, N, true> {
     }
 
     CUTLASS_HOST_DEVICE
-    const_reverse_iterator operator++(int) {
+    const_reverse_iterator operator++(int32_t) {
       const_reverse_iterator ret(*this);
       --ptr_;
       return ret;
     }
 
     CUTLASS_HOST_DEVICE
-    const_reverse_iterator operator--(int) {
+    const_reverse_iterator operator--(int32_t) {
       const_reverse_iterator ret(*this);
       ++ptr_;
       return ret;
@@ -449,7 +449,7 @@ struct Array<T, N, true> {
   CUTLASS_HOST_DEVICE
   void fill(T const &value) {
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < int(kElements); ++i) {
+    for (int32_t i = 0; i < int32_t(kElements); ++i) {
       storage[i] = static_cast<Storage>(value);
     }
   }
@@ -554,7 +554,7 @@ Array<Element, 4> make_Array(Element x, Element y, Element z, Element w) {
 // functional.h numeric specializations
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct absolute_value_op< Array<T, N> > {
 
   CUTLASS_HOST_DEVICE
@@ -564,7 +564,7 @@ struct absolute_value_op< Array<T, N> > {
     absolute_value_op<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(lhs[i]);
     }
 
@@ -572,7 +572,7 @@ struct absolute_value_op< Array<T, N> > {
   }
 };
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct plus<Array<T, N>> {
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &lhs, Array<T, N> const &rhs) const {
@@ -581,7 +581,7 @@ struct plus<Array<T, N>> {
     plus<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(lhs[i], rhs[i]);
     }
 
@@ -595,7 +595,7 @@ struct plus<Array<T, N>> {
     plus<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(lhs[i], scalar);
     }
 
@@ -609,14 +609,14 @@ struct plus<Array<T, N>> {
     plus<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(scalar, rhs[i]);
     }
 
     return result;
   }
 };
-template <typename T, int N>
+template <typename T, int32_t N>
 struct minus<Array<T, N>> {
 
   CUTLASS_HOST_DEVICE
@@ -626,7 +626,7 @@ struct minus<Array<T, N>> {
     minus<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(lhs[i], rhs[i]);
     }
 
@@ -640,7 +640,7 @@ struct minus<Array<T, N>> {
     minus<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(lhs[i], scalar);
     }
 
@@ -654,7 +654,7 @@ struct minus<Array<T, N>> {
     minus<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(scalar, rhs[i]);
     }
 
@@ -662,7 +662,7 @@ struct minus<Array<T, N>> {
   }
 };
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct multiplies<Array<T, N>> {
 
   CUTLASS_HOST_DEVICE
@@ -672,7 +672,7 @@ struct multiplies<Array<T, N>> {
     multiplies<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(lhs[i], rhs[i]);
     }
 
@@ -686,7 +686,7 @@ struct multiplies<Array<T, N>> {
     multiplies<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(lhs[i], scalar);
     }
 
@@ -700,7 +700,7 @@ struct multiplies<Array<T, N>> {
     multiplies<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(scalar, rhs[i]);
     }
 
@@ -708,7 +708,7 @@ struct multiplies<Array<T, N>> {
   }
 };
 
-template <typename T, int N, bool PropogateNaN>
+template <typename T, int32_t N, bool PropogateNaN>
 struct maximum_absolute_value_reduction<Array<T, N>, PropogateNaN> {
 
   CUTLASS_HOST_DEVICE
@@ -718,7 +718,7 @@ struct maximum_absolute_value_reduction<Array<T, N>, PropogateNaN> {
     maximum_absolute_value_reduction<T, PropogateNaN> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result = scalar_op(result, rhs[i]);
     }
 
@@ -726,7 +726,7 @@ struct maximum_absolute_value_reduction<Array<T, N>, PropogateNaN> {
   }
 };
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct scale<Array<T, N>> {
   T const scaling_factor_;
 
@@ -739,7 +739,7 @@ struct scale<Array<T, N>> {
     Array<T, N> result;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = rhs[i] * scaling_factor_;
     }
 
@@ -747,7 +747,7 @@ struct scale<Array<T, N>> {
   }
 };
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct divides<Array<T, N>> {
 
   CUTLASS_HOST_DEVICE
@@ -757,7 +757,7 @@ struct divides<Array<T, N>> {
     divides<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(lhs[i], rhs[i]);
     }
 
@@ -771,7 +771,7 @@ struct divides<Array<T, N>> {
     divides<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(lhs[i], scalar);
     }
 
@@ -785,7 +785,7 @@ struct divides<Array<T, N>> {
     divides<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(scalar, rhs[i]);
     }
 
@@ -793,7 +793,7 @@ struct divides<Array<T, N>> {
   }
 };
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct reciprocal_approximate<Array<T, N>> {
   
   CUTLASS_HOST_DEVICE
@@ -803,7 +803,7 @@ struct reciprocal_approximate<Array<T, N>> {
     reciprocal_approximate<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(lhs[i]);
     }
 
@@ -811,7 +811,7 @@ struct reciprocal_approximate<Array<T, N>> {
   }
 };
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct reciprocal_approximate_ftz<Array<T, N>> {
   
   CUTLASS_HOST_DEVICE
@@ -821,7 +821,7 @@ struct reciprocal_approximate_ftz<Array<T, N>> {
     reciprocal_approximate_ftz<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(lhs[i]);
     }
 
@@ -829,7 +829,7 @@ struct reciprocal_approximate_ftz<Array<T, N>> {
   }
 };
 
-template <typename T, int N, bool PropagateNaN>
+template <typename T, int32_t N, bool PropagateNaN>
 struct maximum<Array<T, N>, PropagateNaN> {
 
   CUTLASS_HOST_DEVICE
@@ -839,7 +839,7 @@ struct maximum<Array<T, N>, PropagateNaN> {
     maximum<T, PropagateNaN> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(lhs[i], rhs[i]);
     }
 
@@ -853,7 +853,7 @@ struct maximum<Array<T, N>, PropagateNaN> {
     maximum<T, PropagateNaN> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(lhs[i], scalar);
     }
 
@@ -867,7 +867,7 @@ struct maximum<Array<T, N>, PropagateNaN> {
     maximum<T, PropagateNaN> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(scalar, rhs[i]);
     }
 
@@ -875,7 +875,7 @@ struct maximum<Array<T, N>, PropagateNaN> {
   }
 };
 
-template <typename T, int N, bool PropagateNaN>
+template <typename T, int32_t N, bool PropagateNaN>
 struct minimum<Array<T, N>, PropagateNaN> {
 
   CUTLASS_HOST_DEVICE
@@ -890,7 +890,7 @@ struct minimum<Array<T, N>, PropagateNaN> {
     minimum<T, PropagateNaN> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(lhs[i], rhs[i]);
     }
 
@@ -904,7 +904,7 @@ struct minimum<Array<T, N>, PropagateNaN> {
     minimum<T, PropagateNaN> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(lhs[i], scalar);
     }
 
@@ -918,7 +918,7 @@ struct minimum<Array<T, N>, PropagateNaN> {
     minimum<T, PropagateNaN> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(scalar, rhs[i]);
     }
 
@@ -926,11 +926,11 @@ struct minimum<Array<T, N>, PropagateNaN> {
   }
 };
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct minimum_with_nan_propagation<Array<T, N>> : minimum<Array<T, N>, true> 
 {};
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct negate<Array<T, N>> {
 
   CUTLASS_HOST_DEVICE
@@ -940,7 +940,7 @@ struct negate<Array<T, N>> {
     negate<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(lhs[i]);
     }
 
@@ -949,7 +949,7 @@ struct negate<Array<T, N>> {
 };
 
 /// Fused multiply-add
-template <typename T, int N>
+template <typename T, int32_t N>
 struct multiply_add<Array<T, N>, Array<T, N>, Array<T, N>> {
 
   CUTLASS_HOST_DEVICE
@@ -959,7 +959,7 @@ struct multiply_add<Array<T, N>, Array<T, N>, Array<T, N>> {
     multiply_add<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(a[i], b[i], c[i]);
     }
 
@@ -973,7 +973,7 @@ struct multiply_add<Array<T, N>, Array<T, N>, Array<T, N>> {
     multiply_add<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(a[i], scalar, c[i]);
     }
 
@@ -987,7 +987,7 @@ struct multiply_add<Array<T, N>, Array<T, N>, Array<T, N>> {
     multiply_add<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(scalar, b[i], c[i]);
     }
 
@@ -1001,7 +1001,7 @@ struct multiply_add<Array<T, N>, Array<T, N>, Array<T, N>> {
     multiply_add<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(a[i], b[i], scalar);
     }
 
@@ -1016,7 +1016,7 @@ struct multiply_add<Array<T, N>, Array<T, N>, Array<T, N>> {
     multiply_add<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(a[i], scalar_b, scalar_c);
     }
 
@@ -1025,7 +1025,7 @@ struct multiply_add<Array<T, N>, Array<T, N>, Array<T, N>> {
 };
 
 /// Fused square-and-plus
-template <typename T, int N>
+template <typename T, int32_t N>
 struct square_and_plus<Array<T, N>> {
 
   CUTLASS_HOST_DEVICE
@@ -1043,7 +1043,7 @@ struct square_and_plus<Array<T, N>> {
 };
 
 /// Inverse-square-root
-template <typename T, int N>
+template <typename T, int32_t N>
 struct inverse_square_root<Array<T, N>> {
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &a) const {
@@ -1051,14 +1051,14 @@ struct inverse_square_root<Array<T, N>> {
     inverse_square_root<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(a[i]);
     }
     return result;
   }
 };
 
-template <int N>
+template <int32_t N>
 struct inverse_square_root<Array<half_t, N>> {
   CUTLASS_HOST_DEVICE
   Array<half_t, N> operator()(Array<half_t, N> const & a) const {
@@ -1069,7 +1069,7 @@ struct inverse_square_root<Array<half_t, N>> {
     __half2 const *a_ptr = reinterpret_cast<__half2 const *>(&a);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = h2rsqrt(a_ptr[i]);
     }
 
@@ -1084,7 +1084,7 @@ struct inverse_square_root<Array<half_t, N>> {
     inverse_square_root<half_t> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(a[i]);
     }
 
@@ -1095,7 +1095,7 @@ struct inverse_square_root<Array<half_t, N>> {
 };
 
 /// Fused multiply-add-relu0
-template <typename T, int N>
+template <typename T, int32_t N>
 struct multiply_add_relu0<Array<T, N>, Array<T, N>, Array<T, N>> {
 
   CUTLASS_HOST_DEVICE
@@ -1106,7 +1106,7 @@ struct multiply_add_relu0<Array<T, N>, Array<T, N>, Array<T, N>> {
     maximum<T> mx;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = mx(scalar_op(a[i], b[i], c[i]), T(0));
     }
 
@@ -1121,7 +1121,7 @@ struct multiply_add_relu0<Array<T, N>, Array<T, N>, Array<T, N>> {
     maximum<T> mx;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = mx(scalar_op(a[i], scalar, c[i]), T(0));
     }
 
@@ -1136,7 +1136,7 @@ struct multiply_add_relu0<Array<T, N>, Array<T, N>, Array<T, N>> {
     maximum<T> mx;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = mx(scalar_op(scalar, b[i], c[i]), T(0));
     }
 
@@ -1145,7 +1145,7 @@ struct multiply_add_relu0<Array<T, N>, Array<T, N>, Array<T, N>> {
 };
 
 
-template <typename T, int N>
+template <typename T, int32_t N>
 struct conjugate<Array<T, N> >  {
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &a) const {
@@ -1154,7 +1154,7 @@ struct conjugate<Array<T, N> >  {
 
     Array<T, N> ca;
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       ca[i] = conj_op(a[i]);
     }
     return ca;
@@ -1166,7 +1166,7 @@ struct conjugate<Array<T, N> >  {
 // functional.h numeric specializations targeting SIMD instructions in device code.
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <int N>
+template <int32_t N>
 struct plus<Array<half_t, N>> {
   CUTLASS_HOST_DEVICE
   Array<half_t, N> operator()(Array<half_t, N> const & lhs, Array<half_t, N> const &rhs) const {
@@ -1178,7 +1178,7 @@ struct plus<Array<half_t, N>> {
     __half2 const *rhs_ptr = reinterpret_cast<__half2 const *>(&rhs);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = __hadd2(lhs_ptr[i], rhs_ptr[i]);
     }
 
@@ -1193,7 +1193,7 @@ struct plus<Array<half_t, N>> {
     #else
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = lhs[i] + rhs[i];
     }
     #endif
@@ -1211,7 +1211,7 @@ struct plus<Array<half_t, N>> {
     __half2 const *rhs_ptr = reinterpret_cast<__half2 const *>(&rhs);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = __hadd2(lhs_pair, rhs_ptr[i]);
     }
 
@@ -1225,7 +1225,7 @@ struct plus<Array<half_t, N>> {
     #else
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = lhs + rhs[i];
     }
     #endif
@@ -1243,7 +1243,7 @@ struct plus<Array<half_t, N>> {
     __half2 rhs_pair = __half2half2(reinterpret_cast<__half const &>(rhs));
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = __hadd2(lhs_ptr[i], rhs_pair);
     }
 
@@ -1257,7 +1257,7 @@ struct plus<Array<half_t, N>> {
     #else
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = lhs[i] + rhs;
     }
     #endif
@@ -1266,7 +1266,7 @@ struct plus<Array<half_t, N>> {
   }
 };
 
-template <int N>
+template <int32_t N>
 struct minus<Array<half_t, N>> {
   CUTLASS_HOST_DEVICE
   Array<half_t, N> operator()(Array<half_t, N> const & lhs, Array<half_t, N> const &rhs) const {
@@ -1278,7 +1278,7 @@ struct minus<Array<half_t, N>> {
     __half2 const *rhs_ptr = reinterpret_cast<__half2 const *>(&rhs);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = __hsub2(lhs_ptr[i], rhs_ptr[i]);
     }
 
@@ -1293,7 +1293,7 @@ struct minus<Array<half_t, N>> {
     #else
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = lhs[i] - rhs[i];
     }
     #endif
@@ -1311,7 +1311,7 @@ struct minus<Array<half_t, N>> {
     __half2 const *rhs_ptr = reinterpret_cast<__half2 const *>(&rhs);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = __hsub2(lhs_pair, rhs_ptr[i]);
     }
 
@@ -1325,7 +1325,7 @@ struct minus<Array<half_t, N>> {
     #else
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = lhs - rhs[i];
     }
     #endif
@@ -1343,7 +1343,7 @@ struct minus<Array<half_t, N>> {
     __half2 rhs_pair = __half2half2(reinterpret_cast<__half const &>(rhs));
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = __hsub2(lhs_ptr[i], rhs_pair);
     }
 
@@ -1357,7 +1357,7 @@ struct minus<Array<half_t, N>> {
     #else
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = lhs[i] - rhs;
     }
     #endif
@@ -1366,7 +1366,7 @@ struct minus<Array<half_t, N>> {
   }
 };
 
-template <int N>
+template <int32_t N>
 struct multiplies<Array<half_t, N>> {
   CUTLASS_HOST_DEVICE
   Array<half_t, N> operator()(Array<half_t, N> const & lhs, Array<half_t, N> const &rhs) const {
@@ -1378,7 +1378,7 @@ struct multiplies<Array<half_t, N>> {
     __half2 const *rhs_ptr = reinterpret_cast<__half2 const *>(&rhs);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = __hmul2(lhs_ptr[i], rhs_ptr[i]);
     }
 
@@ -1393,7 +1393,7 @@ struct multiplies<Array<half_t, N>> {
     #else
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = lhs[i] * rhs[i];
     }
     #endif
@@ -1411,7 +1411,7 @@ struct multiplies<Array<half_t, N>> {
     __half2 const *rhs_ptr = reinterpret_cast<__half2 const *>(&rhs);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = __hmul2(lhs_pair, rhs_ptr[i]);
     }
 
@@ -1428,7 +1428,7 @@ struct multiplies<Array<half_t, N>> {
     #else
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = lhs * rhs[i];
     }
     #endif
@@ -1446,7 +1446,7 @@ struct multiplies<Array<half_t, N>> {
     __half2 rhs_pair = __half2half2(reinterpret_cast<__half const &>(rhs));
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = __hmul2(lhs_ptr[i], rhs_pair);
     }
 
@@ -1463,7 +1463,7 @@ struct multiplies<Array<half_t, N>> {
     #else
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = lhs[i] * rhs;
     }
     #endif
@@ -1472,7 +1472,7 @@ struct multiplies<Array<half_t, N>> {
   }
 };
 
-template <int N>
+template <int32_t N>
 struct divides<Array<half_t, N>> {
   CUTLASS_HOST_DEVICE
   Array<half_t, N> operator()(Array<half_t, N> const & lhs, Array<half_t, N> const &rhs) const {
@@ -1484,7 +1484,7 @@ struct divides<Array<half_t, N>> {
     __half2 const *rhs_ptr = reinterpret_cast<__half2 const *>(&rhs);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = __h2div(lhs_ptr[i], rhs_ptr[i]);
     }
 
@@ -1502,7 +1502,7 @@ struct divides<Array<half_t, N>> {
     #else
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = lhs[i] / rhs[i];
     }
     #endif
@@ -1520,7 +1520,7 @@ struct divides<Array<half_t, N>> {
     __half2 const *rhs_ptr = reinterpret_cast<__half2 const *>(&rhs);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = __h2div(lhs_pair, rhs_ptr[i]);
     }
 
@@ -1537,7 +1537,7 @@ struct divides<Array<half_t, N>> {
     #else
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = lhs / rhs[i];
     }
     #endif
@@ -1555,7 +1555,7 @@ struct divides<Array<half_t, N>> {
     __half2 rhs_pair = __half2half2(reinterpret_cast<__half const &>(rhs));
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = __h2div(lhs_ptr[i], rhs_pair);
     }
 
@@ -1572,7 +1572,7 @@ struct divides<Array<half_t, N>> {
     #else
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = lhs[i] / rhs;
     }
     #endif
@@ -1581,7 +1581,7 @@ struct divides<Array<half_t, N>> {
   }
 };
 
-template <int N>
+template <int32_t N>
 struct negate<Array<half_t, N>> {
   CUTLASS_HOST_DEVICE
   Array<half_t, N> operator()(Array<half_t, N> const & lhs) const {
@@ -1592,7 +1592,7 @@ struct negate<Array<half_t, N>> {
     __half2 const *source_ptr = reinterpret_cast<__half2 const *>(&lhs);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = __hneg2(source_ptr[i]);
     }
 
@@ -1605,7 +1605,7 @@ struct negate<Array<half_t, N>> {
     #else
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = -lhs[i];
     }
     #endif
@@ -1615,7 +1615,7 @@ struct negate<Array<half_t, N>> {
 };
 
 /// Fused multiply-add
-template <int N>
+template <int32_t N>
 struct multiply_add<Array<half_t, N>, Array<half_t, N>, Array<half_t, N>> {
 
   CUTLASS_HOST_DEVICE
@@ -1633,7 +1633,7 @@ struct multiply_add<Array<half_t, N>, Array<half_t, N>, Array<half_t, N>> {
     __half2 const *c_ptr = reinterpret_cast<__half2 const *>(&c);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = __hfma2(a_ptr[i], b_ptr[i], c_ptr[i]);
     }
 
@@ -1656,7 +1656,7 @@ struct multiply_add<Array<half_t, N>, Array<half_t, N>, Array<half_t, N>> {
     multiply_add<half_t> op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = op(a[i], b[i], c[i]);
     }
     #endif
@@ -1679,7 +1679,7 @@ struct multiply_add<Array<half_t, N>, Array<half_t, N>, Array<half_t, N>> {
     __half2 const *c_ptr = reinterpret_cast<__half2 const *>(&c);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = __hfma2(a_pair, b_ptr[i], c_ptr[i]);
     }
 
@@ -1700,7 +1700,7 @@ struct multiply_add<Array<half_t, N>, Array<half_t, N>, Array<half_t, N>> {
     multiply_add<half_t> op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = op(a, b[i], c[i]);
     }
     #endif
@@ -1723,7 +1723,7 @@ struct multiply_add<Array<half_t, N>, Array<half_t, N>, Array<half_t, N>> {
     __half2 const *c_ptr = reinterpret_cast<__half2 const *>(&c);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = __hfma2(a_ptr[i], b_pair, c_ptr[i]);
     }
 
@@ -1745,7 +1745,7 @@ struct multiply_add<Array<half_t, N>, Array<half_t, N>, Array<half_t, N>> {
     multiply_add<half_t> op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = op(a[i], b, c[i]);
     }
     #endif
@@ -1768,7 +1768,7 @@ struct multiply_add<Array<half_t, N>, Array<half_t, N>, Array<half_t, N>> {
     __half2 c_pair = __half2half2(reinterpret_cast<__half const &>(c));
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = __hfma2(a_ptr[i], b_ptr[i], c_pair);
     }
 
@@ -1790,7 +1790,7 @@ struct multiply_add<Array<half_t, N>, Array<half_t, N>, Array<half_t, N>> {
     multiply_add<half_t> op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = op(a[i], b[i], c);
     }
     #endif
@@ -1813,7 +1813,7 @@ struct multiply_add<Array<half_t, N>, Array<half_t, N>, Array<half_t, N>> {
     __half2 c_pair = __half2half2(reinterpret_cast<__half const &>(c));
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = __hfma2(a_ptr[i], b_pair, c_pair);
     }
 
@@ -1834,7 +1834,7 @@ struct multiply_add<Array<half_t, N>, Array<half_t, N>, Array<half_t, N>> {
     multiply_add<half_t> op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = op(a[i], b, c);
     }
     #endif
@@ -1844,7 +1844,7 @@ struct multiply_add<Array<half_t, N>, Array<half_t, N>, Array<half_t, N>> {
 };
 
 /// Fused multiply-add-relu0
-template <int N>
+template <int32_t N>
 struct multiply_add_relu0<Array<half_t, N>, Array<half_t, N>, Array<half_t, N>> {
 
   CUTLASS_HOST_DEVICE
@@ -1862,7 +1862,7 @@ struct multiply_add_relu0<Array<half_t, N>, Array<half_t, N>, Array<half_t, N>> 
     __half2 const *c_ptr = reinterpret_cast<__half2 const *>(&c);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = __hfma2_relu(a_ptr[i], b_ptr[i], c_ptr[i]);
     }
 
@@ -1886,7 +1886,7 @@ struct multiply_add_relu0<Array<half_t, N>, Array<half_t, N>, Array<half_t, N>> 
     maximum<half_t> mx;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = mx(op(a[i], b[i], c[i]), (half_t)0);
     }
     #endif
@@ -1909,7 +1909,7 @@ struct multiply_add_relu0<Array<half_t, N>, Array<half_t, N>, Array<half_t, N>> 
     __half2 const *c_ptr = reinterpret_cast<__half2 const *>(&c);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = __hfma2_relu(a_pair, b_ptr[i], c_ptr[i]);
     }
 
@@ -1931,7 +1931,7 @@ struct multiply_add_relu0<Array<half_t, N>, Array<half_t, N>, Array<half_t, N>> 
     maximum<half_t> mx;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = mx(op(a, b[i], c[i]), half_t(0));
     }
     #endif
@@ -1954,7 +1954,7 @@ struct multiply_add_relu0<Array<half_t, N>, Array<half_t, N>, Array<half_t, N>> 
     __half2 const *c_ptr = reinterpret_cast<__half2 const *>(&c);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = __hfma2_relu(a_ptr[i], b_pair, c_ptr[i]);
     }
 
@@ -1977,7 +1977,7 @@ struct multiply_add_relu0<Array<half_t, N>, Array<half_t, N>, Array<half_t, N>> 
     maximum<half_t> mx;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = mx(op(a[i], b, c[i]), half_t(0));
     }
     #endif
@@ -2000,7 +2000,7 @@ struct multiply_add_relu0<Array<half_t, N>, Array<half_t, N>, Array<half_t, N>> 
     __half2 c_pair = __half2half2(reinterpret_cast<__half const &>(c));
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = __hfma2_relu(a_ptr[i], b_ptr[i], c_pair);
     }
 
@@ -2023,7 +2023,7 @@ struct multiply_add_relu0<Array<half_t, N>, Array<half_t, N>, Array<half_t, N>> 
     maximum<half_t> mx;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = mx(op(a[i], b[i], c), half_t(0));
     }
     #endif
@@ -2032,7 +2032,7 @@ struct multiply_add_relu0<Array<half_t, N>, Array<half_t, N>, Array<half_t, N>> 
   }
 };
 
-template <int N, bool PropagateNaN>
+template <int32_t N, bool PropagateNaN>
 struct minimum<Array<half_t, N>, PropagateNaN> {
   CUTLASS_HOST_DEVICE
   Array<half_t, N> operator()(Array<half_t, N> const & lhs, Array<half_t, N> const &rhs) const {
@@ -2044,7 +2044,7 @@ struct minimum<Array<half_t, N>, PropagateNaN> {
     __half2 const *rhs_ptr = reinterpret_cast<__half2 const *>(&rhs);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = PropagateNaN ? __hmin2_nan(lhs_ptr[i], rhs_ptr[i])
                                    : __hmin2(lhs_ptr[i], rhs_ptr[i]);
     }
@@ -2064,7 +2064,7 @@ struct minimum<Array<half_t, N>, PropagateNaN> {
     minimum<half_t,PropagateNaN> mn;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = mn(lhs[i],rhs[i]);
     }
     #endif
@@ -2082,7 +2082,7 @@ struct minimum<Array<half_t, N>, PropagateNaN> {
     __half2 const *rhs_ptr = reinterpret_cast<__half2 const *>(&rhs);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = PropagateNaN ? __hmin2_nan(lhs_pair, rhs_ptr[i])
                                    : __hmin2(lhs_pair, rhs_ptr[i]);
     }
@@ -2101,7 +2101,7 @@ struct minimum<Array<half_t, N>, PropagateNaN> {
     minimum<half_t,PropagateNaN> mn;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = mn(lhs, rhs[i]);
     }
     #endif
@@ -2119,7 +2119,7 @@ struct minimum<Array<half_t, N>, PropagateNaN> {
     __half2 rhs_pair = __half2half2(reinterpret_cast<__half const &>(rhs));
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = PropagateNaN ? __hmin2_nan(lhs_ptr[i], rhs_pair)
                                    : __hmin2(lhs_ptr[i], rhs_pair);
     }
@@ -2138,7 +2138,7 @@ struct minimum<Array<half_t, N>, PropagateNaN> {
     minimum<half_t, PropagateNaN> mn;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = mn(lhs[i], rhs);
     }
     #endif
@@ -2147,7 +2147,7 @@ struct minimum<Array<half_t, N>, PropagateNaN> {
   }
 };
 
-template <int N, bool PropagateNaN>
+template <int32_t N, bool PropagateNaN>
 struct maximum<Array<half_t, N>, PropagateNaN> {
   CUTLASS_HOST_DEVICE
   Array<half_t, N> operator()(Array<half_t, N> const & lhs, Array<half_t, N> const &rhs) const {
@@ -2159,7 +2159,7 @@ struct maximum<Array<half_t, N>, PropagateNaN> {
     __half2 const *rhs_ptr = reinterpret_cast<__half2 const *>(&rhs);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = PropagateNaN ? __hmax2_nan(lhs_ptr[i], rhs_ptr[i])
                                    : __hmax2(lhs_ptr[i], rhs_ptr[i]);
     }
@@ -2179,7 +2179,7 @@ struct maximum<Array<half_t, N>, PropagateNaN> {
     maximum<half_t,PropagateNaN> mx;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = mx(lhs[i], rhs[i]);
     }
     #endif
@@ -2197,7 +2197,7 @@ struct maximum<Array<half_t, N>, PropagateNaN> {
     __half2 const *rhs_ptr = reinterpret_cast<__half2 const *>(&rhs);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = PropagateNaN ? __hmax2_nan(lhs_pair, rhs_ptr[i])
                                    : __hmax2(lhs_pair, rhs_ptr[i]);
     }
@@ -2216,7 +2216,7 @@ struct maximum<Array<half_t, N>, PropagateNaN> {
     maximum<half_t,PropagateNaN> mx;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = mx(lhs, rhs[i]);
     }
     #endif
@@ -2234,7 +2234,7 @@ struct maximum<Array<half_t, N>, PropagateNaN> {
     __half2 rhs_pair = __half2half2(reinterpret_cast<__half const &>(rhs));
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       result_ptr[i] = PropagateNaN ? __hmax2_nan(lhs_ptr[i], rhs_pair)
                                    : __hmax2(lhs_ptr[i], rhs_pair);
     }
@@ -2253,7 +2253,7 @@ struct maximum<Array<half_t, N>, PropagateNaN> {
     maximum<half_t,PropagateNaN> mx;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = mx(lhs[i], rhs);
     }
     #endif
@@ -2263,7 +2263,7 @@ struct maximum<Array<half_t, N>, PropagateNaN> {
 };
 
 /// Fused multiply-add
-template <int N>
+template <int32_t N>
 struct multiply_add<Array<bfloat16_t, N>, Array<bfloat16_t, N>, Array<bfloat16_t, N>> {
 
   CUTLASS_HOST_DEVICE
@@ -2281,7 +2281,7 @@ struct multiply_add<Array<bfloat16_t, N>, Array<bfloat16_t, N>, Array<bfloat16_t
     unsigned const *c_ptr = reinterpret_cast<unsigned const *>(&c);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       asm ("fma.rn.bf16x2 %0, %1, %2, %3;\n"
         : "=r"(result_ptr[i])
         : "r"(a_ptr[i]), "r"(b_ptr[i]), "r"(c_ptr[i])
@@ -2306,7 +2306,7 @@ struct multiply_add<Array<bfloat16_t, N>, Array<bfloat16_t, N>, Array<bfloat16_t
     multiply_add<bfloat16_t> op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = op(a[i], b[i], c[i]);
     }
     #endif
@@ -2332,7 +2332,7 @@ struct multiply_add<Array<bfloat16_t, N>, Array<bfloat16_t, N>, Array<bfloat16_t
     a_packed = (a_packed | (a_packed << 16));
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       asm ("fma.rn.bf16x2 %0, %1, %2, %3;\n"
         : "=r"(result_ptr[i])
         : "r"(a_packed), "r"(b_ptr[i]), "r"(c_ptr[i])
@@ -2357,7 +2357,7 @@ struct multiply_add<Array<bfloat16_t, N>, Array<bfloat16_t, N>, Array<bfloat16_t
     multiply_add<bfloat16_t> op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = op(a, b[i], c[i]);
     }
     #endif
@@ -2383,7 +2383,7 @@ struct multiply_add<Array<bfloat16_t, N>, Array<bfloat16_t, N>, Array<bfloat16_t
     b_packed = (b_packed | (b_packed << 16));
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       asm ("fma.rn.bf16x2 %0, %1, %2, %3;\n"
         : "=r"(result_ptr[i])
         : "r"(a_ptr[i]), "r"(b_packed), "r"(c_ptr[i])
@@ -2408,7 +2408,7 @@ struct multiply_add<Array<bfloat16_t, N>, Array<bfloat16_t, N>, Array<bfloat16_t
     multiply_add<bfloat16_t> op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = op(a[i], b, c[i]);
     }
     #endif
@@ -2434,7 +2434,7 @@ struct multiply_add<Array<bfloat16_t, N>, Array<bfloat16_t, N>, Array<bfloat16_t
     c_packed = (c_packed | (c_packed << 16));
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       asm ("fma.rn.bf16x2 %0, %1, %2, %3;\n"
         : "=r"(result_ptr[i])
         : "r"(a_ptr[i]), "r"(b_ptr[i]), "r"(c_packed)
@@ -2459,7 +2459,7 @@ struct multiply_add<Array<bfloat16_t, N>, Array<bfloat16_t, N>, Array<bfloat16_t
     multiply_add<bfloat16_t> op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = op(a[i], b[i], c);
     }
     #endif
@@ -2487,7 +2487,7 @@ struct multiply_add<Array<bfloat16_t, N>, Array<bfloat16_t, N>, Array<bfloat16_t
     c_packed = (c_packed | (c_packed << 16));
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N / 2; ++i) {
+    for (int32_t i = 0; i < N / 2; ++i) {
       asm ("fma.rn.bf16x2 %0, %1, %2, %3;\n"
         : "=r"(result_ptr[i])
         : "r"(a_ptr[i]), "r"(b_packed), "r"(c_packed)
@@ -2513,7 +2513,7 @@ struct multiply_add<Array<bfloat16_t, N>, Array<bfloat16_t, N>, Array<bfloat16_t
     multiply_add<bfloat16_t> op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = op(a[i], b, c);
     }
     #endif
@@ -2524,7 +2524,7 @@ struct multiply_add<Array<bfloat16_t, N>, Array<bfloat16_t, N>, Array<bfloat16_t
 
 
 /// bit_and
-template <int N>
+template <int32_t N>
 struct bit_and<Array<uint1b_t, N>> {
   CUTLASS_HOST_DEVICE
   Array<uint1b_t, N> operator()(Array<uint1b_t, N> const &a, Array<uint1b_t, N> const &b) const {
@@ -2537,7 +2537,7 @@ struct bit_and<Array<uint1b_t, N>> {
     Storage const *b_data = b.raw_data();
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < ArrayType::kStorageElements; ++i) {
+    for (int32_t i = 0; i < ArrayType::kStorageElements; ++i) {
       result_data[i] = (a_data[i] & b_data[i]);
     }
 
@@ -2547,7 +2547,7 @@ struct bit_and<Array<uint1b_t, N>> {
 
 
 /// bit_or
-template <int N>
+template <int32_t N>
 struct bit_or<Array<uint1b_t, N>> {
   CUTLASS_HOST_DEVICE
   Array<uint1b_t, N> operator()(Array<uint1b_t, N> const &a, Array<uint1b_t, N> const &b) const {
@@ -2560,7 +2560,7 @@ struct bit_or<Array<uint1b_t, N>> {
     Storage const *b_data = b.raw_data();
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < ArrayType::kStorageElements; ++i) {
+    for (int32_t i = 0; i < ArrayType::kStorageElements; ++i) {
       result_data[i] = (a_data[i] | b_data[i]);
     }
 
@@ -2570,7 +2570,7 @@ struct bit_or<Array<uint1b_t, N>> {
 
 
 /// bit_not
-template <int N>
+template <int32_t N>
 struct bit_not<Array<uint1b_t, N>> {
   CUTLASS_HOST_DEVICE
   Array<uint1b_t, N> operator()(Array<uint1b_t, N> const &a) const {
@@ -2582,7 +2582,7 @@ struct bit_not<Array<uint1b_t, N>> {
     Storage const *a_data = a.raw_data();
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < ArrayType::kStorageElements; ++i) {
+    for (int32_t i = 0; i < ArrayType::kStorageElements; ++i) {
       result_data[i] = (~a_data[i]);
     }
 
@@ -2591,7 +2591,7 @@ struct bit_not<Array<uint1b_t, N>> {
 };
 
 /// bit_xor
-template <int N>
+template <int32_t N>
 struct bit_xor<Array<uint1b_t, N>> {
   CUTLASS_HOST_DEVICE
   Array<uint1b_t, N> operator()(Array<uint1b_t, N> const &a, Array<uint1b_t, N> const &b) const {
@@ -2604,7 +2604,7 @@ struct bit_xor<Array<uint1b_t, N>> {
     Storage const *b_data = b.raw_data();
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < ArrayType::kStorageElements; ++i) {
+    for (int32_t i = 0; i < ArrayType::kStorageElements; ++i) {
       result_data[i] = (a_data[i] ^ b_data[i]);
     }
 
@@ -2613,7 +2613,7 @@ struct bit_xor<Array<uint1b_t, N>> {
 };
 
 /// Fused and-popc-add
-template <typename T, int N>
+template <typename T, int32_t N>
 struct and_popc_add<Array<T, N>, Array<T, N>, Array<T, N>> {
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &a, Array<T, N> const &b, Array<T, N> const &c) const {
@@ -2621,7 +2621,7 @@ struct and_popc_add<Array<T, N>, Array<T, N>, Array<T, N>> {
     and_popc_add<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(a[i], b[i], c[i]);
     }
 
@@ -2634,7 +2634,7 @@ struct and_popc_add<Array<T, N>, Array<T, N>, Array<T, N>> {
     and_popc_add<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(a[i], scalar, c[i]);
     }
 
@@ -2647,7 +2647,7 @@ struct and_popc_add<Array<T, N>, Array<T, N>, Array<T, N>> {
     and_popc_add<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(scalar, b[i], c[i]);
     }
 
@@ -2657,7 +2657,7 @@ struct and_popc_add<Array<T, N>, Array<T, N>, Array<T, N>> {
 
 
 /// Fused or-popc-add
-template <typename T, int N>
+template <typename T, int32_t N>
 struct or_popc_add<Array<T, N>, Array<T, N>, Array<T, N>> {
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &a, Array<T, N> const &b, Array<T, N> const &c) const {
@@ -2665,7 +2665,7 @@ struct or_popc_add<Array<T, N>, Array<T, N>, Array<T, N>> {
     or_popc_add<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(a[i], b[i], c[i]);
     }
 
@@ -2678,7 +2678,7 @@ struct or_popc_add<Array<T, N>, Array<T, N>, Array<T, N>> {
     or_popc_add<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(a[i], scalar, c[i]);
     }
 
@@ -2691,7 +2691,7 @@ struct or_popc_add<Array<T, N>, Array<T, N>, Array<T, N>> {
     or_popc_add<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(scalar, b[i], c[i]);
     }
 
@@ -2700,7 +2700,7 @@ struct or_popc_add<Array<T, N>, Array<T, N>, Array<T, N>> {
 };
 
 /// Fused xor-popc-add
-template <typename T, int N>
+template <typename T, int32_t N>
 struct xor_popc_add<Array<T, N>, Array<T, N>, Array<T, N>> {
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &a, Array<T, N> const &b, Array<T, N> const &c) const {
@@ -2708,7 +2708,7 @@ struct xor_popc_add<Array<T, N>, Array<T, N>, Array<T, N>> {
     xor_popc_add<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(a[i], b[i], c[i]);
     }
 
@@ -2721,7 +2721,7 @@ struct xor_popc_add<Array<T, N>, Array<T, N>, Array<T, N>> {
     xor_popc_add<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(a[i], scalar, c[i]);
     }
 
@@ -2734,7 +2734,7 @@ struct xor_popc_add<Array<T, N>, Array<T, N>, Array<T, N>> {
     xor_popc_add<T> scalar_op;
 
     CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
+    for (int32_t i = 0; i < N; ++i) {
       result[i] = scalar_op(scalar, b[i], c[i]);
     }
 
@@ -2747,91 +2747,91 @@ struct xor_popc_add<Array<T, N>, Array<T, N>, Array<T, N>> {
 // Operator overloads
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, int N>
+template <typename T, int32_t N>
 CUTLASS_HOST_DEVICE
 Array<T, N> operator+(Array<T, N> const &lhs, Array<T, N> const &rhs) {
   plus<Array<T, N>> op;
   return op(lhs, rhs);
 }
 
-template <typename T, int N>
+template <typename T, int32_t N>
 CUTLASS_HOST_DEVICE
 Array<T, N> operator+(T const &lhs, Array<T, N> const &rhs) {
   plus<Array<T, N>> op;
   return op(lhs, rhs);
 }
 
-template <typename T, int N>
+template <typename T, int32_t N>
 CUTLASS_HOST_DEVICE
 Array<T, N> operator+(Array<T, N> const &lhs, T const &rhs) {
   plus<Array<T, N>> op;
   return op(lhs, rhs);
 }
 
-template <typename T, int N>
+template <typename T, int32_t N>
 CUTLASS_HOST_DEVICE
 Array<T, N> operator-(Array<T, N> const &lhs, Array<T, N> const &rhs) {
   minus<Array<T, N>> op;
   return op(lhs, rhs);
 }
 
-template <typename T, int N>
+template <typename T, int32_t N>
 CUTLASS_HOST_DEVICE
 Array<T, N> operator-(Array<T, N> const &lhs) {
   negate<Array<T, N>> op;
   return op(lhs);
 }
 
-template <typename T, int N>
+template <typename T, int32_t N>
 CUTLASS_HOST_DEVICE
 Array<T, N> operator*(Array<T, N> const &lhs, Array<T, N> const &rhs) {
   multiplies<Array<T, N>> op;
   return op(lhs, rhs);
 }
 
-template <typename T, int N>
+template <typename T, int32_t N>
 CUTLASS_HOST_DEVICE
 Array<T, N> operator*(T lhs, Array<T, N> const &rhs) {
   multiplies<Array<T, N>> op;
   return op(lhs, rhs);
 }
 
-template <typename T, int N>
+template <typename T, int32_t N>
 CUTLASS_HOST_DEVICE
 Array<T, N> operator*(Array<T, N> const &lhs, T rhs) {
   multiplies<Array<T, N>> op;
   return op(lhs, rhs);
 }
 
-template <typename T, int N>
+template <typename T, int32_t N>
 CUTLASS_HOST_DEVICE
 Array<T, N> operator/(Array<T, N> const &lhs, Array<T, N> const &rhs) {
   divides<Array<T, N>> op;
   return op(lhs, rhs);
 }
 
-template <typename T, int N>
+template <typename T, int32_t N>
 CUTLASS_HOST_DEVICE
 Array<T, N> fma(Array<T, N> const &a, Array<T, N> const &b, Array<T, N> const &c) {
   multiply_add<Array<T, N>> op;
   return op(a, b, c);
 }
 
-template <typename T, int N>
+template <typename T, int32_t N>
 CUTLASS_HOST_DEVICE
 Array<T, N> fma(T a, Array<T, N> const &b, Array<T, N> const &c) {
   multiply_add<Array<T, N>> op;
   return op(a, b, c);
 }
 
-template <typename T, int N>
+template <typename T, int32_t N>
 CUTLASS_HOST_DEVICE
 Array<T, N> fma(Array<T, N> const &a, T b, Array<T, N> const &c) {
   multiply_add<Array<T, N>> op;
   return op(a, b, c);
 }
 
-template <typename T, int N>
+template <typename T, int32_t N>
 CUTLASS_HOST_DEVICE
 Array<T, N> fma(Array<T, N> const &a, Array<T, N> const &b, T c) {
   multiply_add<Array<T, N>> op;
@@ -2850,9 +2850,9 @@ template <
   /// Element type
   typename T,
   /// Number of elements in the array
-  int N,
+  int32_t N,
   /// Alignment requirement in bytes
-  int Alignment = ( sizeof_bits<T>::value * N + 7 ) / 8
+  int32_t Alignment = ( sizeof_bits<T>::value * N + 7 ) / 8
 >
 class alignas(Alignment) AlignedArray: public Array<T, N> {
 public:

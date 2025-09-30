@@ -63,7 +63,7 @@ crd2idx(Coord  const& coord,
 
 namespace detail {
 
-template <class Coord, class Shape, class Stride, int... Is>
+template <class Coord, class Shape, class Stride, int32_t... Is>
 CUTE_HOST_DEVICE constexpr
 auto
 crd2idx_ttt(Coord  const& coord,
@@ -73,7 +73,7 @@ crd2idx_ttt(Coord  const& coord,
   return (... + crd2idx(get<Is>(coord), get<Is>(shape), get<Is>(stride)));
 }
 
-template <class CInt, class STuple, class DTuple, int I0, int... Is>
+template <class CInt, class STuple, class DTuple, int32_t I0, int32_t... Is>
 CUTE_HOST_DEVICE constexpr
 auto
 crd2idx_itt(CInt   const& coord,
@@ -108,14 +108,14 @@ crd2idx(Coord  const& coord,
       static_assert(tuple_size<Coord>::value == tuple_size< Shape>::value, "Mismatched Ranks");
       static_assert(tuple_size<Coord>::value == tuple_size<Stride>::value, "Mismatched Ranks");
       return detail::crd2idx_ttt(coord, shape, stride, tuple_seq<Coord>{});
-    } else {                                     // tuple "int" "int"
+    } else {                                     // tuple "int32_t" "int32_t"
       static_assert(sizeof(Coord) == 0, "Invalid parameters");
     }
   } else {
-    if constexpr (is_tuple<Shape>::value) {      // "int" tuple tuple
+    if constexpr (is_tuple<Shape>::value) {      // "int32_t" tuple tuple
       static_assert(tuple_size<Shape>::value == tuple_size<Stride>::value, "Mismatched Ranks");
       return detail::crd2idx_itt(coord, shape, stride, tuple_seq<Shape>{});
-    } else {                                     // "int" "int" "int"
+    } else {                                     // "int32_t" "int32_t" "int32_t"
       return coord * stride;
     }
   }
@@ -125,7 +125,7 @@ crd2idx(Coord  const& coord,
 
 namespace detail {
 
-template <class CTuple, class STuple, int I0, int... Is>
+template <class CTuple, class STuple, int32_t I0, int32_t... Is>
 CUTE_HOST_DEVICE constexpr
 auto
 crd2idx_horner(CTuple const& coord,
@@ -191,18 +191,18 @@ idx2crd(Index  const& idx,
       static_assert(tuple_size<Index>::value == tuple_size< Shape>::value, "Mismatched Ranks");
       static_assert(tuple_size<Index>::value == tuple_size<Stride>::value, "Mismatched Ranks");
       return transform(idx, shape, stride, [](auto const& i, auto const& s, auto const& d){ return idx2crd(i,s,d); });
-    } else {                                     // tuple "int" "int"
+    } else {                                     // tuple "int32_t" "int32_t"
       static_assert(sizeof(Index) == 0, "Invalid parameters");
     }
   } else {
     if constexpr (is_tuple<Shape>::value) {
-      if constexpr (is_tuple<Stride>::value) {   // "int" tuple tuple
+      if constexpr (is_tuple<Stride>::value) {   // "int32_t" tuple tuple
         static_assert(tuple_size<Shape>::value == tuple_size<Stride>::value, "Mismatched Ranks");
         return transform(shape, stride, [&](auto const& s, auto const& d){ return idx2crd(idx,s,d); });
-      } else {                                   // "int" tuple "int"
+      } else {                                   // "int32_t" tuple "int32_t"
         return transform(shape, compact_col_major(shape, stride), [&](auto const& s, auto const& d){ return idx2crd(idx,s,d); });
       }
-    } else {                                     // "int" "int" "int"
+    } else {                                     // "int32_t" "int32_t" "int32_t"
       if constexpr (is_constant<1, Shape>::value) {
         // Skip potential stride-0 division
         return Int<0>{};
@@ -232,13 +232,13 @@ idx2crd(Index const& idx,
     if constexpr (is_tuple<Shape>::value) {      // tuple tuple
       static_assert(tuple_size<Index>::value == tuple_size<Shape>::value, "Mismatched Ranks");
       return transform(idx, shape, [](auto const& i, auto const& s) { return idx2crd(i,s); });
-    } else {                                     // tuple "int"
+    } else {                                     // tuple "int32_t"
       static_assert(sizeof(Index) == 0, "Invalid parameters");
     }
   } else {
-    if constexpr (is_tuple<Shape>::value) {      // "int" tuple
+    if constexpr (is_tuple<Shape>::value) {      // "int32_t" tuple
       return transform_leaf(as_arithmetic_tuple(crd2idx(idx, shape, make_basis_like(shape))), identity{});
-    } else {                                     // "int" "int"
+    } else {                                     // "int32_t" "int32_t"
       return idx;
     }
   }
@@ -294,11 +294,11 @@ auto
 compact(Shape   const& shape,
         Current const& current)
 {
-  if constexpr (is_tuple<Shape>::value) { // Shape::tuple Current::int
+  if constexpr (is_tuple<Shape>::value) { // Shape::tuple Current::int32_t
     using Lambda = CompactLambda<Major>;                  // Append or Prepend
     using Seq    = typename Lambda::template seq<Shape>;  // Seq or RSeq
     return nihilus_cute::detail::fold(shape, nihilus_cute::make_tuple(nihilus_cute::make_tuple(), current), Lambda{}, Seq{});
-  } else {                                // Shape::int Current::int
+  } else {                                // Shape::int32_t Current::int32_t
     if constexpr (is_constant<1, Shape>::value) {
       return nihilus_cute::make_tuple(Int<0>{}, current); // If current is dynamic, this could save a reg
     } else {
@@ -506,7 +506,7 @@ increment(Coord& coord, Shape const& shape, Order const& order)
  *   auto shape = make_shape(1,2,make_shape(2,3),3);
  *   auto coord = repeat_like(shape, 0);
  *
- *   for (int i = 0; i < size(shape); ++i) {
+ *   for (int32_t i = 0; i < size(shape); ++i) {
  *     std::cout << i << ": " << coord << std::endl;
  *     increment(coord, shape);
  *   }
@@ -583,7 +583,7 @@ CUTE_HOST_DEVICE constexpr
 auto
 make_coord_iterator(Shape const& shape)
 {
-  return make_coord_iterator<Order>(repeat_like(shape, int(0)), shape);
+  return make_coord_iterator<Order>(repeat_like(shape, int32_t(0)), shape);
 }
 
 // A forward iterator for a coordinate that starts from zero and increments colex
@@ -592,7 +592,7 @@ CUTE_HOST_DEVICE constexpr
 auto
 make_coord_iterator(Shape const& shape)
 {
-  return make_coord_iterator(repeat_like(shape, int(0)), shape);
+  return make_coord_iterator(repeat_like(shape, int32_t(0)), shape);
 }
 
 } // end namespace nihilus_cute

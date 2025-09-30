@@ -69,7 +69,7 @@ template <
     /// Warp-level MMA operator (concept: gemm::warp::MmaTensorOp)
     typename WarpMmaOperator_,
     /// Number of partitions of the K dimension
-    int PartitionsK,
+    int32_t PartitionsK,
     /// Tile iterator reading and writing output tensors
     typename OutputTileIterator_,
     /// Fragment iterator selecting accumulators
@@ -77,7 +77,7 @@ template <
     /// Output operator
     typename OutputOp_,
     /// Number of interleaved k
-    int InterleavedK>
+    int32_t InterleavedK>
 class InterleavedEpilogue :
   public EpilogueBaseStreamK<
     Shape_,
@@ -95,7 +95,7 @@ public:
 
   using Shape = Shape_;
   using WarpMmaOperator = WarpMmaOperator_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static constexpr int32_t kPartitionsK = PartitionsK;
   using AccumulatorFragmentIterator = AccumulatorFragmentIterator_;
   using OutputTileIterator = OutputTileIterator_;
   using OutputOp = OutputOp_;
@@ -113,14 +113,14 @@ public:
   using ElementOutput = typename OutputTileIterator::Element;
 
   /// Output access size
-  static constexpr int kElementsPerAccess = OutputTileIterator::kElementsPerAccess;
+  static constexpr int32_t kElementsPerAccess = OutputTileIterator::kElementsPerAccess;
 
   /// Tensor reference to destination tensor
   using TensorRef = typename OutputTileIterator::TensorRef;
 
   /// Tensor reference to sync tensor
   using SyncTensorRef =
-      typename cutlass::TensorRef<int, cutlass::layout::PackedVectorLayout>;
+      typename cutlass::TensorRef<int32_t, cutlass::layout::PackedVectorLayout>;
 
   /// Const tensor reference to source tensor
   using ConstTensorRef = typename OutputTileIterator::ConstTensorRef;
@@ -170,11 +170,11 @@ public:
       AccumulatorAccessType const *compute_frag_ptr =
         reinterpret_cast<AccumulatorAccessType const *>(&aligned_accum_fragment);
 
-      int const kOutputOpIterations =
+      int32_t const kOutputOpIterations =
         OutputTileIterator::Fragment::kElements / OutputTileIterator::kElementsPerAccess;
 
       CUTLASS_PRAGMA_UNROLL
-      for (int i = 0; i < kOutputOpIterations; ++i)
+      for (int32_t i = 0; i < kOutputOpIterations; ++i)
       {
         // Call the output operator
         output_frag_ptr[i] = output_op(compute_frag_ptr[i]);
@@ -207,11 +207,11 @@ public:
       OutputAccessType const *source_frag_ptr =
         reinterpret_cast<OutputAccessType const *>(&source_fragment);
 
-      int const kOutputOpIterations =
+      int32_t const kOutputOpIterations =
         OutputTileIterator::Fragment::kElements / OutputTileIterator::kElementsPerAccess;
 
       CUTLASS_PRAGMA_UNROLL
-      for (int i = 0; i < kOutputOpIterations; ++i)
+      for (int32_t i = 0; i < kOutputOpIterations; ++i)
       {
         // Call the output operator
         output_frag_ptr[i] = output_op(compute_frag_ptr[i], source_frag_ptr[i]);
@@ -252,9 +252,9 @@ public:
   CUTLASS_DEVICE
   InterleavedEpilogue(
       SharedStorage &shared_storage,  ///< Shared storage object
-      int thread_idx,                 ///< ID of a thread within the threadblock
-      int warp_idx,                   ///< ID of warp within threadblock
-      int lane_idx)                   ///< Id of thread within warp
+      int32_t thread_idx,                 ///< ID of a thread within the threadblock
+      int32_t warp_idx,                   ///< ID of warp within threadblock
+      int32_t lane_idx)                   ///< Id of thread within warp
   :
       BaseStreamK(thread_idx)
   {}
@@ -264,9 +264,9 @@ public:
   /// performing epilogue computations, writing to output
   CUTLASS_DEVICE
   void reduce(
-      int peer_idx_begin,
-      int peer_idx_end,
-      int reduce_fragment_idx,
+      int32_t peer_idx_begin,
+      int32_t peer_idx_end,
+      int32_t reduce_fragment_idx,
       void *element_workspace,
       OutputOp const &output_op,                      ///< Output operator
       OutputTileIterator destination_iterator,        ///< Tile iterator for destination
@@ -369,7 +369,7 @@ public:
     //
 
     CUTLASS_PRAGMA_UNROLL
-    for (int iter = 0; iter < OutputTileIterator::kIterations; ++iter) {
+    for (int32_t iter = 0; iter < OutputTileIterator::kIterations; ++iter) {
 
       //
       // Convert fragment

@@ -64,7 +64,7 @@ struct ComposedLayout : private nihilus_cute::tuple<LayoutA, Offset, LayoutB>  /
   // Accessors
   //
 
-  static constexpr int rank  = LayoutB::rank;
+  static constexpr int32_t rank  = LayoutB::rank;
 
   CUTE_HOST_DEVICE constexpr
   decltype(auto)
@@ -217,7 +217,7 @@ make_composed_layout(LayoutA const& layoutA,
 //
 
 // Return the layout of a mode
-template <int... Is, class A, class O, class B>
+template <int32_t... Is, class A, class O, class B>
 CUTE_HOST_DEVICE constexpr
 decltype(auto)
 layout(ComposedLayout<A,O,B> const& clayout)
@@ -226,7 +226,7 @@ layout(ComposedLayout<A,O,B> const& clayout)
 }
 
 // Return the shape of a mode
-template <int... Is, class A, class O, class B>
+template <int32_t... Is, class A, class O, class B>
 CUTE_HOST_DEVICE constexpr
 decltype(auto)
 shape(ComposedLayout<A,O,B> const& layout)
@@ -235,13 +235,13 @@ shape(ComposedLayout<A,O,B> const& layout)
 }
 
 // Doesn't make sense to directly ask for the strides of this "layout"
-template <int... Is, class Fn, class O, class Layout>
+template <int32_t... Is, class Fn, class O, class Layout>
 CUTE_HOST_DEVICE constexpr
 decltype(auto)
 stride(ComposedLayout<Fn,O,Layout> const& layout) = delete;
 
 // Return the number of elements in a mode
-template <int... Is, class A, class O, class B>
+template <int32_t... Is, class A, class O, class B>
 CUTE_HOST_DEVICE constexpr
 decltype(auto)
 size(ComposedLayout<A,O,B> const& layout)
@@ -250,7 +250,7 @@ size(ComposedLayout<A,O,B> const& layout)
 }
 
 // Return the number of modes
-template <int... Is, class A, class O, class B>
+template <int32_t... Is, class A, class O, class B>
 CUTE_HOST_DEVICE constexpr
 auto
 rank(ComposedLayout<A,O,B> const& layout)
@@ -259,7 +259,7 @@ rank(ComposedLayout<A,O,B> const& layout)
 }
 
 // Return the depth of the layout
-template <int... Is, class A, class O, class B>
+template <int32_t... Is, class A, class O, class B>
 CUTE_HOST_DEVICE constexpr
 auto
 depth(ComposedLayout<A,O,B> const& layout)
@@ -268,7 +268,7 @@ depth(ComposedLayout<A,O,B> const& layout)
 }
 
 // Return the codomain size of a mode
-template <int... Is, class A, class O, class B>
+template <int32_t... Is, class A, class O, class B>
 CUTE_HOST_DEVICE constexpr
 auto
 cosize(ComposedLayout<A,O,B> const& layout)
@@ -288,7 +288,7 @@ get(ComposedLayout<A,O,B> const& a)
   return composition(a.layout_a(), a.offset(), get<I>(a.layout_b()));
 }
 
-template <int Begin, int End, class A, class O, class B>
+template <int32_t Begin, int32_t End, class A, class O, class B>
 CUTE_HOST_DEVICE constexpr
 auto
 take(ComposedLayout<A,O,B> const& a)
@@ -304,7 +304,7 @@ flatten(ComposedLayout<A,O,B> const& a)
   return composition(a.layout_a(), a.offset(), flatten(a.layout_b()));
 }
 
-template <int N, class A, class O, class B, class X>
+template <int32_t N, class A, class O, class B, class X>
 CUTE_HOST_DEVICE constexpr
 auto
 append(ComposedLayout<A,O,B> const& a, X const& x)
@@ -312,7 +312,7 @@ append(ComposedLayout<A,O,B> const& a, X const& x)
   return composition(a.layout_a(), a.offset(), append<N>(a.layout_b(), x));
 }
 
-template <int Begin, int End, class A, class O, class B>
+template <int32_t Begin, int32_t End, class A, class O, class B>
 CUTE_HOST_DEVICE constexpr
 auto
 group(ComposedLayout<A,O,B> const& a)
@@ -582,7 +582,7 @@ coalesce(ComposedLayout<A,O,B> const& layout, Shape const& trg_profile)
 // Upcast and Downcast
 //
 
-template <int N, class A, class O, class B>
+template <int32_t N, class A, class O, class B>
 CUTE_HOST_DEVICE constexpr
 auto
 upcast(ComposedLayout<A,O,B> const& layout)
@@ -590,7 +590,7 @@ upcast(ComposedLayout<A,O,B> const& layout)
   return composition(upcast<N>(layout.layout_a()), upcast<N>(layout.offset()), upcast<N>(layout.layout_b()));
 }
 
-template <int N, class A, class O, class B>
+template <int32_t N, class A, class O, class B>
 CUTE_HOST_DEVICE constexpr
 auto
 downcast(ComposedLayout<A,O,B> const& layout)

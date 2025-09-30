@@ -53,13 +53,13 @@ namespace thread {
 ///
 template <
   typename Element_,                             ///< Data type used to load and store tensors
-  int Count                                      ///< Number of elements computed per operation
+  int32_t Count                                      ///< Number of elements computed per operation
 >
 class ReductionOpPlus {
 public:
 
   using Element = Element_;
-  static constexpr int kCount = Count;
+  static constexpr int32_t kCount = Count;
 
   using Fragment = Array<Element, kCount>;
   using Operator = plus<Fragment>;

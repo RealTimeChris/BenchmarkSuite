@@ -86,9 +86,9 @@ public:
   using LongIndex = typename Layout::LongIndex;
   using TensorCoord = MatrixCoord;
 
-  static constexpr int kElementsPerAccess = ThreadMap::kElementsPerAccess;
-  static constexpr int kThreads = ThreadMap::kThreads;
-  static constexpr int kIterations = ThreadMap::Count::kTile;
+  static constexpr int32_t kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static constexpr int32_t kThreads = ThreadMap::kThreads;
+  static constexpr int32_t kIterations = ThreadMap::Count::kTile;
 
   static_assert( ThreadMap::Iterations::kRow > 0,"ThreadMap::Iterations::kRow must be > 0");
   static_assert( ThreadMap::Iterations::kGroup > 0,"ThreadMap::Iterations::kGroup must be > 0");
@@ -115,21 +115,21 @@ public:
 
     /// Convolution problem size
     cutlass::conv::Conv2dProblemSize problem_size;
-    int tiled_rows_per_filter;
+    int32_t tiled_rows_per_filter;
 
     CUTLASS_HOST_DEVICE
     Params() { }
 
     CUTLASS_HOST_DEVICE
-    Params(Layout const &layout, cutlass::conv::Conv2dProblemSize problem_size_, int threadblock_row): 
+    Params(Layout const &layout, cutlass::conv::Conv2dProblemSize problem_size_, int32_t threadblock_row): 
       problem_size(problem_size_), 
       PredicatedTileIteratorParams(
-        layout.stride(0) * int(sizeof(AccessType)) / kElementsPerAccess,
+        layout.stride(0) * int32_t(sizeof(AccessType)) / kElementsPerAccess,
         make_OutputTileThreadMapDesc<ThreadMap>()
       ) 
     {
   
-      int tile_m_per_filter = strided_dgrad_tile_m_per_filter(problem_size, threadblock_row);
+      int32_t tile_m_per_filter = strided_dgrad_tile_m_per_filter(problem_size, threadblock_row);
 
       tiled_rows_per_filter = tile_m_per_filter * threadblock_row;
     }
@@ -138,7 +138,7 @@ public:
   /// Mask object
   struct Mask {
 
-    static constexpr int kCount = ThreadMap::Iterations::kColumn;
+    static constexpr int32_t kCount = ThreadMap::Iterations::kColumn;
 
     /// Predicate state
     bool predicates[kCount];
@@ -154,7 +154,7 @@ public:
     ///< Efficiently disables all accesses guarded by mask
     CUTLASS_HOST_DEVICE void clear() {
       CUTLASS_PRAGMA_UNROLL
-      for (int i = 0; i < kCount; ++i) {
+      for (int32_t i = 0; i < kCount; ++i) {
         predicates[i] = false;
       }
     }
@@ -162,7 +162,7 @@ public:
     ///< CUTLASS_HOST_DEVICE enables all accesses guarded by mask
     CUTLASS_DEVICE void enable() {
       CUTLASS_PRAGMA_UNROLL
-      for (int i = 0; i < kCount; ++i) {
+      for (int32_t i = 0; i < kCount; ++i) {
         predicates[i] = true;
       }
     }
@@ -187,10 +187,10 @@ private:
   Index extent_row_;
 
   /// Starting Dx h and w dimension for strided dgrad mapping
-  int start_h_, start_w_;
+  int32_t start_h_, start_w_;
 
   /// Effective Dy P and Q dimensions for strided dgrad mapping
-  int p_, q_;
+  int32_t p_, q_;
 
   /// A thread's starting row position (assuming steady-state predicates have been computed)
   Index thread_start_row_;
@@ -199,7 +199,7 @@ private:
   Index thread_start_column_;
 
   /// Internal state counter
-  int state_[3];
+  int32_t state_[3];
  
   //
   // Static asserts about internal strides
@@ -227,9 +227,9 @@ public:
     Params const & params,
     Element *pointer,
     TensorCoord extent,
-    int thread_idx,
+    int32_t thread_idx,
     FastDivmod const &stride_h_divmod, FastDivmod const &stride_w_divmod,
-    int start_r, int start_s,
+    int32_t start_r, int32_t start_s,
     TensorCoord threadblock_offset = TensorCoord()
   ): 
     params_(params)
@@ -237,8 +237,8 @@ public:
 
     TensorCoord thread_offset = ThreadMap::initial_offset(thread_idx) + threadblock_offset;
 
-    int r = start_r;
-    int s = start_s;
+    int32_t r = start_r;
+    int32_t s = start_s;
 
     if (params_.problem_size.mode == cutlass::conv::Mode::kConvolution) {
       r = (params_.problem_size.R - 1 - r);
@@ -261,7 +261,7 @@ public:
 
     // Initialize predicates
     CUTLASS_PRAGMA_UNROLL
-    for (int c = 0; c < ThreadMap::Iterations::kColumn; ++c) {
+    for (int32_t c = 0; c < ThreadMap::Iterations::kColumn; ++c) {
 
       mask_.predicates[c] = ((thread_offset.column() 
         + ThreadMap::Delta::kColumn * c) < extent.column());
@@ -293,31 +293,31 @@ public:
     AccessType *frag_ptr = reinterpret_cast<AccessType *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int cluster = 0; cluster < ThreadMap::Iterations::kCluster; ++cluster) {
+    for (int32_t cluster = 0; cluster < ThreadMap::Iterations::kCluster; ++cluster) {
 
       CUTLASS_PRAGMA_UNROLL
-      for (int group = 0; group < ThreadMap::Iterations::kGroup; ++group) {
+      for (int32_t group = 0; group < ThreadMap::Iterations::kGroup; ++group) {
 
         CUTLASS_PRAGMA_UNROLL
-        for (int row = 0; row < ThreadMap::Iterations::kRow; ++row) {
+        for (int32_t row = 0; row < ThreadMap::Iterations::kRow; ++row) {
 
-          int frag_row_idx = 
+          int32_t frag_row_idx = 
             (row + ThreadMap::Iterations::kRow * (group + ThreadMap::Iterations::kGroup * cluster));
 
-          int row_offset = row * ThreadMap::Delta::kRow 
+          int32_t row_offset = row * ThreadMap::Delta::kRow 
             + group * ThreadMap::Delta::kGroup 
             + cluster * ThreadMap::Delta::kCluster;
 
           // remapping rows to find the mapped_row_offset
-          int npq_offset = (row_offset + thread_start_row_) % params_.tiled_rows_per_filter;
+          int32_t npq_offset = (row_offset + thread_start_row_) % params_.tiled_rows_per_filter;
 
           // (STEP 4.a) [order NHW rows to be loaded and stored in output Dx NHWxC layout]
-          int n = npq_offset / (p_ * q_); 
-          int residual = npq_offset % (p_ * q_);
-          int p = residual / q_;
-          int q = residual % q_;
+          int32_t n = npq_offset / (p_ * q_); 
+          int32_t residual = npq_offset % (p_ * q_);
+          int32_t p = residual / q_;
+          int32_t q = residual % q_;
         
-          int mapped_row_offset = n * (params_.problem_size.H * params_.problem_size.W) +
+          int32_t mapped_row_offset = n * (params_.problem_size.H * params_.problem_size.W) +
                                   (start_h_ + p * params_.problem_size.stride_h) * params_.problem_size.W +
                                   (start_w_ + q * params_.problem_size.stride_w);
           bool row_guard = mapped_row_offset < extent_row_;
@@ -325,7 +325,7 @@ public:
           int64_t row_byte_offset = mapped_row_offset * params_.stride;
 
           CUTLASS_PRAGMA_UNROLL
-          for (int column = 0; column < ThreadMap::Iterations::kColumn; ++column) {
+          for (int32_t column = 0; column < ThreadMap::Iterations::kColumn; ++column) {
 
             int64_t column_byte_offset = (thread_start_column_ + column * ThreadMap::Delta::kColumn) * (sizeof_bits<Element>::value / 8);
 
@@ -360,31 +360,31 @@ public:
     AccessType const *frag_ptr = reinterpret_cast<AccessType const *>(&frag);
 
     CUTLASS_PRAGMA_UNROLL
-    for (int cluster = 0; cluster < ThreadMap::Iterations::kCluster; ++cluster) {
+    for (int32_t cluster = 0; cluster < ThreadMap::Iterations::kCluster; ++cluster) {
 
       CUTLASS_PRAGMA_UNROLL
-      for (int group = 0; group < ThreadMap::Iterations::kGroup; ++group) {
+      for (int32_t group = 0; group < ThreadMap::Iterations::kGroup; ++group) {
 
         CUTLASS_PRAGMA_UNROLL
-        for (int row = 0; row < ThreadMap::Iterations::kRow; ++row) {
+        for (int32_t row = 0; row < ThreadMap::Iterations::kRow; ++row) {
 
-          int frag_row_idx = 
+          int32_t frag_row_idx = 
             (row + ThreadMap::Iterations::kRow * (group + ThreadMap::Iterations::kGroup * cluster));
 
-          int row_offset = row * ThreadMap::Delta::kRow 
+          int32_t row_offset = row * ThreadMap::Delta::kRow 
             + group * ThreadMap::Delta::kGroup 
             + cluster * ThreadMap::Delta::kCluster;
 
           // remapping rows to find the mapped_row_offset
-          int npq_offset = (row_offset + thread_start_row_) % params_.tiled_rows_per_filter;
+          int32_t npq_offset = (row_offset + thread_start_row_) % params_.tiled_rows_per_filter;
 
           // (STEP 4.a) [order NHW rows to be loaded and stored in output Dx NHWxC layout]
-          int n = npq_offset / (p_ * q_); 
-          int residual = npq_offset % (p_ * q_);
-          int p = residual / q_;
-          int q = residual % q_;
+          int32_t n = npq_offset / (p_ * q_); 
+          int32_t residual = npq_offset % (p_ * q_);
+          int32_t p = residual / q_;
+          int32_t q = residual % q_;
         
-          int mapped_row_offset = n * (params_.problem_size.H * params_.problem_size.W) +
+          int32_t mapped_row_offset = n * (params_.problem_size.H * params_.problem_size.W) +
                                   (start_h_ + p * params_.problem_size.stride_h) * params_.problem_size.W +
                                   (start_w_ + q * params_.problem_size.stride_w);
           bool row_guard = mapped_row_offset < extent_row_;
@@ -392,7 +392,7 @@ public:
           int64_t row_byte_offset = mapped_row_offset * params_.stride;
           
           CUTLASS_PRAGMA_UNROLL
-          for (int column = 0; column < ThreadMap::Iterations::kColumn; ++column) {
+          for (int32_t column = 0; column < ThreadMap::Iterations::kColumn; ++column) {
 
             int64_t column_byte_offset = (thread_start_column_ + column * ThreadMap::Delta::kColumn) * (sizeof_bits<Element>::value / 8);
 

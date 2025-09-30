@@ -65,12 +65,12 @@ namespace detail {
 // The goal is for each thread's tile of elements to be as square as possible
 // for performance (4x4 will be faster than 2x8).
 template<typename WarpShape>
-constexpr int simt_get_warp_threads_m() {
+constexpr int32_t simt_get_warp_threads_m() {
     return (WarpShape::kM > WarpShape::kN) ? 8 : 4;
 }
 
 /// Computes padding in shared memory to perform efficient transpose without bank conflicts.
-constexpr int simt_transpose_padding(int threads, int crosswise, int size_in_bits) {
+constexpr int32_t simt_transpose_padding(int32_t threads, int32_t crosswise, int32_t size_in_bits) {
   return (size_in_bits >= 32 ?
       threads / crosswise / (size_in_bits / 32) :
       threads / crosswise * (32 / size_in_bits)
@@ -118,7 +118,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 1>, ElementA_,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   using OperatorClass = arch::OpClassSimt;
-  static constexpr int PartitionsK = Shape::kK / WarpShape::kK;
+  static constexpr int32_t PartitionsK = Shape::kK / WarpShape::kK;
 
   /// Default Operator
   using Operator = Operator_;
@@ -138,12 +138,12 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 1>, ElementA_,
   );
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
-  static constexpr int kElementsPerAccess = 1;
+  static constexpr int32_t kElementsPerAccess = 1;
 
   //
   // Shared memory layouts
@@ -193,17 +193,17 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 1>, ElementA_,
   //
 
   // Define the warp-level op
-  static constexpr int WarpNumThreadsM = detail::simt_get_warp_threads_m<WarpShape>();
-  static constexpr int WarpNumThreadsN = kWarpSize / WarpNumThreadsM;
-  static constexpr int ThreadTileM = WarpShape::kM / WarpNumThreadsM;
-  static constexpr int ThreadTileN = WarpShape::kN / WarpNumThreadsN;
+  static constexpr int32_t WarpNumThreadsM = detail::simt_get_warp_threads_m<WarpShape>();
+  static constexpr int32_t WarpNumThreadsN = kWarpSize / WarpNumThreadsM;
+  static constexpr int32_t ThreadTileM = WarpShape::kM / WarpNumThreadsM;
+  static constexpr int32_t ThreadTileN = WarpShape::kN / WarpNumThreadsN;
   static_assert(!(WarpShape::kM % WarpNumThreadsM) && !(WarpShape::kN % WarpNumThreadsN),
       "WarpShape must be divisible by ThreadTile shape.");
-  static constexpr int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
-  static constexpr int numElementsA = 128 / sizeof_bits<ElementA>::value;
-  static constexpr int numElementsB = 128 / sizeof_bits<ElementB>::value;
-  static constexpr int LaneM = cutlass::const_min(numElementsA, ThreadTileM);
-  static constexpr int LaneN = cutlass::const_min(numElementsB, ThreadTileN);
+  static constexpr int32_t LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
+  static constexpr int32_t numElementsA = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int32_t numElementsB = 128 / sizeof_bits<ElementB>::value;
+  static constexpr int32_t LaneM = cutlass::const_min(numElementsA, ThreadTileM);
+  static constexpr int32_t LaneN = cutlass::const_min(numElementsB, ThreadTileN);
   // these should have max of thread tile also
   using LaneMmaShape = cutlass::gemm::GemmShape<
       LaneM,
@@ -274,7 +274,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 1>, ElementA_,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   using OperatorClass = arch::OpClassSimt;
-  static constexpr int PartitionsK = Shape::kK / WarpShape::kK;
+  static constexpr int32_t PartitionsK = Shape::kK / WarpShape::kK;
 
   /// Default Operator
   using Operator = Operator_;
@@ -294,12 +294,12 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 1>, ElementA_,
   );
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
   
-  static constexpr int kElementsPerAccess = 1;
+  static constexpr int32_t kElementsPerAccess = 1;
 
   //
   // Shared memory layouts
@@ -355,20 +355,20 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 1>, ElementA_,
   //
 
   // Define the warp-level op
-  static constexpr int WarpNumThreadsM = detail::simt_get_warp_threads_m<WarpShape>();
-  static constexpr int WarpNumThreadsN = kWarpSize / WarpNumThreadsM;
-  static constexpr int ThreadTileM = WarpShape::kM / WarpNumThreadsM;
-  static constexpr int ThreadTileN = WarpShape::kN / WarpNumThreadsN;
+  static constexpr int32_t WarpNumThreadsM = detail::simt_get_warp_threads_m<WarpShape>();
+  static constexpr int32_t WarpNumThreadsN = kWarpSize / WarpNumThreadsM;
+  static constexpr int32_t ThreadTileM = WarpShape::kM / WarpNumThreadsM;
+  static constexpr int32_t ThreadTileN = WarpShape::kN / WarpNumThreadsN;
   static_assert(!(WarpShape::kM % WarpNumThreadsM) && !(WarpShape::kN % WarpNumThreadsN),
       "WarpShape must be divisible by ThreadTile shape.");
-  static constexpr int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
-  static constexpr int numElementsA = 128 / sizeof_bits<ElementA>::value;
-  static constexpr int numElementsB = 128 / sizeof_bits<ElementB>::value;
-  static constexpr int LaneM = cutlass::const_min(numElementsA, ThreadTileM);
-  static constexpr int LaneN = cutlass::const_min(numElementsB, ThreadTileN);
+  static constexpr int32_t LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
+  static constexpr int32_t numElementsA = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int32_t numElementsB = 128 / sizeof_bits<ElementB>::value;
+  static constexpr int32_t LaneM = cutlass::const_min(numElementsA, ThreadTileM);
+  static constexpr int32_t LaneN = cutlass::const_min(numElementsB, ThreadTileN);
 
-  static constexpr int kPaddingM = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementA>::value);
-  static constexpr int kPaddingN = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementB>::value);
+  static constexpr int32_t kPaddingM = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementA>::value);
+  static constexpr int32_t kPaddingN = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementB>::value);
 
   static_assert(!(kPaddingM % LaneM) && !(kPaddingN % LaneN),
                 "Padding must be divisible by Lane");
@@ -443,7 +443,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 1>, ElementA_,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   using OperatorClass = arch::OpClassSimt;
-  static constexpr int PartitionsK = Shape::kK / WarpShape::kK;
+  static constexpr int32_t PartitionsK = Shape::kK / WarpShape::kK;
 
   /// Default Operator
   using Operator = Operator_;
@@ -463,12 +463,12 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 1>, ElementA_,
   );
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
-  static constexpr int kElementsPerAccess = 1;
+  static constexpr int32_t kElementsPerAccess = 1;
 
   //
   // Shared memory layouts
@@ -521,19 +521,19 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 1>, ElementA_,
   //
 
   // Define the warp-level op
-  static constexpr int WarpNumThreadsM = detail::simt_get_warp_threads_m<WarpShape>();
-  static constexpr int WarpNumThreadsN = kWarpSize / WarpNumThreadsM;
-  static constexpr int ThreadTileM = WarpShape::kM / WarpNumThreadsM;
-  static constexpr int ThreadTileN = WarpShape::kN / WarpNumThreadsN;
+  static constexpr int32_t WarpNumThreadsM = detail::simt_get_warp_threads_m<WarpShape>();
+  static constexpr int32_t WarpNumThreadsN = kWarpSize / WarpNumThreadsM;
+  static constexpr int32_t ThreadTileM = WarpShape::kM / WarpNumThreadsM;
+  static constexpr int32_t ThreadTileN = WarpShape::kN / WarpNumThreadsN;
   static_assert(!(WarpShape::kM % WarpNumThreadsM) && !(WarpShape::kN % WarpNumThreadsN),
       "WarpShape must be divisible by ThreadTile shape.");
-  static constexpr int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
-  static constexpr int numElementsA = 128 / sizeof_bits<ElementA>::value;
-  static constexpr int numElementsB = 128 / sizeof_bits<ElementB>::value;
-  static constexpr int LaneM = cutlass::const_min(numElementsA, ThreadTileM);
-  static constexpr int LaneN = cutlass::const_min(numElementsB, ThreadTileN);
+  static constexpr int32_t LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
+  static constexpr int32_t numElementsA = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int32_t numElementsB = 128 / sizeof_bits<ElementB>::value;
+  static constexpr int32_t LaneM = cutlass::const_min(numElementsA, ThreadTileM);
+  static constexpr int32_t LaneN = cutlass::const_min(numElementsB, ThreadTileN);
 
-  static constexpr int kPaddingM = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementA>::value);
+  static constexpr int32_t kPaddingM = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementA>::value);
 
   static_assert(!(kPaddingM % LaneM),
                 "Padding must be divisible by Lane");
@@ -608,7 +608,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 1>, ElementA_,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   using OperatorClass = arch::OpClassSimt;
-  static constexpr int PartitionsK = Shape::kK / WarpShape::kK;
+  static constexpr int32_t PartitionsK = Shape::kK / WarpShape::kK;
 
   /// Default Operator
   using Operator = Operator_;
@@ -628,12 +628,12 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 1>, ElementA_,
   );
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
-  static constexpr int kElementsPerAccess = 1;
+  static constexpr int32_t kElementsPerAccess = 1;
 
   //
   // Shared memory layouts
@@ -686,19 +686,19 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 1>, ElementA_,
   //
 
   // Define the warp-level op
-  static constexpr int WarpNumThreadsM = detail::simt_get_warp_threads_m<WarpShape>();
-  static constexpr int WarpNumThreadsN = kWarpSize / WarpNumThreadsM;
-  static constexpr int ThreadTileM = WarpShape::kM / WarpNumThreadsM;
-  static constexpr int ThreadTileN = WarpShape::kN / WarpNumThreadsN;
+  static constexpr int32_t WarpNumThreadsM = detail::simt_get_warp_threads_m<WarpShape>();
+  static constexpr int32_t WarpNumThreadsN = kWarpSize / WarpNumThreadsM;
+  static constexpr int32_t ThreadTileM = WarpShape::kM / WarpNumThreadsM;
+  static constexpr int32_t ThreadTileN = WarpShape::kN / WarpNumThreadsN;
   static_assert(!(WarpShape::kM % WarpNumThreadsM) && !(WarpShape::kN % WarpNumThreadsN),
       "WarpShape must be divisible by ThreadTile shape.");
-  static constexpr int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
-  static constexpr int numElementsA = 128 / sizeof_bits<ElementA>::value;
-  static constexpr int numElementsB = 128 / sizeof_bits<ElementB>::value;
-  static constexpr int LaneM = cutlass::const_min(numElementsA, ThreadTileM);
-  static constexpr int LaneN = cutlass::const_min(numElementsB, ThreadTileN);
+  static constexpr int32_t LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
+  static constexpr int32_t numElementsA = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int32_t numElementsB = 128 / sizeof_bits<ElementB>::value;
+  static constexpr int32_t LaneM = cutlass::const_min(numElementsA, ThreadTileM);
+  static constexpr int32_t LaneN = cutlass::const_min(numElementsB, ThreadTileN);
 
-  static constexpr int kPaddingN = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementB>::value);
+  static constexpr int32_t kPaddingN = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementB>::value);
 
   static_assert(!(kPaddingN % LaneN),
                 "Padding must be divisible by Lane");
@@ -1118,7 +1118,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 4>, int8_t,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   using OperatorClass = arch::OpClassSimt;
-  static constexpr int PartitionsK = Shape::kK / WarpShape::kK;
+  static constexpr int32_t PartitionsK = Shape::kK / WarpShape::kK;
 
   /// Default Operator
   using Operator = Operator_;
@@ -1138,10 +1138,10 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 4>, int8_t,
   );
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   //
   // Shared memory layouts
@@ -1192,17 +1192,17 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 4>, int8_t,
   //
 
   // Define the warp-level op
-  static constexpr int WarpNumThreadsM = detail::simt_get_warp_threads_m<WarpShape>();
-  static constexpr int WarpNumThreadsN = kWarpSize / WarpNumThreadsM;
-  static constexpr int ThreadTileM = WarpShape::kM / WarpNumThreadsM;
-  static constexpr int ThreadTileN = WarpShape::kN / WarpNumThreadsN;
+  static constexpr int32_t WarpNumThreadsM = detail::simt_get_warp_threads_m<WarpShape>();
+  static constexpr int32_t WarpNumThreadsN = kWarpSize / WarpNumThreadsM;
+  static constexpr int32_t ThreadTileM = WarpShape::kM / WarpNumThreadsM;
+  static constexpr int32_t ThreadTileN = WarpShape::kN / WarpNumThreadsN;
   static_assert(!(WarpShape::kM % WarpNumThreadsM) && !(WarpShape::kN % WarpNumThreadsN),
       "WarpShape must be divisible by ThreadTile shape.");
-  static constexpr int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
-  static constexpr int numElementsA = 128 / sizeof_bits<ElementA>::value;
-  static constexpr int numElementsB = 128 / sizeof_bits<ElementB>::value;
-  static constexpr int LaneM = cutlass::const_min(4, ThreadTileM);
-  static constexpr int LaneN = cutlass::const_min(4, ThreadTileN);
+  static constexpr int32_t LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
+  static constexpr int32_t numElementsA = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int32_t numElementsB = 128 / sizeof_bits<ElementB>::value;
+  static constexpr int32_t LaneM = cutlass::const_min(4, ThreadTileM);
+  static constexpr int32_t LaneN = cutlass::const_min(4, ThreadTileN);
   // these should have max of thread tile also
   using LaneMmaShape = cutlass::gemm::GemmShape<
       LaneM,
@@ -1272,7 +1272,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 4>, int8_t,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   using OperatorClass = arch::OpClassSimt;
-  static constexpr int PartitionsK = Shape::kK / WarpShape::kK;
+  static constexpr int32_t PartitionsK = Shape::kK / WarpShape::kK;
 
   /// Default Operator
   using Operator = Operator_;
@@ -1292,10 +1292,10 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 4>, int8_t,
   );
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   //
   // Shared memory layouts
@@ -1352,17 +1352,17 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 4>, int8_t,
   //
 
   // Define the warp-level op
-  static constexpr int WarpNumThreadsM = detail::simt_get_warp_threads_m<WarpShape>();
-  static constexpr int WarpNumThreadsN = kWarpSize / WarpNumThreadsM;
-  static constexpr int ThreadTileM = WarpShape::kM / WarpNumThreadsM;
-  static constexpr int ThreadTileN = WarpShape::kN / WarpNumThreadsN;
+  static constexpr int32_t WarpNumThreadsM = detail::simt_get_warp_threads_m<WarpShape>();
+  static constexpr int32_t WarpNumThreadsN = kWarpSize / WarpNumThreadsM;
+  static constexpr int32_t ThreadTileM = WarpShape::kM / WarpNumThreadsM;
+  static constexpr int32_t ThreadTileN = WarpShape::kN / WarpNumThreadsN;
   static_assert(!(WarpShape::kM % WarpNumThreadsM) && !(WarpShape::kN % WarpNumThreadsN),
       "WarpShape must be divisible by ThreadTile shape.");
-  static constexpr int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
-  static constexpr int numElementsA = 128 / sizeof_bits<ElementA>::value;
-  static constexpr int numElementsB = 128 / sizeof_bits<ElementB>::value;
-  static constexpr int LaneM = cutlass::const_min(4, ThreadTileM);
-  static constexpr int LaneN = cutlass::const_min(4, ThreadTileN);
+  static constexpr int32_t LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
+  static constexpr int32_t numElementsA = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int32_t numElementsB = 128 / sizeof_bits<ElementB>::value;
+  static constexpr int32_t LaneM = cutlass::const_min(4, ThreadTileM);
+  static constexpr int32_t LaneN = cutlass::const_min(4, ThreadTileN);
   // these should have max of thread tile also
   using LaneMmaShape = cutlass::gemm::GemmShape<
       LaneM,
@@ -1387,8 +1387,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 4>, int8_t,
     PartitionsK   /// Number of partitions along K dimension
     >;
 
-  static constexpr int kPaddingM = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementA>::value);
-  static constexpr int kPaddingN = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementB>::value);
+  static constexpr int32_t kPaddingM = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementA>::value);
+  static constexpr int32_t kPaddingN = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementB>::value);
 
   /// Policy used to define MmaPipelined
   using MmaPolicy = MmaPolicy<
@@ -1435,7 +1435,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 4>, int8_t,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   using OperatorClass = arch::OpClassSimt;
-  static constexpr int PartitionsK = Shape::kK / WarpShape::kK;
+  static constexpr int32_t PartitionsK = Shape::kK / WarpShape::kK;
 
   /// Default Operator
   using Operator = Operator_;
@@ -1455,10 +1455,10 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 4>, int8_t,
   );
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   //
   // Shared memory layouts
@@ -1511,17 +1511,17 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 4>, int8_t,
   //
 
   // Define the warp-level op
-  static constexpr int WarpNumThreadsM = detail::simt_get_warp_threads_m<WarpShape>();
-  static constexpr int WarpNumThreadsN = kWarpSize / WarpNumThreadsM;
-  static constexpr int ThreadTileM = WarpShape::kM / WarpNumThreadsM;
-  static constexpr int ThreadTileN = WarpShape::kN / WarpNumThreadsN;
+  static constexpr int32_t WarpNumThreadsM = detail::simt_get_warp_threads_m<WarpShape>();
+  static constexpr int32_t WarpNumThreadsN = kWarpSize / WarpNumThreadsM;
+  static constexpr int32_t ThreadTileM = WarpShape::kM / WarpNumThreadsM;
+  static constexpr int32_t ThreadTileN = WarpShape::kN / WarpNumThreadsN;
   static_assert(!(WarpShape::kM % WarpNumThreadsM) && !(WarpShape::kN % WarpNumThreadsN),
       "WarpShape must be divisible by ThreadTile shape.");
-  static constexpr int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
-  static constexpr int numElementsA = 128 / sizeof_bits<ElementA>::value;
-  static constexpr int numElementsB = 128 / sizeof_bits<ElementB>::value;
-  static constexpr int LaneM = cutlass::const_min(4, ThreadTileM);
-  static constexpr int LaneN = cutlass::const_min(4, ThreadTileN);
+  static constexpr int32_t LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
+  static constexpr int32_t numElementsA = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int32_t numElementsB = 128 / sizeof_bits<ElementB>::value;
+  static constexpr int32_t LaneM = cutlass::const_min(4, ThreadTileM);
+  static constexpr int32_t LaneN = cutlass::const_min(4, ThreadTileN);
   // these should have max of thread tile also
   using LaneMmaShape = cutlass::gemm::GemmShape<
       LaneM,
@@ -1546,8 +1546,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 4>, int8_t,
     PartitionsK   /// Number of partitions along K dimension
     >;
 
-  static constexpr int kPaddingM = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementA>::value);
-  static constexpr int kPaddingN = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementB>::value);
+  static constexpr int32_t kPaddingM = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementA>::value);
+  static constexpr int32_t kPaddingN = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementB>::value);
 
   /// Policy used to define MmaPipelined
   using MmaPolicy = MmaPolicy<
@@ -1594,7 +1594,7 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 4>, int8_t,
   using ElementC = ElementC_;
   using LayoutC = LayoutC_;
   using OperatorClass = arch::OpClassSimt;
-  static constexpr int PartitionsK = Shape::kK / WarpShape::kK;
+  static constexpr int32_t PartitionsK = Shape::kK / WarpShape::kK;
 
   /// Default Operator
   using Operator = Operator_;
@@ -1614,10 +1614,10 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 4>, int8_t,
   );
 
   /// Number of threads per warp
-  static constexpr int kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
+  static constexpr int32_t kWarpSize = warp::WarpSize<arch::OpClassSimt>::value;
 
   /// Number of threads total
-  static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+  static constexpr int32_t kThreads = WarpCount::kCount * kWarpSize;
 
   //
   // Shared memory layouts
@@ -1671,17 +1671,17 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 4>, int8_t,
   //
 
   // Define the warp-level op
-  static constexpr int WarpNumThreadsM = detail::simt_get_warp_threads_m<WarpShape>();
-  static constexpr int WarpNumThreadsN = kWarpSize / WarpNumThreadsM;
-  static constexpr int ThreadTileM = WarpShape::kM / WarpNumThreadsM;
-  static constexpr int ThreadTileN = WarpShape::kN / WarpNumThreadsN;
+  static constexpr int32_t WarpNumThreadsM = detail::simt_get_warp_threads_m<WarpShape>();
+  static constexpr int32_t WarpNumThreadsN = kWarpSize / WarpNumThreadsM;
+  static constexpr int32_t ThreadTileM = WarpShape::kM / WarpNumThreadsM;
+  static constexpr int32_t ThreadTileN = WarpShape::kN / WarpNumThreadsN;
   static_assert(!(WarpShape::kM % WarpNumThreadsM) && !(WarpShape::kN % WarpNumThreadsN),
       "WarpShape must be divisible by ThreadTile shape.");
-  static constexpr int LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
-  static constexpr int numElementsA = 128 / sizeof_bits<ElementA>::value;
-  static constexpr int numElementsB = 128 / sizeof_bits<ElementB>::value;
-  static constexpr int LaneM = cutlass::const_min(4, ThreadTileM);
-  static constexpr int LaneN = cutlass::const_min(4, ThreadTileN);
+  static constexpr int32_t LaneLayout = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
+  static constexpr int32_t numElementsA = 128 / sizeof_bits<ElementA>::value;
+  static constexpr int32_t numElementsB = 128 / sizeof_bits<ElementB>::value;
+  static constexpr int32_t LaneM = cutlass::const_min(4, ThreadTileM);
+  static constexpr int32_t LaneN = cutlass::const_min(4, ThreadTileN);
   // these should have max of thread tile also
   using LaneMmaShape = cutlass::gemm::GemmShape<
       LaneM,
@@ -1706,8 +1706,8 @@ struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 4>, int8_t,
     PartitionsK   /// Number of partitions along K dimension
     >;
 
-  static constexpr int kPaddingM = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementA>::value);
-  static constexpr int kPaddingN = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementB>::value);
+  static constexpr int32_t kPaddingM = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementA>::value);
+  static constexpr int32_t kPaddingN = detail::simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementB>::value);
 
   /// Policy used to define MmaPipelined
   using MmaPolicy = MmaPolicy<

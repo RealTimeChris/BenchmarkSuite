@@ -94,7 +94,7 @@ template <
     /// Indicates type of math operator (arch::OpClassSimt or arch::OpClassTensorOp)
     typename OperatorClass,
     /// Number of stages
-    int Stages,
+    int32_t Stages,
     /// Complex transformation on operand A
     ComplexTransform TransformA,
     /// Complex transformation on operand B

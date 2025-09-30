@@ -76,17 +76,17 @@ using make_integer_sequence_reverse = typename detail::reverse_impl<
 
 // int_sequence
 
-template <int... Ints>
-using int_sequence = integer_sequence<int, Ints...>;
+template <int32_t... Ints>
+using int_sequence = integer_sequence<int32_t, Ints...>;
 
-template <int N>
-using make_int_sequence = make_integer_sequence<int, N>;
+template <int32_t N>
+using make_int_sequence = make_integer_sequence<int32_t, N>;
 
-template <int N>
-using make_int_rsequence = make_integer_sequence_reverse<int, N>;
+template <int32_t N>
+using make_int_rsequence = make_integer_sequence_reverse<int32_t, N>;
 
-template <int Begin, int End>
-using make_int_range = make_integer_range<int, Begin, End>;
+template <int32_t Begin, int32_t End>
+using make_int_range = make_integer_range<int32_t, Begin, End>;
 
 // index_sequence
 
@@ -106,16 +106,16 @@ using make_index_range = make_integer_range<size_t, Begin, End>;
 // Shortcuts
 //
 
-template <int... Ints>
+template <int32_t... Ints>
 using seq = int_sequence<Ints...>;
 
-template <int N>
+template <int32_t N>
 using make_seq = make_int_sequence<N>;
 
-template <int N>
+template <int32_t N>
 using make_rseq = make_int_rsequence<N>;
 
-template <int Min, int Max>
+template <int32_t Min, int32_t Max>
 using make_range = make_int_range<Min, Max>;
 
 template <class Tuple>
@@ -125,19 +125,19 @@ template <class Tuple>
 using tuple_rseq = make_rseq<tuple_size<remove_cvref_t<Tuple>>::value>;
 
 //
-// Convert a parameter pack to an int sequence
+// Convert a parameter pack to an int32_t sequence
 //
 
 template <class T>
 struct to_seq;
 
 template <>
-struct to_seq<integer_sequence<int>> {
+struct to_seq<integer_sequence<int32_t>> {
   using type = seq<>;
 };
 
-template <int I, int... Is>
-struct to_seq<integer_sequence<int, I, Is...>> {
+template <int32_t I, int32_t... Is>
+struct to_seq<integer_sequence<int32_t, I, Is...>> {
   using type = seq<I, Is...>;
 };
 

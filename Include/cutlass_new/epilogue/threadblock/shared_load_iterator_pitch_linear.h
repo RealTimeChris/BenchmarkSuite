@@ -65,7 +65,7 @@ namespace threadblock {
 ///
 template <typename ThreadMap_,  ///< Thread map (conept: PitchLinearThreadMap)
           typename Element_,    ///< Element data type
-          int MaxAlignment = ThreadMap_::kElementsPerAccess *sizeof_bits<Element_>::value / 8>
+          int32_t MaxAlignment = ThreadMap_::kElementsPerAccess *sizeof_bits<Element_>::value / 8>
 class SharedLoadIteratorPitchLinear {
  public:
   using ThreadMap = ThreadMap_;
@@ -79,14 +79,14 @@ class SharedLoadIteratorPitchLinear {
   using LongIndex = typename Layout::LongIndex;
   using TensorCoord = MatrixCoord;
 
-  static constexpr int kElementsPerAccess = ThreadMap::kElementsPerAccess;
+  static constexpr int32_t kElementsPerAccess = ThreadMap::kElementsPerAccess;
 
-  static constexpr int kMinAlignment =
+  static constexpr int32_t kMinAlignment =
       ThreadMap_::kElementsPerAccess * sizeof_bits<Element_>::value / 8;
 
-  static constexpr int kAlignment = (MaxAlignment < kMinAlignment ? MaxAlignment : kMinAlignment);
+  static constexpr int32_t kAlignment = (MaxAlignment < kMinAlignment ? MaxAlignment : kMinAlignment);
 
-  static constexpr int kThreads = ThreadMap::kThreads;
+  static constexpr int32_t kThreads = ThreadMap::kThreads;
 
   /// Fragment object
   using Fragment = Array<Element, ThreadMap::Iterations::kCount * kElementsPerAccess>;
@@ -100,7 +100,7 @@ class SharedLoadIteratorPitchLinear {
                    const_min(128 / sizeof_bits<Element>::value, ThreadMap::kElementsPerAccess),
                    const_min(16, kAlignment)>;
 
-  static constexpr int kLoadsPerAccess = AccessType::kElements / LoadType::kElements;
+  static constexpr int32_t kLoadsPerAccess = AccessType::kElements / LoadType::kElements;
 
  private:
   //
@@ -111,7 +111,7 @@ class SharedLoadIteratorPitchLinear {
   uint8_t *byte_pointer_;
 
   /// Stride along adjacent rows
-  int stride_;
+  int32_t stride_;
 
   /// Base address offset
   Index base_smem_address_;
@@ -123,7 +123,7 @@ class SharedLoadIteratorPitchLinear {
 
   /// Constructor
   CUTLASS_DEVICE
-  SharedLoadIteratorPitchLinear(TensorRef ref, int thread_idx)
+  SharedLoadIteratorPitchLinear(TensorRef ref, int32_t thread_idx)
       : byte_pointer_(reinterpret_cast<uint8_t *>(ref.data())),
         stride_((ref.stride(0) * sizeof_bits<Element>::value) / 8),
         base_smem_address_(0) {
@@ -153,23 +153,23 @@ class SharedLoadIteratorPitchLinear {
   CUTLASS_DEVICE
   void load_with_pointer_offset(Fragment &frag, Index pointer_offset) const {
     CUTLASS_PRAGMA_UNROLL
-    for (int s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
+    for (int32_t s = 0; s < ThreadMap::Iterations::kStrided; ++s) {
       CUTLASS_PRAGMA_UNROLL
-      for (int c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
+      for (int32_t c = 0; c < ThreadMap::Iterations::kContiguous; ++c) {
         uint8_t const *byte_pointer =
             byte_pointer_ + s * ThreadMap::Delta::kStrided * stride_ +
             c * ThreadMap::Delta::kContiguous * ThreadMap::kElementsPerAccess *
                 sizeof_bits<Element>::value / 8 +
             pointer_offset * sizeof_bits<Element>::value / 8 + base_smem_address_;
 
-        int frag_base_idx = s * ThreadMap::Iterations::kContiguous + c;
+        int32_t frag_base_idx = s * ThreadMap::Iterations::kContiguous + c;
 
         LoadType *frag_ptr = reinterpret_cast<LoadType *>(&frag);
 
         LoadType const *memory_pointer = reinterpret_cast<LoadType const *>(byte_pointer);
 
         CUTLASS_PRAGMA_UNROLL
-        for (int v = 0; v < kLoadsPerAccess; ++v) {
+        for (int32_t v = 0; v < kLoadsPerAccess; ++v) {
           frag_ptr[frag_base_idx * kLoadsPerAccess + v] = memory_pointer[v];
         }
       }

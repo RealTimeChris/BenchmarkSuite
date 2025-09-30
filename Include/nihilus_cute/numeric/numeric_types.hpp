@@ -50,7 +50,7 @@ struct sizeof_bits<T volatile> : sizeof_bits<T> {};
 template <class T>
 struct sizeof_bits<T const volatile> : sizeof_bits<T> {};
 
-// DO NOT change auto to int, sizeof_bits<sparse_elem> use integral_ratio instead of int
+// DO NOT change auto to int32_t, sizeof_bits<sparse_elem> use integral_ratio instead of int32_t
 template <class T>
 static constexpr auto sizeof_bits_v = sizeof_bits<T>::value;
 

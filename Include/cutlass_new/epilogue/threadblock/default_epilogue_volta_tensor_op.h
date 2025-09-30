@@ -45,7 +45,6 @@
 #include "cutlass_new/gemm/gemm.h"
 
 #include "cutlass_new/epilogue/thread/linear_combination.h"
-#include "cutlass_new/epilogue/thread/linear_combination_clamp.h"
 #include "cutlass_new/epilogue/thread/linear_combination_relu.h"
 #include "cutlass_new/epilogue/thread/linear_combination_gelu.h"
 #include "cutlass_new/epilogue/thread/linear_combination_sigmoid.h"
@@ -80,9 +79,9 @@ namespace threadblock {
 template <
   typename Shape_,
   typename WarpMmaTensorOp_,
-  int PartitionsK,
+  int32_t PartitionsK,
   typename OutputOp_,
-  int ElementsPerAccess,
+  int32_t ElementsPerAccess,
   bool ScatterD = false,
   typename PermuteDLayout = layout::NoPermute
 >
@@ -90,9 +89,9 @@ struct DefaultEpilogueVoltaTensorOp {
 
   using Shape = Shape_;
   using WarpMmaTensorOp = WarpMmaTensorOp_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static constexpr int32_t kPartitionsK = PartitionsK;
   using OutputOp = OutputOp_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
+  static constexpr int32_t kElementsPerAccess = ElementsPerAccess;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using LayoutC = typename WarpMmaTensorOp::LayoutC;
@@ -132,7 +131,7 @@ struct DefaultEpilogueVoltaTensorOp {
     LayoutC
   >;
 
-  static constexpr int kSharedMemAlignment = sizeof_bits<ElementAccumulator>::value * WarpTileIterator::kElementsPerAccess / 8;
+  static constexpr int32_t kSharedMemAlignment = sizeof_bits<ElementAccumulator>::value * WarpTileIterator::kElementsPerAccess / 8;
 
   static_assert(kSharedMemAlignment == 8, "Shared memory alignment must be 8B");
 
@@ -167,17 +166,17 @@ struct DefaultEpilogueVoltaTensorOp {
 template <
   typename Shape_,
   typename WarpMmaTensorOp_,
-  int PartitionsK,
+  int32_t PartitionsK,
   typename OutputOp_,
-  int ElementsPerAccess
+  int32_t ElementsPerAccess
 >
 struct DefaultEpilogueVoltaTensorOpStridedDgrad {
 
   using Shape = Shape_;
   using WarpMmaTensorOp = WarpMmaTensorOp_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static constexpr int32_t kPartitionsK = PartitionsK;
   using OutputOp = OutputOp_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
+  static constexpr int32_t kElementsPerAccess = ElementsPerAccess;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using LayoutC = typename WarpMmaTensorOp::LayoutC;
@@ -215,7 +214,7 @@ struct DefaultEpilogueVoltaTensorOpStridedDgrad {
     LayoutC
   >;
 
-  static constexpr int kSharedMemAlignment = sizeof_bits<ElementAccumulator>::value * WarpTileIterator::kElementsPerAccess / 8;
+  static constexpr int32_t kSharedMemAlignment = sizeof_bits<ElementAccumulator>::value * WarpTileIterator::kElementsPerAccess / 8;
 
   static_assert(kSharedMemAlignment == 8, "Shared memory alignment must be 8B");
 
@@ -248,20 +247,20 @@ struct DefaultEpilogueVoltaTensorOpStridedDgrad {
 
 /// Defines sensible defaults for epilogues for TensorOps.
 template <
-  int Rank,
+  int32_t Rank,
   typename Shape_,
   typename WarpMmaTensorOp_,
-  int PartitionsK,
+  int32_t PartitionsK,
   typename OutputOp_,
-  int ElementsPerAccess
+  int32_t ElementsPerAccess
 >
 struct DefaultEpilogueVoltaTensorOpAffineRankN {
 
   using Shape = Shape_;
   using WarpMmaTensorOp = WarpMmaTensorOp_;
-  static constexpr int kPartitionsK = PartitionsK;
+  static constexpr int32_t kPartitionsK = PartitionsK;
   using OutputOp = OutputOp_;
-  static constexpr int kElementsPerAccess = ElementsPerAccess;
+  static constexpr int32_t kElementsPerAccess = ElementsPerAccess;
 
   using ElementOutput = typename OutputOp::ElementOutput;
   using LayoutC = typename WarpMmaTensorOp::LayoutC;
@@ -300,7 +299,7 @@ struct DefaultEpilogueVoltaTensorOpAffineRankN {
     LayoutC
   >;
 
-  static constexpr int kSharedMemAlignment = sizeof_bits<ElementAccumulator>::value * WarpTileIterator::kElementsPerAccess / 8;
+  static constexpr int32_t kSharedMemAlignment = sizeof_bits<ElementAccumulator>::value * WarpTileIterator::kElementsPerAccess / 8;
 
   static_assert(kSharedMemAlignment == 8, "Shared memory alignment must be 8B");
 
