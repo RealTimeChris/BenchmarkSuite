@@ -366,50 +366,6 @@ public:
 namespace cutlass {
 
 
-/// Scalar multiplication
-template <int Rank, typename Index>
-CUTLASS_HOST_DEVICE
-Coord<Rank, Index> operator*(Index s, Coord<Rank, Index> coord) {
-  CUTLASS_PRAGMA_UNROLL
-  for (int i = 0; i < Rank; ++i) {
-    coord[i] *= s;
-  }
-  return coord;
-}
-
-/// Scalar multiplication
-template <int Rank, typename Index>
-CUTLASS_HOST_DEVICE
-Coord<Rank, Index> operator*(Coord<Rank, Index> coord, Index s) {
-  CUTLASS_PRAGMA_UNROLL
-  for (int i = 0; i < Rank; ++i) {
-    coord[i] *= s;
-  }
-  return coord;
-}
-
-/// Scalar division
-template <int Rank, typename Index>
-CUTLASS_HOST_DEVICE
-Coord<Rank, Index> operator/(Index s, Coord<Rank, Index> coord) {
-  CUTLASS_PRAGMA_UNROLL
-  for (int i = 0; i < Rank; ++i) {
-    coord[i] = s / coord[i];
-  }
-  return coord;
-}
-
-/// Scalar division
-template <int Rank, typename Index>
-CUTLASS_HOST_DEVICE
-Coord<Rank, Index> operator/(Coord<Rank, Index> coord, Index s) {
-  CUTLASS_PRAGMA_UNROLL
-  for (int i = 0; i < Rank; ++i) {
-    coord[i] /= s;
-  }
-  return coord;
-}
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Integer-valued make_Coord
@@ -456,21 +412,6 @@ Coord<5, T> make_Coord(T _0, T _1, T _2, T _3, T _4) {
   return Coord<5, T>(values);
 }
 
-/// Helper to make a 1-element coordinate
-template <int N, typename T> 
-CUTLASS_HOST_DEVICE
-Coord<N, T>make_Coord_with_padding(T _0) {
-  Coord<N, T> coord;
-
-  CUTLASS_PRAGMA_UNROLL
-  for (int i = N - 1; i > 0; --i) {
-    coord[i] = 0;
-  }
-
-  coord[0] = _0;
-
-  return coord;
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

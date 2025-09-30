@@ -458,131 +458,6 @@ enum class Matrix {
   kRowMajor           ///< leading dimension refers to stride between rows; stride along columns is 1
 };
 
-/// Mapping function for scenario in which layout is row-major or column-major but this information
-/// is only available at runtime.
-struct ContiguousMatrix {
-
-  /// Logical rank of tensor
-  static constexpr int kRank = 2;
-
-  /// Rank of stride vector
-  static constexpr int kStrideRank = 1;
-
-  /// Index type used for coordinates
-  using Index = int32_t;
-
-  /// Long index type used for offsets
-  using LongIndex = int64_t;
-
-  /// Logical coordinate
-  using TensorCoord = MatrixCoord;
-
-  /// Stride vector
-  using Stride = Coord<kStrideRank, LongIndex>;
-
-private:
-  //
-  // Data members
-  //
-
-  /// Stride data member
-  Stride stride_;
-
-  /// Enumerated type indicating canonical matrix layout
-  Matrix layout_;
-
-public:
-  //
-  // Methods
-  //
-
-  /// Ctor
-  CUTLASS_HOST_DEVICE
-  ContiguousMatrix(
-    Index ldm = 0, 
-    Matrix layout = Matrix::kColumnMajor
-  ):
-    stride_(ldm), layout_(layout) { }
-
-  /// Helper returns a layout to a tightly packed tensor
-  CUTLASS_HOST_DEVICE
-  static ContiguousMatrix packed(
-    MatrixCoord const &extent, 
-    Matrix layout = Matrix::kColumnMajor) {
-
-    Index ldm = 0;
-    if (layout == Matrix::kColumnMajor) {
-      ldm = extent.row();
-    }
-    else if (layout == Matrix::kRowMajor) {
-      ldm = extent.column();
-    }
-    return ContiguousMatrix(ldm, layout);
-  }
-
-  /// Returns the offset of a coordinate in linear memory. 
-  /// Assumes coordinate has convention (row, column)
-  CUTLASS_HOST_DEVICE
-  LongIndex operator()(MatrixCoord const &coord) const {
-    if (layout_ == Matrix::kColumnMajor) {
-      return coord.row() + coord.column() * stride_[0];
-    }
-    else if (layout_ == Matrix::kRowMajor) {
-      return coord.row() * stride_[0] + coord.column();
-    }
-    else {
-      // degenerate case
-      return 0;
-    }
-  }
-
-  /// Inverse of layout function, mapping linear offset to logical coordinate
-  CUTLASS_HOST_DEVICE
-  MatrixCoord inverse(LongIndex offset) const {
-    CUTLASS_UNUSED(offset);
-    return MatrixCoord(0, 0);
-  }
-
-  /// Returns the stride of the layout
-  CUTLASS_HOST_DEVICE
-  Stride stride() const {
-    return stride_;
-  }
-
-  /// Returns the stride of the layout
-  CUTLASS_HOST_DEVICE
-  Stride & stride() {
-    return stride_;
-  }
-
-  /// Returns the stride of the layout
-  CUTLASS_HOST_DEVICE
-  typename Stride::Index stride(int idx) const {
-    return stride_[idx];
-  }
-
-  /// Returns the stride of the layout
-  CUTLASS_HOST_DEVICE
-  typename Stride::Index & stride(int idx) {
-    return stride_[idx];
-  }
-
-  /// Compute the number of contiguous elements needed to store a tensor with the given size
-  CUTLASS_HOST_DEVICE
-  LongIndex capacity(MatrixCoord const &extent) const {
-    if (layout_ == Matrix::kColumnMajor) {
-      return stride_[0] * extent.column();
-    }
-    else if (layout_ == Matrix::kRowMajor) {
-      return stride_[0] * extent.row();
-    }
-    else {
-      // degenerate case
-      return 0;
-    }
-  }
-};
-
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Mapping function for scenario in which both rows and columns are separated by a stride.
@@ -797,8 +672,7 @@ public:
 
   /// Inverse of layout function, mapping linear offset to logical coordinate
   CUTLASS_HOST_DEVICE
-  MatrixCoord inverse(LongIndex offset) const {
-    CUTLASS_UNUSED(offset);
+  MatrixCoord inverse([[maybe_unused]] LongIndex offset) const {
     return MatrixCoord(0, 0);
   }
 
@@ -903,8 +777,7 @@ public:
 
   /// Inverse of layout function, mapping linear offset to logical coordinate
   CUTLASS_HOST_DEVICE
-  MatrixCoord inverse(LongIndex offset) const {
-    CUTLASS_UNUSED(offset);
+  MatrixCoord inverse([[maybe_unused]] LongIndex offset) const {
     return MatrixCoord(0, 0);
   }
 

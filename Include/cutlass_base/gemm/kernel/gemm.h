@@ -88,10 +88,13 @@ struct Gemm {
     int const *gather_A_indices;
     int const *gather_B_indices;
     int const *scatter_D_indices;
+    Status status;
 
     //
     // Methods
     //
+	CUTLASS_HOST_DEVICE
+	Params(Status status_new) : swizzle_log_tile(0), semaphore(0), gemm_k_size(0), status{ status_new } {}
 
     CUTLASS_HOST_DEVICE
     Params(): swizzle_log_tile(0), semaphore(0), gemm_k_size(0) { }

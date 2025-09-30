@@ -42,31 +42,23 @@
 #include "cutlass_new/semaphore.h"
 #include "cutlass_new/arch/arch.h"
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace cutlass {
+
 	namespace gemm {
+
 		namespace kernel {
 
-			/////////////////////////////////////////////////////////////////////////////////////////////////
-
-			template<typename Mma_,///! Threadblock-scoped matrix multiply-accumulate
-				typename Epilogue_,///! Epilogue
-				typename ThreadblockSwizzle_,///! Threadblock swizzling function
-				bool SplitKSerial///! If true, code supporting split-K via serial reduction is enabled.
-				>
-			struct Gemm {
+			template<typename Mma_, typename Epilogue_, typename ThreadblockSwizzle_, bool SplitKSerial> struct Gemm {
 				using Mma							= Mma_;
 				using Epilogue						= Epilogue_;
 				using OutputOp						= typename Epilogue::OutputOp;
 				using ThreadblockSwizzle			= ThreadblockSwizzle_;
 				static constexpr bool kSplitKSerial = SplitKSerial;
 
-				/// Warp count (concept: GemmShape)
 				using WarpCount					  = typename Mma::WarpCount;
 				static constexpr int kThreadCount = 32 * WarpCount::kCount;
 
-				/// Parameters structure
 				struct Params {
 					cutlass::gemm::GemmCoord problem_size;
 					cutlass::gemm::GemmCoord grid_tiled_shape;
@@ -82,14 +74,14 @@ namespace cutlass {
 					typename OutputOp::Params output_op;
 					int* semaphore;
 					int gemm_k_size;
-					// For gather+scatter operations
 					int const* gather_A_indices;
 					int const* gather_B_indices;
 					int const* scatter_D_indices;
+					Status status;
 
-					//
-					// Methods
-					//
+					CUTLASS_HOST_DEVICE
+					Params(Status status_new) : swizzle_log_tile(0), semaphore(0), gemm_k_size(0), status{ status_new } {
+					}
 
 					CUTLASS_HOST_DEVICE
 					Params() : swizzle_log_tile(0), semaphore(0), gemm_k_size(0) {
@@ -112,21 +104,16 @@ namespace cutlass {
 					}
 				};
 
-				/// Shared memory storage structure
 				union SharedStorage {
 					typename Mma::SharedStorage main_loop;
 					typename Epilogue::SharedStorage epilogue;
 				};
 
-				//
-				// Methods
-				//
 
 				CUTLASS_HOST_DEVICE
 				Gemm() {
 				}
 
-				/// Determines whether kernel satisfies alignment
 				CUTLASS_HOST_DEVICE
 				static Status can_implement(cutlass::gemm::GemmCoord const& problem_size, typename Mma::IteratorA::TensorRef ref_A, typename Mma::IteratorB::TensorRef ref_B,
 					typename Epilogue::OutputTileIterator::TensorRef ref_C, typename Epilogue::OutputTileIterator::TensorRef ref_D) {
@@ -160,15 +147,12 @@ namespace cutlass {
 					return Status::kSuccess;
 				}
 
-				/// Executes one GEMM
 				CUTLASS_DEVICE
-				void operator()(Params const& params, SharedStorage& shared_storage) {
-					// Compute threadblock location
+				static void impl(Params const& params, SharedStorage& shared_storage) {
 					ThreadblockSwizzle threadblock_swizzle;
 
 					cutlass::gemm::GemmCoord threadblock_tile_offset = threadblock_swizzle.get_tile_offset(params.swizzle_log_tile);
 
-					// Compute initial location in logical coordinates
 					cutlass::MatrixCoord tb_offset_A{
 						threadblock_tile_offset.m() * Mma::Shape::kM,
 						threadblock_tile_offset.k() * params.gemm_k_size,
@@ -176,32 +160,22 @@ namespace cutlass {
 
 					cutlass::MatrixCoord tb_offset_B{ threadblock_tile_offset.k() * params.gemm_k_size, threadblock_tile_offset.n() * Mma::Shape::kN };
 
-					// Problem size is a function of threadblock index in the K dimension
 					int problem_size_k = min(params.problem_size.k(), (threadblock_tile_offset.k() + 1) * params.gemm_k_size);
 
-					// Compute threadblock-scoped matrix multiply-add
 					int gemm_k_iterations = (problem_size_k - tb_offset_A.column() + Mma::Shape::kK - 1) / Mma::Shape::kK;
 
-					// Compute position within threadblock
 					int thread_idx = threadIdx.x;
 
-					// Construct iterators to A and B operands
 					typename Mma::IteratorA iterator_A(params.params_A, params.ref_A.data(), { params.problem_size.m(), problem_size_k }, thread_idx, tb_offset_A,
 						params.gather_A_indices);
 
 					typename Mma::IteratorB iterator_B(params.params_B, params.ref_B.data(), { problem_size_k, params.problem_size.n() }, thread_idx, tb_offset_B,
 						params.gather_B_indices);
 
-					// Broadcast the warp_id computed by lane 0 to ensure dependent code
-					// is compiled as warp-uniform.
 					int warp_idx = canonical_warp_idx_sync();
 					int lane_idx = threadIdx.x % 32;
 
-					//
-					// Main loop
-					//
 
-					// Construct thread-scoped matrix multiply
 					Mma mma(shared_storage.main_loop, thread_idx, warp_idx, lane_idx);
 
 					typename Mma::FragmentC accumulators;
@@ -209,73 +183,52 @@ namespace cutlass {
 					accumulators.clear();
 
 					if (!kSplitKSerial || gemm_k_iterations > 0) {
-						// Compute threadblock-scoped matrix multiply-add
 						mma(gemm_k_iterations, accumulators, iterator_A, iterator_B, accumulators);
 					}
 
-					//
-					// Epilogue
-					//
 
 					OutputOp output_op(params.output_op);
 
-					//
-					// Masked tile iterators constructed from members
-					//
 
 					threadblock_tile_offset = threadblock_swizzle.get_tile_offset(params.swizzle_log_tile);
 
-					//assume identity swizzle
 					MatrixCoord threadblock_offset(threadblock_tile_offset.m() * Mma::Shape::kM, threadblock_tile_offset.n() * Mma::Shape::kN);
 
 					int block_idx = threadblock_tile_offset.m() + threadblock_tile_offset.n() * params.grid_tiled_shape.m();
 
-					// If performing a reduction via split-K, fetch the initial synchronization
 					if (kSplitKSerial && params.grid_tiled_shape.k() > 1) {
-						// Indicate which position in a serial reduction the output operator is currently updating
 						output_op.set_k_partition(threadblock_tile_offset.k(), params.grid_tiled_shape.k());
 					}
 
-					// Tile iterator loading from source tensor.
 					typename Epilogue::OutputTileIterator iterator_C(params.params_C, params.ref_C.data(), params.problem_size.mn(), thread_idx, threadblock_offset,
 						params.scatter_D_indices);
 
-					// Tile iterator writing to destination tensor.
 					typename Epilogue::OutputTileIterator iterator_D(params.params_D, params.ref_D.data(), params.problem_size.mn(), thread_idx, threadblock_offset,
 						params.scatter_D_indices);
 
 					Epilogue epilogue(shared_storage.epilogue, thread_idx, warp_idx, lane_idx);
 
-					// Wait on the semaphore - this latency may have been covered by iterator construction
 					if (kSplitKSerial && params.grid_tiled_shape.k() > 1) {
-						// For subsequent threadblocks, the source matrix is held in the 'D' tensor.
 						if (threadblock_tile_offset.k()) {
 							iterator_C = iterator_D;
 						}
 					}
 
-					// Execute the epilogue operator to update the destination tensor.
 					epilogue(output_op, iterator_D, accumulators, iterator_C);
 
-					//
-					// Release the semaphore
-					//
 
 					if (kSplitKSerial && params.grid_tiled_shape.k() > 1) {
 						int lock = 0;
 						if (params.grid_tiled_shape.k() == threadblock_tile_offset.k() + 1) {
-							// The final threadblock resets the semaphore for subsequent grids.
 							lock = 0;
 						} else {
-							// Otherwise, the semaphore is incremented
 							lock = threadblock_tile_offset.k() + 1;
 						}
 					}
 				}
 			};
 
-			/////////////////////////////////////////////////////////////////////////////////////////////////
 
-		}// namespace kernel
-	}// namespace gemm
-}// namespace cutlass
+		}
+	}
+}

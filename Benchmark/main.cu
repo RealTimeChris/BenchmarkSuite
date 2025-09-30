@@ -2,8 +2,8 @@
 #include <cuda_runtime.h>
 #include <cuda_fp16.h>
 
-static constexpr uint64_t total_iterations{ 6 };
-static constexpr uint64_t measured_iterations{ 3 };
+static constexpr uint64_t total_iterations{ 8 };
+static constexpr uint64_t measured_iterations{ 4 };
 
 template<auto multiple, typename value_01_type = decltype(multiple)> BNCH_SWT_INLINE constexpr value_01_type round_up_to_multiple(value_01_type value) noexcept {
 	if constexpr ((multiple & (multiple - 1)) == 0) {
@@ -1403,19 +1403,18 @@ template<uint64_t M, uint64_t K, typename input_type_01, typename input_type_02,
 		offset			   = round_up_to_multiple<64>(offset + inputs_b_size);
 		output_type* C_ptr = reinterpret_cast<output_type*>(static_cast<uint8_t*>(buffer.data()) + offset);
 
-		using index_type		= cutlass::gemm::GemmCoord::Index;
-		using nihilus_gemm_type = cutlass::gemm::device::Gemm<element_a, layout_a, element_b, layout_b, element_c, layout_c>;
-		nihilus_gemm_type op;
+		using index_type = cutlass::gemm::GemmCoord::Index;
+
 
 		if constexpr (std::is_same_v<input_type_01, float>) {
 			offset			   = 0;
 			const float* A_ptr = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
 			offset			   = round_up_to_multiple<64>(offset + inputs_a_size);
 
-			const float* B_ptr = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-
-			cutlass::Status status = op({ { static_cast<index_type>(M), static_cast<index_type>(N), static_cast<index_type>(K) }, { A_ptr, static_cast<index_type>(K) },
-				{ B_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
+			const float* B_ptr		= reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+			using nihilus_gemm_type = cutlass::gemm::device::Gemm<M, K, element_a, layout_a, element_b, layout_b, element_c, layout_c>;
+			cutlass::Status status = nihilus_gemm_type::impl({ static_cast<index_type>(N), { A_ptr, static_cast<index_type>(K) }, { B_ptr, static_cast<index_type>(N) },
+				{ C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
 
 			if (status != cutlass::Status::kSuccess) {
 				std::cerr << "Nihilus float32 Gemm failed: " << cutlass::cutlassGetStatusString(status) << std::endl;
@@ -1436,9 +1435,9 @@ template<uint64_t M, uint64_t K, typename input_type_01, typename input_type_02,
 
 			dequantize_blocks<<<(total_elements + 255) / 256, 256>>>(A_quant_ptr, A_dequant_ptr, total_elements);
 
-			cutlass::Status status =
-				op({ { static_cast<index_type>(M), static_cast<index_type>(N), static_cast<index_type>(K) }, { A_dequant_ptr, static_cast<index_type>(K) },
-					{ B_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
+			using nihilus_gemm_type = cutlass::gemm::device::Gemm<M, K, element_a, layout_a, element_b, layout_b, element_c, layout_c>;
+			cutlass::Status status = nihilus_gemm_type::impl({ static_cast<index_type>(N), { A_dequant_ptr, static_cast<index_type>(K) }, { B_ptr, static_cast<index_type>(N) },
+				{ C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
 
 			if (status != cutlass::Status::kSuccess) {
 				std::cerr << "Nihilus Q8_0 Gemm failed: " << cutlass::cutlassGetStatusString(status) << std::endl;
@@ -1598,13 +1597,9 @@ template<typename input_type_01, uint64_t M, uint64_t K, uint64_t mat_b_dim_00, 
 	std::vector<std::vector<float>> outputs04{};
 	outputs01.resize(total_iterations);
 	outputs02.resize(total_iterations);
-	outputs03.resize(total_iterations);
-	outputs04.resize(total_iterations);
 	for (uint64_t x = 0; x < total_iterations; ++x) {
 		outputs01[x].resize(total_elements_C);
 		outputs02[x].resize(total_elements_C);
-		outputs03[x].resize(total_elements_C);
-		outputs04[x].resize(total_elements_C);
 	}
 	static constexpr bnch_swt::string_literal stage_name{ "(Q8_0 * F32) mul_mat: [" + bnch_swt::internal::toStringLiteral<M>() + "x" + bnch_swt::internal::toStringLiteral<K>() +
 		" * " + bnch_swt::internal::toStringLiteral<mat_b_dim_00>() + "x" + bnch_swt::internal::toStringLiteral<N>() + "]" };
@@ -1629,16 +1624,11 @@ template<typename input_type_01, uint64_t M, uint64_t K, uint64_t mat_b_dim_00, 
 		cutlass_base_mul_mat<M, K, block_q8_0, float, float>>(buffer, current_index, inputs_a, inputs_b, outputs01, N);
 
 	current_index = 0;
-	//bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrepAndPost<"ggml_cuda_mul_mat_q8_0",
-	//ggml_cuda_mul_mat<M, K, block_q8_0, float, float>>(buffer, current_index, inputs_a, inputs_b, outputs02, N);
-
-	current_index = 0;
 	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrepAndPost<"nihilus_mul_mat_q8_0",
-		nihilus_mul_mat<M, K, block_q8_0, float, float>>(buffer, current_index, inputs_a, inputs_b, outputs03, N);
+		nihilus_mul_mat<M, K, block_q8_0, float, float>>(buffer, current_index, inputs_a, inputs_b, outputs02, N);
 
 	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::printResults();
-	//compare_outputs<M, K, mat_b_dim_00, N, "cutlass_base_mul_mat_float">(outputs01, outputs02);
-	compare_outputs<M, K, mat_b_dim_00, N, "nihilus_mul_mat_float">(outputs01, outputs03);
+	compare_outputs<M, K, mat_b_dim_00, N, "nihilus_mul_mat_float">(outputs01, outputs02);
 }
 
 template<typename input_type_01, uint64_t M, uint64_t K, uint64_t mat_b_dim_00, uint64_t N>
@@ -1653,13 +1643,9 @@ template<typename input_type_01, uint64_t M, uint64_t K, uint64_t mat_b_dim_00, 
 	std::vector<std::vector<float>> outputs04{};
 	outputs01.resize(total_iterations);
 	outputs02.resize(total_iterations);
-	outputs03.resize(total_iterations);
-	outputs04.resize(total_iterations);
 	for (uint64_t x = 0; x < total_iterations; ++x) {
 		outputs01[x].resize(total_elements_C);
 		outputs02[x].resize(total_elements_C);
-		outputs03[x].resize(total_elements_C);
-		outputs04[x].resize(total_elements_C);
 	}
 
 	static constexpr bnch_swt::string_literal stage_name{ "(F32 * F32) mul_mat: [" + bnch_swt::internal::toStringLiteral<M>() + "x" + bnch_swt::internal::toStringLiteral<K>() +
@@ -1683,81 +1669,123 @@ template<typename input_type_01, uint64_t M, uint64_t K, uint64_t mat_b_dim_00, 
 		cutlass_base_mul_mat<M, K, float, float, float>>(buffer, current_index, inputs_a, inputs_b, outputs01, N);
 
 	current_index = 0;
-	//bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrepAndPost<"ggml_cuda_mul_mat_float",
-	//ggml_cuda_mul_mat<M, K, float, float, float>>(buffer, current_index, inputs_a, inputs_b, outputs02, N);
-
-	current_index = 0;
 	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrepAndPost<"nihilus_mul_mat_float",
-		nihilus_mul_mat<M, K, float, float, float>>(buffer, current_index, inputs_a, inputs_b, outputs03, N);
+		nihilus_mul_mat<M, K, float, float, float>>(buffer, current_index, inputs_a, inputs_b, outputs02, N);
 
 	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::printResults();
-	//compare_outputs<M, K, mat_b_dim_00, N, "cutlass_base_mul_mat_float">(outputs01, outputs02);
-	compare_outputs<M, K, mat_b_dim_00, N, "nihilus_mul_mat_float">(outputs01, outputs03);
+	compare_outputs<M, K, mat_b_dim_00, N, "nihilus_mul_mat_float">(outputs01, outputs02);
 };
 
-int32_t main() {
-	/*
+int32_t main() { 
 	test_function<float, 4096, 4096, 4096, 1>();
 	test_function<float, 4096, 4096, 4096, 2>();
+	test_function<float, 4096, 4096, 4096, 3>();
 	test_function<float, 4096, 4096, 4096, 4>();
+	test_function<float, 4096, 4096, 4096, 5>();
 	test_function<float, 4096, 4096, 4096, 8>();
+	test_function<float, 4096, 4096, 4096, 13>();
 	test_function<float, 4096, 4096, 4096, 16>();
+	test_function<float, 4096, 4096, 4096, 25>();
 	test_function<float, 4096, 4096, 4096, 32>();
+	test_function<float, 4096, 4096, 4096, 49>();
 	test_function<float, 4096, 4096, 4096, 64>();
+	test_function<float, 4096, 4096, 4096, 97>();
 	test_function<float, 4096, 4096, 4096, 128>();
+	test_function<float, 4096, 4096, 4096, 193>();
 	test_function<float, 4096, 4096, 4096, 256>();
+	test_function<float, 4096, 4096, 4096, 385>();
 	test_function<float, 4096, 4096, 4096, 512>();
+	test_function<float, 4096, 4096, 4096, 768>();
+	test_function<float, 4096, 4096, 4096, 769>();
+	test_function<float, 4096, 4096, 4096, 770>();
 	test_function<float, 4096, 4096, 4096, 1024>();
+	test_function<float, 4096, 4096, 4096, 1537>();
 	test_function<float, 4096, 4096, 4096, 2048>();
+	test_function<float, 4096, 4096, 4096, 3073>();
 	test_function<float, 4096, 4096, 4096, 4096>();
+	test_function<float, 4096, 4096, 4096, 6145>();
 	test_function<float, 4096, 4096, 4096, 8192>();
 	test_function<float, 4096, 4096, 4096, 16384>();
 	test_function<float, 14336, 4096, 4096, 1>();
 	test_function<float, 14336, 4096, 4096, 2>();
+	test_function<float, 14336, 4096, 4096, 3>();
 	test_function<float, 14336, 4096, 4096, 4>();
+	test_function<float, 14336, 4096, 4096, 5>();
 	test_function<float, 14336, 4096, 4096, 8>();
+	test_function<float, 14336, 4096, 4096, 13>();
 	test_function<float, 14336, 4096, 4096, 16>();
+	test_function<float, 14336, 4096, 4096, 25>();
 	test_function<float, 14336, 4096, 4096, 32>();
+	test_function<float, 14336, 4096, 4096, 49>();
 	test_function<float, 14336, 4096, 4096, 64>();
+	test_function<float, 14336, 4096, 4096, 97>();
 	test_function<float, 14336, 4096, 4096, 128>();
+	test_function<float, 14336, 4096, 4096, 193>();
 	test_function<float, 14336, 4096, 4096, 256>();
+	test_function<float, 14336, 4096, 4096, 385>();
 	test_function<float, 14336, 4096, 4096, 512>();
+	test_function<float, 14336, 4096, 4096, 769>();
 	test_function<float, 14336, 4096, 4096, 1024>();
+	test_function<float, 14336, 4096, 4096, 1537>();
 	test_function<float, 14336, 4096, 4096, 2048>();
+	test_function<float, 14336, 4096, 4096, 3073>();
 	test_function<float, 14336, 4096, 4096, 4096>();
+	test_function<float, 14336, 4096, 4096, 6145>();
 	test_function<float, 14336, 4096, 4096, 8192>();
 	test_function<float, 14336, 4096, 4096, 16384>();
 	test_function<block_q8_0, 4096, 4096, 4096, 1>();
 	test_function<block_q8_0, 4096, 4096, 4096, 2>();
+	test_function<block_q8_0, 4096, 4096, 4096, 3>();
 	test_function<block_q8_0, 4096, 4096, 4096, 4>();
+	test_function<block_q8_0, 4096, 4096, 4096, 5>();
 	test_function<block_q8_0, 4096, 4096, 4096, 8>();
+	test_function<block_q8_0, 4096, 4096, 4096, 13>();
 	test_function<block_q8_0, 4096, 4096, 4096, 16>();
+	test_function<block_q8_0, 4096, 4096, 4096, 25>();
 	test_function<block_q8_0, 4096, 4096, 4096, 32>();
+	test_function<block_q8_0, 4096, 4096, 4096, 49>();
 	test_function<block_q8_0, 4096, 4096, 4096, 64>();
+	test_function<block_q8_0, 4096, 4096, 4096, 97>();
 	test_function<block_q8_0, 4096, 4096, 4096, 128>();
+	test_function<block_q8_0, 4096, 4096, 4096, 193>();
 	test_function<block_q8_0, 4096, 4096, 4096, 256>();
+	test_function<block_q8_0, 4096, 4096, 4096, 385>();
 	test_function<block_q8_0, 4096, 4096, 4096, 512>();
+	test_function<block_q8_0, 4096, 4096, 4096, 769>();
 	test_function<block_q8_0, 4096, 4096, 4096, 1024>();
+	test_function<block_q8_0, 4096, 4096, 4096, 1537>();
 	test_function<block_q8_0, 4096, 4096, 4096, 2048>();
+	test_function<block_q8_0, 4096, 4096, 4096, 3073>();
 	test_function<block_q8_0, 4096, 4096, 4096, 4096>();
+	test_function<block_q8_0, 4096, 4096, 4096, 6145>();
 	test_function<block_q8_0, 4096, 4096, 4096, 8192>();
 	test_function<block_q8_0, 4096, 4096, 4096, 16384>();
 	test_function<block_q8_0, 14336, 4096, 4096, 1>();
 	test_function<block_q8_0, 14336, 4096, 4096, 2>();
+	test_function<block_q8_0, 14336, 4096, 4096, 3>();
 	test_function<block_q8_0, 14336, 4096, 4096, 4>();
+	test_function<block_q8_0, 14336, 4096, 4096, 5>();
 	test_function<block_q8_0, 14336, 4096, 4096, 8>();
+	test_function<block_q8_0, 14336, 4096, 4096, 13>();
 	test_function<block_q8_0, 14336, 4096, 4096, 16>();
+	test_function<block_q8_0, 14336, 4096, 4096, 25>();
 	test_function<block_q8_0, 14336, 4096, 4096, 32>();
+	test_function<block_q8_0, 14336, 4096, 4096, 49>();
 	test_function<block_q8_0, 14336, 4096, 4096, 64>();
+	test_function<block_q8_0, 14336, 4096, 4096, 97>();
 	test_function<block_q8_0, 14336, 4096, 4096, 128>();
-	*/
+	test_function<block_q8_0, 14336, 4096, 4096, 193>();
 	test_function<block_q8_0, 14336, 4096, 4096, 256>();
-	/*
+	test_function<block_q8_0, 14336, 4096, 4096, 385>();
 	test_function<block_q8_0, 14336, 4096, 4096, 512>();
+	test_function<block_q8_0, 14336, 4096, 4096, 769>();
 	test_function<block_q8_0, 14336, 4096, 4096, 1024>();
+	test_function<block_q8_0, 14336, 4096, 4096, 1537>();
 	test_function<block_q8_0, 14336, 4096, 4096, 2048>();
+	test_function<block_q8_0, 14336, 4096, 4096, 3073>();
 	test_function<block_q8_0, 14336, 4096, 4096, 4096>();
+	test_function<block_q8_0, 14336, 4096, 4096, 6145>();
 	test_function<block_q8_0, 14336, 4096, 4096, 8192>();
-	test_function<block_q8_0, 14336, 4096, 4096, 16384>();*/
+	test_function<block_q8_0, 14336, 4096, 4096, 16384>();
 	return 0;
 }
