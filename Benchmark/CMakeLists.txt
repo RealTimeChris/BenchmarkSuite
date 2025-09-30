@@ -44,7 +44,7 @@ target_link_libraries(
     BenchmarkSuite::BenchmarkSuite
     CUDA::cudart_static
     CUDA::cublas
-    ggml
+#    ggml
 )
 
 target_link_options(
@@ -86,15 +86,15 @@ install(
 	OPTIONAL
 )
 
-if(BUILD_SHARED_LIBS)
-    add_custom_command(TARGET BenchmarkExe POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        $<TARGET_FILE:ggml> $<TARGET_FILE_DIR:BenchmarkExe>
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different  
-        $<TARGET_FILE:ggml-cuda> $<TARGET_FILE_DIR:BenchmarkExe>
-        COMMENT "Copying GGML DLLs to output directory"
-    )
-endif()
+#if(BUILD_SHARED_LIBS)
+    #add_custom_command(TARGET BenchmarkExe POST_BUILD
+        #OMMAND ${CMAKE_COMMAND} -E copy_if_different
+        #<TARGET_FILE:ggml> $<TARGET_FILE_DIR:BenchmarkExe>
+        #COMMAND ${CMAKE_COMMAND} -E copy_if_different  
+        #$<TARGET_FILE:ggml-cuda> $<TARGET_FILE_DIR:BenchmarkExe>
+        #COMMENT "Copying GGML DLLs to output directory"
+    #)
+#endif()
 
 if (WIN32)
 	install(
@@ -112,21 +112,21 @@ install(
 	OPTIONAL
 )
 
-install(
-    FILES "$<TARGET_FILE:ggml>"
-    DESTINATION "$<TARGET_FILE_DIR:BenchmarkExe>"
-    OPTIONAL
-)
-install(
-    FILES "$<TARGET_FILE:ggml-cpu>"
-    DESTINATION "$<TARGET_FILE_DIR:BenchmarkExe>"
-    OPTIONAL
-)
-install(
-    FILES "$<TARGET_FILE:ggml-base>"
-    DESTINATION "$<TARGET_FILE_DIR:BenchmarkExe>"
-    OPTIONAL
-)
+#install(
+    #FILES "$<TARGET_FILE:ggml>"
+    #DESTINATION "$<TARGET_FILE_DIR:BenchmarkExe>"
+    #OPTIONAL
+#)
+#install(
+    #FILES "$<TARGET_FILE:ggml-cpu>"
+    #DESTINATION "$<TARGET_FILE_DIR:BenchmarkExe>"
+    #OPTIONAL
+#)
+#install(
+    ##FILES "$<TARGET_FILE:ggml-base>"
+    #DESTINATION "$<TARGET_FILE_DIR:BenchmarkExe>"
+    #OPTIONAL
+#)
 
 if (GENERATE_ASSEMBLY STREQUAL "TRUE")
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")

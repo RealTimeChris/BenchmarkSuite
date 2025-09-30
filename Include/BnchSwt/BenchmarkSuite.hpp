@@ -86,8 +86,8 @@ namespace bnch_swt {
 							instructionCount = "Instructions per Byte";
 						}
 						printMetric("Total Iterations", maxExecutionCount);
-						printMetric("Total Iterations to Stabilize", value.totalIterationCount);
 						printMetric("Measured Iterations", value.measuredIterationCount);
+						printMetric("Total Iterations to Stabilization Window", value.totalIterationCount.value() - value.measuredIterationCount.value());
 						printMetric(metricName, value.bytesProcessed);
 						printMetric("Nanoseconds per Execution", value.timeInNs);
 						printMetric("Frequency (GHz)", value.frequencyGHz);
@@ -214,7 +214,7 @@ namespace bnch_swt {
 			return results[subjectName.operator std::string_view()];
 		}
 
-		template<string_literal subjectNameNew>  BNCH_SWT_INLINE static auto sort_results(uint64_t currentGlobalIndex, auto& newPtr) {
+		template<string_literal subjectNameNew> BNCH_SWT_INLINE static auto sort_results(uint64_t currentGlobalIndex, auto& newPtr) {
 			performance_metrics lowestResults{};
 			performance_metrics resultsTemp{};
 			if constexpr (measuredIterationCount == 1) {

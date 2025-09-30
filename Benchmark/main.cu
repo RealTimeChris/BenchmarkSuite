@@ -1,9 +1,2344 @@
 #include <BnchSwt/BenchmarkSuite.hpp>
 #include <cuda_runtime.h>
 #include <cuda_fp16.h>
+#include <cutlass_new/detail/helper_macros.hpp>
 
 static constexpr uint64_t total_iterations{ 6 };
 static constexpr uint64_t measured_iterations{ 3 };
+
+struct OpMultiplyAdd {};
+
+struct OpMultiplyAddSaturate {};
+
+struct OpMultiplyAddFastBF16 {};
+
+struct OpMultiplyAddFastF16 {};
+
+struct OpMultiplyAddMixedInputUpcast {};
+
+struct OpMultiplyAddFastF32 {};
+
+struct OpMultiplyAddComplexFastF32 {};
+
+struct OpMultiplyAddFastAccum;
+
+struct OpMultiplyAddComplex {};
+
+struct OpMultiplyAddGaussianComplex {};
+
+struct OpXorPopc {};
+
+struct OpAndPopc {};
+
+struct OpClassSimt {};
+
+struct OpClassTensorOp {};
+
+struct OpClassWmmaTensorOp {};
+
+struct OpClassSparseTensorOp {};
+
+struct OpClassBlockScaledTensorOp {};
+
+struct OpClassBlockScaledSparseTensorOp {};
+
+template<int Rank_, typename Index_ = int, typename LongIndex_ = int64_t> struct Coord {
+  public:
+	static constexpr int kRank = Rank_;
+
+	using Index = Index_;
+
+	using LongIndex = LongIndex_;
+
+  private:
+	Index idx[kRank];
+
+  public:
+	CUTLASS_HOST_DEVICE explicit Coord(Index value = Index(0)) {
+		for (int i = 0; i < kRank; ++i) {
+			idx[i] = value;
+		}
+	}
+
+	CUTLASS_HOST_DEVICE Coord(Index const (&_idx)[kRank]) {
+		for (int i = 0; i < kRank; ++i) {
+			idx[i] = _idx[i];
+		}
+	}
+
+	template<int R, typename I, typename L> CUTLASS_HOST_DEVICE Coord(Coord<R, I, L> other) {
+		for (int i = 0; i < kRank; ++i) {
+			idx[i] = other[i];
+		}
+	}
+
+	template<int Slice> CUTLASS_HOST_DEVICE Coord<Slice, Index, LongIndex> slice(int start = 0, Index identity = 0) const {
+		Coord<Slice, Index, LongIndex> result;
+		for (int i = 0; i < Slice; ++i) {
+			if (i + start < kRank) {
+				result[i] = idx[i + start];
+			} else {
+				result[i] = identity;
+			}
+		}
+		return result;
+	}
+
+	CUTLASS_HOST_DEVICE int min_dim_index() const {
+		int i = 0;
+		for (int j = 1; j < kRank; ++j) {
+			if (idx[j] < idx[i]) {
+				i = j;
+			}
+		}
+		return i;
+	}
+
+	CUTLASS_HOST_DEVICE int max_dim_index() const {
+		int i = 0;
+		for (int j = 1; j < kRank; ++j) {
+			if (idx[j] > idx[i]) {
+				i = j;
+			}
+		}
+		return i;
+	}
+
+	CUTLASS_HOST_DEVICE explicit operator bool() const {
+		for (int i = 0; i < kRank; ++i) {
+			if (idx[i]) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	CUTLASS_HOST_DEVICE bool operator!() const {
+		for (int i = 0; i < kRank; ++i) {
+			if (idx[i]) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	CUTLASS_HOST_DEVICE Coord operator+(Coord const& b) const {
+		Coord c;
+		for (int i = 0; i < kRank; ++i) {
+			c.idx[i] = idx[i] + b.idx[i];
+		}
+		return c;
+	}
+
+	CUTLASS_HOST_DEVICE Coord operator-(Coord const& b) const {
+		Coord c;
+		for (int i = 0; i < kRank; ++i) {
+			c.idx[i] = idx[i] - b.idx[i];
+		}
+		return c;
+	}
+
+	CUTLASS_HOST_DEVICE Coord operator*(Coord const& b) const {
+		Coord c;
+		for (int i = 0; i < kRank; ++i) {
+			c.idx[i] = idx[i] * b.idx[i];
+		}
+		return c;
+	}
+
+	CUTLASS_HOST_DEVICE Coord operator/(Coord const& b) const {
+		Coord c;
+		for (int i = 0; i < kRank; ++i) {
+			c.idx[i] = idx[i] / b.idx[i];
+		}
+		return c;
+	}
+
+	CUTLASS_HOST_DEVICE Coord& operator+=(Coord const& b) {
+		for (int i = 0; i < kRank; ++i) {
+			idx[i] += b.idx[i];
+		}
+		return *this;
+	}
+
+	CUTLASS_HOST_DEVICE Coord& operator-=(Coord const& b) {
+		for (int i = 0; i < kRank; ++i) {
+			idx[i] -= b.idx[i];
+		}
+		return *this;
+	}
+
+	CUTLASS_HOST_DEVICE Coord& operator*=(Coord const& b) {
+		for (int i = 0; i < kRank; ++i) {
+			idx[i] *= b.idx[i];
+		}
+		return *this;
+	}
+
+	CUTLASS_HOST_DEVICE Coord& operator/=(Coord const& b) {
+		for (int i = 0; i < kRank; ++i) {
+			idx[i] /= b.idx[i];
+		}
+		return *this;
+	}
+
+	CUTLASS_HOST_DEVICE Index& operator[](int dim) {
+		return idx[dim];
+	}
+
+	CUTLASS_HOST_DEVICE Index const& operator[](int dim) const {
+		return idx[dim];
+	}
+
+	CUTLASS_HOST_DEVICE LongIndex dot(Coord const& b, LongIndex sum = LongIndex(0)) const {
+		for (int i = 0; i < kRank; ++i) {
+			sum += idx[i] * b.idx[i];
+		}
+		return sum;
+	}
+
+	template<int Dim> CUTLASS_HOST_DEVICE Index& at() {
+		return idx[Dim];
+	}
+
+	CUTLASS_HOST_DEVICE Index& at(int dim) {
+		return idx[dim];
+	}
+
+	template<int Dim> CUTLASS_HOST_DEVICE Index const& at() const {
+		return idx[Dim];
+	}
+
+	CUTLASS_HOST_DEVICE Index const& at(int dim) const {
+		return idx[dim];
+	}
+
+	CUTLASS_HOST_DEVICE bool operator==(Coord const& b) const {
+		bool equal = true;
+		for (int i = 0; equal && i < kRank; ++i) {
+			equal = (idx[i] == b.idx[i]);
+		}
+		return equal;
+	}
+
+	CUTLASS_HOST_DEVICE bool operator!=(Coord const& b) const {
+		return !(*this == b);
+	}
+
+	CUTLASS_HOST_DEVICE Coord& clamp(Coord const& max, Coord const& min = Coord()) {
+		for (int i = 0; i < kRank; ++i) {
+			idx[i] = __NV_STD_MAX(__NV_STD_MIN(idx[i], max.idx[i]), min.idx[i]);
+		}
+		return *this;
+	}
+
+	CUTLASS_HOST_DEVICE Index sum() const {
+		Index sum_(idx[0]);
+		for (int i = 1; i < kRank; ++i) {
+			sum_ += idx[i];
+		}
+		return sum_;
+	}
+
+	CUTLASS_HOST_DEVICE LongIndex product() const {
+		LongIndex product_(idx[0]);
+		for (int i = 1; i < kRank; ++i) {
+			product_ *= idx[i];
+		}
+		return product_;
+	}
+
+	CUTLASS_HOST_DEVICE bool operator<(Coord const& b) const {
+		for (int i = 0; i < kRank; ++i) {
+			if (!(idx[i] < b[i])) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	CUTLASS_HOST_DEVICE bool operator<=(Coord const& b) const {
+		for (int i = 0; i < kRank; ++i) {
+			if (!(idx[i] <= b[i])) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	CUTLASS_HOST_DEVICE bool operator>(Coord const& b) const {
+		return !(*this <= b);
+	}
+
+	CUTLASS_HOST_DEVICE bool operator>=(Coord const& b) const {
+		return !(*this < b);
+	}
+};
+
+
+template<int M = 1, int N = 1, int K = 1> struct GemmShape {
+	static constexpr int kM = M;
+	static constexpr int kN = N;
+	static constexpr int kK = K;
+
+	static constexpr int kMN  = M * N;
+	static constexpr int kMK  = M * K;
+	static constexpr int kKN  = N * K;
+	static constexpr int kMNK = M * N * K;
+
+	static constexpr int kCount = kMNK;
+
+
+	CUTLASS_HOST_DEVICE static Coord<3> toCoord() {
+		return make_Coord(kM, kN, kK);
+	}
+};
+
+template<typename Shape> using GemmShapeTranspose = GemmShape<Shape::kN, Shape::kM, Shape::kK>;
+
+template<typename T> CUTLASS_HOST_DEVICE Coord<3, T> make_Coord(T _0, T _1, T _2) {
+	T values[3] = { _0, _1, _2 };
+	return Coord<3, T>(values);
+}
+
+template<typename T> CUTLASS_HOST_DEVICE Coord<2, T> make_Coord(T _0, T _1) {
+	T values[2] = { _0, _1 };
+	return Coord<2, T>(values);
+}
+
+
+struct GemmCoord : public Coord<3, int> {
+	typedef int Index;
+
+	typedef Coord<3, Index> Base;
+
+	static constexpr int kM = 0;
+
+	static constexpr int kN = 1;
+
+	static constexpr int kK = 2;
+
+
+	CUTLASS_HOST_DEVICE GemmCoord() {
+	}
+
+	CUTLASS_HOST_DEVICE GemmCoord(Coord<3, Index> const& coord) : Base(make_Coord(coord[0], coord[1], coord[2])) {
+	}
+
+	CUTLASS_HOST_DEVICE GemmCoord(Index m, Index n, Index k) : Base(make_Coord(m, n, k)) {
+	}
+
+	CUTLASS_HOST_DEVICE Index const& m() const {
+		return this->at(kM);
+	}
+
+	CUTLASS_HOST_DEVICE Index& m() {
+		return this->at(kM);
+	}
+
+	CUTLASS_HOST_DEVICE Index const& n() const {
+		return this->at(kN);
+	}
+
+	CUTLASS_HOST_DEVICE Index& n() {
+		return this->at(kN);
+	}
+
+	CUTLASS_HOST_DEVICE Index const& k() const {
+		return this->at(kK);
+	}
+
+	CUTLASS_HOST_DEVICE Index& k() {
+		return this->at(kK);
+	}
+
+	CUTLASS_HOST_DEVICE Coord<3> mnk() const {
+		return make_Coord(m(), n(), k());
+	}
+
+	CUTLASS_HOST_DEVICE Coord<3> knm() const {
+		return make_Coord(k(), n(), m());
+	}
+
+	CUTLASS_HOST_DEVICE Coord<2> nm() const {
+		return make_Coord(n(), m());
+	}
+
+	CUTLASS_HOST_DEVICE Coord<2> mn() const {
+		return make_Coord(m(), n());
+	}
+
+	CUTLASS_HOST_DEVICE Coord<2> mk() const {
+		return make_Coord(m(), k());
+	}
+
+	CUTLASS_HOST_DEVICE Coord<2> km() const {
+		return make_Coord(k(), m());
+	}
+
+	CUTLASS_HOST_DEVICE Coord<2> nk() const {
+		return make_Coord(n(), k());
+	}
+
+	CUTLASS_HOST_DEVICE Coord<2> kn() const {
+		return make_Coord(k(), n());
+	}
+
+
+	CUTLASS_HOST_DEVICE GemmCoord operator+(Base const& b) const {
+		return GemmCoord(Base::operator+(b));
+	}
+
+	CUTLASS_HOST_DEVICE GemmCoord operator-(Base const& b) const {
+		return GemmCoord(Base::operator-(b));
+	}
+
+	CUTLASS_HOST_DEVICE GemmCoord operator*(Base const& b) const {
+		return GemmCoord(Base::operator*(b));
+	}
+
+	CUTLASS_HOST_DEVICE GemmCoord operator/(Base const& b) const {
+		return GemmCoord(Base::operator/(b));
+	}
+
+	CUTLASS_HOST_DEVICE GemmCoord& operator+=(Base const& b) {
+		Base::operator+=(b);
+		return *this;
+	}
+
+	CUTLASS_HOST_DEVICE GemmCoord& operator-=(Base const& b) {
+		Base::operator-=(b);
+		return *this;
+	}
+
+	CUTLASS_HOST_DEVICE GemmCoord& operator*=(Base const& b) {
+		Base::operator*=(b);
+		return *this;
+	}
+
+	CUTLASS_HOST_DEVICE GemmCoord& operator/=(Base const& b) {
+		Base::operator/=(b);
+		return *this;
+	}
+};
+
+enum class FloatRoundStyle {
+	round_indeterminate,
+	round_toward_zero,
+	round_to_nearest,
+	round_to_nearest_satfinite,
+	round_toward_infinity,
+	round_toward_neg_infinity,
+	round_half_ulp_truncate,
+	round_half_ulp_trunc_dntz
+};
+
+struct ScaleType {
+	enum Kind { Default, NoBetaScaling, OnlyAlphaScaling, PerChannelScaling, OnlyAlphaPerChannelScaling, Nothing };
+};
+
+template<typename T> struct sizeof_bits {
+	static constexpr int value = int(sizeof(T) * 8);
+};
+
+template<typename T> struct sizeof_bits<T const> : sizeof_bits<T> {};
+
+template<typename T> struct sizeof_bits<T volatile> : sizeof_bits<T> {};
+
+template<typename T> struct sizeof_bits<T const volatile> : sizeof_bits<T> {};
+
+template<> struct sizeof_bits<void> {
+	static constexpr int value = 0;
+};
+
+template<typename T, int N, bool RegisterSized = sizeof_bits<T>::value >= 32> struct Array;
+
+using true_type	 = std::bool_constant<true>;
+using false_type = std::bool_constant<false>;
+
+template<class T> struct is_Array : false_type {};
+
+template<typename T, int N, bool RegisterSized> struct is_Array<Array<T, N, RegisterSized>> : true_type {};
+
+template<typename T> constexpr bool is_Array_v = is_Array<T>::value;
+template<typename T, int N, bool RegisterSized> struct sizeof_bits<Array<T, N, RegisterSized>> {
+	static constexpr int value = sizeof(Array<T, N, RegisterSized>) * 8;
+};
+
+
+CUTLASS_HOST_DEVICE constexpr bool ispow2(unsigned x) {
+	return x && (!(x & (x - 1)));
+}
+
+CUTLASS_HOST_DEVICE constexpr unsigned floor_pow_2(unsigned x) {
+	return (x == 0 || ispow2(x)) ? x : ((floor_pow_2(x >> 1)) << 1);
+}
+
+template<uint64_t index> struct tag : public std::integral_constant<uint64_t, index> {};
+template<typename T, int N> struct Array<T, N, true> {
+	using Storage = T;
+
+	using Element = T;
+
+	static constexpr size_t kStorageElements = N;
+
+	static constexpr size_t kElements = N;
+
+	typedef T value_type;
+	typedef size_t size_type;
+	typedef ptrdiff_t difference_type;
+	typedef value_type& reference;
+	typedef value_type const& const_reference;
+	typedef value_type* pointer;
+	typedef value_type const* const_pointer;
+
+	class iterator {
+		T* ptr_;
+
+	  public:
+		CUTLASS_HOST_DEVICE iterator() : ptr_(nullptr) {
+		}
+
+		CUTLASS_HOST_DEVICE iterator(T* _ptr) : ptr_(_ptr) {
+		}
+
+		CUTLASS_HOST_DEVICE iterator& operator++() {
+			++ptr_;
+			return *this;
+		}
+
+		CUTLASS_HOST_DEVICE iterator& operator--() {
+			--ptr_;
+			return *this;
+		}
+
+		CUTLASS_HOST_DEVICE iterator operator++(int) {
+			iterator ret(*this);
+			++ptr_;
+			return ret;
+		}
+
+		CUTLASS_HOST_DEVICE iterator operator--(int) {
+			iterator ret(*this);
+			--ptr_;
+			return ret;
+		}
+
+		CUTLASS_HOST_DEVICE T& operator*() const {
+			return *ptr_;
+		}
+
+		CUTLASS_HOST_DEVICE bool operator==(iterator const& other) const {
+			return ptr_ == other.ptr_;
+		}
+
+		CUTLASS_HOST_DEVICE bool operator!=(iterator const& other) const {
+			return ptr_ != other.ptr_;
+		}
+	};
+
+	class const_iterator {
+		const T* ptr_;
+
+	  public:
+		CUTLASS_HOST_DEVICE const_iterator() : ptr_(nullptr) {
+		}
+
+		CUTLASS_HOST_DEVICE const_iterator(T const* _ptr) : ptr_(_ptr) {
+		}
+
+		CUTLASS_HOST_DEVICE const_iterator& operator++() {
+			++ptr_;
+			return *this;
+		}
+
+		CUTLASS_HOST_DEVICE const_iterator& operator--() {
+			--ptr_;
+			return *this;
+		}
+
+		CUTLASS_HOST_DEVICE const_iterator operator++(int) {
+			const_iterator ret(*this);
+			++ptr_;
+			return ret;
+		}
+
+		CUTLASS_HOST_DEVICE const_iterator operator--(int) {
+			const_iterator ret(*this);
+			--ptr_;
+			return ret;
+		}
+
+		CUTLASS_HOST_DEVICE T const& operator*() const {
+			return *ptr_;
+		}
+
+		CUTLASS_HOST_DEVICE bool operator==(const_iterator const& other) const {
+			return ptr_ == other.ptr_;
+		}
+
+		CUTLASS_HOST_DEVICE bool operator!=(const_iterator const& other) const {
+			return ptr_ != other.ptr_;
+		}
+	};
+
+	class reverse_iterator {
+		T* ptr_;
+
+	  public:
+		CUTLASS_HOST_DEVICE reverse_iterator() : ptr_(nullptr) {
+		}
+
+		CUTLASS_HOST_DEVICE reverse_iterator(T* _ptr) : ptr_(_ptr) {
+		}
+
+		CUTLASS_HOST_DEVICE reverse_iterator& operator++() {
+			--ptr_;
+			return *this;
+		}
+
+		CUTLASS_HOST_DEVICE reverse_iterator& operator--() {
+			++ptr_;
+			return *this;
+		}
+
+		CUTLASS_HOST_DEVICE reverse_iterator operator++(int) {
+			iterator ret(*this);
+			--ptr_;
+			return ret;
+		}
+
+		CUTLASS_HOST_DEVICE reverse_iterator operator--(int) {
+			iterator ret(*this);
+			++ptr_;
+			return ret;
+		}
+
+		CUTLASS_HOST_DEVICE T& operator*() const {
+			return *(ptr_ - 1);
+		}
+
+		CUTLASS_HOST_DEVICE bool operator==(reverse_iterator const& other) const {
+			return ptr_ == other.ptr_;
+		}
+
+		CUTLASS_HOST_DEVICE bool operator!=(reverse_iterator const& other) const {
+			return ptr_ != other.ptr_;
+		}
+	};
+
+	class const_reverse_iterator {
+		T const* ptr_;
+
+	  public:
+		CUTLASS_HOST_DEVICE const_reverse_iterator() : ptr_(nullptr) {
+		}
+
+		CUTLASS_HOST_DEVICE const_reverse_iterator(T const* _ptr) : ptr_(_ptr) {
+		}
+
+		CUTLASS_HOST_DEVICE const_reverse_iterator& operator++() {
+			--ptr_;
+			return *this;
+		}
+
+		CUTLASS_HOST_DEVICE const_reverse_iterator& operator--() {
+			++ptr_;
+			return *this;
+		}
+
+		CUTLASS_HOST_DEVICE const_reverse_iterator operator++(int) {
+			const_reverse_iterator ret(*this);
+			--ptr_;
+			return ret;
+		}
+
+		CUTLASS_HOST_DEVICE const_reverse_iterator operator--(int) {
+			const_reverse_iterator ret(*this);
+			++ptr_;
+			return ret;
+		}
+
+		CUTLASS_HOST_DEVICE T const& operator*() const {
+			return *(ptr_ - 1);
+		}
+
+		CUTLASS_HOST_DEVICE bool operator==(const_iterator const& other) const {
+			return ptr_ == other.ptr_;
+		}
+
+		CUTLASS_HOST_DEVICE bool operator!=(const_iterator const& other) const {
+			return ptr_ != other.ptr_;
+		}
+	};
+
+	Storage storage[kElements];
+
+	CUTLASS_HOST_DEVICE void clear() {
+		fill(T(0));
+	}
+
+	CUTLASS_HOST_DEVICE reference at(size_type pos) {
+		return reinterpret_cast<reference>(storage[pos]);
+	}
+
+	CUTLASS_HOST_DEVICE const_reference at(size_type pos) const {
+		return reinterpret_cast<const_reference>(storage[pos]);
+	}
+
+	CUTLASS_HOST_DEVICE reference operator[](size_type pos) {
+		return reinterpret_cast<reference>(storage[pos]);
+	}
+
+	CUTLASS_HOST_DEVICE const_reference operator[](size_type pos) const {
+		return reinterpret_cast<const_reference>(storage[pos]);
+	}
+
+	template<uint64_t index> CUTLASS_HOST_DEVICE reference operator[](tag<index> pos) {
+		return reinterpret_cast<reference>(storage[pos]);
+	}
+
+	template<uint64_t index> CUTLASS_HOST_DEVICE const_reference operator[](tag<index> pos) const {
+		return reinterpret_cast<const_reference>(storage[pos]);
+	}
+
+	CUTLASS_HOST_DEVICE reference front() {
+		return reinterpret_cast<reference>(storage[0]);
+	}
+
+	CUTLASS_HOST_DEVICE const_reference front() const {
+		return reinterpret_cast<const_reference>(storage[0]);
+	}
+
+	CUTLASS_HOST_DEVICE reference back() {
+		return reinterpret_cast<reference>(storage[kStorageElements - 1]);
+	}
+
+	CUTLASS_HOST_DEVICE const_reference back() const {
+		return reinterpret_cast<const_reference>(storage[kStorageElements - 1]);
+	}
+
+	CUTLASS_HOST_DEVICE pointer data() {
+		return reinterpret_cast<pointer>(storage);
+	}
+
+	CUTLASS_HOST_DEVICE const_pointer data() const {
+		return reinterpret_cast<const_pointer>(storage);
+	}
+
+	CUTLASS_HOST_DEVICE pointer raw_data() {
+		return reinterpret_cast<pointer>(storage);
+	}
+
+	CUTLASS_HOST_DEVICE const_pointer raw_data() const {
+		return reinterpret_cast<const_pointer>(storage);
+	}
+
+
+	CUTLASS_HOST_DEVICE constexpr bool empty() const {
+		return !kElements;
+	}
+
+	CUTLASS_HOST_DEVICE constexpr size_type size() const {
+		return kElements;
+	}
+
+	CUTLASS_HOST_DEVICE constexpr size_type max_size() const {
+		return kElements;
+	}
+
+	CUTLASS_HOST_DEVICE void fill(T const& value) {
+		CUTLASS_PRAGMA_UNROLL
+		for (int i = 0; i < int(kElements); ++i) {
+			storage[i] = static_cast<Storage>(value);
+		}
+	}
+
+	CUTLASS_HOST_DEVICE iterator begin() {
+		return iterator(storage);
+	}
+
+	CUTLASS_HOST_DEVICE const_iterator begin() const {
+		return cbegin();
+	}
+
+	CUTLASS_HOST_DEVICE const_iterator cbegin() const {
+		return const_iterator(storage);
+	}
+
+	CUTLASS_HOST_DEVICE iterator end() {
+		return iterator(reinterpret_cast<pointer>(storage + kStorageElements));
+	}
+
+	CUTLASS_HOST_DEVICE const_iterator end() const {
+		return cend();
+	}
+
+	CUTLASS_HOST_DEVICE const_iterator cend() const {
+		return const_iterator(reinterpret_cast<const_pointer>(storage + kStorageElements));
+	}
+
+	CUTLASS_HOST_DEVICE reverse_iterator rbegin() {
+		return reverse_iterator(reinterpret_cast<pointer>(storage + kStorageElements));
+	}
+
+	CUTLASS_HOST_DEVICE const_reverse_iterator rbegin() const {
+		return crbegin();
+	}
+
+	CUTLASS_HOST_DEVICE const_reverse_iterator crbegin() const {
+		return const_reverse_iterator(reinterpret_cast<const_pointer>(storage + kStorageElements));
+	}
+
+	CUTLASS_HOST_DEVICE reverse_iterator rend() {
+		return reverse_iterator(reinterpret_cast<pointer>(storage));
+	}
+
+	CUTLASS_HOST_DEVICE const_reverse_iterator rend() const {
+		return crend();
+	}
+
+	CUTLASS_HOST_DEVICE const_reverse_iterator crend() const {
+		return const_reverse_iterator(reinterpret_cast<const_pointer>(storage));
+	}
+};
+
+template<typename T, typename S, FloatRoundStyle Round = FloatRoundStyle::round_to_nearest> struct NumericConverter {
+	using result_type							 = T;
+	using source_type							 = S;
+	static constexpr FloatRoundStyle round_style = Round;
+
+	CUTLASS_HOST_DEVICE static result_type convert(source_type const& s) {
+		return static_cast<result_type>(s);
+	}
+
+	CUTLASS_HOST_DEVICE result_type operator()(source_type const& s) const {
+		return convert(s);
+	}
+};
+
+struct Identity;
+struct Conjugate;
+template<typename T, typename S, int N, FloatRoundStyle Round = FloatRoundStyle::round_to_nearest, typename Transform = Identity> struct NumericArrayConverter {
+	using result_type							 = Array<T, N>;
+	using source_type							 = Array<S, N>;
+	static constexpr FloatRoundStyle round_style = Round;
+
+	CUTLASS_HOST_DEVICE static result_type convert(source_type const& s) {
+		result_type result;
+		NumericConverter<T, S, Round> convert_;
+
+		CUTLASS_PRAGMA_UNROLL
+		for (int i = 0; i < N; ++i) {
+			if (std::is_same<Transform, Identity>::value) {
+				result[i] = convert_(s[i]);
+			} else {
+				result[i] = conj(convert_(s[i]));
+			}
+		}
+
+		return result;
+	}
+
+	CUTLASS_HOST_DEVICE result_type operator()(source_type const& s) const {
+		return convert(s);
+	}
+};
+
+template<typename T> struct multiplies {
+	CUTLASS_HOST_DEVICE T operator()(T lhs, T const& rhs) const {
+		lhs *= rhs;
+		return lhs;
+	}
+};
+
+template<typename A, typename B = A, typename C = A> struct multiply_add {
+	CUTLASS_HOST_DEVICE C operator()(A const& a, B const& b, C const& c) const {
+		return C(a) * C(b) + c;
+	}
+};
+
+template<typename ElementOutput_, int Count, typename ElementAccumulator_ = ElementOutput_, typename ElementCompute_ = ElementOutput_, ScaleType::Kind Scale = ScaleType::Default,
+	FloatRoundStyle Round = FloatRoundStyle::round_to_nearest, typename ElementSource_ = ElementOutput_>
+class LinearCombination {
+  public:
+	using ElementOutput		 = ElementOutput_;
+	using ElementSource		 = ElementSource_;
+	using ElementAccumulator = ElementAccumulator_;
+	using ElementCompute	 = ElementCompute_;
+	using ElementScalar		 = ElementCompute;
+	using ElementC			 = ElementSource_;
+	using ElementD			 = ElementOutput_;
+
+	static constexpr int kCount			= Count;
+	static const ScaleType::Kind kScale = Scale;
+	using FragmentOutput				= Array<ElementOutput, kCount>;
+	using FragmentSource				= Array<ElementSource, kCount>;
+	using FragmentAccumulator			= Array<ElementAccumulator, kCount>;
+	using FragmentCompute				= Array<ElementCompute, kCount>;
+
+	static constexpr FloatRoundStyle kRound = Round;
+
+	struct Params {
+		ElementCompute alpha;
+		ElementCompute beta;
+		ElementCompute const* alpha_ptr;
+		ElementCompute const* beta_ptr;
+		ElementCompute const* const* alpha_ptr_array;
+		ElementCompute const* const* beta_ptr_array;
+		CUTLASS_HOST_DEVICE Params() : alpha(ElementCompute(1)), beta(ElementCompute(0)), alpha_ptr(nullptr), beta_ptr(nullptr), alpha_ptr_array(nullptr), beta_ptr_array(nullptr) {
+		}
+
+		CUTLASS_HOST_DEVICE Params(ElementCompute alpha, ElementCompute beta)
+			: alpha(alpha), beta(beta), alpha_ptr(nullptr), beta_ptr(nullptr), alpha_ptr_array(nullptr), beta_ptr_array(nullptr) {
+		}
+
+		CUTLASS_HOST_DEVICE Params(ElementCompute alpha) : alpha(alpha), beta(0), alpha_ptr(nullptr), beta_ptr(nullptr), alpha_ptr_array(nullptr), beta_ptr_array(nullptr) {
+		}
+
+		CUTLASS_HOST_DEVICE Params(ElementCompute const* alpha_ptr, ElementCompute const* beta_ptr)
+			: alpha(0), beta(0), alpha_ptr(alpha_ptr), beta_ptr(beta_ptr), alpha_ptr_array(nullptr), beta_ptr_array(nullptr) {
+		}
+
+		CUTLASS_HOST_DEVICE Params(ElementCompute const* alpha_ptr)
+			: alpha(0), beta(0), alpha_ptr(alpha_ptr), beta_ptr(nullptr), alpha_ptr_array(nullptr), beta_ptr_array(nullptr) {
+		}
+
+		CUTLASS_HOST_DEVICE Params(ElementCompute const* const* alpha_ptr_array, ElementCompute const* const* beta_ptr_array)
+			: alpha(0), beta(0), alpha_ptr(nullptr), beta_ptr(nullptr), alpha_ptr_array(alpha_ptr_array), beta_ptr_array(beta_ptr_array) {
+		}
+
+		CUTLASS_HOST_DEVICE Params(ElementCompute const* const* alpha_ptr_array)
+			: alpha(0), beta(0), alpha_ptr(nullptr), beta_ptr(nullptr), alpha_ptr_array(alpha_ptr_array), beta_ptr_array(nullptr) {
+		}
+	};
+
+  private:
+	ElementCompute alpha_;
+	ElementCompute beta_;
+
+  public:
+	CUTLASS_HOST_DEVICE explicit LinearCombination(Params const& params, int group_idx) {
+		if (params.alpha_ptr_array != nullptr && params.alpha_ptr_array[group_idx] != nullptr) {
+			alpha_ = *(params.alpha_ptr_array[group_idx]);
+		} else if (params.alpha_ptr != nullptr) {
+			alpha_ = *params.alpha_ptr;
+		} else {
+			alpha_ = params.alpha;
+		}
+		if (params.beta_ptr_array != nullptr && params.beta_ptr_array[group_idx] != nullptr) {
+			beta_ = *(params.beta_ptr_array[group_idx]);
+		} else if (params.beta_ptr != nullptr) {
+			beta_ = *params.beta_ptr;
+		} else {
+			beta_ = params.beta;
+		}
+	}
+
+	CUTLASS_HOST_DEVICE explicit LinearCombination(const Params& params) : LinearCombination(params, 0) {
+	}
+
+	CUTLASS_HOST_DEVICE bool is_source_needed() const {
+		if (Scale == ScaleType::NoBetaScaling)
+			return true;
+
+		if (Scale == ScaleType::OnlyAlphaScaling)
+			return false;
+
+		if (Scale == ScaleType::Nothing)
+			return false;
+
+		return beta_ != ElementCompute(0);
+	}
+
+	CUTLASS_HOST_DEVICE void set_k_partition(int k_partition, int k_partition_count) {
+		if (k_partition) {
+			beta_ = ElementCompute(1);
+		}
+	}
+
+	CUTLASS_HOST_DEVICE FragmentOutput operator()(FragmentAccumulator const& accumulator, FragmentSource const& source) const {
+		NumericArrayConverter<ElementCompute, ElementSource, kCount, Round> source_converter;
+		NumericArrayConverter<ElementCompute, ElementAccumulator, kCount, Round> accumulator_converter;
+
+		NumericArrayConverter<ElementOutput, ElementCompute, kCount, Round> destination_converter;
+
+		FragmentCompute converted_source	  = source_converter(source);
+		FragmentCompute converted_accumulator = accumulator_converter(accumulator);
+
+		if (Scale == ScaleType::Nothing)
+			return destination_converter(converted_accumulator);
+
+		FragmentCompute intermediate;
+
+		multiplies<FragmentCompute> mul_add_source;
+		multiply_add<FragmentCompute> mul_add_accumulator;
+
+		if (Scale == ScaleType::NoBetaScaling)
+			intermediate = converted_source;
+		else
+			intermediate = mul_add_source(beta_, converted_source);
+		intermediate = mul_add_accumulator(alpha_, converted_accumulator, intermediate);
+		return destination_converter(intermediate);
+	}
+
+	CUTLASS_HOST_DEVICE FragmentOutput operator()(FragmentAccumulator const& accumulator) const {
+		NumericArrayConverter<ElementCompute, ElementAccumulator, kCount, Round> accumulator_converter;
+
+		NumericArrayConverter<ElementOutput, ElementCompute, kCount, Round> destination_converter;
+
+		FragmentCompute converted_accumulator = accumulator_converter(accumulator);
+
+		if (Scale == ScaleType::Nothing)
+			return destination_converter(converted_accumulator);
+
+		FragmentCompute intermediate;
+		multiplies<FragmentCompute> mul_accumulator;
+
+		intermediate = mul_accumulator(alpha_, converted_accumulator);
+		return destination_converter(intermediate);
+	}
+
+	CUTLASS_HOST_DEVICE ElementD operator()(ElementAccumulator const accumulator, ElementC const source) const {
+		NumericConverter<ElementCompute, ElementAccumulator, Round> accumulator_converter;
+		[[maybe_unused]] NumericConverter<ElementCompute, ElementC, Round> source_converter;
+		NumericConverter<ElementD, ElementCompute, Round> destination_converter;
+
+
+		ElementCompute converted_accumulator = accumulator_converter(accumulator);
+		if constexpr (Scale == ScaleType::Nothing) {
+			return destination_converter(converted_accumulator);
+		}
+
+		ElementCompute intermediate;
+		multiplies<ElementCompute> multiply;
+		multiply_add<ElementCompute> madd;
+
+		if constexpr (Scale == ScaleType::NoBetaScaling) {
+			intermediate = source_converter(source);
+		} else {
+			intermediate = multiply(beta_, source);
+		}
+
+		intermediate = madd(alpha_, converted_accumulator, intermediate);
+		return destination_converter(intermediate);
+	}
+
+	CUTLASS_HOST_DEVICE ElementD operator()(ElementAccumulator const accumulator) const {
+		NumericConverter<ElementCompute, ElementAccumulator, Round> accumulator_converter;
+		NumericConverter<ElementD, ElementCompute, Round> destination_converter;
+		ElementCompute converted_accumulator = accumulator_converter(accumulator);
+
+		if constexpr (Scale == ScaleType::Nothing) {
+			return destination_converter(converted_accumulator);
+		}
+
+		ElementCompute intermediate;
+		multiplies<ElementCompute> multiply;
+
+		intermediate = multiply(alpha_, accumulator);
+		return destination_converter(intermediate);
+	}
+};
+
+CUTLASS_DEVICE
+int RematerializeThreadIdxX() {
+	return threadIdx.x;
+}
+
+CUTLASS_DEVICE
+int RematerializeThreadIdxY() {
+	return threadIdx.y;
+}
+
+CUTLASS_DEVICE
+int RematerializeThreadIdxZ() {
+	return threadIdx.z;
+}
+
+CUTLASS_DEVICE
+int RematerializeBlockIdxX() {
+	return blockIdx.x;
+}
+
+CUTLASS_DEVICE
+int RematerializeBlockIdxY() {
+	return blockIdx.y;
+}
+
+CUTLASS_DEVICE
+int RematerializeBlockIdxZ() {
+	return blockIdx.z;
+}
+
+CUTLASS_DEVICE
+int RematerializeBlockDimX() {
+	return blockDim.x;
+}
+
+CUTLASS_DEVICE
+int RematerializeBlockDimY() {
+	return blockDim.y;
+}
+
+CUTLASS_DEVICE
+int RematerializeBlockDimZ() {
+	return blockDim.z;
+}
+
+template<typename OperatorClass, typename ArchTag, typename ElementA, typename ElementB, typename ElementC, typename ElementAccumulator> struct DefaultGemmConfiguration;
+
+template<typename ArchTag, typename ElementA, typename ElementB, typename ElementC, typename ElementAccumulator>
+struct DefaultGemmConfiguration<OpClassSimt, ArchTag, ElementA, ElementB, ElementC, ElementAccumulator> {
+	static constexpr int kAlignmentA = 1;
+	static constexpr int kAlignmentB = 1;
+	using ThreadblockShape			 = GemmShape<128, 128, 8>;
+	using WarpShape					 = GemmShape<32, 64, 8>;
+	using InstructionShape			 = GemmShape<1, 1, 1>;
+	static constexpr int kStages	 = 2;
+
+	using EpilogueOutputOp = LinearCombination<ElementC, 1, ElementAccumulator, ElementAccumulator>;
+
+	using Operator = OpMultiplyAdd;
+};
+
+struct Sm120 {
+	static constexpr int kMinComputeCapability = 120;
+};
+
+template<int N = 1> struct GemmIdentityThreadblockSwizzle {
+	CUTLASS_HOST_DEVICE GemmIdentityThreadblockSwizzle() {
+	}
+
+	CUTLASS_HOST_DEVICE static GemmCoord get_tiled_shape(GemmCoord problem_size, GemmCoord tile_size, int split_k_slices) {
+		return GemmCoord((problem_size.m() + tile_size.m() - 1) / tile_size.m(), (problem_size.n() + tile_size.n() - 1) / tile_size.n(), split_k_slices);
+	}
+
+	CUTLASS_HOST_DEVICE static dim3 get_grid_shape(GemmCoord tiled_shape) {
+		int tile = 1 << get_log_tile(tiled_shape);
+		return dim3(tiled_shape.m() * tile, (tiled_shape.n() + tile - 1) / tile, tiled_shape.k());
+	}
+
+	CUTLASS_HOST_DEVICE static int get_log_tile(GemmCoord tiled_shape) {
+		auto n = tiled_shape.n();
+		if (N >= 8 && n >= 6)
+			return 3;
+		else if (N >= 4 && n >= 3)
+			return 2;
+		else if (N >= 2 && n >= 2)
+			return 1;
+		else
+			return 0;
+	}
+
+	CUTLASS_DEVICE
+	static GemmCoord get_tile_offset(int log_tile) {
+		int block_idx_x = RematerializeBlockIdxX();
+		int block_idx_y = RematerializeBlockIdxY();
+		int block_idx_z = RematerializeBlockIdxZ();
+
+		return GemmCoord{ (block_idx_x >> log_tile), (block_idx_y << log_tile) + ((block_idx_x) & ((1 << (log_tile)) - 1)), block_idx_z };
+	}
+
+	CUTLASS_DEVICE
+	static GemmCoord get_tile_offset(GemmCoord tiled_shape) {
+		int const kTile = N;
+		int block_idx_x = RematerializeBlockIdxX();
+		int block_idx_y = RematerializeBlockIdxY();
+
+		if ((tiled_shape.m() < kTile) || (tiled_shape.n() < kTile))
+			return GemmCoord{ block_idx_x, block_idx_y, RematerializeBlockIdxZ() };
+
+		return GemmCoord{ (block_idx_x / kTile), (block_idx_y * kTile) + (block_idx_x % kTile), RematerializeBlockIdxZ() };
+	}
+};
+
+struct MatrixCoord : public Coord<2, int> {
+  public:
+	using Index = int;
+
+	using Base = Coord<2, Index>;
+
+	using LongIndex = typename Base::LongIndex;
+
+  private:
+	static constexpr int kRow = 0;
+
+	static constexpr int kColumn = 1;
+
+  public:
+	CUTLASS_HOST_DEVICE MatrixCoord() {
+	}
+
+	CUTLASS_HOST_DEVICE MatrixCoord(Coord<2, Index> const& coord) : Base(coord) {
+	}
+
+	CUTLASS_HOST_DEVICE MatrixCoord(Index row, Index column) : Base(make_Coord(row, column)) {
+	}
+
+	CUTLASS_HOST_DEVICE MatrixCoord(LongIndex row, LongIndex column) : Base(make_Coord(Index(row), Index(column))) {
+	}
+
+	CUTLASS_HOST_DEVICE Index const& row() const {
+		return this->at(kRow);
+	}
+
+	CUTLASS_HOST_DEVICE Index& row() {
+		return this->at(kRow);
+	}
+
+	CUTLASS_HOST_DEVICE Index const& column() const {
+		return this->at(kColumn);
+	}
+
+	CUTLASS_HOST_DEVICE Index& column() {
+		return this->at(kColumn);
+	}
+
+	CUTLASS_HOST_DEVICE MatrixCoord operator+(Base const& b) const {
+		return MatrixCoord(Base::operator+(b));
+	}
+
+	CUTLASS_HOST_DEVICE MatrixCoord operator-(Base const& b) const {
+		return MatrixCoord(Base::operator-(b));
+	}
+
+	CUTLASS_HOST_DEVICE MatrixCoord operator*(Base const& b) const {
+		return MatrixCoord(Base::operator*(b));
+	}
+
+	CUTLASS_HOST_DEVICE MatrixCoord operator/(Base const& b) const {
+		return MatrixCoord(Base::operator/(b));
+	}
+
+	CUTLASS_HOST_DEVICE MatrixCoord& operator+=(Base const& b) {
+		Base::operator+=(b);
+		return *this;
+	}
+
+	CUTLASS_HOST_DEVICE MatrixCoord& operator-=(Base const& b) {
+		Base::operator-=(b);
+		return *this;
+	}
+
+	CUTLASS_HOST_DEVICE MatrixCoord& operator*=(Base const& b) {
+		Base::operator*=(b);
+		return *this;
+	}
+
+	CUTLASS_HOST_DEVICE MatrixCoord& operator/=(Base const& b) {
+		Base::operator/=(b);
+		return *this;
+	}
+};
+
+template<int Contiguous, int Strided> struct PitchLinearShape {
+	static constexpr int kContiguous = Contiguous;
+	static constexpr int kStrided	 = Strided;
+	static constexpr int kCount		 = Contiguous * Strided;
+};
+
+
+struct PitchLinearCoord : public Coord<2, int> {
+  public:
+	using Index = int;
+
+	using Base = Coord<2, Index>;
+
+	using LongIndex = typename Base::LongIndex;
+
+  private:
+	static constexpr int kContiguous = 0;
+
+	static constexpr int kStrided = 1;
+
+  public:
+	CUTLASS_HOST_DEVICE PitchLinearCoord() {
+	}
+
+	CUTLASS_HOST_DEVICE PitchLinearCoord(Coord<2, Index> const& coord) : Base(coord) {
+	}
+
+	CUTLASS_HOST_DEVICE PitchLinearCoord(Index contiguous_, Index strided_) : Base(make_Coord(contiguous_, strided_)) {
+	}
+
+	CUTLASS_HOST_DEVICE PitchLinearCoord(LongIndex contiguous_, LongIndex strided_) : Base(make_Coord(Index(contiguous_), Index(strided_))) {
+	}
+
+	CUTLASS_HOST_DEVICE Index const& contiguous() const {
+		return this->at(kContiguous);
+	}
+
+	CUTLASS_HOST_DEVICE Index& contiguous() {
+		return this->at(kContiguous);
+	}
+
+	CUTLASS_HOST_DEVICE Index const& strided() const {
+		return this->at(kStrided);
+	}
+
+	CUTLASS_HOST_DEVICE Index& strided() {
+		return this->at(kStrided);
+	}
+
+	CUTLASS_HOST_DEVICE PitchLinearCoord operator+(Base const& b) const {
+		return PitchLinearCoord(Base::operator+(b));
+	}
+
+	CUTLASS_HOST_DEVICE PitchLinearCoord operator-(Base const& b) const {
+		return PitchLinearCoord(Base::operator-(b));
+	}
+
+	CUTLASS_HOST_DEVICE PitchLinearCoord operator-() const {
+		return PitchLinearCoord(-at(0), -at(1));
+	}
+
+	CUTLASS_HOST_DEVICE PitchLinearCoord operator*(Base const& b) const {
+		return PitchLinearCoord(Base::operator*(b));
+	}
+
+	CUTLASS_HOST_DEVICE PitchLinearCoord operator/(Base const& b) const {
+		return PitchLinearCoord(Base::operator/(b));
+	}
+
+	CUTLASS_HOST_DEVICE PitchLinearCoord& operator+=(Base const& b) {
+		Base::operator+=(b);
+		return *this;
+	}
+
+	CUTLASS_HOST_DEVICE PitchLinearCoord& operator-=(Base const& b) {
+		Base::operator-=(b);
+		return *this;
+	}
+
+	CUTLASS_HOST_DEVICE PitchLinearCoord& operator*=(Base const& b) {
+		Base::operator*=(b);
+		return *this;
+	}
+
+	CUTLASS_HOST_DEVICE PitchLinearCoord& operator/=(Base const& b) {
+		Base::operator/=(b);
+		return *this;
+	}
+};
+
+class PermuteBase {
+  public:
+	using Index = int32_t;
+
+	using LongIndex = int64_t;
+};
+
+class NoPermute : public PermuteBase {
+  public:
+	CUTLASS_HOST_DEVICE NoPermute(MatrixCoord extent, Index stride) {};
+
+	CUTLASS_HOST_DEVICE NoPermute(PitchLinearCoord extent, Index stride) {};
+
+	CUTLASS_HOST_DEVICE LongIndex operator()(MatrixCoord coord) const {
+		return 0;
+	}
+	CUTLASS_HOST_DEVICE LongIndex operator()(PitchLinearCoord coord) const {
+		return 0;
+	}
+};
+
+template<typename Permute> struct InversePermute {
+	static_assert(!std::is_same<Permute, Permute>::value,
+		"To apply permutation to a GEMM input operand (A or B), an inverse permutation for the desired "
+		"permute class must be defined and enabled by specializing cutlass::layout::InversePermute trait.");
+};
+
+template<> struct InversePermute<NoPermute> {
+	using type = NoPermute;
+};
+
+template<typename Permute> inline bool constexpr is_trivial_permute = std::is_same<Permute, NoPermute>::value;
+
+template<int D1, int D2> class Tensor4DPermute0213RowMajor : public PermuteBase {
+  private:
+	Index D3_;
+
+	Index stride_;
+
+  public:
+	CUTLASS_HOST_DEVICE Tensor4DPermute0213RowMajor(MatrixCoord extent, Index stride) {
+		assert(extent.row() % D1 == 0);
+		assert(extent.column() % D2 == 0);
+
+		D3_ = extent.column() / D2;
+
+		stride_ = stride * D1 / D2;
+	}
+
+	CUTLASS_HOST_DEVICE Tensor4DPermute0213RowMajor(PitchLinearCoord extent, Index stride)
+		: Tensor4DPermute0213RowMajor(MatrixCoord(extent.strided(), extent.contiguous()), stride) {
+	}
+
+	CUTLASS_HOST_DEVICE LongIndex operator()(MatrixCoord coord) const {
+		Index l = coord.column() % D3_;
+		Index k = coord.column() / D3_;
+		Index j = coord.row() % D1;
+		Index i = coord.row() / D1;
+
+		MatrixCoord permuted{ k + i * D2, l + j * D3_ };
+
+		return LongIndex(permuted.row()) * LongIndex(stride_) + LongIndex(permuted.column());
+	}
+
+	CUTLASS_HOST_DEVICE LongIndex operator()(PitchLinearCoord coord) const {
+		return operator()(MatrixCoord(coord.strided(), coord.contiguous()));
+	}
+};
+
+template<typename Element_,/// CUTLASS numeric element type.
+	typename Storage_ = uint8_t,/// Underlying storage type. Must be able to hold an integer
+	///   number of objects of type Element.
+	class = void>
+class ConstSubbyteReference {
+  public:
+	using Element		 = Element_;
+	using Storage		 = Storage_;
+	using StoragePointer = Storage const*;
+
+	static_assert(sizeof_bits<Element>::value <= sizeof_bits<Storage>::value, "Size of Element must not be greater than Storage.");
+
+	static_assert(!(sizeof_bits<Storage>::value % sizeof_bits<Element>::value), "Storage must be divisible by Element");
+
+  private:
+	///! Number of elements per storage vector
+	int const kElementsPerVector = sizeof_bits<Storage>::value / sizeof_bits<Element>::value;
+
+	///! Bit mask
+	Storage const kMask = ((sizeof_bits<Element>::value < sizeof_bits<Storage>::value) ? (Storage(1) << sizeof_bits<Element>::value) - Storage(1) : ~Storage(0));
+
+  private:
+	/// Pointer to array containing element
+	StoragePointer ptr_;
+
+	/// Offset (in units of elements) from pointer.
+	///
+	/// Invariant: must always be in range [0, kElementsPerVector)
+	int offset_;
+
+  public:
+	CUTLASS_HOST_DEVICE
+	ConstSubbyteReference() : ptr_(nullptr), offset_(0) {
+	}
+
+	/// Constructor
+	CUTLASS_HOST_DEVICE
+	ConstSubbyteReference(Element const* ptr,/// pointer to memory
+		int64_t offset/// logical offset in units of Element
+		)
+		: ptr_(reinterpret_cast<StoragePointer>(ptr)), offset_(0) {
+		int64_t offset_in_vectors  = offset / kElementsPerVector;
+		int64_t offset_in_elements = offset % kElementsPerVector;
+
+		ptr_ += offset_in_vectors;
+		offset_ = int(offset_in_elements);
+	}
+
+	/// Constructor
+	CUTLASS_HOST_DEVICE
+	ConstSubbyteReference(Element* ptr = nullptr) : ConstSubbyteReference(ptr, 0) {
+	}
+
+	/// Gets storage pointer
+	CUTLASS_HOST_DEVICE
+	StoragePointer storage_pointer() const {
+		return ptr_;
+	}
+
+	/// Gets element offset within storage vector
+	CUTLASS_HOST_DEVICE
+	int element_offset() const {
+		return offset_;
+	}
+
+	/// Unpacks an element from memory
+	CUTLASS_HOST_DEVICE
+	Element get() const {
+		Storage item = Storage((*ptr_ >> (offset_ * sizeof_bits<Element>::value)) & kMask);
+		return reinterpret_cast<Element const&>(item);
+	}
+
+	/// Unpacks an element from memory
+	CUTLASS_HOST_DEVICE
+	operator Element() const {
+		return get();
+	}
+
+	/// Adds an offset in units of elements to the reference
+	CUTLASS_HOST_DEVICE
+	ConstSubbyteReference& operator+=(int offset) {
+		offset += offset_;
+
+		int offset_in_vectors  = offset / kElementsPerVector;
+		int offset_in_elements = offset % kElementsPerVector;
+
+		ptr_ += offset_in_vectors;
+		offset_ = offset_in_elements;
+
+		return *this;
+	}
+
+	/// Adds an offset in units of elements to the reference
+	CUTLASS_HOST_DEVICE
+	ConstSubbyteReference& operator+=(long long offset) {
+		offset += offset_;
+
+		long long offset_in_vectors = offset / kElementsPerVector;
+		int offset_in_elements		= int(offset % kElementsPerVector);
+
+		ptr_ += offset_in_vectors;
+		offset_ = offset_in_elements;
+
+		return *this;
+	}
+
+	/// Adds an offset in units of elements to the reference
+	CUTLASS_HOST_DEVICE
+	ConstSubbyteReference& operator-=(int offset) {
+		int offset_in_vectors  = offset / kElementsPerVector;
+		int offset_in_elements = offset % kElementsPerVector;
+
+		ptr_ -= offset_in_vectors;
+		offset_ -= offset_in_elements;
+
+		if (offset_ < 0) {
+			offset_ += kElementsPerVector;
+			--ptr_;
+		}
+
+		return *this;
+	}
+
+	/// Adds an offset in units of elements to the reference
+	CUTLASS_HOST_DEVICE
+	ConstSubbyteReference& operator-=(long long offset) {
+		long long offset_in_vectors = offset / kElementsPerVector;
+		int offset_in_elements		= int(offset % kElementsPerVector);
+
+		ptr_ -= offset_in_vectors;
+		offset_ -= offset_in_elements;
+
+		if (offset_ < 0) {
+			offset_ += kElementsPerVector;
+			--ptr_;
+		}
+
+		return *this;
+	}
+
+	/// Returns a reference to an element with a given offset from the current reference
+	CUTLASS_HOST_DEVICE
+	ConstSubbyteReference operator+(int offset) const {
+		ConstSubbyteReference ref(ptr_, offset_);
+		ref += offset;
+
+		return ref;
+	}
+
+	/// Returns a reference to an element with a given offset from the current reference
+	CUTLASS_HOST_DEVICE
+	ConstSubbyteReference operator+(long long offset) const {
+		ConstSubbyteReference ref(ptr_, offset_);
+		ref += offset;
+
+		return ref;
+	}
+
+	/// Returns a reference to an element with a given offset from the current reference
+	CUTLASS_HOST_DEVICE
+	ConstSubbyteReference operator-(int offset) const {
+		ConstSubbyteReference ref(ptr_, offset_);
+		ref -= offset;
+
+		return ref;
+	}
+
+	/// Returns a reference to an element with a given offset from the current reference
+	CUTLASS_HOST_DEVICE
+	ConstSubbyteReference operator-=(long long offset) const {
+		ConstSubbyteReference ref(ptr_, offset_);
+		ref -= offset;
+
+		return ref;
+	}
+
+	/// Computes the difference in elements between references
+	CUTLASS_HOST_DEVICE
+	ptrdiff_t operator-(ConstSubbyteReference ref) const {
+		return (ptr_ - ref.ptr_) * kElementsPerVector + (offset_ - ref.offset_);
+	}
+
+	/// Explicit cast to int
+	CUTLASS_HOST_DEVICE
+	explicit operator int() const {
+		return int(get());
+	}
+
+	/// Explicit cast to signed 64-bit integer
+	CUTLASS_HOST_DEVICE
+	explicit operator int64_t() const {
+		return int64_t(get());
+	}
+
+	/// Explicit cast to unsigned 64-bit integer
+	CUTLASS_HOST_DEVICE
+	explicit operator uint64_t() const {
+		return uint64_t(get());
+	}
+
+	/// Explicit cast to float
+	CUTLASS_HOST_DEVICE
+	explicit operator float() const {
+		return float(get());
+	}
+
+	/// Explicit cast to double
+	CUTLASS_HOST_DEVICE
+	explicit operator double() const {
+		return double(get());
+	}
+};
+
+template<typename Element, bool subbyte = (sizeof_bits<Element>::value < 8)> struct ReferenceFactory;
+
+template<typename Element> struct ReferenceFactory<Element, false> {
+	///! Number of elements per storage vector
+	static constexpr int kElementsPerVector = 1;
+
+	CUTLASS_HOST_DEVICE
+	static Element& get(Element* ptr, int64_t offset) {
+		return ptr[offset];
+	}
+
+	CUTLASS_HOST_DEVICE
+	static constexpr const Element& get(Element const* ptr, int64_t offset) {
+		return ptr[offset];
+	}
+
+	CUTLASS_HOST_DEVICE
+	static Element* add_pointer_offset(Element* ptr, int64_t offset) {
+		return ptr + offset;
+	}
+
+	CUTLASS_HOST_DEVICE
+	static constexpr Element* add_pointer_offset(Element const* ptr, int64_t offset) {
+		return ptr + offset;
+	}
+};
+
+template<typename Element_,/// CUTLASS numeric element type.
+	typename Storage_ =/// Underlying storage type. Must be able to hold an integer
+///   number of objects of type Element.
+#if defined(__CUDA_ARCH__)/// Default size depends on width of atomicCas() overloads.
+	#if (__CUDA_ARCH__ >= 700)///
+	uint16_t
+	#else
+	uint32_t
+	#endif
+#else
+	uint8_t
+#endif
+	,
+	class = void>
+class SubbyteReference {
+  public:
+	using Element		 = Element_;
+	using Storage		 = Storage_;
+	using StoragePointer = Storage*;
+
+	static_assert(sizeof_bits<Element>::value <= sizeof_bits<Storage>::value, "Size of Element must not be greater than Storage.");
+
+	static_assert(!(sizeof_bits<Storage>::value % sizeof_bits<Element>::value), "Storage must be divisible by Element");
+
+  private:
+	///! Number of elements per storage vector
+	int const kElementsPerVector = sizeof_bits<Storage>::value / sizeof_bits<Element>::value;
+
+	///! Bit mask
+	Storage const kMask = ((sizeof_bits<Element>::value < sizeof_bits<Storage>::value) ? (Storage(1) << sizeof_bits<Element>::value) - Storage(1) : ~Storage(0));
+
+  private:
+	/// Pointer to array containing element
+	StoragePointer ptr_;
+
+	/// Offset (in units of elements) from pointer.
+	///
+	/// Invariant: must always be in range [0, kElementsPerVector)
+	int offset_;
+
+  public:
+	CUTLASS_HOST_DEVICE
+	SubbyteReference() : ptr_(nullptr), offset_(0) {
+	}
+
+	/// Constructor
+	CUTLASS_HOST_DEVICE
+	SubbyteReference(Element* ptr,/// pointer to memory
+		int64_t offset/// logical offset in units of Element
+		)
+		: ptr_(reinterpret_cast<StoragePointer>(ptr)), offset_(0) {
+		int64_t offset_in_vectors  = offset / kElementsPerVector;
+		int64_t offset_in_elements = offset % kElementsPerVector;
+
+		ptr_ += offset_in_vectors;
+		offset_ = int(offset_in_elements);
+	}
+
+	/// Constructor
+	CUTLASS_HOST_DEVICE
+	SubbyteReference(Element* ptr = nullptr) : SubbyteReference(ptr, 0) {
+	}
+
+	/// Gets storage pointer
+	CUTLASS_HOST_DEVICE
+	StoragePointer storage_pointer() const {
+		return ptr_;
+	}
+
+	/// Gets storage pointer
+	CUTLASS_HOST_DEVICE
+	Element* operator&() const {
+		return reinterpret_cast<Element*>(ptr_);
+	}
+
+	/// Gets element offset within storage vector
+	CUTLASS_HOST_DEVICE
+	int element_offset() const {
+		return offset_;
+	}
+
+	/// Unpacks an element from memory
+	CUTLASS_HOST_DEVICE
+	Element get() const {
+		uint8_t const* byte_ptr = reinterpret_cast<uint8_t const*>(ptr_);
+		// Convert offset in elements to offset in bytes
+		constexpr int elements_per_byte = sizeof_bits<uint8_t>::value / sizeof_bits<Element>::value;
+		byte_ptr += offset_ / elements_per_byte;
+		// Offset of element within a byte
+		int byte_offset = offset_ % elements_per_byte;
+		uint8_t item	= uint8_t((*byte_ptr >> (byte_offset * sizeof_bits<Element>::value)) & kMask);
+		return reinterpret_cast<Element const&>(item);
+	}
+
+	/// Stores an element to memory
+	CUTLASS_HOST_DEVICE
+	SubbyteReference& set(Element const& x) {
+		Storage item		= (reinterpret_cast<Storage const&>(x) & kMask);
+		Storage kUpdateMask = Storage(~(kMask << (offset_ * sizeof_bits<Element>::value)));
+		Storage new_bits	= Storage(item << (offset_ * sizeof_bits<Element>::value));
+
+#if defined(__CUDA_ARCH__)
+
+		//
+		// Homebrew read-modify-write
+		//
+		Storage original;
+		Storage updated;
+
+		do {
+			original = (*ptr_);
+
+			updated = Storage((original & kUpdateMask) | new_bits);
+
+			original = atomicCAS(ptr_, original, updated);
+
+		} while (updated != original);
+
+#else
+
+		Storage original = (*ptr_);
+		Storage updated	 = Storage((original & kUpdateMask) | new_bits);
+		*ptr_			 = updated;
+
+#endif
+
+		return *this;
+	}
+
+	////
+
+	/// Unpacks an element from memory
+	CUTLASS_HOST_DEVICE
+	operator Element() const {
+		return get();
+	}
+
+	/// Stores an element to memory
+	CUTLASS_HOST_DEVICE
+	SubbyteReference& operator=(Element const& x) {
+		return set(x);
+	}
+
+	/// Stores an element to memory
+	CUTLASS_HOST_DEVICE
+	SubbyteReference& operator=(SubbyteReference const& x) {
+		return set(x.get());
+	}
+
+	/// Stores an element to memory
+	CUTLASS_HOST_DEVICE
+	SubbyteReference& operator=(ConstSubbyteReference<Element, Storage> const& x) {
+		return set(x.get());
+	}
+
+	/// Adds an offset in units of elements to the reference
+	CUTLASS_HOST_DEVICE
+	SubbyteReference& operator+=(int offset) {
+		offset += offset_;
+
+		int offset_in_vectors  = offset / kElementsPerVector;
+		int offset_in_elements = offset % kElementsPerVector;
+
+		ptr_ += offset_in_vectors;
+		offset_ = offset_in_elements;
+
+		return *this;
+	}
+
+	/// Adds an offset in units of elements to the reference
+	CUTLASS_HOST_DEVICE
+	SubbyteReference& operator+=(long long offset) {
+		offset += offset_;
+
+		long long offset_in_vectors = offset / kElementsPerVector;
+		int offset_in_elements		= int(offset % kElementsPerVector);
+
+		ptr_ += offset_in_vectors;
+		offset_ = offset_in_elements;
+
+		return *this;
+	}
+
+	/// Adds an offset in units of elements to the reference
+	CUTLASS_HOST_DEVICE
+	SubbyteReference& operator-=(int offset) {
+		int offset_in_vectors  = offset / kElementsPerVector;
+		int offset_in_elements = offset % kElementsPerVector;
+
+		ptr_ -= offset_in_vectors;
+		offset_ -= offset_in_elements;
+
+		if (offset_ < 0) {
+			offset_ += kElementsPerVector;
+			--ptr_;
+		}
+
+		return *this;
+	}
+
+	/// Adds an offset in units of elements to the reference
+	CUTLASS_HOST_DEVICE
+	SubbyteReference& operator-=(long long offset) {
+		long long offset_in_vectors = offset / kElementsPerVector;
+		int offset_in_elements		= int(offset % kElementsPerVector);
+
+		ptr_ -= offset_in_vectors;
+		offset_ -= offset_in_elements;
+
+		if (offset_ < 0) {
+			offset_ += kElementsPerVector;
+			--ptr_;
+		}
+
+		return *this;
+	}
+
+	/// Returns a reference to an element with a given offset from the current reference
+	CUTLASS_HOST_DEVICE
+	SubbyteReference operator+(int offset) const {
+		SubbyteReference ref(ptr_, offset_);
+		ref += offset;
+
+		return ref;
+	}
+
+	/// Returns a reference to an element with a given offset from the current reference
+	CUTLASS_HOST_DEVICE
+	SubbyteReference operator+(long long offset) const {
+		SubbyteReference ref(ptr_, offset_);
+		ref += offset;
+
+		return ref;
+	}
+
+	/// Returns a reference to an element with a given offset from the current reference
+	CUTLASS_HOST_DEVICE
+	SubbyteReference operator-(int offset) const {
+		SubbyteReference ref(ptr_, offset_);
+		ref -= offset;
+
+		return ref;
+	}
+
+	/// Returns a reference to an element with a given offset from the current reference
+	CUTLASS_HOST_DEVICE
+	SubbyteReference operator-=(long long offset) const {
+		SubbyteReference ref(ptr_, offset_);
+		ref -= offset;
+
+		return ref;
+	}
+
+	/// Computes the difference in elements between references
+	CUTLASS_HOST_DEVICE
+	ptrdiff_t operator-(SubbyteReference ref) const {
+		return (ptr_ - ref.ptr_) * kElementsPerVector + (offset_ - ref.offset_);
+	}
+
+	/// Explicit cast to int
+	CUTLASS_HOST_DEVICE
+	explicit operator int() const {
+		return int(get());
+	}
+
+	/// Explicit cast to signed 64-bit integer
+	CUTLASS_HOST_DEVICE
+	explicit operator int64_t() const {
+		return int64_t(get());
+	}
+
+	/// Explicit cast to unsigned 64-bit integer
+	CUTLASS_HOST_DEVICE
+	explicit operator uint64_t() const {
+		return uint64_t(get());
+	}
+
+	/// Explicit cast to float
+	CUTLASS_HOST_DEVICE
+	explicit operator float() const {
+		return float(get());
+	}
+
+	/// Explicit cast to double
+	CUTLASS_HOST_DEVICE
+	explicit operator double() const {
+		return double(get());
+	}
+};
+
+template<
+	/// Data type of element stored within tensor (concept: NumericType)
+	typename Element_,
+	/// Defines a mapping from logical coordinate to linear memory (concept: Layout)
+	typename Layout_>
+class TensorRef {
+  public:
+	/// Data type of individual access
+	using Element = Element_;
+
+	/// Mapping function from logical coordinate to linear memory
+	using Layout = Layout_;
+
+	/// Reference type to an element
+	using Reference = typename std::conditional<sizeof_bits<Element>::value >= 8, Element&, SubbyteReference<Element>>::type;
+
+	/// Logical rank of tensor index space
+	static int const kRank = Layout::kRank;
+
+	/// Index type
+	using Index = typename Layout::Index;
+
+	/// Long index used for pointer offsets
+	using LongIndex = typename Layout::LongIndex;
+
+	/// Coordinate in logical tensor space
+	using TensorCoord = typename Layout::TensorCoord;
+
+	/// Layout's stride vector
+	using Stride = typename Layout::Stride;
+
+	/// TensorRef to constant data
+	using ConstTensorRef = TensorRef<typename std::remove_const<Element>::type const, Layout>;
+
+	/// TensorRef to non-constant data
+	using NonConstTensorRef = TensorRef<typename std::remove_const<Element>::type, Layout>;
+
+	/// Require at least rank=1. Mathematically, a rank=0 tensor would be considered to be a
+	/// scalar, but degenerate cases such as these are difficult to accommodate without
+	/// extensive C++ metaprogramming or support for zero-length arrays.
+	static_assert(kRank > 0, "Cannot define a zero-rank TensorRef");
+
+  private:
+	/// Pointer
+	Element* ptr_;
+
+	/// Layout object maps logical coordinates to linear offsets
+	Layout layout_;
+
+  public:
+	//
+	// Methods
+	//
+
+	/// Constructs a TensorRef with a pointer and layout object.
+	CUTLASS_HOST_DEVICE
+	TensorRef() : ptr_(nullptr) {
+	}
+
+	/// Constructs a TensorRef with a pointer and layout object.
+	CUTLASS_HOST_DEVICE
+	TensorRef(Element* ptr,///< pointer to start of tensor
+		Layout const& layout///< layout object containing stride and mapping function
+		)
+		: ptr_(ptr), layout_(layout) {
+	}
+
+	/// Converting constructor from TensorRef to non-constant data.
+	template<typename _Magic = int> CUTLASS_HOST_DEVICE TensorRef(NonConstTensorRef const& ref,///< TensorRef to non-const data
+		///SFINAE trick to avoid creating a copy-constructor when Element_ is already non-const
+		_Magic magic = ( typename std::enable_if<!std::is_same<NonConstTensorRef, TensorRef<Element_, Layout_>>::value, _Magic>::type )0)
+		: ptr_(ref.data()), layout_(ref.layout()) {
+	}
+
+	/// Returns a reference to constant-valued tensor.
+	CUTLASS_HOST_DEVICE
+	ConstTensorRef const_ref() const {
+		return ConstTensorRef(ptr_, layout_);
+	}
+
+	CUTLASS_HOST_DEVICE
+	NonConstTensorRef non_const_ref() const {
+		return NonConstTensorRef(const_cast<typename std::remove_const<Element>::type*>(ptr_), layout_);
+	}
+
+	/// Updates only the pointer
+	CUTLASS_HOST_DEVICE
+	void reset(Element* ptr = nullptr) {
+		ptr_ = ptr;
+	}
+
+	/// Updates the pointer and layout object
+	CUTLASS_HOST_DEVICE
+	void reset(Element* ptr, Layout const& layout) {
+		ptr_	= ptr;
+		layout_ = layout;
+	}
+
+	/// Returns true if the TensorRef is non-null
+	CUTLASS_HOST_DEVICE
+	bool good() const {
+		return ptr_ != nullptr;
+	}
+
+	/// Returns the pointer to referenced data
+	CUTLASS_HOST_DEVICE
+	Element* data() const {
+		return ptr_;
+	}
+
+	/// Returns a reference to the element at a given linear index
+	CUTLASS_HOST_DEVICE
+	Reference data(LongIndex idx) const {
+		return ReferenceFactory<typename std::remove_const<Element>::type, (sizeof_bits<Element>::value < 8)>::get(ptr_, idx);
+	}
+
+	/// Returns the layout object
+	CUTLASS_HOST_DEVICE
+	Layout& layout() {
+		return layout_;
+	}
+
+	/// Returns the layout object
+	CUTLASS_HOST_DEVICE
+	Layout layout() const {
+		return layout_;
+	}
+
+	/// Returns the layout object's stride vector
+	CUTLASS_HOST_DEVICE
+	Stride stride() const {
+		return layout_.stride();
+	}
+
+	/// Returns the layout object's stride vector
+	CUTLASS_HOST_DEVICE
+	Stride& stride() {
+		return layout_.stride();
+	}
+
+	/// Returns the layout object's stride in a given physical dimension
+	CUTLASS_HOST_DEVICE
+	typename Layout::Stride::Index stride(int dim) const {
+		return layout_.stride().at(dim);
+	}
+
+	/// Returns the layout object's stride in a given physical dimension
+	CUTLASS_HOST_DEVICE
+	typename Layout::Stride::Index& stride(int dim) {
+		return layout_.stride().at(dim);
+	}
+
+	/// Computes the offset of an index from the origin of the tensor
+	CUTLASS_HOST_DEVICE
+	LongIndex offset(TensorCoord const& coord) const {
+		return layout_(coord);
+	}
+
+	/// Returns a reference to the element at a given Coord
+	CUTLASS_HOST_DEVICE
+	Reference at(TensorCoord const& coord) const {
+		return data(offset(coord));
+	}
+
+	/// Returns a reference to the element at a given Coord
+	CUTLASS_HOST_DEVICE
+	Reference operator[](TensorCoord const& coord) const {
+		return data(offset(coord));
+	}
+
+	/// Adds an offset to each pointer
+	CUTLASS_HOST_DEVICE
+	TensorRef& add_pointer_offset(LongIndex offset_) {
+		ptr_ = ReferenceFactory<typename std::remove_const<Element>::type, (sizeof_bits<Element>::value < 8)>::add_pointer_offset(ptr_, offset_);
+		return *this;
+	}
+
+	/// Adds an offset to each pointer
+	CUTLASS_HOST_DEVICE
+	TensorRef& add_coord_offset(TensorCoord const& coord) {
+		add_pointer_offset(offset(coord));
+		return *this;
+	}
+
+	/// Returns a TensorRef offset by a given amount
+	CUTLASS_HOST_DEVICE
+	TensorRef operator+(TensorCoord const& b) const {
+		TensorRef result(*this);
+		result.add_coord_offset(b);
+		return result;
+	}
+
+	/// Returns a TensorRef offset by a given amount
+	CUTLASS_HOST_DEVICE
+	TensorRef& operator+=(TensorCoord const& b) {
+		add_coord_offset(b);
+		return *this;
+	}
+
+	/// Returns a TensorRef offset by a given amount
+	CUTLASS_HOST_DEVICE
+	TensorRef operator-(TensorCoord const& b) const {
+		TensorRef result(*this);
+		result.add_pointer_offset(-offset(b));
+		return result;
+	}
+
+	/// Returns a TensorRef offset by a given amount
+	CUTLASS_HOST_DEVICE
+	TensorRef& operator-=(TensorCoord const& b) {
+		add_pointer_offset(-offset(b));
+		return *this;
+	}
+};
+
+template<int M_, int K_, typename ElementA_, typename LayoutA_, typename ElementB_, typename LayoutB_, typename ElementC_, typename LayoutC_,
+	typename ElementAccumulator_ = ElementC_, typename OperatorClass_ = OpClassSimt, typename ArchTag_ = Sm120,
+	typename ThreadblockShape_	 = typename DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::ThreadblockShape,
+	typename WarpShape_			 = typename DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::WarpShape,
+	typename InstructionShape_	 = typename DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::InstructionShape,
+	typename EpilogueOutputOp_	 = typename DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::EpilogueOutputOp,
+	typename ThreadblockSwizzle_ = GemmIdentityThreadblockSwizzle<>,
+	int Stages					 = DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::kStages,
+	int AlignmentA				 = DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::kAlignmentA,
+	int AlignmentB = DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::kAlignmentB, bool SplitKSerial = false,
+	typename Operator_ = typename DefaultGemmConfiguration<OperatorClass_, ArchTag_, ElementA_, ElementB_, ElementC_, ElementAccumulator_>::Operator, bool GatherA = false,
+	bool GatherB = false, bool ScatterD = false, typename PermuteDLayout = NoPermute>
+class Gemm {
+  public:
+	static constexpr int kM				= M_;
+	static constexpr int kK				= K_;
+	using ElementA						= ElementA_;
+	using LayoutA						= LayoutA_;
+	using TensorRefA					= TensorRef<ElementA const, LayoutA>;
+	using ElementB						= ElementB_;
+	using LayoutB						= LayoutB_;
+	using TensorRefB					= TensorRef<ElementB const, LayoutB>;
+	using ElementC						= ElementC_;
+	using LayoutC						= LayoutC_;
+	using TensorRefC					= TensorRef<ElementC const, LayoutC>;
+	using TensorRefD					= TensorRef<ElementC, LayoutC>;
+	using ElementAccumulator			= ElementAccumulator_;
+	using OperatorClass					= OperatorClass_;
+	using ArchTag						= ArchTag_;
+	using ThreadblockShape				= ThreadblockShape_;
+	using WarpShape						= WarpShape_;
+	using InstructionShape				= InstructionShape_;
+	using EpilogueOutputOp				= EpilogueOutputOp_;
+	using ThreadblockSwizzle			= ThreadblockSwizzle_;
+	using Operator						= Operator_;
+	static constexpr int kStages		= Stages;
+	static constexpr int kAlignmentA	= AlignmentA;
+	static constexpr int kAlignmentB	= AlignmentB;
+	static constexpr int kAlignmentC	= EpilogueOutputOp::kCount;
+	static constexpr bool kSplitKSerial = SplitKSerial;
+	static constexpr int kTiledM		= (kM + ThreadblockShape::kM - 1) / ThreadblockShape::kM;
+	static constexpr int kTiledK		= (kK + ThreadblockShape::kK - 1) / ThreadblockShape::kK;
+	/*
+		using GemmKernel = typename kernel::DefaultGemm<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignmentB, ElementC, LayoutC, ElementAccumulator, OperatorClass, ArchTag,
+		ThreadblockShape, WarpShape, InstructionShape, EpilogueOutputOp, ThreadblockSwizzle, kStages, kSplitKSerial, Operator, SharedMemoryClearOption::kNone, GatherA, GatherB,
+		ScatterD, PermuteDLayout>::GemmKernel;
+
+		struct Arguments {
+						
+		int N;		TensorRef<ElementA const, LayoutA> ref_A;
+		TensorRef<ElementB const, LayoutB> ref_B;
+		TensorRef<ElementC const, LayoutC> ref_C;
+		TensorRef<ElementC, LayoutC> ref_D;
+		typename EpilogueOutputOp::Params epilogue;
+		int split_k_slices;
+				int const* gather_A_indices;
+		int const* gather_B_indices;
+		int const* scatter_D_indices;
+
+						
+				CUTLASS_HOST_DEVICE 		Arguments() : N(0), split_k_slices(1) {
+		}
+
+				CUTLASS_HOST_DEVICE 		Arguments(int N_, TensorRef<ElementA const, LayoutA> ref_A_, TensorRef<ElementB const, LayoutB> ref_B_, TensorRef<ElementC const, LayoutC> ref_C_,
+			TensorRef<ElementC, LayoutC> ref_D_, typename EpilogueOutputOp::Params epilogue_ = typename EpilogueOutputOp::Params(), int split_k_slices = 1,
+			int const* gather_A_indices_ = nullptr, int const* gather_B_indices_ = nullptr, int const* scatter_D_indices_ = nullptr)
+			: N(N_), ref_A(ref_A_), ref_B(ref_B_), ref_C(ref_C_), ref_D(ref_D_), epilogue(epilogue_), split_k_slices(split_k_slices), gather_A_indices(gather_A_indices_),
+			  gather_B_indices(gather_B_indices_), scatter_D_indices(scatter_D_indices_) {
+		}
+
+				CUTLASS_HOST_DEVICE 		GemmCoord problem_size() const {
+			return GemmCoord(kM, N, kK);
+		}
+	};
+
+  private:
+		typename GemmKernel::Params params_;
+
+  public:
+		Gemm() {
+	}
+
+		static Status can_implement(Arguments const& args) {
+		if (!kSplitKSerial && args.split_k_slices > 1) {
+			return Status::kErrorInvalidProblem;
+		}
+
+				GemmCoord problem_size(kM, args.N, kK);
+
+		Status status = GemmKernel::can_implement(problem_size, args.ref_A.non_const_ref(), args.ref_B.non_const_ref(), args.ref_C.non_const_ref(), args.ref_D);
+
+		if (status != Status::kSuccess) {
+			return status;
+		}
+
+		return Status::kSuccess;
+	}
+
+		static size_t get_workspace_size(Arguments const& args) {
+		size_t bytes = 0;
+
+				ThreadblockSwizzle threadblock_swizzle;
+
+				int tiled_n = (args.N + ThreadblockShape::kN - 1) / ThreadblockShape::kN;
+
+				if (kSplitKSerial && args.split_k_slices > 1) {
+						bytes += sizeof(int) * size_t(kTiledM) * size_t(tiled_n);
+		}
+
+		return bytes;
+	}
+
+		Status initialize(Arguments const& args, void* workspace = nullptr, cudaStream_t stream = nullptr) {
+				GemmCoord problem_size(kM, args.N, kK);
+
+				ThreadblockSwizzle threadblock_swizzle;
+
+		cutlass::gemm::GemmCoord grid_shape =
+			threadblock_swizzle.get_tiled_shape(problem_size, { ThreadblockShape::kM, ThreadblockShape::kN, ThreadblockShape::kK }, args.split_k_slices);
+
+		if (kSplitKSerial) {
+			if (args.split_k_slices > 1) {
+				if (!workspace) {
+					return Status::kErrorWorkspaceNull;
+				}
+
+				size_t bytes = get_workspace_size(args);
+
+				cudaError_t result = cudaMemsetAsync(workspace, 0, bytes, stream);
+
+				if (result != cudaSuccess) {
+					return Status::kErrorInternal;
+				}
+			}
+		} else {
+			if (args.split_k_slices > 1) {
+				return Status::kErrorInvalidProblem;
+			}
+		}
+
+				params_ = typename GemmKernel::Params{ problem_size, grid_shape, args.ref_A.non_const_ref(), args.ref_B.non_const_ref(), args.ref_C.non_const_ref(), args.ref_D,
+			args.epilogue, static_cast<int*>(workspace), args.gather_A_indices, args.gather_B_indices, args.scatter_D_indices };
+
+		return Status::kSuccess;
+	}
+
+		Status update(Arguments const& args, void* workspace = nullptr) {
+		if (kSplitKSerial && args.split_k_slices > 1) {
+			if (!workspace) {
+				return Status::kErrorWorkspaceNull;
+			}
+		}
+
+		params_.ref_A.reset(args.ref_A.non_const_ref().data());
+		params_.ref_B.reset(args.ref_B.non_const_ref().data());
+		params_.ref_C.reset(args.ref_C.non_const_ref().data());
+		params_.ref_D.reset(args.ref_D.data());
+		params_.output_op = args.epilogue;
+		params_.semaphore = static_cast<int*>(workspace);
+
+		return Status::kSuccess;
+	}
+
+		Status run(cudaStream_t stream = nullptr) {
+		ThreadblockSwizzle threadblock_swizzle;
+
+		dim3 grid = threadblock_swizzle.get_grid_shape(params_.grid_tiled_shape);
+		dim3 block(GemmKernel::kThreadCount, 1, 1);
+
+		cudaError_t result;
+
+		int smem_size = int(sizeof(typename GemmKernel::SharedStorage));
+
+		if (smem_size >= (48 << 10)) {
+			result = cudaFuncSetAttribute(Kernel<GemmKernel>, cudaFuncAttributeMaxDynamicSharedMemorySize, smem_size);
+
+			if (result != cudaSuccess) {
+				return Status::kErrorInternal;
+			}
+		}
+
+		cutlass::arch::synclog_setup();
+		cutlass::Kernel<GemmKernel><<<grid, block, smem_size, stream>>>(params_);
+
+		result = cudaGetLastError();
+
+		return result == cudaSuccess ? Status::kSuccess : Status::kErrorInternal;
+	}
+
+		Status operator()(cudaStream_t stream = nullptr) {
+		return run(stream);
+	}
+
+		Status operator()(Arguments const& args, void* workspace = nullptr, cudaStream_t stream = nullptr) {
+		Status status = initialize(args, workspace, stream);
+
+		if (status == Status::kSuccess) {
+			status = run(stream);
+		}
+
+		return status;
+	}*/
+};
 
 template<auto multiple, typename value_01_type = decltype(multiple)> BNCH_SWT_INLINE constexpr value_01_type round_up_to_multiple(value_01_type value) noexcept {
 	if constexpr ((multiple & (multiple - 1)) == 0) {
@@ -281,15 +2616,6 @@ template<uint64_t M, uint64_t K> struct reference_mul_mat_q8_0 {
 	}
 };
 
-#include <ggml.h>
-#include <ggml-backend.h>
-#include <ggml-cuda.h>
-#include <ggml-cpu.h>
-#include <ggml-alloc.h>
-#include <vector>
-#include <iostream>
-#include <memory>
-
 template<typename block_type>
 	requires(std::is_same_v<block_q8_0, block_type>)
 BNCH_SWT_INLINE constexpr size_t get_byte_size_from_element_count(size_t element_count) {
@@ -302,6 +2628,16 @@ template<typename block_type>
 BNCH_SWT_INLINE constexpr size_t get_byte_size_from_element_count(size_t element_count) {
 	return element_count * sizeof(block_type);
 }
+
+/*
+#include <ggml.h>
+#include <ggml-backend.h>
+#include <ggml-cuda.h>
+#include <ggml-cpu.h>
+#include <ggml-alloc.h>
+#include <vector>
+#include <iostream>
+#include <memory>
 
 static ggml_backend_t get_ggml_backend() {
 	static ggml_backend_t backend = nullptr;
@@ -418,7 +2754,7 @@ template<uint64_t M, uint64_t K, typename input_type_01, typename input_type_02,
 		return 0;
 	}
 };
-
+*/
 template<typename value_type> using base_type = std::remove_cvref_t<value_type>;
 
 template<typename value_type> using x_type = decltype(base_type<value_type>::x);
@@ -1403,19 +3739,19 @@ template<uint64_t M, uint64_t K, typename input_type_01, typename input_type_02,
 		offset			   = round_up_to_multiple<64>(offset + inputs_b_size);
 		output_type* C_ptr = reinterpret_cast<output_type*>(static_cast<uint8_t*>(buffer.data()) + offset);
 
-		using index_type		= cutlass::gemm::GemmCoord::Index;
-		using nihilus_gemm_type = cutlass::gemm::device::Gemm<element_a, layout_a, element_b, layout_b, element_c, layout_c>;
-		nihilus_gemm_type op;
+		using index_type = cutlass::gemm::GemmCoord::Index;
+
 
 		if constexpr (std::is_same_v<input_type_01, float>) {
 			offset			   = 0;
 			const float* A_ptr = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
 			offset			   = round_up_to_multiple<64>(offset + inputs_a_size);
 
-			const float* B_ptr = reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
-
-			cutlass::Status status = op({ { static_cast<index_type>(M), static_cast<index_type>(N), static_cast<index_type>(K) }, { A_ptr, static_cast<index_type>(K) },
-				{ B_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
+			const float* B_ptr		= reinterpret_cast<const float*>(static_cast<uint8_t*>(buffer.data()) + offset);
+			using nihilus_gemm_type = cutlass::gemm::device::Gemm<M, K, element_a, layout_a, element_b, layout_b, element_c, layout_c>;
+			nihilus_gemm_type op;
+			cutlass::Status status = op({ static_cast<index_type>(N), { A_ptr, static_cast<index_type>(K) }, { B_ptr, static_cast<index_type>(N) },
+				{ C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
 
 			if (status != cutlass::Status::kSuccess) {
 				std::cerr << "Nihilus float32 Gemm failed: " << cutlass::cutlassGetStatusString(status) << std::endl;
@@ -1436,9 +3772,10 @@ template<uint64_t M, uint64_t K, typename input_type_01, typename input_type_02,
 
 			dequantize_blocks<<<(total_elements + 255) / 256, 256>>>(A_quant_ptr, A_dequant_ptr, total_elements);
 
-			cutlass::Status status =
-				op({ { static_cast<index_type>(M), static_cast<index_type>(N), static_cast<index_type>(K) }, { A_dequant_ptr, static_cast<index_type>(K) },
-					{ B_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
+			using nihilus_gemm_type = cutlass::gemm::device::Gemm<M, K, element_a, layout_a, element_b, layout_b, element_c, layout_c>;
+			nihilus_gemm_type op;
+			cutlass::Status status = op({ static_cast<index_type>(N), { A_dequant_ptr, static_cast<index_type>(K) }, { B_ptr, static_cast<index_type>(N) },
+				{ C_ptr, static_cast<index_type>(N) }, { C_ptr, static_cast<index_type>(N) }, { 1.0f, 0.0f } });
 
 			if (status != cutlass::Status::kSuccess) {
 				std::cerr << "Nihilus Q8_0 Gemm failed: " << cutlass::cutlassGetStatusString(status) << std::endl;
@@ -1629,15 +3966,12 @@ template<typename input_type_01, uint64_t M, uint64_t K, uint64_t mat_b_dim_00, 
 		cutlass_base_mul_mat<M, K, block_q8_0, float, float>>(buffer, current_index, inputs_a, inputs_b, outputs01, N);
 
 	current_index = 0;
-	//bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrepAndPost<"ggml_cuda_mul_mat_q8_0",
-	//ggml_cuda_mul_mat<M, K, block_q8_0, float, float>>(buffer, current_index, inputs_a, inputs_b, outputs02, N);
 
 	current_index = 0;
 	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrepAndPost<"nihilus_mul_mat_q8_0",
 		nihilus_mul_mat<M, K, block_q8_0, float, float>>(buffer, current_index, inputs_a, inputs_b, outputs03, N);
 
 	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::printResults();
-	//compare_outputs<M, K, mat_b_dim_00, N, "cutlass_base_mul_mat_float">(outputs01, outputs02);
 	compare_outputs<M, K, mat_b_dim_00, N, "nihilus_mul_mat_float">(outputs01, outputs03);
 }
 
@@ -1683,15 +4017,12 @@ template<typename input_type_01, uint64_t M, uint64_t K, uint64_t mat_b_dim_00, 
 		cutlass_base_mul_mat<M, K, float, float, float>>(buffer, current_index, inputs_a, inputs_b, outputs01, N);
 
 	current_index = 0;
-	//bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrepAndPost<"ggml_cuda_mul_mat_float",
-	//ggml_cuda_mul_mat<M, K, float, float, float>>(buffer, current_index, inputs_a, inputs_b, outputs02, N);
 
 	current_index = 0;
 	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::template runBenchmarkWithPrepAndPost<"nihilus_mul_mat_float",
 		nihilus_mul_mat<M, K, float, float, float>>(buffer, current_index, inputs_a, inputs_b, outputs03, N);
 
 	bnch_swt::benchmark_stage<stage_name, total_iterations, measured_iterations>::printResults();
-	//compare_outputs<M, K, mat_b_dim_00, N, "cutlass_base_mul_mat_float">(outputs01, outputs02);
 	compare_outputs<M, K, mat_b_dim_00, N, "nihilus_mul_mat_float">(outputs01, outputs03);
 };
 
@@ -1699,17 +4030,29 @@ int32_t main() {
 	/*
 	test_function<float, 4096, 4096, 4096, 1>();
 	test_function<float, 4096, 4096, 4096, 2>();
+	test_function<float, 4096, 4096, 4096, 3>();
 	test_function<float, 4096, 4096, 4096, 4>();
+	test_function<float, 4096, 4096, 4096, 5>();
 	test_function<float, 4096, 4096, 4096, 8>();
+	test_function<float, 4096, 4096, 4096, 13>();
 	test_function<float, 4096, 4096, 4096, 16>();
+	test_function<float, 4096, 4096, 4096, 25>();
 	test_function<float, 4096, 4096, 4096, 32>();
+	test_function<float, 4096, 4096, 4096, 49>();
 	test_function<float, 4096, 4096, 4096, 64>();
+	test_function<float, 4096, 4096, 4096, 97>();
 	test_function<float, 4096, 4096, 4096, 128>();
+	test_function<float, 4096, 4096, 4096, 193>();
 	test_function<float, 4096, 4096, 4096, 256>();
+	test_function<float, 4096, 4096, 4096, 385>();
 	test_function<float, 4096, 4096, 4096, 512>();
+	test_function<float, 4096, 4096, 4096, 769>();
 	test_function<float, 4096, 4096, 4096, 1024>();
+	test_function<float, 4096, 4096, 4096, 1537>();
 	test_function<float, 4096, 4096, 4096, 2048>();
+	test_function<float, 4096, 4096, 4096, 3073>();
 	test_function<float, 4096, 4096, 4096, 4096>();
+	test_function<float, 4096, 4096, 4096, 6145>();
 	test_function<float, 4096, 4096, 4096, 8192>();
 	test_function<float, 4096, 4096, 4096, 16384>();
 	test_function<float, 14336, 4096, 4096, 1>();
@@ -1751,7 +4094,13 @@ int32_t main() {
 	test_function<block_q8_0, 14336, 4096, 4096, 64>();
 	test_function<block_q8_0, 14336, 4096, 4096, 128>();
 	*/
-	test_function<block_q8_0, 14336, 4096, 4096, 256>();
+	test_function<float, 4096, 4096, 4096, 32>();
+	using layout_a = cutlass::layout::RowMajor;
+	using layout_b = cutlass::layout::RowMajor;
+	using layout_c = cutlass::layout::RowMajor;
+	test_function<block_q8_0, 4096, 4096, 4096, 32>();
+	using nihilus_gemm_type = Gemm<4096, 4096, float, layout_a, float, layout_b, float, layout_c>;
+	nihilus_gemm_type op;
 	/*
 	test_function<block_q8_0, 14336, 4096, 4096, 512>();
 	test_function<block_q8_0, 14336, 4096, 4096, 1024>();

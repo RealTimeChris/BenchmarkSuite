@@ -22,13 +22,13 @@ file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Include/benchma
 
 include(FetchContent)
 
-FetchContent_Declare(
-  ggml
-  GIT_REPOSITORY https://github.com/ggml-org/ggml.git
-  GIT_TAG master
-  GIT_SHALLOW TRUE
-)
-FetchContent_MakeAvailable(ggml)
+#FetchContent_Declare(
+#  ggml
+  #GIT_REPOSITORY https://github.com/ggml-org/ggml.git
+  #GIT_TAG master
+  #GIT_SHALLOW TRUE
+#)
+#FetchContent_MakeAvailable(ggml)
 
 add_library("${PROJECT_NAME}" INTERFACE "${HEADERS}")
 
