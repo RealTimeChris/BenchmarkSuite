@@ -1,6 +1,7 @@
 #include <BnchSwt/BenchmarkSuite.hpp>
 #include <cuda_runtime.h>
 #include <cuda_fp16.h>
+#include <cuComplex.h>
 #include <cutlass_new/detail/helper_macros.hpp>
 
 static constexpr uint64_t total_iterations{ 6 };
@@ -275,6 +276,24 @@ template<int Rank_, typename Index_ = int, typename LongIndex_ = int64_t> struct
 	}
 };
 
+struct CacheOperation {
+	enum Kind {
+		/// Cache at all levels - accessed again
+		Always,
+		/// Cache at global level
+		Global,
+		/// Streaming - likely to be accessed once
+		Streaming,
+		/// Indicates the line will not be used again
+		LastUse,
+		/// Don't cache, and fetch again
+		Volatile,
+		/// Write back at all coherent levels
+		WriteBack,
+		/// Write through to system memory
+		WriteThrough
+	};
+};
 
 template<int M = 1, int N = 1, int K = 1> struct GemmShape {
 	static constexpr int kM = M;
@@ -1346,7 +1365,7 @@ class NoPermute : public PermuteBase {
 template<typename Permute> struct InversePermute {
 	static_assert(!std::is_same<Permute, Permute>::value,
 		"To apply permutation to a GEMM input operand (A or B), an inverse permutation for the desired "
-		"permute class must be defined and enabled by specializing cutlass::layout::InversePermute trait.");
+		"permute class must be defined and enabled by specializing cutlass::InversePermute trait.");
 };
 
 template<> struct InversePermute<NoPermute> {
@@ -1391,11 +1410,7 @@ template<int D1, int D2> class Tensor4DPermute0213RowMajor : public PermuteBase 
 	}
 };
 
-template<typename Element_,/// CUTLASS numeric element type.
-	typename Storage_ = uint8_t,/// Underlying storage type. Must be able to hold an integer
-	///   number of objects of type Element.
-	class = void>
-class ConstSubbyteReference {
+template<typename Element_, typename Storage_ = uint8_t, class = void> class ConstSubbyteReference {
   public:
 	using Element		 = Element_;
 	using Storage		 = Storage_;
@@ -1406,19 +1421,13 @@ class ConstSubbyteReference {
 	static_assert(!(sizeof_bits<Storage>::value % sizeof_bits<Element>::value), "Storage must be divisible by Element");
 
   private:
-	///! Number of elements per storage vector
 	int const kElementsPerVector = sizeof_bits<Storage>::value / sizeof_bits<Element>::value;
 
-	///! Bit mask
 	Storage const kMask = ((sizeof_bits<Element>::value < sizeof_bits<Storage>::value) ? (Storage(1) << sizeof_bits<Element>::value) - Storage(1) : ~Storage(0));
 
   private:
-	/// Pointer to array containing element
 	StoragePointer ptr_;
 
-	/// Offset (in units of elements) from pointer.
-	///
-	/// Invariant: must always be in range [0, kElementsPerVector)
 	int offset_;
 
   public:
@@ -1426,12 +1435,8 @@ class ConstSubbyteReference {
 	ConstSubbyteReference() : ptr_(nullptr), offset_(0) {
 	}
 
-	/// Constructor
 	CUTLASS_HOST_DEVICE
-	ConstSubbyteReference(Element const* ptr,/// pointer to memory
-		int64_t offset/// logical offset in units of Element
-		)
-		: ptr_(reinterpret_cast<StoragePointer>(ptr)), offset_(0) {
+	ConstSubbyteReference(Element const* ptr, int64_t offset) : ptr_(reinterpret_cast<StoragePointer>(ptr)), offset_(0) {
 		int64_t offset_in_vectors  = offset / kElementsPerVector;
 		int64_t offset_in_elements = offset % kElementsPerVector;
 
@@ -1439,37 +1444,31 @@ class ConstSubbyteReference {
 		offset_ = int(offset_in_elements);
 	}
 
-	/// Constructor
 	CUTLASS_HOST_DEVICE
 	ConstSubbyteReference(Element* ptr = nullptr) : ConstSubbyteReference(ptr, 0) {
 	}
 
-	/// Gets storage pointer
 	CUTLASS_HOST_DEVICE
 	StoragePointer storage_pointer() const {
 		return ptr_;
 	}
 
-	/// Gets element offset within storage vector
 	CUTLASS_HOST_DEVICE
 	int element_offset() const {
 		return offset_;
 	}
 
-	/// Unpacks an element from memory
 	CUTLASS_HOST_DEVICE
 	Element get() const {
 		Storage item = Storage((*ptr_ >> (offset_ * sizeof_bits<Element>::value)) & kMask);
 		return reinterpret_cast<Element const&>(item);
 	}
 
-	/// Unpacks an element from memory
 	CUTLASS_HOST_DEVICE
 	operator Element() const {
 		return get();
 	}
 
-	/// Adds an offset in units of elements to the reference
 	CUTLASS_HOST_DEVICE
 	ConstSubbyteReference& operator+=(int offset) {
 		offset += offset_;
@@ -1483,7 +1482,6 @@ class ConstSubbyteReference {
 		return *this;
 	}
 
-	/// Adds an offset in units of elements to the reference
 	CUTLASS_HOST_DEVICE
 	ConstSubbyteReference& operator+=(long long offset) {
 		offset += offset_;
@@ -1497,7 +1495,6 @@ class ConstSubbyteReference {
 		return *this;
 	}
 
-	/// Adds an offset in units of elements to the reference
 	CUTLASS_HOST_DEVICE
 	ConstSubbyteReference& operator-=(int offset) {
 		int offset_in_vectors  = offset / kElementsPerVector;
@@ -1514,7 +1511,6 @@ class ConstSubbyteReference {
 		return *this;
 	}
 
-	/// Adds an offset in units of elements to the reference
 	CUTLASS_HOST_DEVICE
 	ConstSubbyteReference& operator-=(long long offset) {
 		long long offset_in_vectors = offset / kElementsPerVector;
@@ -1531,7 +1527,6 @@ class ConstSubbyteReference {
 		return *this;
 	}
 
-	/// Returns a reference to an element with a given offset from the current reference
 	CUTLASS_HOST_DEVICE
 	ConstSubbyteReference operator+(int offset) const {
 		ConstSubbyteReference ref(ptr_, offset_);
@@ -1540,7 +1535,6 @@ class ConstSubbyteReference {
 		return ref;
 	}
 
-	/// Returns a reference to an element with a given offset from the current reference
 	CUTLASS_HOST_DEVICE
 	ConstSubbyteReference operator+(long long offset) const {
 		ConstSubbyteReference ref(ptr_, offset_);
@@ -1549,7 +1543,6 @@ class ConstSubbyteReference {
 		return ref;
 	}
 
-	/// Returns a reference to an element with a given offset from the current reference
 	CUTLASS_HOST_DEVICE
 	ConstSubbyteReference operator-(int offset) const {
 		ConstSubbyteReference ref(ptr_, offset_);
@@ -1558,7 +1551,6 @@ class ConstSubbyteReference {
 		return ref;
 	}
 
-	/// Returns a reference to an element with a given offset from the current reference
 	CUTLASS_HOST_DEVICE
 	ConstSubbyteReference operator-=(long long offset) const {
 		ConstSubbyteReference ref(ptr_, offset_);
@@ -1567,37 +1559,31 @@ class ConstSubbyteReference {
 		return ref;
 	}
 
-	/// Computes the difference in elements between references
 	CUTLASS_HOST_DEVICE
 	ptrdiff_t operator-(ConstSubbyteReference ref) const {
 		return (ptr_ - ref.ptr_) * kElementsPerVector + (offset_ - ref.offset_);
 	}
 
-	/// Explicit cast to int
 	CUTLASS_HOST_DEVICE
 	explicit operator int() const {
 		return int(get());
 	}
 
-	/// Explicit cast to signed 64-bit integer
 	CUTLASS_HOST_DEVICE
 	explicit operator int64_t() const {
 		return int64_t(get());
 	}
 
-	/// Explicit cast to unsigned 64-bit integer
 	CUTLASS_HOST_DEVICE
 	explicit operator uint64_t() const {
 		return uint64_t(get());
 	}
 
-	/// Explicit cast to float
 	CUTLASS_HOST_DEVICE
 	explicit operator float() const {
 		return float(get());
 	}
 
-	/// Explicit cast to double
 	CUTLASS_HOST_DEVICE
 	explicit operator double() const {
 		return double(get());
@@ -1607,7 +1593,6 @@ class ConstSubbyteReference {
 template<typename Element, bool subbyte = (sizeof_bits<Element>::value < 8)> struct ReferenceFactory;
 
 template<typename Element> struct ReferenceFactory<Element, false> {
-	///! Number of elements per storage vector
 	static constexpr int kElementsPerVector = 1;
 
 	CUTLASS_HOST_DEVICE
@@ -1631,17 +1616,203 @@ template<typename Element> struct ReferenceFactory<Element, false> {
 	}
 };
 
-template<typename Element_,/// CUTLASS numeric element type.
-	typename Storage_ =/// Underlying storage type. Must be able to hold an integer
-///   number of objects of type Element.
-#if defined(__CUDA_ARCH__)/// Default size depends on width of atomicCas() overloads.
-	#if (__CUDA_ARCH__ >= 700)///
-	uint16_t
+class RowMajor {
+  public:
+	/// Logical rank of tensor
+	static constexpr int kRank = 2;
+
+	/// Rank of stride vector
+	static constexpr int kStrideRank = 1;
+
+	/// Index type used for coordinates
+	using Index = int32_t;
+
+	/// Long index type used for offsets
+	using LongIndex = int64_t;
+
+	/// Logical coordinate
+	using TensorCoord = MatrixCoord;
+
+	/// Stride vector
+	using Stride = Coord<kStrideRank, LongIndex>;
+
+  private:
+	//
+	// Data members
+	//
+
+	/// Stride data member
+	Stride stride_;
+
+  public:
+	//
+	// Methods
+	//
+
+	/// Constructor
+	CUTLASS_HOST_DEVICE
+	RowMajor(LongIndex ldm = 0) : stride_(ldm) {
+	}
+
+	/// Ctor
+	CUTLASS_HOST_DEVICE
+	RowMajor(Stride stride) : stride_(stride) {
+	}
+
+	/// Helper returns a layout to a tightly packed tensor
+	CUTLASS_HOST_DEVICE
+	static RowMajor packed(MatrixCoord const& extent) {
+		return RowMajor(extent.column());
+	}
+
+	/// Returns the offset of a coordinate in linear memory.
+	/// Assumes coordinate has convention (row, column)
+	CUTLASS_HOST_DEVICE
+	LongIndex operator()(MatrixCoord const& coord) const {
+		return LongIndex(coord.row()) * LongIndex(stride_[0]) + coord.column();
+	}
+
+	/// Inverse of layout function, mapping linear offset to logical coordinate
+	CUTLASS_HOST_DEVICE
+	MatrixCoord inverse(LongIndex offset) const {
+		return MatrixCoord(Index(offset / stride_[0]), Index(offset % stride_[0]));
+	}
+
+	/// Returns the stride of the layout
+	CUTLASS_HOST_DEVICE
+	Stride stride() const {
+		return stride_;
+	}
+
+	/// Returns the stride of the layout
+	CUTLASS_HOST_DEVICE
+	Stride& stride() {
+		return stride_;
+	}
+
+	/// Returns the stride of the layout
+	CUTLASS_HOST_DEVICE
+	typename Stride::Index stride(int idx) const {
+		return stride_[idx];
+	}
+
+	/// Returns the stride of the layout
+	CUTLASS_HOST_DEVICE
+	typename Stride::Index& stride(int idx) {
+		return stride_[idx];
+	}
+
+	/// Compute the number of contiguous elements needed to store a tensor with the given size
+	CUTLASS_HOST_DEVICE
+	LongIndex capacity(MatrixCoord const& extent) const {
+		return LongIndex(extent.row()) * LongIndex(stride_[0]);
+	}
+};
+
+class ColumnMajor {
+  public:
+	/// Logical rank of tensor
+	static constexpr int kRank = 2;
+
+	/// Rank of stride vector
+	static constexpr int kStrideRank = 1;
+
+	/// Index type used for coordinates
+	using Index = int32_t;
+
+	/// Long index type used for offsets
+	using LongIndex = int64_t;
+
+	/// Logical coordinate
+	using TensorCoord = MatrixCoord;
+
+	/// Stride vector
+	using Stride = Coord<kStrideRank, LongIndex>;
+
+  private:
+	//
+	// Data members
+	//
+
+	/// Stride data member
+	Stride stride_;
+
+  public:
+	//
+	// Methods
+	//
+
+	/// Ctor
+	CUTLASS_HOST_DEVICE
+	ColumnMajor(LongIndex ldm = 0) : stride_(ldm) {
+	}
+
+	/// Ctor
+	CUTLASS_HOST_DEVICE
+	ColumnMajor(Stride stride) : stride_(stride) {
+	}
+
+
+	/// Helper returns a layout to a tightly packed tensor
+	CUTLASS_HOST_DEVICE
+	static ColumnMajor packed(MatrixCoord const& extent) {
+		return ColumnMajor(extent.row());
+	}
+
+	/// Returns the offset of a coordinate in linear memory.
+	/// Assumes coordinate has convention (row, column)
+	CUTLASS_HOST_DEVICE
+	LongIndex operator()(MatrixCoord const& coord) const {
+		return LongIndex(coord.column()) * LongIndex(stride_[0]) + coord.row();
+	}
+
+	/// Inverse of layout function, mapping linear offset to logical coordinate
+	CUTLASS_HOST_DEVICE
+	MatrixCoord inverse(LongIndex offset) const {
+		return MatrixCoord(Index(offset % stride_[0]), Index(offset / stride_[0]));
+	}
+
+	/// Returns the stride of the layout
+	CUTLASS_HOST_DEVICE
+	Stride stride() const {
+		return stride_;
+	}
+
+	/// Returns the stride of the layout
+	CUTLASS_HOST_DEVICE
+	Stride& stride() {
+		return stride_;
+	}
+
+	/// Returns the stride of the layout
+	CUTLASS_HOST_DEVICE
+	typename Stride::Index stride(int idx) const {
+		return stride_[idx];
+	}
+
+	/// Returns the stride of the layout
+	CUTLASS_HOST_DEVICE
+	typename Stride::Index& stride(int idx) {
+		return stride_[idx];
+	}
+
+	/// Compute the number of contiguous elements needed to store a tensor with the given size
+	CUTLASS_HOST_DEVICE
+	LongIndex capacity(MatrixCoord const& extent) const {
+		return LongIndex(extent.column()) * LongIndex(stride_[0]);
+	}
+};
+
+template<typename Element_,
+	typename Storage_ =
+#if defined(__CUDA_ARCH__)
+	#if (__CUDA_ARCH__ >= 700)
+		uint16_t
 	#else
-	uint32_t
+		uint32_t
 	#endif
 #else
-	uint8_t
+		uint8_t
 #endif
 	,
 	class = void>
@@ -1656,19 +1827,13 @@ class SubbyteReference {
 	static_assert(!(sizeof_bits<Storage>::value % sizeof_bits<Element>::value), "Storage must be divisible by Element");
 
   private:
-	///! Number of elements per storage vector
 	int const kElementsPerVector = sizeof_bits<Storage>::value / sizeof_bits<Element>::value;
 
-	///! Bit mask
 	Storage const kMask = ((sizeof_bits<Element>::value < sizeof_bits<Storage>::value) ? (Storage(1) << sizeof_bits<Element>::value) - Storage(1) : ~Storage(0));
 
   private:
-	/// Pointer to array containing element
 	StoragePointer ptr_;
 
-	/// Offset (in units of elements) from pointer.
-	///
-	/// Invariant: must always be in range [0, kElementsPerVector)
 	int offset_;
 
   public:
@@ -1676,12 +1841,8 @@ class SubbyteReference {
 	SubbyteReference() : ptr_(nullptr), offset_(0) {
 	}
 
-	/// Constructor
 	CUTLASS_HOST_DEVICE
-	SubbyteReference(Element* ptr,/// pointer to memory
-		int64_t offset/// logical offset in units of Element
-		)
-		: ptr_(reinterpret_cast<StoragePointer>(ptr)), offset_(0) {
+	SubbyteReference(Element* ptr, int64_t offset) : ptr_(reinterpret_cast<StoragePointer>(ptr)), offset_(0) {
 		int64_t offset_in_vectors  = offset / kElementsPerVector;
 		int64_t offset_in_elements = offset % kElementsPerVector;
 
@@ -1689,43 +1850,35 @@ class SubbyteReference {
 		offset_ = int(offset_in_elements);
 	}
 
-	/// Constructor
 	CUTLASS_HOST_DEVICE
 	SubbyteReference(Element* ptr = nullptr) : SubbyteReference(ptr, 0) {
 	}
 
-	/// Gets storage pointer
 	CUTLASS_HOST_DEVICE
 	StoragePointer storage_pointer() const {
 		return ptr_;
 	}
 
-	/// Gets storage pointer
 	CUTLASS_HOST_DEVICE
 	Element* operator&() const {
 		return reinterpret_cast<Element*>(ptr_);
 	}
 
-	/// Gets element offset within storage vector
 	CUTLASS_HOST_DEVICE
 	int element_offset() const {
 		return offset_;
 	}
 
-	/// Unpacks an element from memory
 	CUTLASS_HOST_DEVICE
 	Element get() const {
-		uint8_t const* byte_ptr = reinterpret_cast<uint8_t const*>(ptr_);
-		// Convert offset in elements to offset in bytes
+		uint8_t const* byte_ptr			= reinterpret_cast<uint8_t const*>(ptr_);
 		constexpr int elements_per_byte = sizeof_bits<uint8_t>::value / sizeof_bits<Element>::value;
 		byte_ptr += offset_ / elements_per_byte;
-		// Offset of element within a byte
 		int byte_offset = offset_ % elements_per_byte;
 		uint8_t item	= uint8_t((*byte_ptr >> (byte_offset * sizeof_bits<Element>::value)) & kMask);
 		return reinterpret_cast<Element const&>(item);
 	}
 
-	/// Stores an element to memory
 	CUTLASS_HOST_DEVICE
 	SubbyteReference& set(Element const& x) {
 		Storage item		= (reinterpret_cast<Storage const&>(x) & kMask);
@@ -1734,9 +1887,6 @@ class SubbyteReference {
 
 #if defined(__CUDA_ARCH__)
 
-		//
-		// Homebrew read-modify-write
-		//
 		Storage original;
 		Storage updated;
 
@@ -1760,33 +1910,27 @@ class SubbyteReference {
 		return *this;
 	}
 
-	////
 
-	/// Unpacks an element from memory
 	CUTLASS_HOST_DEVICE
 	operator Element() const {
 		return get();
 	}
 
-	/// Stores an element to memory
 	CUTLASS_HOST_DEVICE
 	SubbyteReference& operator=(Element const& x) {
 		return set(x);
 	}
 
-	/// Stores an element to memory
 	CUTLASS_HOST_DEVICE
 	SubbyteReference& operator=(SubbyteReference const& x) {
 		return set(x.get());
 	}
 
-	/// Stores an element to memory
 	CUTLASS_HOST_DEVICE
 	SubbyteReference& operator=(ConstSubbyteReference<Element, Storage> const& x) {
 		return set(x.get());
 	}
 
-	/// Adds an offset in units of elements to the reference
 	CUTLASS_HOST_DEVICE
 	SubbyteReference& operator+=(int offset) {
 		offset += offset_;
@@ -1800,7 +1944,6 @@ class SubbyteReference {
 		return *this;
 	}
 
-	/// Adds an offset in units of elements to the reference
 	CUTLASS_HOST_DEVICE
 	SubbyteReference& operator+=(long long offset) {
 		offset += offset_;
@@ -1814,7 +1957,6 @@ class SubbyteReference {
 		return *this;
 	}
 
-	/// Adds an offset in units of elements to the reference
 	CUTLASS_HOST_DEVICE
 	SubbyteReference& operator-=(int offset) {
 		int offset_in_vectors  = offset / kElementsPerVector;
@@ -1831,7 +1973,6 @@ class SubbyteReference {
 		return *this;
 	}
 
-	/// Adds an offset in units of elements to the reference
 	CUTLASS_HOST_DEVICE
 	SubbyteReference& operator-=(long long offset) {
 		long long offset_in_vectors = offset / kElementsPerVector;
@@ -1848,7 +1989,6 @@ class SubbyteReference {
 		return *this;
 	}
 
-	/// Returns a reference to an element with a given offset from the current reference
 	CUTLASS_HOST_DEVICE
 	SubbyteReference operator+(int offset) const {
 		SubbyteReference ref(ptr_, offset_);
@@ -1857,7 +1997,6 @@ class SubbyteReference {
 		return ref;
 	}
 
-	/// Returns a reference to an element with a given offset from the current reference
 	CUTLASS_HOST_DEVICE
 	SubbyteReference operator+(long long offset) const {
 		SubbyteReference ref(ptr_, offset_);
@@ -1866,7 +2005,6 @@ class SubbyteReference {
 		return ref;
 	}
 
-	/// Returns a reference to an element with a given offset from the current reference
 	CUTLASS_HOST_DEVICE
 	SubbyteReference operator-(int offset) const {
 		SubbyteReference ref(ptr_, offset_);
@@ -1875,7 +2013,6 @@ class SubbyteReference {
 		return ref;
 	}
 
-	/// Returns a reference to an element with a given offset from the current reference
 	CUTLASS_HOST_DEVICE
 	SubbyteReference operator-=(long long offset) const {
 		SubbyteReference ref(ptr_, offset_);
@@ -1884,118 +2021,80 @@ class SubbyteReference {
 		return ref;
 	}
 
-	/// Computes the difference in elements between references
 	CUTLASS_HOST_DEVICE
 	ptrdiff_t operator-(SubbyteReference ref) const {
 		return (ptr_ - ref.ptr_) * kElementsPerVector + (offset_ - ref.offset_);
 	}
 
-	/// Explicit cast to int
 	CUTLASS_HOST_DEVICE
 	explicit operator int() const {
 		return int(get());
 	}
 
-	/// Explicit cast to signed 64-bit integer
 	CUTLASS_HOST_DEVICE
 	explicit operator int64_t() const {
 		return int64_t(get());
 	}
 
-	/// Explicit cast to unsigned 64-bit integer
 	CUTLASS_HOST_DEVICE
 	explicit operator uint64_t() const {
 		return uint64_t(get());
 	}
 
-	/// Explicit cast to float
 	CUTLASS_HOST_DEVICE
 	explicit operator float() const {
 		return float(get());
 	}
 
-	/// Explicit cast to double
 	CUTLASS_HOST_DEVICE
 	explicit operator double() const {
 		return double(get());
 	}
 };
 
-template<
-	/// Data type of element stored within tensor (concept: NumericType)
-	typename Element_,
-	/// Defines a mapping from logical coordinate to linear memory (concept: Layout)
-	typename Layout_>
-class TensorRef {
+template<typename Element_, typename Layout_> class TensorRef {
   public:
-	/// Data type of individual access
 	using Element = Element_;
 
-	/// Mapping function from logical coordinate to linear memory
 	using Layout = Layout_;
 
-	/// Reference type to an element
 	using Reference = typename std::conditional<sizeof_bits<Element>::value >= 8, Element&, SubbyteReference<Element>>::type;
 
-	/// Logical rank of tensor index space
 	static int const kRank = Layout::kRank;
 
-	/// Index type
 	using Index = typename Layout::Index;
 
-	/// Long index used for pointer offsets
 	using LongIndex = typename Layout::LongIndex;
 
-	/// Coordinate in logical tensor space
 	using TensorCoord = typename Layout::TensorCoord;
 
-	/// Layout's stride vector
 	using Stride = typename Layout::Stride;
 
-	/// TensorRef to constant data
 	using ConstTensorRef = TensorRef<typename std::remove_const<Element>::type const, Layout>;
 
-	/// TensorRef to non-constant data
 	using NonConstTensorRef = TensorRef<typename std::remove_const<Element>::type, Layout>;
 
-	/// Require at least rank=1. Mathematically, a rank=0 tensor would be considered to be a
-	/// scalar, but degenerate cases such as these are difficult to accommodate without
-	/// extensive C++ metaprogramming or support for zero-length arrays.
 	static_assert(kRank > 0, "Cannot define a zero-rank TensorRef");
 
   private:
-	/// Pointer
 	Element* ptr_;
 
-	/// Layout object maps logical coordinates to linear offsets
 	Layout layout_;
 
   public:
-	//
-	// Methods
-	//
-
-	/// Constructs a TensorRef with a pointer and layout object.
 	CUTLASS_HOST_DEVICE
 	TensorRef() : ptr_(nullptr) {
 	}
 
-	/// Constructs a TensorRef with a pointer and layout object.
 	CUTLASS_HOST_DEVICE
-	TensorRef(Element* ptr,///< pointer to start of tensor
-		Layout const& layout///< layout object containing stride and mapping function
-		)
-		: ptr_(ptr), layout_(layout) {
+	TensorRef(Element* ptr, Layout const& layout) : ptr_(ptr), layout_(layout) {
 	}
 
-	/// Converting constructor from TensorRef to non-constant data.
-	template<typename _Magic = int> CUTLASS_HOST_DEVICE TensorRef(NonConstTensorRef const& ref,///< TensorRef to non-const data
-		///SFINAE trick to avoid creating a copy-constructor when Element_ is already non-const
+	template<typename _Magic = int> CUTLASS_HOST_DEVICE TensorRef(NonConstTensorRef const& ref,
 		_Magic magic = ( typename std::enable_if<!std::is_same<NonConstTensorRef, TensorRef<Element_, Layout_>>::value, _Magic>::type )0)
 		: ptr_(ref.data()), layout_(ref.layout()) {
 	}
 
-	/// Returns a reference to constant-valued tensor.
 	CUTLASS_HOST_DEVICE
 	ConstTensorRef const_ref() const {
 		return ConstTensorRef(ptr_, layout_);
@@ -2006,106 +2105,89 @@ class TensorRef {
 		return NonConstTensorRef(const_cast<typename std::remove_const<Element>::type*>(ptr_), layout_);
 	}
 
-	/// Updates only the pointer
 	CUTLASS_HOST_DEVICE
 	void reset(Element* ptr = nullptr) {
 		ptr_ = ptr;
 	}
 
-	/// Updates the pointer and layout object
 	CUTLASS_HOST_DEVICE
 	void reset(Element* ptr, Layout const& layout) {
 		ptr_	= ptr;
 		layout_ = layout;
 	}
 
-	/// Returns true if the TensorRef is non-null
 	CUTLASS_HOST_DEVICE
 	bool good() const {
 		return ptr_ != nullptr;
 	}
 
-	/// Returns the pointer to referenced data
 	CUTLASS_HOST_DEVICE
 	Element* data() const {
 		return ptr_;
 	}
 
-	/// Returns a reference to the element at a given linear index
 	CUTLASS_HOST_DEVICE
 	Reference data(LongIndex idx) const {
 		return ReferenceFactory<typename std::remove_const<Element>::type, (sizeof_bits<Element>::value < 8)>::get(ptr_, idx);
 	}
 
-	/// Returns the layout object
 	CUTLASS_HOST_DEVICE
 	Layout& layout() {
 		return layout_;
 	}
 
-	/// Returns the layout object
 	CUTLASS_HOST_DEVICE
 	Layout layout() const {
 		return layout_;
 	}
 
-	/// Returns the layout object's stride vector
 	CUTLASS_HOST_DEVICE
 	Stride stride() const {
 		return layout_.stride();
 	}
 
-	/// Returns the layout object's stride vector
 	CUTLASS_HOST_DEVICE
 	Stride& stride() {
 		return layout_.stride();
 	}
 
-	/// Returns the layout object's stride in a given physical dimension
 	CUTLASS_HOST_DEVICE
 	typename Layout::Stride::Index stride(int dim) const {
 		return layout_.stride().at(dim);
 	}
 
-	/// Returns the layout object's stride in a given physical dimension
 	CUTLASS_HOST_DEVICE
 	typename Layout::Stride::Index& stride(int dim) {
 		return layout_.stride().at(dim);
 	}
 
-	/// Computes the offset of an index from the origin of the tensor
 	CUTLASS_HOST_DEVICE
 	LongIndex offset(TensorCoord const& coord) const {
 		return layout_(coord);
 	}
 
-	/// Returns a reference to the element at a given Coord
 	CUTLASS_HOST_DEVICE
 	Reference at(TensorCoord const& coord) const {
 		return data(offset(coord));
 	}
 
-	/// Returns a reference to the element at a given Coord
 	CUTLASS_HOST_DEVICE
 	Reference operator[](TensorCoord const& coord) const {
 		return data(offset(coord));
 	}
 
-	/// Adds an offset to each pointer
 	CUTLASS_HOST_DEVICE
 	TensorRef& add_pointer_offset(LongIndex offset_) {
 		ptr_ = ReferenceFactory<typename std::remove_const<Element>::type, (sizeof_bits<Element>::value < 8)>::add_pointer_offset(ptr_, offset_);
 		return *this;
 	}
 
-	/// Adds an offset to each pointer
 	CUTLASS_HOST_DEVICE
 	TensorRef& add_coord_offset(TensorCoord const& coord) {
 		add_pointer_offset(offset(coord));
 		return *this;
 	}
 
-	/// Returns a TensorRef offset by a given amount
 	CUTLASS_HOST_DEVICE
 	TensorRef operator+(TensorCoord const& b) const {
 		TensorRef result(*this);
@@ -2113,14 +2195,12 @@ class TensorRef {
 		return result;
 	}
 
-	/// Returns a TensorRef offset by a given amount
 	CUTLASS_HOST_DEVICE
 	TensorRef& operator+=(TensorCoord const& b) {
 		add_coord_offset(b);
 		return *this;
 	}
 
-	/// Returns a TensorRef offset by a given amount
 	CUTLASS_HOST_DEVICE
 	TensorRef operator-(TensorCoord const& b) const {
 		TensorRef result(*this);
@@ -2128,12 +2208,3086 @@ class TensorRef {
 		return result;
 	}
 
-	/// Returns a TensorRef offset by a given amount
 	CUTLASS_HOST_DEVICE
 	TensorRef& operator-=(TensorCoord const& b) {
 		add_pointer_offset(-offset(b));
 		return *this;
 	}
+};
+
+template<typename Shape_, typename Element_, typename Layout_, int AdvanceRank, typename ThreadMap_, typename AccessType_> class PredicatedTileAccessIteratorPredicates {
+  public:
+	using Shape						  = Shape_;
+	using Element					  = Element_;
+	using Layout					  = Layout_;
+	static constexpr int kAdvanceRank = AdvanceRank;
+	using ThreadMap					  = ThreadMap_;
+	using AccessType				  = AccessType_;
+
+	using Index		= typename Layout::Index;
+	using LongIndex = typename Layout::LongIndex;
+
+	using TensorCoord = typename Layout::TensorCoord;
+
+	static constexpr int kAccessesPerVector = ThreadMap::kElementsPerAccess / AccessType::kElements;
+
+	static_assert(!(ThreadMap::kElementsPerAccess % AccessType::kElements), "Vectors implied by the thread map must be divisible by the access type.");
+
+	static constexpr int kPredicatesPerByte = 4;
+	static constexpr int kPredicatesPerWord = 4 * kPredicatesPerByte;
+
+	static constexpr int kPredicateCount = ThreadMap::Iterations::kCount * kAccessesPerVector;
+
+	/// Number of 32b words containing predicates
+	static constexpr int kPredicateByteCount = (kPredicateCount + kPredicatesPerByte - 1) / kPredicatesPerByte;
+	static constexpr int kPredicateWordCount = (kPredicateByteCount + 3) / 4;
+
+	static constexpr unsigned kPredicateMask = (1u << kPredicatesPerByte) - 1u;
+
+	static_assert(kPredicateWordCount <= 4, "Too many predicates.");
+
+	/// Predicate vector stores mask to guard accesses
+	using Mask = Array<uint32_t, kPredicateWordCount>;
+
+	// private:
+	/// Guard predicates
+	uint32_t predicates_[kPredicateWordCount];
+
+	/// Size of tensor
+	TensorCoord extent_;
+
+	/// Initial offset for each thread
+	TensorCoord thread_offset_;
+
+	/// Offset to the first steady-state tile
+	TensorCoord residue_offset_;
+
+	/// Iteration along vectors implied by the thread map
+	int iteration_vector_;
+
+	/// Iteration in the contiguous dimension
+	int iteration_contiguous_;
+
+	/// Iteration in the strided dimension
+	int iteration_strided_;
+
+  public:
+	/// Computes predicates based on internally tracked per-thread offset.
+	CUTLASS_DEVICE
+	void compute_predicates_(
+		/// Extent of the matrix window
+		TensorCoord extent,
+		/// optionally, simplify predicate calculation during 'steady state' phase
+		bool is_steady_state = false) {
+		CUTLASS_PRAGMA_UNROLL
+		for (int i = 0; i < kPredicateWordCount; ++i) {
+			predicates_[i] = 0u;
+		}
+
+		CUTLASS_PRAGMA_UNROLL
+		for (int access_idx = 0; access_idx < ThreadMap::Iterations::kCount * kAccessesPerVector; ++access_idx) {
+			int s = access_idx / (ThreadMap::Iterations::kContiguous * kAccessesPerVector);
+
+			int access_residual = access_idx % (ThreadMap::Iterations::kContiguous * kAccessesPerVector);
+
+			int c = access_residual / kAccessesPerVector;
+			int v = access_residual % kAccessesPerVector;
+
+			TensorCoord iteration_coord(c * ThreadMap::Delta::kContiguous + v * AccessType::kElements, s * ThreadMap::Delta::kStrided);
+
+			TensorCoord coord = thread_offset_ + iteration_coord;
+
+			bool guard;
+
+			if (is_steady_state) {
+				if (kAdvanceRank == 0) {
+					guard = (coord.strided() < extent.strided());
+				} else {
+					guard = (coord.contiguous() < extent.contiguous());
+				}
+			} else {
+				guard = (coord.strided() < extent.strided() && coord.contiguous() < extent.contiguous());
+			}
+
+			int pred_idx = v + kAccessesPerVector * (c + ThreadMap::Iterations::kContiguous * s);
+
+			int word_idx = pred_idx / kPredicatesPerWord;
+			int residual = pred_idx % kPredicatesPerWord;
+			int byte_idx = residual / kPredicatesPerByte;
+			int bit_idx	 = residual % kPredicatesPerByte;
+
+			predicates_[word_idx] |= (unsigned(guard) << (byte_idx * 8 + bit_idx));
+		}
+	}
+
+	CUTLASS_HOST_DEVICE
+	void set_predicates(int thread_id, TensorCoord const& threadblock_offset) {
+		TensorCoord residue_extent;
+		if (kAdvanceRank) {
+			typename TensorCoord::Index residue_size = (extent_[kAdvanceRank] - threadblock_offset.strided()) % Shape::kStrided;
+			if (!residue_size) {
+				residue_size = Shape::kStrided;
+			}
+
+			residue_offset_ = make_Coord(0, residue_size);
+			residue_extent	= make_Coord(extent_.contiguous(), min(threadblock_offset.strided() + residue_size, extent_.strided()));
+		} else {
+			typename TensorCoord::Index residue_size = (extent_[kAdvanceRank] - threadblock_offset.contiguous()) % Shape::kContiguous;
+			if (!residue_size) {
+				residue_size = Shape::kContiguous;
+			}
+
+			residue_offset_ = make_Coord(residue_size, 0);
+
+			residue_extent = make_Coord(min(extent_.contiguous(), threadblock_offset.contiguous() + residue_size), extent_.strided());
+		}
+
+		// Per-thread offset in logical coordinates of tensor
+		thread_offset_ = threadblock_offset + ThreadMap::initial_offset(thread_id);
+
+		compute_predicates_(residue_extent, false);
+
+		set_iteration_index(0);
+	}
+
+	/// Default constructor
+	PredicatedTileAccessIteratorPredicates() = default;
+
+	/// Constructs a TileIterator from its precomputed state, threadblock offset,
+	/// and thread ID
+	CUTLASS_HOST_DEVICE
+	PredicatedTileAccessIteratorPredicates(
+		/// Extent of tensor
+		TensorCoord extent)
+		: extent_(extent) {
+	}
+
+	/// Overrides the internal iteration index
+	CUTLASS_HOST_DEVICE
+	void set_iteration_index(int index) {
+		iteration_vector_	= index % kAccessesPerVector;
+		int residual_access = index / kAccessesPerVector;
+
+		iteration_contiguous_ = residual_access % ThreadMap::Iterations::kContiguous;
+		iteration_strided_	  = residual_access / ThreadMap::Iterations::kContiguous;
+	}
+
+	/// Increment and return an instance to self.
+	CUTLASS_HOST_DEVICE
+	PredicatedTileAccessIteratorPredicates& operator++() {
+		return *this;
+	}
+
+	/// Clears the predicate set efficiently
+	CUTLASS_HOST_DEVICE
+	void clear_mask(bool enable = true) {
+		CUTLASS_PRAGMA_UNROLL
+		for (int i = 0; i < kPredicateWordCount; ++i) {
+			predicates_[i] = enable ? 0u : predicates_[i];
+		}
+	}
+
+	/// Clears the predicate set efficiently
+	CUTLASS_HOST_DEVICE
+	void enable_mask() {
+		CUTLASS_PRAGMA_UNROLL
+		for (int i = 0; i < kPredicateWordCount; ++i) {
+			predicates_[i] = 0xffffffff;
+		}
+	}
+
+	/// Sets the predicate mask, overriding value stored in predicate iterator
+	CUTLASS_HOST_DEVICE
+	void set_mask(Mask const& mask) {
+		CUTLASS_PRAGMA_UNROLL
+		for (int i = 0; i < kPredicateWordCount; ++i) {
+			predicates_[i] = mask[i];
+		}
+	}
+
+	/// Gets the mask
+	CUTLASS_HOST_DEVICE
+	void get_mask(Mask& mask) {
+		CUTLASS_PRAGMA_UNROLL
+		for (int i = 0; i < kPredicateWordCount; ++i) {
+			mask[i] = predicates_[i];
+		}
+	}
+
+	/// Returns whether access is valid or not
+	CUTLASS_HOST_DEVICE
+	bool valid() const {
+		int pred_idx = iteration_vector_ + kAccessesPerVector * (iteration_contiguous_ + iteration_strided_ * ThreadMap::Iterations::kContiguous);
+
+		int word_idx = pred_idx / kPredicatesPerWord;
+		int residual = pred_idx % kPredicatesPerWord;
+		int byte_idx = residual / kPredicatesPerByte;
+		int bit_idx	 = residual % kPredicatesPerByte;
+
+		bool pred = (predicates_[word_idx] & (1u << (byte_idx * 8 + bit_idx))) != 0;
+		return pred;
+	}
+};
+
+class PitchLinear {
+  public:
+	/// Logical rank of tensor
+	static constexpr int kRank = 2;
+
+	/// Rank of stride vector
+	static constexpr int kStrideRank = 1;
+
+	/// Index type used for coordinates
+	using Index = int32_t;
+
+	/// Long index type used for offsets
+	using LongIndex = int64_t;
+
+	/// Logical coordinate
+	using TensorCoord = PitchLinearCoord;
+
+	/// Stride vector
+	using Stride = Coord<kStrideRank, LongIndex>;
+
+  private:
+	//
+	// Data members
+	//
+
+	/// Stride data member
+	Stride stride_;
+
+  public:
+	//
+	// Methods
+	//
+
+	/// Constructor
+	CUTLASS_HOST_DEVICE
+	PitchLinear(LongIndex ldm = 0) : stride_(ldm) {
+	}
+
+	/// Constructor
+	CUTLASS_HOST_DEVICE
+	PitchLinear(Stride _stride) : stride_(_stride) {
+	}
+
+	/// Helper returns a layout to a tightly packed tensor
+	CUTLASS_HOST_DEVICE
+	static PitchLinear packed(TensorCoord const& extent) {
+		return PitchLinear(extent.contiguous());
+	}
+
+	/// Returns the offset of a coordinate in linear memory.
+	/// Assumes coordinate has convention (contiguous, strided)
+	CUTLASS_HOST_DEVICE
+	LongIndex operator()(TensorCoord const& coord) const {
+		return LongIndex(coord.contiguous()) + LongIndex(coord.strided()) * LongIndex(stride_[0]);
+	}
+
+	/// Returns the logical coordinate given an offset.
+	CUTLASS_HOST_DEVICE
+	TensorCoord inverse(LongIndex index) const {
+		return make_Coord(TensorCoord::Index(index % stride_[0]), TensorCoord::Index(index / stride_[0]));
+	}
+
+	/// Returns the stride of the layout
+	CUTLASS_HOST_DEVICE
+	Stride stride() const {
+		return stride_;
+	}
+
+	/// Returns the stride of the layout
+	CUTLASS_HOST_DEVICE
+	Stride& stride() {
+		return stride_;
+	}
+
+	/// Returns the stride of the layout
+	CUTLASS_HOST_DEVICE
+	LongIndex stride(int rank) const {
+		return stride_[rank];
+	}
+
+	/// Returns the stride of the layout
+	CUTLASS_HOST_DEVICE
+	LongIndex& stride(int rank) {
+		return stride_[rank];
+	}
+
+	/// Compute the number of contiguous elements needed to store a tensor with the given size
+	CUTLASS_HOST_DEVICE
+	LongIndex capacity(TensorCoord const& extent) const {
+		return extent.strided() * stride_[0];
+	}
+};
+
+template<
+	/// Data type of element stored within tensor
+	typename Element_,
+	/// Maps a Coord<Rank_> in the logical tensor index space to the internal n-D array
+	typename Layout_>
+class TensorView : public TensorRef<Element_, Layout_> {
+  public:
+	/// Base tensor reference
+	using Base = TensorRef<Element_, Layout_>;
+
+	/// Mapping function from logical coordinate to internal n-D array
+	using Layout = Layout_;
+
+	/// TensorRef pointing to constant memory
+	using ConstTensorRef = typename Base::ConstTensorRef;
+
+	/// Underlying TensorRef type
+	using TensorRef = Base;
+
+	/// Data type of individual access
+	using Element = Element_;
+
+	/// Reference type to an element
+	using Reference = Element&;
+
+	/// Logical rank of tensor index space
+	static constexpr int kRank = Layout::kRank;
+
+	/// Index type
+	using Index = typename Layout::Index;
+
+	/// Long index used for pointer offsets
+	using LongIndex = typename Layout::LongIndex;
+
+	/// Coordinate in logical tensor space
+	using TensorCoord = typename Layout::TensorCoord;
+
+	/// Coordinate in storage n-D array
+	using Stride = typename Layout::Stride;
+
+	/// TensorView pointing to constant memory
+	using ConstTensorView = TensorView<typename std::remove_const<Element>::type const, Layout>;
+
+	/// TensorView pointing to non-constant memory
+	using NonConstTensorView = TensorView<typename std::remove_const<Element>::type, Layout>;
+
+	/// Require at least rank=1. Mathematically, a rank=0 tensor would be considered to be a
+	/// scalar, but degenerate cases such as these are difficult to accommodate without
+	/// extensive C++ metaprogramming or support for zero-length arrays.
+	static_assert(kRank > 0, "Cannot define a zero-rank TensorRef");
+
+  private:
+	/// View extent
+	TensorCoord extent_;
+
+  public:
+	//
+	// Methods
+	//
+
+	/// Constructs a TensorView object
+	CUTLASS_HOST_DEVICE
+	TensorView() {
+	}
+
+	/// Constructs a TensorView object
+	CUTLASS_HOST_DEVICE
+	TensorView(Element* ptr,///< pointer to start of tensor
+		Layout const& layout,///< layout object containing stride and mapping function
+		TensorCoord const& extent///< size of the view in logical coordinates
+		)
+		: Base(ptr, layout), extent_(extent) {
+	}
+
+	/// Constructs a TensorView object
+	CUTLASS_HOST_DEVICE
+	TensorView(TensorRef const& ref,///< pointer and layout object referencing a tensor
+		TensorCoord const& extent///< logical size of tensor
+		)
+		: Base(ref), extent_(extent) {
+	}
+
+	/// Converting constructor from TensorRef to non-constant data.
+	CUTLASS_HOST_DEVICE
+	TensorView(NonConstTensorView const& view///< TensorView to non-const data
+		)
+		: Base(view), extent_(view.extent_) {
+	}
+
+	/// Updates the pointer and layout object
+	CUTLASS_HOST_DEVICE
+	void reset(Element* ptr, Layout const& layout, TensorCoord const& extent) {
+		Base::reset(ptr, layout);
+		this->resize(extent);
+	}
+
+	/// Updates the pointer
+	CUTLASS_HOST_DEVICE
+	void reset(Element* ptr) {
+		Base::reset(ptr);
+	}
+
+	/// Changes the size of the view without affecting pointer or layout
+	CUTLASS_HOST_DEVICE
+	void resize(TensorCoord const& extent) {
+		this->extent_ = extent;
+	}
+
+	/// Returns the extent of the view (the size along each logical dimension).
+	CUTLASS_HOST_DEVICE
+	TensorCoord const& extent() const {
+		return extent_;
+	}
+
+	/// Returns the extent along a particular logical dimension.
+	CUTLASS_HOST_DEVICE
+	Index extent(int dim) const {
+		return extent_.at(dim);
+	}
+
+	/// Returns the number of logical elements
+	CUTLASS_HOST_DEVICE
+	LongIndex size() const {
+		return extent_.product();
+	}
+
+	/// Determines whether a location is within a tensor
+	CUTLASS_HOST_DEVICE
+	bool contains(TensorCoord const& coord) const {
+		CUTLASS_PRAGMA_UNROLL
+		for (int dim = 0; dim < kRank; ++dim) {
+			if (!(coord[dim] >= 0 && coord[dim] < extent(dim))) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/// Returns a TensorRef pointing to the first element of the tensor.
+	CUTLASS_HOST_DEVICE
+	TensorRef ref() const {
+		return TensorRef(this->data(), this->layout());
+	}
+
+	/// Returns a TensorRef pointing to the first element of the tensor.
+	CUTLASS_HOST_DEVICE
+	ConstTensorRef const_ref() const {
+		return ConstTensorRef(this->data(), this->layout());
+	}
+
+	/// Returns a TensorView to const data
+	CUTLASS_HOST_DEVICE
+	ConstTensorView const_view() const {
+		return ConstTensorView(const_ref(), extent_);
+	}
+
+	/// Returns a Tensor_view given location and size quantities
+	CUTLASS_HOST_DEVICE
+	TensorView subview(TensorCoord extent,///< extent of the resulting view
+		TensorCoord const& location = TensorCoord()///< resulting view's origin within the old view
+	) const {
+		TensorView result(this->ref(), extent.clamp(extent_ - location));
+		result.add_coord_offset(location);
+		return result;
+	}
+
+	/// Returns the number of scalar elements needed to store tensor.
+	CUTLASS_HOST_DEVICE
+	size_t capacity() const {
+		return Base::layout().capacity(extent_);
+	}
+
+	/// Returns a TensorView offset by a given amount
+	CUTLASS_HOST_DEVICE
+	TensorView operator+(TensorCoord const& b///< offset in the logical coordinate space of the tensor
+	) const {
+		TensorView result(*this);
+		result.add_pointer_offset(this->offset(b));
+		return result;
+	}
+
+	/// Returns a TensorRef offset by a given amount
+	CUTLASS_HOST_DEVICE
+	TensorView& operator+=(TensorCoord const& b///< offset in the logical coordinate space of the tensor
+	) {
+		this->add_pointer_offset(this->offset(b));
+		return *this;
+	}
+
+	/// Returns a TensorRef offset by a given amount
+	CUTLASS_HOST_DEVICE
+	TensorView operator-(TensorCoord const& b///< offset in the logical coordinate space of the tensor
+	) const {
+		TensorRef result(*this);
+		result.add_pointer_offset(-this->offset(b));
+		return result;
+	}
+
+	/// Returns a TensorRef offset by a given amount
+	CUTLASS_HOST_DEVICE
+	TensorView& operator-=(TensorCoord const& b///< offset in the logical coordinate space of the tensor
+	) {
+		this->add_pointer_offset(-this->offset(b));
+		return *this;
+	}
+};
+
+enum class Status {
+	kSuccess,///< Operation was successful.
+	kErrorMisalignedOperand,///< operands fail alignment requirements.
+	kErrorInvalidDataType,///< DataType fails requirement.
+	kErrorInvalidLayout,///< Layout fails alignment requirement.
+	kErrorInvalidProblem,///< Specified problem size is not supported by operator.
+	kErrorNotSupported,///< Operation is not supported on current device.
+	kErrorWorkspaceNull,///< The given workspace is null when it is required to be non-null.
+	kErrorInternal,///< An error within CUTLASS occurred.
+	kErrorArchMismatch,///< CUTLASS runs on a device that it was not compiled for.
+	kErrorInsufficientDriver,///< CUTLASS runs with a driver that is too old.
+	kErrorMemoryAllocation,///< Kernel launch failed due to insufficient device memory.
+	kInvalid///< Status is unspecified.
+};
+
+struct PredicatedTileAccessIteratorDesc {
+	int element_size_bits = -1;
+	int advance_rank	  = -1;
+	PitchLinearCoord threadblock_shape;
+	PitchLinearCoord threadmap_iterations;
+	PitchLinearCoord threadmap_delta;
+
+	//
+	// Methods
+	//
+
+	PredicatedTileAccessIteratorDesc() = default;
+
+	CUTLASS_HOST_DEVICE
+	PredicatedTileAccessIteratorDesc(int element_size_bits_, int advance_rank_, PitchLinearCoord threadblock_shape_, PitchLinearCoord threadmap_iterations_,
+		PitchLinearCoord threadmap_delta_)
+		: element_size_bits(element_size_bits_), advance_rank(advance_rank_), threadblock_shape(threadblock_shape_), threadmap_iterations(threadmap_iterations_),
+		  threadmap_delta(threadmap_delta_) {
+#if 0
+    printf("PredicatedTileAccessIteratorDesc(%d, %d, {%d, %d}, {%d, %d}, {%d, %d}})\n",
+      element_size_bits,
+      advance_rank,
+      threadblock_shape.contiguous(), threadblock_shape.strided(),
+      threadmap_iterations.contiguous(), threadmap_iterations.strided(),
+      threadmap_delta.contiguous(), threadmap_delta.strided());
+#endif
+	}
+};
+
+struct PredicatedTileAccessIteratorParams {
+	using Index		= int32_t;
+	using LongIndex = int64_t;
+
+	//
+	// Data members
+	//
+	/// stride of pitch-linear layout (units of Element)
+	LongIndex stride_ = 0;
+	/// amount (in byte) to increment pointer to move to next access along
+	/// strided dimension
+	LongIndex inc_strided_ = 0;
+	/// amount (in byte) to increment pointer from last access to first access
+	/// of next tile
+	LongIndex inc_next_ = 0;
+	/// amount (in byte) to increment pointer from first access of current tile
+	/// to first access of next tile
+	LongIndex inc_advance_ = 0;
+
+	//
+	// Methods
+	//
+
+	CUTLASS_HOST_DEVICE
+	Status initialize(LongIndex stride, PredicatedTileAccessIteratorDesc desc) {
+		CUTLASS_ASSERT(desc.element_size_bits > 0);
+		CUTLASS_ASSERT(desc.advance_rank == 0 || desc.advance_rank == 1);
+
+		stride_ = stride;
+
+		inc_strided_ = (LongIndex(stride_) * desc.threadmap_delta.strided()) * desc.element_size_bits / 8;
+
+		if (desc.advance_rank) {
+			// advance along strided dimension
+			inc_advance_ = desc.threadblock_shape.strided() * LongIndex(stride_) * desc.element_size_bits / 8;
+		} else {
+			// advance along contiguous dimension
+			inc_advance_ = desc.threadblock_shape.contiguous() * desc.element_size_bits / 8;
+		}
+
+		inc_next_ = inc_advance_ - LongIndex(desc.threadmap_iterations.strided() - 1) * desc.threadmap_delta.strided() * LongIndex(stride_) * desc.element_size_bits / 8;
+
+		return Status::kSuccess;
+	}
+
+	CUTLASS_HOST_DEVICE
+	Status initialize(Index stride, PredicatedTileAccessIteratorDesc desc) {
+		return initialize(LongIndex(stride), desc);
+	}
+
+	PredicatedTileAccessIteratorParams() = default;
+
+	CUTLASS_HOST_DEVICE
+	PredicatedTileAccessIteratorParams(Index stride, PredicatedTileAccessIteratorDesc desc) {
+		initialize(stride, desc);
+	}
+
+	CUTLASS_HOST_DEVICE
+	PredicatedTileAccessIteratorParams(LongIndex stride, PredicatedTileAccessIteratorDesc desc) {
+		initialize(stride, desc);
+	}
+};
+
+template<int Row_,///< rows of a matrix
+	int Column_///< columns of a matrix
+	>
+struct MatrixShape {
+	static constexpr int kRow	 = Row_;///< rows of a matrix
+	static constexpr int kColumn = Column_;///< columns of a matrix
+	static constexpr int kCount	 = Row_ * Column_;///< total number of elements in a matrix
+
+	//
+	// Static member functions
+	//
+
+	CUTLASS_HOST_DEVICE
+	static Coord<2> toCoord() {
+		return make_Coord(kRow, kColumn);
+	}
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+/// PredicatedTileAccessIterator
+///
+template<typename Shape, typename Element, typename Layout, int AdvanceRank, typename ThreadMap, typename AccessType, bool Gather = false, typename PermuteLayout = NoPermute>
+class PredicatedTileAccessIterator;
+
+////////////////////////////////////////////////////////////////////////////////
+
+/// Specialization of PredicatedTileAccessIterator for pitch-linear data.
+///
+template<typename Shape_, typename Element_, int AdvanceRank, typename ThreadMap_, typename AccessType_, bool Gather, typename PermuteLayout>
+class PredicatedTileAccessIterator<Shape_, Element_, PitchLinear, AdvanceRank, ThreadMap_, AccessType_, Gather, PermuteLayout> {
+  public:
+	static_assert(AdvanceRank == 0 || AdvanceRank == 1,
+		"Specialization for pitch-linear iterator may along advance along the "
+		"contiguous(rank=0) or strided(rank=1) dimension.");
+
+	using Shape						  = Shape_;
+	using Element					  = Element_;
+	using Layout					  = PitchLinear;
+	static constexpr int kAdvanceRank = AdvanceRank;
+	using ThreadMap					  = ThreadMap_;
+	using AccessType				  = AccessType_;
+
+	using Index		= typename Layout::Index;
+	using LongIndex = typename Layout::LongIndex;
+
+	using TensorRef	  = TensorRef<Element, Layout>;
+	using TensorView  = TensorView<Element, Layout>;
+	using TensorCoord = typename Layout::TensorCoord;
+
+	using Pointer		  = Element*;
+	using NonConstPointer = typename std::remove_const<Element>::type*;
+
+	using UnderlyingPredicates = PredicatedTileAccessIteratorPredicates<Shape, Element, Layout, AdvanceRank, ThreadMap, AccessType>;
+
+	static constexpr int kAccessesPerVector = ThreadMap::kElementsPerAccess / AccessType::kElements;
+
+	static_assert(!(ThreadMap::kElementsPerAccess % AccessType::kElements), "Vectors implied by the thread map must be divisible by the access type.");
+
+	static bool constexpr Permute = !std::is_same<PermuteLayout, NoPermute>::value && !std::is_same<PermuteLayout, InversePermute<NoPermute>>::value;
+
+	using Mask = typename UnderlyingPredicates::Mask;
+
+	/// Uses a non-template class
+	struct Params : PredicatedTileAccessIteratorParams {
+		using Base = PredicatedTileAccessIteratorParams;
+
+		/// Default constructor
+		Params() = default;
+
+		/// Construct the Params object given a pitch-linear tensor's layout
+		CUTLASS_HOST_DEVICE
+		Params(Layout const& layout) : Base(layout.stride(0), MakePredicatedTileAccessIteratorDesc<Shape, Element, Layout, kAdvanceRank, ThreadMap>()()) {
+		}
+
+		CUTLASS_HOST_DEVICE
+		Params(Base const& base) : Base(base) {
+		}
+	};
+
+  private:
+	/// Internal pointer type permits fast address arithmetic
+	using BytePointer = char*;
+
+  private:
+	//
+	// Data members
+	//
+
+	UnderlyingPredicates the_predicates;
+
+	/// Parameters object with precomputed internal state
+	Params params_;
+
+	/// Internal pointer to first access of tile
+	BytePointer pointer_;
+
+	/// Used for out-of-order visitation
+	bool is_residue_tile_;
+
+	/// Below is used when Gather is turned on.  We need to record strided_offset
+	/// and contiguous_offset separated to compute the offset by using
+	///
+	/// offset = contiguous_offset + indices[strided_offset]
+
+	/// Gather indices
+	int const* indices_;
+
+	/// Function to perform layout permutation and offset computation
+	PermuteLayout permute_layout_;
+
+	/// Tracks thread's coordinate offset in the matrix for current tile.
+	/// This is only used in the following cases:
+	/// - when Gather is true, strided coordinate needed to access indices (contiguous offset is tracked via pointer_)
+	/// - when Permute is true, both coordinates are needed as input into permutation function (pointer_ is fixed)
+	TensorCoord coord_offset_;
+
+  private:
+	/// Computes predicates based on internally tracked per-thread offset.
+	CUTLASS_DEVICE
+	void compute_predicates_(
+		/// Extent of the matrix window
+		TensorCoord extent,
+		/// optionally, simplify predicate calculation during 'steady state' phase
+		bool is_steady_state = false) {
+		the_predicates.compute_predicates_(extent, is_steady_state);
+	}
+
+  public:
+	/// Default constructor
+	PredicatedTileAccessIterator() = default;
+
+	/// Constructs a TileIterator from its precomputed state, threadblock offset,
+	/// and thread ID
+	CUTLASS_HOST_DEVICE
+	PredicatedTileAccessIterator(
+		/// Precomputed parameters object
+		Params const& params,
+		/// Pointer to start of tensor
+		Pointer pointer,
+		/// Extent of tensor
+		TensorCoord extent,
+		/// ID of each participating thread
+		int thread_id,
+		/// Initial offset of threadblock
+		TensorCoord const& threadblock_offset,
+		/// Gather indices
+		int const* indices = nullptr)
+		: params_(params), pointer_(reinterpret_cast<BytePointer>(const_cast<NonConstPointer>(pointer))), the_predicates(extent), is_residue_tile_(true), indices_(indices),
+		  permute_layout_(TensorCoord(extent.contiguous(), extent.strided()), params.stride_) {
+		the_predicates.set_predicates(thread_id, threadblock_offset);
+
+		if (Gather) {
+			assert(indices_);
+		}
+
+		// update internal pointers
+		Layout layout(params_.stride_);
+
+		if (!Gather && !Permute) {
+			add_pointer_offset(layout(the_predicates.thread_offset_));
+		} else {
+			coord_offset_ = the_predicates.thread_offset_;
+			if (!Permute) {
+				add_pointer_offset(layout(make_Coord(coord_offset_.contiguous(), 0)));
+			}
+		}
+	}
+
+	/// Construct a PredicatedTileAccessIterator with zero threadblock offset
+	CUTLASS_HOST_DEVICE
+	PredicatedTileAccessIterator(
+		/// Precomputed parameters object
+		Params const& params,
+		/// Pointer to start of tensor
+		Pointer pointer,
+		/// Extent of tensor
+		TensorCoord extent,
+		///< ID of each participating thread
+		int thread_id)
+		: PredicatedTileAccessIterator(params, pointer, extent, thread_id, make_Coord(0, 0)) {
+	}
+
+	/// Overrides the internal iteration index
+	CUTLASS_HOST_DEVICE
+	void set_iteration_index(int index) {
+		the_predicates.set_iteration_index(index);
+	}
+
+	/// Adds a pointer offset in units of Element
+	CUTLASS_HOST_DEVICE
+	void add_pointer_offset(LongIndex pointer_offset) {
+		pointer_ += sizeof_bits<Element>::value * pointer_offset / 8;
+	}
+
+	/// Advances an iterator along logical dimensions of matrix in units of whole tiles
+	CUTLASS_DEVICE
+	void add_tile_offset(TensorCoord const& tile_offset) {
+		if (is_residue_tile_) {
+			the_predicates.thread_offset_ += the_predicates.residue_offset_;
+
+			the_predicates.compute_predicates_(the_predicates.extent_, true);
+
+			Layout layout(params_.stride_);
+
+			if (!Gather && !Permute) {
+				add_pointer_offset(layout(the_predicates.residue_offset_));
+
+				if (kAdvanceRank) {
+					pointer_ += params_.inc_advance_ * LongIndex(tile_offset.strided() - 1);
+					pointer_ += Shape::kContiguous * tile_offset.contiguous() * sizeof_bits<Element>::value / 8;
+				} else {
+					pointer_ += params_.inc_advance_ * LongIndex(tile_offset.contiguous() - 1);
+					pointer_ += Shape::kStrided * tile_offset.strided() * sizeof_bits<Element>::value / 8;
+				}
+			} else {
+				coord_offset_.strided() = the_predicates.thread_offset_.strided() + Shape::kStrided * (tile_offset.strided() - kAdvanceRank);
+				if (!Permute) {
+					add_pointer_offset(layout(make_Coord(the_predicates.residue_offset_.contiguous(), 0)));
+					add_pointer_offset(Shape::kContiguous * (tile_offset.contiguous() - (1 - kAdvanceRank)));
+				} else {
+					coord_offset_.contiguous() = the_predicates.thread_offset_.contiguous() + Shape::kContiguous * (tile_offset.contiguous() - (1 - kAdvanceRank));
+				}
+			}
+		} else {
+			if (!Gather && !Permute) {
+				if (kAdvanceRank) {
+					pointer_ += params_.inc_advance_ * LongIndex(tile_offset.strided());
+					pointer_ += Shape::kContiguous * tile_offset.contiguous();
+				} else {
+					pointer_ += params_.inc_advance_ * LongIndex(tile_offset.contiguous());
+					pointer_ += Shape::kStrided * tile_offset.strided();
+				}
+			} else {
+				coord_offset_.strided() += Shape::kStrided * tile_offset.strided();
+				if (!Permute) {
+					add_pointer_offset(Shape::kContiguous * tile_offset.contiguous());
+				} else {
+					coord_offset_.contiguous() += Shape::kContiguous * tile_offset.contiguous();
+				}
+			}
+		}
+
+		is_residue_tile_ = false;
+	}
+
+	/// Returns a pointer
+	CUTLASS_HOST_DEVICE
+	AccessType* get() const {
+		if (Gather || Permute) {
+			if (!valid()) {
+				return nullptr;
+			}
+
+			Index coord_contig = (Permute ? coord_offset_.contiguous() : 0) + the_predicates.iteration_contiguous_ * ThreadMap::Delta::kContiguous +
+				the_predicates.iteration_vector_ * AccessType::kElements;
+			Index coord_strided = coord_offset_.strided() + the_predicates.iteration_strided_ * ThreadMap::Delta::kStrided;
+			if (Gather) {
+				coord_strided = indices_[coord_strided];
+			}
+
+			LongIndex offset = Permute ? permute_layout_(TensorCoord(coord_contig, coord_strided)) : (coord_strided * LongIndex(params_.stride_) + coord_contig);
+			return reinterpret_cast<AccessType*>(pointer_ + OffsetBytes<Element>(offset));
+		}
+
+		return reinterpret_cast<AccessType*>(pointer_ + the_predicates.iteration_contiguous_ * (ThreadMap::Delta::kContiguous * sizeof_bits<Element>::value) / 8) +
+			the_predicates.iteration_vector_;
+	}
+
+	/// Increment and return an instance to self.
+	CUTLASS_HOST_DEVICE
+	PredicatedTileAccessIterator& operator++() {
+		the_predicates.operator++();
+
+		++the_predicates.iteration_vector_;
+		if (the_predicates.iteration_vector_ < kAccessesPerVector) {
+			return *this;
+		}
+
+		the_predicates.iteration_vector_ = 0;
+		++the_predicates.iteration_contiguous_;
+
+		if (the_predicates.iteration_contiguous_ < ThreadMap::Iterations::kContiguous) {
+			return *this;
+		}
+
+		// Enter here only if (iteration_contiguous_ == ThreadMap::Iteration::kContiguous)
+		the_predicates.iteration_contiguous_ = 0;
+		++the_predicates.iteration_strided_;
+
+		if (the_predicates.iteration_strided_ < ThreadMap::Iterations::kStrided) {
+			if (!Gather && !Permute) {
+				pointer_ += params_.inc_strided_;
+			}
+
+			return *this;
+		}
+
+		// Enter here only if (iteration_stride_ == ThreadMap::Iteration::kStrided)
+		// which means we enter the next tile.
+		the_predicates.iteration_strided_ = 0;
+
+		if (!Gather && !Permute) {
+			// advance to next tile
+			pointer_ += params_.inc_next_;
+
+			// now return to start tile - if the iterator is subsequently advanced, this
+			// subtraction as well as the subsequent integer addition are both elided by
+			// the compiler.
+			pointer_ -= params_.inc_advance_;
+		}
+
+		return *this;
+	}
+
+	/// Increment and return an instance to self.
+	CUTLASS_HOST_DEVICE
+	PredicatedTileAccessIterator operator++(int) {
+		PredicatedTileAccessIterator self(*this);
+		operator++();
+		return self;
+	}
+
+	/// Clears the predicate set efficiently
+	CUTLASS_HOST_DEVICE
+	void clear_mask(bool enable = true) {
+		the_predicates.clear_mask(enable);
+	}
+
+	/// Clears the predicate set efficiently
+	CUTLASS_HOST_DEVICE
+	void enable_mask() {
+		the_predicates.enable_mask();
+	}
+
+	/// Sets the predicate mask, overriding value stored in predicate iterator
+	CUTLASS_HOST_DEVICE
+	void set_mask(Mask const& mask) {
+		the_predicates.set_mask(mask);
+	}
+
+	/// Gets the mask
+	CUTLASS_HOST_DEVICE
+	void get_mask(Mask& mask) {
+		the_predicates.get_mask(mask);
+	}
+
+	/// Returns whether access is valid or not
+	CUTLASS_HOST_DEVICE
+	bool valid() const {
+		return the_predicates.valid();
+	}
+};
+
+template<typename T, int N, int Align = 16> struct AlignedBuffer {
+	/// Internal storage type
+	using Storage = uint8_t;
+
+	/// Number of logical elements held in buffer
+	static constexpr int kCount = N;
+
+	/// Alignment requirement in bytes
+	static constexpr int kAlign = Align;
+
+	/// Number of storage elements
+	static constexpr int kBytes = (sizeof_bits<T>::value * N + 7) / 8;
+
+  private:
+	/// Internal storage
+	alignas(Align) Storage storage[kBytes];
+
+  public:
+	//
+	// C++ standard members
+	//
+
+	typedef T value_type;
+	typedef size_t size_type;
+	typedef ptrdiff_t difference_type;
+	typedef value_type* pointer;
+	typedef value_type const* const_pointer;
+
+	using Array			  = Array<T, N>;
+	using reference		  = typename Array::reference;
+	using const_reference = typename Array::const_reference;
+
+  public:
+	CUTLASS_HOST_DEVICE
+	pointer data() {
+		return reinterpret_cast<pointer>(storage);
+	}
+
+	CUTLASS_HOST_DEVICE
+	const_pointer data() const {
+		return reinterpret_cast<pointer>(storage);
+	}
+
+	CUTLASS_HOST_DEVICE
+	Storage* raw_data() {
+		return storage;
+	}
+
+	CUTLASS_HOST_DEVICE
+	Storage const* raw_data() const {
+		return storage;
+	}
+
+
+	CUTLASS_HOST_DEVICE
+	constexpr bool empty() const {
+		return !kCount;
+	}
+
+	CUTLASS_HOST_DEVICE
+	constexpr size_type size() const {
+		return kCount;
+	}
+
+	CUTLASS_HOST_DEVICE
+	constexpr size_type max_size() const {
+		return kCount;
+	}
+};
+
+template<
+	/// Size of the Gemm problem - concept: gemm::GemmShape<>
+	typename Shape_,
+	/// Policy describing tuning details (concept: MmaPolicy)
+	typename Policy_,
+	/// Number of stages,
+	int Stages,
+	/// Used for partial specialization
+	typename Enable = bool>
+class MmaBase {
+  public:
+	///< Size of the Gemm problem - concept: gemm::GemmShape<>
+	using Shape = Shape_;
+
+	///< Policy describing tuning details
+	using Policy = Policy_;
+
+	//
+	// Dependent types
+	//
+
+	/// Warp-level Mma
+	using Operator = typename Policy::Operator;
+
+	/// Shape describing the overall GEMM computed from shared memory
+	/// by each warp.
+	using WarpGemm = typename Policy::Operator::Shape;
+
+	/// Shape describing the number of warps filling the CTA
+	using WarpCount = GemmShape<Shape::kM / WarpGemm::kM, Shape::kN / WarpGemm::kN, Shape::kK / WarpGemm::kK>;
+
+	/// Number of warp-level GEMM oeprations
+	static constexpr int kWarpGemmIterations = (WarpGemm::kK / Operator::Policy::MmaShape::kK);
+
+	/// Number of stages
+	static constexpr int kStages = Stages;
+
+	/// Tensor reference to the A operand
+	using TensorRefA = TensorRef<typename Operator::ElementA, typename Operator::LayoutA>;
+
+	/// Tensor reference to the B operand
+	using TensorRefB = TensorRef<typename Operator::ElementB, typename Operator::LayoutB>;
+
+	static_assert(kWarpGemmIterations > 1,
+		"The pipelined structure requires at least two warp-level "
+		"GEMM operations.");
+
+	static_assert((kWarpGemmIterations % 2) == 0, "Inner loop iteration must be an even number.");
+
+	//
+	// Nested structs
+	//
+
+	/// Shared storage object needed by threadblock-scoped GEMM
+	class SharedStorage {
+	  public:
+		//
+		// Type definitions
+		//
+
+		/// Shape of the A matrix operand in shared memory
+		using ShapeA = MatrixShape<Shape::kM + Policy::SmemPaddingA::kRow, Shape::kK * kStages + Policy::SmemPaddingA::kColumn>;
+
+		/// Shape of the B matrix operand in shared memory
+		using ShapeB = MatrixShape<Shape::kK * kStages + Policy::SmemPaddingB::kRow, Shape::kN + Policy::SmemPaddingB::kColumn>;
+
+	  public:
+		//
+		// Data members
+		//
+
+		/// Buffer for A operand
+		AlignedBuffer<typename Operator::ElementA, ShapeA::kCount> operand_A;
+
+		/// Buffer for B operand
+		AlignedBuffer<typename Operator::ElementB, ShapeB::kCount> operand_B;
+
+	  public:
+		//
+		// Methods
+		//
+
+		/// Returns a layout object for the A matrix
+		CUTLASS_DEVICE
+		static typename Operator::LayoutA LayoutA() {
+			return Operator::LayoutA::packed({ ShapeA::kRow, ShapeA::kColumn });
+		}
+
+		/// Returns a layout object for the B matrix
+		CUTLASS_HOST_DEVICE
+		static typename Operator::LayoutB LayoutB() {
+			return Operator::LayoutB::packed({ ShapeB::kRow, ShapeB::kColumn });
+		}
+
+		/// Returns a TensorRef to the A operand
+		CUTLASS_HOST_DEVICE
+		TensorRefA operand_A_ref() {
+			return TensorRefA{ operand_A.data(), LayoutA() };
+		}
+
+		/// Returns a TensorRef to the B operand
+		CUTLASS_HOST_DEVICE
+		TensorRefB operand_B_ref() {
+			return TensorRefB{ operand_B.data(), LayoutB() };
+		}
+	};
+
+  protected:
+	//
+	// Data members
+	//
+
+	/// Iterator to load a warp-scoped tile of A operand from shared memory
+	typename Operator::IteratorA warp_tile_iterator_A_;
+
+	/// Iterator to load a warp-scoped tile of B operand from shared memory
+	typename Operator::IteratorB warp_tile_iterator_B_;
+
+  public:
+	/// Construct from tensor references
+	CUTLASS_DEVICE
+	MmaBase(
+		///< Shared storage needed for internal use by threadblock-scoped GEMM
+		SharedStorage& shared_storage,
+		///< ID within the threadblock
+		int thread_idx,
+		///< ID of warp
+		int warp_idx,
+		///< ID of each thread within a warp
+		int lane_idx)
+		: warp_tile_iterator_A_(shared_storage.operand_A_ref(), lane_idx), warp_tile_iterator_B_(shared_storage.operand_B_ref(), lane_idx) {
+	}
+};
+
+struct float_e5m2_t;
+
+struct float_e4m3_t;
+
+enum class ComplexTransform { kNone, kConjugate };
+
+enum class SharedMemoryClearOption {
+	kNone,///< SMEM is in don't-care state
+	kZfill,///< Kernels fill out of bounds accesses with zeros
+	kClearLastStage///< Last SMEM stage is explicitly cleared. Mainloop uses 'kNone'
+};
+
+template<typename T> struct plus {
+	CUTLASS_HOST_DEVICE
+	T operator()(T lhs, T const& rhs) const {
+		lhs += rhs;
+		return lhs;
+	}
+};
+
+template<class Operator> static constexpr bool is_sm89_staged_policy_v =
+	(
+		// ElementA must be FP8
+		std::is_same<typename Operator::ElementA, float_e4m3_t>::value || std::is_same<typename Operator::ElementA, float_e5m2_t>::value) &&
+	(
+		// ElementB must be FP8
+		std::is_same<typename Operator::ElementB, float_e4m3_t>::value || std::is_same<typename Operator::ElementB, float_e5m2_t>::value) &&
+	(
+		// The instruction shape must be 16x8x32
+		Operator::ArchMmaOperator::Shape::kM == 16 && Operator::ArchMmaOperator::Shape::kN == 8 && Operator::ArchMmaOperator::Shape::kK == 32) &&
+	(
+		// The operator must be OpMultiplyAdd (default)
+		std::is_same<typename Operator::MathOperator, OpMultiplyAdd>::value);
+
+template<typename Operator> struct UseStagedAccumulation {
+	static constexpr bool value = std::is_same<typename Operator::MathOperator, OpMultiplyAddFastF32>::value ||
+		std::is_same<typename Operator::MathOperator, OpMultiplyAddComplexFastF32>::value || is_sm89_staged_policy_v<Operator>;
+};
+
+template<
+	/// Size of the Gemm problem - concept: gemm::GemmShape<>
+	typename Shape_,
+	/// Iterates over tiles of A operand in global memory
+	//  (concept: ReadableTileIterator | ForwardTileIterator |
+	//  MaskedTileIterator)
+	typename IteratorA_,
+	/// Iterates over tiles of A operand in shared memory
+	/// (concept: WriteableTileIterator | RandomAccessTileIterator)
+	typename SmemIteratorA_,
+	/// Cache operation for operand A
+	CacheOperation::Kind CacheOpA,
+	/// Iterates over tiles of B operand in global memory
+	//  (concept: ReadableTileIterator | ForwardTileIterator |
+	//  MaskedTileIterator)
+	typename IteratorB_,
+	/// Iterates over tiles of B operand in shared memory
+	/// (concept: WriteableTileIterator | RandomAccessTileIterator)
+	typename SmemIteratorB_,
+	/// Cache operation for operand B
+	CacheOperation::Kind CacheOpB,
+	/// Data type of accumulator matrix
+	typename ElementC_,
+	/// Data type of accumulator matrix
+	typename LayoutC_,
+	/// Policy describing tuning details (concept: MmaPolicy)
+	typename Policy_,
+	/// Number of stages,
+	int Stages,
+	/// Use zfill or predicate for out-of-bound cp.async
+	SharedMemoryClearOption SharedMemoryClear = SharedMemoryClearOption::kNone,
+	/// Used for partial specialization
+	typename Enable = bool>
+class MmaMultistage : public MmaBase<Shape_, Policy_, Stages> {
+  public:
+	///< Base class
+	using Base = MmaBase<Shape_, Policy_, Stages>;
+	///< Size of the Gemm problem - concept: gemm::GemmShape<>
+	using Shape = Shape_;
+	///< Iterates over tiles of A operand in global memory
+	using IteratorA = IteratorA_;
+	///< Iterates over tiles of B operand in global memory
+	using IteratorB = IteratorB_;
+	///< Data type of accumulator matrix
+	using ElementC = ElementC_;
+	///< Layout of accumulator matrix
+	using LayoutC = LayoutC_;
+	///< Policy describing tuning details
+	using Policy = Policy_;
+
+	using SmemIteratorA = SmemIteratorA_;
+	using SmemIteratorB = SmemIteratorB_;
+
+	static CacheOperation::Kind const kCacheOpA = CacheOpA;
+	static CacheOperation::Kind const kCacheOpB = CacheOpB;
+
+	//
+	// Dependent types
+	//
+
+	/// Fragment of accumulator tile
+	using FragmentC = typename Policy::Operator::FragmentC;
+
+	/// Warp-level Mma
+	using Operator = typename Policy::Operator;
+
+	/// Minimum architecture is Sm80 to support cp.async
+	using ArchTag = Sm120;
+
+	/// Complex transform on A operand
+	static constexpr ComplexTransform kTransformA = Operator::kTransformA;
+
+	/// Complex transform on B operand
+	static constexpr ComplexTransform kTransformB = Operator::kTransformB;
+
+	/// Internal structure exposed for introspection.
+	struct Detail {
+		/// Number of cp.async instructions to load one stage of operand A
+		static constexpr int AsyncCopyIterationsPerStageA = IteratorA::ThreadMap::Iterations::kCount;
+
+		/// Number of cp.async instructions to load one stage of operand B
+		static constexpr int AsyncCopyIterationsPerStageB = IteratorB::ThreadMap::Iterations::kCount;
+
+		/// Number of stages
+		static constexpr int kStages = Stages;
+
+		/// Number of cp.async instructions to load on group of operand A
+		static constexpr int kAccessesPerGroupA = (AsyncCopyIterationsPerStageA + Base::kWarpGemmIterations - 1) / Base::kWarpGemmIterations;
+
+		/// Number of cp.async instructions to load on group of operand B
+		static constexpr int kAccessesPerGroupB = (AsyncCopyIterationsPerStageB + Base::kWarpGemmIterations - 1) / Base::kWarpGemmIterations;
+
+		// Optional staged-accumulation (e.g., tf32x3 kernels) for improved numerical
+		// accuracy, where each mainloop iteration first accumulates into a temporary
+		// set of freshly-cleared accumulators, which are subsequently added to the
+		// final accumulator set.
+		static constexpr bool kStagedAccumulation = UseStagedAccumulation<Operator>::value;
+	};
+
+  private:
+	// Structure encapsulating pipeline state live from one iteration to the next
+	struct PipeState {
+		using WarpLoadedFragmentA	   = typename Operator::FragmentA;
+		using WarpLoadedFragmentB	   = typename Operator::FragmentB;
+		using WarpTransformedFragmentA = typename Operator::TransformedFragmentA;
+		using WarpTransformedFragmentB = typename Operator::TransformedFragmentB;
+
+		/// Temporary accumulator to facilitate staged-accumulation
+		FragmentC tmp_accum_;
+
+		/// Pair of A fragments used to overlap shared memory loads and math instructions
+		WarpLoadedFragmentA warp_loaded_frag_A_[2];
+		WarpTransformedFragmentA warp_transformed_frag_A_[2];
+
+		/// Pair of B fragments used to overlap shared memory loads and math instructions
+		WarpLoadedFragmentB warp_loaded_frag_B_[2];
+		WarpTransformedFragmentB warp_transformed_frag_B_[2];
+	};
+
+
+  private:
+	//
+	// Data members
+	//
+
+	/// Warp-level MMA operator
+	Operator warp_mma_;
+
+	/// Iterator to write threadblock-scoped tile of A operand to shared memory
+	SmemIteratorA smem_iterator_A_;
+
+	/// Iterator to write threadblock-scoped tile of B operand to shared memory
+	SmemIteratorB smem_iterator_B_;
+
+	/// Shared memory write stage index
+	int smem_write_stage_idx_;
+
+	/// Shared memory read stage index
+	int smem_read_stage_idx_;
+
+
+  public:
+	/// Construct from tensor references
+	CUTLASS_DEVICE
+	MmaMultistage(
+		///< Shared storage needed for internal use by threadblock-scoped GEMM
+		typename Base::SharedStorage& shared_storage,
+		///< ID within the threadblock
+		int thread_idx,
+		///< ID of warp
+		int warp_idx,
+		///< ID of each thread within a warp
+		int lane_idx)
+		: Base(shared_storage, thread_idx, warp_idx, lane_idx), smem_iterator_A_(shared_storage.operand_A_ref(), thread_idx),
+		  smem_iterator_B_(shared_storage.operand_B_ref(), thread_idx), smem_write_stage_idx_(0), smem_read_stage_idx_(0) {
+		// Compute warp location within threadblock tile by mapping the warp_id to
+		// three coordinates:
+		//   _m: the warp's position within the threadblock along the M dimension
+		//   _n: the warp's position within the threadblock along the N dimension
+		//   _k: the warp's position within the threadblock along the K dimension
+
+		int warp_idx_mn = warp_idx % (Base::WarpCount::kM * Base::WarpCount::kN);
+		int warp_idx_k	= warp_idx / (Base::WarpCount::kM * Base::WarpCount::kN);
+
+		int warp_idx_m = warp_idx_mn % Base::WarpCount::kM;
+		int warp_idx_n = warp_idx_mn / Base::WarpCount::kM;
+
+		// Add per-warp offsets in units of warp-level tiles
+		this->warp_tile_iterator_A_.add_tile_offset({ warp_idx_m, Base::kWarpGemmIterations * warp_idx_k });
+		this->warp_tile_iterator_B_.add_tile_offset({ Base::kWarpGemmIterations * warp_idx_k, warp_idx_n });
+	}
+
+	/// Advance shared memory read-iterators to the next stage
+	CUTLASS_DEVICE
+	void advance_smem_read_stage() {
+		++smem_read_stage_idx_;
+
+		if (smem_read_stage_idx_ == Base::kStages) {
+			// Wrap back around to the 'start' of the circular buffer in shared memory
+			this->warp_tile_iterator_A_.add_tile_offset({ 0, -Base::kStages * Policy::kPartitionsK * Base::kWarpGemmIterations });
+			this->warp_tile_iterator_B_.add_tile_offset({ -Base::kStages * Policy::kPartitionsK * Base::kWarpGemmIterations, 0 });
+			smem_read_stage_idx_ = 0;
+		}
+	}
+
+	/// Advance global memory read-iterators and shared memory write-iterators to the stage
+	CUTLASS_DEVICE
+	void advance_smem_write_stage(IteratorA& iterator_A, IteratorB& iterator_B) {
+		// Advance global iterators
+		iterator_A.add_tile_offset({ 0, 1 });
+		iterator_B.add_tile_offset({ 1, 0 });
+
+		// Advance shared iterators
+		smem_iterator_A_.add_tile_offset({ 0, 1 });
+		smem_iterator_B_.add_tile_offset({ 1, 0 });
+
+		// Increment shared memory write stage index
+		++smem_write_stage_idx_;
+
+		if (smem_write_stage_idx_ == Base::kStages) {
+			// Wrap back around to the 'start' of the circular buffer in shared memory
+			smem_iterator_A_.add_tile_offset({ 0, -Base::kStages });
+			smem_iterator_B_.add_tile_offset({ -Base::kStages, 0 });
+			smem_write_stage_idx_ = 0;
+		}
+	}
+
+	CUTLASS_DEVICE
+	void copy_tiles_and_advance(IteratorA& iterator_A, IteratorB& iterator_B, int group_start_A = 0, int group_start_B = 0) {
+		iterator_A.set_iteration_index(group_start_A * IteratorA::kAccessesPerVector);
+		this->smem_iterator_A_.set_iteration_index(group_start_A);
+
+		// Async Copy for operand A
+		CUTLASS_PRAGMA_UNROLL
+		for (int j = 0; j < Detail::kAccessesPerGroupA; ++j) {
+			if (group_start_A + j < Detail::AsyncCopyIterationsPerStageA) {
+				typename IteratorA::AccessType* dst_ptr = reinterpret_cast<typename IteratorA::AccessType*>(this->smem_iterator_A_.get());
+
+				int const kSrcBytes = sizeof_bits<typename IteratorA::Element>::value * IteratorA::ThreadMap::kElementsPerAccess / IteratorA::kAccessesPerVector / 8;
+
+				CUTLASS_PRAGMA_UNROLL
+				for (int v = 0; v < IteratorA::kAccessesPerVector; ++v) {
+					auto gmem_ptr = iterator_A.get();
+
+					if (SharedMemoryClear == SharedMemoryClearOption::kZfill) {
+						cp_async_zfill<kSrcBytes, kCacheOpA>(dst_ptr + v, gmem_ptr, iterator_A.valid());
+					} else {
+						cp_async<kSrcBytes, kCacheOpA>(dst_ptr + v, gmem_ptr, iterator_A.valid());
+					}
+
+					++iterator_A;
+				}
+
+				++this->smem_iterator_A_;
+			}
+		}
+
+		iterator_B.set_iteration_index(group_start_B * IteratorB::kAccessesPerVector);
+		this->smem_iterator_B_.set_iteration_index(group_start_B);
+
+		// Async Copy for operand B
+		CUTLASS_PRAGMA_UNROLL
+		for (int j = 0; j < Detail::kAccessesPerGroupB; ++j) {
+			if (group_start_B + j < Detail::AsyncCopyIterationsPerStageB) {
+				typename IteratorB::AccessType* dst_ptr = reinterpret_cast<typename IteratorB::AccessType*>(this->smem_iterator_B_.get());
+
+				int const kSrcBytes = sizeof_bits<typename IteratorB::Element>::value * IteratorB::ThreadMap::kElementsPerAccess / IteratorB::kAccessesPerVector / 8;
+
+				CUTLASS_PRAGMA_UNROLL
+				for (int v = 0; v < IteratorB::kAccessesPerVector; ++v) {
+					auto gmem_ptr = iterator_B.get();
+
+					if (SharedMemoryClear == SharedMemoryClearOption::kZfill) {
+						cp_async_zfill<kSrcBytes, kCacheOpB>(dst_ptr + v, gmem_ptr, iterator_B.valid());
+					} else {
+						cp_async<kSrcBytes, kCacheOpB>(dst_ptr + v, gmem_ptr, iterator_B.valid());
+					}
+
+					++iterator_B;
+				}
+				++this->smem_iterator_B_;
+			}
+		}
+	}
+
+	/// GEMM prologue.  Bootstrap the global->shared memory pipeline by fetching
+	/// the global fragments needed by the first kStages-1 threadblock mainloop iterations
+	CUTLASS_DEVICE
+	void prologue(IteratorA& iterator_A,///< [in|out] iterator over A operand in global memory
+		IteratorB& iterator_B,///< [in|out] iterator over B operand in global memory
+		int& gemm_k_iterations)///< [in|out] number of threadblock mainloop iterations remaining
+	{
+		// Issue several complete stages
+		CUTLASS_PRAGMA_UNROLL
+		for (int stage = 0; stage < Base::kStages - 1; ++stage, --gemm_k_iterations) {
+			// Disable global fetching if done with global fetch iterations
+			iterator_A.clear_mask(gemm_k_iterations == 0);
+			iterator_B.clear_mask(gemm_k_iterations == 0);
+
+			iterator_A.set_iteration_index(0);
+			this->smem_iterator_A_.set_iteration_index(0);
+
+			// Async Copy for operand A
+			CUTLASS_PRAGMA_UNROLL
+			for (int j = 0; j < Detail::AsyncCopyIterationsPerStageA; ++j) {
+				typename IteratorA::AccessType* dst_ptr = reinterpret_cast<typename IteratorA::AccessType*>(this->smem_iterator_A_.get());
+
+				CUTLASS_PRAGMA_UNROLL
+				for (int v = 0; v < IteratorA::kAccessesPerVector; ++v) {
+					int const kSrcBytes = sizeof_bits<typename IteratorA::Element>::value * IteratorA::ThreadMap::kElementsPerAccess / IteratorA::kAccessesPerVector / 8;
+
+					int src_bytes = (iterator_A.valid() ? kSrcBytes : 0);
+
+					cp_async_zfill<kSrcBytes, kCacheOpA>(dst_ptr + v, iterator_A.get(), iterator_A.valid());
+
+					++iterator_A;
+				}
+
+				++this->smem_iterator_A_;
+			}
+
+			iterator_B.set_iteration_index(0);
+			this->smem_iterator_B_.set_iteration_index(0);
+
+			// Async Copy for operand B
+			CUTLASS_PRAGMA_UNROLL
+			for (int j = 0; j < Detail::AsyncCopyIterationsPerStageB; ++j) {
+				typename IteratorB::AccessType* dst_ptr = reinterpret_cast<typename IteratorB::AccessType*>(this->smem_iterator_B_.get());
+
+				CUTLASS_PRAGMA_UNROLL
+				for (int v = 0; v < IteratorB::kAccessesPerVector; ++v) {
+					int const kSrcBytes = sizeof_bits<typename IteratorB::Element>::value * IteratorB::ThreadMap::kElementsPerAccess / IteratorB::kAccessesPerVector / 8;
+
+					cp_async_zfill<kSrcBytes, kCacheOpB>(dst_ptr + v, iterator_B.get(), iterator_B.valid());
+
+					++iterator_B;
+				}
+
+				++this->smem_iterator_B_;
+			}
+
+			// Move to the next write stage
+			advance_smem_write_stage(iterator_A, iterator_B);
+
+			// Defines the boundary of a stage of cp.async.
+			cp_async_fence();
+		}
+
+		// Optionally clear the remaining stages of SMEM. This is a functional requirement for
+		// some kernels so that all accumulator elements outside the GEMM footprint are zero.
+		if (SharedMemoryClear == SharedMemoryClearOption::kClearLastStage) {
+			/// Iterator to write threadblock-scoped tile of A operand to shared memory
+			SmemIteratorA last_smem_iterator_A(this->smem_iterator_A_);
+			typename IteratorA::AccessType zero_A;
+
+			zero_A.clear();
+			last_smem_iterator_A.set_iteration_index(0);
+
+			// Async Copy for operand A
+			CUTLASS_PRAGMA_UNROLL
+			for (int j = 0; j < Detail::AsyncCopyIterationsPerStageA; ++j) {
+				typename IteratorA::AccessType* dst_ptr = reinterpret_cast<typename IteratorA::AccessType*>(last_smem_iterator_A.get());
+
+				*dst_ptr = zero_A;
+
+				++last_smem_iterator_A;
+			}
+
+			/// Iterator to write threadblock-scoped tile of B operand to shared memory
+			SmemIteratorB last_smem_iterator_B(this->smem_iterator_B_);
+			typename IteratorB::AccessType zero_B;
+
+			zero_B.clear();
+			last_smem_iterator_B.set_iteration_index(0);
+
+			// Async Copy for operand B
+			CUTLASS_PRAGMA_UNROLL
+			for (int j = 0; j < Detail::AsyncCopyIterationsPerStageB; ++j) {
+				typename IteratorB::AccessType* dst_ptr = reinterpret_cast<typename IteratorB::AccessType*>(last_smem_iterator_B.get());
+
+				*dst_ptr = zero_B;
+
+				++last_smem_iterator_B;
+			}
+		}
+	}
+
+
+	/// Wait until we have at least one completed global fetch stage
+	CUTLASS_DEVICE
+	void gmem_wait() {
+		// Wait until we have at least one committed global fetch stage. (#uncommitted = Base::kStages - 1 - #committed)
+		cp_async_wait<Base::kStages - 2>();
+		__syncthreads();
+	}
+
+
+	/// Perform a threadblock mainloop iteration of matrix multiply-accumulate
+	CUTLASS_DEVICE
+	void mac_loop_iter(PipeState& pipe_state,///< [in|out] loop-carried pipeline state
+		FragmentC& accum,///< [in|out] destination accumulator tile
+		IteratorA& iterator_A,///< [in|out] iterator over A operand in global memory
+		IteratorB& iterator_B,///< [in|out] iterator over B operand in global memory
+		int& gemm_k_iterations)///< [in|out] number of threadblock mainloop iterations remaining
+	{
+		// Unroll the warp-level MMA tiles of a threadblock's mainloop iteration
+		CUTLASS_PRAGMA_UNROLL
+		for (int warp_mma_k = 0; warp_mma_k < Base::kWarpGemmIterations; ++warp_mma_k) {
+			// Load the next warp-tile's A fragment from shared memory
+			this->warp_tile_iterator_A_.set_kgroup_index((warp_mma_k + 1) % Base::kWarpGemmIterations);
+			this->warp_tile_iterator_A_.load(pipe_state.warp_loaded_frag_A_[(warp_mma_k + 1) % 2]);
+			++this->warp_tile_iterator_A_;
+
+			// Load the next warp-tile's B fragment from shared memory
+			this->warp_tile_iterator_B_.set_kgroup_index((warp_mma_k + 1) % Base::kWarpGemmIterations);
+			this->warp_tile_iterator_B_.load(pipe_state.warp_loaded_frag_B_[(warp_mma_k + 1) % 2]);
+			++this->warp_tile_iterator_B_;
+
+			// Except for the first warp-tile, all warp-tiles convert their incoming shared memory fragments as necessary
+			if (warp_mma_k > 0) {
+				warp_mma_.transform(pipe_state.warp_transformed_frag_A_[warp_mma_k % 2], pipe_state.warp_transformed_frag_B_[warp_mma_k % 2],
+					pipe_state.warp_loaded_frag_A_[warp_mma_k % 2], pipe_state.warp_loaded_frag_B_[warp_mma_k % 2]);
+			}
+
+			// Execute the current warp-tile of MMA operations
+			if (Detail::kStagedAccumulation) {
+				warp_mma_(pipe_state.tmp_accum_, pipe_state.warp_transformed_frag_A_[warp_mma_k % 2], pipe_state.warp_transformed_frag_B_[warp_mma_k % 2], pipe_state.tmp_accum_);
+
+				if (warp_mma_k == 0) {
+					plus<FragmentC> plus_accum;
+					accum = plus_accum(accum, pipe_state.tmp_accum_);
+					pipe_state.tmp_accum_.clear();
+				}
+			} else {
+				warp_mma_(accum, pipe_state.warp_transformed_frag_A_[warp_mma_k % 2], pipe_state.warp_transformed_frag_B_[warp_mma_k % 2], accum);
+			}
+
+			// Except for the last warp-tile, all warp-tiles issue their share of
+			// global->shared fragment copies
+			if (warp_mma_k < Base::kWarpGemmIterations - 1) {
+				int group_start_iteration_A, group_start_iteration_B;
+				group_start_iteration_A = warp_mma_k * Detail::kAccessesPerGroupA;
+				group_start_iteration_B = warp_mma_k * Detail::kAccessesPerGroupB;
+
+				copy_tiles_and_advance(iterator_A, iterator_B, group_start_iteration_A, group_start_iteration_B);
+			}
+
+			// The second-to-last warp-tile also:
+			//   - performs the last warp-tile's share of global->shared fragment copies
+			//   - moves to the next global fetch stage
+			if (warp_mma_k + 2 == Base::kWarpGemmIterations) {
+				// Performs the last warp-tile's share of global->shared fragment copies
+				int group_start_iteration_A = (warp_mma_k + 1) * Detail::kAccessesPerGroupA;
+				int group_start_iteration_B = (warp_mma_k + 1) * Detail::kAccessesPerGroupB;
+
+				copy_tiles_and_advance(iterator_A, iterator_B, group_start_iteration_A, group_start_iteration_B);
+
+				// Inserts a memory fence between stages of cp.async instructions.
+				cp_async_fence();
+
+				// Wait until we have at least one completed global fetch stage
+				gmem_wait();
+
+				// Move to the next global fetch stage
+				advance_smem_write_stage(iterator_A, iterator_B);
+				advance_smem_read_stage();
+
+				// Disable global fetching when done with global fetch iterations
+				--gemm_k_iterations;
+				iterator_A.clear_mask(gemm_k_iterations == 0);
+				iterator_B.clear_mask(gemm_k_iterations == 0);
+			}
+
+			// The last warp-tile also converts the shared memory fragments used by
+			// the first warp-tile of the next iteration, if necessary (so we can
+			// immediately start issuing MMA instructions at the top of the loop )
+			if (warp_mma_k + 1 == Base::kWarpGemmIterations) {
+				warp_mma_.transform(pipe_state.warp_transformed_frag_A_[(warp_mma_k + 1) % 2], pipe_state.warp_transformed_frag_B_[(warp_mma_k + 1) % 2],
+					pipe_state.warp_loaded_frag_A_[(warp_mma_k + 1) % 2], pipe_state.warp_loaded_frag_B_[(warp_mma_k + 1) % 2]);
+			}
+		}
+	}
+
+
+	/// Perform the specified number of threadblock mainloop iterations of matrix
+	/// multiply-accumulate.  Assumes prologue has been initiated.
+	CUTLASS_DEVICE
+	void gemm_iters(int gemm_k_iterations,///< number of threadblock mainloop iterations
+		FragmentC& accum,///< [in|out] accumulator tile
+		IteratorA& iterator_A,///< [in|out] iterator over A operand in global memory
+		IteratorB& iterator_B)///< [in|out] iterator over B operand in global memory
+	{
+		PipeState pipe_state;
+
+		// Disable global fetching if done with global fetch iterations
+		iterator_A.clear_mask(gemm_k_iterations == 0);
+		iterator_B.clear_mask(gemm_k_iterations == 0);
+
+		// Load first warp-tile's A fragment from shared memory
+		this->warp_tile_iterator_A_.set_kgroup_index(0);
+		this->warp_tile_iterator_A_.load(pipe_state.warp_loaded_frag_A_[0]);
+		++this->warp_tile_iterator_A_;
+
+		// Load first warp-tile's B fragment from shared memory
+		this->warp_tile_iterator_B_.set_kgroup_index(0);
+		this->warp_tile_iterator_B_.load(pipe_state.warp_loaded_frag_B_[0]);
+		++this->warp_tile_iterator_B_;
+
+		// Transform, if necessary, the first warp-tile's shared memory fragments
+		warp_mma_.transform(pipe_state.warp_transformed_frag_A_[0], pipe_state.warp_transformed_frag_B_[0], pipe_state.warp_loaded_frag_A_[0], pipe_state.warp_loaded_frag_B_[0]);
+
+		if (Detail::kStagedAccumulation) {
+			pipe_state.tmp_accum_.clear();
+		}
+
+		// Mainloop
+		CUTLASS_GEMM_LOOP
+		for (; gemm_k_iterations > (-Base::kStages + 1);) {
+			mac_loop_iter(pipe_state, accum, iterator_A, iterator_B, gemm_k_iterations);
+		}
+
+		if (Detail::kStagedAccumulation) {
+			plus<FragmentC> plus_accum;
+			accum = plus_accum(accum, pipe_state.tmp_accum_);
+		}
+
+		// Commit and drain all pending and predicated cp.async pnz from the GEMM mainloop
+		cp_async_fence();
+		cp_async_wait<0>();
+		__syncthreads();
+	}
+
+
+	/// Prepares the class for another prologue.
+	CUTLASS_DEVICE
+	void wind_down() {
+// Catch-up the smem-read iterator to the smem-write iterator (so this class can be reused for another tile's prologue)
+
+// First, increment remaining warp tiles to get to the next full stage.  (Ideally we would
+// just decrement one tile, but not all iterators implement --() decrement.)
+#pragma unroll
+		for (int warp_mma_k = 1; warp_mma_k < Base::kWarpGemmIterations; ++warp_mma_k) {
+			this->warp_tile_iterator_A_.set_kgroup_index(warp_mma_k);
+			this->warp_tile_iterator_B_.set_kgroup_index(warp_mma_k);
+
+			++this->warp_tile_iterator_A_;
+			++this->warp_tile_iterator_B_;
+		}
+		smem_read_stage_idx_++;
+
+		// Then wrap back two full stages (one for the tile advancing we just did, and one to catch the write iterators)
+		static constexpr int kStageIters = Policy::kPartitionsK * Base::kWarpGemmIterations;
+		if (smem_read_stage_idx_ > 1) {
+			this->warp_tile_iterator_A_.add_tile_offset({ 0, (-2 * kStageIters) });
+			this->warp_tile_iterator_B_.add_tile_offset({ (-2 * kStageIters), 0 });
+		} else {
+			this->warp_tile_iterator_A_.add_tile_offset({ 0, ((Base::kStages - 2) * kStageIters) });
+			this->warp_tile_iterator_B_.add_tile_offset({ ((Base::kStages - 2) * kStageIters), 0 });
+		}
+		smem_read_stage_idx_ = smem_write_stage_idx_;
+	}
+
+
+	/// Perform a threadblock-scoped matrix multiply-accumulate
+	CUTLASS_DEVICE
+	void operator()(
+		///< problem size of GEMM
+		int gemm_k_iterations,
+		///< destination accumulator tile
+		FragmentC& accum,
+		///< iterator over A operand in global memory
+		IteratorA iterator_A,
+		///< iterator over B operand in global memory
+		IteratorB iterator_B,
+		///< initial value of accumulator
+		FragmentC const& src_accum) {
+		// Prologue (start fetching iterations of global fragments into shared memory)
+		prologue(iterator_A, iterator_B, gemm_k_iterations);
+
+		// Wait until we have at least one completed global fetch stage
+		gmem_wait();
+
+		// Initialize destination accumulators with source accumulators
+		accum = src_accum;
+
+		// Perform the MAC-iterations
+		gemm_iters(gemm_k_iterations, accum, iterator_A, iterator_B);
+	}
+};
+
+template<
+	/// Shape of threadblock-scoped matrix multiply operator
+	typename Shape,
+	/// Shape of warp-level matrix multiply operator
+	typename WarpShape,
+	/// Shape of one matrix production operation (concept: GemmShape)
+	typename InstructionShape,
+	/// Element data type of A operand
+	typename ElementA,
+	/// Layout of operand A
+	typename LayoutA,
+	/// Element data type of B operand
+	typename ElementB,
+	/// Layout of operand B
+	typename LayoutB,
+	/// Data type of accumulator
+	typename ElementC,
+	/// Layout of accumulator
+	typename LayoutC,
+	/// Indicates type of math operator (arch::OpClassSimt or arch::OpClassTensorOp)
+	typename OperatorClass,
+	/// Number of stages
+	int Stages = 2,
+	/// Operation performed by MMA
+	typename Operator = OpMultiplyAdd,
+	/// Store the accumulators in row major or column major.  Row major is used
+	/// when output layout is interleaved.
+	bool AccumulatorsInRowMajor = false,
+	/// Cache operation of operand A
+	CacheOperation::Kind CacheOpA = CacheOperation::Global,
+	/// Cache operation of operand B
+	CacheOperation::Kind CacheOpB = CacheOperation::Global,
+	/// per-element transformation for elements of A
+	ComplexTransform TransformA = ComplexTransform::kNone,
+	/// per-element transformation for elements of B
+	ComplexTransform TransformB = ComplexTransform::kNone,
+	bool IsComplex				= false// (is_complex<ElementA>::value || is_complex<ElementB>::value)
+	>
+struct DefaultMmaCore;
+
+template<typename OperatorClass> struct WarpSize {
+	static constexpr int value = 32;
+};
+
+template<typename Shape_, int Threads, int ElementsPerAccess = 1> struct PitchLinearStripminedThreadMap {
+	/// Tensor coordinate
+	using TensorCoord = PitchLinearCoord;
+
+	/// Tile shape
+	using Shape = Shape_;
+
+	/// Number of threads total
+	static constexpr int kThreads = Threads;
+
+	/// Extract vector length from Layout
+	static constexpr int kElementsPerAccess = ElementsPerAccess;
+
+	/// Shape of access by each thread
+	using ThreadAccessShape = PitchLinearShape<kElementsPerAccess, 1>;
+
+	/// Internal implementation details
+	struct Detail {
+		static_assert(!(Shape::kContiguous % kElementsPerAccess), "");
+
+		/// Shape of the tile in units of vectors
+		using ShapeVec = PitchLinearShape<Shape::kContiguous / kElementsPerAccess, Shape::kStrided>;
+
+		static_assert((Threads < ShapeVec::kContiguous && !(ShapeVec::kContiguous % kThreads)) || (!(kThreads % ShapeVec::kContiguous)),
+			"Shape must be divisible by number of iterations of each thread.");
+	};
+
+	/// Number of iterations by each thread
+	using Iterations = typename std::conditional<Threads >= Detail::ShapeVec::kContiguous,
+		PitchLinearShape<1,
+			// Redo the comparison here to work around divide by zero compiler
+			// error.  The compiler evaluates both path of std::conditional.
+			(Threads >= Detail::ShapeVec::kContiguous ? (Detail::ShapeVec::kStrided + (kThreads / Detail::ShapeVec::kContiguous - 1)) / (kThreads / Detail::ShapeVec::kContiguous)
+													  : 0)>,
+		PitchLinearShape<Detail::ShapeVec::kContiguous / kThreads, Detail::ShapeVec::kStrided>>::type;
+
+
+	/// Interval between accesses along each dimension of the tensor's logical coordinate space
+	/// (in units of Elements)
+	using Delta = typename std::conditional<Threads >= Detail::ShapeVec::kContiguous, PitchLinearShape<1, kThreads / Detail::ShapeVec::kContiguous>,
+		PitchLinearShape<kThreads * kElementsPerAccess, 1>>::type;
+
+	/// Shape of the tile in units of vectors
+	using StorageShape = typename std::conditional<Threads >= Detail::ShapeVec::kContiguous,
+		PitchLinearShape<Shape::kContiguous, Iterations::kStrided*(kThreads / Detail::ShapeVec::kContiguous)>, PitchLinearShape<Shape::kContiguous, Shape::kStrided>>::type;
+
+	/// Maps thread ID to a coordinate offset within the tensor's logical coordinate space
+	/// (in units of Elements)
+	CUTLASS_HOST_DEVICE
+	static TensorCoord initial_offset(int thread_id) {
+		return TensorCoord((thread_id % Detail::ShapeVec::kContiguous) * kElementsPerAccess, thread_id / Detail::ShapeVec::kContiguous);
+	}
+};
+
+template<typename ThreadMap_> struct TransposePitchLinearThreadMapSimt {
+	/// Underlying ThreadMap
+	using ThreadMap = ThreadMap_;
+
+	/// Tensor coordinate
+	using TensorCoord = typename ThreadMap::TensorCoord;
+
+	/// Tile shape
+	using Shape = typename ThreadMap::Shape;
+
+	/// Number of threads total
+	static constexpr int kThreads = ThreadMap::kThreads;
+
+	/// Extract vector length from Layout
+	static constexpr int kElementsPerAccess = ThreadMap::kElementsPerAccess;
+
+	static_assert(kElementsPerAccess == 1, "Simt transpose requires elements per access to be 1");
+	///< Iterations along each dimension (concept: PitchLinearShape)
+	using Iterations = PitchLinearShape<ThreadMap::Iterations::kStrided, ThreadMap::Iterations::kContiguous>;
+
+	static_assert(Iterations::kCount, "Number of iterations must be non-zero");
+
+	static_assert(Iterations::kStrided == 1, "Strided iteration has to be one to reuse the same shared store function with those that don't need transpose");
+
+	/// Shape of access by each thread
+	using ThreadAccessShape = typename ThreadMap::ThreadAccessShape;
+
+	///< Delta between accesses (units of elements, concept: PitchLinearShape)
+	using Delta = PitchLinearShape<ThreadMap::Delta::kStrided, ThreadMap::Delta::kContiguous>;
+
+
+	/// Maps thread ID to a coordinate offset within the tensor's logical
+	/// coordinate space Note this is slightly different from the one of
+	/// PitchLinearWarpRakedThreadMap.
+	CUTLASS_HOST_DEVICE
+	static TensorCoord initial_offset(int thread_id) {
+		TensorCoord coord = ThreadMap::initial_offset(thread_id);
+
+		return TensorCoord(coord.strided(), coord.contiguous());
+	}
+};
+
+template<typename Shape, typename Element, typename Layout, int AdvanceRank, typename ThreadMap, int Alignment = sizeof_bits<Element>::value * ThreadMap::kElementsPerAccess / 8>
+class RegularTileIterator;
+
+template<typename Shape_, typename Element_, int AdvanceRank, typename ThreadMap_, int Alignment>
+class RegularTileIterator<Shape_, Element_, RowMajor, AdvanceRank, ThreadMap_, Alignment> {
+  public:
+	using Shape						  = Shape_;
+	using Element					  = Element_;
+	using Layout					  = RowMajor;
+	static constexpr int kAdvanceRank = AdvanceRank;
+	using ThreadMap					  = ThreadMap_;
+	static constexpr int kAlignment	  = Alignment;
+
+	using Index		= typename Layout::Index;
+	using LongIndex = typename Layout::LongIndex;
+
+	using TensorRef	  = TensorRef<Element, Layout>;
+	using TensorCoord = typename Layout::TensorCoord;
+
+	using Fragment = Array<Element, ThreadMap::Iterations::kCount * ThreadMap::kElementsPerAccess>;
+
+	using Underlying = RegularTileIterator<PitchLinearShape<Shape::kColumn, Shape::kRow>, Element, PitchLinear, (kAdvanceRank == 0 ? 1 : 0), ThreadMap, kAlignment>;
+
+	using AccessType = typename Underlying::AccessType;
+
+	static_assert(kAdvanceRank == 0 || kAdvanceRank == 1, "Advance rank may only be along the row or column dimensions.");
+
+  private:
+	Underlying iterator_;
+
+  public:
+	CUTLASS_DEVICE
+	RegularTileIterator() {
+	}
+
+	CUTLASS_DEVICE
+	RegularTileIterator(TensorRef const& ref, int thread_idx) : iterator_({ ref.data(), ref.stride() }, thread_idx) {
+	}
+
+	/// Loads a fragment
+	CUTLASS_HOST_DEVICE
+	void load_with_pointer_offset(Fragment& frag, Index pointer_offset) {
+		iterator_.load_with_pointer_offset(frag, pointer_offset);
+	}
+
+	/// Loads a fragment
+	CUTLASS_HOST_DEVICE
+	void load(Fragment& frag, TensorCoord const& tile_offset) {
+		iterator_.load_with_pointer_offset(frag, { tile_offset.column(), tile_offset.row() });
+	}
+
+	/// Loads a fragment
+	CUTLASS_HOST_DEVICE
+	void load(Fragment& frag) {
+		iterator_.load_with_pointer_offset(frag, 0);
+	}
+
+	/// Stores a fragment
+	CUTLASS_HOST_DEVICE
+	void store_with_pointer_offset(Fragment const& frag, Index pointer_offset) {
+		iterator_.store_with_pointer_offset(frag, pointer_offset);
+	}
+
+	/// Stores a fragment
+	CUTLASS_HOST_DEVICE
+	void store(Fragment const& frag, TensorCoord const& tile_offset) {
+		iterator_.store_with_pointer_offset(frag, { tile_offset.column(), tile_offset.row() });
+	}
+
+	/// Stores a fragment
+	CUTLASS_HOST_DEVICE
+	void store(Fragment const& frag) {
+		iterator_.store_with_pointer_offset(frag, 0);
+	}
+
+	/// Advances the pointer
+	CUTLASS_HOST_DEVICE
+	RegularTileIterator& operator++() {
+		++iterator_;
+		return *this;
+	}
+
+	/// Advances the pointer
+	CUTLASS_HOST_DEVICE
+	RegularTileIterator& operator--() {
+		--iterator_;
+		return *this;
+	}
+
+	/// Adds a pointer offset in units of Element
+	CUTLASS_HOST_DEVICE
+	void add_pointer_offset(LongIndex pointer_offset) {
+		iterator_.add_pointer_offset(pointer_offset);
+	}
+
+	/// Adds a tile offset
+	CUTLASS_DEVICE
+	void add_tile_offset(TensorCoord const& coord) {
+		iterator_.add_tile_offset({ coord.column(), coord.row() });
+	}
+
+	/// Overrides the internal iteration index
+	CUTLASS_HOST_DEVICE
+	void set_iteration_index(int index) {
+	}
+
+	/// Returns a pointer
+	CUTLASS_HOST_DEVICE
+	AccessType* get() const {
+		return iterator_.get();
+	}
+};
+
+CUTLASS_HOST_DEVICE
+CUTLASS_CONSTEXPR_IF_CXX17 int const_min(int a, int b) {
+	return (b < a ? b : a);
+}
+
+CUTLASS_HOST_DEVICE
+CUTLASS_CONSTEXPR_IF_CXX17 int const_max(int a, int b) {
+	return (b > a ? b : a);
+}
+
+template<typename WarpShape_,///< shape of the warp in lanes (concept: MatrixShape)
+	typename LaneLayout_,///< layout function of lanes
+	typename LaneMmaShape_///< size of each lane's thread-level matrix product (concept: GemmShape)
+	>
+struct MmaSimtPolicy {
+	using WarpShape	   = WarpShape_;
+	using LaneLayout   = LaneLayout_;
+	using LaneMmaShape = LaneMmaShape_;
+	using MmaShape	   = LaneMmaShape;
+
+	/// Returns a layout functor mapping lane position in the warp to thread ID
+	CUTLASS_HOST_DEVICE
+	static LaneLayout get_lane_layout() {
+		return LaneLayout::packed({ WarpShape::kRow, WarpShape::kColumn });
+	}
+};
+
+template<int Interleave> struct RowMajorInterleaved {
+	/// Logical rank of tensor
+	static constexpr int kRank = 2;
+
+	/// Rank of stride vector
+	static constexpr int kStrideRank = 1;
+
+	/// Index type used for coordinates
+	using Index = int32_t;
+
+	/// Long index type used for offsets
+	using LongIndex = int64_t;
+
+	/// Logical coordinate
+	using TensorCoord = MatrixCoord;
+
+	/// Stride vector
+	using Stride = Coord<kStrideRank, LongIndex>;
+
+	/// Size of interleaved columns
+	static constexpr int kInterleave = Interleave;
+
+  private:
+	//
+	// Data members
+	//
+
+	/// Stride data member
+	Stride stride_;
+
+  public:
+	//
+	// Methods
+	//
+
+	/// Ctor
+	CUTLASS_HOST_DEVICE
+	RowMajorInterleaved(LongIndex ldm = 0) : stride_(ldm) {
+	}
+
+	/// Ctor
+	CUTLASS_HOST_DEVICE
+	RowMajorInterleaved(Stride stride) : stride_(stride) {
+	}
+
+	/// Helper returns a layout to a tightly packed tensor
+	CUTLASS_HOST_DEVICE
+	static RowMajorInterleaved packed(MatrixCoord const& extent) {
+		return RowMajorInterleaved(extent.column() * kInterleave);
+	}
+
+	/// Returns the offset of a coordinate in linear memory.
+	/// Assumes coordinate has convention (row, column)
+	CUTLASS_HOST_DEVICE
+	LongIndex operator()(MatrixCoord const& coord) const {
+		Index row_major = coord.row() / kInterleave;
+		Index row_minor = coord.row() % kInterleave;
+		return LongIndex(row_major) * LongIndex(stride_[0]) + LongIndex(coord.column()) * kInterleave + row_minor;
+	}
+
+	/// Inverse of layout function, mapping linear offset to logical coordinate
+	CUTLASS_HOST_DEVICE
+	MatrixCoord inverse(LongIndex offset) const {
+		Index row_major = Index(offset / stride_[0]);
+		Index residual	= Index(offset % stride_[0]);
+
+		Index column	= residual / kInterleave;
+		Index row_minor = residual % kInterleave;
+
+		return MatrixCoord(row_major * kInterleave + row_minor, column);
+	}
+
+	/// Returns the stride of the layout
+	CUTLASS_HOST_DEVICE
+	Stride stride() const {
+		return stride_;
+	}
+
+	/// Returns the stride of the layout
+	CUTLASS_HOST_DEVICE
+	Stride& stride() {
+		return stride_;
+	}
+
+	/// Returns the stride of the layout
+	CUTLASS_HOST_DEVICE
+	typename Stride::Index stride(int idx) const {
+		return stride_[idx];
+	}
+
+	/// Returns the stride of the layout
+	CUTLASS_HOST_DEVICE
+	typename Stride::Index& stride(int idx) {
+		return stride_[idx];
+	}
+
+	/// Compute the number of contiguous elements needed to store a tensor with the given size
+	CUTLASS_HOST_DEVICE
+	LongIndex capacity(MatrixCoord const& extent) const {
+		return (extent.row() + kInterleave - 1) / kInterleave * stride_[0];
+	}
+};
+
+template<int Interleave> struct ColumnMajorInterleaved {
+	/// Logical rank of tensor
+	static constexpr int kRank = 2;
+
+	/// Rank of stride vector
+	static constexpr int kStrideRank = 1;
+
+	/// Index type used for coordinates
+	using Index = int32_t;
+
+	/// Long index type used for offsets
+	using LongIndex = int64_t;
+
+	/// Logical coordinate
+	using TensorCoord = MatrixCoord;
+
+	/// Stride vector
+	using Stride = Coord<kStrideRank, LongIndex>;
+
+	/// Size of interleaved columns
+	static constexpr int kInterleave = Interleave;
+
+  private:
+	//
+	// Data members
+	//
+
+	/// Stride data member
+	Stride stride_;
+
+  public:
+	//
+	// Methods
+	//
+
+	/// Ctor
+	CUTLASS_HOST_DEVICE
+	ColumnMajorInterleaved(LongIndex ldm = 0) : stride_(ldm) {
+	}
+
+	/// Ctor
+	CUTLASS_HOST_DEVICE
+	ColumnMajorInterleaved(Stride stride) : stride_(stride) {
+	}
+
+
+	/// Helper returns a layout to a tightly packed tensor
+	CUTLASS_HOST_DEVICE
+	static ColumnMajorInterleaved packed(MatrixCoord const& extent) {
+		return ColumnMajorInterleaved(extent.row() * kInterleave);
+	}
+
+	/// Returns the offset of a coordinate in linear memory.
+	/// Assumes coordinate has convention (row, column)
+	CUTLASS_HOST_DEVICE
+	LongIndex operator()(MatrixCoord const& coord) const {
+		Index column_major = coord.column() / kInterleave;
+		Index column_minor = coord.column() % kInterleave;
+		return LongIndex(column_major) * LongIndex(stride_[0]) + LongIndex(coord.row()) * kInterleave + column_minor;
+	}
+
+	/// Inverse of layout function, mapping linear offset to logical coordinate
+	CUTLASS_HOST_DEVICE
+	MatrixCoord inverse(LongIndex offset) const {
+		Index column_major = Index(offset / stride_[0]);
+		Index residual	   = Index(offset % stride_[0]);
+
+		Index row		   = residual / kInterleave;
+		Index column_minor = residual % kInterleave;
+
+		return MatrixCoord(row, column_major * kInterleave + column_minor);
+	}
+
+	/// Returns the stride of the layout
+	CUTLASS_HOST_DEVICE
+	Stride stride() const {
+		return stride_;
+	}
+
+	/// Returns the stride of the layout
+	CUTLASS_HOST_DEVICE
+	Stride& stride() {
+		return stride_;
+	}
+
+	/// Returns the stride of the layout
+	CUTLASS_HOST_DEVICE
+	typename Stride::Index stride(int idx) const {
+		return stride_[idx];
+	}
+
+	/// Returns the stride of the layout
+	CUTLASS_HOST_DEVICE
+	typename Stride::Index& stride(int idx) {
+		return stride_[idx];
+	}
+
+	/// Compute the number of contiguous elements needed to store a tensor with the given size
+	CUTLASS_HOST_DEVICE
+	LongIndex capacity(MatrixCoord const& extent) const {
+		return (extent.column() + kInterleave - 1) / kInterleave * stride_[0];
+	}
+};
+
+enum class Operand {
+	kA,/// A multiplicand
+	kB,/// B multiplicand
+	kC,/// Source accumulator
+	kD/// Destination accumulator
+};
+
+template<int Bytes> CUTLASS_DEVICE void shared_load(void* dst, uint32_t ptr);
+
+/// ld.shared - 16b
+template<> CUTLASS_DEVICE void shared_load<2>(void* dst, uint32_t ptr) {
+	asm volatile("ld.shared.u16 %0, [%1];\n" : "=h"(*reinterpret_cast<uint16_t*>(dst)) : "r"(ptr));
+}
+
+/// ld.shared - 32b
+template<> CUTLASS_DEVICE void shared_load<4>(void* dst, uint32_t ptr) {
+	asm volatile("ld.shared.u32 %0, [%1];\n" : "=r"(*reinterpret_cast<uint32_t*>(dst)) : "r"(ptr));
+}
+
+/// ld.shared - 64b
+template<> CUTLASS_DEVICE void shared_load<8>(void* dst, uint32_t ptr) {
+	uint2* dst_u64 = reinterpret_cast<uint2*>(dst);
+	asm volatile("ld.shared.v2.u32 {%0, %1}, [%2];\n" : "=r"(dst_u64->x), "=r"(dst_u64->y) : "r"(ptr));
+}
+
+/// ld.shared - 128b
+template<> CUTLASS_DEVICE void shared_load<16>(void* dst, uint32_t ptr) {
+	uint4* dst_u128 = reinterpret_cast<uint4*>(dst);
+	asm volatile("ld.shared.v4.u32 {%0, %1, %2, %3}, [%4];\n" : "=r"(dst_u128->x), "=r"(dst_u128->y), "=r"(dst_u128->z), "=r"(dst_u128->w) : "r"(ptr));
+}
+
+template<
+	/// Size of the matrix to load (concept: MatrixShape)
+	typename Shape_,
+	/// Operand identity
+	Operand Operand,
+	/// Data type of A elements
+	typename Element_,
+	/// Layout of operand
+	typename Layout_,
+	/// Shape of the warp in units of thread (concept: MmaSimtPolicy)
+	typename Policy_,
+	/// Number of partitions along K dimension - used in sliced-K
+	int PartitionsK = 1,
+	/// Group Size along kPartition - used in sliced-K
+	int PartitionGroupSize = 1>
+class MmaSimtTileIterator;
+
+template<
+	/// Size of the matrix to load (concept: MatrixShape)
+	typename Shape_,
+	/// Data type of A elements
+	typename Element_,
+	/// Shape of the warp in units of thread (concept: MmaSimtPolicy)
+	typename Policy_,
+	/// Number of partitions along K dimension
+	int PartitionsK,
+	/// Group Size along kPartition - used in sliced-K
+	int PartitionGroupSize>
+class MmaSimtTileIterator<Shape_, Operand::kB, Element_, RowMajor, Policy_, PartitionsK, PartitionGroupSize> {
+  public:
+	/// Shape of tile to load (concept: MatrixShape)
+	using Shape = Shape_;
+
+	/// Operand tag
+	static constexpr Operand kOperand = Operand::kB;
+
+	/// Element type
+	using Element = Element_;
+
+	/// Layout of policy
+	using Layout = RowMajor;
+
+	/// Decomposition of elements among threads
+	using Policy = Policy_;
+
+	/// TensorRef type for loading element from a tensor
+	using TensorRef = TensorRef<Element, Layout>;
+
+	/// Index type
+	using Index = typename TensorRef::Index;
+
+	/// Long Index type
+	using LongIndex = typename TensorRef::LongIndex;
+
+	/// Coordinate for an element in the tensor
+	using TensorCoord = typename TensorRef::TensorCoord;
+
+	//
+	// Derived quantities
+	//
+
+	static_assert(!(Shape::kColumn % Policy::WarpShape::kColumn), "The warp-level GEMM N size must be divisible by the number of threads arranged along the N dimension.");
+
+	static_assert(Shape::kRow > 0, "Shape::kRow must be greater than zero.");
+	static_assert(Shape::kColumn > 0, "Shape::kColumn must be greater than zero.");
+	static_assert(Policy::WarpShape::kColumn > 0, "Policy::WarpShape::kColumn must be greater than zero.");
+	static_assert(Shape::kColumn / Policy::WarpShape::kColumn > 0, "Shape::kColumn / Policy::WarpShape::kColumn must be greater than zero.");
+
+	/// Thread-level shape of a fragment
+	using ThreadShape = MatrixShape<Shape::kRow, Shape::kColumn / Policy::WarpShape::kColumn>;
+
+	static_assert(!(ThreadShape::kColumn % Policy::LaneMmaShape::kN), "Thread-level GEMM must be divisible by Policy::LaneMmaShape.");
+
+	/// Number of individual loads
+	using Iterations = MatrixShape<ThreadShape::kRow, ThreadShape::kColumn / Policy::LaneMmaShape::kN>;
+
+	/// Fragment object holding a thread's part of a tile
+	using Fragment = Array<Element, ThreadShape::kCount>;
+
+  protected:
+	/// Internal reference
+	::TensorRef<Array<Element, Policy::LaneMmaShape::kN>, RowMajor> ref_;
+
+  public:
+	/// Default ctor constructs null iterator
+	CUTLASS_HOST_DEVICE
+	MmaSimtTileIterator() {
+	}
+
+	/// Constructor from TensorRef
+	CUTLASS_HOST_DEVICE
+	MmaSimtTileIterator(TensorRef ref, int lane_id) {
+		// compute offset based on thread ID and lane layout
+		typename Policy::LaneLayout lane_layout = Policy::get_lane_layout();
+
+		MatrixCoord lane_offset = lane_layout.inverse(lane_id) * MatrixCoord(0, Policy::LaneMmaShape::kN);
+
+		ref.add_coord_offset(lane_offset);
+
+		ref_.reset(reinterpret_cast<Array<Element, Policy::LaneMmaShape::kN>*>(ref.data()), ref.stride(0) / Policy::LaneMmaShape::kN);
+	}
+
+	/// Adds a pointer offset to internal pointer(s) to advance through memory
+	CUTLASS_HOST_DEVICE
+	MmaSimtTileIterator& add_pointer_offset(LongIndex offset) {
+		ref_.add_pointer_offset(offset);
+		return *this;
+	}
+
+	/// Advances an iterator along logical dimensions of matrix in units of whole tiles
+	CUTLASS_HOST_DEVICE
+	MmaSimtTileIterator& add_tile_offset(TensorCoord const& coord) {
+		ref_.add_coord_offset({ coord.row() * Shape::kRow, coord.column() * Shape::kColumn / Policy::LaneMmaShape::kN });
+
+		return *this;
+	}
+
+	/// Advances the iterator along the advance dimension
+	CUTLASS_HOST_DEVICE
+	MmaSimtTileIterator& operator++() {
+		ref_.add_coord_offset({ Shape::kRow, 0 });
+
+		return *this;
+	}
+
+	/// Advances the iterator along the advance dimension
+	CUTLASS_HOST_DEVICE
+	MmaSimtTileIterator& operator--() {
+		ref_.add_coord_offset({ -Shape::kRow, 0 });
+
+		return *this;
+	}
+
+	/// Loads a fragment from memory at the location pointed to by the iterator. (vector loads)
+	CUTLASS_HOST_DEVICE
+	void load_with_pointer_offset(Fragment& frag, Index pointer_offset) const {
+		Array<Element, Policy::LaneMmaShape::kN>* dst_ptr = reinterpret_cast<Array<Element, Policy::LaneMmaShape::kN>*>(&frag);
+
+		CUTLASS_PRAGMA_UNROLL
+		for (int k = 0; k < Iterations::kRow; ++k) {
+			CUTLASS_PRAGMA_UNROLL
+			for (int n = 0; n < Iterations::kColumn; ++n) {
+#if 0
+        dst_ptr[n + k * Iterations::kColumn] = 
+          *(ref_.data() + ref_.offset({k, n * Policy::WarpShape::kColumn}) + pointer_offset / Policy::LaneMmaShape::kN);
+#endif
+
+				void const* ptr = ref_.data() + ref_.offset({ k, n * Policy::WarpShape::kColumn }) + pointer_offset / Policy::LaneMmaShape::kN;
+				shared_load(dst_ptr[n + k * Iterations::kColumn], ptr);
+			}
+		}
+	}
+
+	/// Loads a fragment from memory at the location pointed to by the iterator.
+	CUTLASS_HOST_DEVICE
+	void load(Fragment& frag) const {
+		load_with_pointer_offset(frag, 0);
+	}
+
+	/// Stores a fragment to memory at the location pointed to by the iterator
+	CUTLASS_HOST_DEVICE
+	void store_with_pointer_offset(Fragment const& frag, Index pointer_offset) const {
+		Array<Element, Policy::LaneMmaShape::kN> const* src_ptr = reinterpret_cast<Array<Element, Policy::LaneMmaShape::kN>*>(&frag);
+
+		CUTLASS_PRAGMA_UNROLL
+		for (int k = 0; k < Iterations::kM; ++k) {
+			CUTLASS_PRAGMA_UNROLL
+			for (int n = 0; n < Iterations::kN; ++n) {
+				*(ref_.data() + ref_.offset({ k, n * Policy::WarpShape::kN }) + pointer_offset / Policy::LaneMmaShape::kN) = src_ptr[n + k * Iterations::kN];
+			}
+		}
+	}
+
+	/// Stores a fragment to memory at the location pointed to by the iterator
+	CUTLASS_HOST_DEVICE
+	void store(Fragment const& frag, Index pointer_offset) const {
+		store_with_pointer_offset(frag, 0);
+	}
+
+	/// Notify the iterator which k-group it is currently pointing to.
+	///
+	/// This does not advance the iterator. Rather, it overrides its internal
+	/// tracking with constant-valued k-group index to enable the compiler to
+	/// fold constants and achieve more efficient code.
+	///
+	/// This is used by some nontrivial permuted layouts.
+	CUTLASS_DEVICE
+	void set_kgroup_index(int k_group) {
+		// no operation here
+	}
+};
+
+CUTLASS_HOST_DEVICE cuFloatComplex conj(cuFloatComplex const& z) {
+	return make_cuFloatComplex(z.x, -z.y);
+}
+
+template<typename T, typename Enable = void> struct has_unqualified_conj : false_type {};
+
+template<typename T> struct has_unqualified_conj<T, decltype(static_cast<void>(conj(std::declval<T>())), void())> : true_type {};
+
+template<typename T> constexpr bool has_unqualified_conj_v = has_unqualified_conj<T>::value;
+
+template<typename T> struct conjugate {
+	CUTLASS_HOST_DEVICE
+	T operator()(T const& z) const {
+		if constexpr (std::is_arithmetic_v<T>) {
+			return z;
+		} else if constexpr (has_unqualified_conj_v<T> || has_cutlass_conj_v<T>) {
+			return conj(z);
+		} else {
+			return z;
+		}
+	}
+};
+
+template<
+	/// Size of the Gemm problem - concept: gemm::GemmShape<>
+	typename Shape,
+	/// Data type of A elements
+	typename ElementA,
+	/// Layout of A matrix (concept: MatrixLayout)
+	typename LayoutA,
+	/// Data type of B elements
+	typename ElementB,
+	/// Layout of B matrix (concept: MatrixLayout)
+	typename LayoutB,
+	/// Element type of C matrix
+	typename ElementC,
+	/// Layout of C matrix (concept: MatrixLayout)
+	typename LayoutC,
+	/// Concept: arch::OpMultiplyAdd or arch::Mma<>
+	typename Operator = OpMultiplyAdd,
+	/// Used for partial specialization
+	typename Enable = bool>
+struct Mma;
+
+template<
+	/// Size of the Gemm problem - concept: gemm::GemmShape<>
+	typename Shape_,
+	/// Data type of A elements
+	typename ElementA_,
+	/// Layout of A matrix (concept: MatrixLayout)
+	typename LayoutA_,
+	/// Data type of B elements
+	typename ElementB_,
+	/// Layout of B matrix (concept: MatrixLayout)
+	typename LayoutB_,
+	/// Element type of C matrix
+	typename ElementC_,
+	/// Layout of C matrix (concept: MatrixLayout)
+	typename LayoutC_,
+	/// Shape of the warp in units of thread (concept: MmaSimtPolicy)
+	typename Policy_,
+	/// Number of partitions along K dimension
+	int PartitionsK = 1,
+	/// Complex transformation on operand A
+	ComplexTransform TransformA = ComplexTransform::kNone,
+	/// Complex transformation on operand B
+	ComplexTransform TransformB = ComplexTransform::kNone,
+	/// Used for partial specialization
+	typename Enable = bool>
+class MmaSimt {
+  public:
+	/// Shape of warp-level matrix operation (concept: GemmShape)
+	using Shape = Shape_;
+
+	/// Data type of multiplicand A
+	using ElementA = ElementA_;
+
+	/// Layout of multiplicand A
+	using LayoutA = LayoutA_;
+
+	/// Data type of multiplicand B
+	using ElementB = ElementB_;
+
+	/// Layout of multiplicand B
+	using LayoutB = LayoutB_;
+
+	/// Data type of accumulator matrix C
+	using ElementC = ElementC_;
+
+	/// Layout of accumulator matrix C
+	using LayoutC = LayoutC_;
+
+	/// Shape of the warp in units of thread (concept: MmaLanePolicySimt)
+	using Policy = Policy_;
+
+	/// Indicates class of matrix operator
+	using OperatorClass = OpClassSimt;
+
+	/// Hard-coded for now
+	using ArchTag = Sm120;
+
+	/// Complex transform on A operand
+	static constexpr ComplexTransform kTransformA = TransformA;
+
+	/// Complex transform on B operand
+	static constexpr ComplexTransform kTransformB = TransformB;
+
+	/// Layout of threads
+	using ThreadLayoutA = typename std::conditional<std::is_same<ColumnMajorInterleaved<4>, LayoutA>::value, ColumnMajor,
+		typename std::conditional<std::is_same<RowMajorInterleaved<4>, LayoutA>::value, RowMajor, LayoutA>::type>::type;
+
+	using ThreadLayoutB = typename std::conditional<std::is_same<ColumnMajorInterleaved<4>, LayoutB>::value, ColumnMajor,
+		typename std::conditional<std::is_same<RowMajorInterleaved<4>, LayoutB>::value, RowMajor, LayoutB>::type>::type;
+
+	static constexpr bool use_dp4a = (std::is_same<ColumnMajorInterleaved<4>, LayoutA>::value || std::is_same<RowMajorInterleaved<4>, LayoutA>::value) &&
+		std::is_same<ElementA, int8_t>::value && std::is_same<ElementB, int8_t>::value;
+
+	using dp4a_type = typename std::conditional<use_dp4a, int8_t, bool>::type;
+
+	/// Thread-level matrix multiply accumulate operator
+	using ThreadMma = Mma<GemmShape<Shape::kM / Policy::WarpShape::kRow, Shape::kN / Policy::WarpShape::kColumn, Policy::LaneMmaShape::kK>, ElementA, ThreadLayoutA, ElementB,
+		ThreadLayoutB, ElementC, LayoutC, OpMultiplyAdd, dp4a_type>;
+
+	/// Underlying matrix multiply operator (concept: arch::Mma)
+	using ArchMmaOperator = typename ThreadMma::ArchMmaOperator;
+
+	/// Indicates math operator
+	using MathOperator = typename ArchMmaOperator::Operator;
+
+	/// Shape of the underlying instruction
+	using InstructionShape = GemmShape<1, 1, use_dp4a ? 4 : 1>;
+
+  public:
+	/// Iterates over the A operand in memory
+	using IteratorA = MmaSimtTileIterator<MatrixShape<Shape::kM, Policy::LaneMmaShape::kK>, Operand::kA, ElementA, LayoutA, Policy, PartitionsK, Shape::kK>;
+
+	/// Storage for A tile
+	using FragmentA = typename IteratorA::Fragment;
+
+	/// Storage for transformed A tile
+	using TransformedFragmentA = FragmentA;
+
+	/// Iterates over the B operand in memory
+	using IteratorB = MmaSimtTileIterator<MatrixShape<Policy::LaneMmaShape::kK, Shape::kN>, Operand::kB, ElementB, LayoutB, Policy, PartitionsK, Shape::kK>;
+
+	/// Storage for B tile
+	using FragmentB = typename IteratorB::Fragment;
+
+	/// Storage for transformed A tile
+	using TransformedFragmentB = FragmentB;
+
+	/// Iterates over the C operand in memory
+	using IteratorC = MmaSimtTileIterator<MatrixShape<Shape::kM, Shape::kN>, Operand::kC, ElementC, LayoutC, Policy>;
+
+	/// Storage for C tile
+	using FragmentC = typename ThreadMma::FragmentC;
+
+  public:
+	//
+	// Methods
+	//
+
+	/// Ctor
+	CUTLASS_DEVICE
+	MmaSimt() {
+	}
+
+	/// Performs a warp-level matrix multiply-accumulate operation
+	CUTLASS_DEVICE
+	void operator()(FragmentC& d, FragmentA a, FragmentB b, FragmentC const& c, int group_idx = 0) const {
+		ThreadMma mma;
+
+		if (kTransformA == ComplexTransform::kConjugate) {
+			conjugate<FragmentA> conj_a;
+			a = conj_a(a);
+		}
+
+		if (kTransformB == ComplexTransform::kConjugate) {
+			conjugate<FragmentB> conj_b;
+			b = conj_b(b);
+		}
+
+		mma(d, a, b, c);
+	}
+
+	/// Transform the mma operands to the required types
+	CUTLASS_DEVICE
+	void transform(TransformedFragmentA& dst_A, TransformedFragmentB& dst_B, FragmentA const& A, FragmentB const& B) const {
+		dst_A = A;
+		dst_B = B;
+	}
+};
+
+template<typename Index, typename LongIndex, int N>
+CUTLASS_HOST_DEVICE LongIndex dot(Coord<N, Index> const& coord, Coord<N, LongIndex> const& stride, LongIndex acc = LongIndex()) {
+	CUTLASS_PRAGMA_UNROLL
+	for (int n = 0; n < N; ++n) {
+		acc += LongIndex(coord[n]) * stride[n];
+	}
+	return acc;
+}
+
+struct AffineRank2RowMajor {
+	/// Logical rank of tensor
+	static constexpr int kRank = 2;
+
+	/// Rank of stride vector
+	static constexpr int kStrideRank = 2;
+
+	/// Index type used for coordinates
+	using Index = int32_t;
+
+	/// Long index type used for offsets
+	using LongIndex = int64_t;
+
+	/// Logical coordinate
+	using TensorCoord = MatrixCoord;
+
+	/// Stride vector
+	using Stride = Coord<kStrideRank, LongIndex>;
+
+  private:
+	//
+	// Data members
+	//
+
+	/// Stride data member
+	Stride stride_;
+
+  public:
+	//
+	// Methods
+	//
+
+	/// Ctor
+	CUTLASS_HOST_DEVICE
+	AffineRank2RowMajor(Stride const& stride = Stride()) : stride_(stride) {
+	}
+
+	/// Ctor
+	CUTLASS_HOST_DEVICE
+	AffineRank2RowMajor(LongIndex row_stride,///< stride between elements in consecutive rows
+		LongIndex column_stride///< stride between elements in consecutive columns
+	) {
+		stride_[0] = row_stride;
+		stride_[1] = column_stride;
+	}
+
+	/// Ctor
+	CUTLASS_HOST_DEVICE
+	AffineRank2RowMajor(LongIndex stride) {
+		stride_[0] = stride;
+		stride_[1] = 1;
+	}
+
+	/// Helper returns a layout to a tightly packed tensor
+	CUTLASS_HOST_DEVICE
+	static AffineRank2RowMajor packed(MatrixCoord const& extent) {
+		return AffineRank2RowMajor(1, extent.row());
+	}
+
+	/// Returns the offset of a coordinate in linear memory.
+	/// Assumes coordinate has convention (row, column)
+	CUTLASS_HOST_DEVICE
+	LongIndex operator()(MatrixCoord const& coord) const {
+		return dot(coord, stride_);
+	}
+
+	/// Inverse of layout function, mapping linear offset to logical coordinate
+	CUTLASS_HOST_DEVICE
+	MatrixCoord inverse(LongIndex offset) const {
+		CUTLASS_UNUSED(offset);
+		return MatrixCoord(0, 0);
+	}
+
+	/// Returns the stride of the layout
+	CUTLASS_HOST_DEVICE
+	Stride stride() const {
+		return stride_;
+	}
+
+	/// Returns the stride of the layout
+	CUTLASS_HOST_DEVICE
+	Stride& stride() {
+		return stride_;
+	}
+
+	/// Returns the stride of the layout
+	CUTLASS_HOST_DEVICE
+	typename Stride::Index stride(int idx) const {
+		return stride_[idx];
+	}
+
+	/// Returns the stride of the layout
+	CUTLASS_HOST_DEVICE
+	typename Stride::Index& stride(int idx) {
+		return stride_[idx];
+	}
+
+	/// Compute the number of contiguous elements needed to store a tensor with the given size
+	CUTLASS_HOST_DEVICE
+	LongIndex capacity(MatrixCoord const& extent) const {
+		return extent.row() * stride_[0];
+	}
+};
+
+template<
+	/// Warp-level GEMM operator (concept: gemm::warp::Mma)
+	typename Operator_,
+	/// Padding used for A operand in shared memory (concept: MatrixShape)
+	typename SmemPaddingA_,
+	/// Padding used for B operand in shared memory (concept: MatrixShape)
+	typename SmemPaddingB_,
+	/// Number of partitions of K dimension of GEMM
+	int PartitionsK = 1>
+struct MmaPolicy {
+	/// Warp-level GEMM operator (concept: gemm::warp::MmaTensorOp or gemm::warp::MmaSimt)
+	using Operator = Operator_;
+
+	/// Padding used for A operand in shared memory
+	using SmemPaddingA = SmemPaddingA_;
+
+	/// Padding used for B operand in shared memory
+	using SmemPaddingB = SmemPaddingB_;
+
+	/// Number of partitions of K dimension
+	static int const kPartitionsK = PartitionsK;
+};
+
+template<
+	/// Shape of threadblock-scoped matrix multiply operator (concept:
+	/// GemmShape)
+	typename Shape_,
+	/// Shape of warp-level matrix multiply operator (concept: GemmShape)
+	typename WarpShape_,
+	/// Data type of A operand
+	typename ElementA_,
+	/// Data type of B operand
+	typename ElementB_,
+	/// Data type of accumulator
+	typename ElementC_,
+	/// Layout of accumulator
+	typename LayoutC_,
+	/// Operation performed by GEMM
+	typename Operator_>
+struct DefaultMmaCore<Shape_, WarpShape_, GemmShape<1, 1, 1>, ElementA_, RowMajor, ElementB_, RowMajor, ElementC_, LayoutC_, OpClassSimt, 2, Operator_> {
+	using Shape						 = Shape_;
+	using WarpShape					 = WarpShape_;
+	using InstructionShape			 = GemmShape<1, 1, 1>;
+	using ElementA					 = ElementA_;
+	using LayoutA					 = RowMajor;
+	using ElementB					 = ElementB_;
+	using LayoutB					 = RowMajor;
+	using ElementC					 = ElementC_;
+	using LayoutC					 = LayoutC_;
+	using OperatorClass				 = OpClassSimt;
+	static constexpr int PartitionsK = Shape::kK / WarpShape::kK;
+
+	/// Default Operator
+	using Operator = Operator_;
+
+	/// Number of warps present
+	using WarpCount = GemmShape<Shape::kM / WarpShape::kM, Shape::kN / WarpShape::kN, PartitionsK>;
+
+	// Divisility requirements
+	static_assert(!(Shape::kM % WarpShape::kM) && !(Shape::kN % WarpShape::kN), "Threadblock-scoped GEMM should be divisible by warp-scoped GEMM size.");
+
+	/// Number of threads per warp
+	static constexpr int kWarpSize = WarpSize<OpClassSimt>::value;
+
+	/// Number of threads total
+	static constexpr int kThreads = WarpCount::kCount * kWarpSize;
+
+	static constexpr int kElementsPerAccess = 1;
+
+	//
+	// Shared memory layouts
+	//
+
+	using SmemLayoutA = ColumnMajor;
+	using SmemLayoutB = RowMajor;
+
+	//
+	// Iterators to write to shared memory
+	//
+
+	/// ThreadMap of iterator A
+	using IteratorThreadMapA = PitchLinearStripminedThreadMap<PitchLinearShape<Shape::kK, Shape::kM>, kThreads, kElementsPerAccess>;
+
+	/// Transpose the ThreadMap of iterator A
+	using SmemThreadMapA = TransposePitchLinearThreadMapSimt<IteratorThreadMapA>;
+
+	/// Shared memory iterator to A operand
+	using SmemIteratorA = RegularTileIterator<MatrixShape<Shape::kM, Shape::kK>, ElementA, SmemLayoutA, 1, SmemThreadMapA>;
+
+	/// Policy of iterator B
+	using IteratorThreadMapB = PitchLinearStripminedThreadMap<PitchLinearShape<Shape::kN, Shape::kK>, kThreads, kElementsPerAccess>;
+
+	/// Shared memory iterator to B operand
+	using SmemIteratorB = RegularTileIterator<MatrixShape<Shape::kK, Shape::kN>, ElementB, SmemLayoutB, 0, IteratorThreadMapB>;
+
+	//
+	// Warp-level matrix multiply operator
+	//
+
+	// Define the warp-level op
+	static constexpr int WarpNumThreadsM = simt_get_warp_threads_m<WarpShape>();
+	static constexpr int WarpNumThreadsN = kWarpSize / WarpNumThreadsM;
+	static constexpr int ThreadTileM	 = WarpShape::kM / WarpNumThreadsM;
+	static constexpr int ThreadTileN	 = WarpShape::kN / WarpNumThreadsN;
+	static_assert(!(WarpShape::kM % WarpNumThreadsM) && !(WarpShape::kN % WarpNumThreadsN), "WarpShape must be divisible by ThreadTile shape.");
+	static constexpr int LaneLayout	  = ThreadTileM > 4 && ThreadTileN > 4 ? 2 : 1;
+	static constexpr int numElementsA = 128 / sizeof_bits<ElementA>::value;
+	static constexpr int numElementsB = 128 / sizeof_bits<ElementB>::value;
+	static constexpr int LaneM		  = const_min(numElementsA, ThreadTileM);
+	static constexpr int LaneN		  = const_min(numElementsB, ThreadTileN);
+
+	static constexpr int kPaddingM = simt_transpose_padding(kWarpSize, Shape::kK, sizeof_bits<ElementA>::value);
+
+	static_assert(!(kPaddingM % LaneM), "Padding must be divisible by Lane");
+
+	// these should have max of thread tile also
+	using LaneMmaShape = GemmShape<LaneM, LaneN, 1>;
+	using Policy	   = MmaSimtPolicy<MatrixShape<WarpNumThreadsM, WarpNumThreadsN>,// WarpShape
+			  RowMajorInterleaved<LaneLayout>,// LaneLayout
+			  LaneMmaShape>;
+
+	using MmaWarpSimt = MmaSimt<WarpShape,/// Size of the Gemm problem - concept: gemm::GemmShape<> 128, 128, 8
+		ElementA,/// Data type of A elements
+		SmemLayoutA,/// Layout of A matrix (concept: MatrixLayout)
+		ElementB,/// Data type of B elements
+		SmemLayoutB,/// Layout of B matrix (concept: MatrixLayout)
+		ElementC,/// Element type of C matrix
+		LayoutC,/// Layout of C matrix (concept: MatrixLayout)
+		Policy/// Policy describing warp-level MmaSimtOp (concept: MmaSimtOp policy)
+		>;
+
+	/// Policy used to define MmaPipelined
+	using MmaPolicy = MmaPolicy<MmaWarpSimt, MatrixShape<kPaddingM, 0>,// skew for A matrix to avoid SMEM bank conflicts
+		MatrixShape<0, 0>, WarpCount::kK>;
+};
+
+template<
+	/// Element type for A matrix operand
+	typename ElementA_,
+	/// Layout type for A matrix operand
+	typename LayoutA_,
+	/// Access granularity of A matrix in units of elements
+	int kAlignmentA,
+	/// Element type for B matrix operand
+	typename ElementB_,
+	/// Layout type for B matrix operand
+	typename LayoutB_,
+	/// Access granularity of B matrix in units of elements
+	int kAlignmentB,
+	/// Element type for internal accumulation
+	typename ElementAccumulator_,
+	/// Layout type for C and D matrix operands
+	typename LayoutC_,
+	/// Operator class tag
+	typename OperatorClass_,
+	/// Tag indicating architecture to tune for
+	typename ArchTag_,
+	/// Threadblock-level tile size (concept: GemmShape)
+	typename ThreadblockShape_,
+	/// Warp-level tile size (concept: GemmShape)
+	typename WarpShape_,
+	/// Instruction-level tile size (concept: GemmShape)
+	typename InstructionShape_,
+	/// Number of stages used in the pipelined mainloop
+	int Stages,
+	/// Operation performed by GEMM
+	typename Operator,
+	/// Store the accumulators in row major or column major.  Row major is used
+	/// when output layout is interleaved.
+	bool AccumulatorsInRowMajor = false,
+	/// Use zfill or predicate for out-of-bound cp.async
+	SharedMemoryClearOption SharedMemoryClear = SharedMemoryClearOption::kNone,
+	/// Gather operand A by using an index array
+	bool GatherA = false,
+	/// Gather operand B by using an index array
+	bool GatherB = false,
+	/// Permute operand A
+	typename PermuteALayout = NoPermute,
+	/// Permute operand B
+	typename PermuteBLayout = NoPermute>
+struct DefaultMma;
+
+template<
+	/// Element type for A matrix operand
+	typename ElementA,
+	/// Layout type for A matrix operand
+	typename LayoutA,
+	/// Access granularity of A matrix in units of elements
+	int kAlignmentA,
+	/// Element type for B matrix operand
+	typename ElementB,
+	/// Layout type for B matrix operand
+	typename LayoutB,
+	/// Access granularity of B matrix in units of elements
+	int kAlignmentB,
+	/// Element type for internal accumulation
+	typename ElementAccumulator,
+	/// Layout type for C and D matrix operand
+	typename LayoutC,
+	/// Tag indicating architecture to tune for
+	typename ArchTag,
+	/// Threadblock-level tile size (concept: GemmShape)
+	typename ThreadblockShape,
+	/// Warp-level tile size (concept: GemmShape)
+	typename WarpShape,
+	/// Instruction-level tile size (concept: GemmShape)
+	typename InstructionShape,
+	/// Number of stages used in the multistage mainloop
+	int Stages,
+	/// Operation performed by GEMM
+	typename Operator,
+	/// Gather operand A by using an index array
+	bool GatherA,
+	/// Gather operand B by using an index array
+	bool GatherB,
+	/// Permute operand A
+	typename PermuteALayout,
+	/// Permute operand B
+	typename PermuteBLayout>
+struct DefaultMma<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignmentB, ElementAccumulator, LayoutC, OpClassSimt, ArchTag, ThreadblockShape, WarpShape, InstructionShape,
+	Stages, Operator, false, SharedMemoryClearOption::kNone, GatherA, GatherB, PermuteALayout, PermuteBLayout> {
+	// Define the MmaCore components
+	using MmaCore = DefaultMmaCore<ThreadblockShape, WarpShape, InstructionShape, ElementA, LayoutA, ElementB, LayoutB, ElementAccumulator, LayoutC, OpClassSimt, Stages, Operator>;
+
+	// Define iterators over tiles from the A operand
+	using ThreadMapA  = typename MmaCore::IteratorThreadMapA;
+	using AccessTypeA = Array<ElementA, kAlignmentA>;
+	using IteratorA = PredicatedTileAccessIterator<MatrixShape<ThreadblockShape::kM, ThreadblockShape::kK>, ElementA, LayoutA, 1, ThreadMapA, AccessTypeA, GatherA, PermuteALayout>;
+
+	// Define iterators over tiles from the B operand
+	using ThreadMapB  = typename MmaCore::IteratorThreadMapB;
+	using AccessTypeB = Array<ElementB, kAlignmentB>;
+	using IteratorB = PredicatedTileAccessIterator<MatrixShape<ThreadblockShape::kK, ThreadblockShape::kN>, ElementB, LayoutB, 0, ThreadMapB, AccessTypeB, GatherB, PermuteBLayout>;
+
+	// Define the threadblock-scoped multistage matrix multiply
+	using ThreadblockMma = MmaMultistage<typename MmaCore::Shape, IteratorA, typename MmaCore::SmemIteratorA, MmaCore::kCacheOpA, IteratorB, typename MmaCore::SmemIteratorB,
+		MmaCore::kCacheOpB, ElementAccumulator, LayoutC, typename MmaCore::MmaPolicy, Stages>;
+};
+
+template<typename ElementA_, typename LayoutA_, int kAlignmentA, typename ElementB_, typename LayoutB_, int kAlignmentB, typename ElementC_, typename LayoutC_,
+	typename ElementAccumulator, typename OperatorClass, typename ArchTag, typename ThreadblockShape, typename WarpShape, typename InstructionShape, typename EpilogueOutputOp,
+	typename ThreadblockSwizzle, int Stages, bool SplitKSerial, typename Operator, SharedMemoryClearOption SharedMemoryClear = SharedMemoryClearOption::kNone, bool GatherA = false,
+	bool GatherB = false, bool ScatterD = false, typename PermuteDLayout = NoPermute, typename PermuteALayout = NoPermute, typename PermuteBLayout = NoPermute,
+	typename Enable = void>
+struct DefaultGemm;
+
+
+template<typename ElementA, typename LayoutA, int kAlignmentA, typename ElementB, typename LayoutB, int kAlignmentB, typename ElementC, typename LayoutC,
+	typename ElementAccumulator, typename ArchTag, typename ThreadblockShape, typename WarpShape, typename EpilogueOutputOp, typename ThreadblockSwizzle, bool SplitKSerial,
+	typename Operator, SharedMemoryClearOption SharedMemoryClear, bool GatherA, bool GatherB, bool ScatterD, typename PermuteDLayout, typename PermuteALayout,
+	typename PermuteBLayout>
+struct DefaultGemm<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignmentB, ElementC, LayoutC, ElementAccumulator, OpClassSimt, ArchTag, ThreadblockShape, WarpShape,
+	GemmShape<1, 1, 1>, EpilogueOutputOp, ThreadblockSwizzle, 2, SplitKSerial, Operator, SharedMemoryClear, GatherA, GatherB, ScatterD, PermuteDLayout, PermuteALayout,
+	PermuteBLayout> {
+	using Mma = typename DefaultMma<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignmentB, ElementAccumulator, LayoutC, OpClassSimt, Sm120, ThreadblockShape, WarpShape,
+		GemmShape<1, 1, 1>, 2, Operator, false, SharedMemoryClear, GatherA, GatherB, PermuteALayout, PermuteBLayout>::ThreadblockMma;
+
+	static constexpr int kEpilogueElementsPerAccess = EpilogueOutputOp::kCount;
+	static_assert(kEpilogueElementsPerAccess == 1, "simt epilogue must operate on scalars");
+
+	//using RegularEpilogue = typename cutlass::epilogue::threadblock::DefaultEpilogueSimt<ThreadblockShape, typename Mma::Operator, EpilogueOutputOp, kEpilogueElementsPerAccess,
+	//ScatterD, PermuteDLayout>::Epilogue;
+
+	//using Affine2Epilogue = typename cutlass::epilogue::threadblock::DefaultEpilogueSimtAffineRankN<2, ThreadblockShape, typename Mma::Operator, EpilogueOutputOp,
+	//kEpilogueElementsPerAccess>::Epilogue;
+
+	//using Epilogue = typename std::conditional<std::is_same<LayoutC, RowMajor>::value, RegularEpilogue, Affine2Epilogue>::type;
+	using GemmKernel = float;
+	//using GemmKernel = kernel::Gemm<Mma, Epilogue, ThreadblockSwizzle, SplitKSerial>;
 };
 
 template<int M_, int K_, typename ElementA_, typename LayoutA_, typename ElementB_, typename LayoutB_, typename ElementC_, typename LayoutC_,
@@ -2178,11 +5332,11 @@ class Gemm {
 	static constexpr bool kSplitKSerial = SplitKSerial;
 	static constexpr int kTiledM		= (kM + ThreadblockShape::kM - 1) / ThreadblockShape::kM;
 	static constexpr int kTiledK		= (kK + ThreadblockShape::kK - 1) / ThreadblockShape::kK;
-	/*
-		using GemmKernel = typename kernel::DefaultGemm<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignmentB, ElementC, LayoutC, ElementAccumulator, OperatorClass, ArchTag,
+
+	using GemmKernel = typename DefaultGemm<ElementA, LayoutA, kAlignmentA, ElementB, LayoutB, kAlignmentB, ElementC, LayoutC, ElementAccumulator, OperatorClass, ArchTag,
 		ThreadblockShape, WarpShape, InstructionShape, EpilogueOutputOp, ThreadblockSwizzle, kStages, kSplitKSerial, Operator, SharedMemoryClearOption::kNone, GatherA, GatherB,
 		ScatterD, PermuteDLayout>::GemmKernel;
-
+	/*
 		struct Arguments {
 						
 		int N;		TensorRef<ElementA const, LayoutA> ref_A;
@@ -2317,7 +5471,7 @@ class Gemm {
 			}
 		}
 
-		cutlass::arch::synclog_setup();
+		synclog_setup();
 		cutlass::Kernel<GemmKernel><<<grid, block, smem_size, stream>>>(params_);
 
 		result = cudaGetLastError();
