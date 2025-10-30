@@ -2,7 +2,7 @@ vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO realtimechris/benchmarksuite
     REF "v${VERSION}"    
-    SHA512 e4deaf511ba7754610d3abc7d624040cc9c89fc1a5bfe7b9e7d3a95bbf74719f80a6ad3c7d60ede27368143ec8d16a797286ad0ecddcbb7092420a6f7c65f419
+    SHA512 482849d0825d0ba3136a2ab056e5eed9326d0cf869832d37e7bfeb8e34c98bcd5641199a1773f334657d62ade431740354574e818ef4d19a5ecc099f9fcecec5
     HEAD_REF main
 )
 
