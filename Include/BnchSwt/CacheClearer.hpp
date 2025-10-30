@@ -26,15 +26,10 @@
 #include <BnchSwt/Config.hpp>
 #include <iostream>
 
-#if defined(BNCH_SWT_WIN)
+#if BNCH_SWT_PLATFORM_WINDOWS
 	#include <Windows.h>
 	#include <intrin.h>
-
-	#if defined(small)
-		#undef small
-	#endif
-
-#elif defined(BNCH_SWT_LINUX) || defined(BNCH_SWT_ANDROID)
+#elif BNCH_SWT_PLATFORM_LINUX
 	#include <unistd.h>
 	#include <fstream>
 	#include <vector>
@@ -43,7 +38,7 @@
 		#include <immintrin.h>
 	#endif
 
-#elif defined(BNCH_SWT_MAC)
+#elif BNCH_SWT_PLATFORM_MAC
 	#include <libkern/OSCacheControl.h>
 	#include <sys/sysctl.h>
 	#include <unistd.h>
@@ -59,7 +54,7 @@ namespace bnch_swt::internal {
 	};
 
 	BNCH_SWT_INLINE size_t getCacheLineSize() {
-#if defined(BNCH_SWT_WIN)
+#if BNCH_SWT_PLATFORM_WINDOWS
 		DWORD bufferSize = 0;
 		GetLogicalProcessorInformation(nullptr, &bufferSize);
 		std::vector<SYSTEM_LOGICAL_PROCESSOR_INFORMATION> buffer(bufferSize / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION));
@@ -73,14 +68,14 @@ namespace bnch_swt::internal {
 				return info.Cache.LineSize;
 			}
 		}
-#elif defined(BNCH_SWT_LINUX) || defined(BNCH_SWT_ANDROID)
+#elif BNCH_SWT_PLATFORM_LINUX
 		long lineSize = sysconf(_SC_LEVEL1_DCACHE_LINESIZE);
 		if (lineSize <= 0) {
 			std::cerr << "Failed to retrieve cache line size using sysconf!" << std::endl;
 			return 0;
 		}
 		return static_cast<size_t>(lineSize);
-#elif defined(BNCH_SWT_MAC)
+#elif BNCH_SWT_PLATFORM_MAC
 		size_t lineSize = 0;
 		size_t size		= sizeof(lineSize);
 		if (sysctlbyname("hw.cachelinesize", &lineSize, &size, nullptr, 0) != 0) {
@@ -96,7 +91,7 @@ namespace bnch_swt::internal {
 	}
 
 	BNCH_SWT_INLINE size_t getCacheSize(cache_level level) {
-#if defined(BNCH_SWT_WIN)
+#if BNCH_SWT_PLATFORM_WINDOWS
 		DWORD bufferSize = 0;
 		cache_level cacheLevel{ level };
 		PROCESSOR_CACHE_TYPE cacheType{ level == cache_level::one ? PROCESSOR_CACHE_TYPE::CacheInstruction : PROCESSOR_CACHE_TYPE::CacheUnified };
@@ -126,7 +121,7 @@ namespace bnch_swt::internal {
 			cacheSize += collectSize(cacheLevel, PROCESSOR_CACHE_TYPE::CacheData);
 		}
 		return cacheSize + collectSize(cacheLevel, cacheType);
-#elif defined(BNCH_SWT_LINUX) || defined(BNCH_SWT_ANDROID)
+#elif BNCH_SWT_PLATFORM_LINUX || defined(BNCH_SWT_ANDROID)
 		size_t cacheSize = 0;
 
 		auto getCacheSizeFromFile = [](const std::string& cacheType) {
@@ -161,7 +156,7 @@ namespace bnch_swt::internal {
 		}
 
 		return cacheSize;
-#elif defined(BNCH_SWT_MAC)
+#elif BNCH_SWT_PLATFORM_MAC
 		auto getCacheSize = [](const std::string& cacheType) {
 			size_t cacheSizeNew = 0;
 			size_t size			= sizeof(cacheSizeNew);
@@ -185,7 +180,7 @@ namespace bnch_swt::internal {
 	}
 
 
-#if defined(BNCH_SWT_WIN)
+#if BNCH_SWT_PLATFORM_WINDOWS
 	BNCH_SWT_INLINE static void flushCache(void* ptr, size_t size, size_t cacheLineSize, bool clearInstructionCache = false) {
 		char* buffer = static_cast<char*>(ptr);
 		for (size_t i = 0; i < size; i += cacheLineSize) {
@@ -198,7 +193,7 @@ namespace bnch_swt::internal {
 				std::cerr << "Failed to flush instruction cache!" << std::endl;
 			}
 		}
-#elif defined(BNCH_SWT_LINUX)
+#elif BNCH_SWT_PLATFORM_LINUX
 	BNCH_SWT_INLINE static void flushCache(void* ptr, size_t size, size_t, bool clearInstructionCache = false) {
 		char* buffer = static_cast<char*>(ptr);
 	#if defined(BNCH_SWT_X86_64)
@@ -217,7 +212,7 @@ namespace bnch_swt::internal {
 		if (clearInstructionCache) {
 			__builtin___clear_cache(buffer, buffer + size);
 		}
-#elif defined(BNCH_SWT_MAC)
+#elif BNCH_SWT_PLATFORM_MAC
 	BNCH_SWT_INLINE static void flushCache(void* ptr, size_t size, size_t, bool clearInstructionCache = false) {
 		if (clearInstructionCache) {
 			sys_icache_invalidate(ptr, size);

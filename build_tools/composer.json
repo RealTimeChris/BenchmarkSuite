@@ -1,0 +1,13 @@
+{
+  "name": "realtimechris/benchmarksuite-vcpkg-builder",
+  "description": "VCPKG release builder for BenchmarkSuite",
+  "type": "library",
+  "autoload": {
+    "psr-4": {
+      "BenchmarkSuite\\packager\\": "classes/packager/"
+    }
+  },
+  "require": {
+    "php": ">=8.1"
+  }
+}

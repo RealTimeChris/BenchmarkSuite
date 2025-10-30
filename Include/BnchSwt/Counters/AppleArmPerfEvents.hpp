@@ -36,7 +36,7 @@
 
 #include <BnchSwt/Config.hpp>
 
-#if defined(BNCH_SWT_MAC)
+#if BNCH_SWT_PLATFORM_MAC
 
 	#include <mach/mach_time.h>
 	#include <sys/sysctl.h>

@@ -39,7 +39,7 @@ namespace bnch_swt::internal {
 	template<typename value_type, typename... arg_types>
 	concept invocable_not_void = invocable<value_type, arg_types...> && !std::is_void_v<std::invoke_result_t<value_type, arg_types...>>;
 
-#if defined(BNCH_SWT_MSVC)
+#if BNCH_SWT_COMPILER_MSVC
 	#pragma optimize("", off)
 	BNCH_SWT_INLINE void doNotOptimize(const void* value) {
 		( void )value;
@@ -47,9 +47,9 @@ namespace bnch_swt::internal {
 	#pragma optimize("", on)
 #else
 	BNCH_SWT_INLINE void doNotOptimize(const void* value) {
-	#if defined(BNCH_SWT_CLANG)
+	#if defined(BNCH_SWT_COMPILER_CLANG)
 		asm volatile("" : "+r,m"(value) : : "memory");
-	#elif defined(BNCH_SWT_GNUCXX)
+	#elif defined(BNCH_SWT_COMPILER_GNU)
 		asm volatile("" : "+m,r"(value) : : "memory");
 	#endif
 	}

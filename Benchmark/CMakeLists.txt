@@ -6,27 +6,6 @@ project(
   LANGUAGES CXX
 )
 
-include(FetchContent)
-include(GetCommitHash)
-
-FetchContent_Declare(
-  jsonifier
-  GIT_REPOSITORY https://github.com/realtimechris/jsonifier.git
-  GIT_TAG dev
-  GIT_SHALLOW TRUE
-)
-FetchContent_MakeAvailable(jsonifier)
-getCommitHash("${jsonifier_SOURCE_DIR}" JSONIFIER_COMMIT_HASH)
-message(STATUS "Jsonifier Commit Hash: https://github.com/RealTimeChris/Jsonifier/commit/${JSONIFIER_COMMIT_HASH}")
-
-FetchContent_Declare(
-  glaze
-  GIT_REPOSITORY https://github.com/stephenberry/glaze.git
-  GIT_TAG main
-  GIT_SHALLOW TRUE
-)
-FetchContent_MakeAvailable(glaze)
-
 add_executable(
   "BenchmarkExe" 
   "./main.cpp"
@@ -34,15 +13,16 @@ add_executable(
 
 target_link_libraries(
 	"BenchmarkExe" PUBLIC 
-	Jsonifier::Jsonifier glaze::glaze BenchmarkSuite::BenchmarkSuite
+	BenchmarkSuite::BenchmarkSuite
 )
 
 target_compile_options(
 	"BenchmarkExe" PUBLIC
 	"$<$<CXX_COMPILER_ID:MSVC>:$<$<STREQUAL:${ASAN_ENABLED},TRUE>:/fsanitize=address>>"
-     "$<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:clang>,$<CXX_COMPILER_ID:CLANG>>:-Wuninitialized;-Wconversion;-Wpedantic;-Wshadow;-Wextra;-Wall>"
-    "$<$<CXX_COMPILER_ID:GNU>:-Wnull-dereference;-Wuninitialized;-Wconversion;-Wpedantic;-Wshadow;-Wextra;-Wall>"
-    "$<$<CXX_COMPILER_ID:MSVC>:/Wall;/W4>"
+     "$<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:clang>,$<CXX_COMPILER_ID:CLANG>>:-Werror>"
+     "$<$<CXX_COMPILER_ID:AppleClang>:-Werror>"
+    "$<$<CXX_COMPILER_ID:GNU>:-Werror>"
+    "$<$<CXX_COMPILER_ID:MSVC>:/WX;/W4>"
 )
 
 target_link_options(
@@ -73,9 +53,9 @@ if (GENERATE_ASSEMBLY STREQUAL "TRUE")
         add_custom_command(
             OUTPUT "${ASM_OUTPUT}"
             COMMAND "${CMAKE_CXX_COMPILER}" -S "${CMAKE_SOURCE_DIR}/Benchmark/main.cpp" -o "${ASM_OUTPUT}"
-            -I "${CMAKE_SOURCE_DIR}/Build/_deps/jsonifier-src/Include/"
+            -I "${CMAKE_SOURCE_DIR}/Build/_deps/benchmarksuite-src/include/"
             -I "${CMAKE_SOURCE_DIR}/Build/_deps/glaze-src/include/"
-            -I "${CMAKE_SOURCE_DIR}/Include/"
+            -I "${CMAKE_SOURCE_DIR}/include/"
             -std=c++2b
             -DOPERATING_SYSTEM_NAME="TEST_OS" 
             -DOPERATING_SYSTEM_VERSION="TEST_OS_VERSION" 
@@ -105,9 +85,9 @@ if (GENERATE_ASSEMBLY STREQUAL "TRUE")
             OUTPUT "${ASM_OUTPUT_DIR}/main.asm"
             COMMAND "${CMAKE_CXX_COMPILER}" /Fa${ASM_OUTPUT_DIR}/ /FAsc /FoNUL /c 
             "${CMAKE_SOURCE_DIR}/Benchmark/main.cpp" 
-            /I "${CMAKE_SOURCE_DIR}/Build/_deps/jsonifier-src/Include/"
+            /I "${CMAKE_SOURCE_DIR}/Build/_deps/benchmarksuite-src/include/"
             /I "${CMAKE_SOURCE_DIR}/Build/_deps/glaze-src/include/"
-            /I "${CMAKE_SOURCE_DIR}/Include/"
+            /I "${CMAKE_SOURCE_DIR}/include/"
             /std:c++latest
             /DOPERATING_SYSTEM_NAME="TEST_OS"
             /DOPERATING_SYSTEM_VERSION="TEST_OS_VERSION"

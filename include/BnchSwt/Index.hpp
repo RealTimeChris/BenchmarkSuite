@@ -23,10 +23,6 @@
 /// Dec 6, 2024
 #pragma once
 
-#if !defined(NOMINMAX)
-	#define NOMINMAX
-#endif
-
 #include <BnchSwt/RandomGenerators.hpp>
 #include <BnchSwt/StringLiteral.hpp>
 #include <BnchSwt/DoNotOptimize.hpp>
@@ -45,12 +41,16 @@ namespace bnch_swt {
 	struct benchmark_stage {
 		static_assert(maxExecutionCount % measuredIterationCount == 0, "Sorry, but please enter a maxExecutionCount that is divisible by measuredIterationCount.");
 		//static_assert(maxExecutionCount > 1, "Sorry, but please enter a maxExecutionCount that is greater than 1.");
-		inline static thread_local std::unordered_map<std::string_view, performance_metrics> results{};
+		BNCH_SWT_STATIC_INLINE auto& getResults() {
+			static thread_local std::unordered_map<std::string_view, performance_metrics> results{};
+			return results;
+		}
+		
 		static constexpr bool useNonMbpsMetric{ metricNameNew.size() == 0 };
 
 		BNCH_SWT_INLINE static void printResults(bool showComparison = true, bool showMetrics = true) {
 			std::vector<performance_metrics> resultsNew{};
-			for (const auto& [key, value]: results) {
+			for (const auto& [key, value]: getResults()) {
 				resultsNew.emplace_back(value);
 			}
 			if (resultsNew.size() > 0) {
@@ -140,8 +140,8 @@ namespace bnch_swt {
 				resultsTemp	  = collectMetrics<subjectName, useNonMbpsMetric>(newPtr.subspan(x, measuredIterationCount), currentGlobalIndex);
 				lowestResults = resultsTemp.throughputPercentageDeviation < lowestResults.throughputPercentageDeviation ? resultsTemp : lowestResults;
 			}
-			results[subjectName.operator std::string_view()] = lowestResults;
-			return results[subjectName.operator std::string_view()];
+			getResults()[subjectName.operator std::string_view()] = lowestResults;
+			return getResults()[subjectName.operator std::string_view()];
 		}
 
 		template<string_literal subjectNameNew, typename function_type, internal::not_invocable... arg_types>
@@ -167,8 +167,8 @@ namespace bnch_swt {
 				resultsTemp	  = collectMetrics<subjectName, useNonMbpsMetric>(newPtr.subspan(x, measuredIterationCount), currentGlobalIndex);
 				lowestResults = resultsTemp.throughputPercentageDeviation < lowestResults.throughputPercentageDeviation ? resultsTemp : lowestResults;
 			}
-			results[subjectName.operator std::string_view()] = lowestResults;
-			return results[subjectName.operator std::string_view()];
+			getResults()[subjectName.operator std::string_view()] = lowestResults;
+			return getResults()[subjectName.operator std::string_view()];
 		}
 
 		template<string_literal subjectNameNew, typename prep_function_type, typename function_type, internal::not_invocable... arg_types>
@@ -196,8 +196,8 @@ namespace bnch_swt {
 				resultsTemp	  = collectMetrics<subjectName, useNonMbpsMetric>(newPtr.subspan(x, measuredIterationCount), currentGlobalIndex);
 				lowestResults = resultsTemp.throughputPercentageDeviation < lowestResults.throughputPercentageDeviation ? resultsTemp : lowestResults;
 			}
-			results[subjectName.operator std::string_view()] = lowestResults;
-			return results[subjectName.operator std::string_view()];
+			getResults()[subjectName.operator std::string_view()] = lowestResults;
+			return getResults()[subjectName.operator std::string_view()];
 		}
 	};
 

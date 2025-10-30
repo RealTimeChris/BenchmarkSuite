@@ -26,7 +26,7 @@
 
 #include <BnchSwt/Config.hpp>
 
-#if defined(BNCH_SWT_LINUX)
+#if BNCH_SWT_PLATFORM_LINUX
 
 	#include <linux/perf_event.h>
 	#include <asm/unistd.h>

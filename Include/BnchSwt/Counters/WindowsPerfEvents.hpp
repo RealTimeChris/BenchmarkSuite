@@ -25,7 +25,7 @@
 
 #include <BnchSwt/Config.hpp>
 
-#if defined(BNCH_SWT_WIN)
+#if BNCH_SWT_PLATFORM_WINDOWS
 
 	#include <intrin.h>
 	#include <vector>

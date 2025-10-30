@@ -2,256 +2,102 @@
   "version": 3,
   "configurePresets": [
     {
-      "installDir": "${sourceDir}/Build",
-      "binaryDir": "${sourceDir}/Build",
-      "condition": {
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows",
-        "type": "equals"
-      },
-      "generator": "Ninja",
+      "name": "${hostSystemName}-base",
       "hidden": true,
-      "name": "BenchmarkSuite-Windows-Base"
-    },
-    {
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "installDir": "${sourceDir}/out/build/${presetName}",
+      "toolchainFile": "C:/vcpkg/scripts/buildsystems/vcpkg.cmake",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "cl.exe"
+      },
       "architecture": {
         "value": "x64",
         "strategy": "external"
       },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "debug-base",
+      "hidden": true,
+      "inherits": "${hostSystemName}-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "release-base",
+      "hidden": true,
+      "inherits": "${hostSystemName}-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
-      },
-      "inherits": "BenchmarkSuite-Windows-Base",
-      "name": "BenchmarkSuite-Windows-Release"
+      }
     },
     {
-      "architecture": {
-        "strategy": "external",
-        "value": "x64"
-      },
+      "name": "release-benchmarksuite",
+      "inherits": "release-base"
+    },
+    {
+      "name": "debug-benchmarksuite",
+      "inherits": "debug-base"
+    },
+    {
+      "name": "release-benchmarksuite-dev",
+      "inherits": "release-base",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "BENCH_TYPE": "BENCHMARK"
-      },
-      "inherits": "BenchmarkSuite-Windows-Base",
-      "name": "BenchmarkSuite-Windows-Release-Dev"
+        "BENCHMARKS": true
+      }
     },
     {
-      "architecture": {
-        "strategy": "external",
-        "value": "x64"
-      },
-      "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" },
-      "inherits": "BenchmarkSuite-Windows-Base",
-      "name": "BenchmarkSuite-Windows-Debug"
-    },
-    {
-      "architecture": {
-        "strategy": "external",
-        "value": "x64"
-      },
+      "name": "debug-benchmarksuite-dev",
+      "inherits": "debug-base",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "BENCH_TYPE": "BENCHMARK"
-      },
-      "inherits": "BenchmarkSuite-Windows-Base",
-      "name": "BenchmarkSuite-Windows-Debug-Dev"
+        "BENCHMARKS": true
+      }
     },
     {
-      "architecture": {
-        "strategy": "external",
-        "value": "x64"
-      },
+      "name": "linux-debug",
+      "displayName": "Linux Debug",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "installDir": "${sourceDir}/out/install/${presetName}",
       "cacheVariables": {
-        "ASAN_ENABLED": "TRUE",
-        "CMAKE_BUILD_TYPE": "Release",
-        "BENCH_TYPE": "BENCHMARK"
-      },
-      "inherits": "BenchmarkSuite-Windows-Base",
-      "name": "BenchmarkSuite-Windows-Release-Asan"
-    },
-    {
-      "architecture": {
-        "value": "x64",
-        "strategy": "external"
-      },
-      "cacheVariables": {
-        "ASAN_ENABLED": "TRUE",
-        "CMAKE_BUILD_TYPE": "Debug",
-        "BENCH_TYPE": "BENCHMARK"
-      },
-      "inherits": "BenchmarkSuite-Windows-Base",
-      "name": "BenchmarkSuite-Windows-Debug-Asan"
-    },
-    {
-      "installDir": "${sourceDir}/Install/${presetName}",
-      "binaryDir": "${sourceDir}/Install/${presetName}",
-      "cacheVariables": {
-        "CMAKE_CXX_COMPILER": "/usr/bin/clang++-20",
-        "CMAKE_C_COMPILER": "/usr/bin/clang-20"
+        "CMAKE_BUILD_TYPE": "Debug"
       },
       "condition": {
+        "type": "equals",
         "lhs": "${hostSystemName}",
-        "rhs": "Linux",
-        "type": "equals"
+        "rhs": "Linux"
       },
-      "generator": "Unix Makefiles",
-      "hidden": true,
-      "name": "BenchmarkSuite-Linux-Base"
+      "vendor": {
+        "microsoft.com/VisualStudioRemoteSettings/cmake/1.0": {
+          "sourceDir": "$env{HOME}/.vs/$ms{projectDirName}"
+        }
+      }
     },
     {
-      "architecture": {
-        "value": "x64",
-        "strategy": "external"
-      },
-      "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" },
-      "inherits": "BenchmarkSuite-Linux-Base",
-      "name": "BenchmarkSuite-Linux-Release"
-    },
-    {
-      "architecture": {
-        "strategy": "external",
-        "value": "x64"
-      },
+      "name": "macos-debug",
+      "displayName": "macOS Debug",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "installDir": "${sourceDir}/out/install/${presetName}",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "BENCH_TYPE": "BENCHMARK"
+        "CMAKE_BUILD_TYPE": "Debug"
       },
-      "inherits": "BenchmarkSuite-Linux-Base",
-      "name": "BenchmarkSuite-Linux-Release-Dev"
-    },
-    {
-      "architecture": {
-        "strategy": "external",
-        "value": "x64"
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
       },
-      "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" },
-      "inherits": "BenchmarkSuite-Linux-Base",
-      "name": "BenchmarkSuite-Linux-Debug"
-    },
-    {
-      "architecture": {
-        "strategy": "external",
-        "value": "x64"
-      },
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "BENCH_TYPE": "BENCHMARK"
-      },
-      "inherits": "BenchmarkSuite-Linux-Base",
-      "name": "BenchmarkSuite-Linux-Debug-Dev"
-    },
-    {
-      "architecture": {
-        "strategy": "external",
-        "value": "x64"
-      },
-      "cacheVariables": {
-        "ASAN_ENABLED": true,
-        "CMAKE_BUILD_TYPE": "Release",
-        "BENCH_TYPE": "BENCHMARK"
-      },
-      "inherits": "BenchmarkSuite-Linux-Base",
-      "name": "BenchmarkSuite-Linux-Release-Asan"
-    },
-    {
-      "architecture": {
-        "value": "x64",
-        "strategy": "external"
-      },
-      "cacheVariables": {
-        "ASAN_ENABLED": true,
-        "CMAKE_BUILD_TYPE": "Debug",
-        "BENCH_TYPE": "BENCHMARK"
-      },
-      "inherits": "BenchmarkSuite-Linux-Base",
-      "name": "BenchmarkSuite-Linux-Debug-Asan"
-    }
-  ],
-  "buildPresets": [
-    {
-      "configurePreset": "BenchmarkSuite-Windows-Release",
-      "configuration": "Release",
-      "inheritConfigureEnvironment": true,
-      "name": "BenchmarkSuite-Windows-Release",
-      "verbose": true
-    },
-    {
-      "configurePreset": "BenchmarkSuite-Windows-Debug",
-      "configuration": "Debug",
-      "inheritConfigureEnvironment": true,
-      "name": "BenchmarkSuite-Windows-Debug",
-      "verbose": true
-    },
-    {
-      "configurePreset": "BenchmarkSuite-Windows-Release-Asan",
-      "inheritConfigureEnvironment": true,
-      "configuration": "Release",
-      "name": "BenchmarkSuite-Windows-Release-Asan",
-      "verbose": true
-    },
-    {
-      "configurePreset": "BenchmarkSuite-Windows-Debug-Asan",
-      "inheritConfigureEnvironment": true,
-      "configuration": "Debug",
-      "name": "BenchmarkSuite-Windows-Debug-Asan",
-      "verbose": true
-    },
-    {
-      "configurePreset": "BenchmarkSuite-Windows-Release-Dev",
-      "inheritConfigureEnvironment": true,
-      "configuration": "Release",
-      "name": "BenchmarkSuite-Windows-Release-Dev",
-      "verbose": true
-    },
-    {
-      "configurePreset": "BenchmarkSuite-Windows-Debug-Dev",
-      "inheritConfigureEnvironment": true,
-      "configuration": "Debug",
-      "name": "BenchmarkSuite-Windows-Debug-Dev",
-      "verbose": true
-    },
-    {
-      "configurePreset": "BenchmarkSuite-Linux-Release",
-      "configuration": "Release",
-      "inheritConfigureEnvironment": true,
-      "name": "BenchmarkSuite-Linux-Release",
-      "verbose": true
-    },
-    {
-      "configurePreset": "BenchmarkSuite-Linux-Debug",
-      "configuration": "Debug",
-      "inheritConfigureEnvironment": true,
-      "name": "BenchmarkSuite-Linux-Debug",
-      "verbose": true
-    },
-    {
-      "configurePreset": "BenchmarkSuite-Linux-Release-Asan",
-      "inheritConfigureEnvironment": true,
-      "configuration": "Release",
-      "name": "BenchmarkSuite-Linux-Release-Asan",
-      "verbose": true
-    },
-    {
-      "configurePreset": "BenchmarkSuite-Linux-Debug-Asan",
-      "inheritConfigureEnvironment": true,
-      "configuration": "Debug",
-      "name": "BenchmarkSuite-Linux-Debug-Asan",
-      "verbose": true
-    },
-    {
-      "configurePreset": "BenchmarkSuite-Linux-Release-Dev",
-      "inheritConfigureEnvironment": true,
-      "configuration": "Release",
-      "name": "BenchmarkSuite-Linux-Release-Dev",
-      "verbose": true
-    },
-    {
-      "configurePreset": "BenchmarkSuite-Linux-Debug-Dev",
-      "inheritConfigureEnvironment": true,
-      "configuration": "Debug",
-      "name": "BenchmarkSuite-Linux-Debug-Dev",
-      "verbose": true
+      "vendor": {
+        "microsoft.com/VisualStudioRemoteSettings/cmake/1.0": {
+          "sourceDir": "$env{HOME}/.vs/$ms{projectDirName}"
+        }
+      }
     }
   ]
 }

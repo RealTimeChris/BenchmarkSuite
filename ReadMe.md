@@ -114,7 +114,7 @@ Compile and run your program:
 ## Output and Results
 ```c
 Performance Metrics for: int-to-string-comparisons-1
-Metrics for: jsonifier::internal::toChars
+Metrics for: benchmarksuite::internal::toChars
 Total Iterations to Stabilize                               : 394
 Measured Iterations                                         : 20
 Bytes Processed                                             : 512.00
@@ -150,7 +150,7 @@ Branch Misses per Execution                                 : 0.73
 Cache References per Execution                              : 95.93
 Cache Misses per Execution                                  : 73.59
 ----------------------------------------
-Library jsonifier::internal::toChars, is faster than library: glz::to_chars, by roughly: 11.36%.
+Library benchmarksuite::internal::toChars, is faster than library: glz::to_chars, by roughly: 11.36%.
 ```
 
 This structured output helps you quickly identify which implementation is faster or more efficient.
