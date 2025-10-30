@@ -1,9 +1,9 @@
 name: BenchmarkSuite Multi-Platform BenchmarkSuite-Only Build
 on:
   push:
-    branches: [ "**" ]
+    branches: [ "*" ]
   pull_request:
-    branches: [ "**" ]
+    branches: [ "*" ]
   workflow_dispatch:
 jobs:
   build:
@@ -65,17 +65,17 @@ jobs:
     - name: Configure CMake (Ubuntu-Gcc)
       if: matrix.os == 'ubuntu-latest' && matrix.compiler == 'gcc'
       run: |
-        cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE -DCMAKE_INSTALL_RPATH="@loader_path/../lib" -DBENCHMARKS=TRUE -DCMAKE_CXX_COMPILER=/usr/bin/g++-14 -DBNCH_SWT_INSTALL=FALSE
+        cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE -DCMAKE_INSTALL_RPATH="@loader_path/../lib" -DBENCHMARKS=TRUE -DCMAKE_CXX_COMPILER=/usr/bin/g++-14 -DBNCH_SWT_INSTALL=FALSE -DGENERATE_ASSEMBLY=TRUE
     
     - name: Configure CMake (Ubuntu-Clang)
       if: matrix.os == 'ubuntu-latest' && matrix.compiler == 'clang'
       run: |
-        cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE -DCMAKE_INSTALL_RPATH="@loader_path/../lib" -DBENCHMARKS=TRUE -DCMAKE_CXX_COMPILER=/usr/bin/clang++-20 -DBNCH_SWT_INSTALL=FALSE
+        cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE -DCMAKE_INSTALL_RPATH="@loader_path/../lib" -DBENCHMARKS=TRUE -DCMAKE_CXX_COMPILER=/usr/bin/clang++-20 -DBNCH_SWT_INSTALL=FALSE -DGENERATE_ASSEMBLY=TRUE
 
     - name: Configure CMake
       if: matrix.os == 'macos-latest'
       run: |
-        cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE -DCMAKE_INSTALL_RPATH="@loader_path/../lib" -DBENCHMARKS=TRUE -DBNCH_SWT_INSTALL=FALSE
+        cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE -DCMAKE_INSTALL_RPATH="@loader_path/../lib" -DBENCHMARKS=TRUE -DBNCH_SWT_INSTALL=FALSE -DGENERATE_ASSEMBLY=TRUE
 
     - name: Configure CMake
       if: matrix.os == 'windows-latest'
@@ -89,6 +89,12 @@ jobs:
     - name: Install Project
       run: |
         cmake --install ./Build --config=Release -v
+
+    - name: Print assembly file
+      if: matrix.os != 'windows-latest'
+      run: |
+            echo "Contents of Assembly.cod:"
+            cat Assembly/Assembly.cod
     
     - name: Create Models Directory
       run: |

@@ -794,7 +794,7 @@ namespace bnch_swt::internal {
 			} } },
 	};
 	*/
-	static kpep_event* get_event(kpep_db* db, const event_alias* alias) {
+	static inline kpep_event* get_event(kpep_db* db, const event_alias* alias) {
 		for (size_t j = 0; j < EVENT_NAME_MAX; j++) {
 			const char* name = alias->names[j];
 			if (!name) {
@@ -814,7 +814,7 @@ namespace bnch_swt::internal {
 	static std::array<uint64_t, KPC_MAX_COUNTERS> counters_1{ 0 };
 	static const size_t ev_count = sizeof(profile_events) / sizeof(profile_events[0]);
 
-	static bool setup_performance_counters() {
+	static inline bool setup_performance_counters() {
 		static bool init   = false;
 		static bool worked = false;
 

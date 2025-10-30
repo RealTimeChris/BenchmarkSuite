@@ -1,29 +1,25 @@
 #include <BnchSwt/Index.hpp>
 
-static constexpr uint64_t total_iterations{ 100 };
-static constexpr uint64_t measured_iterations{ 10 };
+struct test_struct {
+	mutable std::array<uint32_t, 32> value{};
+	//      ^^^^^^^ THIS IS ESSENTIAL
+};
 
-int main() {
+template<typename value_type> consteval value_type get_value() {
+	return value_type{};
+}
 
-	struct test_struct_no_pause {
-		BNCH_SWT_INLINE static uint64_t impl() {
-			[[maybe_unused]] auto start = std::chrono::high_resolution_clock::now();
-			[[maybe_unused]] auto end = std::chrono::high_resolution_clock::now();
-			return 200000ull;
-		}
-	};
+int32_t main() {
+	static constinit auto new_value = get_value<test_struct>();
 
-	struct test_struct_pause {
-		BNCH_SWT_INLINE static uint64_t impl() {
-			[[maybe_unused]] auto start = std::chrono::high_resolution_clock::now();
-			[[maybe_unused]] auto end = std::chrono::high_resolution_clock::now();
-			return 200000ull;
-		}
-	};
+	std::cout << "CURRENT VALUES: " << new_value.value[0] << std::endl;
 
-	bnch_swt::benchmark_stage<"test_stage", total_iterations, measured_iterations>::runBenchmark<"no-yield", test_struct_no_pause>();
-	bnch_swt::benchmark_stage<"test_stage", total_iterations, measured_iterations>::runBenchmark<"yield", test_struct_pause>();
+	// Without mutable, this next line would be a compile error:
+	// new_value.value[0] = 42;  // ERROR: cannot modify constexpr
 
-	bnch_swt::benchmark_stage<"test_stage", total_iterations, measured_iterations>::printResults();
+	// With mutable, this works:
+	new_value.value[0] = 42;// ✅
+
+	bnch_swt::doNotOptimizeAway(new_value);
 	return 0;
 }

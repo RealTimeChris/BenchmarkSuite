@@ -39,20 +39,28 @@ namespace bnch_swt::internal {
 	template<typename value_type, typename... arg_types>
 	concept invocable_not_void = invocable<value_type, arg_types...> && !std::is_void_v<std::invoke_result_t<value_type, arg_types...>>;
 
-#if BNCH_SWT_COMPILER_MSVC
-	#pragma optimize("", off)
-	BNCH_SWT_INLINE void doNotOptimize(const void* value) {
-		( void )value;
-	};
-	#pragma optimize("", on)
-#else
-	BNCH_SWT_INLINE void doNotOptimize(const void* value) {
-	#if defined(BNCH_SWT_COMPILER_CLANG)
+#if !BNCH_SWT_COMPILER_MSVC
+	BNCH_SWT_INLINE void doNotOptimize(void* value) {
+	#if BNCH_SWT_COMPILER_CLANG
 		asm volatile("" : "+r,m"(value) : : "memory");
-	#elif defined(BNCH_SWT_COMPILER_GNU)
+	#elif BNCH_SWT_COMPILER_GNU
 		asm volatile("" : "+m,r"(value) : : "memory");
 	#endif
 	}
+
+	BNCH_SWT_INLINE void doNotOptimize(const void* value) {
+		void* non_const = const_cast<void*>(value);
+	#if BNCH_SWT_COMPILER_CLANG
+		asm volatile("" : "+r,m"(non_const) : : "memory");
+	#elif BNCH_SWT_COMPILER_GNU
+		asm volatile("" : "+m,r"(non_const) : : "memory");
+	#endif
+	}
+#else
+	#pragma optimize("", off)
+	BNCH_SWT_INLINE void doNotOptimize([[maybe_unused]] const void* value) {
+	}
+	#pragma optimize("", on)
 #endif
 }
 
