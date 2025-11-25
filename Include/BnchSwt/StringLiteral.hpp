@@ -26,7 +26,6 @@
 #include <BnchSwt/Config.hpp>
 #include <string_view>
 #include <algorithm>
-#include <string>
 #include <array>
 
 namespace bnch_swt {

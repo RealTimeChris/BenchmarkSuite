@@ -24,22 +24,10 @@
 /// Dec 6, 2024
 #pragma once
 
-#if !defined(_MSC_VER)
-	#include <dirent.h>
-#endif
-
-#include <BnchSwt/Config.hpp>
-
-#include <cinttypes>
-#include <optional>
-#include <cstring>
-#include <chrono>
-#include <vector>
-#include <cctype>
-
+#include <BnchSwt/Counters/AppleArmPerfEvents.hpp>
 #include <BnchSwt/Counters/WindowsPerfEvents.hpp>
 #include <BnchSwt/Counters/LinuxPerfEvents.hpp>
-#include <BnchSwt/Counters/AppleArmPerfEvents.hpp>
+#include <optional>
 
 namespace bnch_swt::internal {
 
@@ -52,9 +40,9 @@ namespace bnch_swt::internal {
 			return std::chrono::duration<double, std::nano>(elapsed).count();
 		}
 
-		BNCH_SWT_INLINE bool bytesProcessed(double& bytesProcessedNew) const noexcept {
+		BNCH_SWT_INLINE bool bytesProcessed(uint64_t& bytesProcessedNew) const noexcept {
 			if (bytesProcessedVal.has_value()) {
-				bytesProcessedNew = static_cast<double>(bytesProcessedVal.value());
+				bytesProcessedNew = bytesProcessedVal.value();
 				return true;
 			} else {
 				return false;
