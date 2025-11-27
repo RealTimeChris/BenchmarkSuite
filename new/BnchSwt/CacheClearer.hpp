@@ -223,7 +223,7 @@ namespace bnch_swt::internal {
 #endif
 	}
 
-	class cache_clearer {
+	template<benchmark_types benchmark_type = benchmark_types::cpu> class cache_clearer {
 		size_t cacheLineSize{ getCacheLineSize() };
 		std::array<size_t, 3> cacheSizes{ { getCacheSize(cache_level::one), getCacheSize(cache_level::two), getCacheSize(cache_level::three) } };
 		size_t topLevelCache{ [&] {

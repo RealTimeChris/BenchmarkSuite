@@ -35,7 +35,7 @@
 
 namespace bnch_swt::internal {
 
-	struct event_count {
+	template<benchmark_types benchmark_type = benchmark_types::cpu> struct event_count {
 		template<typename value_type, size_t count> friend struct event_collector_type;
 
 		BNCH_SWT_HOST event_count() noexcept = default;
@@ -118,6 +118,6 @@ namespace bnch_swt::internal {
 		std::optional<uint64_t> cyclesVal{};
 	};
 
-	template<size_t count> using event_collector = event_collector_type<event_count, count>;
+	template<size_t count, benchmark_types benchmark_type = benchmark_types::cpu> using event_collector = event_collector_type<event_count<benchmark_type>, count>;
 
 }
