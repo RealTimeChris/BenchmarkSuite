@@ -119,7 +119,7 @@ namespace bnch_swt {
 			return sl;
 		}
 
-		template<uint64_t size> BNCH_SWT_INLINE std::ostream& operator<<(std::ostream&, const string_literal<size>& input) noexcept {
+		template<uint64_t size> BNCH_SWT_HOST std::ostream& operator<<(std::ostream&, const string_literal<size>& input) noexcept {
 			std::cout << input.operator std::string_view();
 			return std::cout;
 		}

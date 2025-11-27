@@ -42,7 +42,7 @@ The following example demonstrates how to set up and run a benchmark comparing t
 
 ```cpp
 template<uint64_t count, typename value_type, bnch_swt::string_literal testName>
-BNCH_SWT_INLINE void testFunction() {
+BNCH_SWT_HOST void testFunction() {
     std::vector<value_type> testValues{ generateRandomIntegers<value_type>(count, sizeof(value_type) == 4 ? 10 : 20) };
     std::vector<std::string> testValues00;
     std::vector<std::string> testValues01(count);

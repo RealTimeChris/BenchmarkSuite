@@ -34,17 +34,17 @@ namespace bnch_swt {
 	struct random_generator {
 		static constexpr std::string_view charset{ "!#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~\"\\\r\b\f\t\n" };
 
-		BNCH_SWT_INLINE static auto& getRandomEngine() {
+		BNCH_SWT_HOST static auto& getRandomEngine() {
 			static std::random_device randomEngine{};
 			return randomEngine;
 		}
 
-		BNCH_SWT_INLINE static auto& getGen() {
+		BNCH_SWT_HOST static auto& getGen() {
 			static std::mt19937_64 gen{ getRandomEngine()() };
 			return gen;
 		}
 
-		template<bnch_swt::internal::string_t value_type> BNCH_SWT_INLINE static value_type generateValue(uint64_t length) {
+		template<bnch_swt::internal::string_t value_type> BNCH_SWT_HOST static value_type generateValue(uint64_t length) {
 			static std::uniform_int_distribution<uint64_t> disCharSet{ 0ull, charset.size() - 1 };
 			value_type result{};
 			for (uint64_t x = 0; x < length; ++x) {
@@ -53,28 +53,28 @@ namespace bnch_swt {
 			return result;
 		}
 
-		template<bnch_swt::internal::floating_point_t value_type> BNCH_SWT_INLINE static value_type generateValue() {
+		template<bnch_swt::internal::floating_point_t value_type> BNCH_SWT_HOST static value_type generateValue() {
 			static std::uniform_real_distribution<value_type> disDouble{ static_cast<value_type>(log(std::numeric_limits<value_type>::min())),
 				static_cast<value_type>(log(std::numeric_limits<value_type>::max())) };
 			value_type logValue = std::exp(disDouble(getGen()));
 			return generateValue<bool>() ? -logValue : logValue;
 		}
 
-		template<bnch_swt::internal::bool_t value_type> BNCH_SWT_INLINE static value_type generateValue() {
+		template<bnch_swt::internal::bool_t value_type> BNCH_SWT_HOST static value_type generateValue() {
 			static std::uniform_int_distribution<uint64_t> disBool{ 0, 100 };
 			return disBool(getGen()) >= 50;
 		}
 
 		template<bnch_swt::internal::integer_t value_type>
 			requires(std::is_unsigned_v<value_type>)
-		BNCH_SWT_INLINE static value_type generateValue() {
+		BNCH_SWT_HOST static value_type generateValue() {
 			static std::uniform_int_distribution<value_type> disUnt{ std::numeric_limits<value_type>::min(), std::numeric_limits<value_type>::max() };
 			return disUnt(getGen());
 		}
 
 		template<bnch_swt::internal::integer_t value_type>
 			requires(std::is_signed_v<value_type>)
-		BNCH_SWT_INLINE static value_type generateValue() {
+		BNCH_SWT_HOST static value_type generateValue() {
 			static std::uniform_int_distribution<value_type> disInt{ std::numeric_limits<value_type>::min(), std::numeric_limits<value_type>::max() };
 			return disInt(getGen());
 		}

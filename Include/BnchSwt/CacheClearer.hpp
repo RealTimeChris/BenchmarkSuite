@@ -53,7 +53,7 @@ namespace bnch_swt::internal {
 		three = 3,
 	};
 
-	BNCH_SWT_INLINE size_t getCacheLineSize() {
+	BNCH_SWT_HOST size_t getCacheLineSize() {
 #if BNCH_SWT_PLATFORM_WINDOWS
 		DWORD bufferSize = 0;
 		GetLogicalProcessorInformation(nullptr, &bufferSize);
@@ -90,7 +90,7 @@ namespace bnch_swt::internal {
 		return 0;
 	}
 
-	BNCH_SWT_INLINE size_t getCacheSize(cache_level level) {
+	BNCH_SWT_HOST size_t getCacheSize(cache_level level) {
 #if BNCH_SWT_PLATFORM_WINDOWS
 		DWORD bufferSize = 0;
 		cache_level cacheLevel{ level };
@@ -181,7 +181,7 @@ namespace bnch_swt::internal {
 
 
 #if BNCH_SWT_PLATFORM_WINDOWS
-	BNCH_SWT_INLINE static void flushCache(void* ptr, size_t size, size_t cacheLineSize, bool clearInstructionCache = false) {
+	BNCH_SWT_HOST static void flushCache(void* ptr, size_t size, size_t cacheLineSize, bool clearInstructionCache = false) {
 		char* buffer = static_cast<char*>(ptr);
 		for (size_t i = 0; i < size; i += cacheLineSize) {
 			_mm_clflush(buffer + i);
@@ -194,7 +194,7 @@ namespace bnch_swt::internal {
 			}
 		}
 #elif BNCH_SWT_PLATFORM_LINUX
-	BNCH_SWT_INLINE static void flushCache(void* ptr, size_t size, size_t, bool clearInstructionCache = false) {
+	BNCH_SWT_HOST static void flushCache(void* ptr, size_t size, size_t, bool clearInstructionCache = false) {
 		char* buffer = static_cast<char*>(ptr);
 	#if defined(BNCH_SWT_X86_64)
 		for (size_t i = 0; i < size; i += cacheLineSize) {
@@ -207,13 +207,13 @@ namespace bnch_swt::internal {
 			__builtin___clear_cache(buffer, buffer + size);
 		}
 #elif defined(BNCH_SWT_ANDROID)
-	BNCH_SWT_INLINE static void flushCache(void* ptr, size_t size, size_t, bool clearInstructionCache = false) {
+	BNCH_SWT_HOST static void flushCache(void* ptr, size_t size, size_t, bool clearInstructionCache = false) {
 		char* buffer = static_cast<char*>(ptr);
 		if (clearInstructionCache) {
 			__builtin___clear_cache(buffer, buffer + size);
 		}
 #elif BNCH_SWT_PLATFORM_MAC
-	BNCH_SWT_INLINE static void flushCache(void* ptr, size_t size, size_t, bool clearInstructionCache = false) {
+	BNCH_SWT_HOST static void flushCache(void* ptr, size_t size, size_t, bool clearInstructionCache = false) {
 		if (clearInstructionCache) {
 			sys_icache_invalidate(ptr, size);
 		} else {
@@ -241,7 +241,7 @@ namespace bnch_swt::internal {
 			return returnValues;
 		}() };
 
-		BNCH_SWT_INLINE void evictCache(size_t cacheLevel) {
+		BNCH_SWT_HOST void evictCache(size_t cacheLevel) {
 			if (cacheLevel >= 1 && cacheLevel <= 3 && cacheSizes[cacheLevel - 1] > 0) {
 				for (size_t i = 0; i < cacheSizes[cacheLevel - 1] + cacheLineSize; i += cacheLineSize) {
 					if (i < evictBuffer.size()) {
@@ -257,7 +257,7 @@ namespace bnch_swt::internal {
 		}
 
 	  public:
-		BNCH_SWT_INLINE void evictCaches() {
+		BNCH_SWT_HOST void evictCaches() {
 			evictCache(3);
 			evictCache(2);
 			evictCache(1);

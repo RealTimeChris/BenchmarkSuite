@@ -41,12 +41,12 @@ namespace bnch_swt::internal {
 
 #if BNCH_SWT_COMPILER_MSVC
 	#pragma optimize("", off)
-	BNCH_SWT_INLINE void doNotOptimize(const void* value) {
+	BNCH_SWT_HOST void doNotOptimize(const void* value) {
 		( void )value;
 	};
 	#pragma optimize("", on)
 #else
-	BNCH_SWT_INLINE void doNotOptimize(const void* value) {
+	BNCH_SWT_HOST void doNotOptimize(const void* value) {
 	#if defined(BNCH_SWT_COMPILER_CLANG)
 		asm volatile("" : "+r,m"(value) : : "memory");
 	#elif defined(BNCH_SWT_COMPILER_GNU)
@@ -58,17 +58,17 @@ namespace bnch_swt::internal {
 
 namespace bnch_swt {
 
-	template<internal::not_invocable value_type> BNCH_SWT_INLINE void doNotOptimizeAway(value_type&& value) {
+	template<internal::not_invocable value_type> BNCH_SWT_HOST void doNotOptimizeAway(value_type&& value) {
 		auto* valuePtr = &value;
 		internal::doNotOptimize(valuePtr);
 	}
 
-	template<internal::invocable_void function_type, typename... arg_types> BNCH_SWT_INLINE void doNotOptimizeAway(function_type&& value, arg_types&&... args) {
+	template<internal::invocable_void function_type, typename... arg_types> BNCH_SWT_HOST void doNotOptimizeAway(function_type&& value, arg_types&&... args) {
 		std::forward<function_type>(value)(std::forward<arg_types>(args)...);
 		internal::doNotOptimize(value);
 	}
 
-	template<internal::invocable_not_void function_type, typename... arg_types> BNCH_SWT_INLINE auto doNotOptimizeAway(function_type&& value, arg_types&&... args) {
+	template<internal::invocable_not_void function_type, typename... arg_types> BNCH_SWT_HOST auto doNotOptimizeAway(function_type&& value, arg_types&&... args) {
 		auto resultVal = std::forward<function_type>(value)(std::forward<arg_types>(args)...);
 		internal::doNotOptimize(&resultVal);
 		return resultVal;

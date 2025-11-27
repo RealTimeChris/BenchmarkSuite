@@ -37,7 +37,7 @@
 
 namespace bnch_swt::internal {
 
-	BNCH_SWT_INLINE uint64_t rdtsc() {
+	BNCH_SWT_HOST uint64_t rdtsc() {
 	#if defined(__x86_64__)
 		uint32_t a, d;
 		__asm__ volatile("rdtsc" : "=a"(a), "=d"(d));
@@ -61,7 +61,7 @@ namespace bnch_swt::internal {
 		int32_t fd{};
 
 	  public:
-		BNCH_SWT_INLINE explicit linux_events(std::vector<int32_t> config_vec) : working(true) {
+		BNCH_SWT_HOST explicit linux_events(std::vector<int32_t> config_vec) : working(true) {
 			memset(&attribs, 0, sizeof(attribs));
 			attribs.type		   = PERF_TYPE_HARDWARE;
 			attribs.size		   = sizeof(attribs);
@@ -95,13 +95,13 @@ namespace bnch_swt::internal {
 			temp_result_vec.resize(num_events * 2 + 1);
 		}
 
-		BNCH_SWT_INLINE ~linux_events() {
+		BNCH_SWT_HOST ~linux_events() {
 			if (fd != -1) {
 				close(fd);
 			}
 		}
 
-		BNCH_SWT_INLINE void run() {
+		BNCH_SWT_HOST void run() {
 			if (fd != -1) {
 				if (ioctl(fd, PERF_EVENT_IOC_RESET, PERF_IOC_FLAG_GROUP) == -1) {
 					reportError("ioctl(PERF_EVENT_IOC_RESET)");
@@ -113,7 +113,7 @@ namespace bnch_swt::internal {
 			}
 		}
 
-		BNCH_SWT_INLINE void end(std::vector<uint64_t>& results) {
+		BNCH_SWT_HOST void end(std::vector<uint64_t>& results) {
 			if (fd != -1) {
 				if (ioctl(fd, PERF_EVENT_IOC_DISABLE, PERF_IOC_FLAG_GROUP) == -1) {
 					reportError("ioctl(PERF_EVENT_IOC_DISABLE)");
@@ -139,7 +139,7 @@ namespace bnch_swt::internal {
 		}
 
 	  protected:
-		BNCH_SWT_INLINE void reportError(const std::string&) {
+		BNCH_SWT_HOST void reportError(const std::string&) {
 			working = false;
 		}
 	};
@@ -147,16 +147,16 @@ namespace bnch_swt::internal {
 	template<typename event_count, uint64_t count> struct event_collector_type : public linux_events, public std::vector<event_count> {
 		std::vector<uint64_t> results{};
 		uint64_t currentIndex{};
-		BNCH_SWT_INLINE event_collector_type()
+		BNCH_SWT_HOST event_collector_type()
 			: linux_events{ std::vector<int32_t>{ PERF_COUNT_HW_CPU_CYCLES, PERF_COUNT_HW_INSTRUCTIONS, PERF_COUNT_HW_BRANCH_INSTRUCTIONS, PERF_COUNT_HW_BRANCH_MISSES,
 				  PERF_COUNT_HW_CACHE_REFERENCES, PERF_COUNT_HW_CACHE_MISSES } },
 			  std::vector<event_count>{ count } {}
 
-		BNCH_SWT_INLINE bool hasEvents() {
+		BNCH_SWT_HOST bool hasEvents() {
 			return linux_events::isWorking();
 		}
 
-		template<typename function_type, typename... arg_types> BNCH_SWT_INLINE void run(arg_types&&... args) {
+		template<typename function_type, typename... arg_types> BNCH_SWT_HOST void run(arg_types&&... args) {
 			if (hasEvents()) {
 				linux_events::run();
 			}
@@ -184,7 +184,7 @@ namespace bnch_swt::internal {
 			return;
 		}
 
-		template<typename function_type, typename... arg_types> BNCH_SWT_INLINE void run(function_type&& function, arg_types&&... args) {
+		template<typename function_type, typename... arg_types> BNCH_SWT_HOST void run(function_type&& function, arg_types&&... args) {
 			if (hasEvents()) {
 				linux_events::run();
 			}

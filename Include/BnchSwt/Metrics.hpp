@@ -47,7 +47,7 @@ namespace bnch_swt {
 		std::string name{};
 		double timeInNs{};
 
-		BNCH_SWT_INLINE bool operator>(const performance_metrics& other) const {
+		BNCH_SWT_HOST bool operator>(const performance_metrics& other) const {
 			return throughputMbPerSec > other.throughputMbPerSec;
 		}
 	};
@@ -55,7 +55,7 @@ namespace bnch_swt {
 
 namespace bnch_swt::internal {
 
-	BNCH_SWT_INLINE double calculateThroughputMBps(double nanoseconds, double bytesProcessed) {
+	BNCH_SWT_HOST double calculateThroughputMBps(double nanoseconds, double bytesProcessed) {
 		constexpr double bytesPerMB		= 1024.0 * 1024.0;
 		constexpr double nanosPerSecond = 1e9;
 		double megabytes = bytesProcessed / bytesPerMB;
@@ -66,12 +66,12 @@ namespace bnch_swt::internal {
 		return megabytes / seconds;
 	}
 
-	BNCH_SWT_INLINE double calculateUnitsPs(double nanoseconds, double bytesProcessed) {
+	BNCH_SWT_HOST double calculateUnitsPs(double nanoseconds, double bytesProcessed) {
 		return (bytesProcessed * 1000000000.0) / nanoseconds;
 	}
 
 	template<string_literal benchmarkNameNew, bool mbps = true>
-	BNCH_SWT_INLINE static performance_metrics collectMetrics(std::span<event_count>&& eventsNewer, size_t totalIterationCount) {
+	BNCH_SWT_HOST static performance_metrics collectMetrics(std::span<event_count>&& eventsNewer, size_t totalIterationCount) {
 		static constexpr string_literal benchmarkName{ benchmarkNameNew };
 		performance_metrics metrics{};
 		metrics.name = benchmarkName.operator std::string();

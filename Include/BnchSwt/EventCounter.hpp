@@ -29,6 +29,7 @@
 #include <BnchSwt/Counters/WindowsPerfEvents.hpp>
 #include <BnchSwt/Counters/LinuxPerfEvents.hpp>
 #include <BnchSwt/Counters/AndriodEvents.hpp>
+#include <BnchSwt/Counters/CudaEvents.hpp>
 #include <optional>
 #include <chrono>
 
@@ -37,13 +38,13 @@ namespace bnch_swt::internal {
 	struct event_count {
 		template<typename value_type, size_t count> friend struct event_collector_type;
 
-		BNCH_SWT_INLINE event_count() noexcept = default;
+		BNCH_SWT_HOST event_count() noexcept = default;
 
-		BNCH_SWT_INLINE double elapsedNs() const noexcept {
+		BNCH_SWT_HOST double elapsedNs() const noexcept {
 			return std::chrono::duration<double, std::nano>(elapsed).count();
 		}
 
-		BNCH_SWT_INLINE bool bytesProcessed(uint64_t& bytesProcessedNew) const noexcept {
+		BNCH_SWT_HOST bool bytesProcessed(uint64_t& bytesProcessedNew) const noexcept {
 			if (bytesProcessedVal.has_value()) {
 				bytesProcessedNew = bytesProcessedVal.value();
 				return true;
@@ -52,7 +53,7 @@ namespace bnch_swt::internal {
 			}
 		}
 
-		BNCH_SWT_INLINE bool cycles(double& cyclesNew) const {
+		BNCH_SWT_HOST bool cycles(double& cyclesNew) const {
 			if (cyclesVal.has_value()) {
 				cyclesNew = static_cast<double>(cyclesVal.value());
 				return true;
@@ -61,7 +62,7 @@ namespace bnch_swt::internal {
 			}
 		}
 
-		BNCH_SWT_INLINE bool instructions(double& instructionsNew) const noexcept {
+		BNCH_SWT_HOST bool instructions(double& instructionsNew) const noexcept {
 			if (instructionsVal.has_value()) {
 				instructionsNew = static_cast<double>(instructionsVal.value());
 				return true;
@@ -70,7 +71,7 @@ namespace bnch_swt::internal {
 			}
 		}
 
-		BNCH_SWT_INLINE bool branches(double& branchesNew) const noexcept {
+		BNCH_SWT_HOST bool branches(double& branchesNew) const noexcept {
 			if (branchesVal.has_value()) {
 				branchesNew = static_cast<double>(branchesVal.value());
 				return true;
@@ -79,7 +80,7 @@ namespace bnch_swt::internal {
 			}
 		}
 
-		BNCH_SWT_INLINE bool branchMisses(double& branchMissesNew) const noexcept {
+		BNCH_SWT_HOST bool branchMisses(double& branchMissesNew) const noexcept {
 			if (branchMissesVal.has_value()) {
 				branchMissesNew = static_cast<double>(branchMissesVal.value());
 				return true;
@@ -88,7 +89,7 @@ namespace bnch_swt::internal {
 			}
 		}
 
-		BNCH_SWT_INLINE bool cacheMisses(double& cacheMissesNew) const noexcept {
+		BNCH_SWT_HOST bool cacheMisses(double& cacheMissesNew) const noexcept {
 			if (cacheMissesVal.has_value()) {
 				cacheMissesNew = static_cast<double>(cacheMissesVal.value());
 				return true;
@@ -97,7 +98,7 @@ namespace bnch_swt::internal {
 			}
 		}
 
-		BNCH_SWT_INLINE bool cacheReferences(double& cacheReferencesNew) const noexcept {
+		BNCH_SWT_HOST bool cacheReferences(double& cacheReferencesNew) const noexcept {
 			if (cacheReferencesVal.has_value()) {
 				cacheReferencesNew = static_cast<double>(cacheReferencesVal.value());
 				return true;

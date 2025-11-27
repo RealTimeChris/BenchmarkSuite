@@ -6,7 +6,7 @@ static constexpr uint64_t measured_iterations{ 10 };
 int main() {
 
 	struct test_struct_no_pause {
-		BNCH_SWT_INLINE static uint64_t impl() {
+		BNCH_SWT_HOST static uint64_t impl() {
 			[[maybe_unused]] auto start = std::chrono::high_resolution_clock::now();
 			[[maybe_unused]] auto end = std::chrono::high_resolution_clock::now();
 			return 200000ull;
@@ -14,7 +14,7 @@ int main() {
 	};
 
 	struct test_struct_pause {
-		BNCH_SWT_INLINE static uint64_t impl() {
+		BNCH_SWT_HOST static uint64_t impl() {
 			[[maybe_unused]] auto start = std::chrono::high_resolution_clock::now();
 			[[maybe_unused]] auto end = std::chrono::high_resolution_clock::now();
 			return 200000ull;

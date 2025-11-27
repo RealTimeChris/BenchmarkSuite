@@ -35,9 +35,9 @@ namespace bnch_swt::internal {
 	template<typename event_count, uint64_t count> struct event_collector_type : public std::vector<event_count> {
 		uint64_t currentIndex{};
 
-		BNCH_SWT_INLINE event_collector_type() : std::vector<event_count>{ count } {};
+		BNCH_SWT_HOST event_collector_type() : std::vector<event_count>{ count } {};
 
-		template<typename function_type, typename... arg_types> BNCH_SWT_INLINE void run(function_type&& function, arg_types&&... args) {
+		template<typename function_type, typename... arg_types> BNCH_SWT_HOST void run(function_type&& function, arg_types&&... args) {
 			uint64_t result;
 			const auto startClock		 = clock_type::now();
 			volatile uint64_t cycleStart = __rdtsc();
@@ -51,7 +51,7 @@ namespace bnch_swt::internal {
 			return;
 		}
 
-		template<typename function_type, typename... arg_types> BNCH_SWT_INLINE void run(arg_types&&... args) {
+		template<typename function_type, typename... arg_types> BNCH_SWT_HOST void run(arg_types&&... args) {
 			uint64_t result;
 			const auto startClock		 = clock_type::now();
 			volatile uint64_t cycleStart = __rdtsc();

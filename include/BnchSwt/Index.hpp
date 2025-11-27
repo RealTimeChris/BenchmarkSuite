@@ -41,14 +41,14 @@ namespace bnch_swt {
 	struct benchmark_stage {
 		static_assert(maxExecutionCount % measuredIterationCount == 0, "Sorry, but please enter a maxExecutionCount that is divisible by measuredIterationCount.");
 		//static_assert(maxExecutionCount > 1, "Sorry, but please enter a maxExecutionCount that is greater than 1.");
-		BNCH_SWT_STATIC_INLINE auto& getResults() {
+		BNCH_SWT_STATIC_HOST auto& getResults() {
 			static thread_local std::unordered_map<std::string_view, performance_metrics> results{};
 			return results;
 		}
 		
 		static constexpr bool useNonMbpsMetric{ metricNameNew.size() == 0 };
 
-		BNCH_SWT_INLINE static void printResults(bool showComparison = true, bool showMetrics = true) {
+		BNCH_SWT_HOST static void printResults(bool showComparison = true, bool showMetrics = true) {
 			std::vector<performance_metrics> resultsNew{};
 			for (const auto& [key, value]: getResults()) {
 				resultsNew.emplace_back(value);
@@ -119,7 +119,7 @@ namespace bnch_swt {
 		}
 
 		template<string_literal subjectNameNew, typename function_type, internal::not_invocable... arg_types>
-		BNCH_SWT_INLINE static performance_metrics runBenchmark(arg_types&&... args) {
+		BNCH_SWT_HOST static performance_metrics runBenchmark(arg_types&&... args) {
 			static constexpr string_literal subjectName{ subjectNameNew };
 			static_assert(std::convertible_to<std::invoke_result_t<decltype(function_type::impl), arg_types...>, uint64_t>,
 				"Sorry, but the lambda passed to runBenchmark() must return a uint64_t, reflecting the number of bytes processed!");
@@ -145,7 +145,7 @@ namespace bnch_swt {
 		}
 
 		template<string_literal subjectNameNew, typename function_type, internal::not_invocable... arg_types>
-		BNCH_SWT_INLINE static performance_metrics runBenchmark(function_type&& functionNew, arg_types&&... args) {
+		BNCH_SWT_HOST static performance_metrics runBenchmark(function_type&& functionNew, arg_types&&... args) {
 			static constexpr string_literal subjectName{ subjectNameNew };
 			static_assert(std::convertible_to<std::invoke_result_t<function_type, arg_types...>, uint64_t>,
 				"Sorry, but the lambda passed to runBenchmark() must return a uint64_t, reflecting the number of bytes processed!");
@@ -172,7 +172,7 @@ namespace bnch_swt {
 		}
 
 		template<string_literal subjectNameNew, typename prep_function_type, typename function_type, internal::not_invocable... arg_types>
-		BNCH_SWT_INLINE static performance_metrics runBenchmarkWithPrep(prep_function_type&& prepFunctionNew, function_type&& functionNew, arg_types&&... args) {
+		BNCH_SWT_HOST static performance_metrics runBenchmarkWithPrep(prep_function_type&& prepFunctionNew, function_type&& functionNew, arg_types&&... args) {
 			static constexpr string_literal subjectName{ subjectNameNew };
 			static_assert(std::convertible_to<std::invoke_result_t<function_type, arg_types...>, uint64_t>,
 				"Sorry, but the lambda passed to runBenchmarkWithPrep() must return a uint64_t, reflecting the number of bytes processed!");
