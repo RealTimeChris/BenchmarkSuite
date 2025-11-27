@@ -24,7 +24,7 @@
 // Sampled mostly from https://github.com/fastfloat/fast_float
 #pragma once
 
-#include <BnchSwt/Config.hpp>
+#include <BnchSwt/config.hpp>
 
 #if BNCH_SWT_PLATFORM_LINUX
 
@@ -83,7 +83,7 @@ namespace bnch_swt::internal {
 				attribs.config = static_cast<long long unsigned int>(config);
 				int32_t _fd	   = static_cast<int32_t>(syscall(__NR_perf_event_open, &attribs, pid, cpu, group, flags));
 				if (_fd == -1) {
-					reportError("perf_event_open");
+					report_error("perf_event_open");
 				}
 				ioctl(_fd, PERF_EVENT_IOC_ID, &ids[i++]);
 				if (group == -1) {
@@ -104,11 +104,11 @@ namespace bnch_swt::internal {
 		BNCH_SWT_HOST void run() {
 			if (fd != -1) {
 				if (ioctl(fd, PERF_EVENT_IOC_RESET, PERF_IOC_FLAG_GROUP) == -1) {
-					reportError("ioctl(PERF_EVENT_IOC_RESET)");
+					report_error("ioctl(PERF_EVENT_IOC_RESET)");
 				}
 
 				if (ioctl(fd, PERF_EVENT_IOC_ENABLE, PERF_IOC_FLAG_GROUP) == -1) {
-					reportError("ioctl(PERF_EVENT_IOC_ENABLE)");
+					report_error("ioctl(PERF_EVENT_IOC_ENABLE)");
 				}
 			}
 		}
@@ -116,11 +116,11 @@ namespace bnch_swt::internal {
 		BNCH_SWT_HOST void end(std::vector<uint64_t>& results) {
 			if (fd != -1) {
 				if (ioctl(fd, PERF_EVENT_IOC_DISABLE, PERF_IOC_FLAG_GROUP) == -1) {
-					reportError("ioctl(PERF_EVENT_IOC_DISABLE)");
+					report_error("ioctl(PERF_EVENT_IOC_DISABLE)");
 				}
 
 				if (read(fd, temp_result_vec.data(), temp_result_vec.size() * 8) == -1) {
-					reportError("read");
+					report_error("read");
 				}
 			}
 
@@ -129,86 +129,59 @@ namespace bnch_swt::internal {
 			}
 			for (uint32_t i = 2; i < temp_result_vec.size(); i += 2) {
 				if (ids[i / 2 - 1] != temp_result_vec[i]) {
-					reportError("event mismatch");
+					report_error("event mismatch");
 				}
 			}
 		}
 
-		bool isWorking() {
+		bool is_working() {
 			return working;
 		}
 
 	  protected:
-		BNCH_SWT_HOST void reportError(const std::string&) {
+		BNCH_SWT_HOST void report_error(const std::string&) {
 			working = false;
 		}
 	};
 
-	template<typename event_count, uint64_t count> struct event_collector_type : public linux_events, public std::vector<event_count> {
+	template<typename event_count, uint64_t count> struct event_collector_type<event_count, benchmark_types::cpu, count> : public linux_events, public std::vector<event_count> {
 		std::vector<uint64_t> results{};
-		uint64_t currentIndex{};
+		uint64_t current_index{};
 		BNCH_SWT_HOST event_collector_type()
 			: linux_events{ std::vector<int32_t>{ PERF_COUNT_HW_CPU_CYCLES, PERF_COUNT_HW_INSTRUCTIONS, PERF_COUNT_HW_BRANCH_INSTRUCTIONS, PERF_COUNT_HW_BRANCH_MISSES,
 				  PERF_COUNT_HW_CACHE_REFERENCES, PERF_COUNT_HW_CACHE_MISSES } },
-			  std::vector<event_count>{ count } {}
+			  std::vector<event_count>{ count } {
+		}
 
-		BNCH_SWT_HOST bool hasEvents() {
-			return linux_events::isWorking();
+		BNCH_SWT_HOST bool has_events() {
+			return linux_events::is_working();
 		}
 
 		template<typename function_type, typename... arg_types> BNCH_SWT_HOST void run(arg_types&&... args) {
-			if (hasEvents()) {
+			if (has_events()) {
 				linux_events::run();
 			}
 			uint64_t result;
-			const auto startClock		 = clock_type::now();
-			volatile uint64_t cycleStart = rdtsc();
-			result						 = static_cast<uint64_t>(function_type::impl(std::forward<arg_types>(args)...));
-			volatile uint64_t cycleEnd	 = rdtsc();
-			const auto endClock			 = clock_type::now();
-			std::vector<event_count>::operator[](currentIndex).cyclesVal.emplace(cycleEnd - cycleStart);
-			std::vector<event_count>::operator[](currentIndex).elapsed = endClock - startClock;
-			std::vector<event_count>::operator[](currentIndex).bytesProcessedVal.emplace(result);
-			if (hasEvents()) {
+			const auto start_clock		  = clock_type::now();
+			volatile uint64_t cycle_start = rdtsc();
+			result						  = static_cast<uint64_t>(function_type::impl(std::forward<arg_types>(args)...));
+			volatile uint64_t cycle_end	  = rdtsc();
+			const auto end_clock		  = clock_type::now();
+			std::vector<event_count>::operator[](current_index).cycles_val.emplace(cycle_end - cycle_start);
+			std::vector<event_count>::operator[](current_index).elapsed = end_clock - start_clock;
+			std::vector<event_count>::operator[](current_index).bytes_processed_val.emplace(result);
+			if (has_events()) {
 				if (results.size() != linux_events::temp_result_vec.size()) {
 					results.resize(linux_events::temp_result_vec.size());
 				}
 				linux_events::end(results);
-				std::vector<event_count>::operator[](currentIndex).instructionsVal.emplace(results[1]);
-				std::vector<event_count>::operator[](currentIndex).branchesVal.emplace(results[2]);
-				std::vector<event_count>::operator[](currentIndex).branchMissesVal.emplace(results[3]);
-				std::vector<event_count>::operator[](currentIndex).cacheReferencesVal.emplace(results[4]);
-				std::vector<event_count>::operator[](currentIndex).cacheMissesVal.emplace(results[5]);
+				std::vector<event_count>::operator[](current_index).instructions_val.emplace(results[1]);
+				std::vector<event_count>::operator[](current_index).branches_val.emplace(results[2]);
+				std::vector<event_count>::operator[](current_index).branch_misses_val.emplace(results[3]);
+				std::vector<event_count>::operator[](current_index).cache_references_val.emplace(results[4]);
+				std::vector<event_count>::operator[](current_index).cache_misses_val.emplace(results[5]);
 			}
-			++currentIndex;
-			return;
-		}
-
-		template<typename function_type, typename... arg_types> BNCH_SWT_HOST void run(function_type&& function, arg_types&&... args) {
-			if (hasEvents()) {
-				linux_events::run();
-			}
-			uint64_t result;
-			const auto startClock		 = clock_type::now();
-			volatile uint64_t cycleStart = rdtsc();
-			result						 = static_cast<uint64_t>(std::forward<function_type>(function)(std::forward<arg_types>(args)...));
-			volatile uint64_t cycleEnd	 = rdtsc();
-			const auto endClock			 = clock_type::now();
-			std::vector<event_count>::operator[](currentIndex).cyclesVal.emplace(cycleEnd - cycleStart);
-			std::vector<event_count>::operator[](currentIndex).elapsed = endClock - startClock;
-			std::vector<event_count>::operator[](currentIndex).bytesProcessedVal.emplace(result);
-			if (hasEvents()) {
-				if (results.size() != linux_events::temp_result_vec.size()) {
-					results.resize(linux_events::temp_result_vec.size());
-				}
-				linux_events::end(results);
-				std::vector<event_count>::operator[](currentIndex).instructionsVal.emplace(results[1]);
-				std::vector<event_count>::operator[](currentIndex).branchesVal.emplace(results[2]);
-				std::vector<event_count>::operator[](currentIndex).branchMissesVal.emplace(results[3]);
-				std::vector<event_count>::operator[](currentIndex).cacheReferencesVal.emplace(results[4]);
-				std::vector<event_count>::operator[](currentIndex).cacheMissesVal.emplace(results[5]);
-			}
-			++currentIndex;
+			++current_index;
 			return;
 		}
 	};

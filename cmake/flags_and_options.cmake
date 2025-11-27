@@ -1,26 +1,28 @@
-# Copyright (c) 2025 RealTimeChris (Chris M.)
-# 
-# This file is part of software offered under a restricted-use license to a designated Licensee,
-# whose identity is confirmed in writing by the Author.
-# 
-# License Terms (Summary):
-# - Exclusive, non-transferable license for internal use only.
-# - Redistribution, sublicensing, or public disclosure is prohibited without written consent.
-# - Full ownership remains with the Author.
-# - License may terminate if unused for [X months], if materially breached, or by mutual agreement.
-# - No warranty is provided, express or implied.
-# 
-# Full license terms are provided in the LICENSE file distributed with this software.
-# 
-# Signed,
-# RealTimeChris (Chris M.)
-# 2025
-# */
+#	MIT License
+#
+#	Copyright (c) 2024 RealTimeChris
+#
+#	Permission is hereby granted, free of charge, to any person obtaining a copy of this
+#	software and associated documentation files (the "Software"), to deal in the Software
+#	without restriction, including without limitation the rights to use, copy, modify, merge,
+#	publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+#	persons to whom the Software is furnished to do so, subject to the following conditions:
+#
+#	The above copyright notice and this permission notice shall be included in all copies or
+#	substantial portions of the Software.
+#
+#	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+#	INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+#	PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+#	FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+#	OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+#	DEALINGS IN THE SOFTWARE.
 
 set(BNCH_SWT_COMPILE_DEFINITIONS
     BNCH_SWT_COMPILER_CUDA=$<IF:$<CUDA_COMPILER_ID:NVIDIA>,1,0>
     BNCH_SWT_ARCH_X64=$<IF:$<OR:$<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},x86_64>,$<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},AMD64>>,1,0>
     BNCH_SWT_ARCH_ARM64=$<IF:$<OR:$<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},aarch64>,$<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},ARM64>,$<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},arm64>>,1,0>
+    BNCH_SWT_PLATFORM_ANDROID=$<IF:$<PLATFORM_ID:Android>,1,0>
     BNCH_SWT_PLATFORM_WINDOWS=$<IF:$<PLATFORM_ID:Windows>,1,0>
     BNCH_SWT_PLATFORM_LINUX=$<IF:$<PLATFORM_ID:Linux>,1,0>
     BNCH_SWT_PLATFORM_MAC=$<IF:$<PLATFORM_ID:Darwin>,1,0>
@@ -32,7 +34,7 @@ set(BNCH_SWT_COMPILE_DEFINITIONS
     BNCH_SWT_CUDA_MAX_REGISTERS=$<IF:$<CUDA_COMPILER_ID:NVIDIA>,128,0>
     "BNCH_SWT_HOST_DEVICE=$<IF:$<CUDA_COMPILER_ID:NVIDIA>,$<IF:$<CONFIG:Release>,__forceinline__ __host__ __device__,__noinline__ __host__ __device__>,$<IF:$<CONFIG:Release>,$<IF:$<CXX_COMPILER_ID:MSVC>,[[msvc::forceinline]] inline,inline __attribute__((always_inline))>,$<IF:$<CXX_COMPILER_ID:MSVC>,[[msvc::noinline]],__attribute__((noinline))>>>"
     "BNCH_SWT_HOST=$<IF:$<CUDA_COMPILER_ID:NVIDIA>,$<IF:$<CONFIG:Release>,__forceinline__ __host__,__noinline__ __host__>,$<IF:$<CONFIG:Release>,$<IF:$<CXX_COMPILER_ID:MSVC>,[[msvc::forceinline]] inline,inline __attribute__((always_inline))>,$<IF:$<CXX_COMPILER_ID:MSVC>,[[msvc::noinline]],__attribute__((noinline))>>>"
-    "BNCH_SWT_STATIC_HOST=$<IF:$<CUDA_COMPILER_ID:NVIDIA>,$<IF:$<CONFIG:Release>,static __forceinline__ __host__,__noinline__ __host__>,$<IF:$<CONFIG:Release>,$<IF:$<CXX_COMPILER_ID:MSVC>,[[msvc::forceinline]] static inline,inline static __attribute__((always_inline))>,$<IF:$<CXX_COMPILER_ID:MSVC>,[[msvc::noinline]],__attribute__((noinline))>>>"
+    "BNCH_SWT_STATIC_HOST=$<IF:$<CUDA_COMPILER_ID:NVIDIA>,$<IF:$<CONFIG:Release>,static __forceinline__ __host__,static __noinline__ __host__>,$<IF:$<CONFIG:Release>,$<IF:$<CXX_COMPILER_ID:MSVC>,[[msvc::forceinline]] static inline,inline static __attribute__((always_inline))>,$<IF:$<CXX_COMPILER_ID:MSVC>,[[msvc::noinline]] static ,__attribute__((noinline))>>>"
     "BNCH_SWT_NOINLINE_DEVICE=$<IF:$<CUDA_COMPILER_ID:NVIDIA>,$<IF:$<CONFIG:Release>,__noinline__ __device__,__noinline__ __device__>,$<IF:$<CONFIG:Release>,$<IF:$<CXX_COMPILER_ID:MSVC>,[[msvc::noinline]],__attribute__((noinline))>,$<IF:$<CXX_COMPILER_ID:MSVC>,[[msvc::noinline]],__attribute__((noinline))>>>"
     "BNCH_SWT_NOINLINE=$<IF:$<CUDA_COMPILER_ID:NVIDIA>,$<IF:$<CONFIG:Release>,__noinline__,__noinline__>,$<IF:$<CONFIG:Release>,$<IF:$<CXX_COMPILER_ID:MSVC>,[[msvc::noinline]],__attribute__((noinline))>,$<IF:$<CXX_COMPILER_ID:MSVC>,[[msvc::noinline]],__attribute__((noinline))>>>"
     "BNCH_SWT_DEVICE=$<IF:$<CUDA_COMPILER_ID:NVIDIA>,$<IF:$<CONFIG:Release>,__forceinline__ __device__,__noinline__ __device__>,$<IF:$<CONFIG:Release>,$<IF:$<CXX_COMPILER_ID:MSVC>,[[msvc::forceinline]] inline,inline __attribute__((always_inline))>,$<IF:$<CXX_COMPILER_ID:MSVC>,[[msvc::noinline]],__attribute__((noinline))>>>"
@@ -75,7 +77,6 @@ set(BNCH_SWT_CLANG_COMPILE_OPTIONS
     -Wno-c++20-compat
     -Wno-exit-time-destructors
     -Wno-c++20-extensions
-    -Werror
 )
 
 set(BNCH_SWT_APPLECLANG_COMPILE_OPTIONS 
@@ -110,7 +111,6 @@ set(BNCH_SWT_APPLECLANG_COMPILE_OPTIONS
     -Wno-exit-time-destructors
     -Wno-poison-system-directories
     -Wno-c++20-extensions
-    -Werror
 )
 
 set(BNCH_SWT_GNU_COMPILE_OPTIONS 
@@ -147,7 +147,6 @@ set(BNCH_SWT_GNU_COMPILE_OPTIONS
     -Wduplicated-branches
     -Wnull-dereference
     -Wdouble-promotion
-    -Werror
 )
 
 set(BNCH_SWT_MSVC_RELEASE_FLAGS
@@ -184,7 +183,6 @@ set(BNCH_SWT_MSVC_COMPILE_OPTIONS
     /Zc:strictStrings
     /Zc:ternary
     /Zc:wchar_t
-    /WX
     $<$<CONFIG:Release>:${BNCH_SWT_MSVC_RELEASE_FLAGS}>
 )
 
@@ -197,15 +195,20 @@ endforeach()
 
 set(BNCH_SWT_NVCC_COMPILE_OPTIONS
     ${BNCH_SWT_NVCC_HOST_FLAGS}
-    $<$<CUDA_COMPILER_ID:NVIDIA>:
-        $<$<CONFIG:Debug>:-g -G>
-        $<$<NOT:$<CONFIG:Debug>>:-O3>
-        --fmad=false
-        --prec-div=true
-        --prec-sqrt=true
-        --restrict
-        --extended-lambda
-    >
+    $<$<CONFIG:Debug>:-g -G>
+    $<$<NOT:$<CONFIG:Debug>>:-O3>
+    --fmad=false
+    --prec-div=true
+    --prec-sqrt=true
+    --restrict
+    --extended-lambda
+)
+
+set(BNCH_SWT_CXX_COMPILE_OPTIONS
+    $<$<CXX_COMPILER_ID:Clang>:${BNCH_SWT_CLANG_COMPILE_OPTIONS}>
+    $<$<CXX_COMPILER_ID:AppleClang>:${BNCH_SWT_APPLECLANG_COMPILE_OPTIONS}>
+    $<$<CXX_COMPILER_ID:GNU>:${BNCH_SWT_GNU_COMPILE_OPTIONS}>
+    $<$<CXX_COMPILER_ID:MSVC>:${BNCH_SWT_MSVC_COMPILE_OPTIONS}>
 )
 
 set(BNCH_SWT_COMPILE_OPTIONS

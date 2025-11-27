@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include <BnchSwt/Config.hpp>
+#include <BnchSwt/config.hpp>
 
 #if BNCH_SWT_PLATFORM_MAC
 
@@ -49,50 +49,46 @@
 namespace bnch_swt::internal {
 
 	struct performance_counters {
-		double branchMisses{};
+		double branch_misses{};
 		double instructions{};
 		double branches{};
 		double cycles{};
-
-		BNCH_SWT_HOST performance_counters(double c, double b, double m, double i) : branchMisses(m), instructions(i), branches(b), cycles(c) {
+		BNCH_SWT_HOST performance_counters(double c, double b, double m, double i) : branch_misses(m), instructions(i), branches(b), cycles(c) {
 		}
-
-		BNCH_SWT_HOST performance_counters(double init = 0.0) : branchMisses(init), instructions(init), branches(init), cycles(init) {
+		BNCH_SWT_HOST performance_counters(double init = 0.0) : branch_misses(init), instructions(init), branches(init), cycles(init) {
 		}
-
 		BNCH_SWT_HOST performance_counters& operator-=(const performance_counters& other) {
 			cycles -= other.cycles;
 			branches -= other.branches;
-			branchMisses -= other.branchMisses;
+			branch_misses -= other.branch_misses;
 			instructions -= other.instructions;
 			return *this;
 		}
 		BNCH_SWT_HOST performance_counters& min(const performance_counters& other) {
-			cycles		 = other.cycles < cycles ? other.cycles : cycles;
-			branches	 = other.branches < branches ? other.branches : branches;
-			branchMisses = other.branchMisses < branchMisses ? other.branchMisses : branchMisses;
-			instructions = other.instructions < instructions ? other.instructions : instructions;
+			cycles		  = other.cycles < cycles ? other.cycles : cycles;
+			branches	  = other.branches < branches ? other.branches : branches;
+			branch_misses = other.branch_misses < branch_misses ? other.branch_misses : branch_misses;
+			instructions  = other.instructions < instructions ? other.instructions : instructions;
 			return *this;
 		}
 		BNCH_SWT_HOST performance_counters& operator+=(const performance_counters& other) {
 			cycles += other.cycles;
 			branches += other.branches;
-			branchMisses += other.branchMisses;
+			branch_misses += other.branch_misses;
 			instructions += other.instructions;
 			return *this;
 		}
-
 		BNCH_SWT_HOST performance_counters& operator/=(double numerator) {
 			cycles /= numerator;
 			branches /= numerator;
-			branchMisses /= numerator;
+			branch_misses /= numerator;
 			instructions /= numerator;
 			return *this;
 		}
 	};
 
 	BNCH_SWT_HOST performance_counters operator-(const performance_counters& a, const performance_counters& b) {
-		return performance_counters(a.cycles - b.cycles, a.branches - b.branches, a.branchMisses - b.branchMisses, a.instructions - b.instructions);
+		return performance_counters(a.cycles - b.cycles, a.branches - b.branches, a.branch_misses - b.branch_misses, a.instructions - b.instructions);
 	}
 
 	#define KPC_CLASS_FIXED (0)
@@ -837,55 +833,32 @@ namespace bnch_swt::internal {
 			static_cast<double>(counters_0[counter_map[3]]), static_cast<double>(counters_0[counter_map[1]]) };
 	}
 
-	template<typename event_count, size_t count> struct event_collector_type : public std::vector<event_count> {
+	template<typename event_count, uint64_t count> struct event_collector_type<event_count, benchmark_types::cpu, count> : public std::vector<event_count> {
 		performance_counters diff{};
-		size_t currentIndex{};
-		bool hasEventsVal{};
-
-		BNCH_SWT_HOST event_collector_type() : std::vector<event_count>{ count }, diff(0), currentIndex{}, hasEventsVal{ setup_performance_counters() } {
+		size_t current_index{};
+		bool has_events_val{};
+		BNCH_SWT_HOST event_collector_type() : std::vector<event_count>{ count }, diff(0), current_index{}, has_events_val{ setup_performance_counters() } {
 		}
-
-		BNCH_SWT_HOST bool hasEvents() {
-			return hasEventsVal;
+		BNCH_SWT_HOST bool has_events() {
+			return has_events_val;
 		}
-
 		template<typename function_type, typename... arg_types> BNCH_SWT_HOST void run(arg_types&&... args) {
-			if (hasEvents()) {
+			if (has_events()) {
 				diff = get_counters();
 			}
-			const auto startClock = clock_type::now();
-			std::vector<event_count>::operator[](currentIndex).bytesProcessedVal.emplace(static_cast<size_t>(function_type::impl(std::forward<arg_types>(args)...)));
-			const auto endClock = clock_type::now();
-			if (hasEvents()) {
+			const auto start_clock = clock_type::now();
+			std::vector<event_count>::operator[](current_index).bytes_processed_val.emplace(static_cast<size_t>(function_type::impl(std::forward<arg_types>(args)...)));
+			const auto end_clock = clock_type::now();
+			if (has_events()) {
 				performance_counters end = get_counters();
 				diff					 = end - diff;
-				std::vector<event_count>::operator[](currentIndex).cyclesVal.emplace(diff.cycles);
-				std::vector<event_count>::operator[](currentIndex).instructionsVal.emplace(diff.instructions);
-				std::vector<event_count>::operator[](currentIndex).branchesVal.emplace(diff.branches);
-				std::vector<event_count>::operator[](currentIndex).branchMissesVal.emplace(diff.branchMisses);
+				std::vector<event_count>::operator[](current_index).cycles_val.emplace(diff.cycles);
+				std::vector<event_count>::operator[](current_index).instructions_val.emplace(diff.instructions);
+				std::vector<event_count>::operator[](current_index).branches_val.emplace(diff.branches);
+				std::vector<event_count>::operator[](current_index).branch_misses_val.emplace(diff.branch_misses);
 			}
-			std::vector<event_count>::operator[](currentIndex).elapsed = endClock - startClock;
-			++currentIndex;
-			return;
-		}
-
-		template<typename function_type, typename... arg_types> BNCH_SWT_HOST void run(function_type&& function, arg_types&&... args) {
-			if (hasEvents()) {
-				diff = get_counters();
-			}
-			const auto startClock = clock_type::now();
-			std::vector<event_count>::operator[](currentIndex).bytesProcessedVal.emplace(std::forward<function_type>(function)(std::forward<arg_types>(args)...));
-			const auto endClock = clock_type::now();
-			if (hasEvents()) {
-				performance_counters end = get_counters();
-				diff					 = end - diff;
-				std::vector<event_count>::operator[](currentIndex).cyclesVal.emplace(diff.cycles);
-				std::vector<event_count>::operator[](currentIndex).instructionsVal.emplace(diff.instructions);
-				std::vector<event_count>::operator[](currentIndex).branchesVal.emplace(diff.branches);
-				std::vector<event_count>::operator[](currentIndex).branchMissesVal.emplace(diff.branchMisses);
-			}
-			std::vector<event_count>::operator[](currentIndex).elapsed = endClock - startClock;
-			++currentIndex;
+			std::vector<event_count>::operator[](current_index).elapsed = end_clock - start_clock;
+			++current_index;
 			return;
 		}
 	};

@@ -23,28 +23,29 @@
 /// Sep 1, 2024
 #pragma once
 
-#include <BnchSwt/Config.hpp>
+#include <BnchSwt/config.hpp>
 #include <string_view>
 #include <algorithm>
 #include <array>
 
 namespace bnch_swt {
 
-	template<uint64_t sizeVal> struct BNCH_SWT_ALIGN string_literal {
+	template<uint64_t size_val> struct BNCH_SWT_ALIGN(64) string_literal {
 		using value_type	  = char;
 		using const_reference = const value_type&;
 		using reference		  = value_type&;
 		using const_pointer	  = const value_type*;
 		using pointer		  = value_type*;
-		using uint64_type		  = uint64_t;
+		using size_type		  = uint64_t;
 
-		static constexpr uint64_type length{ sizeVal > 0 ? sizeVal - 1 : 0 };
-		static_assert(sizeVal > 0, "Sorry, but please instantiate string_literal with an actual string!");
+		static constexpr size_type length{ size_val > 0 ? size_val - 1 : 0 };
+		static_assert(size_val > 0, "Sorry, but please instantiate string_literal with an actual string!");
 
-		constexpr string_literal() noexcept = default;
+		constexpr string_literal() noexcept {
+		}
 
-		constexpr string_literal(const char (&str)[sizeVal]) noexcept {
-			std::copy_n(str, sizeVal, values);
+		constexpr string_literal(const char (&str)[size_val]) noexcept {
+			std::copy_n(str, size_val, values);
 			values[length] = '\0';
 		}
 
@@ -56,63 +57,63 @@ namespace bnch_swt {
 			return values;
 		}
 
-		template<uint64_type sizeNew> constexpr auto operator+=(const string_literal<sizeNew>& str) const noexcept {
-			string_literal<sizeNew + sizeVal - 1> newLiteral{};
-			std::copy_n(values, size(), newLiteral.data());
-			std::copy_n(str.data(), sizeNew, newLiteral.data() + size());
-			return newLiteral;
+		template<size_type size_new> constexpr auto operator+=(const string_literal<size_new>& str) const noexcept {
+			string_literal<size_new + size_val - 1> new_literal{};
+			std::copy_n(values, size(), new_literal.data());
+			std::copy_n(str.data(), size_new, new_literal.data() + size());
+			return new_literal;
 		}
 
-		template<uint64_type sizeNew> constexpr auto operator+=(const value_type (&str)[sizeNew]) const noexcept {
-			string_literal<sizeNew + sizeVal - 1> newLiteral{};
-			std::copy_n(values, size(), newLiteral.data());
-			std::copy_n(str, sizeNew, newLiteral.data() + size());
-			return newLiteral;
+		template<size_type size_new> constexpr auto operator+=(const value_type (&str)[size_new]) const noexcept {
+			string_literal<size_new + size_val - 1> new_literal{};
+			std::copy_n(values, size(), new_literal.data());
+			std::copy_n(str, size_new, new_literal.data() + size());
+			return new_literal;
 		}
 
-		template<uint64_type sizeNew> constexpr auto operator+(const string_literal<sizeNew>& str) const noexcept {
-			string_literal<sizeNew + sizeVal - 1> newLiteral{};
-			std::copy_n(values, size(), newLiteral.data());
-			std::copy_n(str.data(), sizeNew, newLiteral.data() + size());
-			return newLiteral;
+		template<size_type size_new> constexpr auto operator+(const string_literal<size_new>& str) const noexcept {
+			string_literal<size_new + size_val - 1> new_literal{};
+			std::copy_n(values, size(), new_literal.data());
+			std::copy_n(str.data(), size_new, new_literal.data() + size());
+			return new_literal;
 		}
 
-		template<uint64_type sizeNew> constexpr auto operator+(const value_type (&str)[sizeNew]) const noexcept {
-			string_literal<sizeNew + sizeVal - 1> newLiteral{};
-			std::copy_n(values, size(), newLiteral.data());
-			std::copy_n(str, sizeNew, newLiteral.data() + size());
-			return newLiteral;
+		template<size_type size_new> constexpr auto operator+(const value_type (&str)[size_new]) const noexcept {
+			string_literal<size_new + size_val - 1> new_literal{};
+			std::copy_n(values, size(), new_literal.data());
+			std::copy_n(str, size_new, new_literal.data() + size());
+			return new_literal;
 		}
 
-		template<uint64_type sizeNew> constexpr friend auto operator+(const value_type (&lhs)[sizeNew], const string_literal<sizeVal>& str) noexcept {
-			return string_literal<sizeNew>{ lhs } + str;
+		template<size_type size_new> constexpr friend auto operator+(const value_type (&lhs)[size_new], const string_literal<size_val>& str) noexcept {
+			return string_literal<size_new>{ lhs } + str;
 		}
 
-		constexpr reference operator[](uint64_type index) noexcept {
+		constexpr reference operator[](size_type index) noexcept {
 			return values[index];
 		}
 
-		constexpr const_reference operator[](uint64_type index) const noexcept {
+		constexpr const_reference operator[](size_type index) const noexcept {
 			return values[index];
 		}
 
-		constexpr uint64_type size() const noexcept {
+		constexpr size_type size() const noexcept {
 			return length;
 		}
 
 		template<typename string_type> constexpr operator string_type() const {
-			BNCH_SWT_ALIGN string_type returnValues{ values, length };
-			return returnValues;
+			BNCH_SWT_ALIGN(64) string_type return_values{ values, length };
+			return return_values;
 		}
 
-		BNCH_SWT_ALIGN char values[sizeVal > 0 ? sizeVal : 1]{};
+		BNCH_SWT_ALIGN(64) char values[size_val > 0 ? size_val : 1] {};
 	};
 
 	template<uint64_t size> string_literal(const char (&str)[size]) -> string_literal<size>;
 
 	namespace internal {
 
-		template<uint64_t N, typename string_type> constexpr auto stringLiteralFromView(string_type str) noexcept {
+		template<uint64_t N, typename string_type> constexpr auto string_literal_from_view(string_type str) noexcept {
 			string_literal<N + 1> sl{};
 			std::copy_n(str.data(), str.size(), sl.values);
 			sl[N] = '\0';
@@ -124,7 +125,7 @@ namespace bnch_swt {
 			return std::cout;
 		}
 
-		template<typename value_type> constexpr uint64_t countDigits(value_type number) noexcept {
+		template<typename value_type> constexpr uint64_t count_digits(value_type number) noexcept {
 			uint64_t count = 0;
 			if (static_cast<int64_t>(number) < 0) {
 				number *= -1;
@@ -137,14 +138,14 @@ namespace bnch_swt {
 			return count;
 		}
 
-		template<auto number, uint64_t numDigits = countDigits(number)> constexpr string_literal<numDigits + 1> toStringLiteral() noexcept {
-			char buffer[numDigits + 1]{};
-			char* ptr = buffer + numDigits;
+		template<auto number, uint64_t num_digits = count_digits(number)> constexpr string_literal<num_digits + 1> to_string_literal() noexcept {
+			char buffer[num_digits + 1]{};
+			char* ptr = buffer + num_digits;
 			*ptr	  = '\0';
 			int64_t temp{};
 			if constexpr (number < 0) {
-				temp			   = number * -1;
-				*(ptr - numDigits) = '-';
+				temp				= number * -1;
+				*(ptr - num_digits) = '-';
 			} else {
 				temp = number;
 			}
@@ -152,17 +153,17 @@ namespace bnch_swt {
 				*--ptr = '0' + (temp % 10);
 				temp /= 10;
 			} while (temp != 0);
-			return string_literal<numDigits + 1>{ buffer };
+			return string_literal<num_digits + 1>{ buffer };
 		}
 
-		constexpr char toLower(char input) noexcept {
+		constexpr char to_lower(char input) noexcept {
 			return (input >= 'A' && input <= 'Z') ? (input + 32) : input;
 		}
 
-		template<uint64_t size> constexpr auto toLower(string_literal<size> input) noexcept {
+		template<uint64_t size> constexpr auto to_lower(string_literal<size> input) noexcept {
 			string_literal<size> output{};
 			for (uint64_t x = 0; x < size; ++x) {
-				output[x] = toLower(input[x]);
+				output[x] = to_lower(input[x]);
 			}
 			return output;
 		}

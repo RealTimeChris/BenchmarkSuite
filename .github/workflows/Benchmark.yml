@@ -65,22 +65,22 @@ jobs:
     - name: Configure CMake (Ubuntu-Gcc)
       if: matrix.os == 'ubuntu-latest' && matrix.compiler == 'gcc'
       run: |
-        cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=/usr/bin/g++-14 -DBENCHMARKS=TRUE -DGENERATE_ASSEMBLY=TRUE 
+        cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=/usr/bin/g++-14 -DBENCHMARKS=TRUE
     
     - name: Configure CMake (Ubuntu-Clang)
       if: matrix.os == 'ubuntu-latest' && matrix.compiler == 'clang'
       run: |
-        cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=/usr/bin/clang++-20 -DBENCHMARKS=TRUE -DGENERATE_ASSEMBLY=TRUE 
+        cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=/usr/bin/clang++-20 -DBENCHMARKS=TRUE
 
     - name: Configure CMake
       if: matrix.os == 'macos-latest'
       run: |
-        cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=Release -DBENCHMARKS=TRUE -DGENERATE_ASSEMBLY=TRUE 
+        cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=Release -DBENCHMARKS=TRUE
 
     - name: Configure CMake
       if: matrix.os == 'windows-latest'
       run: |
-        cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=Release -DBENCHMARKS=TRUE -DGENERATE_ASSEMBLY=TRUE 
+        cmake -S . -B ./Build -DCMAKE_BUILD_TYPE=Release -DBENCHMARKS=TRUE
 
     - name: Build the Test
       run: |
@@ -99,10 +99,10 @@ jobs:
     - name: Run the Test
       if: matrix.os != 'windows-latest'
       run: |
-            sudo chmod +x /usr/local/bin/BenchmarkExe    
-            sudo /usr/local/bin/BenchmarkExe
+            sudo chmod +x /usr/local/bin/benchmarksuite-main    
+            sudo /usr/local/bin/benchmarksuite-main
 
     - name: Run the Test
       if: matrix.os == 'windows-latest'
       run: |
-            & "C:/Program Files (x86)/BenchmarkSuite/bin/BenchmarkExe.exe"
+            & "C:/Program Files (x86)/BenchmarkSuite/bin/benchmarksuite-main.exe"

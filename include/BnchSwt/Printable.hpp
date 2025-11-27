@@ -22,7 +22,7 @@
 /// https://github.com/RealTimeChris/BenchmarkSuite
 #pragma once
 
-#include <BnchSwt/Concepts.hpp>
+#include <BnchSwt/concepts.hpp>
 #include <type_traits>
 #include <concepts>
 #include <cstdint>
@@ -62,7 +62,7 @@ namespace bnch_swt {
 
 		template<vector_t value_type> void printValue(std::ostream& os, const value_type& value) {
 			os << "[";
-			for (size_t x = 0; x < value.size(); ++x) {
+			for (uint64_t x = 0; x < value.size(); ++x) {
 				printValue(os, value[x]);
 				if (x < value.size() - 1) {
 					os << ',';
@@ -73,7 +73,7 @@ namespace bnch_swt {
 
 		template<map_t value_type> void printValue(std::ostream& os, const value_type& value) {
 			os << "{";
-			size_t index{};
+			uint64_t index{};
 			for (auto iter = value.begin(); iter != value.end(); ++iter) {
 				printValue(os, iter->first);
 				os << ":";
@@ -107,7 +107,7 @@ namespace bnch_swt {
 			os << "}";
 		}
 
-		template<tuple_t value_type, size_t index> void printValue(std::ostream& os, const value_type& value) {
+		template<tuple_t value_type, uint64_t index> void printValue(std::ostream& os, const value_type& value) {
 			if constexpr (index < std::tuple_size_v<std::remove_cvref_t<value_type>>) {
 				printValue(os, std::get<index>(value));
 				if constexpr (index < std::tuple_size_v<std::remove_cvref_t<value_type>> - 1) {

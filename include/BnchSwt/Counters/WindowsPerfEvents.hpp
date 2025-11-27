@@ -23,7 +23,7 @@
 /// Dec 6, 2024
 #pragma once
 
-#include <BnchSwt/Config.hpp>
+#include <BnchSwt/config.hpp>
 
 #if BNCH_SWT_PLATFORM_WINDOWS
 
@@ -32,24 +32,10 @@
 
 namespace bnch_swt::internal {
 
-	template<typename event_count, uint64_t count> struct event_collector_type : public std::vector<event_count> {
+	template<typename event_count, uint64_t count> struct event_collector_type<event_count, benchmark_types::cpu, count> : public std::vector<event_count> {
 		uint64_t currentIndex{};
 
 		BNCH_SWT_HOST event_collector_type() : std::vector<event_count>{ count } {};
-
-		template<typename function_type, typename... arg_types> BNCH_SWT_HOST void run(function_type&& function, arg_types&&... args) {
-			uint64_t result;
-			const auto startClock		 = clock_type::now();
-			volatile uint64_t cycleStart = __rdtsc();
-			result						 = static_cast<uint64_t>(std::forward<function_type>(function)(std::forward<arg_types>(args)...));
-			volatile uint64_t cycleEnd	 = __rdtsc();
-			const auto endClock			 = clock_type::now();
-			std::vector<event_count>::operator[](currentIndex).cyclesVal.emplace(cycleEnd - cycleStart);
-			std::vector<event_count>::operator[](currentIndex).elapsed = endClock - startClock;
-			std::vector<event_count>::operator[](currentIndex).bytesProcessedVal.emplace(result);
-			++currentIndex;
-			return;
-		}
 
 		template<typename function_type, typename... arg_types> BNCH_SWT_HOST void run(arg_types&&... args) {
 			uint64_t result;
@@ -58,9 +44,9 @@ namespace bnch_swt::internal {
 			result						 = static_cast<uint64_t>(function_type::impl(std::forward<arg_types>(args)...));
 			volatile uint64_t cycleEnd	 = __rdtsc();
 			const auto endClock			 = clock_type::now();
-			std::vector<event_count>::operator[](currentIndex).cyclesVal.emplace(cycleEnd - cycleStart);
+			std::vector<event_count>::operator[](currentIndex).cycles_val.emplace(cycleEnd - cycleStart);
 			std::vector<event_count>::operator[](currentIndex).elapsed = endClock - startClock;
-			std::vector<event_count>::operator[](currentIndex).bytesProcessedVal.emplace(result);
+			std::vector<event_count>::operator[](currentIndex).bytes_processed_val.emplace(result);
 			++currentIndex;
 			return;
 		}

@@ -51,7 +51,7 @@ BNCH_SWT_HOST void testFunction() {
         testValues00.emplace_back(std::to_string(testValues[x]));
     }
 
-    bnch_swt::benchmark_stage<"old-vs-new-i-to-str" + testName>::template runBenchmark<"glz::to_chars", "CYAN">([&] {
+    bnch_swt::benchmark_stage<"old-vs-new-i-to-str" + testName>::template run_benchmark<"glz::to_chars", "CYAN">([&] {
         uint64_t bytesProcessed = 0;
         char newerString[30]{};
         for (uint64_t x = 0; x < count; ++x) {
@@ -64,7 +64,7 @@ BNCH_SWT_HOST void testFunction() {
         return bytesProcessed;
     });
 
-    bnch_swt::benchmark_stage<"old-vs-new-i-to-str" + testName>::template runBenchmark<"jsonifier_internal::toChars", "CYAN">([&] {
+    bnch_swt::benchmark_stage<"old-vs-new-i-to-str" + testName>::template run_benchmark<"jsonifier_internal::toChars", "CYAN">([&] {
         uint64_t bytesProcessed = 0;
         char newerString[30]{};
         for (uint64_t x = 0; x < count; ++x) {
@@ -97,11 +97,11 @@ To create a benchmark:
 The `benchmark_stage` structure orchestrates each test:
 
 ### Methods
-- `runBenchmark()`: Executes a given lambda function, measuring performance. By setting the name of the benchmark 'run' using a string literal, you are instantiating a single benchmark "entity" or "library" to have its data collected and compared, within the given benchmark stage.
+- `run_benchmark()`: Executes a given lambda function, measuring performance. By setting the name of the benchmark 'run' using a string literal, you are instantiating a single benchmark "entity" or "library" to have its data collected and compared, within the given benchmark stage.
 - `printResults()`: Displays detailed performance metrics and comparisons.
 
 ### Example Benchmark Definitions
-- **`runBenchmark`**: Executes a lambda function and tracks performance.
+- **`run_benchmark`**: Executes a lambda function and tracks performance.
   - `"glz::to_chars"`: A label for the function being benchmarked.
   - `"jsonifier_internal::toChars"`: An alternative implementation to compare.
 

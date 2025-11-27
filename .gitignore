@@ -3,3 +3,7 @@ out/
 Build/
 build/
 
+cmake/detection/Build-Gpu-*
+cmake/detection/Build-Cpu-*
+cmake/detection/BuildFeatureTesterGpuProperties.bat
+cmake/detection/BuildFeatureTesterCpuProperties.bat
