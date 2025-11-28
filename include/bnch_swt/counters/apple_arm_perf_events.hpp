@@ -203,11 +203,11 @@ namespace bnch_swt::internal {
 			return -1;
 		}
 		size_t size = 4;
-		return sysctlbyname("kperf.lightweight_pet", enabled, &size, NULL, 0);
+		return sysctlbyname("kperf.lightweight_pet", enabled, &size, nullptr, 0);
 	}
 
 	BNCH_SWT_HOST static int32_t kperf_lightweight_pet_set(uint32_t enabled) {
-		return sysctlbyname("kperf.lightweight_pet", NULL, NULL, &enabled, 4);
+		return sysctlbyname("kperf.lightweight_pet", nullptr, nullptr, &enabled, 4);
 	}
 
 	#define KPEP_ARCH_I386 0
@@ -428,8 +428,8 @@ namespace bnch_swt::internal {
 	static bool lib_has_err = false;
 	static char lib_err_msg[256];
 
-	static void* lib_handle_kperf	  = NULL;
-	static void* lib_handle_kperfdata = NULL;
+	static void* lib_handle_kperf	  = nullptr;
+	static void* lib_handle_kperfdata = nullptr;
 
 	static void lib_deinit() {
 		lib_inited	= false;
@@ -438,15 +438,15 @@ namespace bnch_swt::internal {
 			dlclose(lib_handle_kperf);
 		if (lib_handle_kperfdata)
 			dlclose(lib_handle_kperfdata);
-		lib_handle_kperf	 = NULL;
-		lib_handle_kperfdata = NULL;
+		lib_handle_kperf	 = nullptr;
+		lib_handle_kperfdata = nullptr;
 		for (size_t i = 0; i < lib_nelems(lib_symbols_kperf); i++) {
 			const lib_symbol* symbol = &lib_symbols_kperf[i];
-			*symbol->impl			 = NULL;
+			*symbol->impl			 = nullptr;
 		}
 		for (size_t i = 0; i < lib_nelems(lib_symbols_kperfdata); i++) {
 			const lib_symbol* symbol = &lib_symbols_kperfdata[i];
-			*symbol->impl			 = NULL;
+			*symbol->impl			 = nullptr;
 		}
 	}
 
@@ -582,28 +582,28 @@ namespace bnch_swt::internal {
 
 	BNCH_SWT_HOST static int32_t kdebug_reset() {
 		int32_t mib[3] = { CTL_KERN, KERN_KDEBUG, KERN_KDREMOVE };
-		return sysctl(mib, 3, NULL, NULL, NULL, 0);
+		return sysctl(mib, 3, nullptr, nullptr, nullptr, 0);
 	}
 
 	BNCH_SWT_HOST static int32_t kdebug_reinit() {
 		int32_t mib[3] = { CTL_KERN, KERN_KDEBUG, KERN_KDSETUP };
-		return sysctl(mib, 3, NULL, NULL, NULL, 0);
+		return sysctl(mib, 3, nullptr, nullptr, nullptr, 0);
 	}
 
 	BNCH_SWT_HOST static int32_t kdebug_setreg(kd_regtype* kdr) {
 		int32_t mib[3] = { CTL_KERN, KERN_KDEBUG, KERN_KDSETREG };
 		size_t size	   = sizeof(kd_regtype);
-		return sysctl(mib, 3, kdr, &size, NULL, 0);
+		return sysctl(mib, 3, kdr, &size, nullptr, 0);
 	}
 
 	BNCH_SWT_HOST static int32_t kdebug_trace_setbuf(int32_t nbufs) {
 		int32_t mib[4] = { CTL_KERN, KERN_KDEBUG, KERN_KDSETBUF, nbufs };
-		return sysctl(mib, 4, NULL, NULL, NULL, 0);
+		return sysctl(mib, 4, nullptr, nullptr, nullptr, 0);
 	}
 
 	BNCH_SWT_HOST static int32_t kdebug_trace_enable(bool enable) {
 		int32_t mib[4] = { CTL_KERN, KERN_KDEBUG, KERN_KDENABLE, enable };
-		return sysctl(mib, 4, NULL, nullptr, NULL, 0);
+		return sysctl(mib, 4, nullptr, nullptr, nullptr, 0);
 	}
 
 	BNCH_SWT_HOST static int32_t kdebug_get_bufinfo(kbufinfo_t* info) {
@@ -612,7 +612,7 @@ namespace bnch_swt::internal {
 		}
 		int32_t mib[3] = { CTL_KERN, KERN_KDEBUG, KERN_KDGETBUF };
 		size_t needed  = sizeof(kbufinfo_t);
-		return sysctl(mib, 3, info, &needed, NULL, 0);
+		return sysctl(mib, 3, info, &needed, nullptr, 0);
 	}
 
 	BNCH_SWT_HOST static int32_t kdebug_trace_read(void* buf, size_t len, size_t* count) {
@@ -627,7 +627,7 @@ namespace bnch_swt::internal {
 		// input: bytes
 		// output: number of kd_buf
 		int32_t mib[3] = { CTL_KERN, KERN_KDEBUG, KERN_KDREADTR };
-		int32_t ret	   = sysctl(mib, 3, buf, &len, NULL, 0);
+		int32_t ret	   = sysctl(mib, 3, buf, &len, nullptr, 0);
 		if (ret != 0) {
 			return ret;
 		}
@@ -641,7 +641,7 @@ namespace bnch_swt::internal {
 		}
 		int32_t mib[3] = { CTL_KERN, KERN_KDEBUG, KERN_KDBUFWAIT };
 		size_t val	   = timeout_ms;
-		int32_t ret	   = sysctl(mib, 3, NULL, &val, NULL, 0);
+		int32_t ret	   = sysctl(mib, 3, nullptr, &val, nullptr, 0);
 		if (suc) {
 			*suc = !!val;
 		}
@@ -697,12 +697,12 @@ namespace bnch_swt::internal {
 			if (!name) {
 				break;
 			}
-			kpep_event* ev = NULL;
+			kpep_event* ev = nullptr;
 			if (kpep_db_event(db, name, &ev) == 0) {
 				return ev;
 			}
 		}
-		return NULL;
+		return nullptr;
 	}
 
 	static std::array<kpc_config_t, KPC_MAX_COUNTERS> regs{ 0 };
@@ -735,15 +735,15 @@ namespace bnch_swt::internal {
 
 		int32_t ret;
 		// load pmc db
-		kpep_db* db = NULL;
-		if ((ret = kpep_db_create(NULL, &db))) {
+		kpep_db* db = nullptr;
+		if ((ret = kpep_db_create(nullptr, &db))) {
 			std::cout << "Error: cannot load pmc database: " << ret << "." << std::endl;
 			return (worked = false);
 		}
 		std::cout << "loaded db: " << db->name << " (" << db->marketing_name << ")" << std::endl;
 
 		// create a config
-		kpep_config* cfg = NULL;
+		kpep_config* cfg = nullptr;
 		if ((ret = kpep_config_create(db, &cfg))) {
 			std::cout << "Failed to create kpep config: " << ret << " (" << kpep_config_error_desc(ret) << ")." << std::endl;
 			return (worked = false);
@@ -767,7 +767,7 @@ namespace bnch_swt::internal {
 		// add event to config
 		for (size_t i = 0; i < ev_count; i++) {
 			kpep_event* ev = ev_arr[i];
-			if ((ret = kpep_config_add_event(cfg, &ev, 0, NULL))) {
+			if ((ret = kpep_config_add_event(cfg, &ev, 0, nullptr))) {
 				std::cout << "Failed to add event: " << ret << " (" << kpep_config_error_desc(ret) << ")." << std::endl;
 				return (worked = false);
 			}

@@ -121,7 +121,7 @@ namespace bnch_swt::internal {
 			cache_size += collect_size(cache_level_val, PROCESSOR_CACHE_TYPE::CacheData);
 		}
 		return cache_size + collect_size(cache_level_val, cache_type);
-#elif BNCH_SWT_PLATFORM_LINUX || defined(BNCH_SWT_PLATFORM_ANDROID)
+#elif BNCH_SWT_PLATFORM_LINUX || BNCH_SWT_PLATFORM_ANDROID
 		size_t cache_size = 0;
 
 		auto get_cache_size_from_file = [](const std::string& cache_type) {
@@ -196,7 +196,7 @@ namespace bnch_swt::internal {
 #elif BNCH_SWT_PLATFORM_LINUX
 	BNCH_SWT_HOST static void flush_cache(void* ptr, size_t size, size_t, bool clear_instruction_cache = false) {
 		char* buffer = static_cast<char*>(ptr);
-	#if defined(BNCH_SWT_X86_64)
+	#if BNCH_SWT_X86_64
 		for (size_t i = 0; i < size; i += cache_line_size) {
 			__builtin_ia32_clflush(buffer + i);
 		}
@@ -206,7 +206,7 @@ namespace bnch_swt::internal {
 		if (clear_instruction_cache) {
 			__builtin___clear_cache(buffer, buffer + size);
 		}
-#elif defined(BNCH_SWT_PLATFORM_ANDROID)
+#elif BNCH_SWT_PLATFORM_ANDROID
 	BNCH_SWT_HOST static void flush_cache(void* ptr, size_t size, size_t, bool clear_instruction_cache = false) {
 		char* buffer = static_cast<char*>(ptr);
 		if (clear_instruction_cache) {

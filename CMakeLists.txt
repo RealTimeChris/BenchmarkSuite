@@ -40,6 +40,7 @@ if(BNCH_SWT_CUDA)
     set(BNCH_SWT_LANGUAGE CUDA)
     project(benchmark_suite
         VERSION 1.0.0
+        DESCRIPTION "benchmark_suite: You trained the model. benchmark_suite gives it a voice."
         LANGUAGES CUDA 
     )
     find_package(CUDAToolkit REQUIRED COMPONENTS cudart)
@@ -52,6 +53,7 @@ else()
     set(BNCH_SWT_LANGUAGE CXX)
     project(benchmark_suite
         VERSION 1.0.0
+        DESCRIPTION "benchmark_suite: You trained the model. benchmark_suite gives it a voice."
         LANGUAGES CXX
     )
     set(BNCH_SWT_MAIN_FILE_EXTENSION .cpp)
