@@ -105,4 +105,4 @@ jobs:
     - name: Run the Test
       if: matrix.os == 'windows-latest'
       run: |
-            & "C:/Program Files (x86)/BenchmarkSuite/bin/benchmarksuite-main.exe"
+            & "C:/Program Files (x86)/benchmark_suite/bin/benchmarksuite-main.exe"

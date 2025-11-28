@@ -23,15 +23,15 @@
 /// Sep 1, 2024
 #pragma once
 
-#include <BnchSwt/config.hpp>
+#include <bnch_swt/config.hpp>
 #include <iostream>
+#include <fstream>
 
 #if BNCH_SWT_PLATFORM_WINDOWS
 	#include <Windows.h>
 	#include <intrin.h>
 #elif BNCH_SWT_PLATFORM_LINUX
-	#include <unistd.h>
-	#include <fstream>
+	#include <unistd.h>	
 	#include <vector>
 	#include <string>
 	#if defined(__i386__) || defined(__x86_64__)
@@ -121,7 +121,7 @@ namespace bnch_swt::internal {
 			cache_size += collect_size(cache_level_val, PROCESSOR_CACHE_TYPE::CacheData);
 		}
 		return cache_size + collect_size(cache_level_val, cache_type);
-#elif BNCH_SWT_PLATFORM_LINUX || defined(BNCH_SWT_ANDROID)
+#elif BNCH_SWT_PLATFORM_LINUX || defined(BNCH_SWT_PLATFORM_ANDROID)
 		size_t cache_size = 0;
 
 		auto get_cache_size_from_file = [](const std::string& cache_type) {
@@ -206,7 +206,7 @@ namespace bnch_swt::internal {
 		if (clear_instruction_cache) {
 			__builtin___clear_cache(buffer, buffer + size);
 		}
-#elif defined(BNCH_SWT_ANDROID)
+#elif defined(BNCH_SWT_PLATFORM_ANDROID)
 	BNCH_SWT_HOST static void flush_cache(void* ptr, size_t size, size_t, bool clear_instruction_cache = false) {
 		char* buffer = static_cast<char*>(ptr);
 		if (clear_instruction_cache) {
@@ -223,7 +223,7 @@ namespace bnch_swt::internal {
 #endif
 	}
 
-	template<benchmark_types benchmark_type = benchmark_types::cpu> class cache_clearer {
+	template<benchmark_types benchmark_type> class cache_clearer {
 		size_t cache_line_size{ get_cache_line_size() };
 		std::array<size_t, 3> cache_sizes{ { get_cache_size(cache_level::one), get_cache_size(cache_level::two), get_cache_size(cache_level::three) } };
 		size_t top_level_cache{ [&] {

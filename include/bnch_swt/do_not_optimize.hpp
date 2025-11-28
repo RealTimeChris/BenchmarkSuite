@@ -23,7 +23,7 @@
 /// Sep 1, 2024
 #pragma once
 
-#include <BnchSwt/config.hpp>
+#include <bnch_swt/config.hpp>
 
 namespace bnch_swt::internal {
 

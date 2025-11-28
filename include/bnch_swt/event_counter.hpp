@@ -1,4 +1,4 @@
-// BnchSwt/event_counter.hpp
+// bnch_swt/event_counter.hpp
 /*
 	MIT License
 
@@ -24,12 +24,12 @@
 /// Dec 6, 2024
 #pragma once
 
-#include <BnchSwt/config.hpp>
-#include <BnchSwt/Counters/AppleArmPerfEvents.hpp>
-#include <BnchSwt/Counters/WindowsPerfEvents.hpp>
-#include <BnchSwt/Counters/LinuxPerfEvents.hpp>
-#include <BnchSwt/Counters/AndriodEvents.hpp>
-#include <BnchSwt/Counters/CudaEvents.hpp>
+#include <bnch_swt/config.hpp>
+#include <bnch_swt/counters/apple_arm_perf_events.hpp>
+#include <bnch_swt/counters/windows_perf_events.hpp>
+#include <bnch_swt/counters/linux_perf_events.hpp>
+#include <bnch_swt/counters/andriod_events.hpp>
+#include <bnch_swt/counters/cuda_perf_events.hpp>
 #include <optional>
 #include <chrono>
 

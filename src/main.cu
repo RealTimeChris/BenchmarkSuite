@@ -19,7 +19,7 @@
 	OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 	DEALINGS IN THE SOFTWARE.
 */
-/// https://github.com/RealTimeChris/BenchmarkSuite
+/// https://github.com/RealTimeChris/benchmark_suite
 /*
     MIT License
     Copyright (c) 2024 RealTimeChris
@@ -27,7 +27,7 @@
     Compute vs Memory Bound Workload Analysis
     Using __device__ globals for kernel access!
 */
-#include <BnchSwt/index,hpp>
+#include <bnch_swt/index.hpp>
 #include <cuda_runtime.h>
 #include <vector>
 #include <iostream>
@@ -247,7 +247,7 @@ void print_roofline_result(const char* name, double time_ms, uint64_t bytes, uin
 int main() {
 	std::cout << "\n" << std::string(120, '=') << "\n";
 	std::cout << "  COMPUTE vs MEMORY BOUND WORKLOAD ANALYSIS (RTX 5070 Ti)\n";
-	std::cout << "  Using BenchmarkSuite Framework Result Collection\n";
+	std::cout << "  Using benchmark_suite Framework Result Collection\n";
 	std::cout << std::string(120, '=') << "\n\n";
 
 	// GPU info

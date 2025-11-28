@@ -6,19 +6,19 @@ The following operating systems and compilers are officially supported:
 
 ### Compiler Support
 ----
-![MSVC](https://img.shields.io/github/actions/workflow/status/RealTimeChris/BenchmarkSuite/MSVC-Windows.yml?style=plastic&logo=microsoft&logoColor=green&label=MSVC&labelColor=pewter&color=blue&branch=main)
-![GCC](https://img.shields.io/github/actions/workflow/status/RealTimeChris/BenchmarkSuite/GCC-Ubuntu.yml?style=plastic&logo=linux&logoColor=green&label=GCC&labelColor=pewter&color=blue&branch=main)
-![CLANG](https://img.shields.io/github/actions/workflow/status/RealTimeChris/BenchmarkSuite/CLANG-MacOS.yml?style=plastic&logo=apple&logoColor=green&label=CLANG&labelColor=pewter&color=blue&branch=main)
+![MSVC](https://img.shields.io/github/actions/workflow/status/RealTimeChris/benchmark_suite/benchmark.yml?style=plastic&logo=microsoft&logoColor=green&label=MSVC&labelColor=pewter&color=blue&branch=main)
+![GCC](https://img.shields.io/github/actions/workflow/status/RealTimeChris/benchmark_suite/benchmark.yml?style=plastic&logo=linux&logoColor=green&label=GCC&labelColor=pewter&color=blue&branch=main)
+![CLANG](https://img.shields.io/github/actions/workflow/status/RealTimeChris/benchmark_suite/benchmark.yml?style=plastic&logo=apple&logoColor=green&label=CLANG&labelColor=pewter&color=blue&branch=main)
 
 ### Operating System Support
 ----
-![Windows](https://img.shields.io/github/actions/workflow/status/RealTimeChris/BenchmarkSuite/MSVC-Windows.yml?style=plastic&logo=microsoft&logoColor=green&label=Windows&labelColor=pewter&color=blue&branch=main)
-![Linux](https://img.shields.io/github/actions/workflow/status/RealTimeChris/BenchmarkSuite/GCC-Ubuntu.yml?style=plastic&logo=linux&logoColor=green&label=Linux&labelColor=pewter&color=blue&branch=main)
-![Mac](https://img.shields.io/github/actions/workflow/status/RealTimeChris/BenchmarkSuite/CLANG-MacOS.yml?style=plastic&logo=apple&logoColor=green&label=MacOS&labelColor=pewter&color=blue&branch=main)
+![Windows](https://img.shields.io/github/actions/workflow/status/RealTimeChris/benchmark_suite/benchmark.yml?style=plastic&logo=microsoft&logoColor=green&label=Windows&labelColor=pewter&color=blue&branch=main)
+![Linux](https://img.shields.io/github/actions/workflow/status/RealTimeChris/benchmark_suite/benchmark.yml?style=plastic&logo=linux&logoColor=green&label=Linux&labelColor=pewter&color=blue&branch=main)
+![Mac](https://img.shields.io/github/actions/workflow/status/RealTimeChris/benchmark_suite/benchmark.yml?style=plastic&logo=apple&logoColor=green&label=MacOS&labelColor=pewter&color=blue&branch=main)
 
-# Quickstart Guide for BenchmarkSuite
+# Quickstart Guide for benchmark_suite
 
-This guide will walk you through setting up and running benchmarks using `BenchmarkSuite`.
+This guide will walk you through setting up and running benchmarks using `benchmark_suite`.
 
 ## Table of Contents
 - [Installation](#installation)
@@ -28,10 +28,10 @@ This guide will walk you through setting up and running benchmarks using `Benchm
 - [Output and Results](#output-and-results)
 
 ## Installation
-To use `BenchmarkSuite`, include the necessary header files in your project. Ensure you have a C++23 (or later) compliant compiler.
+To use `benchmark_suite`, include the necessary header files in your project. Ensure you have a C++23 (or later) compliant compiler.
 
 ```cpp
-#include <BnchSwt/BenchmarkSuite.hpp>
+#include <bnch_swt/benchmark_suite.hpp>
 #include <vector>
 #include <string>
 #include <cstring>
@@ -157,5 +157,5 @@ This structured output helps you quickly identify which implementation is faster
 
 ---
 
-Now you’re ready to start benchmarking with **BenchmarkSuite**!
+Now you’re ready to start benchmarking with **benchmark_suite**!
 

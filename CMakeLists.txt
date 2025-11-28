@@ -38,22 +38,20 @@ option(BNCH_SWT_CPU "CPU build" OFF)
 
 if(BNCH_SWT_CUDA)
     set(BNCH_SWT_LANGUAGE CUDA)
-    project(BenchmarkSuite
+    project(benchmark_suite
         VERSION 1.0.0
-        DESCRIPTION "BenchmarkSuite: You trained the model. BenchmarkSuite gives it a voice."
         LANGUAGES CUDA 
     )
     find_package(CUDAToolkit REQUIRED COMPONENTS cudart)
-    include(cmake/detection/BenchmarkSuiteDetectGpuProperties.cmake)
+    include(cmake/detection/benchmarksuite_detect_gpu_properties.cmake)
     set(CMAKE_CUDA_ARCHITECTURES ${BNCH_SWT_MAJOR_COMPUTE_CAPABILITY}${BNCH_SWT_MINOR_COMPUTE_CAPABILITY} CACHE STRING "Cuda architectures." FORCE)
     set(BNCH_SWT_MAIN_FILE_EXTENSION .cu)
     set(CMAKE_CUDA_STANDARD 20)
     set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 else()
     set(BNCH_SWT_LANGUAGE CXX)
-    project(BenchmarkSuite
+    project(benchmark_suite
         VERSION 1.0.0
-        DESCRIPTION "BenchmarkSuite: You trained the model. BenchmarkSuite gives it a voice."
         LANGUAGES CXX
     )
     set(BNCH_SWT_MAIN_FILE_EXTENSION .cpp)
@@ -61,7 +59,7 @@ else()
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif()
 
-include(cmake/detection/BenchmarkSuiteDetectCpuProperties.cmake)
+include(cmake/detection/benchmarksuite_detect_cpu_properties.cmake)
 
 set(BNCH_SWT_COMPILER_ID ${CMAKE_${BNCH_SWT_LANGUAGE}_COMPILER_ID})
 
@@ -148,7 +146,7 @@ if (NOT BNCH_SWT_NO_INSTALL)
     )
 endif()
 
-message(STATUS "BenchmarkSuite Configuration Summary:")
+message(STATUS "benchmark_suite Configuration Summary:")
 message(STATUS "=============================")
 message(STATUS "Version: ${PROJECT_VERSION}")
 

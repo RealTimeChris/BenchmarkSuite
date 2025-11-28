@@ -19,8 +19,8 @@
 	OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 	DEALINGS IN THE SOFTWARE.
 */
-/// https://github.com/RealTimeChris/BenchmarkSuite
-#include <BnchSwt/index,hpp>
+/// https://github.com/RealTimeChris/benchmark_suite
+#include <bnch_swt/index.hpp>
 
 static constexpr uint64_t total_iterations{ 10 };
 static constexpr uint64_t measured_iterations{ 10 };

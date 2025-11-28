@@ -23,17 +23,17 @@
 /// Dec 6, 2024
 #pragma once
 
-#include <BnchSwt/benchmarksuite_gpu_properties.hpp>
-#include <BnchSwt/BenchmarkSuiteCpuProperties.hpp>
-#include <BnchSwt/RandomGenerators.hpp>
-#include <BnchSwt/StringLiteral.hpp>
-#include <BnchSwt/DoNotOptimize.hpp>
-#include <BnchSwt/event_counter.hpp>
-#include <BnchSwt/cache_clearer.hpp>
-#include <BnchSwt/file_loader.hpp>
-#include <BnchSwt/Printable.hpp>
-#include <BnchSwt/Metrics.hpp>
-#include <BnchSwt/config.hpp>
+#include <bnch_swt/benchmarksuite_gpu_properties.hpp>
+#include <bnch_swt/benchmarksuite_cpu_properties.hpp>
+#include <bnch_swt/random_generators.hpp>
+#include <bnch_swt/string_literal.hpp>
+#include <bnch_swt/do_not_optimize.hpp>
+#include <bnch_swt/event_counter.hpp>
+#include <bnch_swt/cache_clearer.hpp>
+#include <bnch_swt/file_loader.hpp>
+#include <bnch_swt/printable.hpp>
+#include <bnch_swt/metrics.hpp>
+#include <bnch_swt/config.hpp>
 #include <unordered_map>
 
 namespace bnch_swt {
@@ -200,19 +200,16 @@ namespace bnch_swt {
 	struct benchmark_stage {
 		static_assert(max_execution_count % measured_iteration_count == 0, "Sorry, but please enter a max_execution_count that is divisible by measured_iteration_count.");
 
-		inline static thread_local std::unordered_map<std::string_view, performance_metrics<benchmark_type>> results{};
-
-		struct results_getter {
-			static auto& get_results() {
-				return results;
-			}
-		};
+		BNCH_SWT_HOST static auto& get_results_internal() {
+			static thread_local std::unordered_map<std::string_view, performance_metrics<benchmark_type>> results{};
+			return results;
+		}
 
 		static constexpr bool use_non_mbps_metric{ metric_name_new.size() == 0 };
 
 		BNCH_SWT_HOST static void print_results(bool show_comparison = true, bool show_metrics = true) {
 			std::vector<performance_metrics<benchmark_type>> results_new{};
-			for (const auto& [key, value]: results_getter::get_results()) {
+			for (const auto& [key, value]: get_results_internal()) {
 				results_new.emplace_back(value);
 			}
 			if (results_new.size() > 0) {
@@ -225,7 +222,7 @@ namespace bnch_swt {
 
 		BNCH_SWT_HOST static auto get_results() {
 			std::vector<performance_metrics<benchmark_type>> results_new{};
-			for (const auto& [key, value]: results_getter::get_results()) {
+			for (const auto& [key, value]: get_results_internal()) {
 				results_new.emplace_back(value);
 			}
 			if (results_new.size() > 0) {
@@ -242,7 +239,7 @@ namespace bnch_swt {
 					"Sorry, but the lambda passed to run_benchmark() must return a uint64_t, reflecting the number of bytes processed!");
 			}
 			internal::event_collector<max_execution_count, benchmark_type> events{};
-			internal::cache_clearer cache_clearer{};
+			internal::cache_clearer<benchmark_type> cache_clearer{};
 			performance_metrics<benchmark_type> lowest_results{};
 			performance_metrics<benchmark_type> results_temp{};
 			uint64_t current_global_index{ measured_iteration_count };
@@ -259,8 +256,8 @@ namespace bnch_swt {
 					  current_global_index);
 				lowest_results = results_temp.throughput_percentage_deviation < lowest_results.throughput_percentage_deviation ? results_temp : lowest_results;
 			}
-			results[subject_name.operator std::string_view()] = lowest_results;
-			return results[subject_name.operator std::string_view()];
+			get_results_internal()[subject_name.operator std::string_view()] = lowest_results;
+			return get_results_internal()[subject_name.operator std::string_view()];
 		}
 	};
 

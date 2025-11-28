@@ -196,6 +196,6 @@ message(STATUS "GPU Configuration: ${BNCH_SWT_SM_COUNT} SMs, ${BNCH_SWT_TOTAL_TH
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/cmake/detection/benchmarksuite_gpu_properties.hpp.in
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/BnchSwt/benchmarksuite_gpu_properties.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/bnch_swt/benchmarksuite_gpu_properties.hpp
     @ONLY
 )

@@ -9,12 +9,12 @@ class ComposerStaticInit759b9552f713b90c8730669e05f04008
     public static $prefixLengthsPsr4 = array (
         'B' => 
         array (
-            'BenchmarkSuite\\packager\\' => 24,
+            'benchmark_suite\\packager\\' => 24,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'BenchmarkSuite\\packager\\' => 
+        'benchmark_suite\\packager\\' => 
         array (
             0 => __DIR__ . '/../..' . '/classes/packager',
         ),

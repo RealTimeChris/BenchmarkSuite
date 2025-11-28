@@ -24,7 +24,7 @@ add_executable(benchmarksuite-main ${MAIN_SOURCE})
 
 target_link_libraries(benchmarksuite-main
     PUBLIC
-        BenchmarkSuite::BenchmarkSuite
+        benchmark_suite::benchmark_suite
 )
 
 if(MSVC)

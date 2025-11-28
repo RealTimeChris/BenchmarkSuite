@@ -19,10 +19,10 @@
 	OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 	DEALINGS IN THE SOFTWARE.
 */
-/// https://github.com/RealTimeChris/BenchmarkSuite
+/// https://github.com/RealTimeChris/benchmark_suite
 #pragma once
 
-#include <BnchSwt/concepts.hpp>
+#include <bnch_swt/concepts.hpp>
 #include <type_traits>
 #include <concepts>
 #include <cstdint>

@@ -1,11 +1,11 @@
-// BnchSwt/Counters/AndroidCounters.hpp
+// bnch_swt/Counters/AndroidCounters.hpp
 #pragma once
 
-#include <BnchSwt/config.hpp>
+#include <bnch_swt/config.hpp>
 #include <vector>
 #include <chrono>
 
-#if BNCH_SWT_ANDROID
+#if BNCH_SWT_PLATFORM_ANDROID
 
 namespace bnch_swt::internal {
 

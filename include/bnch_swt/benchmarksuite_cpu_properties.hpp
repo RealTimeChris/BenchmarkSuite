@@ -19,7 +19,7 @@ RealTimeChris (Chris M.)
 */
 #pragma once
 
-#include <BnchSwt/aligned_const.hpp>
+#include <bnch_swt/aligned_const.hpp>
 
 namespace bnch_swt {
 

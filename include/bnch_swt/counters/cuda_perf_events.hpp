@@ -24,7 +24,7 @@
 // Sampled mostly from https://github.com/fastfloat/fast_float
 #pragma once
 
-#include <BnchSwt/config.hpp>
+#include <bnch_swt/config.hpp>
 
 #if BNCH_SWT_COMPILER_CUDA
 

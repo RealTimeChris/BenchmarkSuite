@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include <BnchSwt/config.hpp>
+#include <bnch_swt/config.hpp>
 
 #if BNCH_SWT_PLATFORM_MAC
 

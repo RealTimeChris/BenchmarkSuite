@@ -1,6 +1,6 @@
 <?php
 
-namespace BenchmarkSuite\packager;
+namespace benchmark_suite\packager;
 
 use \RuntimeException;
 
@@ -102,7 +102,7 @@ class Vcpkg
             /* Empty tag means use the main branch */
             $tag = `{$this->git} config --get init.defaultBranch || echo main`;
         }
-	$repositoryUrl = 'https://' . urlencode($argv[1]) . ':' . urlencode($argv[2]) . '@github.com/realtimechris/BenchmarkSuite';
+	$repositoryUrl = 'https://' . urlencode($argv[1]) . ':' . urlencode($argv[2]) . '@github.com/realtimechris/benchmark_suite';
 
         echo GREEN . "Check out repository: $tag (user: ". $argv[1] . " branch: " . $tag . ")\n" . WHITE;
 
